@@ -141,8 +141,8 @@ You are free to bundle this mod and any of its .ini files with your own pursuit 
 &nbsp;
 
 This mod would not have seen the light of day without
-* **rx**, for encouraging me to try .asi modding;
-* **nlgxzef**, for the Most Wanted debug symbols;
+* **[rx](https://github.com/rxyyy)**, for encouraging me to try .asi modding;
+* **[nlgxzef](https://github.com/nlgxzef)**, for the Most Wanted debug symbols;
 * **DarkByte**, for [Cheat Engine](https://www.cheatengine.org/);
 * **GuidedHacking**, for their [Cheat Engine](https://www.youtube.com/playlist?list=PLt9cUwGw6CYFSoQHsf9b12kHWLdgYRhmQ) tutorials;
 * **trelbutate**, for his [NFSMW Cop Car Healthbars](https://github.com/trelbutate/MWHealthbars/) mod as a resource; and
