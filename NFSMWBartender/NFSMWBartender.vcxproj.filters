@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Modifications">
+      <UniqueIdentifier>{55943e8b-1479-4d97-9d85-045d5a9133f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Libraries">
+      <UniqueIdentifier>{76ba4780-d613-49c9-8716-a2ce15e72b8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\General">
+      <UniqueIdentifier>{5a20c96a-326e-491c-ba6b-119f92c1a0a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Modifications\Basic">
+      <UniqueIdentifier>{d47fbf6b-9b5a-42e7-a3f7-a947a75579ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Modifications\Advanced">
+      <UniqueIdentifier>{af4345db-acb4-4116-a6eb-24bb3f5c5760}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config Files">
+      <UniqueIdentifier>{62493dc3-8065-4ce0-b212-5c8497ef84db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config Files\Basic">
+      <UniqueIdentifier>{5a9441b9-fa4a-47ba-855e-bf49158a7ad4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config Files\Advanced">
+      <UniqueIdentifier>{4a623eac-b257-4798-9d2d-15c127689188}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation">
+      <UniqueIdentifier>{b05c5ef2-1c0e-4f92-871d-5caa1ca7ebc0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="inipp.h">
+      <Filter>Header Files\Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Header Files\General</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryEditor.h">
+      <Filter>Header Files\General</Filter>
+    </ClInclude>
+    <ClInclude Include="RandomNumbers.h">
+      <Filter>Header Files\General</Filter>
+    </ClInclude>
+    <ClInclude Include="StateObserver.h">
+      <Filter>Header Files\Modifications</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigParser.h">
+      <Filter>Header Files\General</Filter>
+    </ClInclude>
+    <ClInclude Include="DestructionStrings.h">
+      <Filter>Header Files\Modifications\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="GroundSupport.h">
+      <Filter>Header Files\Modifications\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="Miscellaneous.h">
+      <Filter>Header Files\Modifications\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="PursuitBar.h">
+      <Filter>Header Files\Modifications\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="CopFleeOverrides.h">
+      <Filter>Header Files\Modifications\Advanced</Filter>
+    </ClInclude>
+    <ClInclude Include="CopSpawnOverrides.h">
+      <Filter>Header Files\Modifications\Advanced</Filter>
+    </ClInclude>
+    <ClInclude Include="CopSpawnTables.h">
+      <Filter>Header Files\Modifications\Advanced</Filter>
+    </ClInclude>
+    <ClInclude Include="HelicopterOverrides.h">
+      <Filter>Header Files\Modifications\Advanced</Filter>
+    </ClInclude>
+    <ClInclude Include="PursuitFeatures.h">
+      <Filter>Header Files\Modifications\Advanced</Filter>
+    </ClInclude>
+    <ClInclude Include="PursuitObserver.h">
+      <Filter>Header Files\Modifications\Advanced</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\BartenderSettings\Basic\General.ini">
+      <Filter>Config Files\Basic</Filter>
+    </None>
+    <None Include="..\BartenderSettings\Basic\Labels.ini">
+      <Filter>Config Files\Basic</Filter>
+    </None>
+    <None Include="..\BartenderSettings\Basic\Supports.ini">
+      <Filter>Config Files\Basic</Filter>
+    </None>
+    <None Include="..\BartenderSettings\Advanced\Cars.ini">
+      <Filter>Config Files\Advanced</Filter>
+    </None>
+    <None Include="..\BartenderSettings\Advanced\General.ini">
+      <Filter>Config Files\Advanced</Filter>
+    </None>
+    <None Include="..\BartenderSettings\Advanced\Helicopter.ini">
+      <Filter>Config Files\Advanced</Filter>
+    </None>
+    <None Include="..\README.md">
+      <Filter>Documentation</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Thumbnail.jpg">
+      <Filter>Documentation</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\README.txt">
+      <Filter>Documentation</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
