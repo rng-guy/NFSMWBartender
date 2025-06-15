@@ -1,5 +1,5 @@
 
- ── ■ │ NFSMW Bartender (v1.0.8) │ ■ ───────────────────────────────────────────────────────────────
+ ── ■ │ NFSMW Bartender (v1.0.9) │ ■ ───────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -175,3 +175,4 @@ v1.0.5: Clarified "Event" spawns in Cars.ini
 v1.0.6: Clarified string assignment in Labels.ini
 v1.0.7: Clarified ignored VltEd parameters when "Advanced" feature set is enabled
 v1.0.8: Corrected a few typos in README
+v1.0.9: Clarified cooldowns in Support.ini and helicopter spawns in Helicopter.ini
