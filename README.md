@@ -115,14 +115,14 @@ The two feature sets of this mod each come with caveats and limitations. To avoi
 &nbsp;
 
 "**Basic**" feature set:
-* Any vehicles you specify to replace the ramming SUVs (`BartenderSettings\Basic\Supports.ini`) should each have a low `MAXIMUM_AI_SPEED` value (the vanilla SUVs use 50) in their VltEd `aivehicle` entries. If they don't, they might cause stability issues by joining the pursuit after their ramming attempt(s); this effectively makes them circumvent the global spawn limit, and the (vanilla) game really does not like having to manage more than 8 active cars for long.
+* Any vehicles you specify to replace the ramming SUVs (`BartenderSettings\Basic\Supports.ini`) should each have a low `MAXIMUM_AI_SPEED` value (the vanilla SUVs use 50) in their VltEd `aivehicle` entries. If they don't, they might cause stability issues by joining the pursuit after their ramming attempt(s); this effectively makes them circumvent the global spawn limit, and the (vanilla) game really does not like managing more than 8 active cops for very long.
 * The string assignment for cops (`BartenderSettings\Basic\Labels.ini`) is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. Either delete this mod's `Labels.ini` file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file (should be in its `[Main]` section).
 
 &nbsp;
 
 "**Advanced**" feature set:
-* The entire feature set disables itself if *any* Heat level lacks a valid spawn table for "Chasers" (`BartenderSettings\Advanced\Cars.ini`). You must specify at least one car for each.
-* If the feature set is enabled, the `cops` VltEd entries of all Heat levels are ignored. Apart from those and `SearchModeHeliSpawnChance`, all other VltEd parameters stay functional.
+* The feature set disables itself if *any* Heat level lacks a valid spawn table for "Chasers" (`BartenderSettings\Advanced\Cars.ini`); you must specify at least one car for each level.
+* If the feature set is enabled, the `cops` VltEd entries of all Heat levels are ignored. Apart from those and `SearchModeHeliSpawnChance`, all other VltEd parameters stay functional. (With this feature set, the helicopter will always spawn when its (re-)spawn timer expires.)
 * All helicopter vehicles you specify (`BartenderSettings\Advanced\Helicopter.ini`) must each have the `CHOPPER` class assigned to them in their `pvehicle` VltEd entries.
 * Rarely, cops that are not in "Roadblock" spawn tables (`BartenderSettings\Advanced\Cars.ini`) might still show up in roadblocks. This is a vanilla bug; it usually happens when the game attempts to spawn a "Chaser" while it is processing a roadblock request, causing it to place the wrong car in the requested roadblock. This bug isn't restricted to cop spawns: if the stars align, it can also happen with traffic cars or even the helicopter.
 * The first scripted cop to spawn in a given event is always of the type specified in the event's VltEd entry instead of the "Event" spawn tables (`BartenderSettings\Advanced\Cars.ini`). This is because the game actually requests the first cop before it loads any pursuit or Heat level information, which makes it impossible for the mod to know which table to use for this one car.

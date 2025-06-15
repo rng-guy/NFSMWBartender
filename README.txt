@@ -1,5 +1,5 @@
 
- ── ■ │ NFSMW Bartender (v1.0.2) │ ■ ───────────────────────────────────────────────────────────────
+ ── ■ │ NFSMW Bartender (v1.0.3) │ ■ ───────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -100,7 +100,7 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
    should each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) in their VltEd 
    "aivehicle" entries. If they don't, they might cause stability issues by joining the pursuit 
    after their ramming attempt(s); this effectively makes them circumvent the global spawn limit,
-   and the (vanilla) game really does not like having to manage more than 8 active cars for long.
+   and the (vanilla) game really does not like managing more than 8 active cops for very long.
 
  • The string assignment for cops ("BartenderSettings\Basic\Labels.ini") is incompatible with
    the "EnableCopDestroyedStringHook" feature of the "NFSMW Unlimiter" mod by nlgxzef. Either
@@ -110,11 +110,12 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 
 "Advanced" feature set:
 
- • The entire feature set disables itself if ANY Heat level lacks a valid spawn table for
-   "Chasers" ("BartenderSettings\Advanced\Cars.ini"). You must specify at least one car for each.
+ • The feature set disables itself if ANY Heat level lacks a valid spawn table for "Chasers" 
+   ("BartenderSettings\Advanced\Cars.ini"); you must specify at least one car for each level.
 
  • If the feature set is enabled, the "cops" VltEd entries of all Heat levels are ignored.
    Apart from those and "SearchModeHeliSpawnChance", all other VltEd parameters stay functional.
+   (With this feature set, the helicopter will always spawn when its (re-)spawn timer expires.)
 
  • All helicopter vehicles you specify ("BartenderSettings\Advanced\Helicopter.ini") must each 
    have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
@@ -168,3 +169,4 @@ This mod would not have seen the light of day without
 v1.0.0: Initial release
 v1.0.1: Revised "Limitations" section in README
 v1.0.2: Revised multiple sections in README
+v1.0.3: Yet another minor README revision
