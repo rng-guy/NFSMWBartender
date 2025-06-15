@@ -1,5 +1,5 @@
 
- ── ■ │ NFSMW Bartender (v1.0.5) │ ■ ───────────────────────────────────────────────────────────────
+ ── ■ │ NFSMW Bartender (v1.0.6) │ ■ ───────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -33,10 +33,10 @@ This feature set fixes two bugs:
  • you can no longer get BUSTED due to line-of-sight issues while the EVADE bar fills, and
  • ground supports (Cross, Rhinos etc.) will no longer stop spawning in longer pursuits.
 
-You can also assign new (Binary) strings for the game to display when you destroy a given car,
-like the "NFSMW Unlimiter" mod by nlgxzef does. Compared to Unlimiter, this mod's implementation
-of this feature is easier to configure, leaner, and even checks strings for correctness on game
-launch: It ignores any that do not actually exist in the game's (modified) binary files.
+You can also assign new (Binary) strings for the game to display when cop vehicles are destroyed,
+similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, this mod's implementation of
+this feature is easier to configure, leaner, and even checks strings for correctness on game launch,
+ignoring any strings specified here that do not actually exist in the game's (modified) binary files.
 
 
 
@@ -172,3 +172,4 @@ v1.0.2: Revised multiple sections in README
 v1.0.3: Yet another minor README revision
 v1.0.4: README? More like "FIXME"
 v1.0.5: Clarified "Event" spawns in Cars.ini
+v1.0.6: Clarified string assignment in Labels.ini
