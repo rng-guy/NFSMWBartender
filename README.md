@@ -98,7 +98,7 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 
 To **install** this mod, copy its `BartenderSettings` folder and compiled .asi file into the `scripts` folder located in your game's installation folder. If your game does not have a `scripts` folder, create one.
 
-**After installing** this mod, you can configure its features by editing its configuration files. You can find these (.ini) files in the `scripts\BartenderSettings` folder.
+**After installing** this mod, you can configure its features by editing its configuration files. You can find these configuration (.ini) files in the `scripts\BartenderSettings` folder.
 
 To **uninstall** this mod, remove its files from your game's `scripts` folder.
 
