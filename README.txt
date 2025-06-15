@@ -36,7 +36,7 @@ This feature set fixes two bugs:
 You can also assign new (Binary) strings for the game to display when cop vehicles are destroyed,
 similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, this mod's implementation of
 this feature is easier to configure, leaner, and even checks strings for correctness on game launch,
-ignoring any strings specified here that do not actually exist in the game's (modified) binary files.
+ignoring any specified strings that do not actually exist in the game's (modified) binary files.
 
 
 
@@ -135,9 +135,9 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
    the "NFSMW LimitAdjuster" (LA) mod by Zolika1351 to work properly. Without it, the game will
    randomly start unloading models and assets because its default car loader cannot handle the
    workload of managing (potentially) dozens of extra vehicles. To make LA compatible with this
-   mod, open its "LimitAdjuster.ini" file and disable ALL features in its "[Options]" section;
-   this will unlock the spawn limit without forcing an infinite amount of cops to spawn. Note
-   that LA is not perfectly stable either: It is prone to crashing some ~10 seconds into the
+   mod, open its "LimitAdjuster.ini" configuration file and disable ALL features in its "[Options]" 
+   section; this will unlock the spawn limit without forcing an infinite amount of cops to spawn. 
+   Note that LA is not perfectly stable either: It is prone to crashing some ~10 seconds into the
    first pursuit of a given play session, but will generally be stable if it does not.
 
 
