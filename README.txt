@@ -1,5 +1,5 @@
 
- ── ■ │ NFSMW Bartender (v1.0.6) │ ■ ───────────────────────────────────────────────────────────────
+ ── ■ │ NFSMW Bartender (v1.0.7) │ ■ ───────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -104,8 +104,8 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 
  • The string assignment for cops ("BartenderSettings\Basic\Labels.ini") is incompatible with
    the "EnableCopDestroyedStringHook" feature of the "NFSMW Unlimiter" mod by nlgxzef. Either
-   delete this mod's "Labels.ini" file or disable Unlimiter's version of the feature by editing
-   its "NFSMWUnlimiterSettings.ini" configuration file (should be in its "[Main]" section).
+   delete this mod's "Labels.ini" configuration file or disable Unlimiter's version of the 
+   feature by editing its "NFSMWUnlimiterSettings.ini" configuration file.
 
 
 "Advanced" feature set:
@@ -113,9 +113,9 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
  • The feature set disables itself if ANY Heat level lacks a valid spawn table for "Chasers" 
    ("BartenderSettings\Advanced\Cars.ini"); you must specify at least one car for each level.
 
- • If the feature set is enabled, the "cops" VltEd entries of all Heat levels are ignored.
-   Apart from those and "SearchModeHeliSpawnChance", all other VltEd parameters stay functional.
-   (With this feature set, the helicopter will always spawn when its (re-)spawn timer expires.)
+ • If the feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
+   because the feature set fulfils their intended purposes with much greater customisation:
+   "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
 
  • All helicopter vehicles you specify ("BartenderSettings\Advanced\Helicopter.ini") must each 
    have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
@@ -173,3 +173,4 @@ v1.0.3: Yet another minor README revision
 v1.0.4: README? More like "FIXME"
 v1.0.5: Clarified "Event" spawns in Cars.ini
 v1.0.6: Clarified string assignment in Labels.ini
+v1.0.7: Clarified ignored VltEd parameters when "Advanced" feature set is enabled
