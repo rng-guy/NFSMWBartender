@@ -41,7 +41,7 @@ This feature set **fixes two bugs**:
 
 &nbsp;
 
-You can also **assign new (Binary) strings** for the game to display when you destroy a given car, like the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef does. Unlike Unlimiter, this mod's implementation of this feature is easier to configure, leaner, and even checks strings for correctness on game launch: It ignores any that do not actually exist in the game's (modified) binary files.
+You can also **assign new (Binary) strings** for the game to display when you destroy a given car, like the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef does. Compared to Unlimiter, this mod's implementation of this feature is easier to configure, leaner, and even checks strings for correctness on game launch: It ignores any that do not actually exist in the game's (modified) binary files.
 
 &nbsp;
 
