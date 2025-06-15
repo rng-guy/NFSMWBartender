@@ -1,5 +1,5 @@
 
- ── ■ │ NFSMW Bartender (v1.0.0) │ ■ ───────────────────────────────────────────────────────────────
+ ── ■ │ NFSMW Bartender (v1.0.1) │ ■ ───────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -126,7 +126,7 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
    spawns: it can happen with traffic cars, and even the helicopter if the stars align.
 
  • The first scripted cop to spawn in a given event is always of the type specified in the event's
-   VltEd entry, and not taken from the "Event" spawn table ("BartenderSettings\Advanced\Cars.ini").
+   VltEd entry instead of the current "Event" spawn table ("BartenderSettings\Advanced\Cars.ini").
    This is because the game actually requests the first cop before it loads any pursuit or Heat
    level information, which makes it impossible for the mod to know which spawn table to use.
    
@@ -166,3 +166,4 @@ This mod would not have seen the light of day without
  ── ■ │ CHANGELOG │ ■ ──────────────────────────────────────────────────────────────────────────────
 
 v1.0.0: Initial release
+v1.0.1: Revised "Limitations" section
