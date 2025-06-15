@@ -82,9 +82,6 @@ namespace DestructionStrings
 		std::vector<std::string> copVehicles;
 		std::vector<std::string> binaryLabels;
 
-		hash stringHash;
-		key  binaryKey;
-
 		const size_t numCopVehicles = parser.ParseUserParameter("Cops:BinaryLabels", copVehicles, binaryLabels);
 
 		if (not (featureEnabled = (numCopVehicles > 0))) return;
@@ -92,11 +89,13 @@ namespace DestructionStrings
 		defaultHash = GetStringHash(defaultVehicle);
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
-		{
-			stringHash = GetStringHash(copVehicles[vehicleID].c_str());
-			binaryKey  = GetBinaryKey(binaryLabels[vehicleID].c_str());
-			stringHashToKey.insert({stringHash, binaryKey});
-		}
+			stringHashToKey.insert
+			(
+				{ 
+					GetStringHash(copVehicles[vehicleID].c_str()), 
+					GetBinaryKey(binaryLabels[vehicleID].c_str()) 
+				}
+			);
 	
 		MemoryEditor::DigCodeCave(&CopDestruction, copDestructionEntrance, copDestructionExit);
 	}
