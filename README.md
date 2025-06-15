@@ -3,7 +3,7 @@
 
 This .asi mod adds new customisation options to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in **two feature sets**:
 * the **"Basic"** set allows you to change otherwise hard-coded values of the game, and
-* the **"Advanced"** set allows you to specify custom spawn tables for cops without the game's usual limitations.
+* the **"Advanced"** set allows you to specify custom spawn tables for cops without limits.
 
 &nbsp;
 
