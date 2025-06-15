@@ -35,7 +35,7 @@ This feature set fixes two bugs:
 
 You can also assign new (Binary) strings for the game to display when you destroy a given car,
 like the "NFSMW Unlimiter" mod by nlgxzef does. Unlike Unlimiter, this mod's implementation of
-this feature is much to configure, leaner, and even checks strings for correctness on game
+this feature is easier to configure, leaner, and even checks strings for correctness on game
 launch: It ignores any that do not actually exist in the game's (modified) binary files.
 
 
@@ -148,7 +148,7 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 
 You are free to bundle this mod and any of its .ini files with your own pursuit mod(s),
 no credit required. If you include the .asi file, however, I ask that you do your users
-a favour and provide a link to this mod's github respository in your mod's README file.
+a favour and provide a link to this mod's github repository in your mod's README file.
 
 This mod would not have seen the light of day without
  • rx, for encouraging me to try .asi modding;
