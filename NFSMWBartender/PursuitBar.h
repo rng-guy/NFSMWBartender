@@ -18,8 +18,8 @@ namespace PursuitBar
 
 	// Current Heat level
 	float maxBustDistance = 15.f; // metres
-	float evadeTimer      = 7.f; // seconds
-	float bustTimer       = 5.f; // seconds
+	float evadeTimer      = 7.f;  // seconds
+	float bustTimer       = 5.f;  // seconds
 	
 	// General Heat levels
 	std::array<float, Globals::maxHeatLevel> maxBustDistances = {};

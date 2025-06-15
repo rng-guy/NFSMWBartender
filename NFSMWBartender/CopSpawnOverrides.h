@@ -186,7 +186,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				Globals::Log(this->pursuit, "SPA: Type capacity:", this->spawnTable.GetCapacity(copType));
-				Globals::Log(this->pursuit, "SPA: Contingent size:", this->numCopsInContingent);
+				Globals::Log(this->pursuit, "SPA: Contingent:",    this->numCopsInContingent);
 			}
 		}
 
@@ -212,7 +212,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				Globals::Log(this->pursuit, "SPA: Type capacity:", this->spawnTable.GetCapacity(copType));
-				Globals::Log(this->pursuit, "SPA: Contingent size:", this->numCopsInContingent);
+				Globals::Log(this->pursuit, "SPA: Contingent:",    this->numCopsInContingent);
 			}
 		}
 

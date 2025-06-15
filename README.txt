@@ -96,6 +96,12 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 
 "Basic" feature set:
 
+ • Any vehicles you specify to replace the ramming SUVs ("BartenderSettings\Basic\Supports.ini") 
+   should each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) in their VltEd 
+   "aivehicle" entries. Otherwise, they might cause stability issues by joining the pursuit 
+   after their ramming attempt(s), ignoring the global spawn limit and causing the (vanilla) 
+   game to cave under the extra workload.
+
  • The string assignment for cops ("BartenderSettings\Basic\Labels.ini") is incompatible with
    the "EnableCopDestroyedStringHook" feature of the "NFSMW Unlimiter" mod by nlgxzef. Either
    delete this mod's "Labels.ini" file or disable Unlimiter's version of the feature by editing
@@ -109,6 +115,9 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 
  • If the feature set is enabled, the "cops" VltEd entries of all Heat levels are ignored.
    Apart from those and "SearchModeHeliSpawnChance", all other VltEd parameters stay functional.
+
+ • All helicopter vehicles you specify ("BartenderSettings\Advanced\Helicopter.ini") must each 
+   have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
 
  • Rarely, cops might spawn in roadblocks that are not in the current "Roadblock" spawn table
    ("BartenderSettings\Advanced\Cars.ini"). This is a vanilla bug; it usually happens when the
