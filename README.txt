@@ -62,7 +62,7 @@ This feature set allows you to change (per Heat level)
  • when exactly the helicopter can (de- / re-)spawn (if it at all).
 
 This feature set also fixes the displayed engagement count in the middle of the pursuit bar:
-Its value is now perfectly accurate and reflects how many "chaser" type cops remain in the
+Its value is now perfectly accurate and reflects how many "Chaser" type cops remain in the
 current wave. The count ignores support vehicles (e.g. Cross), the helicopter, and any
 vehicles that join the pursuit from roadblocks.
 
