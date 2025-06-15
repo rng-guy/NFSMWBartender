@@ -123,7 +123,7 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
    ("BartenderSettings\Advanced\Cars.ini"). This is a vanilla bug; it usually happens when the
    game attempts to spawn a "Chaser" while it is processing a roadblock request. This can then
    cause it to place the wrong car in the requested roadblock. This bug isn't restricted to cop
-   spawns: It can happen with traffic cars and even the helicopter if the stars align.
+   spawns: it can happen with traffic cars, and even the helicopter if the stars align.
 
  • The first scripted cop to spawn in a given event is always of the type specified in the event's
    VltEd entry, and not taken from the "Event" spawn table ("BartenderSettings\Advanced\Cars.ini").
