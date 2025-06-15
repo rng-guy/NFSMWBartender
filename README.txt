@@ -1,5 +1,5 @@
 
- ── ■ │ NFSMW Bartender (v1.0.1) │ ■ ───────────────────────────────────────────────────────────────
+ ── ■ │ NFSMW Bartender (v1.0.2) │ ■ ───────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -53,18 +53,18 @@ See the "LIMITATIONS" section further below before using this feature set.
 This feature set allows you to change (per Heat level)
  • how many cops can spawn without backup once a wave is exhausted,
  • the global spawn limit for how many cops may chase you at once,
- • which cops may spawn to chase you (with counts, chances, and no type limit),
- • which cops may spawn in roadblocks (with chances and no type limit),
- • which cops may spawn in scripted events (as above),
- • which cops may spawn as patrols in free-roam (ditto),
- • which vehicles spawn in place of the regular helicopter,
- • how quickly cops leave the pursuit if they don't belong (if at all), and
+ • how quickly cops leave the pursuit if they don't belong (if at all),
+ • which vehicles may spawn to chase you (with counts, chances, and no type limit),
+ • which vehicles may spawn in roadblocks (with chances and no type limit),
+ • which vehicles may spawn in scripted events (as above),
+ • which vehicles may spawn as patrols in free-roam (ditto),
+ • which vehicle spawns in place of the regular helicopter, and
  • when exactly the helicopter can (de- / re-)spawn (if it at all).
 
-This feature set also fixes the displayed engagement count in the middle of the pursuit bar:
-Its value is now perfectly accurate and reflects how many "Chaser" type cops remain in the
-current wave. The count ignores support vehicles (e.g. Cross), the helicopter, and any
-vehicles that join the pursuit from roadblocks.
+This feature set also fixes the displayed engagement count in the centre of the pursuit bar:
+its value is now perfectly accurate and reflects how many "Chaser" cops remain in the current
+wave. The count ignores support vehicles (e.g. Cross), the helicopter, and any vehicles that 
+join the pursuit by detaching themselves from roadblocks.
 
 
 
@@ -78,7 +78,7 @@ BEFORE INSTALLING this mod:
  2) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 
 To INSTALL this mod, copy the contents of its "scripts" folder into the "scripts" folder located
-in your game's installation folder. If your game does not have one, just create it instead.
+in your game's installation folder. If your game does not have a "scripts" folder, create one.
 
 AFTER INSTALLING this mod, you can configure its features by editing its configuration files.
 You can find these configuration (.ini) files in "scripts\BartenderSettings" folder.
@@ -98,9 +98,9 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 
  • Any vehicles you specify to replace the ramming SUVs ("BartenderSettings\Basic\Supports.ini") 
    should each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) in their VltEd 
-   "aivehicle" entries. Otherwise, they might cause stability issues by joining the pursuit 
-   after their ramming attempt(s), ignoring the global spawn limit and causing the (vanilla) 
-   game to cave under the extra workload.
+   "aivehicle" entries. If they don't, they might cause stability issues by joining the pursuit 
+   after their ramming attempt(s); this effectively makes them circumvent the global spawn limit,
+   and the (vanilla) game really does not like having to manage more than 8 active cars for long.
 
  • The string assignment for cops ("BartenderSettings\Basic\Labels.ini") is incompatible with
    the "EnableCopDestroyedStringHook" feature of the "NFSMW Unlimiter" mod by nlgxzef. Either
@@ -119,16 +119,16 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
  • All helicopter vehicles you specify ("BartenderSettings\Advanced\Helicopter.ini") must each 
    have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
 
- • Rarely, cops might spawn in roadblocks that are not in the current "Roadblock" spawn table
-   ("BartenderSettings\Advanced\Cars.ini"). This is a vanilla bug; it usually happens when the
-   game attempts to spawn a "Chaser" while it is processing a roadblock request. This can then
-   cause it to place the wrong car in the requested roadblock. This bug isn't restricted to cop
-   spawns: it can happen with traffic cars, and even the helicopter if the stars align.
+ • Rarely, cops that are not in "Roadblock" spawn tables ("BartenderSettings\Advanced\Cars.ini")
+   might still show up in roadblocks. This is a vanilla bug; it usually happens when the game 
+   attempts to spawn a "Chaser" while it is processing a roadblock request, causing it to place 
+   the wrong car in the requested roadblock. This bug isn't restricted to cop spawns: if the stars
+   align, it can also happen with traffic cars or even the helicopter.
 
  • The first scripted cop to spawn in a given event is always of the type specified in the event's
-   VltEd entry instead of the current "Event" spawn table ("BartenderSettings\Advanced\Cars.ini").
-   This is because the game actually requests the first cop before it loads any pursuit or Heat
-   level information, which makes it impossible for the mod to know which spawn table to use.
+   VltEd entry instead of the "Event" spawn tables ("BartenderSettings\Advanced\Cars.ini"). This 
+   is because the game actually requests the first cop before it loads any pursuit or Heat level 
+   information, which makes it impossible for the mod to know which spawn to use for this one car.
    
  • Setting a global cop spawn limit ("BartenderSettings\Advanced\General.ini") above 8 requires
    the "NFSMW LimitAdjuster" (LA) mod by Zolika1351 to work properly. Without it, the game will
@@ -166,4 +166,5 @@ This mod would not have seen the light of day without
  ── ■ │ CHANGELOG │ ■ ──────────────────────────────────────────────────────────────────────────────
 
 v1.0.0: Initial release
-v1.0.1: Revised "Limitations" section
+v1.0.1: Revised "Limitations" section in README
+v1.0.2: Revised multiple sections in README

@@ -64,17 +64,17 @@ See the **Limitations** section further below before using this feature set.
 This feature set **allows you to change** (per Heat level)
 * how many cops can spawn without backup once a wave is exhausted,
 * the global spawn limit for how many cops may chase you at once,
-* which cops may spawn to chase you (with counts, chances, and no type limit),
-* which cops may spawn in roadblocks (with chances and no type limit),
-* which cops may spawn in scripted events (as above),
-* which cops may spawn as patrols in free-roam (ditto),
-* which vehicles spawn in place of the regular helicopter,
-* how quickly cops leave the pursuit if they don't belong (if at all), and
+* how quickly cops leave the pursuit if they don't belong (if at all),
+* which vehicles may spawn to chase you (with counts, chances, and no type limit),
+* which vehicles may spawn in roadblocks (with chances and no type limit),
+* which vehicles may spawn in scripted events (as above),
+* which vehicles may spawn as patrols in free-roam (ditto),
+* which vehicle spawns in place of the regular helicopter, and
 * when exactly the helicopter can (de- / re-)spawn (if it at all).
 
 &nbsp;
 
-This feature set **also fixes** the displayed engagement count in the middle of the pursuit bar: Its value is now guaranteed to match how many "Chaser" type cops remain in the current wave. The count ignores support vehicles (e.g. Cross), the helicopter, and any vehicles that join the pursuit from roadblocks.
+This feature set **also fixes** the displayed engagement count in the centre of the pursuit bar: its value is now perfectly accurate and reflects how many "Chaser" cops remain in the current wave. The count ignores support vehicles (e.g. Cross), the helicopter, and any vehicles that join the pursuit by detaching themselves from roadblocks.
 
 &nbsp;
 
@@ -92,7 +92,7 @@ This feature set **also fixes** the displayed engagement count in the middle of 
 
 &nbsp;
 
-To **install** this mod, copy its `BartenderSettings` folder and compiled .asi file into the `scripts` folder located in your game's installation folder. If your game does not have one, just create it instead.
+To **install** this mod, copy its `BartenderSettings` folder and compiled .asi file into the `scripts` folder located in your game's installation folder. If your game does not have a `scripts` folder, create one.
 
 **After installing** this mod, you can configure its features by editing its configuration files. You can find them in the `scripts\BartenderSettings` folder.
 
@@ -115,7 +115,7 @@ The two feature sets of this mod each come with caveats and limitations. To avoi
 &nbsp;
 
 "**Basic**" feature set:
-* Any vehicles you specify to replace the ramming SUVs (`BartenderSettings\Basic\Supports.ini`) should each have a low `MAXIMUM_AI_SPEED` value (the vanilla SUVs use 50) in their VltEd `aivehicle` entries. Otherwise, they might cause stability issues by joining the pursuit after their ramming attempt(s), ignoring the global spawn limit and causing the (vanilla) game to cave under the extra workload.
+* Any vehicles you specify to replace the ramming SUVs (`BartenderSettings\Basic\Supports.ini`) should each have a low `MAXIMUM_AI_SPEED` value (the vanilla SUVs use 50) in their VltEd `aivehicle` entries. If they don't, they might cause stability issues by joining the pursuit after their ramming attempt(s); this effectively makes them circumvent the global spawn limit, and the (vanilla) game really does not like having to manage more than 8 active cars for long.
 * The string assignment for cops (`BartenderSettings\Basic\Labels.ini`) is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. Either delete this mod's `Labels.ini` file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file (should be in its `[Main]` section).
 
 &nbsp;
@@ -124,8 +124,8 @@ The two feature sets of this mod each come with caveats and limitations. To avoi
 * The entire feature set disables itself if *any* Heat level lacks a valid spawn table for "Chasers" (`BartenderSettings\Advanced\Cars.ini`). You must specify at least one car for each.
 * If the feature set is enabled, the `cops` VltEd entries of all Heat levels are ignored. Apart from those and `SearchModeHeliSpawnChance`, all other VltEd parameters stay functional.
 * All helicopter vehicles you specify (`BartenderSettings\Advanced\Helicopter.ini`) must each have the `CHOPPER` class assigned to them in their `pvehicle` VltEd entries.
-* Rarely, cops might spawn in roadblocks that are not in the current "Roadblock" spawn table (`BartenderSettings\Advanced\Cars.ini`). This is a vanilla bug; it usually happens when the game attempts to spawn a "Chaser" while it is processing a roadblock request. This can then cause it to place the wrong car in the requested roadblock. This bug isn't restricted to cop spawns: it can happen with traffic cars, and even the helicopter if the stars align.
-* The first scripted cop to spawn in a given event is always of the type specified in the event's VltEd entry instead of the current "Event" spawn table (`BartenderSettings\Advanced\Cars.ini`). This is because the game actually requests the first cop before it loads any pursuit or Heat level information, which makes it impossible for the mod to know which spawn table to use until after it has spawned.
+* Rarely, cops that are not in "Roadblock" spawn tables (`BartenderSettings\Advanced\Cars.ini`) might still show up in roadblocks. This is a vanilla bug; it usually happens when the game attempts to spawn a "Chaser" while it is processing a roadblock request, causing it to place the wrong car in the requested roadblock. This bug isn't restricted to cop spawns: if the stars align, it can also happen with traffic cars or even the helicopter.
+* The first scripted cop to spawn in a given event is always of the type specified in the event's VltEd entry instead of the "Event" spawn tables (`BartenderSettings\Advanced\Cars.ini`). This is because the game actually requests the first cop before it loads any pursuit or Heat level information, which makes it impossible for the mod to know which table to use for this one car.
 * Setting a global cop spawn limit (`BartenderSettings\Advanced\General.ini`) above 8 requires the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) mod by Zolika1351 to work properly. Without it, the game will randomly start unloading models and assets because its default car loader cannot handle the workload of managing (potentially) dozens of extra vehicles. To make LA compatible with this mod, open its `LimitAdjuster.ini` file and disable *all* features in its `[Options]` section; this will unlock the spawn limit without forcing an infinite amount of cops to spawn. Note that LA is not perfectly stable either: It is prone to crashing some ~10 seconds into the first pursuit of a given play session, but will generally be stable if it does not.
 
 &nbsp;
