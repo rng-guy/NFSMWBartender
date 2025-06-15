@@ -1,5 +1,5 @@
 
- ── ■ │ NFSMW Bartender (v1.0.9) │ ■ ───────────────────────────────────────────────────────────────
+ ── ■ │ NFSMW Bartender (v1.0.10) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -166,13 +166,14 @@ This mod would not have seen the light of day without
 
  ── ■ │ CHANGELOG │ ■ ──────────────────────────────────────────────────────────────────────────────
 
-v1.0.0: Initial release
-v1.0.1: Revised "Limitations" section in README
-v1.0.2: Revised multiple sections in README
-v1.0.3: Yet another minor README revision
-v1.0.4: README? More like "FIXME"
-v1.0.5: Clarified "Event" spawns in Cars.ini
-v1.0.6: Clarified string assignment in Labels.ini
-v1.0.7: Clarified ignored VltEd parameters when "Advanced" feature set is enabled
-v1.0.8: Corrected a few typos in README
-v1.0.9: Clarified cooldowns in Support.ini and helicopter spawns in Helicopter.ini
+v1.0.0:  Initial release
+v1.0.1:  Revised "Limitations" section in README
+v1.0.2:  Revised multiple sections in README
+v1.0.3:  Yet another minor README revision
+v1.0.4:  README? More like "FIXME"
+v1.0.5:  Clarified "Event" spawns in Cars.ini
+v1.0.6:  Clarified string assignment in Labels.ini
+v1.0.7:  Clarified ignored VltEd parameters when "Advanced" feature set is enabled
+v1.0.8:  Corrected a few typos in README
+v1.0.9:  Clarified cooldowns in Support.ini and helicopter spawns in Helicopter.ini
+v1.0.10: Revised multiple .ini comments and enforced consistency
