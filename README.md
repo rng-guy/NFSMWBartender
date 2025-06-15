@@ -146,6 +146,6 @@ This mod would not have seen the light of day without
 * **[rx](https://github.com/rxyyy)**, for encouraging me to try .asi modding;
 * **[nlgxzef](https://github.com/nlgxzef)**, for the Most Wanted debug symbols;
 * **DarkByte**, for [Cheat Engine](https://www.cheatengine.org/);
-* **GuidedHacking**, for their [Cheat Engine](https://www.youtube.com/playlist?list=PLt9cUwGw6CYFSoQHsf9b12kHWLdgYRhmQ) tutorials;
+* **GuidedHacking**, for their [Cheat Engine tutorials](https://www.youtube.com/playlist?list=PLt9cUwGw6CYFSoQHsf9b12kHWLdgYRhmQ);
 * **trelbutate**, for his [NFSMW Cop Car Healthbars](https://github.com/trelbutate/MWHealthbars/) mod as a resource; and
 * **Orsal**, **Aven**, **Astra King79**, and **MORELLO**, for testing and providing feedback.
