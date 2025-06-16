@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.0.15) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.0.16) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -144,14 +144,14 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    is because the game actually requests the first cop before it loads any pursuit or Heat level 
    information, which makes it impossible for the mod to know which spawn to use for this one car.
    
- • Setting a global cop spawn limit ("BartenderSettings\Advanced\General.ini") above 8 requires
+ • Setting any global cop spawn limit ("BartenderSettings\Advanced\General.ini") above 8 requires
    the "NFSMW LimitAdjuster" (LA) mod by Zolika1351 to work properly. Without it, the game will
    randomly start unloading models and assets because its default car loader cannot handle the
    workload of managing (potentially) dozens of extra vehicles. To make LA compatible with this
    mod, open its "LimitAdjuster.ini" configuration file and disable ALL features in its "[Options]"
    section; this will unlock the spawn limit without forcing an infinite amount of cops to spawn. 
-   Note that LA is not perfectly stable either: It is prone to crashing some ~10 seconds into the
-   first pursuit of a given play session, but will generally be stable if it does not.
+   Note that LA is not perfectly stable either: It is prone to crashing in the first 30 seconds of
+   the first pursuit in a play session, but will generally stay stable if it does not crash there.
 
 
 
@@ -195,3 +195,4 @@ v1.0.12: Improved formatting of .ini files and added further Limitations
 v1.0.13: Added compatibility note for VltEd and other .asi mods in Limitations
 v1.0.14: Added compatibility note for Binary mods in Limitations
 v1.0.15: Added note about README structure
+v1.0.16: Clarified stability comment about LimitAdjuster
