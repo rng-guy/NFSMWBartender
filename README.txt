@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.0.13) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.0.14) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -98,7 +98,8 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises 
 and instability, make sure you understand them all before you use this mod in any capacity.
 
-Both feature sets of this mod mod should be compatible with all VltEd and most other .asi mods.
+Both feature sets of this mod should be compatible with all VltEd, Binary, and most .asi mods.
+Any known and notable exceptions to this are explicitly mentioned in this section.
 
 
 "Basic" feature set:
@@ -191,3 +192,4 @@ v1.0.10: Revised multiple .ini comments and enforced consistency
 v1.0.11: Further clarified cooldowns in Supports.ini
 v1.0.12: Improved formatting of .ini files and added further Limitations
 v1.0.13: Added compatibility note for VltEd and other .asi mods in Limitations
+v1.0.14: Added compatibility note for Binary mods in Limitations
