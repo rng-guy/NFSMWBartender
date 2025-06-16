@@ -1,5 +1,5 @@
 
- ── ■ │ NFSMW Bartender (v1.0.12) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.0.13) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -12,7 +12,7 @@ For more details on which features (and .ini files) each set includes, see the f
 
 
 
- ── ■ │ "BASIC" FEATURE SET │ ■ ────────────────────────────────────────────────────────────────────
+── ■ │ "BASIC" FEATURE SET │ ■ ────────────────────────────────────────────────────────────────────
 
 The .ini files for this feature set are located in "scripts/BartenderSettings/Basic".
 To DISABLE a given feature of this set, delete its .ini section (or the respective .ini file).
@@ -24,14 +24,14 @@ This feature set allows you to change (per Heat level)
  • how long it takes to lose the cops and enter Cooldown mode,
  • the maximum bounty multiplier for destroying cops quickly,
  • the internal cooldown for regular roadblock spawns,
- • the internal cooldown for ground support requests,
+ • the internal cooldown for Heavy and LeaderStrategy spawns,
  • which vehicles spawn in place of ramming SUVs,
  • which vehicles spawn in place of roadblock SUVs, and
  • which vehicles spawn in place of Cross and his henchmen.
 
 This feature set fixes two bugs:
  • you can no longer get BUSTED due to line-of-sight issues while the EVADE bar fills, and
- • ground supports (Cross, Rhinos etc.) will no longer stop spawning in longer pursuits.
+ • ground supports (Cross, SUVs, etc.) will no longer stop spawning in longer pursuits.
 
 You can also assign new (Binary) strings for the game to display when cop vehicles are destroyed,
 similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, this mod's implementation of
@@ -43,7 +43,7 @@ ignoring any specified strings that do not actually exist in the game's (modifie
 
 
 
- ── ■ │ "ADVANCED" FEATURE SET │ ■ ─────────────────────────────────────────────────────────────────
+── ■ │ "ADVANCED" FEATURE SET │ ■ ─────────────────────────────────────────────────────────────────
 
 The .ini files for this feature set are located in "scripts/BartenderSettings/Advanced".
 To DISABLE this feature set, delete all .ini files in that folder (or the folder itself).
@@ -51,7 +51,7 @@ To DISABLE this feature set, delete all .ini files in that folder (or the folder
 See the "LIMITATIONS" section further below before using this feature set.
 
 This feature set allows you to change (per Heat level)
- • how many cops can spawn without backup once a wave is exhausted,
+ • how many cops can (re)spawn without backup once a wave is exhausted,
  • the global spawn limit for how many cops may chase you at once,
  • how quickly cops leave the pursuit if they don't belong (if at all),
  • which vehicles may spawn to chase you (with counts, chances, and no type limit),
@@ -59,7 +59,7 @@ This feature set allows you to change (per Heat level)
  • which vehicles may spawn in scripted events (as above),
  • which vehicles may spawn as patrols in free-roam (ditto),
  • which vehicle spawns in place of the regular helicopter, and
- • when exactly the helicopter can (de- / re-)spawn (if it at all).
+ • when exactly the helicopter can (de / re)spawn (if it at all).
 
 This feature set also fixes the displayed engagement count in the centre of the pursuit bar:
 its value is now perfectly accurate and reflects how many "Chaser" cops remain in the current
@@ -71,11 +71,12 @@ join the pursuit by detaching themselves from roadblocks.
 
 
 
- ── ■ │ INSTALLATION │ ■ ───────────────────────────────────────────────────────────────────────────
+── ■ │ INSTALLATION │ ■ ───────────────────────────────────────────────────────────────────────────
 
 BEFORE INSTALLING this mod:
- 1) • make sure your game's "Speed.exe" is compatible (i.e. 5.75 MB / 6.029.312 bytes large), and
- 2) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
+ 1) • make sure you have read and understood the "LIMITATIONS" section of this README below,
+ 2) • make sure your game's "Speed.exe" is compatible (i.e. 5.75 MB / 6.029.312 bytes large), and
+ 3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 
 To INSTALL this mod, copy the contents of its "scripts" folder into the "scripts" folder located
 in your game's installation folder. If your game does not have a "scripts" folder, create one.
@@ -92,18 +93,24 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 
 
 
- ── ■ │ LIMITATIONS │ ■ ────────────────────────────────────────────────────────────────────────────
+── ■ │ LIMITATIONS │ ■ ────────────────────────────────────────────────────────────────────────────
+
+The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises 
+and instability, make sure you understand them all before you use this mod in any capacity.
+
+Both feature sets of this mod mod should be compatible with all VltEd and most other .asi mods.
+
 
 "Basic" feature set:
 
- • Any vehicles you specify to replace the ramming SUVs ("BartenderSettings\Basic\Supports.ini") 
+ • All vehicles you specify to replace the ramming SUVs ("BartenderSettings\Basic\Supports.ini") 
    should each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) in their VltEd 
    "aivehicle" entries. If they don't, they might cause stability issues by joining the pursuit 
    after their ramming attempt(s); this effectively makes them circumvent the global spawn limit,
    and the (vanilla) game really does not like managing more than 8 active cops for very long.
 
- • Any vehicles you specify to replace Cross ("BartenderSettings\Basic\Supports.ini") should
-   be unique to him, i.e. not be used by other cops elsewhere. If another cop with the same
+ • All vehicles you specify to replace Cross ("BartenderSettings\Basic\Supports.ini") should
+   each be unique to him, i.e. not be used by other cops elsewhere. If another cop with the same
    vehicle as Cross is present in a given pursuit, no LeaderStrategy will be able to spawn.
 
  • The string assignment for cops ("BartenderSettings\Basic\Labels.ini") is incompatible with
@@ -121,8 +128,8 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
    because the feature set fulfils their intended purposes with much greater customisation:
    "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
 
- • All helicopter vehicles you specify ("BartenderSettings\Advanced\Helicopter.ini") must each 
-   have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
+ • All vehicles you specify to replace the helicopter ("BartenderSettings\Advanced\Helicopter.ini")
+   must each have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
 
  • Rarely, cops that are not in "Roadblock" spawn tables ("BartenderSettings\Advanced\Cars.ini")
    might still show up in roadblocks. This is a vanilla bug; it usually happens when the game 
@@ -149,7 +156,7 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 
 
 
- ── ■ │ ACKNOWLEDGEMENT(S) │ ■ ─────────────────────────────────────────────────────────────────────
+── ■ │ ACKNOWLEDGEMENT(S) │ ■ ─────────────────────────────────────────────────────────────────────
 
 You are free to bundle this mod and any of its .ini files with your own pursuit mod(s),
 no credit required. If you include the .asi file, however, I ask that you do your users
@@ -168,7 +175,7 @@ This mod would not have seen the light of day without
 
 
 
- ── ■ │ CHANGELOG │ ■ ──────────────────────────────────────────────────────────────────────────────
+── ■ │ CHANGELOG │ ■ ──────────────────────────────────────────────────────────────────────────────
 
 v1.0.0 : Initial release
 v1.0.1 : Revised "Limitations" section in README
@@ -183,3 +190,4 @@ v1.0.9 : Clarified cooldowns in Supports.ini and helicopter spawns in Helicopter
 v1.0.10: Revised multiple .ini comments and enforced consistency
 v1.0.11: Further clarified cooldowns in Supports.ini
 v1.0.12: Improved formatting of .ini files and added further Limitations
+v1.0.13: Added compatibility notes for other VltEd mods
