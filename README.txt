@@ -99,7 +99,7 @@ The two feature sets of this mod each come with caveats and limitations. To avoi
 and instability, make sure you understand them all before you use this mod in any capacity.
 
 Both feature sets of this mod should be compatible with all VltEd, Binary, and most .asi mods.
-Any known and notable exceptions to this are explicitly mentioned in this section.
+All known and notable exceptions to this are explicitly mentioned in this section.
 
 
 "Basic" feature set:
