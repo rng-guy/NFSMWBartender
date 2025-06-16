@@ -104,7 +104,7 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 
  • Any vehicles you specify to replace Cross ("BartenderSettings\Basic\Supports.ini") should
    be unique to him, i.e. not be used by other cops elsewhere. If another cop with the same
-   vehicle as Cross is present in the pursuit, no LeaderStrategy will spawn.
+   vehicle as Cross is present in a given pursuit, no LeaderStrategy will be able to spawn.
 
  • The string assignment for cops ("BartenderSettings\Basic\Labels.ini") is incompatible with
    the "EnableCopDestroyedStringHook" feature of the "NFSMW Unlimiter" mod by nlgxzef. Either
