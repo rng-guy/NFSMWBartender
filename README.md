@@ -7,9 +7,7 @@ This .asi mod adds new customisation options to pursuits in *Need for Speed: Mos
 
 &nbsp;
 
-For more details on which features (and .ini files) each set includes, see the following sections.
-
-There are also separate sections for **Installation** instructions and the **Limitations** of this mod.
+For more details on which features (and .ini files) each set includes, see the following sections. There are also separate sections for **Installation** instructions and the **Limitations** of this mod.
 
 &nbsp;
 
