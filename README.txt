@@ -1,11 +1,12 @@
 
-── ■ │ NFSMW Bartender (v1.0.14) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.0.15) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
  • the "Advanced" set allows you to specify custom spawn tables for cops without limits.
 
 For more details on which features (and .ini files) each set includes, see the following sections.
+There are also separate sections for INSTALLATION instructions and the LIMITATIONS of this mod.
 
 
 
@@ -193,3 +194,4 @@ v1.0.11: Further clarified cooldowns in Supports.ini
 v1.0.12: Improved formatting of .ini files and added further Limitations
 v1.0.13: Added compatibility note for VltEd and other .asi mods in Limitations
 v1.0.14: Added compatibility note for Binary mods in Limitations
+v1.0.15: Added note about README structure
