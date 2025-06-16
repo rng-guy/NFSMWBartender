@@ -1,5 +1,5 @@
 
- ── ■ │ NFSMW Bartender (v1.0.11) │ ■ ──────────────────────────────────────────────────────────────
+ ── ■ │ NFSMW Bartender (v1.0.12) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -102,6 +102,10 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
    after their ramming attempt(s); this effectively makes them circumvent the global spawn limit,
    and the (vanilla) game really does not like managing more than 8 active cops for very long.
 
+ • Any vehicles you specify to replace Cross ("BartenderSettings\Basic\Supports.ini") should
+   only be used for this purpose and not appear as regular or other Support vehicles otherwise.
+   If they do appear elsewhere, no LeaderStrategy will spawn as long as they are present.
+
  • The string assignment for cops ("BartenderSettings\Basic\Labels.ini") is incompatible with
    the "EnableCopDestroyedStringHook" feature of the "NFSMW Unlimiter" mod by nlgxzef. Either
    delete this mod's "Labels.ini" configuration file or disable Unlimiter's version of the 
@@ -178,3 +182,4 @@ v1.0.8 : Corrected a few typos in README
 v1.0.9 : Clarified cooldowns in Supports.ini and helicopter spawns in Helicopter.ini
 v1.0.10: Revised multiple .ini comments and enforced consistency
 v1.0.11: Further clarified cooldowns in Supports.ini
+v1.0.12: Improved formatting of .ini files
