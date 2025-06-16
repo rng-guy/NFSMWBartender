@@ -195,4 +195,4 @@ v1.0.12: Improved formatting of .ini files and added further Limitations
 v1.0.13: Added compatibility note for VltEd and other .asi mods in Limitations
 v1.0.14: Added compatibility note for Binary mods in Limitations
 v1.0.15: Added note about README structure
-v1.0.16: Clarified stability comment about LimitAdjuster in README
+v1.0.16: Clarified stability comment about LimitAdjuster in Limitations
