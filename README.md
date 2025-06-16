@@ -117,7 +117,7 @@ To **reinstall** this mod, uninstall it and repeat the installation process abov
 
 The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises and instability, make sure you understand them all before you use this mod in any capacity.
 
-Both feature sets of this mod should be compatible with all VltEd, Binary, and most .asi mods. All known and notable exceptions to this are explicitly mentioned in this section.
+Both feature sets of this mod should be **compatible** with all VltEd, Binary, and most .asi mods. All known and notable exceptions to this are explicitly mentioned in this section.
 
 &nbsp;
 
