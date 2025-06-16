@@ -143,7 +143,7 @@ The two feature sets of this mod each come with caveats and limitations. To avoi
 
 # Acknowledgement(s)
 
-You are free to bundle this mod and any of its .ini files with your own pursuit mod(s), no **credit required**. If you include the .asi file, however, I ask that you do your users a favour and provide a link to this mod's github repository in your mod's README file.
+You are free to bundle this mod and any of its .ini files with your own pursuit mod(s), **no credit required**. If you include the .asi file, however, I ask that you do your users a favour and provide a link to this mod's github repository in your mod's README file.
 
 &nbsp;
 
