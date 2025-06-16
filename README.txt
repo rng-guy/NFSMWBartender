@@ -190,4 +190,4 @@ v1.0.9 : Clarified cooldowns in Supports.ini and helicopter spawns in Helicopter
 v1.0.10: Revised multiple .ini comments and enforced consistency
 v1.0.11: Further clarified cooldowns in Supports.ini
 v1.0.12: Improved formatting of .ini files and added further Limitations
-v1.0.13: Added compatibility notes for VltEd and .asi mods in Limitations
+v1.0.13: Added compatibility note for VltEd and other .asi mods in Limitations
