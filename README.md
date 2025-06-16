@@ -120,7 +120,7 @@ The two feature sets of this mod each come with caveats and limitations. To avoi
 
 "**Basic**" feature set:
 * Any vehicles you specify to replace the ramming SUVs (`BartenderSettings\Basic\Supports.ini`) should each have a low `MAXIMUM_AI_SPEED` value (the vanilla SUVs use 50) in their VltEd `aivehicle` entries. If they don't, they might cause stability issues by joining the pursuit after their ramming attempt(s); this effectively makes them circumvent the global spawn limit, and the (vanilla) game really does not like managing more than 8 active cops for very long.
-* Any vehicles you specify to replace Cross (`BartenderSettings\Basic\Supports.ini`) should only be used for this purpose and not appear as regular or other Support vehicles otherwise. If they do appear elsewhere, no LeaderStrategy will spawn as long as they are present.
+* Any vehicles you specify to replace Cross (`BartenderSettings\Basic\Supports.ini`) should be unique to him, i.e. not be used by other cops elsewhere. If another cop with the same vehicle as Cross is present in the pursuit, no LeaderStrategy will spawn.
 * The string assignment for cops (`BartenderSettings\Basic\Labels.ini`) is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. Either delete this mod's `Labels.ini` configuration file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
 
 &nbsp;
