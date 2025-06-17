@@ -25,12 +25,12 @@ namespace GroundSupport
 	float strategyCooldown       = 10.f;
 	float maxStrategyDelay       = 10.f;
 
-	const std::string* heavyRoadblockVehicle = nullptr;
-	const std::string* lightRoadblockVehicle = nullptr;
-	const std::string* heavyRammingVehicle   = nullptr;
-	const std::string* lightRammingVehicle   = nullptr;
-	const std::string* henchmenVehicle       = nullptr;
-	const std::string* leaderVehicle         = nullptr;
+	const char* heavyRoadblockVehicle = nullptr;
+	const char* lightRoadblockVehicle = nullptr;
+	const char* heavyRammingVehicle   = nullptr;
+	const char* lightRammingVehicle   = nullptr;
+	const char* henchmenVehicle       = nullptr;
+	const char* leaderVehicle         = nullptr;
 
 	// General Heat levels
 	std::array<float, Globals::maxHeatLevel> minRoadblockCooldowns   = {};
@@ -341,11 +341,11 @@ namespace GroundSupport
         strategyCooldown       = strategyCooldowns[heatLevel - 1];
         maxStrategyDelay       = maxStrategyDelays[heatLevel - 1];
 
-        heavyRoadblockVehicle = &heavyRoadblockVehicles[heatLevel - 1];
-        lightRoadblockVehicle = &lightRoadblockVehicles[heatLevel - 1];
-        heavyRammingVehicle   = &heavyRammingVehicles[heatLevel - 1];
-        lightRammingVehicle   = &lightRammingVehicles[heatLevel - 1];
-        henchmenVehicle       = &henchmenVehicles[heatLevel - 1];
-        leaderVehicle         = &leaderVehicles[heatLevel - 1];
+        heavyRoadblockVehicle = heavyRoadblockVehicles[heatLevel - 1].c_str();
+        lightRoadblockVehicle = lightRoadblockVehicles[heatLevel - 1].c_str();
+        heavyRammingVehicle   = heavyRammingVehicles[heatLevel - 1].c_str();
+        lightRammingVehicle   = lightRammingVehicles[heatLevel - 1].c_str();
+        henchmenVehicle       = henchmenVehicles[heatLevel - 1].c_str();
+        leaderVehicle         = leaderVehicles[heatLevel - 1].c_str();
     }
 }

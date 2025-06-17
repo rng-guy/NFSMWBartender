@@ -217,7 +217,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		const std::string* GetRandomCopType() const
+		const char* GetRandomCopType() const
 		{		
 			return (this->IsWaveExhausted()) ? nullptr : this->spawnTable.GetRandomCopType();
 		}
@@ -229,7 +229,7 @@ namespace CopSpawnOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	const std::string* copToSpawn = nullptr;
+	const char* copToSpawn = nullptr;
 
 	const address getPursuitVehicleByName = 0x41ECD0;
 	const address stringToHashFunction    = 0x5CC240;
@@ -251,7 +251,7 @@ namespace CopSpawnOverrides
 			{
 			case 0x4269E6: // helicopter
 				interceptSpawn = true;
-				copToSpawn     = &CopSpawnTables::helicopterVehicle;
+				copToSpawn     = CopSpawnTables::helicopterVehicle;
 				break;
 
 			case 0x430DAD: // free-roam patrols
@@ -511,6 +511,22 @@ namespace CopSpawnOverrides
 
 
 
+	const address otherSpawnLimitEntrance = 0x426C4E;
+	const address otherSpawnLimitExit     = 0x426C54;
+
+	__declspec(naked) void OtherSpawnLimit()
+	{
+		__asm
+		{
+			mov eax, [ebx + 0x40]
+			cmp eax, maxActiveCount
+
+			jmp dword ptr otherSpawnLimitExit
+		}
+	}
+
+
+
 
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
@@ -540,12 +556,13 @@ namespace CopSpawnOverrides
 		MemoryEditor::DigCodeCave(&ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 		MemoryEditor::DigCodeCave(&ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
 
-		MemoryEditor::DigCodeCave(&CopRefill,      copRefillEntrance,      copRefillExit);
-		MemoryEditor::DigCodeCave(&FirstCopTable,  firstCopTableEntrance,  firstCopTableExit);
-		MemoryEditor::DigCodeCave(&SecondCopTable, secondCopTableEntrance, secondCopTableExit);
-		MemoryEditor::DigCodeCave(&ThirdCopTable,  thirdCopTableEntrance,  thirdCopTableExit);
-		MemoryEditor::DigCodeCave(&FourthCopTable, fourthCopTableEntrance, fourthCopTableExit);
-		MemoryEditor::DigCodeCave(&FifthCopTable,  fifthCopTableEntrance,  fifthCopTableExit);
+		MemoryEditor::DigCodeCave(&CopRefill,       copRefillEntrance,       copRefillExit);
+		MemoryEditor::DigCodeCave(&FirstCopTable,   firstCopTableEntrance,   firstCopTableExit);
+		MemoryEditor::DigCodeCave(&SecondCopTable,  secondCopTableEntrance,  secondCopTableExit);
+		MemoryEditor::DigCodeCave(&ThirdCopTable,   thirdCopTableEntrance,   thirdCopTableExit);
+		MemoryEditor::DigCodeCave(&FourthCopTable,  fourthCopTableEntrance,  fourthCopTableExit);
+		MemoryEditor::DigCodeCave(&FifthCopTable,   fifthCopTableEntrance,   fifthCopTableExit);
+		MemoryEditor::DigCodeCave(&OtherSpawnLimit, otherSpawnLimitEntrance, otherSpawnLimitExit);
 
 		featureEnabled = true;
 	}

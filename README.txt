@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.0.16) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.1.0) │ ■ ───────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
@@ -60,7 +60,7 @@ This feature set allows you to change (per Heat level)
  • which vehicles may spawn in scripted events (as above),
  • which vehicles may spawn as patrols in free-roam (ditto),
  • which vehicle spawns in place of the regular helicopter, and
- • when exactly the helicopter can (de / re)spawn (if it at all).
+ • when exactly the helicopter can (de / re)spawn (if at all).
 
 This feature set also fixes the displayed engagement count in the centre of the pursuit bar:
 its value is now perfectly accurate and reflects how many "Chaser" cops remain in the current
@@ -143,6 +143,16 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    VltEd entry instead of the "Event" spawn tables ("BartenderSettings\Advanced\Cars.ini"). This 
    is because the game actually requests the first cop before it loads any pursuit or Heat level 
    information, which makes it impossible for the mod to know which spawn to use for this one car.
+
+ • The global cop spawn limit ("BartenderSettings\Advanced\General.ini") has a few odd quirks.
+   These quirks are all vanilla behaviour; this mod is just more likely to expose you to them:
+    • The game compares the limit to the total number of cops in the world, not just a pursuit.
+    • The total number of cops the game references includes "Chasers", supports, and roadblocks.
+    • If the total is at or above the limit, no more "Chasers" spawn until it goes back down.
+    • If the total is at or above the limit, new supports and roadblocks CAN still spawn.
+   The big implication here is that support and roadblock vehicles can block "Chasers" from
+   spawning in pursuits if they spawn first. Keep this in mind if you encounter a situation where 
+   the game seemingly refuses to spawn as many "Chasers" as the global spawn limit should allow.
    
  • Setting any global cop spawn limit ("BartenderSettings\Advanced\General.ini") above 8 requires
    the "NFSMW LimitAdjuster" (LA) mod by Zolika1351 to work properly. Without it, the game will
@@ -179,16 +189,16 @@ This mod would not have seen the light of day without
 
 ── ■ │ CHANGELOG │ ■ ──────────────────────────────────────────────────────────────────────────────
 
-v1.0.0 : Initial release
-v1.0.1 : Revised "Limitations" section in README
-v1.0.2 : Revised multiple sections in README
-v1.0.3 : Yet another minor README revision
-v1.0.4 : README? More like "FIXME"
-v1.0.5 : Clarified "Event" spawns in Cars.ini
-v1.0.6 : Clarified string assignment in Labels.ini
-v1.0.7 : Clarified ignored VltEd parameters when "Advanced" feature set is enabled
-v1.0.8 : Corrected a few typos in README
-v1.0.9 : Clarified cooldowns in Supports.ini and helicopter spawns in Helicopter.ini
+v1.0.00: Initial release
+v1.0.01: Revised "Limitations" section in README
+v1.0.02: Revised multiple sections in README
+v1.0.03: Yet another minor README revision
+v1.0.04: README? More like "FIXME"
+v1.0.05: Clarified "Event" spawns in Cars.ini
+v1.0.06: Clarified string assignment in Labels.ini
+v1.0.07: Clarified ignored VltEd parameters when "Advanced" feature set is enabled
+v1.0.08: Corrected a few typos in README
+v1.0.09: Clarified cooldowns in Supports.ini and helicopter spawns in Helicopter.ini
 v1.0.10: Revised multiple .ini comments and enforced consistency
 v1.0.11: Further clarified cooldowns in Supports.ini
 v1.0.12: Improved formatting of .ini files and added further Limitations
@@ -196,3 +206,5 @@ v1.0.13: Added compatibility note for VltEd and other .asi mods in Limitations
 v1.0.14: Added compatibility note for Binary mods in Limitations
 v1.0.15: Added note about README structure
 v1.0.16: Clarified stability comment about LimitAdjuster in Limitations
+
+v1.1.00: Fixed a bug with vehicle names containing underscores

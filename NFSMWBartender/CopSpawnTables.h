@@ -64,10 +64,10 @@ namespace CopSpawnTables
 		}
 
 
-		static const std::string* ConvertToName(const hash copType)
+		static const char* ConvertToName(const hash copType)
 		{
 			const auto foundType = SpawnTable::copTypeToName.find(copType);
-			return (foundType != SpawnTable::copTypeToName.end()) ? &(foundType->second) : nullptr;
+			return (foundType != SpawnTable::copTypeToName.end()) ? (foundType->second).c_str() : nullptr;
 		}
 
 
@@ -148,7 +148,7 @@ namespace CopSpawnTables
 		bool IsEmpty() const {return (this->availableTotalCopCapacity < 1);}
 
 
-		const std::string* GetRandomCopType() const
+		const char* GetRandomCopType() const
 		{
 			if (this->IsEmpty()) return nullptr;
 
@@ -180,7 +180,7 @@ namespace CopSpawnTables
 	bool featureEnabled = false;
 
 	// Current Heat level
-	std::string       helicopterVehicle   = "copheli";
+	const char*       helicopterVehicle   = "copheli";
 	const SpawnTable* eventSpawnTable     = nullptr;
 	const SpawnTable* patrolSpawnTable    = nullptr;
 	const SpawnTable* pursuitSpawnTable   = nullptr;
@@ -260,7 +260,7 @@ namespace CopSpawnTables
 		ParseTables(parser, "Patrols",    patrolSpawnTables,    false);
 		ParseTables(parser, "Roadblocks", roadblockSpawnTables, false);
 
-		MemoryEditor::Write<std::string*>(&helicopterVehicle, 0x4266E2, 0x42BB60, 0x431470, 0x43EBAE, 0x8847C1);
+		MemoryEditor::Write<const char*>(helicopterVehicle, 0x4266E2, 0x42BB60, 0x431470, 0x43EBAE, 0x8847C1);
 		
 		featureEnabled = true;
 	}
@@ -271,7 +271,7 @@ namespace CopSpawnTables
 	{
 		if (not featureEnabled) return;
 
-		helicopterVehicle = helicopterVehicles[heatLevel - 1];
+		helicopterVehicle = helicopterVehicles[heatLevel - 1].c_str();
 
 		eventSpawnTable     = &eventSpawnTables[heatLevel - 1];
 		patrolSpawnTable    = &patrolSpawnTables[heatLevel - 1];

@@ -184,9 +184,7 @@ namespace HelicopterOverrides
 		) 
 			override
 		{
-			if (not (copLabel == PursuitFeatures::CopLabel::HELICOPTER)) return;
-
-			this->ChangeStatus();
+			if (copLabel == PursuitFeatures::CopLabel::HELICOPTER) this->ChangeStatus();
 		}
 
 
@@ -198,9 +196,7 @@ namespace HelicopterOverrides
 		) 
 			override
 		{
-			if (not (copLabel == PursuitFeatures::CopLabel::HELICOPTER)) return;
-
-			this->ChangeStatus();
+			if (copLabel == PursuitFeatures::CopLabel::HELICOPTER) this->ChangeStatus();
 		}
 	};
 
