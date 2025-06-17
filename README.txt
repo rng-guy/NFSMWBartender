@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.1.0) │ ■ ───────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.1.00) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "Basic" set allows you to change otherwise hard-coded values of the game, and
