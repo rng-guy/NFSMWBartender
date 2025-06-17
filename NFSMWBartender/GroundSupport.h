@@ -25,12 +25,12 @@ namespace GroundSupport
 	float strategyCooldown       = 10.f;
 	float maxStrategyDelay       = 10.f;
 
-	const char* heavyRoadblockVehicle = nullptr;
-	const char* lightRoadblockVehicle = nullptr;
-	const char* heavyRammingVehicle   = nullptr;
-	const char* lightRammingVehicle   = nullptr;
-	const char* henchmenVehicle       = nullptr;
-	const char* leaderVehicle         = nullptr;
+	const char* heavyRoadblockVehicle = "copsuv";
+	const char* lightRoadblockVehicle = "copsuvl";
+	const char* heavyRammingVehicle   = "copsuv";
+	const char* lightRammingVehicle   = "copsuvl";
+	const char* henchmenVehicle       = "copsporthench";
+	const char* leaderVehicle         = "copcross";
 
 	// General Heat levels
 	std::array<float, Globals::maxHeatLevel> minRoadblockCooldowns   = {};
@@ -296,24 +296,24 @@ namespace GroundSupport
 		(
 			"Heavy:Ramming",
 			Globals::configFormat,
-			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(lightRammingVehicles, "copsuvl"),
-			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(heavyRammingVehicles, "copsuv")
+			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(lightRammingVehicles, lightRammingVehicle),
+			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(heavyRammingVehicles, heavyRammingVehicle)
 		);
 
 		parser.ParseParameterTable
 		(
 			"Heavy:Roadblock",
 			Globals::configFormat,
-			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(lightRoadblockVehicles, "copsuvl"),
-			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(heavyRoadblockVehicles, "copsuv")
+			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(lightRoadblockVehicles, lightRoadblockVehicle),
+			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(heavyRoadblockVehicles, heavyRoadblockVehicle)
 		);
 
 		parser.ParseParameterTable
 		(
 			"Leader:General",
 			Globals::configFormat,
-			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(leaderVehicles,   "copcross"),
-			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(henchmenVehicles, "copsporthench")
+			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(leaderVehicles,   leaderVehicle),
+			ConfigParser::FormatParameter<std::string, Globals::maxHeatLevel>(henchmenVehicles, henchmenVehicle)
 		);
 
 		MemoryEditor::DigCodeCave(&RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);

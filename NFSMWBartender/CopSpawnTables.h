@@ -259,8 +259,6 @@ namespace CopSpawnTables
 		ParseTables(parser, "Events",     eventSpawnTables,     false);
 		ParseTables(parser, "Patrols",    patrolSpawnTables,    false);
 		ParseTables(parser, "Roadblocks", roadblockSpawnTables, false);
-
-		MemoryEditor::Write<const char*>(helicopterVehicle, 0x4266E2, 0x42BB60, 0x431470, 0x43EBAE, 0x8847C1);
 		
 		featureEnabled = true;
 	}
