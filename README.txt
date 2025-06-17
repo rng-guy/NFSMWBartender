@@ -147,10 +147,11 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
  • The global cop spawn limit ("BartenderSettings\Advanced\General.ini") has a few odd quirks.
    These quirks are all vanilla behaviour; this mod is just more likely to expose you to them:
     • The game compares the limit to the total number of cops in the world, not just a pursuit.
-    • The total number of cops the game references includes "Chasers", supports, and roadblocks.
-    • If the total is at or above the limit, no more "Chasers" spawn until it goes back down.
+    • The total number of cops includes all ground vehicles: "Chasers", supports, and roadblocks.
+    • The game only removes vehicles from the total number of cops once they have fully despawned.
+    • If the total is at or above the limit, no more "Chasers" can spawn until it goes back down.
     • If the total is at or above the limit, new supports and roadblocks CAN still spawn.
-   The big implication here is that support and roadblock vehicles can block "Chasers" from
+   The big implication here is that support and roadblock vehicles can block new "Chasers" from
    spawning in pursuits if they spawn first. Keep this in mind if you encounter a situation where 
    the game seemingly refuses to spawn as many "Chasers" as the global spawn limit should allow.
    
