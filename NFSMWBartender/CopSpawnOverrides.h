@@ -20,6 +20,8 @@ namespace CopSpawnOverrides
 
 	bool featureEnabled = true;
 
+	const char* copToSpawn = nullptr;
+
 	// Current Heat level
 	int minActiveCount = 0; // vehicles
 	int maxActiveCount = 8; // vehicles
@@ -27,6 +29,11 @@ namespace CopSpawnOverrides
 	// General Heat levels
 	std::array<int, Globals::maxHeatLevel> minActiveCounts = {};
 	std::array<int, Globals::maxHeatLevel> maxActiveCounts = {};
+
+	// Code caves
+	const address getPursuitVehicleByName = 0x41ECD0;
+	const address stringToHashFunction    = 0x5CC240;
+	const address copTableComparison      = 0x90D8C8;
 
 
 
@@ -222,18 +229,6 @@ namespace CopSpawnOverrides
 			return (this->IsWaveExhausted()) ? nullptr : this->spawnTable.GetRandomCopType();
 		}
 	};
-
-
-
-
-
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
-
-	const char* copToSpawn = nullptr;
-
-	const address getPursuitVehicleByName = 0x41ECD0;
-	const address stringToHashFunction    = 0x5CC240;
-	const address copTableComparison      = 0x90D8C8;
 
 
 
