@@ -146,7 +146,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
   * The total number of cops includes all ground vehicles: "Chasers", supports, and roadblocks.
   * The game only removes vehicles from the total number of cops once they have fully despawned.
   * If the total is at or above the limit, no more "Chasers" can spawn until it goes back down.
-  * If the total is at or above the limit, new supports and roadblocks CAN still spawn.
+  * If the total is at or above the limit, new supports and roadblocks *can* still spawn.
 
   The big implication here is that support and roadblock vehicles can block new "Chasers" from spawning in pursuits if they spawn first. Keep this in mind if you encounter a situation where the game seemingly refuses to spawn as many "Chasers" as the global spawn limit should allow.
 
