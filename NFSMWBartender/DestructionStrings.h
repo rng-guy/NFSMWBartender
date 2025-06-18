@@ -51,12 +51,12 @@ namespace DestructionStrings
 	{
 		__asm
 		{
-			push [esp + 0x54]
+			push [esp + 0x54] // string hash
 			call GetBinaryKey
-			add esp, 0x4
+			add esp, 0x4      // pop string hash
 
 			test eax, eax
-			je skip // no key found
+			je skip // unknown hash
 
 			push eax
 			jmp dword ptr copDestructionExit

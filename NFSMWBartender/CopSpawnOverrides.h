@@ -190,8 +190,8 @@ namespace CopSpawnOverrides
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::Log(this->pursuit, "SPA: Type capacity:", this->spawnTable.GetCapacity(copType));
-				Globals::Log(this->pursuit, "SPA: Contingent:",    this->numCopsInContingent);
+				Globals::Log(this->pursuit, "SPA: Type capacity remaining:", this->spawnTable.GetCapacity(copType));
+				Globals::Log(this->pursuit, "SPA: Contingent:",              this->numCopsInContingent);
 			}
 		}
 
@@ -234,58 +234,54 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
 
-	struct Action
-	{
-		bool        replaceCop; // returned in eax
-		const char* newCopName; // returned in edx
-	};
-
-
-
-	Action __cdecl InterceptClassSpawner(const address spawnCaller)
+	const char* __cdecl ReplaceCopByClass(const address spawnCaller) 
 	{
 		if (ContingentManager::IsHeatLevelKnown())
 		{
 			switch (spawnCaller)
 			{
 			case 0x4269E6: // helicopter
-				return {true, CopSpawnTables::helicopterVehicle};
+				return CopSpawnTables::helicopterVehicle;
 
 			case 0x430DAD: // free-roam patrols
-				return {true, CopSpawnTables::patrolSpawnTable->GetRandomCopType()};
-
+				return CopSpawnTables::patrolSpawnTable->GetRandomCopType();
+				
 			case 0x42EAAD: // first scripted cop
-				return {true, CopSpawnTables::pursuitSpawnTable->GetRandomCopType()};
-
+				return CopSpawnTables::pursuitSpawnTable->GetRandomCopType();
+				
 			case 0x43E049: // roadblocks
-				return {true, CopSpawnTables::roadblockSpawnTable->GetRandomCopType()};
+				return CopSpawnTables::roadblockSpawnTable->GetRandomCopType();
 			}
 		}
 
-		return {false, nullptr};
+		return nullptr;
 	}
 
 
 
-	Action __cdecl InterceptNameSpawner
+	bool __cdecl InterceptCopByName
 	(
 		const address spawnCaller,
-		const address pursuit
+		const address pursuit,
+		const char**  newCopName
 	) {
 		if (ContingentManager::IsHeatLevelKnown())
 		{
 			switch (spawnCaller)
 			{
 			case 0x42E72E: // event spawns
-				return {true, CopSpawnTables::eventSpawnTable->GetRandomCopType()};
+				*newCopName = CopSpawnTables::eventSpawnTable->GetRandomCopType();
+				return true;
 
-			case 0x43EBD0: // pursuit vehicles, cooldown patrols
+			case 0x43EBD0: // pursuit vehicles, Cooldown mode patrols
 				const ContingentManager* const manager = ContingentManager::GetInstance(pursuit);
-				if (manager) return {true, manager->GetRandomCopType()};
+				*newCopName = (manager) ? manager->GetRandomCopType() : nullptr;
+				return manager;
 			}
 		}
 
-		return {false, nullptr};
+		*newCopName = nullptr;
+		return false;
 	}
 
 
@@ -296,7 +292,6 @@ namespace CopSpawnOverrides
 
 	const address byClassInterceptorEntrance = 0x426621;
 	const address byClassInterceptorExit     = 0x426627;
-	const address byClassInterceptorSkip     = 0x42662A;
 
 	__declspec(naked) void ByClassInterceptor()
 	{
@@ -305,16 +300,16 @@ namespace CopSpawnOverrides
 			je failure // spawn intended to fail
 
 			push [esp + 0x8] // caller address
-			call InterceptClassSpawner
-			add esp, 0x4
+			call ReplaceCopByClass
+			add esp, 0x4     // pop caller address
 
-			test al, al
-			je skip // valid spawn, but do not intercept
+			test eax, eax
+			je conclusion // do not spawn any cop
 
-			mov ecx, ebp // AICopManager
-			push edx     // copName
-			call dword ptr getPursuitVehicleByName
-			jmp conclusion // intercepted
+			mov ecx, ebp                           // AICopManager
+			push eax                               // newCopName
+			call dword ptr getPursuitVehicleByName // pops newCopName
+			jmp conclusion                         // intercepted
 
 			failure:
 			xor eax, eax
@@ -324,9 +319,6 @@ namespace CopSpawnOverrides
 			pop ebp
 			pop ecx
 			jmp dword ptr byClassInterceptorExit
-
-			skip:
-			jmp dword ptr byClassInterceptorSkip
 		}
 	}
 
@@ -344,15 +336,19 @@ namespace CopSpawnOverrides
 			test ebp, ebp
 			je conclusion // spawn intended to fail
 
-			push esi          // AIPursuit
-			push [esp + 0x74] // caller address
-			call InterceptNameSpawner
-			add esp, 0x8
+			lea eax, [esp - 0x4] // new const char**
+
+			push eax          // newCopName
+			push esi          // AIPursuit (only for "Chaser" calls)
+			push [esp + 0x78] // caller address
+			call InterceptCopByName
+			add esp, 0x8      // pop caller address and AIPursuit
 
 			test al, al
+			pop eax       // pop newCopName     
 			je conclusion // valid spawn, but do not intercept
 
-			mov ebp, edx
+			mov ebp, eax
 			mov [esp + 0x74], ebp // intercepted
 
 			conclusion:
