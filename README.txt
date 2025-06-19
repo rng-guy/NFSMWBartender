@@ -216,4 +216,4 @@ v1.1.00: Fixed a bug with vehicle names containing underscores
 v1.1.01: Removed some superfluous memory patches
 
 v1.2.00: Improved thread safety of cop-spawn interceptor functions
-v1.2.01: Rephrased spawning-related entries in Limitations section
+v1.2.01: Rephrased spawning-related entries in Limitations
