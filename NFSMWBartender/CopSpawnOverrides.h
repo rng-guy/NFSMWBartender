@@ -71,7 +71,7 @@ namespace CopSpawnOverrides
 				this->spawnTable.UpdateCapacity(pair.first, -(pair.second));
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "SPA: Type capacity:", this->spawnTable.GetCapacity(pair.first));
+					Globals::Log(this->pursuit, "SPA: Type capacity remaining:", this->spawnTable.GetCapacity(pair.first));
 			}
 		}
 
