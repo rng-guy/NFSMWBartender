@@ -251,6 +251,10 @@ namespace CopSpawnOverrides
 				
 			case 0x43E049: // roadblocks
 				return CopSpawnTables::roadblockSpawnTable->GetRandomCopType();
+
+			default:
+				if constexpr (Globals::loggingEnabled)
+					Globals::Log("WARNING: Unknown ByClass caller:", spawnCaller);
 			}
 		}
 
