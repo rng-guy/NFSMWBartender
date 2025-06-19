@@ -161,6 +161,9 @@ namespace CopSpawnTables
 				if (randomNumber < cumulativeChance) return this->ConvertToName(copType);
 			}
 
+			if constexpr (Globals::loggingEnabled)
+				Globals::Log("WARNING: Failed to select vehicle:", randomNumber, cumulativeChance, this->availableTotalCopChance);
+
 			return nullptr;
 		}
 
