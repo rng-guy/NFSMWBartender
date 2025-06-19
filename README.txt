@@ -32,7 +32,7 @@ This feature set lets you change (per Heat level)
 
 This feature set fixes two bugs:
  • you can no longer get BUSTED due to line-of-sight issues while the EVADE bar fills, and
- • ground supports (Cross, SUVs, etc.) will no longer stop spawning in longer pursuits.
+ • Heavy and LeaderStrategy spawns no longer stop happening in some longer pursuits.
 
 You can also assign new (Binary) strings for the game to display when cop vehicles are destroyed,
 similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, this mod's version of this
@@ -64,8 +64,8 @@ This feature set lets you change (per Heat level)
 
 This feature set also fixes the displayed engagement count in the centre of the pursuit bar:
 its value is now perfectly accurate and reflects how many chasing cops remain in the current
-wave. The count ignores support vehicles (Cross, SUVs, etc.), the helicopter, and any vehicles
-that join the pursuit by detaching themselves from roadblocks.
+wave. The count ignores vehicles spawned through any Heavy or LeaderStrategy, the helicopter, 
+and any vehicles that join the pursuit by detaching themselves from roadblocks.
 
 
 
