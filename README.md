@@ -2,8 +2,8 @@
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
 This .asi mod adds new customisation options to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in **two feature sets**:
-* the **"Basic"** set allows you to change otherwise hard-coded values of the game, and
-* the **"Advanced"** set allows you to specify custom spawn tables for cops without limits.
+* the **Basic** set lets you change many otherwise hard-coded values of the game, and
+* the **Advanced** set lets you change cop-spawning behaviour and spawn tables without limits.
 
 &nbsp;
 
@@ -27,15 +27,15 @@ See the **Limitations** section further below before using this feature set.
 
 &nbsp;
 
-This feature set **allows you to change** (per Heat level)
+This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
 * how long it takes to lose the cops and enter Cooldown mode,
 * the maximum bounty multiplier for destroying cops quickly,
 * the internal cooldown for regular roadblock spawns,
 * the internal cooldown for Heavy and LeaderStrategy spawns,
-* which vehicles spawn in place of ramming SUVs,
-* which vehicles spawn in place of roadblock SUVs, and
-* which vehicles spawn in place of Cross and his henchmen.
+* which vehicles spawn by HeavyStrategy 3 (ramming SUVs),
+* which vehicles spawn by HeavyStrategy 4 (roadblock SUVs), and
+* which vehicles spawn by LeaaderStrategy 5 / 7 (Cross and his henchmen).
 
 &nbsp;
 
@@ -65,20 +65,20 @@ See the **Limitations** section further below before using this feature set.
 
 &nbsp;
 
-This feature set **allows you to change** (per Heat level)
+This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
 * the global spawn limit for how many cops may chase you at once,
 * how quickly cops leave the pursuit if they don't belong (if at all),
-* which vehicles may spawn to chase you (with counts, chances, and no type limit),
-* which vehicles may spawn in roadblocks (with chances and no type limit),
-* which vehicles may spawn in scripted events (as above),
+* which vehicles may spawn to chase you (any amount, with counts and chances),
+* which vehicles may spawn in roadblocks (any amount, with chances),
+* which vehicles may spawn in scripted events (same as above),
 * which vehicles may spawn as patrols in free-roam (ditto),
 * which vehicle spawns in place of the regular helicopter, and
 * when exactly the helicopter can (de / re)spawn (if at all).
 
 &nbsp;
 
-This feature set **also fixes** the displayed engagement count in the centre of the pursuit bar: its value is now perfectly accurate and reflects how many "Chaser" cops remain in the current wave. The count ignores support vehicles (e.g. Cross), the helicopter, and any vehicles that join the pursuit by detaching themselves from roadblocks.
+This feature set **also fixes** the displayed engagement count in the centre of the pursuit bar: its value is now perfectly accurate and reflects how many chasing cops remain in the current wave. The count ignores support vehicles (Cross, SUVs, etc.), the helicopter, and any vehicles that join the pursuit by detaching themselves from roadblocks.
 
 &nbsp;
 

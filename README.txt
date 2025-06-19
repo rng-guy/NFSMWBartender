@@ -2,8 +2,8 @@
 ── ■ │ NFSMW Bartender (v1.2.00) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
- • the "Basic" set allows you to change otherwise hard-coded values of the game, and
- • the "Advanced" set allows you to specify custom spawn tables for cops without limits.
+ • the "Basic" set lets you change many otherwise hard-coded values of the game, and
+ • the "Advanced" set lets you change cop-spawning behaviour and spawn tables without limits.
 
 For more details on which features (and .ini files) each set includes, see the following sections.
 There are also separate sections for INSTALLATION instructions and the LIMITATIONS of this mod.
@@ -20,15 +20,15 @@ To DISABLE a given feature of this set, delete its .ini section (or the respecti
 
 See the "LIMITATIONS" section further below before using this feature set.
 
-This feature set allows you to change (per Heat level)
+This feature set lets you change (per Heat level)
  • at which distance and how quickly you can get busted,
  • how long it takes to lose the cops and enter Cooldown mode,
  • the maximum bounty multiplier for destroying cops quickly,
  • the internal cooldown for regular roadblock spawns,
  • the internal cooldown for Heavy and LeaderStrategy spawns,
- • which vehicles spawn in place of ramming SUVs,
- • which vehicles spawn in place of roadblock SUVs, and
- • which vehicles spawn in place of Cross and his henchmen.
+ • which vehicles spawn by HeavyStrategy 3 (ramming SUVs),
+ • which vehicles spawn by HeavyStrategy 4 (roadblock SUVs), and
+ • which vehicles spawn by LeaaderStrategy 5 / 7 (Cross and his henchmen).
 
 This feature set fixes two bugs:
  • you can no longer get BUSTED due to line-of-sight issues while the EVADE bar fills, and
@@ -51,21 +51,21 @@ To DISABLE this feature set, delete all .ini files in that folder (or the folder
 
 See the "LIMITATIONS" section further below before using this feature set.
 
-This feature set allows you to change (per Heat level)
+This feature set lets you change (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
  • the global spawn limit for how many cops may chase you at once,
  • how quickly cops leave the pursuit if they don't belong (if at all),
- • which vehicles may spawn to chase you (with counts, chances, and no type limit),
- • which vehicles may spawn in roadblocks (with chances and no type limit),
- • which vehicles may spawn in scripted events (as above),
+ • which vehicles may spawn to chase you (any amount, with counts and chances),
+ • which vehicles may spawn in roadblocks (any amount, with chances),
+ • which vehicles may spawn in scripted events (same as above),
  • which vehicles may spawn as patrols in free-roam (ditto),
  • which vehicle spawns in place of the regular helicopter, and
  • when exactly the helicopter can (de / re)spawn (if at all).
 
 This feature set also fixes the displayed engagement count in the centre of the pursuit bar:
-its value is now perfectly accurate and reflects how many "Chaser" cops remain in the current
-wave. The count ignores support vehicles (e.g. Cross), the helicopter, and any vehicles that 
-join the pursuit by detaching themselves from roadblocks.
+its value is now perfectly accurate and reflects how many chasing cops remain in the current
+wave. The count ignores support vehicles (Cross, SUVs, etc.), the helicopter, and any vehicles
+that join the pursuit by detaching themselves from roadblocks.
 
 
 

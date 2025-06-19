@@ -234,7 +234,7 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
 
-	const char* __cdecl ReplaceCopByClass(const address spawnCaller) 
+	const char* __cdecl ReplaceByClassRequest(const address spawnCaller)
 	{
 		if (ContingentManager::IsHeatLevelKnown())
 		{
@@ -259,7 +259,7 @@ namespace CopSpawnOverrides
 
 
 
-	bool __cdecl InterceptCopByName
+	bool __cdecl IsByNameRequestInterceptable
 	(
 		const address spawnCaller,
 		const address pursuit,
@@ -300,7 +300,7 @@ namespace CopSpawnOverrides
 			je failure // spawn intended to fail
 
 			push [esp + 0x8] // caller address
-			call ReplaceCopByClass
+			call ReplaceByClassRequest
 			add esp, 0x4     // pop caller address
 
 			test eax, eax
@@ -341,7 +341,7 @@ namespace CopSpawnOverrides
 			push eax          // newCopName
 			push esi          // AIPursuit (only for "Chaser" calls)
 			push [esp + 0x78] // caller address
-			call InterceptCopByName
+			call IsByNameRequestInterceptable
 			add esp, 0x8      // pop caller address and AIPursuit
 
 			test al, al
