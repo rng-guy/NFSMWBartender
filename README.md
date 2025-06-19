@@ -41,7 +41,7 @@ This feature set **lets you change** (per Heat level)
 
 This feature set **fixes two bugs**:
 * you can no longer get BUSTED due to line-of-sight issues while the EVADE bar fills, and
-* regular roadblock and Heavy / LeaderStrategy spawns no longer stop in some longer pursuits.
+* regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
 &nbsp;
 
