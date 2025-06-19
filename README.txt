@@ -32,7 +32,7 @@ This feature set lets you change (per Heat level)
 
 This feature set fixes two bugs:
  • you can no longer get BUSTED due to line-of-sight issues while the EVADE bar fills, and
- • Heavy and LeaderStrategy spawns no longer stop happening in some longer pursuits.
+ • regular roadblock and Heavy / LeaderStrategy spawns no longer stop in some longer pursuits.
 
 You can also assign new (Binary) strings for the game to display when cop vehicles are destroyed,
 similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, this mod's version of this
