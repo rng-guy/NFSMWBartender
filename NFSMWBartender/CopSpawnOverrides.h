@@ -234,11 +234,11 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
 
-	const char* __cdecl GetByClassReplacement(const address spawnCaller)
+	const char* __cdecl GetByClassReplacement(const address spawnReturn)
 	{
 		if (ContingentManager::IsHeatLevelKnown())
 		{
-			switch (spawnCaller)
+			switch (spawnReturn)
 			{
 			case 0x4269E6: // helicopter
 				return CopSpawnTables::helicopterVehicle;
@@ -254,7 +254,7 @@ namespace CopSpawnOverrides
 
 			default:
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: Unknown ByClass caller:", spawnCaller);
+					Globals::Log("WARNING: Unknown ByClass caller:", spawnReturn);
 			}
 		}
 
@@ -265,13 +265,13 @@ namespace CopSpawnOverrides
 
 	bool __cdecl IsByNameReplacementAvailable
 	(
-		const address spawnCaller,
+		const address spawnReturn,
 		const address pursuit,
 		const char**  newCopName
 	) {
 		if (ContingentManager::IsHeatLevelKnown())
 		{
-			switch (spawnCaller)
+			switch (spawnReturn)
 			{
 			case 0x42E72E: // event spawns
 				*newCopName = CopSpawnTables::eventSpawnTable->GetRandomCopType();
@@ -303,9 +303,9 @@ namespace CopSpawnOverrides
 		{
 			je failure // spawn intended to fail
 
-			push [esp + 0x8] // caller address
+			push [esp + 0x8] // return address
 			call GetByClassReplacement
-			add esp, 0x4     // pop caller address
+			add esp, 0x4     // pop return address
 
 			test eax, eax
 			je conclusion // do not spawn any cop
@@ -313,7 +313,7 @@ namespace CopSpawnOverrides
 			mov ecx, ebp                           // AICopManager
 			push eax                               // newCopName
 			call dword ptr getPursuitVehicleByName // pops newCopName
-			jmp conclusion                         // intercepted
+			jmp conclusion                         // cop replaced
 
 			failure:
 			xor eax, eax
@@ -343,17 +343,17 @@ namespace CopSpawnOverrides
 			lea eax, [esp - 0x4] // new const char**
 
 			push eax          // newCopName
-			push esi          // AIPursuit (only for "Chaser" calls)
-			push [esp + 0x78] // caller address
+			push esi          // AIPursuit (only for "Chasers" calls)
+			push [esp + 0x78] // return address
 			call IsByNameReplacementAvailable
-			add esp, 0x8      // pop caller address and AIPursuit
+			add esp, 0x8      // pop return address and AIPursuit
 
 			test al, al
 			pop eax       // pop newCopName     
 			je conclusion // valid spawn, but do not intercept
 
 			mov ebp, eax
-			mov [esp + 0x74], ebp // intercepted
+			mov [esp + 0x74], ebp
 
 			conclusion:
 			// Execute original code and resume

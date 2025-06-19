@@ -1,12 +1,12 @@
 
-── ■ │ NFSMW Bartender (v1.2.00) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.2.01) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
- • the "Basic" set lets you change many otherwise hard-coded values of the game, and
- • the "Advanced" set lets you change cop-spawning behaviour and spawn tables without limits.
+ • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
+ • the "ADVANCED" set lets you change cop-spawning behaviour and spawn tables without limits.
 
 For more details on which features (and .ini files) each set includes, see the following sections.
-There are also separate sections for INSTALLATION instructions and the LIMITATIONS of this mod.
+There are also separate sections for "INSTALLATION" instructions and the "LIMITATIONS" of this mod.
 
 
 
@@ -97,13 +97,13 @@ To REINSTALL this mod, uninstall it and repeat the installation process above.
 ── ■ │ LIMITATIONS │ ■ ────────────────────────────────────────────────────────────────────────────
 
 The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises 
-and instability, make sure you understand them all before you use this mod in any capacity.
+and game instability, make sure you understand them all before you use this mod in any capacity.
 
 Both feature sets of this mod should be compatible with all VltEd, Binary, and most .asi mods.
 All known and notable exceptions to this are explicitly mentioned in this section.
 
 
-"Basic" feature set:
+"BASIC" feature set:
 
  • All vehicles you specify to replace the ramming SUVs ("BartenderSettings\Basic\Supports.ini") 
    should each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) in their VltEd 
@@ -112,8 +112,8 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    and the (vanilla) game really does not like managing more than 8 active cops for very long.
 
  • All vehicles you specify to replace Cross ("BartenderSettings\Basic\Supports.ini") should
-   each be unique to him, i.e. not be used by other cops elsewhere. If another cop with the same
-   vehicle as Cross is present in a given pursuit, no LeaderStrategy will be able to spawn.
+   each be unique to him, i.e. not be used by other cops elsewhere. If another cop with the 
+   same vehicle as Cross is present in a pursuit, no LeaderStrategy will be able to spawn.
 
  • The string assignment for cops ("BartenderSettings\Basic\Labels.ini") is incompatible with
    the "EnableCopDestroyedStringHook" feature of the "NFSMW Unlimiter" mod by nlgxzef. Either
@@ -121,14 +121,17 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    feature by editing its "NFSMWUnlimiterSettings.ini" configuration file.
 
 
-"Advanced" feature set:
+"ADVANCED" feature set:
 
- • The feature set disables itself if ANY Heat level lacks a valid spawn table for "Chasers" 
+ • The feature set disables itself if ANY Heat level lacks a valid "Chasers" spawn table
    ("BartenderSettings\Advanced\Cars.ini"); you must specify at least one car for each level.
 
  • If the feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
    because the feature set fulfils their intended purposes with much greater customisation:
    "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
+
+ • All vehicles you specify in any of the spawn tables ("BartenderSettings\Advanced\Cars.ini")
+   must each have the "CAR" class assigned to them in their "pvehicle" VltEd entries.
 
  • All vehicles you specify to replace the helicopter ("BartenderSettings\Advanced\Helicopter.ini")
    must each have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
@@ -139,17 +142,18 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    the wrong car in the requested roadblock. This bug isn't restricted to cop spawns: if the stars
    align, it can also happen with traffic cars or even the helicopter.
 
- • The first scripted cop to spawn in a given event is always of the type specified in the event's
-   VltEd entry instead of the "Event" spawn tables ("BartenderSettings\Advanced\Cars.ini"). This 
-   is because the game actually requests the first cop before it loads any pursuit or Heat level 
-   information, which makes it impossible for the mod to know which spawn to use for this one car.
+ • The "Event" spawn tables ("BartenderSettings\Advanced\Cars.ini") apply only after the first
+   scripted, pre-generated cop has already spawned in a given event; instead, this first cop is
+   always of the type specified in the event's "CopSpawnType" VltEd parameter. This is because 
+   the game actually requests the first cop before it loads any pursuit or Heat level information, 
+   making it impossible for the mod to know which spawn table to use for the very first vehicle.
 
  • The global cop spawn limit ("BartenderSettings\Advanced\General.ini") has a few odd quirks.
    These quirks are all vanilla behaviour; this mod is just more likely to expose you to them:
     • The game compares the limit to the total number of cops in the world, not just a pursuit.
     • The total number of cops includes all ground vehicles: "Chasers", supports, and roadblocks.
-    • The game only removes vehicles from the total number of cops once they have fully despawned.
-    • If the total is at or above the limit, no more "Chasers" can spawn until it goes back down.
+    • The game only removes vehicles from the total once they have fully despawned / disappeared.
+    • If the total is at or above the limit, no more "Chasers" can spawn until it less again.
     • If the total is at or above the limit, new supports and roadblocks CAN still spawn.
    The big implication here is that support and roadblock vehicles can block new "Chasers" from
    spawning in pursuits if they spawn first. Keep this in mind if you encounter a situation where 
@@ -171,9 +175,9 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 ── ■ │ ACKNOWLEDGEMENT(S) │ ■ ─────────────────────────────────────────────────────────────────────
 
-You are free to bundle this mod and any of its .ini files with your own pursuit mod(s),
-no credit required. If you include the .asi file, however, I ask that you do your users
-a favour and provide a link to this mod's github repository in your mod's README file.
+You are free to bundle this mod and any of its .ini files with your own pursuit mod(s), no credit 
+required. If you include the .asi file, however, I ask that you do your users a favour and provide
+a link to this mod's GitHub repository in your mod's README file.
 
 This mod would not have seen the light of day without
  • rx, for encouraging me to try .asi modding;
@@ -212,3 +216,4 @@ v1.1.00: Fixed a bug with vehicle names containing underscores
 v1.1.01: Removed some superfluous memory patches
 
 v1.2.00: Improved thread safety of cop-spawn interceptor functions
+v1.2.01: Rephrased spawning-related entries in Limitations section
