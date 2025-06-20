@@ -211,23 +211,27 @@ namespace PursuitObserver
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	const address pursuitConstructorEntrance = 0x44323D;
-	const address pursuitConstructorExit     = 0x443253;
+	const address pursuitConstructorEntrance = 0x4432D0;
+	const address pursuitConstructorExit     = 0x4432D7;
 
 	__declspec(naked) void PursuitConstructor()
 	{
 		__asm
 		{
 			// Execute original code first
-			mov dword ptr [esi + 0x278], 0x447A0000
-			mov dword ptr [esi + 0x268], 0x47C35000
-			mov eax, esi
+			add eax, 0x2C
+			mov ecx, [esp + 0x8]
 
-			pushad
-			mov ecx, eax
-			add ecx, 0x48
+			push eax
+			push ecx
+			push edx
+
+			lea ecx, [eax + 0x1C]
 			call CreateObserver // ecx: AIPursuit
-			popad
+
+			pop edx
+			pop ecx
+			pop eax
 
 			jmp dword ptr pursuitConstructorExit
 		}
@@ -242,10 +246,14 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			pushad
+			push ecx
+			push edx
+
 			add ecx, 0x48
 			call DestroyObserver // ecx: AIPursuit
-			popad
+			
+			pop edx
+			pop ecx
 
 			// Execute original code and resume
 			sub esp, 0x8

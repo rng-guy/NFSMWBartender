@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.2.01) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.2.02) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -195,25 +195,26 @@ This mod would not have seen the light of day without
 ── ■ │ CHANGELOG │ ■ ──────────────────────────────────────────────────────────────────────────────
 
 v1.0.00: Initial release
-v1.0.01: Revised "Limitations" section in README
-v1.0.02: Revised multiple sections in README
+v1.0.01: Revised "LIMITATIONS" section of README
+v1.0.02: Revised multiple sections of README
 v1.0.03: Yet another minor README revision
 v1.0.04: README? More like "FIXME"
-v1.0.05: Clarified "Event" spawns in Cars.ini
-v1.0.06: Clarified string assignment in Labels.ini
+v1.0.05: Clarified "Event" spawns in "Cars.ini"
+v1.0.06: Clarified string assignment in "Labels.ini"
 v1.0.07: Clarified ignored VltEd parameters when "Advanced" feature set is enabled
 v1.0.08: Corrected a few typos in README
-v1.0.09: Clarified cooldowns in Supports.ini and helicopter spawns in Helicopter.ini
+v1.0.09: Clarified cooldowns in Supports.ini and helicopter spawns in "Helicopter.ini"
 v1.0.10: Revised multiple .ini comments and enforced consistency
-v1.0.11: Further clarified cooldowns in Supports.ini
-v1.0.12: Improved formatting of .ini files and added further Limitations
-v1.0.13: Added compatibility note for VltEd and other .asi mods in Limitations
-v1.0.14: Added compatibility note for Binary mods in Limitations
+v1.0.11: Further clarified cooldowns in "Supports.ini"
+v1.0.12: Improved formatting of .ini files and expanded "LIMITATIONS" section of README
+v1.0.13: Added compatibility note for VltEd and other .asi mods in "LIMITATIONS" section of README
+v1.0.14: Added compatibility note for Binary mods in "LIMITATIONS" section in README
 v1.0.15: Added note about README structure
-v1.0.16: Clarified stability comment about LimitAdjuster in Limitations
+v1.0.16: Clarified stability comment about LimitAdjuster in "LIMITATIONS" section of README
 
 v1.1.00: Fixed a bug with vehicle names containing underscores
 v1.1.01: Removed some superfluous memory patches
 
 v1.2.00: Improved thread safety of cop-spawn interceptor functions
-v1.2.01: Rephrased spawning-related entries in Limitations
+v1.2.01: Rephrased spawning-related entries in "LIMITATIONS" section of README
+v1.2.02: Removed redundant push / pop instructions

@@ -104,10 +104,14 @@ namespace StateObserver
 			cmp eax, currentHeatLevel
 			je conclusion // Heat is unchanged
 
-			pushad
+			push ecx
+			push edx
+
 			mov currentHeatLevel, eax
 			call OnHeatLevelUpdates
-			popad
+
+			pop edx
+			pop ecx
 
 			conclusion:
 			// Execute original code and resume
@@ -131,10 +135,14 @@ namespace StateObserver
 			cmp byte ptr gameStartHandled, 0x1
 			je conclusion // already handled
 
-			pushad
+			push eax
+			push edx
+
 			call OnGameStartUpdates
 			mov byte ptr gameStartHandled, 0x1
-			popad
+			
+			pop edx
+			pop eax
 
 			conclusion:
 			// Execute original code and resume
@@ -154,14 +162,18 @@ namespace StateObserver
 	{
 		__asm
 		{
-			// Execute original code first
+			push ecx
+			push edx
+
+			call OnGameplayUpdates
+			
+			pop edx
+			pop ecx
+
+			// Execute original and resume
 			mov eax, 0x92D884
 			mov eax, [eax]
 			sub esp, 0x18
-
-			pushad
-			call OnGameplayUpdates
-			popad
 
 			jmp dword ptr gameplayObserverExit
 		}
@@ -177,9 +189,15 @@ namespace StateObserver
 	{
 		__asm
 		{
-			pushad
+			push eax
+			push ecx
+			push edx
+
 			call OnLoadingUpdates
-			popad
+			
+			pop edx
+			pop ecx
+			pop eax
 
 			// Execute original code and resume
 			push edi
@@ -200,9 +218,15 @@ namespace StateObserver
 	{
 		__asm
 		{
-			pushad
+			push eax
+			push ecx
+			push edx
+
 			call OnRetryUpdates
-			popad
+
+			pop edx
+			pop ecx
+			pop eax
 
 			// Execute original code and resume
 			cmp eax, ebx
