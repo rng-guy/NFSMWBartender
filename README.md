@@ -7,7 +7,7 @@ This .asi mod adds new customisation options to pursuits in *Need for Speed: Mos
 
 &nbsp;
 
-For more details on which features (and .ini files) each set includes, see the following sections. There are also separate sections for **Installation** instructions and the **Limitations** of this mod.
+For more details on which features (and .ini files) each set includes, see the following sections. There are also separate sections for **installation** instructions and the **limitations** of this mod.
 
 &nbsp;
 
@@ -23,7 +23,7 @@ The **.ini files** for this feature set are located in `scripts/BartenderSetting
 
 To **disable** a feature of this set, delete its .ini section (or the respective .ini file).
 
-See the **Limitations** section further below before using this feature set.
+See the "**Limitations**" section further below before using this feature set.
 
 &nbsp;
 
@@ -61,7 +61,7 @@ The **.ini files** for this feature set are located in `scripts/BartenderSetting
 
 To **disable** this feature set, delete all .ini files in that folder (or the folder itself).
 
-See the **Limitations** section further below before using this feature set.
+See the "**Limitations**" section further below before using this feature set.
 
 &nbsp;
 
@@ -91,7 +91,7 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 # Installation
 
 **Before installing** this mod:
-1. make sure you have read and understood the **Limitations** section of this README below,
+1. make sure you have read and understood the "**Limitations**" section of this README below,
 2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6.029.312 bytes large), and
 3. install an .asi loader or any mod with one (e.g. the [WideScreenFix](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) mod by ThirteenAG).
 
