@@ -273,11 +273,15 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			pushad
-			mov edx, [esp + 0x24]
+			push ecx
+			push edx
+
+			mov edx, [esp + 0xC]
 			push 0x0
 			call NotifyObserver // ecx: AIPursuit; edx: PVehicle; stack: isRemoval
-			popad
+			
+			pop edx
+			pop ecx
 
 			// Execute original code and resume
 			add ecx, -0x1C
@@ -296,11 +300,15 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			pushad
-			mov edx, [esp + 0x24]
+			push ecx
+			push edx
+
+			mov edx, [esp + 0xC]
 			push 0x1
 			call NotifyObserver // ecx: AIPursuit; edx: PVehicle; stack: isRemoval
-			popad
+
+			pop edx
+			pop ecx
 
 			// Execute original code and resume
 			add ecx, -0x1C
