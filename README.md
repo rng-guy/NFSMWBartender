@@ -30,6 +30,7 @@ See the "**Limitations**" section further below before using this feature set.
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
 * how long it takes to lose the cops and enter Cooldown mode,
+* at which time interval you gain passive bounty,
 * the maximum bounty multiplier for destroying cops quickly,
 * the internal cooldown for regular roadblock spawns,
 * the internal cooldown for Heavy and LeaderStrategy spawns,
@@ -99,7 +100,7 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 
 To **install** this mod, copy its `BartenderSettings` folder and compiled .asi file into the `scripts` folder located in your game's installation folder. If your game does not have a `scripts` folder, create one.
 
-**After installing** this mod, you can configure its features by editing its configuration files. You can find these configuration (.ini) files in the `BartenderSettings` folder.
+**After installing** this mod, you can customise its features by editing its configuration files. You can find these configuration (.ini) files in the `BartenderSettings` folder.
 
 To **uninstall** this mod, remove its files from your game's `scripts` folder.
 
@@ -143,14 +144,9 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * The "Event" spawn tables (`BartenderSettings\Advanced\Cars.ini`) apply only after the first scripted, pre-generated cop has already spawned in a given event; instead, this first cop is always of the type specified in the event's `CopSpawnType` VltEd parameter. This is because the game actually requests the first cop before it loads any pursuit or Heat level information, making it impossible for the mod to know which spawn table to use for the very first vehicle.
 
-* The global cop spawn limit (`BartenderSettings\Advanced\General.ini`) has a few odd quirks. These quirks are all vanilla behaviour; this mod is just more likely to expose you to them:
-  * The game compares the limit to the total number of cops in the world, not just a pursuit.
-  * The total number of cops includes all ground vehicles: "Chasers", supports, and roadblocks.
-  * The game only removes vehicles from the total once they have fully despawned / disappeared.
-  * If the total is at or above the limit, no more "Chasers" can spawn until it less again.
-  * If the total is at or above the limit, new supports and roadblocks *can* still spawn.
+* Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one "Event" spawn table (`BartenderSettings\Advanced\Cars.ini`) to appear in events that feature scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those scripted cops. To circumvent this issue, set the `ForceHeatLevel` VltEd parameter of the event in question to the Heat level you are aiming for instead of using short transition timers (wherever possible).
 
-  The big implication here is that support and roadblock vehicles can block new "Chasers" from spawning in pursuits if they spawn first. Keep this in mind if you encounter a situation where the game seemingly refuses to spawn as many "Chasers" as the global spawn limit should allow.
+* Until the HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning. This happens if these spawns pushed the total number of active cops in the world to (or beyond) the global cop spawn limit (`BartenderSettings\Advanced\General.ini`), which will then prevent further "Chasers" spawns. This total is calculated across all pursuits, meaning cops spawned in NPC pursuits can also affect how many "Chasers" can spawn in yours.
 
 * Setting any global cop spawn limit (`BartenderSettings\Advanced\General.ini`) above 8 requires the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) mod by Zolika1351 to work properly. Without it, the game will randomly start unloading models and assets because its default car loader cannot handle the workload of managing (potentially) dozens of extra vehicles. To make LA compatible with this mod, open its `LimitAdjuster.ini` configuration file and disable *all* features in its `[Options]` section; this will unlock the spawn limit without forcing an infinite amount of cops to spawn. Note that LA is not perfectly stable either: It is prone to crashing in the first 30 seconds of the first pursuit in a play session, but will generally stay stable if it does not crash there.
 

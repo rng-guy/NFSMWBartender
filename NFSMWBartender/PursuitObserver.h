@@ -28,10 +28,15 @@ namespace PursuitObserver
 
 		const address pursuit;
 
-		bool inPursuitUpdatePending = true;
+		bool inPursuitUpdatePending    = true;
+		bool perHeatLevelUpdatePending = true;
 
-		std::unordered_set<address>                                       supportCopVehicles;
+		std::unordered_set<address> chaserCopVehicles;
+		std::unordered_set<address> supportCopVehicles;
+
 		std::vector<std::unique_ptr<PursuitFeatures::CopVehicleReaction>> copVehicleReactions;
+
+		inline static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
 
 
 		template <std::derived_from<PursuitFeatures::CopVehicleReaction> F, typename ...T>
@@ -76,12 +81,16 @@ namespace PursuitObserver
 
 		PursuitFeatures::CopLabel Label(const address copVehicle)
 		{
-			if (this->IsHelicopter(copVehicle))
+			if (this->chaserCopVehicles.contains(copVehicle))
+				return PursuitFeatures::CopLabel::CHASER;
+
+			else if (this->IsHelicopter(copVehicle))
 				return PursuitFeatures::CopLabel::HELICOPTER;
 
 			else if (this->IsSupport(copVehicle))
 				return PursuitFeatures::CopLabel::SUPPORT;
 
+			this->chaserCopVehicles.insert(copVehicle);
 			return PursuitFeatures::CopLabel::CHASER;
 		}
 
@@ -113,13 +122,15 @@ namespace PursuitObserver
 		}
 
 
-		void UpdateOnHeatChange() const
+		void UpdateOnHeatChange()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "OBS: Heat transition");
+				Globals::Log(this->pursuit, "OBS: Heat change");
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->UpdateOnHeatChange();
+
+			this->perHeatLevelUpdatePending = true;
 		}
 
 
@@ -130,36 +141,57 @@ namespace PursuitObserver
 				if (this->inPursuitUpdatePending)
 					reaction.get()->UpdateOnceInPursuit();
 
+				if (this->perHeatLevelUpdatePending)
+					reaction.get()->UpdateOncePerHeatLevel();
+
 				reaction.get()->UpdateOnGameplay();
 			}
 
-			this->inPursuitUpdatePending = false;
+			this->inPursuitUpdatePending    = false;
+			this->perHeatLevelUpdatePending = false;
 		}
 
 
-		void NotifyFeatures
-		(
-			const address copVehicle,
-			const bool    isRemoval
-		) {
-			static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
+		size_t GetNumActiveCopVehicles() const 
+		{
+			return (this->chaserCopVehicles.size() + this->supportCopVehicles.size());
+		}
 
+
+		void NotifyFeaturesOfAddition(const address copVehicle)
+		{
 			const PursuitFeatures::CopLabel copLabel = this->Label(copVehicle);
-			const hash                      copType  = GetCopType(copVehicle);
+			const hash                      copType  = this->GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "OBS:", (isRemoval) ? '-' : '+', copVehicle, (int)copLabel, this->GetName(copVehicle));
+				Globals::Log(this->pursuit, "OBS: +", copVehicle, (int)copLabel, this->GetName(copVehicle));
 
 			for (const auto& reaction : this->copVehicleReactions)
-			{
-				if (isRemoval)
-					reaction.get()->ProcessRemoval(copVehicle, copType, copLabel);
+				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
 
-				else
-					reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
-			}
+			if constexpr (Globals::loggingEnabled)
+				if (copLabel != PursuitFeatures::CopLabel::HELICOPTER)
+					Globals::Log(this->pursuit, "OBS: Active cop vehicles:", (int)(this->GetNumActiveCopVehicles()));
+		}
 
-			if (isRemoval) this->supportCopVehicles.erase(copVehicle);
+
+		void NotifyFeaturesOfRemoval(const address copVehicle)
+		{
+			const PursuitFeatures::CopLabel copLabel = this->Label(copVehicle);
+			const hash                      copType  = this->GetCopType(copVehicle);
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::Log(this->pursuit, "OBS: -", copVehicle, (int)copLabel, this->GetName(copVehicle));
+
+			for (const auto& reaction : this->copVehicleReactions)
+				reaction.get()->ProcessRemoval(copVehicle, copType, copLabel);
+
+			this->chaserCopVehicles.erase(copVehicle);
+			this->supportCopVehicles.erase(copVehicle);
+
+			if constexpr (Globals::loggingEnabled)
+				if (copLabel != PursuitFeatures::CopLabel::HELICOPTER)
+					Globals::Log(this->pursuit, "OBS: Active cop vehicles:", (int)(this->GetNumActiveCopVehicles()));
 		}
 	};
 
@@ -193,16 +225,40 @@ namespace PursuitObserver
 
 
 
-	void __fastcall NotifyObserver
+	void __fastcall NotifyObserverOfAddition
 	(
 		const address pursuit,
-		const address copVehicle,
-		const bool    isRemoval
+		const address copVehicle
 	) {
 		const auto foundPursuit = pursuitToObserver.find(pursuit);
 		if (foundPursuit == pursuitToObserver.end()) return;
 
-		foundPursuit->second.get()->NotifyFeatures(copVehicle, isRemoval);
+		foundPursuit->second.get()->NotifyFeaturesOfAddition(copVehicle);
+	}
+
+
+
+	void __fastcall NotifyObserverOfRemoval
+	(
+		const address pursuit,
+		const address copVehicle
+	) {
+		const auto foundPursuit = pursuitToObserver.find(pursuit);
+		if (foundPursuit == pursuitToObserver.end()) return;
+
+		foundPursuit->second.get()->NotifyFeaturesOfRemoval(copVehicle);
+	}
+
+
+
+	size_t GetTotalNumActiveCopVehicles()
+	{
+		size_t result = 0;
+
+		for (const auto& pair : pursuitToObserver)
+			result += pair.second.get()->GetNumActiveCopVehicles();
+
+		return result;
 	}
 
 
@@ -277,8 +333,7 @@ namespace PursuitObserver
 			push edx
 
 			mov edx, [esp + 0xC]
-			push 0x0
-			call NotifyObserver // ecx: AIPursuit; edx: PVehicle; stack: isRemoval
+			call NotifyObserverOfAddition // ecx: AIPursuit; edx: PVehicle
 			
 			pop edx
 			pop ecx
@@ -304,8 +359,7 @@ namespace PursuitObserver
 			push edx
 
 			mov edx, [esp + 0xC]
-			push 0x1
-			call NotifyObserver // ecx: AIPursuit; edx: PVehicle; stack: isRemoval
+			call NotifyObserverOfRemoval // ecx: AIPursuit; edx: PVehicle
 
 			pop edx
 			pop ecx
@@ -315,6 +369,43 @@ namespace PursuitObserver
 			mov eax, [ecx]
 
 			jmp dword ptr copRemovedExit
+		}
+	}
+
+
+
+	const address mainSpawnLimitEntrance = 0x43EB84;
+	const address mainSpawnLimitExit     = 0x43EB90;
+
+	__declspec(naked) void MainSpawnLimit()
+	{
+		__asm
+		{
+			push eax
+
+			call GetTotalNumActiveCopVehicles
+			mov ecx, eax
+			cmp ecx, CopSpawnOverrides::maxActiveCount
+
+			pop eax
+
+			jmp dword ptr mainSpawnLimitExit
+		}
+	}
+
+
+
+	const address otherSpawnLimitEntrance = 0x426C4E;
+	const address otherSpawnLimitExit     = 0x426C54;
+
+	__declspec(naked) void OtherSpawnLimit()
+	{
+		__asm
+		{
+			call GetTotalNumActiveCopVehicles
+			cmp eax, CopSpawnOverrides::maxActiveCount
+
+			jmp dword ptr otherSpawnLimitExit
 		}
 	}
 
@@ -337,6 +428,9 @@ namespace PursuitObserver
 		MemoryEditor::DigCodeCave(&PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
 		MemoryEditor::DigCodeCave(&CopRemoved,         copRemovedEntrance,         copRemovedExit);
 		MemoryEditor::DigCodeCave(&CopAdded,           copAddedEntrance,           copAddedExit);
+
+		MemoryEditor::DigCodeCave(&MainSpawnLimit,  mainSpawnLimitEntrance,  mainSpawnLimitExit);
+		MemoryEditor::DigCodeCave(&OtherSpawnLimit, otherSpawnLimitEntrance, otherSpawnLimitExit);
 
 		featureEnabled = true;
 	}
@@ -374,5 +468,6 @@ namespace PursuitObserver
 	{
 		if (not featureEnabled) return;
 		PursuitFeatures::ResetState();
+		CopSpawnOverrides::ResetState();
 	}
 }

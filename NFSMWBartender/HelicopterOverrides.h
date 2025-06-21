@@ -59,10 +59,11 @@ namespace HelicopterOverrides
 		void VerifyPursuit()
 		{
 			static bool (__thiscall* const IsPlayerPursuit)(address) = (bool (__thiscall*)(address))0x40AD80;
+
 			this->isPlayerPursuit = IsPlayerPursuit(this->pursuit);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "HEL:", (this->isPlayerPursuit) ? "Is" : "Is not", "player pursuit");
+				Globals::Log(this->pursuit, "HEL:", (this->isPlayerPursuit) ? "Confirmed" : "Not", "player pursuit");
 		}
 
 
@@ -79,10 +80,10 @@ namespace HelicopterOverrides
 
 			static const address* const copManager = (address*)0x989098;
 
-			if (copManager) 
+			if (*copManager) 
 			{ 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "HEL: Spawning helicopter");
+					Globals::Log(this->pursuit, "HEL: Requesting helicopter");
 
 				SpawnHelicopter(*copManager, this->pursuit);
 			}

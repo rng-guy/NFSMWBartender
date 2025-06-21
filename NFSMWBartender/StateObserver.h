@@ -21,7 +21,7 @@ namespace StateObserver
 	size_t  currentHeatLevel  = 0;
 	address playerPerpVehicle = 0x0;
 	bool    gameStartHandled  = false;
-	
+
 
 
 
@@ -89,13 +89,16 @@ namespace StateObserver
 
 			mov ebx, [esp + 0x20] // return address
 
-			cmp ebx, 0x60DE53
+			cmp ebx, 0x6F4BE5 // vehicle initialisation
 			je update
 
-			cmp ebx, 0x443DEA
+			cmp ebx, 0x60DE53 // race initialisation
 			je update
 
-			cmp ebx, 0x423EC9
+			cmp ebx, 0x443DEA // pursuit updates
+			je update
+
+			cmp ebx, 0x423EC9 // pursuit initialisation
 			je update
 
 			jmp conclusion // argument is not true Heat

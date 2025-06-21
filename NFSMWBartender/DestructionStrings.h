@@ -30,7 +30,7 @@ namespace DestructionStrings
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	key __cdecl GetBinaryKey(const hash stringHash)
+	key __fastcall GetBinaryKey(const hash stringHash)
 	{
 		const auto foundHash = stringHashToKey.find(stringHash);
 		return (foundHash == stringHashToKey.end()) ? defaultKey : foundHash->second;
@@ -51,12 +51,10 @@ namespace DestructionStrings
 	{
 		__asm
 		{
-			push [esp + 0x54] // string hash
-			call GetBinaryKey
-			add esp, 0x4      // pop string hash
-
+			mov ecx, [esp + 0x54]
+			call GetBinaryKey // ecx: stringHash
 			test eax, eax
-			je skip // unknown hash
+			je skip // hash is unknown
 
 			push eax
 			jmp dword ptr copDestructionExit

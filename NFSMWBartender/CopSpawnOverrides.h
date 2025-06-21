@@ -29,6 +29,8 @@ namespace CopSpawnOverrides
 	std::array<int, Globals::maxHeatLevel> maxActiveCounts = {};
 
 	// Code caves
+	bool skipEventSpawns = true;
+
 	const address getPursuitVehicleByName = 0x41ECD0;
 	const address stringToHashFunction    = 0x5CC240;
 	const address copTableComparison      = 0x90D8C8;
@@ -45,7 +47,6 @@ namespace CopSpawnOverrides
 
 		const address pursuit;
 
-		bool patrolUpdatePending  = true;
 		int  numPatrolCarsToSpawn = 0;
 		int  numCopsInContingent  = 0;
 
@@ -78,8 +79,6 @@ namespace CopSpawnOverrides
 
 		void UpdateNumPatrolCars()
 		{
-			if (not this->patrolUpdatePending) return;
-
 			static constexpr key patrolCarsAttribute = 0x24F7A1BC;
 
 			// Cannot be called in the constructor or immediately after a Heat transition, as Vault values update slightly later
@@ -88,7 +87,6 @@ namespace CopSpawnOverrides
 
 			const address numPatrolCars = GetAttribute(GetPursuitAttributes(this->pursuit), patrolCarsAttribute, 0);
 			this->numPatrolCarsToSpawn  = (numPatrolCars) ? *(int*)numPatrolCars : 0;
-			this->patrolUpdatePending   = false;
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "SPA: Patrol cars:", this->numPatrolCarsToSpawn);
@@ -155,16 +153,20 @@ namespace CopSpawnOverrides
 
 
 		void UpdateOnGameplay() override 
-		{
-			this->UpdateNumPatrolCars();
+		{		
 			this->CorrectWaveCapacity();
 		}
 
 
 		void UpdateOnHeatChange() override 
 		{
-			this->patrolUpdatePending = true;
 			this->UpdateSpawnTable();
+		}
+
+
+		void UpdateOncePerHeatLevel() override
+		{
+			this->UpdateNumPatrolCars();
 		}
 
 
@@ -176,6 +178,7 @@ namespace CopSpawnOverrides
 		) 
 			override 
 		{
+			if (skipEventSpawns) skipEventSpawns = false;
 			if (copLabel != PursuitFeatures::CopLabel::CHASER) return;
 
 			const auto foundType = this->copTypeToCurrentCount.find(copType);
@@ -216,8 +219,8 @@ namespace CopSpawnOverrides
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::Log(this->pursuit, "SPA: Type capacity:", this->spawnTable.GetCapacity(copType));
-				Globals::Log(this->pursuit, "SPA: Contingent:",    this->numCopsInContingent);
+				Globals::Log(this->pursuit, "SPA: Type capacity remaining:", this->spawnTable.GetCapacity(copType));
+				Globals::Log(this->pursuit, "SPA: Contingent:",              this->numCopsInContingent);
 			}
 		}
 
@@ -234,7 +237,7 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
 
-	const char* __cdecl GetByClassReplacement(const address spawnReturn)
+	const char* __fastcall GetByClassReplacement(const address spawnReturn)
 	{
 		if (ContingentManager::IsHeatLevelKnown())
 		{
@@ -274,9 +277,10 @@ namespace CopSpawnOverrides
 			switch (spawnReturn)
 			{
 			case 0x42E72E: // event spawns
+				if (skipEventSpawns) break;
 				*newCopName = CopSpawnTables::eventSpawnTable->GetRandomCopType();
 				return true;
-
+				
 			case 0x43EBD0: // pursuit vehicles, Cooldown mode patrols
 				const ContingentManager* const manager = ContingentManager::GetInstance(pursuit);
 				*newCopName = (manager) ? manager->GetRandomCopType() : nullptr;
@@ -303,12 +307,10 @@ namespace CopSpawnOverrides
 		{
 			je failure // spawn intended to fail
 
-			push [esp + 0x8] // return address
-			call GetByClassReplacement
-			add esp, 0x4     // pop return address
-
+			mov ecx, [esp + 0x8]
+			call GetByClassReplacement // ecx: return address
 			test eax, eax
-			je conclusion // do not spawn any cop
+			je conclusion              // skip this spawn
 
 			mov ecx, ebp                           // AICopManager
 			push eax                               // newCopName
@@ -335,10 +337,10 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			// Original code
+			// Execute original code first
 			mov ebp, [esp + 0x74]
 			test ebp, ebp
-			je conclusion // spawn intended to fail
+			je failure // spawn intended to fail
 
 			lea eax, [esp - 0x4] // new const char**
 
@@ -356,9 +358,9 @@ namespace CopSpawnOverrides
 			mov [esp + 0x74], ebp
 
 			conclusion:
-			// Execute original code and resume
 			test ebp, ebp
 
+			failure:
 			jmp dword ptr byNameInterceptorExit
 		}
 	}
@@ -373,7 +375,7 @@ namespace CopSpawnOverrides
 		__asm
 		{
 			cmp dword ptr minActiveCount, 0x0
-			je conclusion
+			je conclusion // zero is valid engagement count
 
 			inc edx
 			mov [esi + 0x184], edx
@@ -493,22 +495,6 @@ namespace CopSpawnOverrides
 
 
 
-	const address otherSpawnLimitEntrance = 0x426C4E;
-	const address otherSpawnLimitExit     = 0x426C54;
-
-	__declspec(naked) void OtherSpawnLimit()
-	{
-		__asm
-		{
-			mov eax, [ebx + 0x40]
-			cmp eax, maxActiveCount
-
-			jmp dword ptr otherSpawnLimitExit
-		}
-	}
-
-
-
 
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
@@ -524,9 +510,6 @@ namespace CopSpawnOverrides
 			ConfigParser::FormatParameter<int, Globals::maxHeatLevel>(minActiveCounts, minActiveCount, 0),
 			ConfigParser::FormatParameter<int, Globals::maxHeatLevel>(maxActiveCounts, maxActiveCount, 0)
 		);
-
-		MemoryEditor::Write<WORD>(0x0D3B,          0x43EB8A); // opcode cmp r,m; cop spawn limit
-		MemoryEditor::Write<int*>(&maxActiveCount, 0x43EB8C);
 
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
 		MemoryEditor::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
@@ -544,7 +527,6 @@ namespace CopSpawnOverrides
 		MemoryEditor::DigCodeCave(&ThirdCopTable,   thirdCopTableEntrance,   thirdCopTableExit);
 		MemoryEditor::DigCodeCave(&FourthCopTable,  fourthCopTableEntrance,  fourthCopTableExit);
 		MemoryEditor::DigCodeCave(&FifthCopTable,   fifthCopTableEntrance,   fifthCopTableExit);
-		MemoryEditor::DigCodeCave(&OtherSpawnLimit, otherSpawnLimitEntrance, otherSpawnLimitExit);
 
 		featureEnabled = true;
 	}
@@ -557,5 +539,13 @@ namespace CopSpawnOverrides
 
 		minActiveCount = minActiveCounts[heatLevel - 1];
 		maxActiveCount = maxActiveCounts[heatLevel - 1];
+	}
+
+
+
+	void ResetState()
+	{
+		if (not featureEnabled) return;
+		skipEventSpawns = true;
 	}
 }

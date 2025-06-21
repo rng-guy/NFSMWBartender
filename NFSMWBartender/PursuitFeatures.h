@@ -48,9 +48,10 @@ namespace PursuitFeatures
 		CopVehicleReaction(const CopVehicleReaction&)            = delete;
 		CopVehicleReaction& operator=(const CopVehicleReaction&) = delete;
 
-		virtual void UpdateOnGameplay()    {}
-		virtual void UpdateOnHeatChange()  {}
-		virtual void UpdateOnceInPursuit() {}
+		virtual void UpdateOnGameplay()       {}
+		virtual void UpdateOnHeatChange()     {}
+		virtual void UpdateOnceInPursuit()    {}
+		virtual void UpdateOncePerHeatLevel() {}
 
 
 		virtual void ProcessAddition

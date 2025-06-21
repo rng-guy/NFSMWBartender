@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.2.02) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.3.00) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -23,6 +23,7 @@ See the "LIMITATIONS" section further below before using this feature set.
 This feature set lets you change (per Heat level)
  • at which distance and how quickly you can get busted,
  • how long it takes to lose the cops and enter Cooldown mode,
+ • at which time interval you gain passive bounty,
  • the maximum bounty multiplier for destroying cops quickly,
  • the internal cooldown for regular roadblock spawns,
  • the internal cooldown for Heavy and LeaderStrategy spawns,
@@ -82,7 +83,7 @@ BEFORE INSTALLING this mod:
 To INSTALL this mod, copy the contents of its "scripts" folder into the "scripts" folder located
 in your game's installation folder. If your game does not have a "scripts" folder, create one.
 
-AFTER INSTALLING this mod, you can configure its features by editing its configuration files.
+AFTER INSTALLING this mod, you can customise its features by editing its configuration files.
 You can find these configuration (.ini) files in the "scripts/BartenderSettings" folder.
 
 To UNINSTALL this mod, remove its files from your game's "scripts" folder.
@@ -148,16 +149,18 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    the game actually requests the first cop before it loads any pursuit or Heat level information, 
    making it impossible for the mod to know which spawn table to use for the very first vehicle.
 
- • The global cop spawn limit ("BartenderSettings\Advanced\General.ini") has a few odd quirks.
-   These quirks are all vanilla behaviour; this mod is just more likely to expose you to them:
-    • The game compares the limit to the total number of cops in the world, not just a pursuit.
-    • The total number of cops includes all ground vehicles: "Chasers", supports, and roadblocks.
-    • The game only removes vehicles from the total once they have fully despawned / disappeared.
-    • If the total is at or above the limit, no more "Chasers" can spawn until it less again.
-    • If the total is at or above the limit, new supports and roadblocks CAN still spawn.
-   The big implication here is that support and roadblock vehicles can block new "Chasers" from
-   spawning in pursuits if they spawn first. Keep this in mind if you encounter a situation where 
-   the game seemingly refuses to spawn as many "Chasers" as the global spawn limit should allow.
+ • Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one
+   "Event" spawn table ("BartenderSettings\Advanced\Cars.ini") to appear in events that feature
+   scripted, pre-generated cops. This happens because, depending on your loading times, the game
+   might update the Heat level as it requests those scripted cops. To circumvent this issue, set
+   the "ForceHeatLevel" VltEd parameter of the event in question to the Heat level you are aiming 
+   for instead of using short transition timers (wherever possible).
+
+ • Until the HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
+   "Chasers" from spawning. This happens if these spawns pushed the total number of active cops in
+   the world to (or beyond) the global cop spawn limit ("BartenderSettings\Advanced\General.ini"), 
+   which will then prevent further "Chasers" spawns. This total is calculated across all pursuits,
+   meaning cops spawned in NPC pursuits can also affect how many "Chasers" can spawn in yours.
    
  • Setting any global cop spawn limit ("BartenderSettings\Advanced\General.ini") above 8 requires
    the "NFSMW LimitAdjuster" (LA) mod by Zolika1351 to work properly. Without it, the game will
@@ -210,7 +213,7 @@ v1.0.12: Improved formatting of .ini files and expanded "LIMITATIONS" section of
 v1.0.13: Added compatibility note for VltEd and other .asi mods in "LIMITATIONS" section of README
 v1.0.14: Added compatibility note for Binary mods in "LIMITATIONS" section in README
 v1.0.15: Added note about README structure
-v1.0.16: Clarified stability comment about LimitAdjuster in "LIMITATIONS" section of README
+v1.0.16: Clarified stability comment about "NFSMW LimitAdjuster" in "LIMITATIONS" section of README
 
 v1.1.00: Fixed a bug with vehicle names containing underscores
 v1.1.01: Removed some superfluous memory patches
@@ -218,3 +221,5 @@ v1.1.01: Removed some superfluous memory patches
 v1.2.00: Improved thread safety of cop-spawn interceptor functions
 v1.2.01: Rephrased spawning-related entries in "LIMITATIONS" section of README
 v1.2.02: Removed redundant push / pop instructions
+
+v1.3.00: Fixed the Heat-level update in free-roam and a rare bug of the game miscounting cops
