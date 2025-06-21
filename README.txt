@@ -154,7 +154,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    scripted, pre-generated cops. This happens because, depending on your loading times, the game
    might update the Heat level as it requests those scripted cops. To circumvent this issue, set
    the "ForceHeatLevel" VltEd parameter of the event in question to the Heat level you are aiming 
-   for instead of using short transition timers (wherever possible).
+   for instead of using short Heat transition timers (wherever possible).
 
  • Until the HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
    "Chasers" from spawning. This happens if these spawns pushed the total number of active cops in
