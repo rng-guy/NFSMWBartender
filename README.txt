@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.3.00) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.3.01) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -112,9 +112,9 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    after their ramming attempt(s); this effectively makes them circumvent the global spawn limit,
    and the (vanilla) game really does not like managing more than 8 active cops for very long.
 
- • All vehicles you specify to replace Cross ("BartenderSettings\Basic\Supports.ini") should
-   each be unique to him, i.e. not be used by other cops elsewhere. If another cop with the 
-   same vehicle as Cross is present in a pursuit, no LeaderStrategy will be able to spawn.
+ • All vehicles you specify to replace Cross ("BartenderSettings\Basic\Supports.ini") should each
+   not be used by any other cop(s) elsewhere. If another cop uses the same vehicle as Cross, no
+   LeaderStrategy will be able to spawn as long as that cop is present in the pursuit.
 
  • The string assignment for cops ("BartenderSettings\Basic\Labels.ini") is incompatible with
    the "EnableCopDestroyedStringHook" feature of the "NFSMW Unlimiter" mod by nlgxzef. Either
@@ -144,17 +144,16 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    align, it can also happen with traffic cars or even the helicopter.
 
  • The "Event" spawn tables ("BartenderSettings\Advanced\Cars.ini") apply only after the first
-   scripted, pre-generated cop has already spawned in a given event; instead, this first cop is
-   always of the type specified in the event's "CopSpawnType" VltEd parameter. This is because 
-   the game actually requests the first cop before it loads any pursuit or Heat level information, 
+   scripted, pre-generated cop has already spawned in a given event; instead, this first scripted
+   cop is always of the type specified in the event's "CopSpawnType" VltEd parameter. This is 
+   because the game requests this cop before it loads any pursuit or Heat level information, 
    making it impossible for the mod to know which spawn table to use for the very first vehicle.
 
  • Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one
    "Event" spawn table ("BartenderSettings\Advanced\Cars.ini") to appear in events that feature
    scripted, pre-generated cops. This happens because, depending on your loading times, the game
-   might update the Heat level as it requests those scripted cops. To circumvent this issue, set
-   the "ForceHeatLevel" VltEd parameter of the event in question to the Heat level you are aiming 
-   for instead of using short Heat transition timers (wherever possible).
+   might update the Heat level as it requests those cops. To circumvent this issue, set the
+   event's "ForceHeatLevel" VltEd parameter to the Heat level you are aiming for instead.
 
  • Until the HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
    "Chasers" from spawning. This happens if these spawns pushed the total number of active cops in
@@ -223,3 +222,4 @@ v1.2.01: Rephrased spawning-related entries in "LIMITATIONS" section of README
 v1.2.02: Removed redundant push / pop instructions
 
 v1.3.00: Fixed the Heat-level update in free-roam and a rare bug of the game miscounting cops
+v1.3.01: Rephrased "LIMITATIONS" section of README yet again
