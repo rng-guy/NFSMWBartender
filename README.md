@@ -132,7 +132,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 &nbsp;
 
 "**Advanced**" feature set:
-* The feature set disables itself if ANY Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); you must specify at least one car for each level.
+* The feature set disables itself if *any* Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); you must specify at least one car for each level.
 
 * If the feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because the feature set fulfils their intended purposes with much greater customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
