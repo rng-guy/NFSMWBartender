@@ -54,7 +54,7 @@ namespace DestructionStrings
 			mov ecx, [esp + 0x54]
 			call GetBinaryKey // ecx: stringHash
 			test eax, eax
-			je skip // hash is unknown
+			je skip           // hash is unknown
 
 			push eax
 
