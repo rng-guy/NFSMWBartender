@@ -31,11 +31,11 @@ namespace PursuitObserver
 		bool inPursuitUpdatePending    = true;
 		bool perHeatLevelUpdatePending = true;
 
-		std::unordered_set<address> chaserCopVehicles;
 		std::unordered_set<address> supportCopVehicles;
 
 		std::vector<std::unique_ptr<PursuitFeatures::CopVehicleReaction>> copVehicleReactions;
 
+		inline static std::unordered_map<address, address> vehicleToPursuit;
 		inline static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
 
 
@@ -81,17 +81,27 @@ namespace PursuitObserver
 
 		PursuitFeatures::CopLabel Label(const address copVehicle)
 		{
-			if (this->chaserCopVehicles.contains(copVehicle))
-				return PursuitFeatures::CopLabel::CHASER;
-
-			else if (this->IsHelicopter(copVehicle))
+			if (this->IsHelicopter(copVehicle))
 				return PursuitFeatures::CopLabel::HELICOPTER;
 
 			else if (this->IsSupport(copVehicle))
 				return PursuitFeatures::CopLabel::SUPPORT;
 
-			this->chaserCopVehicles.insert(copVehicle);
-			return PursuitFeatures::CopLabel::CHASER;
+			else return PursuitFeatures::CopLabel::CHASER;
+		}
+
+
+		void Register(const address copVehicle) const
+		{
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->vehicleToPursuit.contains(copVehicle)) return;
+
+				Globals::Log(this->pursuit, "OBS: Registering", copVehicle);
+				this->vehicleToPursuit.insert({copVehicle, this->pursuit});
+				Globals::Log(this->pursuit, "OBS: Registrations:", (int)(this->GetNumRegistrations()));
+			}
+			else this->vehicleToPursuit.insert({copVehicle, this->pursuit});			
 		}
 
 
@@ -119,6 +129,11 @@ namespace PursuitObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "OBS: Deleting instance");
+
+			std::erase_if(this->vehicleToPursuit, [&](const auto& pair) {return (pair.second == this->pursuit);});
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::Log(this->pursuit, "OBS: Registrations:", (int)(this->GetNumRegistrations()));
 		}
 
 
@@ -152,9 +167,32 @@ namespace PursuitObserver
 		}
 
 
-		size_t GetNumActiveCopVehicles() const 
+		void NotifyOfFreeRoam()
 		{
-			return (this->chaserCopVehicles.size() + this->supportCopVehicles.size());
+			this->perHeatLevelUpdatePending = true;
+		}
+
+
+		static size_t GetNumRegistrations()
+		{
+			return PursuitObserver::vehicleToPursuit.size();
+		}
+
+
+		static void __fastcall Unregister(const address copVehicle)
+		{
+			if constexpr (Globals::loggingEnabled)
+			{
+				const auto foundVehicle = PursuitObserver::vehicleToPursuit.find(copVehicle);
+				if (foundVehicle == PursuitObserver::vehicleToPursuit.end()) return;
+
+				const address pursuit = foundVehicle->second;
+
+				Globals::Log(pursuit, "OBS: Unregistering", copVehicle);
+				PursuitObserver::vehicleToPursuit.erase(foundVehicle);
+				Globals::Log(pursuit, "OBS: Registrations: ", (int)(PursuitObserver::GetNumRegistrations()));
+			}
+			else PursuitObserver::vehicleToPursuit.erase(copVehicle);
 		}
 
 
@@ -169,9 +207,8 @@ namespace PursuitObserver
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
 
-			if constexpr (Globals::loggingEnabled)
-				if (copLabel != PursuitFeatures::CopLabel::HELICOPTER)
-					Globals::Log(this->pursuit, "OBS: Active cop vehicles:", (int)(this->GetNumActiveCopVehicles()));
+			if (copLabel != PursuitFeatures::CopLabel::HELICOPTER) 
+				this->Register(copVehicle);
 		}
 
 
@@ -186,12 +223,8 @@ namespace PursuitObserver
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessRemoval(copVehicle, copType, copLabel);
 
-			this->chaserCopVehicles.erase(copVehicle);
-			this->supportCopVehicles.erase(copVehicle);
-
-			if constexpr (Globals::loggingEnabled)
-				if (copLabel != PursuitFeatures::CopLabel::HELICOPTER)
-					Globals::Log(this->pursuit, "OBS: Active cop vehicles:", (int)(this->GetNumActiveCopVehicles()));
+			if (copLabel == PursuitFeatures::CopLabel::SUPPORT)
+				this->supportCopVehicles.erase(copVehicle);
 		}
 	};
 
@@ -251,14 +284,10 @@ namespace PursuitObserver
 
 
 
-	size_t GetTotalNumActiveCopVehicles()
+	void NotifyObserversOfFreeRoam()
 	{
-		size_t result = 0;
-
-		for (const auto& pair : pursuitToObserver)
-			result += pair.second.get()->GetNumActiveCopVehicles();
-
-		return result;
+		for (const auto& observer : pursuitToObserver)
+			observer.second.get()->NotifyOfFreeRoam();
 	}
 
 
@@ -276,18 +305,14 @@ namespace PursuitObserver
 		{
 			// Execute original code first
 			add eax, 0x2C
-			mov ecx, [esp + 0x8]
-
+			
 			push eax
-			push ecx
-			push edx
-
 			lea ecx, [eax + 0x1C]
 			call CreateObserver // ecx: AIPursuit
-
-			pop edx
-			pop ecx
 			pop eax
+
+			// Execute original code and resume
+			mov ecx, [esp + 0x8]
 
 			jmp dword ptr pursuitConstructorExit
 		}
@@ -303,12 +328,8 @@ namespace PursuitObserver
 		__asm
 		{
 			push ecx
-			push edx
-
 			add ecx, 0x48
 			call DestroyObserver // ecx: AIPursuit
-			
-			pop edx
 			pop ecx
 
 			// Execute original code and resume
@@ -322,6 +343,49 @@ namespace PursuitObserver
 
 
 
+	const address vehicleDespawnedEntrance = 0x6693C0;
+	const address vehicleDespawnedExit     = 0x6693C7;
+
+	__declspec(naked) void VehicleDespawned()
+	{
+		__asm
+		{
+			push ecx
+			call PursuitObserver::Unregister // ecx: copVehicle
+			pop ecx
+
+			// Execute original code and resume
+			mov eax, [ecx]
+			push 0x0
+			call dword ptr [eax + 0x34]
+
+			jmp dword ptr vehicleDespawnedExit
+		}
+	}
+
+
+
+	const address enterFreeRoamEntrance = 0x5FE3E0;
+	const address enterFreeRoamExit     = 0x5FE3E7;
+
+	__declspec(naked) void EnterFreeRoam()
+	{
+		__asm
+		{
+			push ecx
+			call NotifyObserversOfFreeRoam
+			pop ecx
+
+			// Execute original code and resume
+			push -0x1
+			push 0x8760BE
+
+			jmp dword ptr enterFreeRoamExit
+		}
+	}
+
+
+
 	const address copAddedEntrance = 0x4338A0;
 	const address copAddedExit     = 0x4338A5;
 
@@ -330,12 +394,8 @@ namespace PursuitObserver
 		__asm
 		{
 			push ecx
-			push edx
-
-			mov edx, [esp + 0xC]
+			mov edx, [esp + 0x8]
 			call NotifyObserverOfAddition // ecx: AIPursuit; edx: PVehicle
-			
-			pop edx
 			pop ecx
 
 			// Execute original code and resume
@@ -356,12 +416,8 @@ namespace PursuitObserver
 		__asm
 		{
 			push ecx
-			push edx
-
-			mov edx, [esp + 0xC]
+			mov edx, [esp + 0x8]
 			call NotifyObserverOfRemoval // ecx: AIPursuit; edx: PVehicle
-
-			pop edx
 			pop ecx
 
 			// Execute original code and resume
@@ -382,12 +438,11 @@ namespace PursuitObserver
 		__asm
 		{
 			push eax
-
-			call GetTotalNumActiveCopVehicles
+			call PursuitObserver::GetNumRegistrations
 			mov ecx, eax
-			cmp ecx, CopSpawnOverrides::maxActiveCount
-
 			pop eax
+
+			cmp ecx, CopSpawnOverrides::maxActiveCount
 
 			jmp dword ptr mainSpawnLimitExit
 		}
@@ -402,7 +457,7 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			call GetTotalNumActiveCopVehicles
+			call PursuitObserver::GetNumRegistrations
 			cmp eax, CopSpawnOverrides::maxActiveCount
 
 			jmp dword ptr otherSpawnLimitExit
@@ -426,6 +481,8 @@ namespace PursuitObserver
 
 		MemoryEditor::DigCodeCave(&PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryEditor::DigCodeCave(&PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
+		MemoryEditor::DigCodeCave(&VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);
+		MemoryEditor::DigCodeCave(&EnterFreeRoam,      enterFreeRoamEntrance,      enterFreeRoamExit);
 		MemoryEditor::DigCodeCave(&CopRemoved,         copRemovedEntrance,         copRemovedExit);
 		MemoryEditor::DigCodeCave(&CopAdded,           copAddedEntrance,           copAddedExit);
 

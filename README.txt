@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.3.01) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.4.00) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -144,10 +144,10 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    align, it can also happen with traffic cars or even the helicopter.
 
  • The "Event" spawn tables ("BartenderSettings\Advanced\Cars.ini") apply only after the first
-   scripted, pre-generated cop has already spawned in a given event; instead, this first scripted
-   cop is always of the type specified in the event's "CopSpawnType" VltEd parameter. This is 
-   because the game requests this cop before it loads any pursuit or Heat level information, 
-   making it impossible for the mod to know which spawn table to use for the very first vehicle.
+   scripted, pre-generated cop has already spawned in a given event; instead, this first cop is
+   always of the type specified in the event's "CopSpawnType" VltEd parameter. This is because 
+   the game requests this cop before it loads any pursuit or Heat level information, making it 
+   impossible for the mod to know which spawn table to use for the very first vehicle.
 
  • Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one
    "Event" spawn table ("BartenderSettings\Advanced\Cars.ini") to appear in events that feature
@@ -223,3 +223,5 @@ v1.2.02: Removed redundant push / pop instructions
 
 v1.3.00: Fixed the Heat-level update in free-roam and a rare bug of the game miscounting cops
 v1.3.01: Rephrased "LIMITATIONS" section of README yet again
+
+v1.4.00: Added post-race pursuit hook and changed cop count to decrement after full despawns only

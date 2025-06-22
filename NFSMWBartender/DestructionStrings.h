@@ -106,10 +106,10 @@ namespace DestructionStrings
 
 		// Can't be run on startup as the game would still be loading assets
 		static const char* (__fastcall* const GetString)(int, key) = (const char* (__fastcall*)(int, key))0x56BB80;
-		std::erase_if(stringHashToKey, [](const auto entry) {return (not GetString(0, entry.second));});
+		std::erase_if(stringHashToKey, [](const auto& pair) {return (not GetString(0, pair.second));});
 
 		// Extract "default" key if provided (and valid)
-		const auto entry = stringHashToKey.extract(defaultHash);
-		if (not entry.empty()) defaultKey = entry.mapped();
+		const auto pair = stringHashToKey.extract(defaultHash);
+		if (not pair.empty()) defaultKey = pair.mapped();
 	}
 }
