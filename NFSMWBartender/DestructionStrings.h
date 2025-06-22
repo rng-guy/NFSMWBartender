@@ -57,6 +57,7 @@ namespace DestructionStrings
 			je skip // hash is unknown
 
 			push eax
+
 			jmp dword ptr copDestructionExit
 
 			skip:
