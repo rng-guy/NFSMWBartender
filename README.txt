@@ -205,7 +205,7 @@ v1.0.05: Clarified "Event" spawns in "Cars.ini"
 v1.0.06: Clarified string assignment in "Labels.ini"
 v1.0.07: Clarified ignored VltEd parameters when "Advanced" feature set is enabled
 v1.0.08: Corrected a few typos in README
-v1.0.09: Clarified cooldowns in Supports.ini and helicopter spawns in "Helicopter.ini"
+v1.0.09: Clarified cooldowns in "Supports.ini" and helicopter spawns in "Helicopter.ini"
 v1.0.10: Revised multiple .ini comments and enforced consistency
 v1.0.11: Further clarified cooldowns in "Supports.ini"
 v1.0.12: Improved formatting of .ini files and expanded "LIMITATIONS" section of README

@@ -236,7 +236,7 @@ namespace PursuitObserver
 
 	bool featureEnabled = false;
 
-	std::unordered_map<address, std::unique_ptr<PursuitObserver>> pursuitToObserver;
+	std::unordered_map<address, PursuitObserver> pursuitToObserver;
 
 
 
@@ -246,7 +246,7 @@ namespace PursuitObserver
 
 	void __fastcall CreateObserver(const address pursuit)
 	{
-		pursuitToObserver.insert({pursuit, std::make_unique<PursuitObserver>(pursuit)});
+		pursuitToObserver.try_emplace(pursuit, pursuit);
 	}
 
 
@@ -266,7 +266,7 @@ namespace PursuitObserver
 		const auto foundPursuit = pursuitToObserver.find(pursuit);
 		if (foundPursuit == pursuitToObserver.end()) return;
 
-		foundPursuit->second.get()->NotifyFeaturesOfAddition(copVehicle);
+		foundPursuit->second.NotifyFeaturesOfAddition(copVehicle);
 	}
 
 
@@ -279,15 +279,15 @@ namespace PursuitObserver
 		const auto foundPursuit = pursuitToObserver.find(pursuit);
 		if (foundPursuit == pursuitToObserver.end()) return;
 
-		foundPursuit->second.get()->NotifyFeaturesOfRemoval(copVehicle);
+		foundPursuit->second.NotifyFeaturesOfRemoval(copVehicle);
 	}
 
 
 
 	void NotifyObserversOfFreeRoam()
 	{
-		for (const auto& observer : pursuitToObserver)
-			observer.second.get()->NotifyOfFreeRoam();
+		for (auto& observer : pursuitToObserver)
+			observer.second.NotifyOfFreeRoam();
 	}
 
 
@@ -505,8 +505,8 @@ namespace PursuitObserver
 		CopFleeOverrides::SetToHeat(heatLevel);
 		HelicopterOverrides::SetToHeat(heatLevel);
 
-		for (const auto& pair : pursuitToObserver) 
-			pair.second.get()->UpdateOnHeatChange();
+		for (auto& pair : pursuitToObserver) 
+			pair.second.UpdateOnHeatChange();
 	}
 
 
@@ -515,8 +515,8 @@ namespace PursuitObserver
 	{
 		if (not featureEnabled) return;
 
-		for (const auto& pair : pursuitToObserver) 
-			pair.second.get()->UpdateOnGameplay();
+		for (auto& pair : pursuitToObserver) 
+			pair.second.UpdateOnGameplay();
 	}
 
 

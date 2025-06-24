@@ -262,8 +262,7 @@ namespace StateObserver
 			cmp ebx, 0x43EF99
 			jne conclusion        // not player vehicle
 
-			mov ebx, esi
-			add ebx, 0x758
+			lea ebx, [esi + 0x758]
 			mov playerPerpVehicle, ebx
 
 			conclusion:
