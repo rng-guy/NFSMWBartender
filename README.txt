@@ -225,4 +225,4 @@ v1.3.00: Fixed the Heat-level update in free-roam and a rare bug of the game mis
 v1.3.01: Rephrased "LIMITATIONS" section of README yet again
 
 v1.4.00: Added post-race pursuit hook and changed cop count to decrement after full despawns only
-v1.4.01: Added workaround for vanilla bug of fleeing HeavySupport 3 spawns ("Advanced" set only)
+v1.4.01: Added workaround for vanilla bug of fleeing HeavySupport 3 spawns ("ADVANCED" set only)
