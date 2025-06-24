@@ -210,7 +210,7 @@ v1.0.10: Revised multiple .ini comments and enforced consistency
 v1.0.11: Further clarified cooldowns in "Supports.ini"
 v1.0.12: Improved formatting of .ini files and expanded "LIMITATIONS" section of README
 v1.0.13: Added compatibility note for VltEd and other .asi mods in "LIMITATIONS" section of README
-v1.0.14: Added compatibility note for Binary mods in "LIMITATIONS" section in README
+v1.0.14: Added compatibility note for Binary mods in "LIMITATIONS" section of README
 v1.0.15: Added note about README structure
 v1.0.16: Clarified stability comment about "NFSMW LimitAdjuster" in "LIMITATIONS" section of README
 

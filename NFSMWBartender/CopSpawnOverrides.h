@@ -514,10 +514,10 @@ namespace CopSpawnOverrides
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
 		MemoryEditor::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
 
-		MemoryEditor::Write<BYTE>(0x90, 0x57B188,  0x4443E4); // helicopter / roadblock increment
 		MemoryEditor::Write<BYTE>(0x00, 0x433CB2);            // min. displayed count
-		MemoryEditor::Write<BYTE>(0xEB, 0x42B9AA);            // foreign cops fleeing
-
+		MemoryEditor::Write<BYTE>(0x90, 0x57B188,  0x4443E4); // helicopter / roadblock increment
+		MemoryEditor::Write<BYTE>(0xEB, 0x42B9AA,  0x44389E); // foreign / HeavyStrategy cops fleeing
+		
 		MemoryEditor::DigCodeCave(&ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 		MemoryEditor::DigCodeCave(&ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
 

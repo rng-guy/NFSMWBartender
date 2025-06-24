@@ -190,7 +190,7 @@ namespace PursuitObserver
 
 				Globals::Log(pursuit, "OBS: Unregistering", copVehicle);
 				PursuitObserver::vehicleToPursuit.erase(foundVehicle);
-				Globals::Log(pursuit, "OBS: Registrations: ", (int)(PursuitObserver::GetNumRegistrations()));
+				Globals::Log(pursuit, "OBS: Registrations:", (int)(PursuitObserver::GetNumRegistrations()));
 			}
 			else PursuitObserver::vehicleToPursuit.erase(copVehicle);
 		}
