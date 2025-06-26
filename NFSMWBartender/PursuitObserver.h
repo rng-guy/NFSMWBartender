@@ -560,8 +560,8 @@ namespace PursuitObserver
 		CopFleeOverrides::Initialise(parser);
 		HelicopterOverrides::Initialise(parser);
 
-		MemoryEditor::DigCodeCave(&PatrolSpawn,  patrolSpawnEntrance,  patrolSpawnExit);
-		MemoryEditor::DigCodeCave(&EventSpawn, eventSpawnEntrance, eventSpawnExit);
+		MemoryEditor::DigCodeCave(&EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
+		MemoryEditor::DigCodeCave(&PatrolSpawn, patrolSpawnEntrance, patrolSpawnExit);
 
 		MemoryEditor::DigCodeCave(&PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryEditor::DigCodeCave(&PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
