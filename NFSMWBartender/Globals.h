@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include <fstream>
+#include <format>
 #include <string>
 
 #undef min
@@ -45,22 +46,12 @@ namespace Globals
 
 
 	template<>
-	void Print<int>
-	(
-			std::fstream& file,
-			const int&    value
-	) {
-		file << std::dec << value;
-	}
-
-
-	template<>
-	void Print<address>
+	void Print<DWORD>
 	(
 		std::fstream&  file,
-		const address& value
+		const DWORD& value
 	) {
-		file << std::hex << value;
+		file << std::format("{:08x}", value);
 	}
 
 

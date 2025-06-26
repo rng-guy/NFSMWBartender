@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.4.02) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.5.00) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -32,7 +32,7 @@ This feature set lets you change (per Heat level)
  • which vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
 This feature set fixes two bugs:
- • you can no longer get BUSTED due to line-of-sight issues while the EVADE bar fills, and
+ • you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
  • regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
 You can also assign new (Binary) strings for the game to display when cop vehicles are destroyed,
@@ -137,20 +137,35 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
  • All vehicles you specify to replace the helicopter ("BartenderSettings\Advanced\Helicopter.ini")
    must each have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
 
- • Rarely, cops that are not in "Roadblock" spawn tables ("BartenderSettings\Advanced\Cars.ini")
+ • Cops in "Roadblocks" spawn tables ("BartenderSettings\Advanced\Cars.ini") are not equally likely
+   to spawn in every vehicle position of a given roadblock formation. This is because the game
+   processes roadblock vehicles in a fixed, formation-dependent order, making it (e.g.) more likely
+   for cops with a "count" value of less than 5 (the maximum number of vehicles in any roadblock)
+   to spawn in any position(s) that happen to be processed first.
+
+ • Rarely, cops that are not in "Roadblocks" spawn tables ("BartenderSettings\Advanced\Cars.ini")
    might still show up in roadblocks. This is a vanilla bug; it usually happens when the game 
    attempts to spawn a "Chaser" while it is processing a roadblock request, causing it to place 
    the wrong car in the requested roadblock. This bug isn't restricted to cop spawns: if the stars
    align, it can also happen with traffic cars or even the helicopter.
 
- • The "Event" spawn tables ("BartenderSettings\Advanced\Cars.ini") apply only after the first
+ • The "Events" spawn tables ("BartenderSettings\Advanced\Cars.ini") do NOT apply to the scripted
+   patrols that spawn in any of the D-Day races; those are special, even among event spawns.
+
+ • The "Events" spawn tables ("BartenderSettings\Advanced\Cars.ini") apply only after the first
    scripted, pre-generated cop has already spawned in a given event; instead, this first cop is
-   always of the type specified in the event's "CopSpawnType" VltEd parameter. This is because 
+   always of the type specified in the event's "CopSpawnType" VltEd parameter. This is because
    the game requests this cop before it loads any pursuit or Heat level information, making it 
-   impossible for the mod to know which spawn table to use for the very first vehicle.
+   impossible for the mod to know which spawn table to use for the very first vehicle. This
+   vehicle, however, is still accounted for in "count" calculations for any following spawns.
+
+ • "count" values in "Roadblocks" and "Events" spawn tables ("BartenderSettings\Advanced\Cars.ini")
+   are ignored whenever the game requests more vehicles in total than these values would allow:
+   Once all "counts" are exhausted, every vehicle in those tables is equally likely to spawn as 
+   the next roadblock / event vehicle until the next set of roadblock / event vehicles begins.
 
  • Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one
-   "Event" spawn table ("BartenderSettings\Advanced\Cars.ini") to appear in events that feature
+   "Events" spawn table ("BartenderSettings\Advanced\Cars.ini") to appear in events that feature
    scripted, pre-generated cops. This happens because, depending on your loading times, the game
    might update the Heat level as it requests those cops. To circumvent this issue, set the
    event's "ForceHeatLevel" VltEd parameter to the Heat level you are aiming for instead.
@@ -201,7 +216,7 @@ v1.0.01: Revised "LIMITATIONS" section of README
 v1.0.02: Revised multiple sections of README
 v1.0.03: Yet another minor README revision
 v1.0.04: README? More like "FIXME"
-v1.0.05: Clarified "Event" spawns in "Cars.ini"
+v1.0.05: Clarified "Events" spawns in "Cars.ini"
 v1.0.06: Clarified string assignment in "Labels.ini"
 v1.0.07: Clarified ignored VltEd parameters when "Advanced" feature set is enabled
 v1.0.08: Corrected a few typos in README
@@ -227,3 +242,5 @@ v1.3.01: Rephrased "LIMITATIONS" section of README yet again
 v1.4.00: Added post-race pursuit hook and changed cop count to decrement after full despawns only
 v1.4.01: Added workaround for vanilla bug of fleeing HeavyStrategy 3 spawns ("ADVANCED" set only)
 v1.4.02: Improved phrasing and corrected some typos in README
+
+v1.5.00: Added "count" support to custom "Roadblocks" and "Events" spawn tables

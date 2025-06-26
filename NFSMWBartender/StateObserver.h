@@ -236,8 +236,8 @@ namespace StateObserver
 			cmp esi, ebx
 			je conclusion // is player vehicle
 
-			mov ecx, [ebx + 0x1C] // player Heat
-			mov [esp + 0x24], ecx
+			mov edx, [ebx + 0x1C] // player Heat
+			mov [esp + 0x24], edx
 
 			conclusion:
 			// Execute original code and resume

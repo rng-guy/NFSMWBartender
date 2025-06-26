@@ -139,9 +139,9 @@ namespace GroundSupport
 			test ah, 0x1
 			jne conclusion // request delay is below threshold
 
-			pushad
+			push ecx
 			call dword ptr clearSupportRequest
-			popad
+			pop ecx
 
 			conclusion:
 			// Execute original code and resume

@@ -91,20 +91,6 @@ namespace PursuitObserver
 		}
 
 
-		void Register(const address copVehicle) const
-		{
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (this->vehicleToPursuit.contains(copVehicle)) return;
-
-				Globals::Log(this->pursuit, "OBS: Registering", copVehicle);
-				this->vehicleToPursuit.insert({copVehicle, this->pursuit});
-				Globals::Log(this->pursuit, "OBS: Registrations:", (int)(this->GetNumRegistrations()));
-			}
-			else this->vehicleToPursuit.insert({copVehicle, this->pursuit});			
-		}
-
-
 
 	public:
 
@@ -179,6 +165,38 @@ namespace PursuitObserver
 		}
 
 
+		static void __fastcall Register
+		(
+			const address pursuit,
+			const address copVehicle
+		) {
+			const auto foundVehicle = PursuitObserver::vehicleToPursuit.find(copVehicle);
+
+			if (foundVehicle != PursuitObserver::vehicleToPursuit.end())
+			{
+				if (not (foundVehicle->second))
+				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::Log(pursuit, "OBS: Re-registering", copVehicle);
+
+					foundVehicle->second = pursuit;
+				}
+				else if constexpr (Globals::loggingEnabled)
+					if (pursuit) Globals::Log("WARNING: Failed re-registration", copVehicle, foundVehicle->second, pursuit);
+			}
+			else
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::Log(pursuit, "OBS: Registering", copVehicle);
+
+				PursuitObserver::vehicleToPursuit.insert({copVehicle, pursuit});
+
+				if constexpr (Globals::loggingEnabled)
+					Globals::Log(pursuit, "OBS: Registrations:", (int)(PursuitObserver::GetNumRegistrations()));
+			}
+		}
+
+
 		static void __fastcall Unregister(const address copVehicle)
 		{
 			if constexpr (Globals::loggingEnabled)
@@ -196,6 +214,18 @@ namespace PursuitObserver
 		}
 
 
+		static void ClearRegistrations()
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::Log((address)0x0, "OBS: Clearing registrations");
+
+			PursuitObserver::vehicleToPursuit.clear();
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::Log((address)0x0, "OBS: Registrations:", (int)(PursuitObserver::GetNumRegistrations()));
+		}
+
+
 		void NotifyFeaturesOfAddition(const address copVehicle)
 		{
 			const PursuitFeatures::CopLabel copLabel = this->Label(copVehicle);
@@ -208,7 +238,7 @@ namespace PursuitObserver
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
 
 			if (copLabel != PursuitFeatures::CopLabel::HELICOPTER) 
-				this->Register(copVehicle);
+				this->Register(this->pursuit, copVehicle);
 		}
 
 
@@ -295,6 +325,57 @@ namespace PursuitObserver
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+
+	const address eventSpawnEntrance = 0x42E8A8;
+	const address eventSpawnExit     = 0x42E8AF;
+
+	__declspec(naked) void EventSpawn()
+	{
+		__asm
+		{
+			test al, al
+			je conclusion // spawn failed
+
+			push eax
+
+			mov ecx, esi
+			call CopSpawnOverrides::NotifyEventManager // ecx: PVehicle
+
+			xor ecx, ecx
+			mov edx, esi
+			call PursuitObserver::Register // ecx: AIPursuit; edx: PVehicle
+
+			pop eax
+
+			conclusion:
+			// Execute original code and resume
+			mov ecx, [esp + 0x314]
+
+			jmp dword ptr eventSpawnExit
+		}
+	}
+
+
+
+	const address patrolSpawnEntrance = 0x430E37;
+	const address patrolSpawnExit     = 0x430E3D;
+
+	__declspec(naked) void PatrolSpawn()
+	{
+		__asm
+		{
+			xor ecx, ecx
+			mov edx, edi
+			call PursuitObserver::Register // ecx: AIPursuit; edx: PVehicle
+
+			// Execute original code and resume
+			inc dword ptr [ebp + 0x94]
+
+			jmp dword ptr patrolSpawnExit
+		}
+	}
+
+
 
 	const address pursuitConstructorEntrance = 0x4432D0;
 	const address pursuitConstructorExit     = 0x4432D7;
@@ -479,6 +560,9 @@ namespace PursuitObserver
 		CopFleeOverrides::Initialise(parser);
 		HelicopterOverrides::Initialise(parser);
 
+		MemoryEditor::DigCodeCave(&PatrolSpawn,  patrolSpawnEntrance,  patrolSpawnExit);
+		MemoryEditor::DigCodeCave(&EventSpawn, eventSpawnEntrance, eventSpawnExit);
+
 		MemoryEditor::DigCodeCave(&PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryEditor::DigCodeCave(&PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
 		MemoryEditor::DigCodeCave(&VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);
@@ -524,7 +608,9 @@ namespace PursuitObserver
 	void ResetState()
 	{
 		if (not featureEnabled) return;
+
 		PursuitFeatures::ResetState();
 		CopSpawnOverrides::ResetState();
+		PursuitObserver::ClearRegistrations();
 	}
 }

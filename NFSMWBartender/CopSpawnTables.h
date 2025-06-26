@@ -148,7 +148,7 @@ namespace CopSpawnTables
 		bool IsEmpty() const {return (this->availableTotalCopCapacity < 1);}
 
 
-		const char* GetRandomCopType() const
+		const char* GetRandomCopName() const
 		{
 			if (this->IsEmpty()) return nullptr;
 
@@ -259,9 +259,9 @@ namespace CopSpawnTables
 		ParseTables(parser, "Chasers", pursuitSpawnTables, true);
 		for (const auto& spawnTable : pursuitSpawnTables) if (spawnTable.IsEmpty()) return;
 
-		ParseTables(parser, "Events",     eventSpawnTables,     false);
+		ParseTables(parser, "Events",     eventSpawnTables,     true);
 		ParseTables(parser, "Patrols",    patrolSpawnTables,    false);
-		ParseTables(parser, "Roadblocks", roadblockSpawnTables, false);
+		ParseTables(parser, "Roadblocks", roadblockSpawnTables, true);
 		
 		featureEnabled = true;
 	}

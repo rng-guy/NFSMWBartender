@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include <unordered_map>
+#include <memory>
 #include <string>
 #include <array>
 
@@ -15,6 +16,79 @@
 
 namespace CopSpawnOverrides
 {
+
+	// GlobalSpawnManager class ---------------------------------------------------------------------------------------------------------------------
+
+	class GlobalSpawnManager
+	{
+	private:
+
+		std::unordered_map<hash, int> copTypeToCurrentCount;
+
+		CopSpawnTables::SpawnTable               spawnTable;
+		const CopSpawnTables::SpawnTable** const sourceSpawnTable;
+
+
+
+	public:
+
+		GlobalSpawnManager(const CopSpawnTables::SpawnTable** const sourceSpawnTable) : sourceSpawnTable(sourceSpawnTable) {}
+
+
+		void ReloadSpawnTable()
+		{
+			if (*(this->sourceSpawnTable))
+				this->spawnTable = *(*(this->sourceSpawnTable));
+
+			else if constexpr (Globals::loggingEnabled)
+				Globals::Log("WARNING: Failed to reload spawn table");
+
+			for (const auto& pair : this->copTypeToCurrentCount)
+				this->spawnTable.UpdateCapacity(pair.first, -pair.second);
+		}
+
+
+		void ResetSpawnTable()
+		{
+			for (const auto& pair : this->copTypeToCurrentCount)
+				this->spawnTable.UpdateCapacity(pair.first, pair.second);
+
+			this->copTypeToCurrentCount.clear();
+		}
+
+
+		const char* GetRandomCopName()
+		{
+			const char* copName = this->spawnTable.GetRandomCopName();
+
+			if ((not copName) and *(this->sourceSpawnTable))
+				copName = (*(*(this->sourceSpawnTable))).GetRandomCopName();
+
+			return copName;
+		}
+
+
+		void NotifyOfSpawn(const address copVehicle)
+		{
+			static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
+
+			const hash copType = GetCopType(copVehicle);
+			if (not copType) return;
+
+			const auto foundType = this->copTypeToCurrentCount.find(copType);
+
+			if (foundType == this->copTypeToCurrentCount.end())
+				this->copTypeToCurrentCount.insert({copType, 1});
+
+			else (foundType->second)++;
+
+			this->spawnTable.UpdateCapacity(copType, -1);
+		}
+	};
+
+
+
+
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -31,15 +105,19 @@ namespace CopSpawnOverrides
 	// Code caves
 	bool skipEventSpawns = true;
 
+	const address addVehicleToRoadblock   = 0x43C4E0;
 	const address getPursuitVehicleByName = 0x41ECD0;
 	const address stringToHashFunction    = 0x5CC240;
 	const address copTableComparison      = 0x90D8C8;
 
+	std::unique_ptr<GlobalSpawnManager> eventManager     = nullptr;
+	std::unique_ptr<GlobalSpawnManager> roadblockManager = nullptr;
 
 
 
 
-	// SpawnOverride class --------------------------------------------------------------------------------------------------------------------------
+
+	// ContingentManager class ----------------------------------------------------------------------------------------------------------------------
 
 	class ContingentManager : public PursuitFeatures::CopVehicleReaction
 	{
@@ -225,9 +303,9 @@ namespace CopSpawnOverrides
 		}
 
 
-		const char* GetRandomCopType() const
+		const char* GetRandomCopName() const
 		{		
-			return (this->IsWaveExhausted()) ? nullptr : this->spawnTable.GetRandomCopType();
+			return (this->IsWaveExhausted()) ? nullptr : this->spawnTable.GetRandomCopName();
 		}
 	};
 
@@ -236,6 +314,27 @@ namespace CopSpawnOverrides
 
 
 	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
+
+	void __fastcall NotifyRoadblockManager(const address copVehicle)
+	{
+		roadblockManager.get()->NotifyOfSpawn(copVehicle);
+	}
+
+
+
+	void ResetRoadblockManager()
+	{
+		roadblockManager.get()->ResetSpawnTable();
+	}
+
+
+
+	void __fastcall NotifyEventManager(const address copVehicle)
+	{
+		eventManager.get()->NotifyOfSpawn(copVehicle);
+	}
+
+
 
 	const char* __fastcall GetByClassReplacement(const address spawnReturn)
 	{
@@ -247,13 +346,13 @@ namespace CopSpawnOverrides
 				return CopSpawnTables::helicopterVehicle;
 
 			case 0x430DAD: // free-roam patrols
-				return CopSpawnTables::patrolSpawnTable->GetRandomCopType();
+				return CopSpawnTables::patrolSpawnTable->GetRandomCopName();
 				
 			case 0x42EAAD: // first scripted cop
-				return CopSpawnTables::pursuitSpawnTable->GetRandomCopType();
+				return CopSpawnTables::pursuitSpawnTable->GetRandomCopName();
 				
 			case 0x43E049: // roadblocks
-				return CopSpawnTables::roadblockSpawnTable->GetRandomCopType();
+				return roadblockManager.get()->GetRandomCopName();
 
 			default:
 				if constexpr (Globals::loggingEnabled)
@@ -278,12 +377,12 @@ namespace CopSpawnOverrides
 			{
 			case 0x42E72E: // event spawns
 				if (skipEventSpawns) break;
-				*newCopName = CopSpawnTables::eventSpawnTable->GetRandomCopType();
+				*newCopName = eventManager.get()->GetRandomCopName();
 				return true;
 				
 			case 0x43EBD0: // pursuit vehicles, Cooldown mode patrols
 				const ContingentManager* const manager = ContingentManager::GetInstance(pursuit);
-				*newCopName = (manager) ? manager->GetRandomCopType() : nullptr;
+				*newCopName = (manager) ? manager->GetRandomCopName() : nullptr;
 				return manager;
 			}
 		}
@@ -298,33 +397,40 @@ namespace CopSpawnOverrides
 
 	// Code caves --------------------------------------------------------------------------------------------------------------------------------------
 
-	const address byClassInterceptorEntrance = 0x426621;
-	const address byClassInterceptorExit     = 0x426627;
+	const address roadblockSpawnEntrance = 0x43E04F;
+	const address roadblockSpawnExit     = 0x43E06C;
+	const address roadblockSpawnSkip     = 0x43E031;
 
-	__declspec(naked) void ByClassInterceptor()
+	__declspec(naked) void RoadblockSpawn()
 	{
 		__asm
 		{
-			je failure // spawn intended to fail
+			je conclusion // spawn intended to fail
 
-			mov ecx, [esp + 0x8]
-			call GetByClassReplacement // ecx: return address
-			test eax, eax
-			je conclusion              // skip this spawn
+			mov ecx, eax
 
-			mov ecx, ebp                           // AICopManager
-			push eax                               // newCopName
-			call dword ptr getPursuitVehicleByName // pops newCopName
-			jmp conclusion                         // cop replaced
+			push ecx
+			call NotifyRoadblockManager // ecx: copVehicle
+			pop ecx
 
-			failure:
-			xor eax, eax
+			mov edx, [ecx]
+			call dword ptr [edx + 0x80]
+
+			lea eax, [esp + 0x1C]
+			push eax
+			lea ecx, [esp + 0x48]
+			call dword ptr addVehicleToRoadblock
 
 			conclusion:
-			// Execute original code and resume
-			pop ebp
-			pop ecx
-			jmp dword ptr byClassInterceptorExit
+			dec edi
+			jne skip // car(s) left to generate
+
+			call ResetRoadblockManager
+
+			jmp dword ptr roadblockSpawnExit
+
+			skip:
+			jmp dword ptr roadblockSpawnSkip
 		}
 	}
 
@@ -362,6 +468,38 @@ namespace CopSpawnOverrides
 
 			failure:
 			jmp dword ptr byNameInterceptorExit
+		}
+	}
+
+
+
+	const address byClassInterceptorEntrance = 0x426621;
+	const address byClassInterceptorExit     = 0x426627;
+
+	__declspec(naked) void ByClassInterceptor()
+	{
+		__asm
+		{
+			je failure // spawn intended to fail
+
+			mov ecx, [esp + 0x8]
+			call GetByClassReplacement // ecx: return address
+			test eax, eax
+			je conclusion              // skip this spawn
+
+			mov ecx, ebp                           // AICopManager
+			push eax                               // newCopName
+			call dword ptr getPursuitVehicleByName // pops newCopName
+			jmp conclusion                         // cop replaced
+
+			failure:
+			xor eax, eax
+
+			conclusion:
+			// Execute original code and resume
+			pop ebp
+			pop ecx
+			jmp dword ptr byClassInterceptorExit
 		}
 	}
 
@@ -517,9 +655,10 @@ namespace CopSpawnOverrides
 		MemoryEditor::Write<BYTE>(0x00, 0x433CB2);            // min. displayed count
 		MemoryEditor::Write<BYTE>(0x90, 0x57B188,  0x4443E4); // helicopter / roadblock increment
 		MemoryEditor::Write<BYTE>(0xEB, 0x42B9AA,  0x44389E); // foreign / HeavyStrategy cops fleeing
-		
-		MemoryEditor::DigCodeCave(&ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
+
+		MemoryEditor::DigCodeCave(&RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
 		MemoryEditor::DigCodeCave(&ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
+		MemoryEditor::DigCodeCave(&ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 
 		MemoryEditor::DigCodeCave(&CopRefill,       copRefillEntrance,       copRefillExit);
 		MemoryEditor::DigCodeCave(&FirstCopTable,   firstCopTableEntrance,   firstCopTableExit);
@@ -527,6 +666,9 @@ namespace CopSpawnOverrides
 		MemoryEditor::DigCodeCave(&ThirdCopTable,   thirdCopTableEntrance,   thirdCopTableExit);
 		MemoryEditor::DigCodeCave(&FourthCopTable,  fourthCopTableEntrance,  fourthCopTableExit);
 		MemoryEditor::DigCodeCave(&FifthCopTable,   fifthCopTableEntrance,   fifthCopTableExit);
+
+		eventManager     = std::make_unique<GlobalSpawnManager>(&(CopSpawnTables::eventSpawnTable));
+		roadblockManager = std::make_unique<GlobalSpawnManager>(&(CopSpawnTables::roadblockSpawnTable));
 
 		featureEnabled = true;
 	}
@@ -539,6 +681,9 @@ namespace CopSpawnOverrides
 
 		minActiveCount = minActiveCounts[heatLevel - 1];
 		maxActiveCount = maxActiveCounts[heatLevel - 1];
+
+		eventManager.get()->ReloadSpawnTable();
+		roadblockManager.get()->ReloadSpawnTable();
 	}
 
 
@@ -546,6 +691,10 @@ namespace CopSpawnOverrides
 	void ResetState()
 	{
 		if (not featureEnabled) return;
+
 		skipEventSpawns = true;
+
+		eventManager.get()->ResetSpawnTable();
+		roadblockManager.get()->ResetSpawnTable();
 	}
 }
