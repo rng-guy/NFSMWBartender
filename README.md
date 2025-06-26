@@ -146,7 +146,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * The "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) do *not* apply to the scripted patrols that spawn in any of the D-Day races; those are special, even among event spawns.
 
-* The "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) apply only after the first scripted, pre-generated cop has already spawned in a given event; instead, this first cop is always of the type specified in the event's `CopSpawnType` VltEd parameter. This is because the game requests this cop before it loads any pursuit or Heat level information, making it impossible for the mod to know which spawn table to use for the very first vehicle. This vehicle, however, is still accounted for in "count" calculations for any following spawns.
+* The "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) apply only after the first scripted, pre-generated cop has already spawned in a given event; instead, this first cop is always of the type specified in the event's `CopSpawnType` VltEd parameter. This is because the game requests this cop before it loads any pursuit or Heat level information, making it impossible for the mod to know which spawn table to use for the very first vehicle. This vehicle, however, is still accounted for in `count` calculations for any following spawns.
 
 * `count` values in "Roadblocks" and "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) are ignored whenever the game requests more vehicles in total than these values would allow: Once all `count` are exhausted, every vehicle in those tables is equally likely to spawn as the next roadblock / event vehicle until the next set of roadblock / event vehicles begins.
 
