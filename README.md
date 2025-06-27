@@ -161,7 +161,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-**Cop (de / re)spawning** (`BartenderSettings\Advanced\Behaviour.ini`):
+**Cop (re)spawning** (`BartenderSettings\Advanced\Behaviour.ini`):
 
 * Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning. This happens if these spawns push the total number of active cops in the world to (or beyond) the global cop spawn limit, which will then prevent further "Chasers" spawns. This total is calculated across all active pursuits, meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
    
