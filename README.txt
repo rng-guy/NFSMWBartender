@@ -140,13 +140,13 @@ GENERAL:
    "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
 
    
-HELICOPTER (DE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
+HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
 
  • All vehicles you specify to replace the helicopter must each have the "CHOPPER" class assigned
    to them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent.
 
 
-COP (DE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
+COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
    "Chasers" from spawning. This happens if these spawns push the total number of active cops in
