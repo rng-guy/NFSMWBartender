@@ -136,25 +136,33 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * If the feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because the feature set fulfils their intended purposes with much greater customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
-* All vehicles you specify in any of the spawn tables (`BartenderSettings\Advanced\Cars.ini`) must each have the `CAR` class assigned to them in their `pvehicle` VltEd entries.
-
 * All vehicles you specify to replace the helicopter (`BartenderSettings\Advanced\Helicopter.ini`) must each have the `CHOPPER` class assigned to them in their `pvehicle` VltEd entries.
 
-* Cops in "Roadblocks" spawn tables (`BartenderSettings\Advanced\Cars.ini`) are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, formation-dependent order, making it (e.g.) more likely for cops with a `count` value of less than 5 (the maximum number of vehicles in any roadblock) to spawn in any position(s) that happen to be processed first.
+&nbsp;
 
-* Rarely, cops that are not in "Roadblocks" spawn tables (`BartenderSettings\Advanced\Cars.ini`) might still show up in roadblocks. This is a vanilla bug; it usually happens when the game attempts to spawn a "Chaser" while it is processing a roadblock request, causing it to place the wrong car in the requested roadblock. This bug isn't restricted to cop spawns: if the stars align, it can also happen with traffic cars or even the helicopter.
+"**Advanced**" feature set - spawning behaviour (`BartenderSettings\Advanced\General.ini`):
 
-* The "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) do *not* apply to the scripted patrols that spawn in any of the D-Day races; those are special, even among event spawns.
+* Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning. This happens if these spawns push the total number of active cops in the world to (or beyond) the global cop spawn limit, which will then prevent further "Chasers" spawns. This total is calculated across all active pursuits, meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
+   
+* Setting any global cop spawn limit above 8 requires the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) mod by Zolika1351 to work properly. Without it, the game will start unloading models and assets because its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. To make LA compatible with this mod, open its `NFSMWLimitAdjuster.ini` configuration file and disable *all* features in its `[Options]` section; this will fully unlock the spawn limit without forcing an infinite amount of cops to spawn. Note that LA is not perfectly stable either: It is prone to crashing in the first 30 seconds of the first pursuit in a play session, but will generally stay stable if it does not crash there.
 
-* The "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) do *not* apply to the very first scripted, pre-generated cop that spawns in a given event; instead, this first cop is always of the type specified in the event's `CopSpawnType` VltEd parameter. This is because the game requests this cop before it loads any pursuit or Heat level information, making it impossible for the mod to know which spawn table to use for the very first vehicle. This vehicle, however, is still accounted for in `count` calculations for any following spawns.
+&nbsp;
 
-* `count` values in "Roadblocks" and "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) are ignored whenever the game requests more vehicles in total than these values would allow: Whenever all `count` values have been exhausted for a given roadblock / event, every vehicle in the relevant table may spawn without restriction until the next roadblock / event begins.
+"**Advanced**" feature set - spawn tables (`BartenderSettings\Advanced\Cars.ini`):
 
-* Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one "Events" spawn table (`BartenderSettings\Advanced\Cars.ini`) to appear in events that feature scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. To circumvent this issue, set the event's `ForceHeatLevel` VltEd parameter to the Heat level you are aiming for instead.
+* All vehicles you specify in any of the spawn tables must each have the `CAR` class assigned to them in their `pvehicle` VltEd entries (either explicitly or implicitly through a parent node).
 
-* Until the HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning. This happens if these spawns pushed the total number of active cops in the world to (or beyond) the global cop spawn limit (`BartenderSettings\Advanced\General.ini`), which will then prevent further "Chasers" spawns. This total is calculated across all pursuits, meaning cops spawned in NPC pursuits can also affect how many "Chasers" can spawn in yours.
+* Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position(s) that happen to be processed first. This does not apply to vehicles with `count` values of at least 5, as no roadblock contains more than 5 cars.
 
-* Setting any global cop spawn limit (`BartenderSettings\Advanced\General.ini`) above 8 requires the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) mod by Zolika1351 to work properly. Without it, the game will randomly start unloading models and assets because its default car loader cannot handle the workload of managing (potentially) dozens of extra vehicles. To make LA compatible with this mod, open its `LimitAdjuster.ini` configuration file and disable *all* features in its `[Options]` section; this will unlock the spawn limit without forcing an infinite amount of cops to spawn. Note that LA is not perfectly stable either: It is prone to crashing in the first 30 seconds of the first pursuit in a play session, but will generally stay stable if it does not crash there.
+* Rarely, cops that are not in "Roadblocks" spawn tables might still show up in roadblocks. This is a vanilla bug; it usually happens when the game attempts to spawn a "Chaser" while it is processing a roadblock request, causing it to place the wrong car in the requested roadblock. This bug is not restricted to cop spawns: if the stars align, it can also happen with traffic.
+
+* The "Events" spawn tables do NOT apply to the scripted patrols that spawn in any of the prologue D-Day races; those spawns are special and a real hassle to deal with, even among event spawns.
+
+* The "Events" spawn tables do NOT apply to the very first scripted, pre-generated cop that spawns in a given event; instead, this first cop is always of the type specified in the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat level information, making it impossible for the mod to know which spawn table to use for the very first vehicle. This vehicle, however, is still properly accounted for in `count` calculations for any following vehicle spawns.
+
+* `count` values in "Roadblocks" and "Events" spawn tables are ignored whenever the game requests more vehicles in total than these values would allow: Whenever all `count` values have been exhausted for a given roadblock / event, every vehicle in the relevant table may spawn without restriction until the next roadblock / event begins.
+
+* Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one "Events" spawn table to appear in events that feature scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. To circumvent this issue, set the event's `ForceHeatLevel` VltEd parameter to the Heat level you are aiming for instead.
 
 &nbsp;
 
