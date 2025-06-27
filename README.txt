@@ -104,7 +104,10 @@ Both feature sets of this mod should be compatible with all VltEd, Binary, and m
 All known and notable exceptions to this are explicitly mentioned in this section.
 
 
-"BASIC" feature set:
+
+── ■ "BASIC" FEATURE SET
+
+GENERAL:
 
  • All vehicles you specify to replace the ramming SUVs ("BartenderSettings\Basic\Supports.ini") 
    should each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) in their VltEd 
@@ -122,7 +125,10 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    feature by editing its "NFSMWUnlimiterSettings.ini" configuration file.
 
 
-"ADVANCED" feature set:
+
+── ■ "ADVANCED" FEATURE SET
+
+GENERAL:
 
  • The feature set disables itself if ANY Heat level lacks a valid "Chasers" spawn table
    ("BartenderSettings\Advanced\Cars.ini"); you must specify at least one car for each level.
@@ -135,7 +141,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    must each have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
 
 
-"ADVANCED" feature set - spawning behaviour ("BartenderSettings\Advanced\General.ini"):
+SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\General.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
    "Chasers" from spawning. This happens if these spawns push the total number of active cops in
@@ -153,7 +159,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
    generally stay stable if it does not crash there.
 
 
-"ADVANCED" feature set - spawn tables ("BartenderSettings\Advanced\Cars.ini"):
+SPAWN TABLES ("BartenderSettings\Advanced\Cars.ini"):
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned to 
    them in their "pvehicle" VltEd entries (either explicitly or implicitly through a parent node).
