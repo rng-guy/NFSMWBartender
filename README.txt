@@ -76,7 +76,7 @@ and any vehicles that join the pursuit by detaching themselves from roadblocks.
 ── ■ │ INSTALLATION │ ■ ───────────────────────────────────────────────────────────────────────────
 
 BEFORE INSTALLING this mod:
- 1) • make sure you have read and understood the "LIMITATIONS" section of this README below,
+ 1) • make sure you have read and understood the "LIMITATIONS" section further below,
  2) • make sure your game's "Speed.exe" is compatible (i.e. 5.75 MB / 6.029.312 bytes large), and
  3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 

@@ -1,17 +1,13 @@
 
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
-$\color{#d62728}{\textbf{Whenever you update this mod, remember to replace all old .ini files along with the .asi itself!}}$
-
-&nbsp;
-
 This .asi mod adds new customisation options to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in **two feature sets**:
 * the "**Basic**" set lets you change many otherwise hard-coded values of the game, and
 * the "**Advanced**" set lets you change cop-spawning behaviour and spawn tables without limits.
 
 &nbsp;
 
-For details on which features and configuration files each set includes, see the sections below. There are also separate sections for **installation** instructions and the **limitations** of this mod.
+For details on which features and configuration files each set includes, see the sections below. There are also separate sections for [installation](#installation) instructions and the [limitations](#limitations) of this mod.
 
 &nbsp;
 
@@ -23,7 +19,7 @@ For details on which features and configuration files each set includes, see the
 
 # "Basic" feature set
 
-Before you use this feature set, see the "**Limitations**" section further below.
+Before you use this feature set, see the [limitations](#Limitations) section further below.
 
 The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Basic`.
 
@@ -62,7 +58,7 @@ You can also **assign new (Binary) strings** for the game to display when cop ve
 
 # "Advanced" feature set
 
-Before you use this feature set, see the "**Limitations**" section further below.
+Before you use this feature set, see the [limitations](#Limitations) section further below.
 
 The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Advanced`.
 
@@ -96,7 +92,7 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 # Installation
 
 **Before installing** this mod:
-1. make sure you have read and understood the "**Limitations**" section of this README below,
+1. make sure you have read and understood the [limitations](#Limitations) section further below,
 2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6.029.312 bytes large), and
 3. install an .asi loader or any mod with one (e.g. the [WideScreenFix](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) mod by ThirteenAG).
 
@@ -109,6 +105,9 @@ To **install** this mod, copy its `BartenderSettings` folder and compiled .asi f
 To **uninstall** this mod, remove its files from your game's `scripts` folder.
 
 To **reinstall** this mod, uninstall it and repeat the installation process above.
+
+> [!CAUTION]
+> Whenever you update this mod, remember to replace all old .ini files along with the .asi itself!
 
 &nbsp;
 
