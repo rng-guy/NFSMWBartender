@@ -141,7 +141,7 @@ GENERAL:
    must each have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
 
 
-SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\Behaviour.ini"):
+(DE)SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\Behaviour.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
    "Chasers" from spawning. This happens if these spawns push the total number of active cops in
