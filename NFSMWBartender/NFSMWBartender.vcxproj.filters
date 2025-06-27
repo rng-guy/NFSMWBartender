@@ -105,9 +105,6 @@
     <None Include="..\BartenderSettings\Advanced\Cars.ini">
       <Filter>Config Files\Advanced</Filter>
     </None>
-    <None Include="..\BartenderSettings\Advanced\Behaviour.ini">
-      <Filter>Config Files\Advanced</Filter>
-    </None>
     <None Include="..\BartenderSettings\Advanced\Helicopter.ini">
       <Filter>Config Files\Advanced</Filter>
     </None>

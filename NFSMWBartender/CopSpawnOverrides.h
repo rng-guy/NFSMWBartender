@@ -639,7 +639,7 @@ namespace CopSpawnOverrides
 
 	void Initialise(ConfigParser::Parser& parser)
 	{
-		parser.LoadFile(Globals::configAdvancedPath + "Behaviour.ini");
+		parser.LoadFile(Globals::configAdvancedPath + "Cars.ini");
 
 		parser.ParseParameterTable
 		(

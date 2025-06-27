@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.5.03) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.5.04) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -140,13 +140,13 @@ GENERAL:
    "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
 
    
-HELICOPTER (DE)SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\Helicopter.ini"):
+HELICOPTER (DE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
 
  • All vehicles you specify to replace the helicopter must each have the "CHOPPER" class assigned to
    them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent node.
 
 
-COP (DE)SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\Behaviour.ini"):
+COP (DE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
    "Chasers" from spawning. This happens if these spawns push the total number of active cops in
@@ -162,9 +162,6 @@ COP (DE)SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\Behaviour.ini"):
    forcing an infinite amount of cops to spawn. Note that LA is not perfectly stable either: It is 
    prone to crashing in the first 30 seconds of the first pursuit in a play session, but will 
    generally stay stable if it does not crash there.
-
-
-COP SPAWN TABLES ("BartenderSettings\Advanced\Cars.ini"):
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned to 
    them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent node.
@@ -263,3 +260,4 @@ v1.5.00: Added "count" support to custom "Roadblocks" and "Events" spawn tables
 v1.5.01: Rephrased README to better reflect recent changes to both feature sets
 v1.5.02: Restructured "LIMITATIONS" section of README and renamed both "General.ini" files
 v1.5.03: Restructured and rephrased README some more
+v1.5.04: Merged "Behaviour.ini" with "Cars.ini" file
