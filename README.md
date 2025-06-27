@@ -19,7 +19,8 @@ For details on which features and configuration files each set includes, see the
 
 # "Basic" feature set
 
-Before you use this feature set, see the [limitations](#Limitations) section further below.
+> [!CAUTION]
+> Before you use this feature set, see the [limitations](#Limitations) section further below.
 
 The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Basic`.
 
@@ -58,7 +59,8 @@ You can also **assign new (Binary) strings** for the game to display when cop ve
 
 # "Advanced" feature set
 
-Before you use this feature set, see the [limitations](#Limitations) section further below.
+> [!CAUTION]
+> Before you use this feature set, see the [limitations](#Limitations) section further below.
 
 The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Advanced`.
 
@@ -109,7 +111,7 @@ To **update** this mod, uninstall it and repeat the installation process above.
 &nbsp;
 
 > [!CAUTION]
-> Whenever you update this mod, make sure to replace all old .ini files along with the .asi itself!
+> Whenever you **update** this mod, make sure to replace *all* old .ini files along with the .asi itself!
 
 &nbsp;
 
