@@ -23,7 +23,7 @@ This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
 * how long it takes to lose the cops and enter Cooldown mode,
 * at which time interval you gain passive bounty,
-* the maximum bounty multiplier for destroying cops quickly,
+* the maximum combo-bounty multiplier for destroying cops quickly,
 * the internal cooldown for regular roadblock spawns,
 * the internal cooldown for Heavy and LeaderStrategy spawns,
 * which vehicles spawn through HeavyStrategy 3 (ramming SUVs),
