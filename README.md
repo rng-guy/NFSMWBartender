@@ -122,7 +122,12 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-"**Basic**" feature set:
+&nbsp;
+
+## "Basic" feature set
+
+General:
+
 * All vehicles you specify to replace the ramming SUVs (`BartenderSettings\Basic\Supports.ini`) should each have a low `MAXIMUM_AI_SPEED` value (the vanilla SUVs use 50) in their VltEd `aivehicle` entries. If they don't, they might cause stability issues by joining the pursuit after their ramming attempt(s); this effectively makes them circumvent the global spawn limit, and the (vanilla) game really does not like managing more than 8 active cops for very long.
 
 * All vehicles you specify to replace Cross (`BartenderSettings\Basic\Supports.ini`) should each not be used by any other cop(s) elsewhere. If another cop uses the same vehicle as Cross, no LeaderStrategy will be able to spawn as long as that cop is present in the pursuit.
@@ -131,7 +136,12 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-"**Advanced**" feature set:
+&nbsp;
+
+## "Advanced" feature set
+
+General:
+
 * The feature set disables itself if *any* Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); you must specify at least one car for each level.
 
 * If the feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because the feature set fulfils their intended purposes with much greater customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
@@ -140,7 +150,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-"**Advanced**" feature set - spawning behaviour (`BartenderSettings\Advanced\General.ini`):
+Spawning behaviour (`BartenderSettings\Advanced\General.ini`):
 
 * Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning. This happens if these spawns push the total number of active cops in the world to (or beyond) the global cop spawn limit, which will then prevent further "Chasers" spawns. This total is calculated across all active pursuits, meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
    
@@ -148,7 +158,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-"**Advanced**" feature set - spawn tables (`BartenderSettings\Advanced\Cars.ini`):
+Spawn tables (`BartenderSettings\Advanced\Cars.ini`):
 
 * All vehicles you specify in any of the spawn tables must each have the `CAR` class assigned to them in their `pvehicle` VltEd entries (either explicitly or implicitly through a parent node).
 
