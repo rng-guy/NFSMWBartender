@@ -122,7 +122,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-### "Basic" feature set
+## "Basic" feature set
 
 **General**:
 
@@ -134,7 +134,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-### "Advanced" feature set
+## "Advanced" feature set
 
 **General**:
 
