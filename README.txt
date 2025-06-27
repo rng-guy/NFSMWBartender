@@ -88,7 +88,7 @@ You can find these configuration (.ini) files in the "scripts/BartenderSettings"
 
 To UNINSTALL this mod, remove its files from your game's "scripts" folder.
 
-To REINSTALL this mod, uninstall it and repeat the installation process above.
+To UPDATE this mod, uninstall it and repeat the installation process above.
 
 
 

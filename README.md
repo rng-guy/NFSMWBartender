@@ -104,10 +104,12 @@ To **install** this mod, copy its `BartenderSettings` folder and compiled .asi f
 
 To **uninstall** this mod, remove its files from your game's `scripts` folder.
 
-To **reinstall** this mod, uninstall it and repeat the installation process above.
+To **update** this mod, uninstall it and repeat the installation process above.
+
+&nbsp;
 
 > [!CAUTION]
-> Whenever you update this mod, remember to replace all old .ini files along with the .asi itself!
+> Whenever you update this mod, make sure to replace all old .ini files along with the .asi itself!
 
 &nbsp;
 
