@@ -133,7 +133,7 @@ GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 GENERAL:
 
  • The entire feature set disables itself if ANY Heat level lacks a valid "Chasers" spawn table
-   ("BartenderSettings\Advanced\Cars.ini"); you must specify at least one car for each level.
+   ("BartenderSettings\Advanced\Cars.ini"); you must specify at least one vehicle for each level.
 
  • If the feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
    because the feature set fulfils their intended purposes with much greater customisation:
