@@ -89,7 +89,7 @@ You can find these configuration files in the "scripts\BartenderSettings" folder
 To UNINSTALL this mod, remove its files from your game's "scripts" folder.
 
 To UPDATE this mod, uninstall it and repeat the installation process above.
-Whenever you do, make sure to replace ALL old configuration files along with the .asi itself!
+Whenever you do, make sure to replace ALL old configuration files properly!
 
 
 
