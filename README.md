@@ -19,15 +19,6 @@ For details on which features and configuration files each set includes, see the
 
 # "Basic" feature set
 
-The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Basic`.
-
-To **disable** a given feature of this set, delete its .ini section or the entire file.
-
-> [!IMPORTANT]
-> Before you use this feature set, see the [limitations](#Limitations) section further below.
-
-&nbsp;
-
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
 * how long it takes to lose the cops and enter Cooldown mode,
@@ -51,6 +42,15 @@ You can also **assign new (Binary) strings** for the game to display when cop ve
 
 &nbsp;
 
+The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Basic`.
+
+To **disable** a given feature of this set, delete its .ini section or the entire file.
+
+> [!IMPORTANT]
+> Before you use this feature set, see the [limitations](#Limitations) section further below.
+
+&nbsp;
+
 &nbsp;
 
 &nbsp;
@@ -58,15 +58,6 @@ You can also **assign new (Binary) strings** for the game to display when cop ve
 
 
 # "Advanced" feature set
-
-The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Advanced`.
-
-To **disable** this feature set, delete the entire `scripts/BartenderSettings/Advanced` folder.
-
-> [!IMPORTANT]
-> Before you use this feature set, see the [limitations](#Limitations) section further below.
-
-&nbsp;
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
@@ -82,6 +73,15 @@ This feature set **lets you change** (per Heat level)
 &nbsp;
 
 This feature set **also fixes** the displayed engagement count in the centre of the pursuit bar: its value is now perfectly accurate and reflects how many chasing cops remain in the current wave. The count ignores vehicles spawned through any Heavy or LeaderStrategy, the helicopter, and any vehicles that join the pursuit by detaching themselves from roadblocks.
+
+&nbsp;
+
+The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Advanced`.
+
+To **disable** this feature set, delete the entire `scripts/BartenderSettings/Advanced` folder.
+
+> [!IMPORTANT]
+> Before you use this feature set, see the [limitations](#Limitations) section further below.
 
 &nbsp;
 
@@ -108,7 +108,7 @@ To **uninstall** this mod, remove its files from your game's `scripts` folder.
 
 To **update** this mod, uninstall it and repeat the installation process above.
 
-> [!CAUTION]
+> [!IMPORTANT]
 > Whenever you **update** this mod, make sure to replace *all* old configuration files properly!
 
 &nbsp;
