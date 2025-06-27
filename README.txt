@@ -106,7 +106,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 
 
-── ■ "BASIC" FEATURE SET
+── ■ "BASIC" FEATURE SET ■ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
 
@@ -128,7 +128,7 @@ GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
 
 
-── ■ "ADVANCED" FEATURE SET
+── ■ "ADVANCED" FEATURE SET ■ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 GENERAL:
 
