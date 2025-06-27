@@ -22,6 +22,7 @@ For details on which features and configuration files each set includes, see the
 Before you use this feature set, see the "**Limitations**" section further below.
 
 The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Basic`.
+
 To **disable** a given feature of this set, delete its .ini section or the entire file.
 
 &nbsp;
@@ -60,6 +61,7 @@ You can also **assign new (Binary) strings** for the game to display when cop ve
 Before you use this feature set, see the "**Limitations**" section further below.
 
 The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Advanced`.
+
 To **disable** this feature set, delete the entire `scripts/BartenderSettings/Advanced` folder.
 
 &nbsp;
