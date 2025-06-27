@@ -108,8 +108,6 @@ To **uninstall** this mod, remove its files from your game's `scripts` folder.
 
 To **update** this mod, uninstall it and repeat the installation process above.
 
-&nbsp;
-
 > [!CAUTION]
 > Whenever you **update** this mod, make sure to replace *all* old .ini files along with the .asi itself!
 
