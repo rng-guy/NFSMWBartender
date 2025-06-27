@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.5.02) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.5.03) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -107,22 +107,23 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 ── ■ "BASIC" FEATURE SET
 
-GENERAL:
+COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
 
- • All vehicles you specify to replace the ramming SUVs ("BartenderSettings\Basic\Supports.ini") 
-   should each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) in their VltEd 
-   "aivehicle" entries. If they don't, they might cause stability issues by joining the pursuit 
-   after their ramming attempt(s); this effectively makes them circumvent the global spawn limit,
-   and the (vanilla) game really does not like managing more than 8 active cops for very long.
+ • This feature is completely incompatible with the "EnableCopDestroyedStringHook" feature of the
+   "NFSMW Unlimiter" mod by nlgxzef. Either delete this mod's "Labels.ini" configuration file or 
+   disable Unlimiter's version of the feature by editing its "NFSMWUnlimiterSettings.ini" file.
 
- • All vehicles you specify to replace Cross ("BartenderSettings\Basic\Supports.ini") should each
-   not be used by any other cop(s) elsewhere. If another cop uses the same vehicle as Cross, no
-   LeaderStrategy will be able to spawn as long as that cop is present in the pursuit.
 
- • The string assignment for cops ("BartenderSettings\Basic\Labels.ini") is incompatible with
-   the "EnableCopDestroyedStringHook" feature of the "NFSMW Unlimiter" mod by nlgxzef. Either
-   delete this mod's "Labels.ini" configuration file or disable Unlimiter's version of the 
-   feature by editing its "NFSMWUnlimiterSettings.ini" configuration file.
+GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
+
+ • All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should each 
+   have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) in their "aivehicle" VltEd 
+   entries. If they don't, they might cause stability issues by joining the pursuit after their 
+   ramming attempt(s), as this effectively makes them circumvent the global cop spawn limit.
+
+ • All vehicles you specify to replace Cross in LeaderStrategy 5 / 7 should each not be used by 
+   any other cop(s) elsewhere. If another cop uses the same vehicle as Cross, no LeaderStrategy 
+   will be able to spawn as long as that cop is present in the pursuit.
 
 
 
@@ -130,18 +131,21 @@ GENERAL:
 
 GENERAL:
 
- • The feature set disables itself if ANY Heat level lacks a valid "Chasers" spawn table
+ • The entire feature set disables itself if ANY Heat level lacks a valid "Chasers" spawn table
    ("BartenderSettings\Advanced\Cars.ini"); you must specify at least one car for each level.
 
  • If the feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
    because the feature set fulfils their intended purposes with much greater customisation:
    "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
 
- • All vehicles you specify to replace the helicopter ("BartenderSettings\Advanced\Helicopter.ini")
-   must each have the "CHOPPER" class assigned to them in their "pvehicle" VltEd entries.
+   
+HELICOPTER (DE)SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\Helicopter.ini"):
+
+ • All vehicles you specify to replace the helicopter must each have the "CHOPPER" class assigned to
+   them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent node.
 
 
-(DE)SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\Behaviour.ini"):
+COP (DE)SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\Behaviour.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
    "Chasers" from spawning. This happens if these spawns push the total number of active cops in
@@ -159,10 +163,10 @@ GENERAL:
    generally stay stable if it does not crash there.
 
 
-SPAWN TABLES ("BartenderSettings\Advanced\Cars.ini"):
+COP SPAWN TABLES ("BartenderSettings\Advanced\Cars.ini"):
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned to 
-   them in their "pvehicle" VltEd entries (either explicitly or implicitly through a parent node).
+   them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent node.
 
  • Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position 
    of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, 
@@ -257,3 +261,4 @@ v1.4.02: Improved phrasing and corrected some typos in README
 v1.5.00: Added "count" support to custom "Roadblocks" and "Events" spawn tables
 v1.5.01: Rephrased README to better reflect recent changes to both feature sets
 v1.5.02: Restructured "LIMITATIONS" section of README and renamed both "General.ini" files
+v1.5.03: Restructured "LIMITATIONS" section even further
