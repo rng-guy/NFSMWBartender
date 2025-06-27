@@ -142,8 +142,8 @@ GENERAL:
    
 HELICOPTER (DE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
 
- • All vehicles you specify to replace the helicopter must each have the "CHOPPER" class assigned to
-   them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent node.
+ • All vehicles you specify to replace the helicopter must each have the "CHOPPER" class assigned
+   to them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent.
 
 
 COP (DE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
@@ -163,8 +163,8 @@ COP (DE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    prone to crashing in the first 30 seconds of the first pursuit in a play session, but will 
    generally stay stable if it does not crash there.
 
- • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned to 
-   them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent node.
+ • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned
+   to them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent.
 
  • Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position 
    of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, 
