@@ -256,4 +256,4 @@ v1.4.02: Improved phrasing and corrected some typos in README
 
 v1.5.00: Added "count" support to custom "Roadblocks" and "Events" spawn tables
 v1.5.01: Rephrased README to better reflect recent changes to both feature sets
-v1.5.02: Restructured "LIMITATIONS" section of README and renamed two .ini files
+v1.5.02: Restructured "LIMITATIONS" section of README and renamed both "General.ini" files
