@@ -177,9 +177,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Advanced\Cars.ini" />
-    <None Include="..\BartenderSettings\Advanced\General.ini" />
+    <None Include="..\BartenderSettings\Advanced\Behaviour.ini" />
     <None Include="..\BartenderSettings\Advanced\Helicopter.ini" />
-    <None Include="..\BartenderSettings\Basic\General.ini" />
+    <None Include="..\BartenderSettings\Basic\Others.ini" />
     <None Include="..\BartenderSettings\Basic\Labels.ini" />
     <None Include="..\BartenderSettings\Basic\Supports.ini" />
     <None Include="..\README.md" />

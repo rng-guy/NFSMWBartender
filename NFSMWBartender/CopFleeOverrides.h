@@ -209,7 +209,7 @@ namespace CopFleeOverrides
 
 	void Initialise(ConfigParser::Parser& parser)
 	{
-		if (not parser.LoadFile(Globals::configAdvancedPath + "General.ini")) return;
+		if (not parser.LoadFile(Globals::configAdvancedPath + "Behaviour.ini")) return;
 
 		fleeingEnableds = parser.ParseParameterTable
 		(

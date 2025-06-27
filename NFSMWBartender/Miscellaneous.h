@@ -102,7 +102,7 @@ namespace Miscellaneous
 
     void Initialise(ConfigParser::Parser& parser)
     {
-		if (not parser.LoadFile(Globals::configBasicPath + "General.ini")) return;
+		if (not parser.LoadFile(Globals::configBasicPath + "Others.ini")) return;
 
         parser.ParseFormatParameter<float>("BountyInterval", Globals::configFormat, bountyIntervals, bountyInterval, .001f);
         parser.ParseFormatParameter<int>  ("CopComboLimit",  Globals::configFormat, copComboLimits,  copComboLimit,  1);

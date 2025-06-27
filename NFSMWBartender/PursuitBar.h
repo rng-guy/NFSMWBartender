@@ -88,7 +88,7 @@ namespace PursuitBar
 
     void Initialise(ConfigParser::Parser& parser)
     {
-		if (not parser.LoadFile(Globals::configBasicPath + "General.ini")) return;
+		if (not parser.LoadFile(Globals::configBasicPath + "Others.ini")) return;
 
 		parser.ParseParameterTable
 		(

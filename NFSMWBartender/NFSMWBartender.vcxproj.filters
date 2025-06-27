@@ -93,7 +93,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\BartenderSettings\Basic\General.ini">
+    <None Include="..\BartenderSettings\Basic\Others.ini">
       <Filter>Config Files\Basic</Filter>
     </None>
     <None Include="..\BartenderSettings\Basic\Labels.ini">
@@ -105,7 +105,7 @@
     <None Include="..\BartenderSettings\Advanced\Cars.ini">
       <Filter>Config Files\Advanced</Filter>
     </None>
-    <None Include="..\BartenderSettings\Advanced\General.ini">
+    <None Include="..\BartenderSettings\Advanced\Behaviour.ini">
       <Filter>Config Files\Advanced</Filter>
     </None>
     <None Include="..\BartenderSettings\Advanced\Helicopter.ini">
