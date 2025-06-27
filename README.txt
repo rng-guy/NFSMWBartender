@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.5.04) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.5.05) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -149,10 +149,10 @@ HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
 COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
-   "Chasers" from spawning. This happens if these spawns push the total number of active cops in
-   the world to (or beyond) the global cop spawn limit, which will then prevent further "Chasers" 
-   spawns. This total is calculated across all active pursuits, meaning cops spawned in NPC 
-   pursuits can also affect how many "Chasers" may spawn in yours.
+   "Chasers" from spawning (but not the other way around). This happens if these spawns push the 
+   total number of active cops in the world to (or beyond) the global cop spawn limit, which will
+   then prevent further "Chasers" spawns. This total is calculated across all active pursuits, 
+   meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
    
  • Pushing any global cop spawn limit(s) beyond 8 requires the "NFSMW LimitAdjuster" (LA) mod by 
    Zolika1351 to work properly. Without it, the game will start unloading models and assets because
@@ -188,7 +188,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    in "count" calculations for any following vehicle spawns.
 
  • "count" values in "Roadblocks" and "Events" spawn tables are ignored whenever the game requests 
-   more vehicles in total than these values would allow: Whenever all "count" values have been 
+   more vehicles in total than these values would allow: When all their "count" values have been 
    exhausted for a given roadblock / event, every vehicle in the relevant table may spawn without 
    restriction until the next roadblock / event begins.
 
@@ -261,3 +261,4 @@ v1.5.01: Rephrased README to better reflect recent changes to both feature sets
 v1.5.02: Restructured "LIMITATIONS" section of README and renamed both "General.ini" files
 v1.5.03: Restructured and rephrased README some more
 v1.5.04: Merged "Behaviour.ini" with "Cars.ini" file
+v1.5.05: Clarified the global cop spawn limit
