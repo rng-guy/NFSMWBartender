@@ -7,7 +7,7 @@ This .asi mod adds new customisation options to pursuits in *Need for Speed: Mos
 
 &nbsp;
 
-For more details on which features (and .ini files) each set includes, see the following sections. There are also separate sections for **installation** instructions and the **limitations** of this mod.
+For details on which features and configuration files each set includes, see the sections below. There are also separate sections for **installation** instructions and the **limitations** of this mod.
 
 &nbsp;
 
@@ -19,11 +19,10 @@ For more details on which features (and .ini files) each set includes, see the f
 
 # "Basic" feature set
 
-The **.ini files** for this feature set are located in `scripts/BartenderSettings/Basic`.
+Before you use this feature set, see the "**Limitations**" section further below.
 
-To **disable** a feature of this set, delete its .ini section (or the respective .ini file).
-
-See the "**Limitations**" section further below before using this feature set.
+The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Basic`.
+To **disable** a given feature of this set, delete its .ini section or the entire file.
 
 &nbsp;
 
@@ -58,11 +57,10 @@ You can also **assign new (Binary) strings** for the game to display when cop ve
 
 # "Advanced" feature set
 
-The **.ini files** for this feature set are located in `scripts/BartenderSettings/Advanced`.
+Before you use this feature set, see the "**Limitations**" section further below.
 
-To **disable** this feature set, delete all .ini files in that folder (or the folder itself).
-
-See the "**Limitations**" section further below before using this feature set.
+The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Advanced`.
+To **disable** this feature set, delete the entire `scripts/BartenderSettings/Advanced` folder.
 
 &nbsp;
 
@@ -71,9 +69,9 @@ This feature set **lets you change** (per Heat level)
 * the global spawn limit for how many cops may chase you at once,
 * how quickly cops leave the pursuit if they don't belong (if at all),
 * which vehicles may spawn to chase you (any amount, with counts and chances),
-* which vehicles may spawn in roadblocks (any amount, with chances),
-* which vehicles may spawn in scripted events (same as above),
-* which vehicles may spawn as patrols in free-roam (ditto),
+* which vehicles may spawn in roadblocks (same as above),
+* which vehicles may spawn in scripted events (ditto),
+* which vehicles may spawn as patrols in free-roam (chances only),
 * which vehicle spawns in place of the regular helicopter, and
 * when exactly the helicopter can (de / re)spawn (if at all).
 
@@ -146,11 +144,11 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * The "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) do *not* apply to the scripted patrols that spawn in any of the D-Day races; those are special, even among event spawns.
 
-* The "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) apply only after the first scripted, pre-generated cop has already spawned in a given event; instead, this first cop is always of the type specified in the event's `CopSpawnType` VltEd parameter. This is because the game requests this cop before it loads any pursuit or Heat level information, making it impossible for the mod to know which spawn table to use for the very first vehicle. This vehicle, however, is still accounted for in `count` calculations for any following spawns.
+* The "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) do *not* apply to the very first scripted, pre-generated cop that spawns in a given event; instead, this first cop is always of the type specified in the event's `CopSpawnType` VltEd parameter. This is because the game requests this cop before it loads any pursuit or Heat level information, making it impossible for the mod to know which spawn table to use for the very first vehicle. This vehicle, however, is still accounted for in `count` calculations for any following spawns.
 
-* `count` values in "Roadblocks" and "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) are ignored whenever the game requests more vehicles in total than these values would allow: Once all `count` are exhausted, every vehicle in those tables is equally likely to spawn as the next roadblock / event vehicle until the next set of roadblock / event vehicles begins.
+* `count` values in "Roadblocks" and "Events" spawn tables (`BartenderSettings\Advanced\Cars.ini`) are ignored whenever the game requests more vehicles in total than these values would allow: Whenever all `count` values have been exhausted for a given roadblock / event, every vehicle in the relevant table may spawn without restriction until the next roadblock / event begins.
 
-* Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one "Events" spawn table (`BartenderSettings\Advanced\Cars.ini`) to appear in events that feature scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those cops. To circumvent this issue, set the event's `ForceHeatLevel` VltEd parameter to the Heat level you are aiming for instead.
+* Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one "Events" spawn table (`BartenderSettings\Advanced\Cars.ini`) to appear in events that feature scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. To circumvent this issue, set the event's `ForceHeatLevel` VltEd parameter to the Heat level you are aiming for instead.
 
 * Until the HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning. This happens if these spawns pushed the total number of active cops in the world to (or beyond) the global cop spawn limit (`BartenderSettings\Advanced\General.ini`), which will then prevent further "Chasers" spawns. This total is calculated across all pursuits, meaning cops spawned in NPC pursuits can also affect how many "Chasers" can spawn in yours.
 

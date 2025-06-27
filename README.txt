@@ -1,11 +1,11 @@
 
-── ■ │ NFSMW Bartender (v1.5.00) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.5.01) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" set lets you change cop-spawning behaviour and spawn tables without limits.
 
-For more details on which features (and .ini files) each set includes, see the following sections.
+For details on which features and configuration files each set includes, see the sections below.
 There are also separate sections for "INSTALLATION" instructions and the "LIMITATIONS" of this mod.
 
 
@@ -15,10 +15,10 @@ There are also separate sections for "INSTALLATION" instructions and the "LIMITA
 
 ── ■ │ "BASIC" FEATURE SET │ ■ ────────────────────────────────────────────────────────────────────
 
-The .ini files for this feature set are located in "scripts/BartenderSettings/Basic".
-To DISABLE a given feature of this set, delete its .ini section (or the respective .ini file).
+Before you use this feature set, see the "LIMITATIONS" section further below.
 
-See the "LIMITATIONS" section further below before using this feature set.
+The configuration (.ini) files for this set are located in "scripts/BartenderSettings/Basic".
+To DISABLE a given feature of this set, delete its .ini section or the entire file.
 
 This feature set lets you change (per Heat level)
  • at which distance and how quickly you can get busted,
@@ -47,19 +47,19 @@ ignoring any specified strings that do not actually exist in the game's (modifie
 
 ── ■ │ "ADVANCED" FEATURE SET │ ■ ─────────────────────────────────────────────────────────────────
 
-The .ini files for this feature set are located in "scripts/BartenderSettings/Advanced".
-To DISABLE this feature set, delete all .ini files in that folder (or the folder itself).
+Before you use this feature set, see the "LIMITATIONS" section further below.
 
-See the "LIMITATIONS" section further below before using this feature set.
+The configuration (.ini) files for this set are located in "scripts/BartenderSettings/Advanced".
+To DISABLE this feature set, delete the entire "scripts/BartenderSettings/Advanced" folder.
 
 This feature set lets you change (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
  • the global spawn limit for how many cops may chase you at once,
  • how quickly cops leave the pursuit if they don't belong (if at all),
  • which vehicles may spawn to chase you (any amount, with counts and chances),
- • which vehicles may spawn in roadblocks (any amount, with chances),
- • which vehicles may spawn in scripted events (same as above),
- • which vehicles may spawn as patrols in free-roam (ditto),
+ • which vehicles may spawn in roadblocks (same as above),
+ • which vehicles may spawn in scripted events (ditto),
+ • which vehicles may spawn as patrols in free-roam (chances only),
  • which vehicle spawns in place of the regular helicopter, and
  • when exactly the helicopter can (de / re)spawn (if at all).
 
@@ -152,8 +152,8 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
  • The "Events" spawn tables ("BartenderSettings\Advanced\Cars.ini") do NOT apply to the scripted
    patrols that spawn in any of the D-Day races; those are special, even among event spawns.
 
- • The "Events" spawn tables ("BartenderSettings\Advanced\Cars.ini") apply only after the first
-   scripted, pre-generated cop has already spawned in a given event; instead, this first cop is
+ • The "Events" spawn tables ("BartenderSettings\Advanced\Cars.ini") do NOT apply to the very
+   first scripted, pre-generated cop that spawns in a given event; instead, this first cop is
    always of the type specified in the event's "CopSpawnType" VltEd parameter. This is because
    the game requests this cop before it loads any pursuit or Heat level information, making it 
    impossible for the mod to know which spawn table to use for the very first vehicle. This
@@ -161,13 +161,13 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
  • "count" values in "Roadblocks" and "Events" spawn tables ("BartenderSettings\Advanced\Cars.ini")
    are ignored whenever the game requests more vehicles in total than these values would allow:
-   Once all "counts" are exhausted, every vehicle in those tables is equally likely to spawn as 
-   the next roadblock / event vehicle until the next set of roadblock / event vehicles begins.
+   Whenever all "count" values have been exhausted for a given roadblock / event, every vehicle
+   in the relevant table may spawn without restriction until the next roadblock / event begins.
 
  • Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one
    "Events" spawn table ("BartenderSettings\Advanced\Cars.ini") to appear in events that feature
    scripted, pre-generated cops. This happens because, depending on your loading times, the game
-   might update the Heat level as it requests those cops. To circumvent this issue, set the
+   might update the Heat level as it requests those spawns. To circumvent this issue, set the
    event's "ForceHeatLevel" VltEd parameter to the Heat level you are aiming for instead.
 
  • Until the HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
@@ -244,3 +244,4 @@ v1.4.01: Added workaround for vanilla bug of fleeing HeavyStrategy 3 spawns ("AD
 v1.4.02: Improved phrasing and corrected some typos in README
 
 v1.5.00: Added "count" support to custom "Roadblocks" and "Events" spawn tables
+v1.5.01: Rephrased README to better reflect recent changes to both feature sets
