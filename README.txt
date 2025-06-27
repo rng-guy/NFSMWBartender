@@ -83,13 +83,13 @@ BEFORE INSTALLING this mod:
 To INSTALL this mod, copy the contents of its "scripts" folder into the "scripts" folder located
 in your game's installation folder. If your game does not have a "scripts" folder, create one.
 
-AFTER INSTALLING this mod, you can customise its features by editing its configuration files.
-You can find these configuration (.ini) files in the "scripts/BartenderSettings" folder.
+AFTER INSTALLING this mod, you can customise its features through its configuration (.ini) files.
+You can find these configuration files in the "scripts\BartenderSettings" folder.
 
 To UNINSTALL this mod, remove its files from your game's "scripts" folder.
 
 To UPDATE this mod, uninstall it and repeat the installation process above.
-Whenever you do, make sure to replace ALL old .ini files along with the .asi itself!
+Whenever you do, make sure to replace ALL old configuration files along with the .asi itself!
 
 
 

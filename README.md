@@ -23,7 +23,7 @@ The **configuration (.ini) files** for this set are located in `scripts/Bartende
 
 To **disable** a given feature of this set, delete its .ini section or the entire file.
 
-> [!CAUTION]
+> [!IMPORTANT]
 > Before you use this feature set, see the [limitations](#Limitations) section further below.
 
 &nbsp;
@@ -63,7 +63,7 @@ The **configuration (.ini) files** for this set are located in `scripts/Bartende
 
 To **disable** this feature set, delete the entire `scripts/BartenderSettings/Advanced` folder.
 
-> [!CAUTION]
+> [!IMPORTANT]
 > Before you use this feature set, see the [limitations](#Limitations) section further below.
 
 &nbsp;
@@ -102,7 +102,7 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 
 To **install** this mod, copy its `BartenderSettings` folder and compiled .asi file into the `scripts` folder located in your game's installation folder. If your game does not have a `scripts` folder, create one.
 
-**After installing** this mod, you can customise its features by editing its configuration files. You can find these configuration (.ini) files in the `BartenderSettings` folder.
+**After installing** this mod, you can customise its features through its configuration (.ini) files. You can find these configuration files in the `scripts\BartenderSettings` folder.
 
 To **uninstall** this mod, remove its files from your game's `scripts` folder.
 
