@@ -5,7 +5,7 @@ This .asi mod adds new customisation options to pursuits. These options come in 
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" set lets you change cop-spawning behaviour and spawn tables without limits.
 
-For details on which features and configuration files each set includes, see the sections below.
+For DETAILS on which features and configuration files each set includes, see the sections below.
 There are also separate sections for "INSTALLATION" instructions and the "LIMITATIONS" of this mod.
 
 
@@ -15,12 +15,7 @@ There are also separate sections for "INSTALLATION" instructions and the "LIMITA
 
 ── ■ │ "BASIC" FEATURE SET │ ■ ────────────────────────────────────────────────────────────────────
 
-The configuration (.ini) files for this set are located in "scripts/BartenderSettings/Basic".
-To DISABLE a given feature of this set, delete its .ini section or the entire file.
-
-Before you use this feature set, see the "LIMITATIONS" section further below.
-
-This feature set lets you change (per Heat level)
+This feature set LETS YOU CHANGE (per Heat level)
  • at which distance and how quickly you can get busted,
  • how long it takes to lose the cops and enter Cooldown mode,
  • at which time interval you gain passive bounty,
@@ -31,14 +26,19 @@ This feature set lets you change (per Heat level)
  • which vehicles spawn through HeavyStrategy 4 (roadblock SUVs), and
  • which vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
-This feature set fixes two bugs:
+This feature set FIXES TWO BUGS:
  • you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
  • regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
-You can also assign new (Binary) strings for the game to display when cop vehicles are destroyed,
+You can also ASSIGN NEW (BINARY) STRINGS for the game to display when cop vehicles are destroyed,
 similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, this mod's version of this
 feature is easier to configure, leaner, and even checks strings for correctness on game launch,
 ignoring any specified strings that do not actually exist in the game's (modified) binary files.
+
+The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSettings/Basic".
+To DISABLE a given feature of this set, delete its .ini section or the entire file.
+
+Before you use this feature set, see the "LIMITATIONS" section further below.
 
 
 
@@ -47,12 +47,7 @@ ignoring any specified strings that do not actually exist in the game's (modifie
 
 ── ■ │ "ADVANCED" FEATURE SET │ ■ ─────────────────────────────────────────────────────────────────
 
-The configuration (.ini) files for this set are located in "scripts/BartenderSettings/Advanced".
-To DISABLE this feature set, delete the entire "scripts/BartenderSettings/Advanced" folder.
-
-Before you use this feature set, see the "LIMITATIONS" section further below.
-
-This feature set lets you change (per Heat level)
+This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
  • the global spawn limit for how many cops may chase you at once,
  • how quickly cops leave the pursuit if they don't belong (if at all),
@@ -63,10 +58,15 @@ This feature set lets you change (per Heat level)
  • which vehicle spawns in place of the regular helicopter, and
  • when exactly the helicopter can (de / re)spawn (if at all).
 
-This feature set also fixes the displayed engagement count in the centre of the pursuit bar:
+This feature set ALSO FIXES the displayed engagement count in the centre of the pursuit bar:
 its value is now perfectly accurate and reflects how many chasing cops remain in the current
 wave. The count ignores vehicles spawned through any Heavy or LeaderStrategy, the helicopter, 
 and any vehicles that join the pursuit by detaching themselves from roadblocks.
+
+The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSettings/Advanced".
+To DISABLE this feature set, delete the entire "scripts/BartenderSettings/Advanced" folder.
+
+Before you use this feature set, see the "LIMITATIONS" section further below.
 
 
 
