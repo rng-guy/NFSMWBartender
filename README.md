@@ -129,6 +129,8 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
+&nbsp;
+
 ## "Basic" feature set
 
 **Cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
@@ -142,6 +144,8 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 * All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should each have a low `MAXIMUM_AI_SPEED` value (the vanilla SUVs use 50) in their `aivehicle` VltEd entries. If they don't, they might cause stability issues by joining the pursuit after their ramming attempt(s), as this effectively makes them circumvent the global cop spawn limit.
 
 * All vehicles you specify to replace Cross in LeaderStrategy 5 / 7 should each not be used by any other cop(s) elsewhere. If another cop uses the same vehicle as Cross, no LeaderStrategy will be able to spawn as long as that cop is present in the pursuit.
+
+&nbsp;
 
 &nbsp;
 
