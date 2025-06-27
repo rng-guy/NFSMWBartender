@@ -1,7 +1,7 @@
 
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
-$\color{#d62728}{**Whenever you update this mod, remember to replace all old .ini files along with the .asi itself!**}$
+**$\color{#d62728}{Whenever you update this mod, remember to replace all old .ini files along with the .asi itself!}$**
 
 This .asi mod adds new customisation options to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in **two feature sets**:
 * the "**Basic**" set lets you change many otherwise hard-coded values of the game, and
