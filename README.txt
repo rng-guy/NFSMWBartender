@@ -15,10 +15,10 @@ There are also separate sections for "INSTALLATION" instructions and the "LIMITA
 
 ── ■ │ "BASIC" FEATURE SET │ ■ ────────────────────────────────────────────────────────────────────
 
-Before you use this feature set, see the "LIMITATIONS" section further below.
-
 The configuration (.ini) files for this set are located in "scripts/BartenderSettings/Basic".
 To DISABLE a given feature of this set, delete its .ini section or the entire file.
+
+Before you use this feature set, see the "LIMITATIONS" section further below.
 
 This feature set lets you change (per Heat level)
  • at which distance and how quickly you can get busted,
@@ -47,10 +47,10 @@ ignoring any specified strings that do not actually exist in the game's (modifie
 
 ── ■ │ "ADVANCED" FEATURE SET │ ■ ─────────────────────────────────────────────────────────────────
 
-Before you use this feature set, see the "LIMITATIONS" section further below.
-
 The configuration (.ini) files for this set are located in "scripts/BartenderSettings/Advanced".
 To DISABLE this feature set, delete the entire "scripts/BartenderSettings/Advanced" folder.
+
+Before you use this feature set, see the "LIMITATIONS" section further below.
 
 This feature set lets you change (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
@@ -89,6 +89,7 @@ You can find these configuration (.ini) files in the "scripts/BartenderSettings"
 To UNINSTALL this mod, remove its files from your game's "scripts" folder.
 
 To UPDATE this mod, uninstall it and repeat the installation process above.
+Whenever you do, make sure to replace ALL old .ini files along with the .asi itself!
 
 
 
@@ -261,4 +262,4 @@ v1.4.02: Improved phrasing and corrected some typos in README
 v1.5.00: Added "count" support to custom "Roadblocks" and "Events" spawn tables
 v1.5.01: Rephrased README to better reflect recent changes to both feature sets
 v1.5.02: Restructured "LIMITATIONS" section of README and renamed both "General.ini" files
-v1.5.03: Restructured "LIMITATIONS" section even further
+v1.5.03: Restructured "LIMITATIONS" section some more
