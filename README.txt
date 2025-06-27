@@ -146,7 +146,7 @@ HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
    to them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent.
 
 
-COP (RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
+COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
    "Chasers" from spawning. This happens if these spawns push the total number of active cops in
