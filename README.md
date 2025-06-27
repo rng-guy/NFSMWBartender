@@ -3,6 +3,8 @@
 
 $\color{#d62728}{\textbf{Whenever you update this mod, remember to replace all old .ini files along with the .asi itself!}}$
 
+&nbsp;
+
 This .asi mod adds new customisation options to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in **two feature sets**:
 * the "**Basic**" set lets you change many otherwise hard-coded values of the game, and
 * the "**Advanced**" set lets you change cop-spawning behaviour and spawn tables without limits.
