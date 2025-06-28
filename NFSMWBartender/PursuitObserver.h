@@ -46,7 +46,7 @@ namespace PursuitObserver
 		}
 
 
-		static const char* GetName(const address copVehicle)
+		static const char* GetCopName(const address copVehicle)
 		{
 			return (const char*)(*(address*)(*(address*)(copVehicle + 0x2C) + 0x24));
 		}
@@ -232,7 +232,7 @@ namespace PursuitObserver
 			const hash                      copType  = this->GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "OBS: +", copVehicle, (int)copLabel, this->GetName(copVehicle));
+				Globals::Log(this->pursuit, "OBS: +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
@@ -248,7 +248,7 @@ namespace PursuitObserver
 			const hash                      copType  = this->GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "OBS: -", copVehicle, (int)copLabel, this->GetName(copVehicle));
+				Globals::Log(this->pursuit, "OBS: -", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessRemoval(copVehicle, copType, copLabel);
