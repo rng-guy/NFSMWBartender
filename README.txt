@@ -264,4 +264,4 @@ v1.5.04: Merged "Behaviour.ini" with "Cars.ini" file
 v1.5.05: Clarified global cop spawn limit in "LIMITATIONS" section of README and "Cars.ini" file
 v1.5.06: Added missing number-format comment to "Others.ini" file
 
-v1.6.00: Fixed incorrect labelling of roadblock vehicles joining pursuit after spike strip hit
+v1.6.00: Fixed incorrect labelling of roadblock vehicles joining pursuit after spike-strip hit
