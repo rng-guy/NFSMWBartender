@@ -41,7 +41,7 @@ namespace CopSpawnOverrides
 				this->spawnTable = *(*(this->sourceSpawnTable));
 
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: Failed to reload spawn table");
+				Globals::Log("WARNING: [ERR] Failed to reload spawn table");
 
 			for (const auto& pair : this->copTypeToCurrentCount)
 				this->spawnTable.UpdateCapacity(pair.first, -pair.second);
@@ -145,12 +145,12 @@ namespace CopSpawnOverrides
 			for (const auto& pair : this->copTypeToCurrentCount)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "SPA: Table update:", pair.first, -(pair.second));
+					Globals::Log(this->pursuit, "[SPA] Table update:", pair.first, -(pair.second));
 
 				this->spawnTable.UpdateCapacity(pair.first, -(pair.second));
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "SPA: Type capacity remaining:", this->spawnTable.GetCapacity(pair.first));
+					Globals::Log(this->pursuit, "[SPA] Type capacity remaining:", this->spawnTable.GetCapacity(pair.first));
 			}
 		}
 
@@ -167,7 +167,7 @@ namespace CopSpawnOverrides
 			this->numPatrolCarsToSpawn  = (numPatrolCars) ? *(int*)numPatrolCars : 0;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "SPA: Patrol cars:", this->numPatrolCarsToSpawn);
+				Globals::Log(this->pursuit, "[SPA] Patrol cars:", this->numPatrolCarsToSpawn);
 		}
 
 
@@ -194,7 +194,7 @@ namespace CopSpawnOverrides
 				*(this->fullWaveCapacity) -= waveCapacity;
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "SPA: Wave correction:", -waveCapacity);
+					Globals::Log(this->pursuit, "[SPA] Wave correction:", -waveCapacity);
 			}
 		}
 
@@ -271,8 +271,8 @@ namespace CopSpawnOverrides
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::Log(this->pursuit, "SPA: Type capacity remaining:", this->spawnTable.GetCapacity(copType));
-				Globals::Log(this->pursuit, "SPA: Contingent:",              this->numCopsInContingent);
+				Globals::Log(this->pursuit, "[SPA] Type capacity remaining:", this->spawnTable.GetCapacity(copType));
+				Globals::Log(this->pursuit, "[SPA] Contingent:",              this->numCopsInContingent);
 			}
 		}
 
@@ -297,8 +297,8 @@ namespace CopSpawnOverrides
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::Log(this->pursuit, "SPA: Type capacity remaining:", this->spawnTable.GetCapacity(copType));
-				Globals::Log(this->pursuit, "SPA: Contingent:",              this->numCopsInContingent);
+				Globals::Log(this->pursuit, "[SPA] Type capacity remaining:", this->spawnTable.GetCapacity(copType));
+				Globals::Log(this->pursuit, "[SPA] Contingent:",              this->numCopsInContingent);
 			}
 		}
 
@@ -356,7 +356,7 @@ namespace CopSpawnOverrides
 
 			default:
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: Unknown ByClass caller:", spawnReturn);
+					Globals::Log("WARNING: [ERR] Unknown ByClass caller:", spawnReturn);
 			}
 		}
 
@@ -410,7 +410,7 @@ namespace CopSpawnOverrides
 			mov ecx, eax
 
 			push ecx
-			call NotifyRoadblockManager // ecx: copVehicle
+			call NotifyRoadblockManager // ecx: PVehicle
 			pop ecx
 
 			mov edx, [ecx]

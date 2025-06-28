@@ -83,7 +83,7 @@ namespace CopFleeOverrides
 				assessment.position = this->waitingToFlee.insert({fleeTimestamp, assessment.copVehicle});
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "FLE:", assessment.copVehicle, "to flee in", fleeTimestamp - (*this->simulationTime));
+					Globals::Log(this->pursuit, "[FLE]", assessment.copVehicle, "to flee in", fleeTimestamp - (*this->simulationTime));
 			}
 		}
 
@@ -91,7 +91,7 @@ namespace CopFleeOverrides
 		void ReviewAll()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "FLE: Reviewing all vehicles");
+				Globals::Log(this->pursuit, "[FLE] Reviewing contingent");
 
 			this->waitingToFlee.clear();
 
@@ -130,7 +130,7 @@ namespace CopFleeOverrides
 				this->fleeingCopVehicles.insert(assessment.copVehicle);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "FLE:", assessment.copVehicle, "now fleeing");
+					Globals::Log(this->pursuit, "[FLE]", assessment.copVehicle, "now fleeing");
 			}
 
 			std::for_each(this->fleeingCopVehicles.begin(), this->fleeingCopVehicles.end(), this->MakeFlee);

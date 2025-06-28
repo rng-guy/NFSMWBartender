@@ -35,7 +35,7 @@ namespace PursuitObserver
 
 		std::vector<std::unique_ptr<PursuitFeatures::CopVehicleReaction>> copVehicleReactions;
 
-		inline static std::unordered_map<address, address> vehicleToPursuit;
+		inline static std::unordered_set<address> activeCopVehicles;
 		inline static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
 
 
@@ -98,7 +98,7 @@ namespace PursuitObserver
 			: pursuit(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "OBS: Creating instance");
+				Globals::Log(this->pursuit, "[OBS] Creating instance");
 
 			if (CopSpawnOverrides::featureEnabled)
 				this->AddFeature<CopSpawnOverrides::ContingentManager>(this->pursuit);
@@ -114,25 +114,14 @@ namespace PursuitObserver
 		~PursuitObserver()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "OBS: Deleting instance");
-
-			for (auto& pair : this->vehicleToPursuit)
-			{
-				if (pair.second == this->pursuit)
-				{
-					if constexpr (Globals::loggingEnabled)
-						Globals::Log((address)0x0, "OBS: Re-registering", pair.first);
-
-					pair.second = 0x0;
-				}
-			}
+				Globals::Log(this->pursuit, "[OBS] Deleting instance");
 		}
 
 
 		void UpdateOnHeatChange()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "OBS: Heat change");
+				Globals::Log(this->pursuit, "[OBS] Heat change");
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->UpdateOnHeatChange();
@@ -159,47 +148,29 @@ namespace PursuitObserver
 		}
 
 
-		void NotifyOfFreeRoam()
+		void NotifyOfEventTransition()
 		{
 			this->perHeatLevelUpdatePending = true;
 		}
 
 
-		static size_t GetNumRegistrations()
+		static size_t GetNumActiveCops()
 		{
-			return PursuitObserver::vehicleToPursuit.size();
+			return PursuitObserver::activeCopVehicles.size();
 		}
 
 
-		static void __fastcall Register
-		(
-			const address pursuit,
-			const address copVehicle
-		) {
-			const auto foundVehicle = PursuitObserver::vehicleToPursuit.find(copVehicle);
-
-			if (foundVehicle != PursuitObserver::vehicleToPursuit.end())
+		static void __fastcall Register(const address copVehicle) 
+		{
+			if constexpr (Globals::loggingEnabled)
 			{
-				if (not (foundVehicle->second))
-				{
-					if constexpr (Globals::loggingEnabled)
-						Globals::Log(pursuit, "OBS: Re-registering", copVehicle);
+				if (PursuitObserver::activeCopVehicles.contains(copVehicle)) return;
 
-					foundVehicle->second = pursuit;
-				}
-				else if constexpr (Globals::loggingEnabled)
-					if (pursuit) Globals::Log("WARNING: Failed re-registration", copVehicle, foundVehicle->second, pursuit);
+				Globals::Log(Globals::logIndent, "[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
+				PursuitObserver::activeCopVehicles.insert(copVehicle);
+				Globals::Log(Globals::logIndent, "[REG] Active cops:", (int)(PursuitObserver::GetNumActiveCops()));
 			}
-			else
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::Log(pursuit, "OBS: Registering", copVehicle);
-
-				PursuitObserver::vehicleToPursuit.insert({copVehicle, pursuit});
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::Log(pursuit, "OBS: Registrations:", (int)(PursuitObserver::GetNumRegistrations()));
-			}
+			else PursuitObserver::activeCopVehicles.insert(copVehicle);
 		}
 
 
@@ -207,25 +178,23 @@ namespace PursuitObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
-				const auto foundVehicle = PursuitObserver::vehicleToPursuit.find(copVehicle);
-				if (foundVehicle == PursuitObserver::vehicleToPursuit.end()) return;
+				const auto foundVehicle = PursuitObserver::activeCopVehicles.find(copVehicle);
+				if (foundVehicle == PursuitObserver::activeCopVehicles.end()) return;
 
-				const address pursuit = foundVehicle->second;
-
-				Globals::Log(pursuit, "OBS: Unregistering", copVehicle);
-				PursuitObserver::vehicleToPursuit.erase(foundVehicle);
-				Globals::Log(pursuit, "OBS: Registrations:", (int)(PursuitObserver::GetNumRegistrations()));
+				Globals::Log(Globals::logIndent, "[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
+				PursuitObserver::activeCopVehicles.erase(foundVehicle);
+				Globals::Log(Globals::logIndent, "[REG] Active cops:", (int)(PursuitObserver::GetNumActiveCops()));
 			}
-			else PursuitObserver::vehicleToPursuit.erase(copVehicle);
+			else PursuitObserver::activeCopVehicles.erase(copVehicle);
 		}
 
 
 		static void ClearRegistrations()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log((address)0x0, "OBS: Clearing registrations");
+				Globals::Log(Globals::logIndent, "[REG] Clearing registrations");
 
-			PursuitObserver::vehicleToPursuit.clear();
+			PursuitObserver::activeCopVehicles.clear();
 		}
 
 
@@ -235,13 +204,12 @@ namespace PursuitObserver
 			const hash                      copType  = this->GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "OBS: +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
+				Globals::Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
 
-			if (copLabel != PursuitFeatures::CopLabel::HELICOPTER) 
-				this->Register(this->pursuit, copVehicle);
+			if (copLabel != PursuitFeatures::CopLabel::HELICOPTER) this->Register(copVehicle);
 		}
 
 
@@ -251,7 +219,7 @@ namespace PursuitObserver
 			const hash                      copType  = this->GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "OBS: -", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
+				Globals::Log(this->pursuit, "[OBS] -", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessRemoval(copVehicle, copType, copLabel);
@@ -317,10 +285,10 @@ namespace PursuitObserver
 
 
 
-	void NotifyObserversOfFreeRoam()
+	void NotifyObserversOfEventTransition()
 	{
 		for (auto& observer : pursuitToObserver)
-			observer.second.NotifyOfFreeRoam();
+			observer.second.NotifyOfEventTransition();
 	}
 
 
@@ -344,9 +312,8 @@ namespace PursuitObserver
 			mov ecx, esi
 			call CopSpawnOverrides::NotifyEventManager // ecx: PVehicle
 
-			xor ecx, ecx
-			mov edx, esi
-			call PursuitObserver::Register // ecx: AIPursuit; edx: PVehicle
+			mov ecx, esi
+			call PursuitObserver::Register // ecx: PVehicle
 
 			pop eax
 
@@ -367,9 +334,8 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			xor ecx, ecx
-			mov edx, edi
-			call PursuitObserver::Register // ecx: AIPursuit; edx: PVehicle
+			mov ecx, edi
+			call PursuitObserver::Register // ecx: PVehicle
 
 			// Execute original code and resume
 			inc dword ptr [ebp + 0x94]
@@ -457,7 +423,7 @@ namespace PursuitObserver
 		__asm
 		{
 			push ecx
-			call NotifyObserversOfFreeRoam
+			call NotifyObserversOfEventTransition
 			pop ecx
 
 			// Execute original code and resume
@@ -522,7 +488,7 @@ namespace PursuitObserver
 		__asm
 		{
 			push eax
-			call PursuitObserver::GetNumRegistrations
+			call PursuitObserver::GetNumActiveCops
 			mov ecx, eax
 			pop eax
 
@@ -541,7 +507,7 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			call PursuitObserver::GetNumRegistrations
+			call PursuitObserver::GetNumActiveCops
 			cmp eax, CopSpawnOverrides::maxActiveCount
 
 			jmp dword ptr otherSpawnLimitExit

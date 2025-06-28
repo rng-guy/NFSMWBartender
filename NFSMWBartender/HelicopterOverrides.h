@@ -63,7 +63,7 @@ namespace HelicopterOverrides
 			this->isPlayerPursuit = IsPlayerPursuit(this->pursuit);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "HEL:", (this->isPlayerPursuit) ? "Confirmed" : "Not", "player pursuit");
+				Globals::Log(this->pursuit, "[HEL]", (this->isPlayerPursuit) ? "Confirmed" : "Not", "player pursuit");
 		}
 
 
@@ -83,12 +83,12 @@ namespace HelicopterOverrides
 			if (*copManager) 
 			{ 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "HEL: Requesting helicopter");
+					Globals::Log(this->pursuit, "[HEL] Requesting helicopter");
 
 				SpawnHelicopter(*copManager, this->pursuit);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: Invalid AICopManager pointer");
+				Globals::Log("WARNING: [ERR] Invalid AICopManager pointer");
 		}
 
 
@@ -101,10 +101,10 @@ namespace HelicopterOverrides
 				*(float*)(*helicopterObject + 0x7D8) = fuel; 
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "HEL: Despawning in", fuel);
+					Globals::Log(this->pursuit, "[HEL] Despawning in", fuel);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: Invalid helicopter pointer");
+				Globals::Log("WARNING: [ERR] Invalid helicopter pointer");
 		}
 
 
@@ -121,14 +121,14 @@ namespace HelicopterOverrides
 				this->nextSpawnTimestamp += this->prng.GetFloat(maxRespawnDelay, minRespawnDelay);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "HEL: Respawning in", this->nextSpawnTimestamp - *(this->simulationTime));
+					Globals::Log(this->pursuit, "[HEL] Respawning in", this->nextSpawnTimestamp - *(this->simulationTime));
 			}
 			else
 			{
 				this->nextSpawnTimestamp += this->prng.GetFloat(maxSpawnDelay, minSpawnDelay);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "HEL: Spawning in", this->nextSpawnTimestamp - *(this->simulationTime));
+					Globals::Log(this->pursuit, "[HEL] Spawning in", this->nextSpawnTimestamp - *(this->simulationTime));
 			}
 		}
 
@@ -139,7 +139,7 @@ namespace HelicopterOverrides
 			this->statusChangeTimestamp = *(this->simulationTime);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "HEL: Helicopter now", (this->helicopterActive) ? "active" : "inactive");
+				Globals::Log(this->pursuit, "[HEL] Helicopter now", (this->helicopterActive) ? "active" : "inactive");
 
 			if (this->helicopterActive)
 			{
@@ -169,7 +169,7 @@ namespace HelicopterOverrides
 		void UpdateOnHeatChange()  override 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "HEL: Helicopter now", (helicopterEnabled) ? "enabled" : "disabled");
+				Globals::Log(this->pursuit, "[HEL] Helicopter now", (helicopterEnabled) ? "enabled" : "disabled");
 
 			this->UpdateNextSpawnTimestamp();
 		}
