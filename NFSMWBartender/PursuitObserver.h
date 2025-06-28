@@ -116,10 +116,16 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "OBS: Deleting instance");
 
-			std::erase_if(this->vehicleToPursuit, [&](const auto& pair) {return (pair.second == this->pursuit);});
+			for (auto& pair : this->vehicleToPursuit)
+			{
+				if (pair.second == this->pursuit)
+				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::Log((address)0x0, "OBS: Re-registering", pair.first);
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "OBS: Registrations:", (int)(this->GetNumRegistrations()));
+					pair.second = 0x0;
+				}
+			}
 		}
 
 
@@ -220,9 +226,6 @@ namespace PursuitObserver
 				Globals::Log((address)0x0, "OBS: Clearing registrations");
 
 			PursuitObserver::vehicleToPursuit.clear();
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::Log((address)0x0, "OBS: Registrations:", (int)(PursuitObserver::GetNumRegistrations()));
 		}
 
 
