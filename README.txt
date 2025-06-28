@@ -150,7 +150,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
    "Chasers" from spawning (but not the other way around). This is vanilla behaviour, as these
-   spawns count toward the total number of active cops that the global cop-spawn limit (which only
+   spawns count toward the total number of cops loaded that the global cop-spawn limit (which only
    affects "Chasers") is compared against. This total is calculated across all active pursuits, 
    meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
    
