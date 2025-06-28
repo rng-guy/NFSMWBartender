@@ -165,13 +165,7 @@ namespace CopFleeOverrides
 		{
 			if (copLabel != PursuitFeatures::CopLabel::CHASER) return;
 
-			this->Review
-			(
-				this->copVehicleToAssessment.insert
-				(
-					{copVehicle, {copVehicle, copType, Status::MEMBER}}
-				).first->second
-			);
+			this->Review(this->copVehicleToAssessment.insert({copVehicle, {copVehicle, copType, Status::MEMBER}}).first->second);
 		}
 
 
