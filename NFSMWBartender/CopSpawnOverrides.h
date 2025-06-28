@@ -397,6 +397,45 @@ namespace CopSpawnOverrides
 
 	// Code caves --------------------------------------------------------------------------------------------------------------------------------------
 
+	const address roadblockSpawnEntrance = 0x43E04F;
+	const address roadblockSpawnExit     = 0x43E06C;
+	const address roadblockSpawnSkip     = 0x43E031;
+
+	__declspec(naked) void RoadblockSpawn()
+	{
+		__asm
+		{
+			je conclusion // spawn intended to fail
+
+			mov ecx, eax
+
+			push ecx
+			call NotifyRoadblockManager // ecx: PVehicle
+			pop ecx
+
+			mov edx, [ecx]
+			call dword ptr [edx + 0x80]
+
+			lea eax, [esp + 0x1C]
+			push eax
+			lea ecx, [esp + 0x48]
+			call dword ptr addVehicleToRoadblock
+
+			conclusion:
+			dec edi
+			jne skip // car(s) left to generate
+
+			call ResetRoadblockManager
+
+			jmp dword ptr roadblockSpawnExit
+
+			skip:
+			jmp dword ptr roadblockSpawnSkip
+		}
+	}
+
+
+
 	const address byNameInterceptorEntrance = 0x41ECEC;
 	const address byNameInterceptorExit     = 0x41ECF2;
 
@@ -617,7 +656,7 @@ namespace CopSpawnOverrides
 		MemoryEditor::Write<BYTE>(0x90, 0x57B188,  0x4443E4); // helicopter / roadblock increment
 		MemoryEditor::Write<BYTE>(0xEB, 0x42B9AA,  0x44389E); // foreign / HeavyStrategy cops fleeing
 
-		//MemoryEditor::DigCodeCave(&RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
+		MemoryEditor::DigCodeCave(&RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
 		MemoryEditor::DigCodeCave(&ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
 		MemoryEditor::DigCodeCave(&ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 

@@ -36,7 +36,6 @@ namespace PursuitObserver
 		std::vector<std::unique_ptr<PursuitFeatures::CopVehicleReaction>> copVehicleReactions;
 
 		inline static std::unordered_set<address> activeCopVehicles;
-		inline static std::unordered_set<address> roadblockCopVehicles;
 		inline static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
 
 
@@ -53,12 +52,19 @@ namespace PursuitObserver
 		}
 
 
+		bool IsFromRoadblock(const address copVehicle) const
+		{
+			return (copVehicle == *(address*)(this->pursuit + 0x78));
+		}
+
+
 		bool IsSupport(const address copVehicle)
 		{
 			if (this->supportCopVehicles.contains(copVehicle)) return true;
 
 			static bool (__thiscall* const IsGroundSupport)(address, address) = (bool (__thiscall*)(address, address))0x419890;
-			if (not (IsGroundSupport(this->pursuit, copVehicle) or (this->roadblockCopVehicles.contains(copVehicle)))) return false;
+
+			if (not (IsGroundSupport(this->pursuit, copVehicle) or this->IsFromRoadblock(copVehicle))) return false;
 
 			this->supportCopVehicles.insert(copVehicle);
 
@@ -154,56 +160,17 @@ namespace PursuitObserver
 		}
 
 
-		static size_t GetNumRoadblockCops()
+		static void __fastcall Register(const address copVehicle) 
 		{
-			return PursuitObserver::roadblockCopVehicles.size();
-		}
-
-
-		static void __fastcall Register
-		(
-			const address copVehicle,
-			const bool    isRoadblock
-		) {
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (isRoadblock)
-				{
-					if (PursuitObserver::roadblockCopVehicles.contains(copVehicle)) return;
+				if (PursuitObserver::activeCopVehicles.contains(copVehicle)) return;
 
-					Globals::Log(Globals::logIndent, "[RBL] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
-					PursuitObserver::roadblockCopVehicles.insert(copVehicle);
-					Globals::Log(Globals::logIndent, "[RBL] Roadblock cops:", (int)(PursuitObserver::GetNumRoadblockCops()));
-				}
-				else
-				{
-					const auto foundVehicle = PursuitObserver::roadblockCopVehicles.find(copVehicle);
-
-					if (foundVehicle != PursuitObserver::roadblockCopVehicles.end())
-					{
-						Globals::Log(Globals::logIndent, "[RBL] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
-						PursuitObserver::roadblockCopVehicles.erase(foundVehicle);
-						Globals::Log(Globals::logIndent, "[RBL] Roadblock cops:", (int)(PursuitObserver::GetNumRoadblockCops()));
-					}
-
-					if (PursuitObserver::activeCopVehicles.contains(copVehicle)) return;
-
-					Globals::Log(Globals::logIndent, "[ACT] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
-					PursuitObserver::activeCopVehicles.insert(copVehicle);
-					Globals::Log(Globals::logIndent, "[ACT] Active cops:", (int)(PursuitObserver::GetNumActiveCops()));
-				}
+				Globals::Log(Globals::logIndent, "[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
+				PursuitObserver::activeCopVehicles.insert(copVehicle);
+				Globals::Log(Globals::logIndent, "[REG] Active cops:", (int)(PursuitObserver::GetNumActiveCops()));
 			}
-			else
-			{
-				if (isRoadblock) 
-					PursuitObserver::roadblockCopVehicles.insert(copVehicle);
-
-				else
-				{
-					PursuitObserver::roadblockCopVehicles.erase(copVehicle);
-					PursuitObserver::activeCopVehicles.insert(copVehicle);
-				}
-			}
+			else PursuitObserver::activeCopVehicles.insert(copVehicle);
 		}
 
 
@@ -211,42 +178,23 @@ namespace PursuitObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
-				const auto foundActive = PursuitObserver::activeCopVehicles.find(copVehicle);
+				const auto foundVehicle = PursuitObserver::activeCopVehicles.find(copVehicle);
+				if (foundVehicle == PursuitObserver::activeCopVehicles.end()) return;
 
-				if (foundActive != PursuitObserver::activeCopVehicles.end())
-				{
-					Globals::Log(Globals::logIndent, "[ACT] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
-					PursuitObserver::activeCopVehicles.erase(foundActive);
-					Globals::Log(Globals::logIndent, "[ACT] Active cops:", (int)(PursuitObserver::GetNumActiveCops()));
-				}
-
-				const auto foundRoadblock = PursuitObserver::roadblockCopVehicles.find(copVehicle);
-
-				if (foundRoadblock != PursuitObserver::roadblockCopVehicles.end())
-				{
-					Globals::Log(Globals::logIndent, "[RBL] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
-					PursuitObserver::roadblockCopVehicles.erase(foundRoadblock);
-					Globals::Log(Globals::logIndent, "[RBL] Roadblock cops:", (int)(PursuitObserver::GetNumRoadblockCops()));
-				}
+				Globals::Log(Globals::logIndent, "[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
+				PursuitObserver::activeCopVehicles.erase(foundVehicle);
+				Globals::Log(Globals::logIndent, "[REG] Active cops:", (int)(PursuitObserver::GetNumActiveCops()));
 			}
-			else
-			{
-				PursuitObserver::activeCopVehicles.erase(copVehicle);
-				PursuitObserver::roadblockCopVehicles.erase(copVehicle);
-			}
+			else PursuitObserver::activeCopVehicles.erase(copVehicle);
 		}
 
 
 		static void ClearRegistrations()
 		{
 			if constexpr (Globals::loggingEnabled)
-			{
-				Globals::Log(Globals::logIndent, "[ACT] Clearing registrations");
-				Globals::Log(Globals::logIndent, "[RBL] Clearing registrations");
-			}
+				Globals::Log(Globals::logIndent, "[REG] Clearing registrations");
 
 			PursuitObserver::activeCopVehicles.clear();
-			PursuitObserver::roadblockCopVehicles.clear();
 		}
 
 
@@ -261,7 +209,7 @@ namespace PursuitObserver
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
 
-			if (copLabel != PursuitFeatures::CopLabel::HELICOPTER) this->Register(copVehicle, false);
+			if (copLabel != PursuitFeatures::CopLabel::HELICOPTER) this->Register(copVehicle);
 		}
 
 
@@ -364,9 +312,8 @@ namespace PursuitObserver
 			mov ecx, esi
 			call CopSpawnOverrides::NotifyEventManager // ecx: PVehicle
 
-			xor edx, edx
 			mov ecx, esi
-			call PursuitObserver::Register // ecx: PVehicle; edx: isRoadblock
+			call PursuitObserver::Register // ecx: PVehicle
 
 			pop eax
 
@@ -387,58 +334,13 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			xor edx, edx
 			mov ecx, edi
-			call PursuitObserver::Register // ecx: PVehicle; edx: isRoadblock
+			call PursuitObserver::Register // ecx: PVehicle
 
 			// Execute original code and resume
 			inc dword ptr [ebp + 0x94]
 
 			jmp dword ptr patrolSpawnExit
-		}
-	}
-
-
-
-	const address roadblockSpawnEntrance = 0x43E04F;
-	const address roadblockSpawnExit = 0x43E06C;
-	const address roadblockSpawnSkip = 0x43E031;
-
-	__declspec(naked) void RoadblockSpawn()
-	{
-		__asm
-		{
-			je conclusion // spawn intended to fail
-
-			mov ecx, eax
-
-			push ecx
-			call CopSpawnOverrides::NotifyRoadblockManager // ecx: PVehicle
-			pop ecx
-
-			push ecx
-			mov edx, 0x1
-			call PursuitObserver::Register // ecx: PVehicle; edx: isRoadblock
-			pop ecx
-
-			mov edx, [ecx]
-			call dword ptr[edx + 0x80]
-
-			lea eax, [esp + 0x1C]
-			push eax
-			lea ecx, [esp + 0x48]
-			call dword ptr CopSpawnOverrides::addVehicleToRoadblock
-
-			conclusion:
-			dec edi
-			jne skip // car(s) left to generate
-
-			call CopSpawnOverrides::ResetRoadblockManager
-
-			jmp dword ptr roadblockSpawnExit
-
-			skip:
-			jmp dword ptr roadblockSpawnSkip
 		}
 	}
 
@@ -629,7 +531,6 @@ namespace PursuitObserver
 
 		MemoryEditor::DigCodeCave(&EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
 		MemoryEditor::DigCodeCave(&PatrolSpawn, patrolSpawnEntrance, patrolSpawnExit);
-		MemoryEditor::DigCodeCave(&RoadblockSpawn, roadblockSpawnEntrance, roadblockSpawnExit);
 
 		MemoryEditor::DigCodeCave(&PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryEditor::DigCodeCave(&PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
