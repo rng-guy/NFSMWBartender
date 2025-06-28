@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.6.00) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.6.01) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -49,7 +49,7 @@ Before you use this feature set, see the "LIMITATIONS" section further below.
 
 This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
- • the global spawn limit for how many cops may chase you at once,
+ • the global cop-spawn limit for how many cops in total may spawn to chase you,
  • how quickly cops flee the pursuit if they don't belong (if at all),
  • which vehicles may spawn to chase you (any amount, with counts and chances),
  • which vehicles may spawn in roadblocks (same as above),
@@ -120,7 +120,7 @@ GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
  • All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should each 
    have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) in their "aivehicle" VltEd 
    entries. If they don't, they might cause stability issues by joining the pursuit after their 
-   ramming attempt(s), as this effectively makes them circumvent the global cop spawn limit.
+   ramming attempt(s), as this effectively makes them circumvent the global cop-spawn limit.
 
  • All vehicles you specify to replace Cross in LeaderStrategy 5 / 7 should each not be used by 
    any other cop(s) elsewhere. If another cop uses the same vehicle as Cross, no LeaderStrategy 
@@ -149,12 +149,12 @@ HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
 COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
-   "Chasers" from spawning (but not the other way around). This happens if these spawns push the 
-   total number of active cops in the world to (or beyond) the global cop spawn limit, which will
-   then prevent further "Chasers" spawns. This total is calculated across all active pursuits, 
+   "Chasers" from spawning (but not the other way around). This is vanilla behaviour, as these
+   spawns count toward the total number of active cops that the global cop-spawn limit (which only
+   affects "Chasers") is compared against. This total is calculated across all active pursuits, 
    meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
    
- • Pushing any global cop spawn limit(s) beyond 8 requires the "NFSMW LimitAdjuster" (LA) mod by 
+ • Pushing any global cop-spawn limit(s) beyond 8 requires the "NFSMW LimitAdjuster" (LA) mod by 
    Zolika1351 to work properly. Without it, the game will start unloading models and assets because
    its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. 
    To make LA compatible with this mod, open its "NFSMWLimitAdjuster.ini" configuration file and 
@@ -182,21 +182,21 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • The "Events" spawn tables do NOT apply to the very first scripted, pre-generated cop that 
    spawns in a given event; instead, this first cop is always of the type specified in the event's 
-   "CopSpawnType" VltEd parameter. This is because the game requests this vehicle before it loads 
-   any pursuit or Heat level information, making it impossible for the mod to know which spawn 
-   table to use for the very first vehicle. This vehicle, however, is still properly accounted for
-   in "count" calculations for any following vehicle spawns.
+   "CopSpawnType" VltEd parameter. This is because the game requests this vehicle before it has
+   loaded any pursuit or Heat level information, making it impossible for the mod to know which 
+   spawn table to use to replace it. This vehicle, however, is still properly accounted for in 
+   "count" calculations for any subsequent vehicle spawn(s).
 
  • "count" values in "Roadblocks" and "Events" spawn tables are ignored whenever the game requests 
    more vehicles in total than these values would allow: When all their "count" values have been 
    exhausted for a given roadblock / event, every vehicle in the relevant table may spawn without 
    restriction until the next roadblock / event begins.
 
- • Making Heat transitions very fast (< 5 seconds) can cause a mix of cops from more than one
-   "Events" spawn table to appear in events that feature scripted, pre-generated cops. This happens
-   because, depending on your loading times, the game might update the Heat level as it requests 
-   those spawns. To circumvent this issue, set the event's "ForceHeatLevel" VltEd parameter to the 
-   Heat level you are aiming for instead.
+ • Making Heat transitions very fast ("0x80deb840" VltEd parameter(s) set to < 5 seconds) can cause
+   a mix of cops from more than one "Events" spawn table to appear in events that feature scripted, 
+   pre-generated cops. This happens because, depending on your loading times, the game might update 
+   the Heat level as it requests those spawns. If you want to keep fast transitions, you can avoid
+   this issue by setting the event's "ForceHeatLevel" VltEd parameter to the target Heat level.
 
 
 
@@ -261,7 +261,8 @@ v1.5.01: Rephrased README to better reflect recent changes to both feature sets
 v1.5.02: Restructured "LIMITATIONS" section of README and renamed both "General.ini" files
 v1.5.03: Restructured and rephrased README some more
 v1.5.04: Merged "Behaviour.ini" with "Cars.ini" file
-v1.5.05: Clarified global cop spawn limit in "LIMITATIONS" section of README and "Cars.ini" file
+v1.5.05: Clarified global cop-spawn limit in "LIMITATIONS" section of README and "Cars.ini" file
 v1.5.06: Added missing number-format comment to "Others.ini" file
 
-v1.6.00: Fixed incorrect labelling of roadblock vehicles joining pursuit after spike-strip hit
+v1.6.00: Fixed incorrect labelling of roadblock vehicles joining the pursuit after spike-strip hits
+v1.6.01: Made terminology in README and .ini files files more consistent, and rephrased some parts
