@@ -91,6 +91,20 @@ namespace PursuitObserver
 		}
 
 
+		PursuitFeatures::CopLabel LabelAddition
+		(
+			const address copVehicle,
+			const address additionReturn
+		) {
+			if (additionReturn == 0x40B02A) // roadblock cop after spikestrip hit
+			{
+				this->supportCopVehicles.insert(copVehicle);
+				return PursuitFeatures::CopLabel::SUPPORT;
+			}
+			else return this->Label(copVehicle);
+		}
+
+
 
 	public:
 
@@ -108,7 +122,7 @@ namespace PursuitObserver
 
 			if (HelicopterOverrides::featureEnabled) 
 				this->AddFeature<HelicopterOverrides::HelicopterManager>(this->pursuit);
-		};
+		}
 
 
 		~PursuitObserver()
@@ -198,9 +212,12 @@ namespace PursuitObserver
 		}
 
 
-		void NotifyFeaturesOfAddition(const address copVehicle)
-		{
-			const PursuitFeatures::CopLabel copLabel = this->Label(copVehicle);
+		void NotifyFeaturesOfAddition
+		(
+			const address copVehicle,
+			const address additionReturn
+		) {
+			const PursuitFeatures::CopLabel copLabel = this->LabelAddition(copVehicle, additionReturn);
 			const hash                      copType  = this->GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
@@ -262,12 +279,13 @@ namespace PursuitObserver
 	void __fastcall NotifyObserverOfAddition
 	(
 		const address pursuit,
-		const address copVehicle
+		const address copVehicle,
+		const address additionReturn
 	) {
 		const auto foundPursuit = pursuitToObserver.find(pursuit);
 		if (foundPursuit == pursuitToObserver.end()) return;
 
-		foundPursuit->second.NotifyFeaturesOfAddition(copVehicle);
+		foundPursuit->second.NotifyFeaturesOfAddition(copVehicle, additionReturn);
 	}
 
 
@@ -445,7 +463,8 @@ namespace PursuitObserver
 		{
 			push ecx
 			mov edx, [esp + 0x8]
-			call NotifyObserverOfAddition // ecx: AIPursuit; edx: PVehicle
+			push [esp + 0x4]
+			call NotifyObserverOfAddition // ecx: AIPursuit; edx: PVehicle; stack: additionReturn
 			pop ecx
 
 			// Execute original code and resume

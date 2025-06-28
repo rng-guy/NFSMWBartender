@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.5.06) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.6.00) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -263,3 +263,5 @@ v1.5.03: Restructured and rephrased README some more
 v1.5.04: Merged "Behaviour.ini" with "Cars.ini" file
 v1.5.05: Clarified global cop spawn limit in "LIMITATIONS" section of README and "Cars.ini" file
 v1.5.06: Added missing number-format comment to "Others.ini" file
+
+v1.6.00: Fixed incorrect labelling of roadblock vehicles joining pursuit after spike strip hit

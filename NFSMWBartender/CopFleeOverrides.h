@@ -157,7 +157,7 @@ namespace CopFleeOverrides
 
 		void ProcessAddition
 		(
-			const address                   addedCopVehicle,
+			const address                   copVehicle,
 			const hash                      copType,
 			const PursuitFeatures::CopLabel copLabel
 		) 
@@ -169,7 +169,7 @@ namespace CopFleeOverrides
 			(
 				this->copVehicleToAssessment.insert
 				(
-					{addedCopVehicle, {addedCopVehicle, copType, Status::MEMBER}}
+					{copVehicle, {copVehicle, copType, Status::MEMBER}}
 				).first->second
 			);
 		}
@@ -177,7 +177,7 @@ namespace CopFleeOverrides
 
 		void ProcessRemoval
 		(
-			const address                   removedCopVehicle,
+			const address                   copVehicle,
 			const address                   copType,
 			const PursuitFeatures::CopLabel copLabel
 		) 
@@ -185,7 +185,7 @@ namespace CopFleeOverrides
 		{
 			if (copLabel != PursuitFeatures::CopLabel::CHASER) return;
 
-			const auto foundVehicle = this->copVehicleToAssessment.find(removedCopVehicle);
+			const auto foundVehicle = this->copVehicleToAssessment.find(copVehicle);
 
 			switch (foundVehicle->second.status)
 			{

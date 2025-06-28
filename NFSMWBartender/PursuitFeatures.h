@@ -56,7 +56,7 @@ namespace PursuitFeatures
 
 		virtual void ProcessAddition
 		(
-			const address  addedCopVehicle,
+			const address  copVehicle,
 			const hash     copType,
 			const CopLabel copLabel
 		) = 0;
@@ -64,7 +64,7 @@ namespace PursuitFeatures
 
 		virtual void ProcessRemoval
 		(
-			const address  removedCopVehicle,
+			const address  copVehicle,
 			const address  copType,
 			const CopLabel copLabel
 		) = 0;
