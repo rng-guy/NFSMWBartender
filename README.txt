@@ -49,7 +49,7 @@ Before you use this feature set, see the "LIMITATIONS" section further below.
 
 This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
- • the global cop-spawn limit for how many cops in total may spawn to chase you,
+ • the global cop-spawn limit for how many cops in total may chase you at any given time,
  • how quickly cops flee the pursuit if they don't belong (if at all),
  • which vehicles may spawn to chase you (any amount, with counts and chances),
  • which vehicles may spawn in roadblocks (same as above),
