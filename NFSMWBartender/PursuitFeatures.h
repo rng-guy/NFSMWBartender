@@ -15,8 +15,11 @@ namespace PursuitFeatures
 	enum class CopLabel
 	{
 		CHASER,
-		SUPPORT,
-		HELICOPTER
+		HEAVY,
+		LEADER,
+		ROADBLOCK,
+		HELICOPTER,
+		UNKNOWN
 	};
 
 

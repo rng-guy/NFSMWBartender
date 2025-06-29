@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <unordered_map>
 #include <unordered_set>
 #include <concepts>
 #include <utility>
@@ -31,11 +32,10 @@ namespace PursuitObserver
 		bool inPursuitUpdatePending    = true;
 		bool perHeatLevelUpdatePending = true;
 
-		std::unordered_set<address> supportCopVehicles;
-
+		std::unordered_map<address, PursuitFeatures::CopLabel>            copVehicleToLabel;
 		std::vector<std::unique_ptr<PursuitFeatures::CopVehicleReaction>> copVehicleReactions;
 
-		inline static std::unordered_set<address> activeCopVehicles;
+		inline static std::unordered_set<address> copVehiclesLoaded;
 		inline static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
 
 
@@ -52,56 +52,55 @@ namespace PursuitObserver
 		}
 
 
-		bool IsFromRoadblock(const address copVehicle) const
-		{
-			return (copVehicle == *(address*)(this->pursuit + 0x78));
-		}
-
-
-		bool IsSupport(const address copVehicle)
-		{
-			if (this->supportCopVehicles.contains(copVehicle)) return true;
-
-			static bool (__thiscall* const IsGroundSupport)(address, address) = (bool (__thiscall*)(address, address))0x419890;
-
-			if (not (IsGroundSupport(this->pursuit, copVehicle) or this->IsFromRoadblock(copVehicle))) return false;
-
-			this->supportCopVehicles.insert(copVehicle);
-
-			return true;
-		}
-
-
-		static bool IsHelicopter(const address copVehicle)
-		{
-			static constexpr key chopperClass = 0xB80933AA;
-			return (*(key*)(copVehicle + 0x6C) == chopperClass);
-		}
-
-
-		PursuitFeatures::CopLabel Label(const address copVehicle)
-		{
-			if (this->IsHelicopter(copVehicle))
-				return PursuitFeatures::CopLabel::HELICOPTER;
-
-			else if (this->IsSupport(copVehicle))
-				return PursuitFeatures::CopLabel::SUPPORT;
-
-			else return PursuitFeatures::CopLabel::CHASER;
-		}
-
-
-		PursuitFeatures::CopLabel LabelAddition
+		PursuitFeatures::CopLabel Label
 		(
 			const address copVehicle,
 			const address additionReturn
 		) {
-			if (additionReturn == 0x40B02A) // roadblock cop after spikestrip hit
+			const auto foundVehicle = this->copVehicleToLabel.find(copVehicle);
+			if (foundVehicle != this->copVehicleToLabel.end()) return foundVehicle->second;
+
+			PursuitFeatures::CopLabel copLabel = PursuitFeatures::CopLabel::UNKNOWN;
+
+			switch (additionReturn)
 			{
-				this->supportCopVehicles.insert(copVehicle);
-				return PursuitFeatures::CopLabel::SUPPORT;
+			case 0x40B02A: // roadblock cop after spike-strip hit
+				[[fallthrough]];
+
+			case 0x4443d8: // lone roadblock cop
+				copLabel = PursuitFeatures::CopLabel::ROADBLOCK;
+				break;
+
+			case 0x41f7e6: // LeaderStrategy
+				copLabel = PursuitFeatures::CopLabel::LEADER;
+				break;
+
+			case 0x41f426: // HeavyStrategy
+				copLabel = PursuitFeatures::CopLabel::HEAVY;
+				break;
+
+			case 0x426bc6: // helicopter
+				copLabel = PursuitFeatures::CopLabel::HELICOPTER;
+				break;
+
+			case 0x43eaf5: // free-roam patrol
+				[[fallthrough]];
+
+			case 0x42e872: // scripted event spawn
+				[[fallthrough]];
+
+			case 0x4311ec: // pursuit spawn
+				copLabel = PursuitFeatures::CopLabel::CHASER;
+				break;
+
+			default:
+				if constexpr (Globals::loggingEnabled)
+					Globals::Log("WARNING: [ERR] Unknown AddVehicle caller:", additionReturn);
 			}
-			else return this->Label(copVehicle);
+
+			this->copVehicleToLabel.insert({copVehicle, copLabel});
+
+			return copLabel;
 		}
 
 
@@ -168,9 +167,9 @@ namespace PursuitObserver
 		}
 
 
-		static size_t GetNumActiveCops()
+		static size_t GetNumCopsLoaded()
 		{
-			return PursuitObserver::activeCopVehicles.size();
+			return PursuitObserver::copVehiclesLoaded.size();
 		}
 
 
@@ -178,13 +177,13 @@ namespace PursuitObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (PursuitObserver::activeCopVehicles.contains(copVehicle)) return;
+				if (PursuitObserver::copVehiclesLoaded.contains(copVehicle)) return;
 
 				Globals::Log(Globals::logIndent, "[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
-				PursuitObserver::activeCopVehicles.insert(copVehicle);
-				Globals::Log(Globals::logIndent, "[REG] Active cops:", (int)(PursuitObserver::GetNumActiveCops()));
+				PursuitObserver::copVehiclesLoaded.insert(copVehicle);
+				Globals::Log(Globals::logIndent, "[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 			}
-			else PursuitObserver::activeCopVehicles.insert(copVehicle);
+			else PursuitObserver::copVehiclesLoaded.insert(copVehicle);
 		}
 
 
@@ -192,23 +191,23 @@ namespace PursuitObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
-				const auto foundVehicle = PursuitObserver::activeCopVehicles.find(copVehicle);
-				if (foundVehicle == PursuitObserver::activeCopVehicles.end()) return;
+				const auto foundVehicle = PursuitObserver::copVehiclesLoaded.find(copVehicle);
+				if (foundVehicle == PursuitObserver::copVehiclesLoaded.end()) return;
 
 				Globals::Log(Globals::logIndent, "[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
-				PursuitObserver::activeCopVehicles.erase(foundVehicle);
-				Globals::Log(Globals::logIndent, "[REG] Active cops:", (int)(PursuitObserver::GetNumActiveCops()));
+				PursuitObserver::copVehiclesLoaded.erase(foundVehicle);
+				Globals::Log(Globals::logIndent, "[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 			}
-			else PursuitObserver::activeCopVehicles.erase(copVehicle);
+			else PursuitObserver::copVehiclesLoaded.erase(copVehicle);
 		}
 
 
 		static void ClearRegistrations()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(Globals::logIndent, "[REG] Clearing registrations");
+				Globals::Log(Globals::logIndent, "[REG] Clearing all");
 
-			PursuitObserver::activeCopVehicles.clear();
+			PursuitObserver::copVehiclesLoaded.clear();
 		}
 
 
@@ -217,7 +216,7 @@ namespace PursuitObserver
 			const address copVehicle,
 			const address additionReturn
 		) {
-			const PursuitFeatures::CopLabel copLabel = this->LabelAddition(copVehicle, additionReturn);
+			const PursuitFeatures::CopLabel copLabel = this->Label(copVehicle, additionReturn);
 			const hash                      copType  = this->GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
@@ -232,17 +231,25 @@ namespace PursuitObserver
 
 		void NotifyFeaturesOfRemoval(const address copVehicle)
 		{
-			const PursuitFeatures::CopLabel copLabel = this->Label(copVehicle);
-			const hash                      copType  = this->GetCopType(copVehicle);
+			const auto foundVehicle = this->copVehicleToLabel.find(copVehicle);
+
+			if (foundVehicle == this->copVehicleToLabel.end())
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::Log("WARNING: [ERR] Vehicle", copVehicle, "not in", this->pursuit);
+
+				return;
+			}
+
+			const hash copType = this->GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[OBS] -", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
+				Globals::Log(this->pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), this->GetCopName(copVehicle));
 
 			for (const auto& reaction : this->copVehicleReactions)
-				reaction.get()->ProcessRemoval(copVehicle, copType, copLabel);
+				reaction.get()->ProcessRemoval(copVehicle, copType, foundVehicle->second);
 
-			if (copLabel == PursuitFeatures::CopLabel::SUPPORT)
-				this->supportCopVehicles.erase(copVehicle);
+			this->copVehicleToLabel.erase(foundVehicle);
 		}
 	};
 
@@ -507,7 +514,7 @@ namespace PursuitObserver
 		__asm
 		{
 			push eax
-			call PursuitObserver::GetNumActiveCops
+			call PursuitObserver::GetNumCopsLoaded
 			mov ecx, eax
 			pop eax
 
@@ -526,7 +533,7 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			call PursuitObserver::GetNumActiveCops
+			call PursuitObserver::GetNumCopsLoaded
 			cmp eax, CopSpawnOverrides::maxActiveCount
 
 			jmp dword ptr otherSpawnLimitExit

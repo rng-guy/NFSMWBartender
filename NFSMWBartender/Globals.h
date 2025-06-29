@@ -19,7 +19,7 @@ namespace Globals
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr bool   loggingEnabled = false;
+	constexpr bool   loggingEnabled = true;
 	constexpr size_t maxHeatLevel   = 10;
 	
 	const std::string logFile            = "BartenderLog.txt";

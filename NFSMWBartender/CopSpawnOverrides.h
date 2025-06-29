@@ -375,7 +375,7 @@ namespace CopSpawnOverrides
 		{
 			switch (spawnReturn)
 			{
-			case 0x42E72E: // event spawns
+			case 0x42E72E: // scripted event spawns
 				if (skipEventSpawns) break;
 				*newCopName = eventManager.get()->GetRandomCopName();
 				return true;
