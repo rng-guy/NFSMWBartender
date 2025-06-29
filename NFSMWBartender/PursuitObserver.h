@@ -95,7 +95,7 @@ namespace PursuitObserver
 
 			default:
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [ERR] Unknown AddVehicle caller:", additionReturn);
+					Globals::Log("WARNING: [OBS] Unknown AddVehicle caller:", additionReturn);
 			}
 
 			this->copVehicleToLabel.insert({copVehicle, copLabel});
@@ -236,7 +236,7 @@ namespace PursuitObserver
 			if (foundVehicle == this->copVehicleToLabel.end())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [ERR] Vehicle", copVehicle, "not in", this->pursuit);
+					Globals::Log("WARNING: [OBS] Vehicle", copVehicle, "not in", this->pursuit);
 
 				return;
 			}

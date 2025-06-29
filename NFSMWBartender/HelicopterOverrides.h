@@ -88,7 +88,7 @@ namespace HelicopterOverrides
 				SpawnHelicopter(*copManager, this->pursuit);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [ERR] Invalid AICopManager pointer");
+				Globals::Log("WARNING: [HEL] Invalid AICopManager pointer");
 		}
 
 
@@ -104,7 +104,7 @@ namespace HelicopterOverrides
 					Globals::Log(this->pursuit, "[HEL] Despawning in", fuel);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [ERR] Invalid helicopter pointer");
+				Globals::Log("WARNING: [HEL] Invalid helicopter pointer");
 		}
 
 

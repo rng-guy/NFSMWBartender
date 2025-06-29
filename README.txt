@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.6.01) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.7.00) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -266,3 +266,5 @@ v1.5.06: Added missing number-format comment to "Others.ini" file
 
 v1.6.00: Fixed incorrect labelling of roadblock vehicles joining the pursuit after spike-strip hits
 v1.6.01: Made terminology in README and .ini files files more consistent, and rephrased some parts
+
+v1.7.00: Fixed "Duration" VltEd parameter for Heavy / LeaderSupport when using the "ADVANCED" set

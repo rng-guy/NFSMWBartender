@@ -41,6 +41,7 @@ namespace CopFleeOverrides
 
 	class MembershipManager : public PursuitFeatures::CopVehicleReaction
 	{
+		using CopLabel = PursuitFeatures::CopLabel;
 		using Schedule = std::multimap<float, address>;
 
 
@@ -58,6 +59,7 @@ namespace CopFleeOverrides
 		{
 			address            copVehicle;
 			hash               copType;
+			CopLabel           copLabel;
 			Status             status;
 			Schedule::iterator position;
 		};
@@ -90,7 +92,7 @@ namespace CopFleeOverrides
 				this->leaderStrategyDuration = 0.f;
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [ERR] Invalid SupportAttributes pointer in", this->pursuit);
+					Globals::Log("WARNING: [FLE] Invalid SupportAttributes pointer in", this->pursuit);
 
 				return;
 			}
@@ -127,21 +129,57 @@ namespace CopFleeOverrides
 		}
 
 
-		void Review(Assessment& assessment)
+		static bool IsTrackable(const CopLabel copLabel)
 		{
-			if (not this->IsHeatLevelKnown())         return;
+			switch (copLabel)
+			{
+			case CopLabel::HEAVY:
+				[[fallthrough]];
+
+			case CopLabel::LEADER:
+				[[fallthrough]];
+
+			case CopLabel::CHASER:
+				return true;
+
+			default:
+				return false;
+			}
+		}
+
+
+		void Review(Assessment& assessment) 
+		{
+			if (not this->IsHeatLevelKnown())        return;
 			if (assessment.status != Status::MEMBER) return;
 
-			if (not (CopSpawnTables::pursuitSpawnTable->IsInTable(assessment.copType)))
+			bool  flagVehicle   = false;
+			float timeUntilFlee = 0.f;
+
+			switch (assessment.copLabel)
 			{
-				const float fleeTimestamp = *(this->simulationTime) + this->prng.GetFloat(maxFleeDelay, minFleeDelay);
+			case CopLabel::HEAVY:
+				flagVehicle   = (this->heavyStrategyDuration > 0.f);
+				timeUntilFlee = this->heavyStrategyDuration;
+				break;
 
-				assessment.status   = Status::FLAGGED;
-				assessment.position = this->waitingToFlee.insert({fleeTimestamp, assessment.copVehicle});
+			case CopLabel::LEADER:
+				flagVehicle   = (this->leaderStrategyDuration > 0.f);
+				timeUntilFlee = this->leaderStrategyDuration;
+				break;
 
-				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[FLE]", assessment.copVehicle, "to flee in", fleeTimestamp - (*this->simulationTime));
+			default:
+				flagVehicle   = (fleeingEnabled and (not CopSpawnTables::pursuitSpawnTable->IsInTable(assessment.copType)));
+				timeUntilFlee = this->prng.GetFloat(maxFleeDelay, minFleeDelay);
 			}
+
+			if (not flagVehicle) return;
+
+			assessment.status   = Status::FLAGGED;
+			assessment.position = this->waitingToFlee.insert({*(this->simulationTime) + timeUntilFlee, assessment.copVehicle});
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::Log(this->pursuit, "[FLE]", assessment.copVehicle, "to flee in", timeUntilFlee);
 		}
 
 
@@ -150,15 +188,18 @@ namespace CopFleeOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "[FLE] Reviewing contingent");
 
-			this->waitingToFlee.clear();
-
 			for (auto& pair : this->copVehicleToAssessment)
 			{
-				if (pair.second.status != Status::FLEEING)
+				if (pair.second.copLabel != CopLabel::CHASER) continue;
+				if (pair.second.status == Status::FLEEING)    continue;
+
+				if (pair.second.status == Status::FLAGGED)
 				{
+					this->waitingToFlee.erase(pair.second.position);
 					pair.second.status = Status::MEMBER;
-					this->Review(pair.second);
 				}
+
+				this->Review(pair.second);
 			}
 		}
 
@@ -175,9 +216,9 @@ namespace CopFleeOverrides
 		void CheckSchedule()
 		{
 			const float simulationTime = *(this->simulationTime);
-			auto        iterator = this->waitingToFlee.begin();
+			auto        iterator       = this->waitingToFlee.begin();
 
-			while (fleeingEnabled and (iterator != this->waitingToFlee.end()))
+			while (iterator != this->waitingToFlee.end())
 			{
 				if (simulationTime < iterator->first) break;
 				Assessment& assessment = this->copVehicleToAssessment.at((iterator++)->second);
@@ -226,9 +267,9 @@ namespace CopFleeOverrides
 		) 
 			override
 		{
-			if (copLabel != PursuitFeatures::CopLabel::CHASER) return;
+			if (not this->IsTrackable(copLabel)) return;
 
-			this->Review(this->copVehicleToAssessment.insert({copVehicle, {copVehicle, copType, Status::MEMBER}}).first->second);
+			this->Review(this->copVehicleToAssessment.insert({copVehicle, {copVehicle, copType, copLabel, Status::MEMBER}}).first->second);
 		}
 
 
@@ -240,21 +281,26 @@ namespace CopFleeOverrides
 		) 
 			override
 		{
-			if (copLabel != PursuitFeatures::CopLabel::CHASER) return;
+			if (not this->IsTrackable(copLabel)) return;
 
 			const auto foundVehicle = this->copVehicleToAssessment.find(copVehicle);
 
-			switch (foundVehicle->second.status)
+			if (foundVehicle != this->copVehicleToAssessment.end())
 			{
-			case Status::FLAGGED:
-				this->waitingToFlee.erase(foundVehicle->second.position);
-				break;
+				switch (foundVehicle->second.status)
+				{
+				case Status::FLAGGED:
+					this->waitingToFlee.erase(foundVehicle->second.position);
+					break;
 
-			case Status::FLEEING:
-				this->fleeingCopVehicles.erase(foundVehicle->second.copVehicle);
+				case Status::FLEEING:
+					this->fleeingCopVehicles.erase(foundVehicle->second.copVehicle);
+				}
+
+				this->copVehicleToAssessment.erase(foundVehicle);
 			}
-
-			this->copVehicleToAssessment.erase(foundVehicle);
+			else if constexpr (Globals::loggingEnabled)
+				Globals::Log("WARNING: [FLE] Unknown vehicle", copVehicle, "in", this->pursuit);
 		}
 	};
 

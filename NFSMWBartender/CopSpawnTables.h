@@ -162,7 +162,7 @@ namespace CopSpawnTables
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [ERR] Failed to select vehicle:", randomNumber, cumulativeChance, this->availableTotalCopChance);
+				Globals::Log("WARNING: [TAB] Failed to select vehicle:", randomNumber, cumulativeChance, this->availableTotalCopChance);
 
 			return nullptr;
 		}
