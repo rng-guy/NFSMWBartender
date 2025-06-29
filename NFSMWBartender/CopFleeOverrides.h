@@ -66,8 +66,65 @@ namespace CopFleeOverrides
 
 		Schedule waitingToFlee;
 
+		float heavyStrategyDuration  = 0.f;
+		float leaderStrategyDuration = 0.f;
+
 		std::unordered_set<address>             fleeingCopVehicles;
 		std::unordered_map<address, Assessment> copVehicleToAssessment;
+
+
+		void UpdateStrategyDurations()
+		{
+			static address (__thiscall* const GetSupportAttributes)(address)     = (address (__thiscall*)(address))0x418EE0;
+			static address (__thiscall* const GetHeavyStrategies)(address, int)  = (address (__thiscall*)(address, int))0x4035e0;
+			static size_t (__thiscall* const GetNumHeavyStrategies)(address)     = (size_t (__thiscall*)(address))0x403600;
+			static address (__thiscall* const GetLeaderStrategies)(address, int) = (address (__thiscall*)(address, int))0x403660;
+			static size_t (__thiscall* const GetNumLeaderStrategies)(address)    = (size_t (__thiscall*)(address))0x403680;
+
+			// SupportAttributes
+			const address supportAttributes = GetSupportAttributes(this->pursuit - 0x48);
+
+			if (not supportAttributes)
+			{
+				this->heavyStrategyDuration  = 0.f;
+				this->leaderStrategyDuration = 0.f;
+
+				if constexpr (Globals::loggingEnabled)
+					Globals::Log("WARNING: [ERR] Invalid SupportAttributes pointer in", this->pursuit);
+
+				return;
+			}
+
+			// HeavyStrategy 3
+			static constexpr int rammingStrategy    = 3;
+			const address        heavyStrategies    = GetHeavyStrategies(supportAttributes, 0);
+			const size_t         numHeavyStrategies = GetNumHeavyStrategies(supportAttributes);
+
+			if (heavyStrategies and (numHeavyStrategies > 0))
+			{
+				for (size_t strategyID = 0; strategyID < numHeavyStrategies; strategyID++)
+				{
+					if (*(int*)(heavyStrategies + strategyID * 0x10) == rammingStrategy)
+					{
+						this->heavyStrategyDuration = *(float*)(heavyStrategies + strategyID * 0x10 + 0x8);
+						break;
+					}
+				}
+			}
+			else this->heavyStrategyDuration = 0.f;
+
+			// LeaderStrategies
+			const address leaderStrategies    = GetLeaderStrategies(supportAttributes, 0);
+			const size_t  numLeaderStrategies = GetNumLeaderStrategies(supportAttributes);
+
+			this->leaderStrategyDuration = (leaderStrategies and (numLeaderStrategies > 0)) ? *(float*)(leaderStrategies + 0x8) : 0.f;
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				Globals::Log(this->pursuit, "[FLE] HeavyStrategy 3 duration:", this->heavyStrategyDuration);
+				Globals::Log(this->pursuit, "[FLE] LeaderStrategy duration:",  this->leaderStrategyDuration);
+			}
+		}
 
 
 		void Review(Assessment& assessment)
@@ -152,6 +209,12 @@ namespace CopFleeOverrides
 		void UpdateOnHeatChange() override 
 		{
 			this->ReviewAll();
+		}
+
+
+		void UpdateOncePerHeatLevel() override
+		{
+			this->UpdateStrategyDurations();
 		}
 
 
