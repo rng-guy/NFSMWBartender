@@ -92,7 +92,7 @@ namespace CopSpawnOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = true;
+	bool featureEnabled = false;
 
 	// Current Heat level
 	int minActiveCount = 0; // vehicles
@@ -121,6 +121,10 @@ namespace CopSpawnOverrides
 
 	class ContingentManager : public PursuitFeatures::CopVehicleReaction
 	{
+		using CopLabel = PursuitFeatures::CopLabel;
+
+
+
 	private:
 
 		const address pursuit;
@@ -257,14 +261,14 @@ namespace CopSpawnOverrides
 
 		void ProcessAddition
 		(
-			const address                   copVehicle,
-			const hash                      copType,
-			const PursuitFeatures::CopLabel copLabel
+			const address  copVehicle,
+			const hash     copType,
+			const CopLabel copLabel
 		) 
 			override 
 		{
 			if (skipEventSpawns) skipEventSpawns = false;
-			if (copLabel != PursuitFeatures::CopLabel::CHASER) return;
+			if (copLabel != CopLabel::CHASER) return;
 
 			const auto foundType = this->copTypeToCurrentCount.find(copType);
 
@@ -286,27 +290,34 @@ namespace CopSpawnOverrides
 
 		void ProcessRemoval
 		(
-			const address                   copVehicle,
-			const address                   copType,
-			const PursuitFeatures::CopLabel copLabel
+			const address  copVehicle,
+			const address  copType,
+			const CopLabel copLabel
 		) 
 			override
 		{
-			if (copLabel != PursuitFeatures::CopLabel::CHASER) return;
+			if (copLabel != CopLabel::CHASER) return;
 
-			if (--(this->copTypeToCurrentCount.at(copType)) == 0)
-				this->copTypeToCurrentCount.erase(copType);
-			
-			this->spawnTable.UpdateCapacity(copType, +1);
-			(this->numCopsInContingent)--;
+			const auto foundType = this->copTypeToCurrentCount.find(copType);
 
-			(*(this->numCopsLostInWave))++;
-
-			if constexpr (Globals::loggingEnabled)
+			if (foundType != this->copTypeToCurrentCount.end())
 			{
-				Globals::Log(this->pursuit, "[SPA] Type capacity remaining:", this->spawnTable.GetCapacity(copType));
-				Globals::Log(this->pursuit, "[SPA] Contingent:",              this->numCopsInContingent);
+				if (--(foundType->second) == 0)
+					this->copTypeToCurrentCount.erase(foundType);
+
+				this->spawnTable.UpdateCapacity(copType, +1);
+				(this->numCopsInContingent)--;
+
+				(*(this->numCopsLostInWave))++;
+
+				if constexpr (Globals::loggingEnabled)
+				{
+					Globals::Log(this->pursuit, "[SPA] Type capacity remaining:", this->spawnTable.GetCapacity(copType));
+					Globals::Log(this->pursuit, "[SPA] Contingent:", this->numCopsInContingent);
+				}
 			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::Log("WARNING: [SPA] Unknown type", copType, "in", this->pursuit);
 		}
 
 
@@ -352,13 +363,13 @@ namespace CopSpawnOverrides
 			case 0x4269E6: // helicopter
 				return CopSpawnTables::helicopterVehicle;
 
-			case 0x430DAD: // free-roam patrols
+			case 0x430DAD: // free-roam patrol
 				return CopSpawnTables::patrolSpawnTable->GetRandomCopName();
 				
-			case 0x42EAAD: // first scripted cop
+			case 0x42EAAD: // first cop of milestone / bounty pursuit
 				return CopSpawnTables::pursuitSpawnTable->GetRandomCopName();
 				
-			case 0x43E049: // roadblocks
+			case 0x43E049: // roadblock
 				return roadblockManager.get()->GetRandomCopName();
 
 			default:
@@ -382,12 +393,12 @@ namespace CopSpawnOverrides
 		{
 			switch (spawnReturn)
 			{
-			case 0x42E72E: // scripted event spawns
+			case 0x42E72E: // scripted event spawn
 				if (skipEventSpawns) break;
 				*newCopName = eventManager.get()->GetRandomCopName();
 				return true;
 				
-			case 0x43EBD0: // pursuit vehicles, Cooldown mode patrols
+			case 0x43EBD0: // pursuit spawn, Cooldown mode patrol
 				const ContingentManager* const manager = ContingentManager::GetInstance(pursuit);
 				*newCopName = (manager) ? manager->GetRandomCopName() : nullptr;
 				return manager;

@@ -44,6 +44,10 @@ namespace HelicopterOverrides
 
 	class HelicopterManager : public PursuitFeatures::CopVehicleReaction
 	{
+		using CopLabel = PursuitFeatures::CopLabel;
+
+
+
 	private:
 		
 		const address pursuit;
@@ -183,25 +187,25 @@ namespace HelicopterOverrides
 
 		void ProcessAddition
 		(
-			const address                   copVehicle,
-			const hash                      copType,
-			const PursuitFeatures::CopLabel copLabel
+			const address  copVehicle,
+			const hash     copType,
+			const CopLabel copLabel
 		) 
 			override
 		{
-			if (copLabel == PursuitFeatures::CopLabel::HELICOPTER) this->ChangeStatus();
+			if (copLabel == CopLabel::HELICOPTER) this->ChangeStatus();
 		}
 
 
 		void ProcessRemoval
 		(
-			const address                   copVehicle,
-			const address                   copType,
-			const PursuitFeatures::CopLabel copLabel
+			const address  copVehicle,
+			const address  copType,
+			const CopLabel copLabel
 		) 
 			override
 		{
-			if (copLabel == PursuitFeatures::CopLabel::HELICOPTER) this->ChangeStatus();
+			if (copLabel == CopLabel::HELICOPTER) this->ChangeStatus();
 		}
 	};
 
@@ -235,6 +239,8 @@ namespace HelicopterOverrides
 
 	void Initialise(ConfigParser::Parser& parser)
 	{
+		MemoryEditor::Write<BYTE>(0xEB, 0x42BB2D); // prevent spawns in Cooldown mode
+
 		if (not parser.LoadFile(Globals::configAdvancedPath + "Helicopter.ini")) return;
 
 		helicoptersEnabled = parser.ParseParameterTable
@@ -256,7 +262,6 @@ namespace HelicopterOverrides
 			minRespawnDelays[heatLevel - 1] = std::min(minRespawnDelays[heatLevel - 1], maxRespawnDelays[heatLevel - 1]);
 		}
 
-		MemoryEditor::Write<BYTE>(0xEB, 0x42BB2D); // prevent spawns in Cooldown mode
 		MemoryEditor::DigCodeCave(&FuelTime, fuelTimeEntrance, fuelTimeExit);
 
 		featureEnabled = true;

@@ -25,6 +25,11 @@ namespace PursuitObserver
 
 	class PursuitObserver
 	{
+		using CopLabel           = PursuitFeatures::CopLabel;
+		using CopVehicleReaction = PursuitFeatures::CopVehicleReaction;
+
+
+
 	private:
 
 		const address pursuit;
@@ -32,14 +37,14 @@ namespace PursuitObserver
 		bool inPursuitUpdatePending    = true;
 		bool perHeatLevelUpdatePending = true;
 
-		std::unordered_map<address, PursuitFeatures::CopLabel>            copVehicleToLabel;
-		std::vector<std::unique_ptr<PursuitFeatures::CopVehicleReaction>> copVehicleReactions;
+		std::unordered_map<address, CopLabel>            copVehicleToLabel;
+		std::vector<std::unique_ptr<CopVehicleReaction>> copVehicleReactions;
 
 		inline static std::unordered_set<address> copVehiclesLoaded;
 		inline static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
 
 
-		template <std::derived_from<PursuitFeatures::CopVehicleReaction> F, typename ...T>
+		template <std::derived_from<CopVehicleReaction> F, typename ...T>
 		void AddFeature(T&& ...args)
 		{
 			this->copVehicleReactions.push_back(std::make_unique<F>(std::forward<T>(args)...));
@@ -52,15 +57,12 @@ namespace PursuitObserver
 		}
 
 
-		PursuitFeatures::CopLabel Label
+		static PursuitFeatures::CopLabel Label
 		(
 			const address copVehicle,
 			const address additionReturn
 		) {
-			const auto foundVehicle = this->copVehicleToLabel.find(copVehicle);
-			if (foundVehicle != this->copVehicleToLabel.end()) return foundVehicle->second;
-
-			PursuitFeatures::CopLabel copLabel = PursuitFeatures::CopLabel::UNKNOWN;
+			CopLabel copLabel = CopLabel::UNKNOWN;
 
 			switch (additionReturn)
 			{
@@ -68,37 +70,41 @@ namespace PursuitObserver
 				[[fallthrough]];
 
 			case 0x4443d8: // lone roadblock cop
-				copLabel = PursuitFeatures::CopLabel::ROADBLOCK;
+				copLabel = CopLabel::ROADBLOCK;
 				break;
 
-			case 0x41f7e6: // LeaderStrategy
-				copLabel = PursuitFeatures::CopLabel::LEADER;
+			case 0x41F7E6: // LeaderStrategy spawn
+				copLabel = CopLabel::LEADER;
 				break;
 
-			case 0x41f426: // HeavyStrategy
-				copLabel = PursuitFeatures::CopLabel::HEAVY;
+			case 0x41F426: // HeavyStrategy 3 spawn
+				copLabel = CopLabel::HEAVY;
 				break;
 
-			case 0x426bc6: // helicopter
-				copLabel = PursuitFeatures::CopLabel::HELICOPTER;
+			case 0x426BC6: // helicopter
+				copLabel = CopLabel::HELICOPTER;
 				break;
 
-			case 0x43eaf5: // free-roam patrol
+			case 0x43EAF5: // free-roam patrol
 				[[fallthrough]];
 
-			case 0x42e872: // scripted event spawn
+			case 0x43EE97: // first patrol in race
 				[[fallthrough]];
 
-			case 0x4311ec: // pursuit spawn
-				copLabel = PursuitFeatures::CopLabel::CHASER;
+			case 0x42E872: // scripted event spawn
+				[[fallthrough]];
+
+			case 0x42EB73: // first cop of milestone / bounty pursuit
+				[[fallthrough]];
+
+			case 0x4311EC: // pursuit spawn
+				copLabel = CopLabel::CHASER;
 				break;
 
 			default:
 				if constexpr (Globals::loggingEnabled)
 					Globals::Log("WARNING: [OBS] Unknown AddVehicle caller:", additionReturn);
 			}
-
-			this->copVehicleToLabel.insert({copVehicle, copLabel});
 
 			return copLabel;
 		}
@@ -216,8 +222,11 @@ namespace PursuitObserver
 			const address copVehicle,
 			const address additionReturn
 		) {
-			const PursuitFeatures::CopLabel copLabel = this->Label(copVehicle, additionReturn);
-			const hash                      copType  = this->GetCopType(copVehicle);
+			const auto foundVehicle = this->copVehicleToLabel.find(copVehicle);
+			if (foundVehicle != this->copVehicleToLabel.end()) return;
+
+			const CopLabel copLabel = this->Label(copVehicle, additionReturn);
+			const hash     copType  = this->GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
@@ -225,7 +234,9 @@ namespace PursuitObserver
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
 
-			if (copLabel != PursuitFeatures::CopLabel::HELICOPTER) this->Register(copVehicle);
+			if (copLabel != CopLabel::HELICOPTER) this->Register(copVehicle);
+
+			this->copVehicleToLabel.insert({copVehicle, copLabel});
 		}
 
 
@@ -236,7 +247,7 @@ namespace PursuitObserver
 			if (foundVehicle == this->copVehicleToLabel.end())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [OBS] Vehicle", copVehicle, "not in", this->pursuit);
+					Globals::Log("WARNING: [OBS] Unknown vehicle", copVehicle, "in", this->pursuit);
 
 				return;
 			}

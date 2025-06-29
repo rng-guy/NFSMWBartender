@@ -249,6 +249,9 @@ namespace CopFleeOverrides
 
 		void UpdateOnHeatChange() override 
 		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::Log(this->pursuit, "[FLE] Fleeing now", (fleeingEnabled) ? "enabled" : "disabled");
+
 			this->ReviewAll();
 		}
 
@@ -261,9 +264,9 @@ namespace CopFleeOverrides
 
 		void ProcessAddition
 		(
-			const address                   copVehicle,
-			const hash                      copType,
-			const PursuitFeatures::CopLabel copLabel
+			const address  copVehicle,
+			const hash     copType,
+			const CopLabel copLabel
 		) 
 			override
 		{
@@ -275,9 +278,9 @@ namespace CopFleeOverrides
 
 		void ProcessRemoval
 		(
-			const address                   copVehicle,
-			const address                   copType,
-			const PursuitFeatures::CopLabel copLabel
+			const address  copVehicle,
+			const address  copType,
+			const CopLabel copLabel
 		) 
 			override
 		{
@@ -312,7 +315,7 @@ namespace CopFleeOverrides
 
 	void Initialise(ConfigParser::Parser& parser)
 	{
-		if (not parser.LoadFile(Globals::configAdvancedPath + "Cars.ini")) return;
+		parser.LoadFile(Globals::configAdvancedPath + "Cars.ini");
 
 		fleeingEnableds = parser.ParseParameterTable
 		(
@@ -323,11 +326,9 @@ namespace CopFleeOverrides
 		);
 
 		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
-		{
-			if (fleeingEnableds[heatLevel - 1]) featureEnabled = true;
-
 			minFleeDelays[heatLevel - 1] = std::min(minFleeDelays[heatLevel - 1], maxFleeDelays[heatLevel - 1]);
-		}
+
+		featureEnabled = true;
 	}
 
 
