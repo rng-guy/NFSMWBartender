@@ -41,7 +41,7 @@ namespace CopSpawnOverrides
 				this->spawnTable = *(*(this->sourceSpawnTable));
 
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [GLO] Failed to reload spawn table");
+				Globals::Log("WARNING: [GLO] Failed table reload");
 
 			for (const auto& pair : this->copTypeToCurrentCount)
 				this->spawnTable.UpdateCapacity(pair.first, -pair.second);
@@ -146,17 +146,19 @@ namespace CopSpawnOverrides
 			if (not this->IsHeatLevelKnown())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [SPA] Failed table update in", this->pursuit);
+					Globals::Log(this->pursuit, "[SPA] Not updating table");
 
 				return;
 			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::Log(this->pursuit, "[SPA] Updating table");
 
-			this->spawnTable = *CopSpawnTables::pursuitSpawnTable;
+			this->spawnTable = *(CopSpawnTables::pursuitSpawnTable);
 
 			for (const auto& pair : this->copTypeToCurrentCount)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[SPA] Table update:", pair.first, -(pair.second));
+					Globals::Log(this->pursuit, "[SPA] Initialising table:", pair.first, -(pair.second));
 
 				this->spawnTable.UpdateCapacity(pair.first, -(pair.second));
 
@@ -406,6 +408,7 @@ namespace CopSpawnOverrides
 		}
 
 		*newCopName = nullptr;
+
 		return false;
 	}
 

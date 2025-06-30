@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include <fstream>
+#include <memory>
 #include <format>
 #include <string>
 
@@ -19,7 +20,9 @@ namespace Globals
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr bool   loggingEnabled = true;
+	std::unique_ptr<std::fstream> logStream = nullptr;
+
+	constexpr bool   loggingEnabled = false;
 	constexpr size_t maxHeatLevel   = 10;
 	
 	const std::string logFile            = "BartenderLog.txt";
@@ -29,19 +32,27 @@ namespace Globals
 	const std::string configBasicPath    = configMainPath + "Basic/";
 	const std::string configAdvancedPath = configMainPath + "Advanced/";
 
-
+	
 
 
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	void OpenLog()
+	{
+		if (not logStream)
+			logStream = std::make_unique<std::fstream>(logFile, std::ios::app);
+	}
+
+
+
 	template <typename T>
 	void Print
 	(
-		std::fstream& file, 
-		const T&      value
+		std::fstream* const file, 
+		const T             value
 	) {
-		file << value;
+		*file << value;
 	}
 
 
@@ -49,10 +60,10 @@ namespace Globals
 	template<>
 	void Print<DWORD>
 	(
-		std::fstream&  file,
-		const DWORD& value
+		std::fstream* const file,
+		const DWORD         value
 	) {
-		file << std::format("{:08x}", value);
+		*file << std::format("{:08x}", value);
 	}
 
 
@@ -60,15 +71,14 @@ namespace Globals
 	template <typename ...T>
 	void Log(T ...segments)
 	{
-		constexpr size_t numArgs = sizeof...(T);
+		if (not logStream) return;
 
-		std::fstream file;
-		file.open(logFile, std::ios::app);
+		std::fstream* const file    = logStream.get();
+		constexpr size_t    numArgs = sizeof...(T);
+		size_t              argID   = 0;
 
-		size_t argID = 0;
-		([&] {Print<T>(file, segments); if (++argID < numArgs) file << " ";}(), ...);
+		([&]{Print<T>(file, segments); if (++argID < numArgs) *file << ' ';}(), ...);
 
-		file << std::endl;
-		file.close();
+		*file << std::endl;
 	}
 }

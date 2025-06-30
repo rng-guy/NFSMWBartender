@@ -228,13 +228,13 @@ namespace PursuitObserver
 			const CopLabel copLabel = this->Label(copVehicle, additionReturn);
 			const hash     copType  = this->GetCopType(copVehicle);
 
+			if (copLabel != CopLabel::HELICOPTER) this->Register(copVehicle);
+
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
-
-			if (copLabel != CopLabel::HELICOPTER) this->Register(copVehicle);
 
 			this->copVehicleToLabel.insert({copVehicle, copLabel});
 		}
@@ -611,12 +611,21 @@ namespace PursuitObserver
 
 
 
-	void ResetState()
+	void SoftResetState()
 	{
 		if (not featureEnabled) return;
 
 		PursuitFeatures::ResetState();
 		CopSpawnOverrides::ResetState();
+	}
+
+
+
+	void HardResetState()
+	{
+		if (not featureEnabled) return;
+
+		SoftResetState();
 		PursuitObserver::ClearRegistrations();
 	}
 }

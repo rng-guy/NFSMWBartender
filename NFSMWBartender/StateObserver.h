@@ -30,7 +30,7 @@ namespace StateObserver
 
 	void OnHeatLevelUpdates()
 	{
-		// The range check shouldn't be necessary, but it's a BlackBox game..
+		// Shouldn't be necessary, but this is a BlackBox game..
 		if ((currentHeatLevel >= 1) and (currentHeatLevel <= Globals::maxHeatLevel))
 		{
 			GroundSupport::SetToHeat(currentHeatLevel);
@@ -43,6 +43,9 @@ namespace StateObserver
 
 	void OnGameStartUpdates()
 	{
+		if constexpr (Globals::loggingEnabled) 
+			Globals::OpenLog();
+
 		DestructionStrings::VerifyBinaryKeys();
 	}
 
@@ -53,18 +56,20 @@ namespace StateObserver
 	}
 
 
-	void OnLoadingUpdates()
+	void OnWorldLoadUpdates()
 	{
 		currentHeatLevel  = 0;
 		playerPerpVehicle = 0x0;
-		PursuitObserver::ResetState();
+
+		PursuitObserver::HardResetState();
 	}
 
 
 	void OnRetryUpdates() 
 	{
 		currentHeatLevel = 0;
-		PursuitObserver::ResetState();
+
+		PursuitObserver::SoftResetState();
 	}
 
 
@@ -149,6 +154,29 @@ namespace StateObserver
 
 
 
+	const address worldLoadObserverEntrance = 0x66296C;
+	const address worldLoadObserverExit     = 0x662971;
+
+	// Active during world loading screens
+	__declspec(naked) void WorldLoadObserver()
+	{
+		__asm
+		{
+			push eax
+			call OnWorldLoadUpdates
+			pop eax
+
+			// Execute original code and resume
+			push edi
+			xor edi, edi
+			cmp eax, edi
+
+			jmp dword ptr worldLoadObserverExit
+		}
+	}
+
+
+
 	const address gameplayObserverEntrance = 0x71D080;
 	const address gameplayObserverExit     = 0x71D088;
 
@@ -167,29 +195,6 @@ namespace StateObserver
 			sub esp, 0x18
 
 			jmp dword ptr gameplayObserverExit
-		}
-	}
-
-
-
-	const address loadingObserverEntrance = 0x66296C;
-	const address loadingObserverExit     = 0x662971;
-
-	// Active during loading screens
-	__declspec(naked) void LoadingObserver()
-	{
-		__asm
-		{
-			push eax
-			call OnLoadingUpdates
-			pop eax
-
-			// Execute original code and resume
-			push edi
-			xor edi, edi
-			cmp eax, edi
-
-			jmp dword ptr loadingObserverExit
 		}
 	}
 
@@ -286,8 +291,8 @@ namespace StateObserver
 	{
 		MemoryEditor::DigCodeCave(&HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
 		MemoryEditor::DigCodeCave(&GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
+		MemoryEditor::DigCodeCave(&WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);
 		MemoryEditor::DigCodeCave(&GameplayObserver,  gameplayObserverEntrance,  gameplayObserverExit);
-		MemoryEditor::DigCodeCave(&LoadingObserver,   loadingObserverEntrance,   loadingObserverExit);
 		MemoryEditor::DigCodeCave(&RetryObserver,     retryObserverEntrance,     retryObserverExit);
 		MemoryEditor::DigCodeCave(&HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
 		MemoryEditor::DigCodeCave(&PerpVehicle,       perpVehicleEntrance,       perpVehicleExit);

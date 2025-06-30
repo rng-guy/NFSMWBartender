@@ -267,4 +267,4 @@ v1.5.06: Added missing number-format comment to "Others.ini" file
 v1.6.00: Fixed incorrect labelling of roadblock vehicles joining the pursuit after spike-strip hits
 v1.6.01: Made terminology in README and .ini files files more consistent, and rephrased some parts
 
-v1.7.00: Fixed "Duration" VltEd parameter for Heavy / LeaderSupport when using the "ADVANCED" set
+v1.7.00: Fixed Heavy / LeaderStrategy spawns not fleeing as per their "Duration" VltEd parameters
