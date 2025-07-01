@@ -22,8 +22,8 @@ This feature set LETS YOU CHANGE (per Heat level)
  • the maximum combo-bounty multiplier for destroying cops quickly,
  • the internal cooldown for regular roadblock spawns,
  • the internal cooldown for Heavy and LeaderStrategy spawns,
- • which vehicles spawn through HeavyStrategy 3 (ramming SUVs),
- • which vehicles spawn through HeavyStrategy 4 (roadblock SUVs), and
+ • which vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
+ • which vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
  • which vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
 This feature set FIXES TWO BUGS:
