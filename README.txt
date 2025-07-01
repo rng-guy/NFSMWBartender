@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.7.01) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.7.02) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -117,10 +117,10 @@ COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
 
 GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
- • All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should each 
-   have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) in their "aivehicle" VltEd 
-   entries. If they don't, they might cause stability issues by joining the pursuit after their 
-   ramming attempt(s), as this effectively makes them circumvent the global cop-spawn limit.
+ • All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should each
+   have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) assigned to them in their 
+   "aivehicle" VltEd entry; otherwise, they might cause stability issues by joining the pursuit
+   long-term after their ramming attempt(s), effectively circumventing the global cop-spawn limit.
 
  • All vehicles you specify to replace Cross in LeaderStrategy 5 / 7 should each not be used by 
    any other cop(s) elsewhere. If another cop uses the same vehicle as Cross, no LeaderStrategy 
@@ -142,8 +142,8 @@ GENERAL:
    
 HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
 
- • All vehicles you specify to replace the helicopter must each have the "CHOPPER" class assigned
-   to them in their "pvehicle" VltEd entries, either explicitly or through a parent node.
+ • All vehicles you specify to replace the regular helicopter must each have the "CHOPPER" class
+   assigned to them in their "pvehicle" VltEd entry, either directly or through a parent entry.
 
 
 COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
@@ -164,7 +164,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    generally stay stable if it does not crash there.
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned
-   to them in their "pvehicle" VltEd entries, either explicitly or through a parent node.
+   to them in their "pvehicle" VltEd entry, either directly or through a parent entry.
 
  • Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position 
    of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, 
@@ -269,3 +269,4 @@ v1.6.01: Made terminology in README and .ini files files more consistent, and re
 
 v1.7.00: Fixed Heavy / LeaderStrategy spawns not fleeing as per their "Duration" VltEd parameters
 v1.7.01: Improved general performance of cop management functions for the "ADVANCED" set
+v1.7.02: Clarified some ambiguous phrasing in "LIMITATIONS" section of README
