@@ -117,8 +117,8 @@ COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
 
 GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
- • All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should each
-   have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) assigned to them in their 
+ • All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should
+   each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) assigned to them in their 
    "aivehicle" VltEd entry; otherwise, they might cause stability issues by joining the pursuit
    long-term after their ramming attempt(s), effectively circumventing the global cop-spawn limit.
 
