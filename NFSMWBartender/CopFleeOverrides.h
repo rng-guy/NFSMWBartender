@@ -153,24 +153,31 @@ namespace CopFleeOverrides
 			if (not this->IsHeatLevelKnown())        return;
 			if (assessment.status != Status::MEMBER) return;
 
-			bool  flagVehicle   = false;
-			float timeUntilFlee = 0.f;
+			bool  flagVehicle;
+			float timeUntilFlee;
 
 			switch (assessment.copLabel)
 			{
 			case CopLabel::HEAVY:
-				flagVehicle   = (this->heavyStrategyDuration > 0.f);
-				timeUntilFlee = this->heavyStrategyDuration;
+				flagVehicle = (this->heavyStrategyDuration > 0.f);
+				if (flagVehicle) timeUntilFlee = this->heavyStrategyDuration;
 				break;
 
 			case CopLabel::LEADER:
-				flagVehicle   = (this->leaderStrategyDuration > 0.f);
-				timeUntilFlee = this->leaderStrategyDuration;
+				flagVehicle = (this->leaderStrategyDuration > 0.f);
+				if (flagVehicle) timeUntilFlee = this->leaderStrategyDuration;
+				break;
+
+			case CopLabel::CHASER:
+				flagVehicle = (fleeingEnabled and (not CopSpawnTables::pursuitSpawnTable->IsInTable(assessment.copType)));
+				if (flagVehicle) timeUntilFlee = this->prng.GetFloat(maxFleeDelay, minFleeDelay);
 				break;
 
 			default:
-				flagVehicle   = (fleeingEnabled and (not CopSpawnTables::pursuitSpawnTable->IsInTable(assessment.copType)));
-				timeUntilFlee = this->prng.GetFloat(maxFleeDelay, minFleeDelay);
+				flagVehicle = false;
+
+				if constexpr (Globals::loggingEnabled)
+					Globals::Log("WARNING: [FLE] Unknown label", (int)(assessment.copLabel), "in", this->pursuit);
 			}
 
 			if (not flagVehicle) return;

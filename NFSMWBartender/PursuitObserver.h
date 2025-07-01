@@ -57,33 +57,24 @@ namespace PursuitObserver
 		}
 
 
-		static PursuitFeatures::CopLabel Label
-		(
-			const address copVehicle,
-			const address additionReturn
-		) {
-			CopLabel copLabel = CopLabel::UNKNOWN;
-
+		static CopLabel Label(const address additionReturn)
+		{
 			switch (additionReturn)
 			{
 			case 0x40B02A: // roadblock cop after spike-strip hit
 				[[fallthrough]];
 
 			case 0x4443d8: // lone roadblock cop
-				copLabel = CopLabel::ROADBLOCK;
-				break;
+				return CopLabel::ROADBLOCK;
 
 			case 0x41F7E6: // LeaderStrategy spawn
-				copLabel = CopLabel::LEADER;
-				break;
+				return CopLabel::LEADER;
 
 			case 0x41F426: // HeavyStrategy 3 spawn
-				copLabel = CopLabel::HEAVY;
-				break;
+				return CopLabel::HEAVY;
 
 			case 0x426BC6: // helicopter
-				copLabel = CopLabel::HELICOPTER;
-				break;
+				return CopLabel::HELICOPTER;
 
 			case 0x43EAF5: // free-roam patrol
 				[[fallthrough]];
@@ -98,15 +89,14 @@ namespace PursuitObserver
 				[[fallthrough]];
 
 			case 0x4311EC: // pursuit spawn
-				copLabel = CopLabel::CHASER;
-				break;
+				return CopLabel::CHASER;
 
 			default:
 				if constexpr (Globals::loggingEnabled)
 					Globals::Log("WARNING: [OBS] Unknown AddVehicle caller:", additionReturn);
-			}
 
-			return copLabel;
+				return CopLabel::UNKNOWN;
+			}
 		}
 
 
@@ -183,11 +173,12 @@ namespace PursuitObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (PursuitObserver::copVehiclesLoaded.contains(copVehicle)) return;
-
-				Globals::Log(Globals::logIndent, "[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
-				PursuitObserver::copVehiclesLoaded.insert(copVehicle);
-				Globals::Log(Globals::logIndent, "[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
+				if ((PursuitObserver::copVehiclesLoaded.insert(copVehicle)).second)
+				{
+					Globals::Log(Globals::logIndent, "[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
+					Globals::Log(Globals::logIndent, "[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
+				}
+				else Globals::Log(Globals::logIndent, "[REG] =", copVehicle, PursuitObserver::GetCopName(copVehicle));
 			}
 			else PursuitObserver::copVehiclesLoaded.insert(copVehicle);
 		}
@@ -197,12 +188,11 @@ namespace PursuitObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
-				const auto foundVehicle = PursuitObserver::copVehiclesLoaded.find(copVehicle);
-				if (foundVehicle == PursuitObserver::copVehiclesLoaded.end()) return;
-
-				Globals::Log(Globals::logIndent, "[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
-				PursuitObserver::copVehiclesLoaded.erase(foundVehicle);
-				Globals::Log(Globals::logIndent, "[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
+				if (PursuitObserver::copVehiclesLoaded.erase(copVehicle) > 0)
+				{
+					Globals::Log(Globals::logIndent, "[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
+					Globals::Log(Globals::logIndent, "[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
+				}
 			}
 			else PursuitObserver::copVehiclesLoaded.erase(copVehicle);
 		}
@@ -211,7 +201,7 @@ namespace PursuitObserver
 		static void ClearRegistrations()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(Globals::logIndent, "[REG] Clearing all");
+				Globals::Log(Globals::logIndent, "[REG] Clearing all cops loaded");
 
 			PursuitObserver::copVehiclesLoaded.clear();
 		}
@@ -222,21 +212,26 @@ namespace PursuitObserver
 			const address copVehicle,
 			const address additionReturn
 		) {
-			const auto foundVehicle = this->copVehicleToLabel.find(copVehicle);
-			if (foundVehicle != this->copVehicleToLabel.end()) return;
+			const CopLabel copLabel     = this->Label(additionReturn);
+			const auto     addedVehicle = this->copVehicleToLabel.insert({copVehicle, copLabel});
 
-			const CopLabel copLabel = this->Label(copVehicle, additionReturn);
-			const hash     copType  = this->GetCopType(copVehicle);
+			if (not addedVehicle.second)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::Log(this->pursuit, "[OBS] =", copVehicle, (int)copLabel, 
+						this->GetCopName(copVehicle), "is already", (int)(addedVehicle.first->second));
 
-			if (copLabel != CopLabel::HELICOPTER) this->Register(copVehicle);
+				return;
+			}
+			else if (copLabel != CopLabel::HELICOPTER) this->Register(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
+			const hash copType = this->GetCopType(copVehicle);
+
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
-
-			this->copVehicleToLabel.insert({copVehicle, copLabel});
 		}
 
 
@@ -247,7 +242,7 @@ namespace PursuitObserver
 			if (foundVehicle == this->copVehicleToLabel.end())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [OBS] Unknown vehicle", copVehicle, "in", this->pursuit);
+					Globals::Log("WARNING: [OBS] Unknown vehicle", copVehicle, this->GetCopName(copVehicle), "in", this->pursuit);
 
 				return;
 			}

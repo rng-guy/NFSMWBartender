@@ -146,12 +146,12 @@ namespace CopSpawnOverrides
 			if (not this->IsHeatLevelKnown())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[SPA] Not updating table");
+					Globals::Log(this->pursuit, "[SPA] Updating table: skipped");
 
 				return;
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[SPA] Updating table");
+				Globals::Log(this->pursuit, "[SPA] Updating table: success");
 
 			this->spawnTable = *(CopSpawnTables::pursuitSpawnTable);
 
@@ -163,7 +163,7 @@ namespace CopSpawnOverrides
 				this->spawnTable.UpdateCapacity(pair.first, -(pair.second));
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[SPA] Type capacity remaining:", this->spawnTable.GetCapacity(pair.first));
+					Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(pair.first));
 			}
 		}
 
@@ -267,7 +267,7 @@ namespace CopSpawnOverrides
 			const hash     copType,
 			const CopLabel copLabel
 		) 
-			override 
+			override
 		{
 			if (skipEventSpawns) skipEventSpawns = false;
 			if (copLabel != CopLabel::CHASER) return;
@@ -284,8 +284,8 @@ namespace CopSpawnOverrides
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::Log(this->pursuit, "[SPA] Type capacity remaining:", this->spawnTable.GetCapacity(copType));
-				Globals::Log(this->pursuit, "[SPA] Contingent:",              this->numCopsInContingent);
+				Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(copType));
+				Globals::Log(this->pursuit, "[SPA] Contingent:",    this->numCopsInContingent);
 			}
 		}
 
@@ -314,8 +314,8 @@ namespace CopSpawnOverrides
 
 				if constexpr (Globals::loggingEnabled)
 				{
-					Globals::Log(this->pursuit, "[SPA] Type capacity remaining:", this->spawnTable.GetCapacity(copType));
-					Globals::Log(this->pursuit, "[SPA] Contingent:", this->numCopsInContingent);
+					Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(copType));
+					Globals::Log(this->pursuit, "[SPA] Contingent:",    this->numCopsInContingent);
 				}
 			}
 			else if constexpr (Globals::loggingEnabled)
