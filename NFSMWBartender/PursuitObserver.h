@@ -57,9 +57,9 @@ namespace PursuitObserver
 		}
 
 
-		static CopLabel Label(const address additionReturn)
+		static CopLabel LabelAddVehicleCall(const address callReturn)
 		{
-			switch (additionReturn)
+			switch (callReturn)
 			{
 			case 0x40B02A: // roadblock cop after spike-strip hit
 				[[fallthrough]];
@@ -93,7 +93,7 @@ namespace PursuitObserver
 
 			default:
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [OBS] Unknown AddVehicle caller:", additionReturn);
+					Globals::Log("WARNING: [OBS] Unknown AddVehicle return address:", callReturn);
 
 				return CopLabel::UNKNOWN;
 			}
@@ -210,9 +210,9 @@ namespace PursuitObserver
 		void NotifyFeaturesOfAddition
 		(
 			const address copVehicle,
-			const address additionReturn
+			const address addVehicleReturn
 		) {
-			const CopLabel copLabel     = this->Label(additionReturn);
+			const CopLabel copLabel     = this->LabelAddVehicleCall(addVehicleReturn);
 			const auto     addedVehicle = this->copVehicleToLabel.insert({copVehicle, copLabel});
 
 			if (not addedVehicle.second)
@@ -293,12 +293,15 @@ namespace PursuitObserver
 	(
 		const address pursuit,
 		const address copVehicle,
-		const address additionReturn
+		const address addVehicleReturn
 	) {
 		const auto foundPursuit = pursuitToObserver.find(pursuit);
-		if (foundPursuit == pursuitToObserver.end()) return;
 
-		foundPursuit->second.NotifyFeaturesOfAddition(copVehicle, additionReturn);
+		if (foundPursuit != pursuitToObserver.end())
+			foundPursuit->second.NotifyFeaturesOfAddition(copVehicle, addVehicleReturn);
+
+		else if constexpr (Globals::loggingEnabled)
+			Globals::Log("WARNING: [OBS] Addition to unknown pursuit", pursuit);
 	}
 
 
@@ -309,9 +312,12 @@ namespace PursuitObserver
 		const address copVehicle
 	) {
 		const auto foundPursuit = pursuitToObserver.find(pursuit);
-		if (foundPursuit == pursuitToObserver.end()) return;
 
-		foundPursuit->second.NotifyFeaturesOfRemoval(copVehicle);
+		if (foundPursuit != pursuitToObserver.end())
+			foundPursuit->second.NotifyFeaturesOfRemoval(copVehicle);
+
+		else if constexpr (Globals::loggingEnabled)
+			Globals::Log("WARNING: [OBS] Removal from unknown pursuit", pursuit);
 	}
 
 
@@ -477,7 +483,7 @@ namespace PursuitObserver
 			push ecx
 			mov edx, [esp + 0x8]
 			push [esp + 0x4]
-			call NotifyObserverOfAddition // ecx: AIPursuit; edx: PVehicle; stack: additionReturn
+			call NotifyObserverOfAddition // ecx: AIPursuit; edx: PVehicle; stack: addVehicleReturn
 			pop ecx
 
 			// Execute original code and resume

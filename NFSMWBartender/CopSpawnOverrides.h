@@ -376,7 +376,7 @@ namespace CopSpawnOverrides
 
 			default:
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [SPA] Unknown ByClass caller:", spawnReturn);
+					Globals::Log("WARNING: [SPA] Unknown ByClass return address:", spawnReturn);
 			}
 		}
 

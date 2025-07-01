@@ -20,7 +20,7 @@ namespace Globals
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	std::unique_ptr<std::fstream> logStream = nullptr;
+	std::unique_ptr<std::fstream> logStream;
 
 	constexpr bool   loggingEnabled = false;
 	constexpr size_t maxHeatLevel   = 10;
@@ -40,7 +40,7 @@ namespace Globals
 
 	void OpenLog()
 	{
-		if (not logStream)
+		if (not logStream.get())
 			logStream = std::make_unique<std::fstream>(logFile, std::ios::app);
 	}
 
@@ -71,11 +71,11 @@ namespace Globals
 	template <typename ...T>
 	void Log(T ...segments)
 	{
-		if (not logStream) return;
+		std::fstream* const file = logStream.get();
+		if (not file) return;
 
-		std::fstream* const file    = logStream.get();
-		constexpr size_t    numArgs = sizeof...(T);
-		size_t              argID   = 0;
+		constexpr size_t numArgs = sizeof...(T);
+		size_t           argID   = 0;
 
 		([&]{Print<T>(file, segments); if (++argID < numArgs) *file << ' ';}(), ...);
 
