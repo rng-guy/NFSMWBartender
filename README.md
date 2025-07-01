@@ -95,7 +95,7 @@ To **disable** this feature set, delete the entire `scripts/BartenderSettings/Ad
 
 **Before installing** this mod:
 1. make sure you have read and understood the [limitations](#Limitations) section further below,
-2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6.029.312 bytes large), and
+2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
 3. install an .asi loader or any mod with one (e.g. the [WideScreenFix](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) mod by ThirteenAG).
 
 &nbsp;
