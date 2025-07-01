@@ -143,7 +143,7 @@ GENERAL:
 HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
 
  • All vehicles you specify to replace the helicopter must each have the "CHOPPER" class assigned
-   to them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent.
+   to them in their "pvehicle" VltEd entries, either explicitly or through a parent node.
 
 
 COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
@@ -164,7 +164,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    generally stay stable if it does not crash there.
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned
-   to them in their "pvehicle" VltEd entries, either explicitly or implicitly through a parent.
+   to them in their "pvehicle" VltEd entries, either explicitly or through a parent node.
 
  • Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position 
    of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, 
