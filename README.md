@@ -63,7 +63,7 @@ This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
 * the global cop-spawn limit for how many cops in total may chase you at any given time,
 * how quickly cops flee the pursuit if they don't belong (if at all),
-* which vehicles may spawn to chase and search for you (any amount, with counts and chances),
+* which vehicles may spawn to chase and search for you (any amount; with counts and chances),
 * which vehicles may spawn in regular roadblocks (same as above),
 * which vehicles may spawn as pre-generated cops in scripted events (ditto),
 * which vehicles may spawn as free patrols when there is no active pursuit (chances only),
@@ -185,7 +185,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * Making Heat transitions very fast (`0x80deb840` VltEd parameter(s) set to < 5 seconds) can cause a mix of cops from more than one "Events" spawn table to appear in events that feature scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. If you want to keep fast transitions, you can avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level.
 
-* There are two kinds of patrol spawns: free patrols that spawn when there is no active pursuit, and searching patrols that spawn in pursuits when you are in Cooldown mode. The free patrols are overwritten by the "Patrols" spawn table, and the searching patrols are taken from the "Chasers" table. For both patrol types, the `NumPatrolCars` VltEd parameter controls how many cars may spawn at any given time; free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count (but not the global limit). All of this is vanilla behaviour, which is why you should not set high `NumPatrolCars` values.
+* There are two types of patrol spawns: free patrols that spawn when there is no active pursuit, and searching patrols that spawn in pursuits when you are in Cooldown mode. The free patrols are overwritten by the "Patrols" spawn table, and the searching patrols are taken from the "Chasers" table. For both patrol types, the `NumPatrolCars` VltEd parameter controls how many cars may spawn at any given time; free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count (but not the global limit). All of this is vanilla behaviour, which is why you should not set high `NumPatrolCars` values.
 
 &nbsp;
 

@@ -51,7 +51,7 @@ This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
  • the global cop-spawn limit for how many cops in total may chase you at any given time,
  • how quickly cops flee the pursuit if they don't belong (if at all),
- • which vehicles may spawn to chase and search for you (any amount, with counts and chances),
+ • which vehicles may spawn to chase and search for you (any amount; with counts and chances),
  • which vehicles may spawn in regular roadblocks (same as above),
  • which vehicles may spawn as pre-generated cops in scripted events (ditto),
  • which vehicles may spawn as free patrols when there is no active pursuit (chances only),
@@ -198,7 +198,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    the Heat level as it requests those spawns. If you want to keep fast transitions, you can avoid
    this issue by setting the event's "ForceHeatLevel" VltEd parameter to the target Heat level.
 
- • There are two kinds of patrol spawns: free patrols that spawn when there is no active pursuit,
+ • There are two types of patrol spawns: free patrols that spawn when there is no active pursuit,
    and searching patrols that spawn in pursuits when you are in Cooldown mode. The free patrols
    are overwritten by the "Patrols" spawn table, and the searching patrols are taken from the 
    "Chasers" table. For both patrol types, the "NumPatrolCars" VltEd parameter controls how many 
