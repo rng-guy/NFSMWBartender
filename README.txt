@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.7.03) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.7.04) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -52,7 +52,7 @@ This feature set LETS YOU CHANGE (per Heat level)
  • the global cop-spawn limit for how many cops in total may chase you at any given time,
  • how quickly cops flee the pursuit if they don't belong (if at all),
  • which vehicles may spawn to chase and search for you (any amount; with counts and chances),
- • which vehicles may spawn in regular roadblocks (same as above),
+ • which vehicles may spawn in regular roadblocks (same liberties as above),
  • which vehicles may spawn as pre-generated cops in scripted events (ditto),
  • which vehicles may spawn as free patrols when there is no active pursuit (chances only),
  • which vehicle spawns in place of the regular helicopter, and
@@ -279,3 +279,4 @@ v1.7.00: Fixed Heavy / LeaderStrategy spawns not fleeing as per their "Duration"
 v1.7.01: Improved general performance of cop management functions for the "ADVANCED" set
 v1.7.02: Clarified some ambiguous phrasing in "LIMITATIONS" section of README
 v1.7.03: Clarified the different types of patrol spawns in README and "Cars.ini" file
+v1.7.04: Rephrased parts of the README for what feels like the millionth time

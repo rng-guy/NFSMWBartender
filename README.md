@@ -64,7 +64,7 @@ This feature set **lets you change** (per Heat level)
 * the global cop-spawn limit for how many cops in total may chase you at any given time,
 * how quickly cops flee the pursuit if they don't belong (if at all),
 * which vehicles may spawn to chase and search for you (any amount; with counts and chances),
-* which vehicles may spawn in regular roadblocks (same as above),
+* which vehicles may spawn in regular roadblocks (same liberties as above),
 * which vehicles may spawn as pre-generated cops in scripted events (ditto),
 * which vehicles may spawn as free patrols when there is no active pursuit (chances only),
 * which vehicle spawns in place of the regular helicopter, and
