@@ -69,7 +69,7 @@ namespace Globals
 
 
 	template <typename ...T>
-	void Log(T ...segments)
+	void Log(const T ...segments)
 	{
 		std::fstream* const file = logStream.get();
 		if (not file) return;
