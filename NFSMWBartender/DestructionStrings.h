@@ -76,7 +76,7 @@ namespace DestructionStrings
 		static hash (__cdecl* const GetStringHash)(const char*) = (hash (__cdecl*)(const char*))0x5CC240;
 		static key (__cdecl* const GetBinaryKey)(const char*)   = (key (__cdecl*)(const char*))0x460BF0;
 
-		if (not parser.LoadFile(Globals::configBasicPath + "Labels.ini")) return;
+		if (not parser.LoadFile(Globals::configPathBasic + "Labels.ini")) return;
 
 		std::vector<std::string> copVehicles;
 		std::vector<std::string> binaryLabels;

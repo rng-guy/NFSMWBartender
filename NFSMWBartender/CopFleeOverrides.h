@@ -28,10 +28,15 @@ namespace CopFleeOverrides
 	float minFleeDelay   = 0.f;
 	float maxFleeDelay   = 0.f;
 
-	// General Heat levels
-	std::array<bool,  Globals::maxHeatLevel> fleeingEnableds = {};
-	std::array<float, Globals::maxHeatLevel> minFleeDelays   = {};
-	std::array<float, Globals::maxHeatLevel> maxFleeDelays   = {};
+	// Free-roam Heat levels
+	std::array<bool,  Globals::maxHeatLevel> roamFleeingEnableds = {};
+	std::array<float, Globals::maxHeatLevel> roamMinFleeDelays   = {};
+	std::array<float, Globals::maxHeatLevel> roamMaxFleeDelays   = {};
+
+	// Racing Heat levels
+	std::array<bool,  Globals::maxHeatLevel> raceFleeingEnableds = {};
+	std::array<float, Globals::maxHeatLevel> raceMinFleeDelays   = {};
+	std::array<float, Globals::maxHeatLevel> raceMaxFleeDelays   = {};
 
 
 
@@ -256,9 +261,6 @@ namespace CopFleeOverrides
 
 		void UpdateOnHeatChange() override 
 		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[FLE] Fleeing now", (fleeingEnabled) ? "enabled" : "disabled");
-
 			this->ReviewAll();
 		}
 
@@ -318,34 +320,101 @@ namespace CopFleeOverrides
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	void Initialise(ConfigParser::Parser& parser)
-	{
-		parser.LoadFile(Globals::configAdvancedPath + "Cars.ini");
-
+	void ParseTimers
+	(
+		ConfigParser::Parser&                     parser,
+		const std::string&                        format,
+		std::array<bool,  Globals::maxHeatLevel>& fleeingEnableds,
+		std::array<float, Globals::maxHeatLevel>& minFleeDelays,
+		std::array<float, Globals::maxHeatLevel>& maxFleeDelays
+	) {
 		fleeingEnableds = parser.ParseParameterTable
 		(
 			"Fleeing:Timers",
-			Globals::configFormat,
+			format,
 			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(minFleeDelays, {}, 0.f),
 			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(maxFleeDelays, {}, 0.f)
 		);
 
 		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
 			minFleeDelays[heatLevel - 1] = std::min(minFleeDelays[heatLevel - 1], maxFleeDelays[heatLevel - 1]);
+	}
+
+
+
+
+
+	// State management -----------------------------------------------------------------------------------------------------------------------------
+
+	void Initialise(ConfigParser::Parser& parser)
+	{
+		parser.LoadFile(Globals::configPathAdvanced + "Cars.ini");
+
+		// Free-roam timers
+		ParseTimers
+		(
+			parser,
+			Globals::configFormatRoam,
+			roamFleeingEnableds,
+			roamMinFleeDelays,
+			roamMaxFleeDelays
+		);
+
+		// Racing timers
+		ParseTimers
+		(
+			parser,
+			Globals::configFormatRace,
+			raceFleeingEnableds,
+			raceMinFleeDelays,
+			raceMaxFleeDelays
+		);
 
 		featureEnabled = true;
 	}
 
 
 
-	void SetToHeat(size_t heatLevel)
-	{
-		if (not featureEnabled)                                    return;
-		if (not (fleeingEnabled = fleeingEnableds[heatLevel - 1])) return;
+	void SetToHeat
+	(
+		const size_t heatLevel,
+		const bool   isRacing
+	) {
+		if (not featureEnabled) return;
 
-		minFleeDelay = minFleeDelays[heatLevel - 1];
-		maxFleeDelay = maxFleeDelays[heatLevel - 1];
+		if (isRacing)
+		{
+			fleeingEnabled = raceFleeingEnableds[heatLevel - 1];
+
+			if (fleeingEnabled)
+			{
+				minFleeDelay = raceMinFleeDelays[heatLevel - 1];
+				maxFleeDelay = raceMaxFleeDelays[heatLevel - 1];
+			}
+		}
+		else
+		{
+			fleeingEnabled = roamFleeingEnableds[heatLevel - 1];
+
+			if (fleeingEnabled)
+			{
+				minFleeDelay = roamMinFleeDelays[heatLevel - 1];
+				maxFleeDelay = roamMaxFleeDelays[heatLevel - 1];
+			}
+		}
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::LogDashed("[FLE] Updating CopFleeOverrides");
+			Globals::LogIndent("[FLE] Fleeing now", (fleeingEnabled) ? "enabled" : "disabled");
+
+			if (fleeingEnabled)
+			{
+				Globals::LogIndent("[FLE] minFleeDelay           :", minFleeDelay);
+				Globals::LogIndent("[FLE] maxFleeDelay           :", maxFleeDelay);
+			}
+		}
 	}
 }

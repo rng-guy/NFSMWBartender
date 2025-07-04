@@ -20,6 +20,7 @@ namespace StateObserver
 
 	size_t  currentHeatLevel  = 0;
 	address playerPerpVehicle = 0x0;
+	bool    playerIsRacing    = false;
 	bool    gameStartHandled  = false;
 
 
@@ -33,10 +34,13 @@ namespace StateObserver
 		// Shouldn't be necessary, but this is a BlackBox game..
 		if ((currentHeatLevel >= 1) and (currentHeatLevel <= Globals::maxHeatLevel))
 		{
-			GroundSupport::SetToHeat(currentHeatLevel);
-			Miscellaneous::SetToHeat(currentHeatLevel);
-			PursuitBar::SetToHeat(currentHeatLevel);
-			PursuitObserver::SetToHeat(currentHeatLevel);
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogLine("[HLV] Heat change:", (int)currentHeatLevel, (playerIsRacing) ? "(racing)" : "(free-roam)");
+
+			GroundSupport::SetToHeat(currentHeatLevel, playerIsRacing);
+			Miscellaneous::SetToHeat(currentHeatLevel, playerIsRacing);
+			PursuitBar::SetToHeat(currentHeatLevel, playerIsRacing);
+			PursuitObserver::SetToHeat(currentHeatLevel, playerIsRacing);
 		}
 	}
 
@@ -52,6 +56,14 @@ namespace StateObserver
 
 	void OnGameplayUpdates()
 	{
+		static bool (__thiscall* const IsRacing)(address) = (bool (__thiscall*)(address))0x409500;
+
+		if (playerPerpVehicle and (playerIsRacing xor IsRacing(playerPerpVehicle)))
+		{
+			playerIsRacing = (not playerIsRacing);
+			OnHeatLevelUpdates();
+		}
+	
 		PursuitObserver::UpdateState();
 	}
 
@@ -60,6 +72,7 @@ namespace StateObserver
 	{
 		currentHeatLevel  = 0;
 		playerPerpVehicle = 0x0;
+		playerIsRacing    = false;
 
 		PursuitObserver::HardResetState();
 	}
@@ -94,16 +107,16 @@ namespace StateObserver
 
 			mov ebx, [esp + 0x20] // return address
 
-			cmp ebx, 0x6F4BE5 // vehicle initialisation
+			cmp ebx, 0x443DEA // pursuit update
+			je update
+
+			cmp ebx, 0x423EC9 // pursuit initialisation
 			je update
 
 			cmp ebx, 0x60DE53 // race initialisation
 			je update
 
-			cmp ebx, 0x443DEA // pursuit updates
-			je update
-
-			cmp ebx, 0x423EC9 // pursuit initialisation
+			cmp ebx, 0x6F4BE5 // vehicle initialisation
 			je update
 
 			jmp conclusion // argument is not true Heat

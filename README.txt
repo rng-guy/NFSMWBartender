@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.7.04) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.8.00) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -17,7 +17,7 @@ There are also separate sections for "INSTALLATION" instructions and the "LIMITA
 
 This feature set LETS YOU CHANGE (per Heat level)
  • at which distance and how quickly you can get busted,
- • how long it takes to lose the cops and enter Cooldown mode,
+ • how long it takes to fill the "EVADE" bar and enter "COOLDOWN" mode,
  • at which time interval you gain passive bounty,
  • the maximum combo-bounty multiplier for destroying cops quickly,
  • the internal cooldown for regular roadblock spawns,
@@ -50,7 +50,7 @@ Before you use this feature set, see the "LIMITATIONS" section further below.
 This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
  • the global cop-spawn limit for how many cops in total may chase you at any given time,
- • how quickly cops flee the pursuit if they don't belong (if at all),
+ • how quickly cops flee the pursuit if they do not belong (if at all),
  • which vehicles may spawn to chase and search for you (any amount; with counts and chances),
  • which vehicles may spawn in regular roadblocks (same liberties as above),
  • which vehicles may spawn as pre-generated cops in scripted events (ditto),
@@ -59,8 +59,8 @@ This feature set LETS YOU CHANGE (per Heat level)
  • when exactly the helicopter can (de / re)spawn (if at all).
 
 This feature set ALSO FIXES the displayed engagement count in the centre of the pursuit bar:
-its value is now perfectly accurate and reflects how many chasing cops remain in the current
-wave. The count ignores vehicles spawned through any Heavy or LeaderStrategy, the helicopter, 
+its value now accurately reflects how many chasing cop spawns remain in the current wave.
+The count ignores vehicles spawned through any Heavy / LeaderStrategy, the helicopter,
 and any vehicles that join the pursuit by detaching themselves from roadblocks.
 
 The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSettings/Advanced".
@@ -199,7 +199,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    this issue by setting the event's "ForceHeatLevel" VltEd parameter to the target Heat level.
 
  • There are two types of patrol spawns: free patrols that spawn when there is no active pursuit,
-   and searching patrols that spawn in pursuits when you are in Cooldown mode. The free patrols
+   and searching patrols that spawn in pursuits when you are in "COOLDOWN" mode. The free patrols
    are overwritten by the "Patrols" spawn table, and the searching patrols are taken from the 
    "Chasers" table. For both patrol types, the "NumPatrolCars" VltEd parameter controls how many 
    cars may spawn at any given time; free patrol spawns ignore the global cop-spawn limit, while 
@@ -280,3 +280,5 @@ v1.7.01: Improved general performance of cop management functions for the "ADVAN
 v1.7.02: Clarified some ambiguous phrasing in "LIMITATIONS" section of README
 v1.7.03: Clarified the different types of patrol spawns in README and "Cars.ini" file
 v1.7.04: Rephrased parts of the README for what feels like the millionth time
+
+v1.8.00: Added support for separate free-roam and racing pursuit parameters

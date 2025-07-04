@@ -20,9 +20,13 @@ namespace Miscellaneous
 	float bountyInterval = 10.f; // seconds
 	int   copComboLimit  = 3;    // kills
 
-	// General Heat levels
-	std::array<float, Globals::maxHeatLevel> bountyIntervals = {};
-	std::array<int,   Globals::maxHeatLevel> copComboLimits  = {};
+	// Free-roam Heat levels
+	std::array<float, Globals::maxHeatLevel> roamBountyIntervals = {};
+	std::array<int,   Globals::maxHeatLevel> roamCopComboLimits  = {};
+
+	// Racing Heat levels
+	std::array<float, Globals::maxHeatLevel> raceBountyIntervals = {};
+	std::array<int,   Globals::maxHeatLevel> raceCopComboLimits = {};
 
 	// Code caves
 	const address floorFunction = 0x7C4B80;
@@ -102,11 +106,30 @@ namespace Miscellaneous
 
     void Initialise(ConfigParser::Parser& parser)
     {
-		if (not parser.LoadFile(Globals::configBasicPath + "Others.ini")) return;
+		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return;
 
-        parser.ParseFormatParameter<float>("BountyInterval", Globals::configFormat, bountyIntervals, bountyInterval, .001f);
-        parser.ParseFormatParameter<int>  ("CopComboLimit",  Globals::configFormat, copComboLimits,  copComboLimit,  1);
+		// Pursuit parameters
+		Globals::ParseHeatParameter<float>
+		(
+			parser,
+			"BountyInterval",
+			roamBountyIntervals,
+			raceBountyIntervals,
+			bountyInterval,
+			.001f
+		);
 
+		Globals::ParseHeatParameter<int>
+		(
+			parser,
+			"CopComboLimit",
+			roamCopComboLimits,
+			raceCopComboLimits,
+			copComboLimit,
+			1
+		);
+
+		// Code caves
         MemoryEditor::DigCodeCave(&PassiveBounty, passiveBountyEntrance, passiveBountyExit);
         MemoryEditor::DigCodeCave(&CopCombo,      copComboEntrance,      copComboExit);
 
@@ -115,11 +138,30 @@ namespace Miscellaneous
 
 
 
-    void SetToHeat(const size_t heatLevel)
-    {
+	void SetToHeat
+	(
+		const size_t heatLevel,
+		const bool   isRacing
+	) {
         if (not featureEnabled) return;
 
-        bountyInterval = bountyIntervals[heatLevel - 1];
-        copComboLimit  = copComboLimits[heatLevel - 1];
+		if (isRacing)
+		{
+			bountyInterval = raceBountyIntervals[heatLevel - 1];
+			copComboLimit  = raceCopComboLimits[heatLevel - 1];
+		}
+		else
+		{
+			bountyInterval = roamBountyIntervals[heatLevel - 1];
+			copComboLimit  = roamCopComboLimits[heatLevel - 1];
+		}
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::LogDashed("[MSC] Updating Miscellaneous");
+
+			Globals::LogIndent("[MSC] bountyInterval         :", bountyInterval);
+			Globals::LogIndent("[MSC] copComboLimit          :", copComboLimit);
+		}
     }
 }

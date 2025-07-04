@@ -98,7 +98,7 @@ namespace ConfigParser
 
 		// For single values from a string
 		template <typename T>
-		static bool ParseParameter
+		static bool ParseParameterFromString
 		(
 			const std::string&     source,
 			T&                     parameterValue,
@@ -113,7 +113,7 @@ namespace ConfigParser
 
 		// For single values from parsed file
 		template <typename T>
-		bool ParseParameter
+		bool ParseParameterFromFile
 		(
 			const std::string&     section,
 			const std::string&     parameterKey,
@@ -156,7 +156,7 @@ namespace ConfigParser
 			size_t numTotalReads = 0;
 
 			if (defaultValue)
-				this->ParseParameter<T>
+				this->ParseParameterFromFile<T>
 				(
 					section,
 					this->defaultFormatValueKey,
@@ -170,7 +170,7 @@ namespace ConfigParser
 				if (defaultValue) parameterValue = defaultValue.value();
 				parameterKey = std::vformat(format, std::make_format_args(formatIndex));
 
-				numTotalReads += this->ParseParameter<T>
+				numTotalReads += this->ParseParameterFromFile<T>
 				(
 					section,
 					parameterKey,
@@ -289,7 +289,7 @@ namespace ConfigParser
 							parameters.values.pop_back();
 
 						if (isValidRow) 
-							isValidRow &= this->ParseParameter<T>
+							isValidRow &= this->ParseParameterFromString<T>
 							(
 								columnStrings[columnID], 
 								parameterValue,
@@ -342,29 +342,93 @@ namespace ConfigParser
 				[&]
 				{
 					if (parameters.defaultValue)
-					{
-						this->EnforceBounds
-						(
-							parameters.defaultValue.value(), 
-							parameters.lowerBound, 
-							parameters.upperBound
-						);
-
-						if (numDefaultValues > 0) defaultRow.append(this->tableColumnSeparator);
-
-						if constexpr (std::is_convertible_v<T, std::string>)
-							defaultRow.append(parameters.defaultValue.value());
-
-						else
-							defaultRow.append(std::to_string(parameters.defaultValue.value()));
-
 						numDefaultValues++;
-					}
 				}
 			(), ...);
 
 			if (numDefaultValues == numColumns)
+			{
+				// Attempt to read new defaults from file
+				bool isValidDefaultRow = this->ParseParameterFromFile<std::string>
+				(
+					section,
+					this->defaultFormatValueKey,
+					defaultRow
+				);
+
+				if (isValidDefaultRow) // new defaults in file
+				{
+					columnStrings = this->SplitTableRow(defaultRow);
+
+					columnID = 0;
+
+					// Check new defaults for validity
+					(
+						[&]
+						{
+							T defaultValue = T();
+
+							if (isValidDefaultRow)
+								isValidDefaultRow &= this->ParseParameterFromString<T>
+								(
+									columnStrings[columnID],
+									defaultValue
+								);
+
+							columnID++;
+						}
+					(), ...);
+				}
+
+				columnID = 0;
+
+				if (isValidDefaultRow) // new defaults are valid
+				{
+					// Overwrite old defaults with new ones
+					(
+						[&]
+						{
+							this->ParseParameterFromString<T>
+							(
+								columnStrings[columnID],
+								parameters.defaultValue.value(),
+								parameters.lowerBound,
+								parameters.upperBound
+							);
+
+							columnID++;
+						}
+					(), ...);
+				}
+				else // new defaults either invalid or not in file
+				{
+					defaultRow = std::string();
+
+					(
+						[&]
+						{
+							this->EnforceBounds<T>
+							(
+								parameters.defaultValue.value(),
+								parameters.lowerBound,
+								parameters.upperBound
+							);
+
+							if (columnID > 0) defaultRow.append(this->tableColumnSeparator);
+
+							if constexpr (std::is_convertible_v<T, std::string>)
+								defaultRow.append(parameters.defaultValue.value());
+
+							else
+								defaultRow.append(std::to_string(parameters.defaultValue.value()));
+
+							columnID++;
+						}
+					(), ...);
+				}
+
 				this->ParseFormatParameter<std::string>(section, format, tableRows, defaultRow);
+			}
 
 			else
 				this->ParseFormatParameter<std::string>(section, format, tableRows);
@@ -381,7 +445,7 @@ namespace ConfigParser
 					[&]
 					{
 						if (isValidRow[rowID])
-							isValidRow[rowID] &= this->ParseParameter<T>
+							isValidRow[rowID] &= this->ParseParameterFromString<T>
 							(
 								columnStrings[columnID],
 								parameters.values[rowID],

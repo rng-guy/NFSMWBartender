@@ -27,14 +27,23 @@ namespace HelicopterOverrides
 	float minDespawnDelay   = 0.f;
 	float maxDespawnDelay   = 0.f;
 
-	// General Heat levels
-	std::array<bool,  Globals::maxHeatLevel> helicoptersEnabled = {};
-	std::array<float, Globals::maxHeatLevel> minSpawnDelays     = {};
-	std::array<float, Globals::maxHeatLevel> maxSpawnDelays     = {};
-	std::array<float, Globals::maxHeatLevel> minDespawnDelays   = {};
-	std::array<float, Globals::maxHeatLevel> maxDespawnDelays   = {};
-	std::array<float, Globals::maxHeatLevel> minRespawnDelays   = {};
-	std::array<float, Globals::maxHeatLevel> maxRespawnDelays   = {};
+	// Free-roam Heat levels
+	std::array<bool,  Globals::maxHeatLevel> roamHelicoptersEnabled = {};
+	std::array<float, Globals::maxHeatLevel> roamMinSpawnDelays     = {};
+	std::array<float, Globals::maxHeatLevel> roamMaxSpawnDelays     = {};
+	std::array<float, Globals::maxHeatLevel> roamMinDespawnDelays   = {};
+	std::array<float, Globals::maxHeatLevel> roamMaxDespawnDelays   = {};
+	std::array<float, Globals::maxHeatLevel> roamMinRespawnDelays   = {};
+	std::array<float, Globals::maxHeatLevel> roamMaxRespawnDelays   = {};
+
+	// Racing Heat levels
+	std::array<bool,  Globals::maxHeatLevel> raceHelicoptersEnabled = {};
+	std::array<float, Globals::maxHeatLevel> raceMinSpawnDelays     = {};
+	std::array<float, Globals::maxHeatLevel> raceMaxSpawnDelays     = {};
+	std::array<float, Globals::maxHeatLevel> raceMinDespawnDelays   = {};
+	std::array<float, Globals::maxHeatLevel> raceMaxDespawnDelays   = {};
+	std::array<float, Globals::maxHeatLevel> raceMinRespawnDelays   = {};
+	std::array<float, Globals::maxHeatLevel> raceMaxRespawnDelays   = {};
 
 
 
@@ -172,9 +181,6 @@ namespace HelicopterOverrides
 
 		void UpdateOnHeatChange()  override 
 		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[HEL] Helicopter now", (helicopterEnabled) ? "enabled" : "disabled");
-
 			this->UpdateNextSpawnTimestamp();
 		}
 
@@ -235,18 +241,24 @@ namespace HelicopterOverrides
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	void Initialise(ConfigParser::Parser& parser)
-	{
-		MemoryEditor::Write<BYTE>(0xEB, 0x42BB2D); // prevent spawns in Cooldown mode
-
-		if (not parser.LoadFile(Globals::configAdvancedPath + "Helicopter.ini")) return;
-
+	void ParseTimers
+	(
+		ConfigParser::Parser&                     parser,
+		const std::string&                        format,
+		std::array<bool,  Globals::maxHeatLevel>& helicoptersEnabled,
+		std::array<float, Globals::maxHeatLevel>& minSpawnDelays,
+		std::array<float, Globals::maxHeatLevel>& maxSpawnDelays,
+		std::array<float, Globals::maxHeatLevel>& minDespawnDelays,
+		std::array<float, Globals::maxHeatLevel>& maxDespawnDelays,
+		std::array<float, Globals::maxHeatLevel>& minRespawnDelays,
+		std::array<float, Globals::maxHeatLevel>& maxRespawnDelays
+	) {
 		helicoptersEnabled = parser.ParseParameterTable
 		(
 			"Helicopter:Timers",
-			Globals::configFormat,
+			format,
 			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(minSpawnDelays,   {}, 0.f),
 			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(maxSpawnDelays,   {}, 0.f),
 			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(minDespawnDelays, {}, 0.f),
@@ -261,7 +273,49 @@ namespace HelicopterOverrides
 			minDespawnDelays[heatLevel - 1] = std::min(minDespawnDelays[heatLevel - 1], maxDespawnDelays[heatLevel - 1]);
 			minRespawnDelays[heatLevel - 1] = std::min(minRespawnDelays[heatLevel - 1], maxRespawnDelays[heatLevel - 1]);
 		}
+	}
 
+
+
+
+
+	// State management -----------------------------------------------------------------------------------------------------------------------------
+
+	void Initialise(ConfigParser::Parser& parser)
+	{
+		MemoryEditor::Write<BYTE>(0xEB, 0x42BB2D); // prevent spawns in Cooldown mode
+
+		if (not parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini")) return;
+
+		// Free-roam timers
+		ParseTimers
+		(
+			parser,
+			Globals::configFormatRoam,
+			roamHelicoptersEnabled,
+			roamMinSpawnDelays,
+			roamMaxSpawnDelays,
+			roamMinDespawnDelays,
+			roamMaxDespawnDelays,
+			roamMinRespawnDelays,
+			roamMaxRespawnDelays
+		);
+
+		// Racing timers
+		ParseTimers
+		(
+			parser,
+			Globals::configFormatRace,
+			raceHelicoptersEnabled,
+			raceMinSpawnDelays,
+			raceMaxSpawnDelays,
+			raceMinDespawnDelays,
+			raceMaxDespawnDelays,
+			raceMinRespawnDelays,
+			raceMaxRespawnDelays
+		);
+
+		// Code caves
 		MemoryEditor::DigCodeCave(&FuelTime, fuelTimeEntrance, fuelTimeExit);
 
 		featureEnabled = true;
@@ -269,16 +323,56 @@ namespace HelicopterOverrides
 
 
 
-	void SetToHeat(size_t heatLevel)
-	{
-		if (not featureEnabled)                                          return;
-		if (not (helicopterEnabled = helicoptersEnabled[heatLevel - 1])) return;
+	void SetToHeat
+	(
+		const size_t heatLevel,
+		const bool   isRacing
+	) {
+		if (not featureEnabled) return;
+		
+		if (isRacing)
+		{
+			helicopterEnabled = raceHelicoptersEnabled[heatLevel - 1];
 
-		minSpawnDelay   = minSpawnDelays[heatLevel - 1];
-		maxSpawnDelay   = maxSpawnDelays[heatLevel - 1];
-		minDespawnDelay = minDespawnDelays[heatLevel - 1];
-		maxDespawnDelay = maxDespawnDelays[heatLevel - 1];
-		minRespawnDelay = minRespawnDelays[heatLevel - 1];
-		maxRespawnDelay = maxRespawnDelays[heatLevel - 1];
+			if (helicopterEnabled)
+			{
+				minSpawnDelay   = raceMinSpawnDelays[heatLevel - 1];
+				maxSpawnDelay   = raceMaxSpawnDelays[heatLevel - 1];
+				minDespawnDelay = raceMinDespawnDelays[heatLevel - 1];
+				maxDespawnDelay = raceMaxDespawnDelays[heatLevel - 1];
+				minRespawnDelay = raceMinRespawnDelays[heatLevel - 1];
+				maxRespawnDelay = raceMaxRespawnDelays[heatLevel - 1];
+			}
+		}
+		else
+		{
+			helicopterEnabled = roamHelicoptersEnabled[heatLevel - 1];
+
+			if (helicopterEnabled)
+			{
+				minSpawnDelay   = roamMinSpawnDelays[heatLevel - 1];
+				maxSpawnDelay   = roamMaxSpawnDelays[heatLevel - 1];
+				minDespawnDelay = roamMinDespawnDelays[heatLevel - 1];
+				maxDespawnDelay = roamMaxDespawnDelays[heatLevel - 1];
+				minRespawnDelay = roamMinRespawnDelays[heatLevel - 1];
+				maxRespawnDelay = roamMaxRespawnDelays[heatLevel - 1];
+			}
+		}
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::LogDashed("[HEL] Updating HelicopterOverrides");
+			Globals::LogIndent("[HEL] Helicopter now", (helicopterEnabled) ? "enabled" : "disabled");
+
+			if (helicopterEnabled)
+			{
+				Globals::LogIndent("[HEL] minSpawnDelay          :", minSpawnDelay);
+				Globals::LogIndent("[HEL] maxSpawnDelay          :", maxSpawnDelay);
+				Globals::LogIndent("[HEL] minDespawnDelay        :", minDespawnDelay);
+				Globals::LogIndent("[HEL] maxDespawnDelay        :", maxDespawnDelay);
+				Globals::LogIndent("[HEL] minRespawnDelay        :", minRespawnDelay);
+				Globals::LogIndent("[HEL] maxRespawnDelay        :", maxRespawnDelay);
+			}
+		}
 	}
 }

@@ -21,10 +21,15 @@ namespace PursuitBar
 	float evadeTimer      = 7.f;  // seconds
 	float bustTimer       = 5.f;  // seconds
 	
-	// General Heat levels
-	std::array<float, Globals::maxHeatLevel> maxBustDistances = {};
-	std::array<float, Globals::maxHeatLevel> evadeTimers      = {};
-	std::array<float, Globals::maxHeatLevel> bustTimers       = {};
+	// Free-roam Heat levels
+	std::array<float, Globals::maxHeatLevel> roamMaxBustDistances = {};
+	std::array<float, Globals::maxHeatLevel> roamEvadeTimers      = {};
+	std::array<float, Globals::maxHeatLevel> roamBustTimers       = {};
+
+	// Racing Heat levels
+	std::array<float, Globals::maxHeatLevel> raceMaxBustDistances = {};
+	std::array<float, Globals::maxHeatLevel> raceEvadeTimers      = {};
+	std::array<float, Globals::maxHeatLevel> raceBustTimers       = {};
 
 	// Code caves
 	const float oneHalf                = .5f;
@@ -88,18 +93,34 @@ namespace PursuitBar
 
     void Initialise(ConfigParser::Parser& parser)
     {
-		if (not parser.LoadFile(Globals::configBasicPath + "Others.ini")) return;
+		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return;
 
-		parser.ParseParameterTable
+		// Pursuit parameters
+		Globals::ParseHeatParameterPair<float, float>
 		(
+			parser,
 			"Busting:General",
-			Globals::configFormat,
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(maxBustDistances, maxBustDistance, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(bustTimers,       bustTimer,       .001f)
+			roamMaxBustDistances,
+			roamBustTimers,
+			raceMaxBustDistances,
+			raceBustTimers,
+			maxBustDistance,
+			bustTimer,
+			0.f,
+			.001f
 		);
 
-		parser.ParseFormatParameter<float>("Evading:Timer", Globals::configFormat, evadeTimers, evadeTimer, .001f);
+		Globals::ParseHeatParameter<float>
+		(
+			parser,
+			"Evading:Timer",
+			roamEvadeTimers,
+			raceEvadeTimers,
+			evadeTimer,
+			.001f
+		);
 
+		// Code caves
         MemoryEditor::Write<WORD>  (0x35D8,      0x40AED9); // opcode fdiv m
         MemoryEditor::Write<float*>(&bustTimer,  0x4445CE,  0x40AEDB);
         MemoryEditor::Write<float*>(&evadeTimer, 0x4448E6,  0x444802,  0x4338F8);
@@ -112,12 +133,33 @@ namespace PursuitBar
 
 
 
-    void SetToHeat(const size_t heatLevel)
-    {
+    void SetToHeat
+	(
+		const size_t heatLevel,
+		const bool   isRacing
+	) {
         if (not featureEnabled) return;
 
-        maxBustDistance = maxBustDistances[heatLevel - 1];
-        bustTimer       = bustTimers[heatLevel - 1];
-		evadeTimer      = evadeTimers[heatLevel - 1];
+		if (isRacing)
+		{ 
+			maxBustDistance = raceMaxBustDistances[heatLevel - 1];
+			bustTimer       = raceBustTimers[heatLevel - 1];
+			evadeTimer      = raceEvadeTimers[heatLevel - 1];
+		}
+		else
+		{
+			maxBustDistance = roamMaxBustDistances[heatLevel - 1];
+			bustTimer       = roamBustTimers[heatLevel - 1];
+			evadeTimer      = roamEvadeTimers[heatLevel - 1];
+		}
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::LogDashed("[BAR] Updating PursuitBar");
+
+			Globals::LogIndent("[BAR] maxBustDistance        :", maxBustDistance);
+			Globals::LogIndent("[BAR] bustTimer              :", bustTimer);
+			Globals::LogIndent("[BAR] evadeTimer             :", evadeTimer);
+		}
     }
 }

@@ -98,9 +98,13 @@ namespace CopSpawnOverrides
 	int minActiveCount = 0; // vehicles
 	int maxActiveCount = 8; // vehicles
 
-	// General Heat levels
-	std::array<int, Globals::maxHeatLevel> minActiveCounts = {};
-	std::array<int, Globals::maxHeatLevel> maxActiveCounts = {};
+	// Free-roam Heat levels
+	std::array<int, Globals::maxHeatLevel> roamMinActiveCounts = {};
+	std::array<int, Globals::maxHeatLevel> roamMaxActiveCounts = {};
+
+	// Racing Heat levels
+	std::array<int, Globals::maxHeatLevel> raceMinActiveCounts = {};
+	std::array<int, Globals::maxHeatLevel> raceMaxActiveCounts = {};
 
 	// Code caves
 	bool skipEventSpawns = true;
@@ -660,16 +664,24 @@ namespace CopSpawnOverrides
 
 	void Initialise(ConfigParser::Parser& parser)
 	{
-		parser.LoadFile(Globals::configAdvancedPath + "Cars.ini");
+		parser.LoadFile(Globals::configPathAdvanced + "Cars.ini");
 
-		parser.ParseParameterTable
+		// Pursuit parameters
+		Globals::ParseHeatParameterPair<int, int>
 		(
+			parser,
 			"Spawning:Limits",
-			Globals::configFormat,
-			ConfigParser::FormatParameter<int, Globals::maxHeatLevel>(minActiveCounts, minActiveCount, 0),
-			ConfigParser::FormatParameter<int, Globals::maxHeatLevel>(maxActiveCounts, maxActiveCount, 0)
+			roamMinActiveCounts,
+			roamMaxActiveCounts,
+			raceMinActiveCounts,
+			raceMaxActiveCounts,
+			minActiveCount,
+			maxActiveCount,
+			0,
+			0
 		);
 
+		// Code caves
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
 		MemoryEditor::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
 
@@ -696,15 +708,34 @@ namespace CopSpawnOverrides
 
 
 
-	void SetToHeat(size_t heatLevel)
-	{
+	void SetToHeat
+	(
+		const size_t heatLevel,
+		const bool   isRacing
+	) {
 		if (not featureEnabled) return;
 
-		minActiveCount = minActiveCounts[heatLevel - 1];
-		maxActiveCount = maxActiveCounts[heatLevel - 1];
+		if (isRacing)
+		{
+			minActiveCount = raceMinActiveCounts[heatLevel - 1];
+			maxActiveCount = raceMaxActiveCounts[heatLevel - 1];
+		}
+		else
+		{
+			minActiveCount = roamMinActiveCounts[heatLevel - 1];
+			maxActiveCount = roamMaxActiveCounts[heatLevel - 1];
+		}
 
 		eventManager.get()->ReloadSpawnTable();
 		roadblockManager.get()->ReloadSpawnTable();
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::LogDashed("[SPA] Updating CopSpawnOverrides");
+
+			Globals::LogIndent("[SPA] minActiveCount         :", minActiveCount);
+			Globals::LogIndent("[SPA] maxActiveCount         :", maxActiveCount);
+		}
 	}
 
 

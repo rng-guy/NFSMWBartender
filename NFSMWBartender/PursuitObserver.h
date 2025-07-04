@@ -107,7 +107,7 @@ namespace PursuitObserver
 			: pursuit(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[OBS] Creating instance");
+				Globals::LogHalfDashed("[OBS] Creating instance:", this->pursuit);
 
 			if (CopSpawnOverrides::featureEnabled)
 				this->AddFeature<CopSpawnOverrides::ContingentManager>(this->pursuit);
@@ -123,15 +123,12 @@ namespace PursuitObserver
 		~PursuitObserver()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[OBS] Deleting instance");
+				Globals::LogHalfDashed("[OBS] Deleting instance:", this->pursuit);
 		}
 
 
 		void UpdateOnHeatChange()
 		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[OBS] Heat change");
-
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->UpdateOnHeatChange();
 
@@ -157,12 +154,6 @@ namespace PursuitObserver
 		}
 
 
-		void NotifyOfEventTransition()
-		{
-			this->perHeatLevelUpdatePending = true;
-		}
-
-
 		static size_t GetNumCopsLoaded()
 		{
 			return PursuitObserver::copVehiclesLoaded.size();
@@ -175,10 +166,10 @@ namespace PursuitObserver
 			{
 				if ((PursuitObserver::copVehiclesLoaded.insert(copVehicle)).second)
 				{
-					Globals::Log(Globals::logIndent, "[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
-					Globals::Log(Globals::logIndent, "[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
+					Globals::LogIndent("[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
+					Globals::LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
-				else Globals::Log(Globals::logIndent, "[REG] =", copVehicle, PursuitObserver::GetCopName(copVehicle));
+				else Globals::LogIndent("[REG] =", copVehicle, PursuitObserver::GetCopName(copVehicle));
 			}
 			else PursuitObserver::copVehiclesLoaded.insert(copVehicle);
 		}
@@ -190,8 +181,8 @@ namespace PursuitObserver
 			{
 				if (PursuitObserver::copVehiclesLoaded.erase(copVehicle) > 0)
 				{
-					Globals::Log(Globals::logIndent, "[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
-					Globals::Log(Globals::logIndent, "[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
+					Globals::LogIndent("[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
+					Globals::LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
 			}
 			else PursuitObserver::copVehiclesLoaded.erase(copVehicle);
@@ -201,7 +192,7 @@ namespace PursuitObserver
 		static void ClearRegistrations()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(Globals::logIndent, "[REG] Clearing all cops loaded");
+				Globals::LogIndent("[REG] Clearing all cops loaded");
 
 			PursuitObserver::copVehiclesLoaded.clear();
 		}
@@ -318,14 +309,6 @@ namespace PursuitObserver
 
 		else if constexpr (Globals::loggingEnabled)
 			Globals::Log("WARNING: [OBS] Removal from unknown pursuit", pursuit);
-	}
-
-
-
-	void NotifyObserversOfEventTransition()
-	{
-		for (auto& observer : pursuitToObserver)
-			observer.second.NotifyOfEventTransition();
 	}
 
 
@@ -452,27 +435,6 @@ namespace PursuitObserver
 
 
 
-	const address enterFreeRoamEntrance = 0x5FE3E0;
-	const address enterFreeRoamExit     = 0x5FE3E7;
-
-	__declspec(naked) void EnterFreeRoam()
-	{
-		__asm
-		{
-			push ecx
-			call NotifyObserversOfEventTransition
-			pop ecx
-
-			// Execute original code and resume
-			push -0x1
-			push 0x8760BE
-
-			jmp dword ptr enterFreeRoamExit
-		}
-	}
-
-
-
 	const address copAddedEntrance = 0x4338A0;
 	const address copAddedExit     = 0x4338A5;
 
@@ -573,7 +535,6 @@ namespace PursuitObserver
 		MemoryEditor::DigCodeCave(&PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryEditor::DigCodeCave(&PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
 		MemoryEditor::DigCodeCave(&VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);
-		MemoryEditor::DigCodeCave(&EnterFreeRoam,      enterFreeRoamEntrance,      enterFreeRoamExit);
 		MemoryEditor::DigCodeCave(&CopRemoved,         copRemovedEntrance,         copRemovedExit);
 		MemoryEditor::DigCodeCave(&CopAdded,           copAddedEntrance,           copAddedExit);
 
@@ -585,16 +546,19 @@ namespace PursuitObserver
 
 
 
-	void SetToHeat(size_t heatLevel) 
-	{
+	void SetToHeat
+	(
+		const size_t heatLevel,
+		const bool   isRacing
+	) {
 		if (not featureEnabled) return;
 
-		CopSpawnTables::SetToHeat(heatLevel);
+		CopSpawnTables::SetToHeat(heatLevel, isRacing);
 
-		PursuitFeatures::SetToHeat(heatLevel);
-		CopSpawnOverrides::SetToHeat(heatLevel);
-		CopFleeOverrides::SetToHeat(heatLevel);
-		HelicopterOverrides::SetToHeat(heatLevel);
+		PursuitFeatures::SetToHeat(heatLevel, isRacing);
+		CopSpawnOverrides::SetToHeat(heatLevel, isRacing);
+		CopFleeOverrides::SetToHeat(heatLevel, isRacing);
+		HelicopterOverrides::SetToHeat(heatLevel, isRacing);
 
 		for (auto& pair : pursuitToObserver) 
 			pair.second.UpdateOnHeatChange();

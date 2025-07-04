@@ -189,12 +189,19 @@ namespace CopSpawnTables
 	const SpawnTable* pursuitSpawnTable   = nullptr;
 	const SpawnTable* roadblockSpawnTable = nullptr;
 
-	// General Heat levels
-	std::array<std::string, Globals::maxHeatLevel> helicopterVehicles   = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> eventSpawnTables     = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> patrolSpawnTables    = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> pursuitSpawnTables   = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> roadblockSpawnTables = {};
+	// Free-roam Heat levels
+	std::array<std::string, Globals::maxHeatLevel> roamHelicopterVehicles   = {};
+	std::array<SpawnTable,  Globals::maxHeatLevel> roamEventSpawnTables     = {};
+	std::array<SpawnTable,  Globals::maxHeatLevel> roamPatrolSpawnTables    = {};
+	std::array<SpawnTable,  Globals::maxHeatLevel> roamPursuitSpawnTables   = {};
+	std::array<SpawnTable,  Globals::maxHeatLevel> roamRoadblockSpawnTables = {};
+
+	// Racing Heat levels
+	std::array<std::string, Globals::maxHeatLevel> raceHelicopterVehicles   = {};
+	std::array<SpawnTable,  Globals::maxHeatLevel> raceEventSpawnTables     = {};
+	std::array<SpawnTable,  Globals::maxHeatLevel> racePatrolSpawnTables    = {};
+	std::array<SpawnTable,  Globals::maxHeatLevel> racePursuitSpawnTables   = {};
+	std::array<SpawnTable,  Globals::maxHeatLevel> raceRoadblockSpawnTables = {};
 
 	// Code caves
 	int currentMaxCopCapacity = 0;
@@ -209,6 +216,7 @@ namespace CopSpawnTables
 	(
 		ConfigParser::Parser&                          parser,
 		const std::string&                             name,
+		const std::string&                             format,
 		std::array<SpawnTable, Globals::maxHeatLevel>& spawnTables,
 		const bool                                     hasCounts
 	) {
@@ -222,7 +230,7 @@ namespace CopSpawnTables
 
 		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
 		{
-			section = std::vformat("Heat{:02}:" + name, std::make_format_args(heatLevel));
+			section = std::vformat(format + name, std::make_format_args(heatLevel));
 
 			if (hasCounts) 
 				numberOfEntries = parser.ParseParameterTable
@@ -249,40 +257,94 @@ namespace CopSpawnTables
 
 	void Initialise(ConfigParser::Parser& parser)
 	{
-		parser.LoadFile(Globals::configAdvancedPath + "Helicopter.ini");
+		parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini");
 
-		parser.ParseFormatParameter<std::string>("Helicopter:Vehicle", Globals::configFormat, helicopterVehicles, helicopterVehicle);
-		std::for_each(helicopterVehicles.begin(), helicopterVehicles.end(), SpawnTable::RegisterHelicopter);
+		// Pursuit parameters
+		Globals::ParseHeatParameter<std::string>
+		(
+			parser,
+			"Helicopter:Vehicle",
+			roamHelicopterVehicles,
+			raceHelicopterVehicles,
+			helicopterVehicle
+		);
 
-		if (not parser.LoadFile(Globals::configAdvancedPath + "Cars.ini")) return;
+		std::for_each(roamHelicopterVehicles.begin(), roamHelicopterVehicles.end(), SpawnTable::RegisterHelicopter);
+		std::for_each(raceHelicopterVehicles.begin(), raceHelicopterVehicles.end(), SpawnTable::RegisterHelicopter);
 
-		ParseTables(parser, "Chasers", pursuitSpawnTables, true);
-		for (const auto& spawnTable : pursuitSpawnTables) if (spawnTable.IsEmpty()) return;
+		// Free-roam spawn tables
+		if (not parser.LoadFile(Globals::configPathAdvanced + "Cars.ini")) return;
 
-		ParseTables(parser, "Events",     eventSpawnTables,     true);
-		ParseTables(parser, "Patrols",    patrolSpawnTables,    false);
-		ParseTables(parser, "Roadblocks", roadblockSpawnTables, true);
-		
+		const std::string formatRoam = "Heat{:02}:";
+
+		ParseTables(parser, "Chasers", formatRoam, roamPursuitSpawnTables, true);
+		for (const auto& spawnTable : roamPursuitSpawnTables) if (spawnTable.IsEmpty()) return;
+
+		ParseTables(parser, "Events",     formatRoam, roamEventSpawnTables,     true);
+		ParseTables(parser, "Patrols",    formatRoam, roamPatrolSpawnTables,    false);
+		ParseTables(parser, "Roadblocks", formatRoam, roamRoadblockSpawnTables, true);
+
+		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
+		{
+			if (roamEventSpawnTables[heatLevel - 1].IsEmpty())     roamEventSpawnTables[heatLevel - 1]     = roamPursuitSpawnTables[heatLevel - 1];
+			if (roamPatrolSpawnTables[heatLevel - 1].IsEmpty())    roamPatrolSpawnTables[heatLevel - 1]    = roamPursuitSpawnTables[heatLevel - 1];
+			if (roamRoadblockSpawnTables[heatLevel - 1].IsEmpty()) roamRoadblockSpawnTables[heatLevel - 1] = roamPursuitSpawnTables[heatLevel - 1];
+		}
+
+		// Racing spawn tables
+		const std::string formatRace = "Race{:02}:";
+
+		ParseTables(parser, "Chasers",    formatRace, racePursuitSpawnTables,   true);
+		ParseTables(parser, "Events",     formatRace, raceEventSpawnTables,     true);
+		ParseTables(parser, "Patrols",    formatRace, racePatrolSpawnTables,    false);
+		ParseTables(parser, "Roadblocks", formatRace, raceRoadblockSpawnTables, true);
+
+		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
+		{
+			if (racePursuitSpawnTables[heatLevel - 1].IsEmpty())   racePursuitSpawnTables[heatLevel - 1]   = roamPursuitSpawnTables[heatLevel - 1];
+			if (raceEventSpawnTables[heatLevel - 1].IsEmpty())     raceEventSpawnTables[heatLevel - 1]     = roamEventSpawnTables[heatLevel - 1];
+			if (racePatrolSpawnTables[heatLevel - 1].IsEmpty())    racePatrolSpawnTables[heatLevel - 1]    = roamPatrolSpawnTables[heatLevel - 1];
+			if (raceRoadblockSpawnTables[heatLevel - 1].IsEmpty()) raceRoadblockSpawnTables[heatLevel - 1] = roamRoadblockSpawnTables[heatLevel - 1];
+		}
+
 		featureEnabled = true;
 	}
 
 
 
-	void SetToHeat(const size_t heatLevel)
-	{
+	void SetToHeat
+	(
+		const size_t heatLevel,
+		const bool   isRacing
+	) {
 		if (not featureEnabled) return;
 
-		helicopterVehicle = helicopterVehicles[heatLevel - 1].c_str();
+		if (isRacing)
+		{
+			helicopterVehicle = raceHelicopterVehicles[heatLevel - 1].c_str();
 
-		eventSpawnTable     = &eventSpawnTables[heatLevel - 1];
-		patrolSpawnTable    = &patrolSpawnTables[heatLevel - 1];
-		pursuitSpawnTable   = &pursuitSpawnTables[heatLevel - 1];
-		roadblockSpawnTable = &roadblockSpawnTables[heatLevel - 1];
+			eventSpawnTable     = &raceEventSpawnTables[heatLevel - 1];
+			patrolSpawnTable    = &racePatrolSpawnTables[heatLevel - 1];
+			pursuitSpawnTable   = &racePursuitSpawnTables[heatLevel - 1];
+			roadblockSpawnTable = &raceRoadblockSpawnTables[heatLevel - 1];
+		}
+		else
+		{
+			helicopterVehicle = roamHelicopterVehicles[heatLevel - 1].c_str();
 
-		if (eventSpawnTable->IsEmpty())     eventSpawnTable     = pursuitSpawnTable;
-		if (patrolSpawnTable->IsEmpty())    patrolSpawnTable    = pursuitSpawnTable;
-		if (roadblockSpawnTable->IsEmpty()) roadblockSpawnTable = pursuitSpawnTable;
+			eventSpawnTable     = &roamEventSpawnTables[heatLevel - 1];
+			patrolSpawnTable    = &roamPatrolSpawnTables[heatLevel - 1];
+			pursuitSpawnTable   = &roamPursuitSpawnTables[heatLevel - 1];
+			roadblockSpawnTable = &roamRoadblockSpawnTables[heatLevel - 1];
+		}
 
 		currentMaxCopCapacity = pursuitSpawnTable->GetMaxTotalCopCapacity();
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::LogDashed("[TAB] Updating CopSpawnTables");
+
+			Globals::LogIndent("[TAB] helicopterVehicle      :", helicopterVehicle);
+		}
 	}
 }
