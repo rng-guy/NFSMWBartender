@@ -111,7 +111,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
 
  • This feature is completely incompatible with the "EnableCopDestroyedStringHook" feature of the
-   "NFSMW Unlimiter" mod by nlgxzef. Either delete this mod's "Labels.ini" configuration file or 
+   "NFSMW Unlimiter" mod by nlgxzef. Either delete Bartender's "Labels.ini" configuration file or 
    disable Unlimiter's version of the feature by editing its "NFSMWUnlimiterSettings.ini" file.
 
 
