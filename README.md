@@ -153,7 +153,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 **General**:
 
-* The entire feature set disables itself if *any* Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); you must specify at least one vehicle for each level.
+* The entire feature set is disabled if *any* free-roam Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); each table must contain at least one vehicle.
 
 * If the feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because the feature set fulfils their intended purposes with much greater customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
@@ -172,6 +172,8 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 * Pushing any global cop-spawn limit beyond 8 requires the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) mod by Zolika1351 to work properly. Without it, the game will start unloading models and assets because its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. To make LA compatible with this mod, open its `NFSMWLimitAdjuster.ini` configuration file and disable *all* features in its `[Options]` section; this will fully unlock the spawn limit without forcing an infinite amount of cops to spawn. Note that LA is not perfectly stable either: It is prone to crashing in the first 30 seconds of the first pursuit in a play session, but will generally stay stable if it does not crash there.
 
 * All vehicles you specify in any of the spawn tables must each have the `CAR` class assigned to them in their `pvehicle` VltEd entry, either directly or through a parent entry.
+
+* All empty spawn tables for race Heat levels will become copies of their free-roam versions.
 
 * Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This does not apply to vehicles with `count` values of at least 5, as no roadblock contains more than 5 cars.
 

@@ -132,8 +132,8 @@ GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
 GENERAL:
 
- • The entire feature set disables itself if ANY Heat level lacks a valid "Chasers" spawn table
-   ("BartenderSettings\Advanced\Cars.ini"); you must specify at least one vehicle for each level.
+ • The entire feature set is disabled if ANY free-roam Heat level lacks a valid "Chasers" spawn
+   table ("BartenderSettings\Advanced\Cars.ini"); each table must contain at least one vehicle.
 
  • If the feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
    because the feature set fulfils their intended purposes with much greater customisation:
@@ -165,6 +165,8 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned
    to them in their "pvehicle" VltEd entry, either directly or through a parent entry.
+
+ • All empty spawn tables for race Heat levels will become copies of their free-roam versions.
 
  • Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position 
    of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, 
@@ -281,4 +283,4 @@ v1.7.02: Clarified some ambiguous phrasing in "LIMITATIONS" section of README
 v1.7.03: Clarified the different types of patrol spawns in README and "Cars.ini" file
 v1.7.04: Rephrased parts of the README for what feels like the millionth time
 
-v1.8.00: Added support for separate free-roam and racing pursuit parameters
+v1.8.00: Added support for separate free-roam and race pursuit parameters
