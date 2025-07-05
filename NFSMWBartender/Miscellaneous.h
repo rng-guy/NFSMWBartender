@@ -158,10 +158,10 @@ namespace Miscellaneous
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogDashed("[MSC] Updating Miscellaneous");
+			Globals::LogIndent("[MSC] Miscellaneous");
 
-			Globals::LogIndent("[MSC] bountyInterval         :", bountyInterval);
-			Globals::LogIndent("[MSC] copComboLimit          :", copComboLimit);
+			Globals::LogLongIndent("bountyInterval         :", bountyInterval);
+			Globals::LogLongIndent("copComboLimit          :", copComboLimit);
 		}
     }
 }

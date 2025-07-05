@@ -269,9 +269,12 @@ namespace HelicopterOverrides
 
 		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
 		{
-			minSpawnDelays[heatLevel - 1]   = std::min(minSpawnDelays[heatLevel - 1],   maxSpawnDelays[heatLevel - 1]);
-			minDespawnDelays[heatLevel - 1] = std::min(minDespawnDelays[heatLevel - 1], maxDespawnDelays[heatLevel - 1]);
-			minRespawnDelays[heatLevel - 1] = std::min(minRespawnDelays[heatLevel - 1], maxRespawnDelays[heatLevel - 1]);
+			if (helicoptersEnabled[heatLevel - 1])
+			{
+				minSpawnDelays[heatLevel - 1]   = std::min<float>(minSpawnDelays[heatLevel - 1],   maxSpawnDelays[heatLevel - 1]);
+				minDespawnDelays[heatLevel - 1] = std::min<float>(minDespawnDelays[heatLevel - 1], maxDespawnDelays[heatLevel - 1]);
+				minRespawnDelays[heatLevel - 1] = std::min<float>(minRespawnDelays[heatLevel - 1], maxRespawnDelays[heatLevel - 1]);
+			}
 		}
 	}
 
@@ -361,17 +364,17 @@ namespace HelicopterOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogDashed("[HEL] Updating HelicopterOverrides");
-			Globals::LogIndent("[HEL] Helicopter now", (helicopterEnabled) ? "enabled" : "disabled");
+			Globals::LogIndent("[HEL] HelicopterOverrides");
+			Globals::LogLongIndent("Helicopter", (helicopterEnabled) ? "enabled" : "disabled");
 
 			if (helicopterEnabled)
 			{
-				Globals::LogIndent("[HEL] minSpawnDelay          :", minSpawnDelay);
-				Globals::LogIndent("[HEL] maxSpawnDelay          :", maxSpawnDelay);
-				Globals::LogIndent("[HEL] minDespawnDelay        :", minDespawnDelay);
-				Globals::LogIndent("[HEL] maxDespawnDelay        :", maxDespawnDelay);
-				Globals::LogIndent("[HEL] minRespawnDelay        :", minRespawnDelay);
-				Globals::LogIndent("[HEL] maxRespawnDelay        :", maxRespawnDelay);
+				Globals::LogLongIndent("minSpawnDelay          :", minSpawnDelay);
+				Globals::LogLongIndent("maxSpawnDelay          :", maxSpawnDelay);
+				Globals::LogLongIndent("minDespawnDelay        :", minDespawnDelay);
+				Globals::LogLongIndent("maxDespawnDelay        :", maxDespawnDelay);
+				Globals::LogLongIndent("minRespawnDelay        :", minRespawnDelay);
+				Globals::LogLongIndent("maxRespawnDelay        :", maxRespawnDelay);
 			}
 		}
 	}

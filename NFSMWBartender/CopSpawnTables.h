@@ -342,9 +342,9 @@ namespace CopSpawnTables
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogDashed("[TAB] Updating CopSpawnTables");
+			Globals::LogIndent("[TAB] CopSpawnTables");
 
-			Globals::LogIndent("[TAB] helicopterVehicle      :", helicopterVehicle);
+			Globals::LogLongIndent("helicopterVehicle      :", helicopterVehicle);
 		}
 	}
 }

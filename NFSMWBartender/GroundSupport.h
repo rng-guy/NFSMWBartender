@@ -300,7 +300,7 @@ namespace GroundSupport
 
 		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
 		{
-			minRoadblockCooldowns[heatLevel - 1]   = std::min(minRoadblockCooldowns[heatLevel - 1], maxRoadblockCooldowns[heatLevel - 1]);
+			minRoadblockCooldowns[heatLevel - 1]   = std::min<float>(minRoadblockCooldowns[heatLevel - 1], maxRoadblockCooldowns[heatLevel - 1]);
 			roadblockCooldownRanges[heatLevel - 1] = maxRoadblockCooldowns[heatLevel - 1] - minRoadblockCooldowns[heatLevel - 1];
 		}
 
@@ -455,20 +455,20 @@ namespace GroundSupport
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogDashed("[SUP] Updating GroundSupport");
+			Globals::LogIndent("[SUP] GroundSupport");
 
-			Globals::LogIndent("[SUP] minRoadblockCooldown   :", minRoadblockCooldown);
-			Globals::LogIndent("[SUP] roadblockCooldownRange :", roadblockCooldownRange);
-			Globals::LogIndent("[SUP] roadblockHeavyCooldown :", roadblockHeavyCooldown);
-			Globals::LogIndent("[SUP] strategyCooldown       :", strategyCooldown);
-			Globals::LogIndent("[SUP] maxStrategyDelay       :", maxStrategyDelay);
+			Globals::LogLongIndent("minRoadblockCooldown   :", minRoadblockCooldown);
+			Globals::LogLongIndent("roadblockCooldownRange :", roadblockCooldownRange);
+			Globals::LogLongIndent("roadblockHeavyCooldown :", roadblockHeavyCooldown);
+			Globals::LogLongIndent("strategyCooldown       :", strategyCooldown);
+			Globals::LogLongIndent("maxStrategyDelay       :", maxStrategyDelay);
 
-			Globals::LogIndent("[SUP] lightRammingVehicle    :", lightRammingVehicle);
-			Globals::LogIndent("[SUP] heavyRammingVehicle    :", heavyRammingVehicle);
-			Globals::LogIndent("[SUP] lightRoadblockVehicle  :", lightRoadblockVehicle);
-			Globals::LogIndent("[SUP] heavyRoadblockVehicle  :", heavyRoadblockVehicle);
-			Globals::LogIndent("[SUP] leaderVehicle          :", leaderVehicle);
-			Globals::LogIndent("[SUP] henchmenVehicle        :", henchmenVehicle);
+			Globals::LogLongIndent("lightRammingVehicle    :", lightRammingVehicle);
+			Globals::LogLongIndent("heavyRammingVehicle    :", heavyRammingVehicle);
+			Globals::LogLongIndent("lightRoadblockVehicle  :", lightRoadblockVehicle);
+			Globals::LogLongIndent("heavyRoadblockVehicle  :", heavyRoadblockVehicle);
+			Globals::LogLongIndent("leaderVehicle          :", leaderVehicle);
+			Globals::LogLongIndent("henchmenVehicle        :", henchmenVehicle);
 		}
     }
 }

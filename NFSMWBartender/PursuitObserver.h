@@ -107,7 +107,7 @@ namespace PursuitObserver
 			: pursuit(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogHalfDashed("[OBS] Creating instance:", this->pursuit);
+				Globals::Log("     NEW [OBS] Instance", this->pursuit);
 
 			if (CopSpawnOverrides::featureEnabled)
 				this->AddFeature<CopSpawnOverrides::ContingentManager>(this->pursuit);
@@ -123,7 +123,7 @@ namespace PursuitObserver
 		~PursuitObserver()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogHalfDashed("[OBS] Deleting instance:", this->pursuit);
+				Globals::Log("     DEL [OBS] Instance", this->pursuit);
 		}
 
 
@@ -169,7 +169,6 @@ namespace PursuitObserver
 					Globals::LogIndent("[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
 					Globals::LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
-				else Globals::LogIndent("[REG] =", copVehicle, PursuitObserver::GetCopName(copVehicle));
 			}
 			else PursuitObserver::copVehiclesLoaded.insert(copVehicle);
 		}

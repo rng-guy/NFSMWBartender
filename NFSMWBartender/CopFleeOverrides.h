@@ -339,7 +339,10 @@ namespace CopFleeOverrides
 		);
 
 		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
-			minFleeDelays[heatLevel - 1] = std::min(minFleeDelays[heatLevel - 1], maxFleeDelays[heatLevel - 1]);
+		{
+			if (fleeingEnableds[heatLevel - 1]) 
+				minFleeDelays[heatLevel - 1] = std::min<float>(minFleeDelays[heatLevel - 1], maxFleeDelays[heatLevel - 1]);
+		}
 	}
 
 
@@ -407,13 +410,13 @@ namespace CopFleeOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogDashed("[FLE] Updating CopFleeOverrides");
-			Globals::LogIndent("[FLE] Fleeing now", (fleeingEnabled) ? "enabled" : "disabled");
+			Globals::LogIndent("[FLE] CopFleeOverrides");
+			Globals::LogLongIndent("Fleeing", (fleeingEnabled) ? "enabled" : "disabled");
 
 			if (fleeingEnabled)
 			{
-				Globals::LogIndent("[FLE] minFleeDelay           :", minFleeDelay);
-				Globals::LogIndent("[FLE] maxFleeDelay           :", maxFleeDelay);
+				Globals::LogLongIndent("minFleeDelay           :", minFleeDelay);
+				Globals::LogLongIndent("maxFleeDelay           :", maxFleeDelay);
 			}
 		}
 	}

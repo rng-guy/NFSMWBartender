@@ -30,9 +30,7 @@ namespace Globals
 	
 	const std::string logFile       = "BartenderLog.txt";
 	const std::string logIndent     = "        ";
-	const std::string logLine       = "--------";
-	const std::string logDashed     = "    ----";
-	const std::string logHalfDashed = "      --";
+	const std::string logLongIndent = "              ";
 
 	const std::string configFormatRoam   = "heat{:02}";
 	const std::string configFormatRace   = "race{:02}";
@@ -180,24 +178,8 @@ namespace Globals
 
 
 	template <typename ...T>
-	void LogLine(const T ...segments)
+	void LogLongIndent(const T ...segments)
 	{
-		Log<std::string, T...>(logLine, segments...);
-	}
-
-
-
-	template <typename ...T>
-	void LogDashed(const T ...segments)
-	{
-		Log<std::string, T...>(logDashed, segments...);
-	}
-
-
-
-	template <typename ...T>
-	void LogHalfDashed(const T ...segments)
-	{
-		Log<std::string, T...>(logHalfDashed, segments...);
+		Log<std::string, T...>(logLongIndent, segments...);
 	}
 }

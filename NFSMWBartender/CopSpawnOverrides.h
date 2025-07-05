@@ -731,10 +731,10 @@ namespace CopSpawnOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogDashed("[SPA] Updating CopSpawnOverrides");
+			Globals::LogIndent("[SPA] CopSpawnOverrides");
 
-			Globals::LogIndent("[SPA] minActiveCount         :", minActiveCount);
-			Globals::LogIndent("[SPA] maxActiveCount         :", maxActiveCount);
+			Globals::LogLongIndent("minActiveCount         :", minActiveCount);
+			Globals::LogLongIndent("maxActiveCount         :", maxActiveCount);
 		}
 	}
 
