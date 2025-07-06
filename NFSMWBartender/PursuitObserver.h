@@ -64,7 +64,7 @@ namespace PursuitObserver
 			case 0x40B02A: // roadblock cop after spike-strip hit
 				[[fallthrough]];
 
-			case 0x4443d8: // lone roadblock cop
+			case 0x4443D8: // lone roadblock cop
 				return CopLabel::ROADBLOCK;
 
 			case 0x41F7E6: // LeaderStrategy spawn
