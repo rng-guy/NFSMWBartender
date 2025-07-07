@@ -157,6 +157,8 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * If the feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because the feature set fulfils their intended purposes with much greater customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
+* In each Heat level's `pursuitsupport` VltEd entry, ensure that every HeavyStrategy enabled is specified exactly once (e.g. there is not a second HeavyStrategy 3), and that there is no more than one LeaderStrategy enabled; otherwise, their `Duration` VltEd parameters might be misread.
+
 &nbsp;
 
 **Helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopter.ini`):

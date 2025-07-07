@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.8.00) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.8.01) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -138,6 +138,10 @@ GENERAL:
  • If the feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
    because the feature set fulfils their intended purposes with much greater customisation:
    "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
+
+ • In each Heat level's "pursuitsupport" VltEd entry, ensure that every HeavyStrategy enabled is 
+   specified exactly once (e.g. there is not a second HeavyStrategy 3), and that there is no more
+   than one LeaderStrategy enabled; otherwise, their "Duration" VltEd parameters might be misread.
 
    
 HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
@@ -284,3 +288,4 @@ v1.7.03: Clarified the different types of patrol spawns in README and "Cars.ini"
 v1.7.04: Rephrased parts of the README for what feels like the millionth time
 
 v1.8.00: Added support for separate free-roam and race pursuit parameters
+v1.8.01: Improved performance slightly and expanded "LIMITATIONS" section of README
