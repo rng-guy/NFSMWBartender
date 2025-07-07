@@ -62,17 +62,17 @@ To **disable** a given feature of this set, delete its .ini section or the entir
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
 * the global cop-spawn limit for how many cops in total may chase you at any given time,
-* how quickly cops flee the pursuit if they do not belong (if at all),
-* which vehicles may spawn to chase and search for you (any amount; with counts and chances),
-* which vehicles may spawn in regular roadblocks (same liberties as above),
-* which vehicles may spawn as pre-generated cops in scripted events (ditto),
-* which vehicles may spawn as free patrols when there is no active pursuit (chances only),
+* how quickly (if at all) cops flee the pursuit if they do not belong,
+* which vehicles (any amount, with counts and chances) may spawn to chase and search for you,
+* which vehicles (same liberties as above) may spawn in regular roadblocks,
+* which vehicles (ditto) may spawn as pre-generated cops in scripted events,
+* which vehicles (without counts) may spawn as free patrols when there is no active pursuit,
 * which vehicle spawns in place of the regular helicopter, and
-* when exactly the helicopter can (de / re)spawn (if at all).
+* when exactly (if at all) the helicopter can (de / re)spawn.
 
 &nbsp;
 
-This feature set **also fixes** the displayed engagement count in the centre of the pursuit bar: its value now accurately reflects how many chasing cop spawns remain in the current wave. The count ignores vehicles spawned through any Heavy / LeaderStrategy, the helicopter, and any vehicles that join the pursuit by detaching themselves from roadblocks.
+This feature set **also fixes** the displayed engagement count in the centre of the pursuit bar: its value now accurately reflects how many chasing cop spawns remain in the current wave. The count ignores vehicles spawned through any Heavy / LeaderStrategy, the helicopter, and all vehicles that join the pursuit by detaching themselves from roadblocks.
 
 &nbsp;
 

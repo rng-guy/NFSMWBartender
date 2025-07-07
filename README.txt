@@ -50,18 +50,18 @@ Before you use this feature set, see the "LIMITATIONS" section further below.
 This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
  • the global cop-spawn limit for how many cops in total may chase you at any given time,
- • how quickly cops flee the pursuit if they do not belong (if at all),
- • which vehicles may spawn to chase and search for you (any amount; with counts and chances),
- • which vehicles may spawn in regular roadblocks (same liberties as above),
- • which vehicles may spawn as pre-generated cops in scripted events (ditto),
- • which vehicles may spawn as free patrols when there is no active pursuit (chances only),
+ • how quickly (if at all) cops flee the pursuit if they do not belong,
+ • which vehicles (any amount, with counts and chances) may spawn to chase and search for you,
+ • which vehicles (same liberties as above) may spawn in regular roadblocks,
+ • which vehicles (ditto) may spawn as pre-generated cops in scripted events,
+ • which vehicles (without counts) may spawn as free patrols when there is no active pursuit,
  • which vehicle spawns in place of the regular helicopter, and
- • when exactly the helicopter can (de / re)spawn (if at all).
+ • when exactly (if at all) the helicopter can (de / re)spawn.
 
 This feature set ALSO FIXES the displayed engagement count in the centre of the pursuit bar:
 its value now accurately reflects how many chasing cop spawns remain in the current wave.
 The count ignores vehicles spawned through any Heavy / LeaderStrategy, the helicopter,
-and any vehicles that join the pursuit by detaching themselves from roadblocks.
+and all vehicles that join the pursuit by detaching themselves from roadblocks.
 
 The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSettings/Advanced".
 To DISABLE this feature set, delete the entire "scripts/BartenderSettings/Advanced" folder.
