@@ -99,7 +99,7 @@ namespace CopFleeOverrides
 			}
 
 			// HeavyStrategy 3
-			static address (__thiscall* const GetHeavyStrategies)(address, int) = (address (__thiscall*)(address, int))0x4035e0;
+			static address (__thiscall* const GetHeavyStrategies)(address, int) = (address (__thiscall*)(address, int))0x4035E0;
 			static size_t (__thiscall* const GetNumHeavyStrategies)(address)    = (size_t (__thiscall*)(address))0x403600;
 
 			static constexpr int rammingStrategy    = 3;
