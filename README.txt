@@ -311,4 +311,4 @@ v1.7.04: Rephrased parts of the README for what feels like the millionth time
 v1.8.00: Added support for separate free-roam and race pursuit parameters
 v1.8.01: Improved performance slightly and expanded "LIMITATIONS" section of README
 
-v1.9.00: Added fixes for Heat levels above 5 resetting in Career mode and missing menu textures
+v1.9.00: Added fixes for Heat levels above 5 resetting and missing menu textures in Career mode
