@@ -1,6 +1,8 @@
 
 ── ■ │ NFSMW Bartender (v1.9.01) │ ■ ──────────────────────────────────────────────────────────────
 
+You can view this README with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
+
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" set lets you change cop-spawning behaviour and spawn tables without limits.
