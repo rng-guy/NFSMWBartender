@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.9.00) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.9.01) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -119,14 +119,14 @@ GENERAL:
 
  • The Heat-level reset fix is completely incompatible with the "HeatLevelOverride" feature of 
    the "NFSMW ExtraOptions" mod by ExOptsTeam. I strongly recommend you disable this ExtraOptions
-   feature by editing that mod's "NFSMWExtraOptionsSettings.ini" configuration file, as it might
-   also interfere with other Bartender features in subtle ways. You can set the maximum Heat level
-   available at a given Blacklist rank XY by changing the value of the "0xe8c24416" parameter in
-   the corresponding "race_bin_XY" VltEd entry instead.
+   feature, as it might also interfere with other Bartender features in subtle ways; to do so, edit
+   ExtraOptions' "NFSMWExtraOptionsSettings.ini" configuration file. To set the maximum Heat level
+   available at a given Blacklist rank XY without this ExtraOptions feature, just change the value
+   of the "0xe8c24416" parameter in the corresponding "race_bin_XY" VltEd entry instead.
 
  • If you do not install the missing menu textures ("FixMissingTextures.end"), then the game will
-   simply not display a number next to Heat gauges in menus when your car's Heat level is greater
-   than 5. (Whether you install these textures has no bearing on the Heat-level reset fix.)
+   simply not display a number next to Heat gauges in menus when your car's Heat level is above 5. 
+   The Heat-level reset fix, on the other hand, will work even without these missing textures.
 
 
 COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
@@ -312,3 +312,4 @@ v1.8.00: Added support for separate free-roam and race pursuit parameters
 v1.8.01: Improved performance slightly and expanded "LIMITATIONS" section of README
 
 v1.9.00: Added fixes for Heat levels above 5 resetting and missing menu textures in Career mode
+v1.9.01: It's a bird! It's a plane! No, it's yet another fresh batch of phrasing corrections!
