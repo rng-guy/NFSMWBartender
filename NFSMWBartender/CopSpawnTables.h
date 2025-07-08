@@ -255,7 +255,7 @@ namespace CopSpawnTables
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	void Initialise(ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
 		parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini");
 
@@ -273,12 +273,12 @@ namespace CopSpawnTables
 		std::for_each(raceHelicopterVehicles.begin(), raceHelicopterVehicles.end(), SpawnTable::RegisterHelicopter);
 
 		// Free-roam spawn tables
-		if (not parser.LoadFile(Globals::configPathAdvanced + "Cars.ini")) return;
+		if (not parser.LoadFile(Globals::configPathAdvanced + "Cars.ini")) return false;
 
 		const std::string formatRoam = "Heat{:02}:";
 
 		ParseTables(parser, "Chasers", formatRoam, roamPursuitSpawnTables, true);
-		for (const auto& spawnTable : roamPursuitSpawnTables) if (spawnTable.IsEmpty()) return;
+		for (const auto& spawnTable : roamPursuitSpawnTables) if (spawnTable.IsEmpty()) return false;
 
 		ParseTables(parser, "Events",     formatRoam, roamEventSpawnTables,     true);
 		ParseTables(parser, "Patrols",    formatRoam, roamPatrolSpawnTables,    false);
@@ -307,7 +307,7 @@ namespace CopSpawnTables
 			if (raceRoadblockSpawnTables[heatLevel - 1].IsEmpty()) raceRoadblockSpawnTables[heatLevel - 1] = roamRoadblockSpawnTables[heatLevel - 1];
 		}
 
-		featureEnabled = true;
+		return (featureEnabled = true);
 	}
 
 

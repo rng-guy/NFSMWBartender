@@ -91,9 +91,9 @@ namespace PursuitBar
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
 
-    void Initialise(ConfigParser::Parser& parser)
+    bool Initialise(ConfigParser::Parser& parser)
     {
-		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return;
+		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return false;
 
 		// Pursuit parameters
 		Globals::ParseHeatParameterPair<float, float>
@@ -122,13 +122,13 @@ namespace PursuitBar
 
 		// Code caves
         MemoryEditor::Write<WORD>  (0x35D8,      0x40AED9); // opcode fdiv m
-        MemoryEditor::Write<float*>(&bustTimer,  0x4445CE,  0x40AEDB);
-        MemoryEditor::Write<float*>(&evadeTimer, 0x4448E6,  0x444802,  0x4338F8);
+        MemoryEditor::Write<float*>(&bustTimer,  0x4445CE, 0x40AEDB);
+        MemoryEditor::Write<float*>(&evadeTimer, 0x4448E6, 0x444802, 0x4338F8);
 
         MemoryEditor::DigCodeCave(&MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
         MemoryEditor::DigCodeCave(&EvadeBar,        evadeBarEntrance,        evadeBarExit);
 
-        featureEnabled = true;
+		return (featureEnabled = true);
     }
 
 

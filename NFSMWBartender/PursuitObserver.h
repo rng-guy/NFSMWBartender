@@ -519,10 +519,9 @@ namespace PursuitObserver
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	void Initialise(ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
-		CopSpawnTables::Initialise(parser);
-		if (not CopSpawnTables::featureEnabled) return;
+		if (not CopSpawnTables::Initialise(parser)) return false;
 
 		CopSpawnOverrides::Initialise(parser);
 		CopFleeOverrides::Initialise(parser);
@@ -540,7 +539,7 @@ namespace PursuitObserver
 		MemoryEditor::DigCodeCave(&MainSpawnLimit,  mainSpawnLimitEntrance,  mainSpawnLimitExit);
 		MemoryEditor::DigCodeCave(&OtherSpawnLimit, otherSpawnLimitEntrance, otherSpawnLimitExit);
 
-		featureEnabled = true;
+		return (featureEnabled = true);
 	}
 
 

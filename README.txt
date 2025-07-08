@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.8.01) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.9.00) │ ■ ──────────────────────────────────────────────────────────────
 
 This .asi mod adds new customisation options to pursuits. These options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
@@ -26,7 +26,9 @@ This feature set LETS YOU CHANGE (per Heat level)
  • which vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
  • which vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
-This feature set FIXES TWO BUGS:
+This feature set FIXES FOUR BUGS:
+ • Heat levels > 5 on cars no longer reset back to 5 when you enter free-roam or start an event,
+ • Heat levels > 5 are now shown correctly in safehouse and shop menus (requires missing textures),
  • you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
  • regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
@@ -36,7 +38,9 @@ feature is easier to configure, leaner, and even checks strings for correctness 
 ignoring any specified strings that do not actually exist in the game's (modified) binary files.
 
 The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSettings/Basic".
-To DISABLE a given feature of this set, delete its .ini section or the entire file.
+
+To DISABLE a given feature of this set, delete its .ini section or the entire file. As long as at
+least one configuration file of this set remains, the two Heat-level bug fixes will be applied.
 
 Before you use this feature set, see the "LIMITATIONS" section further below.
 
@@ -80,13 +84,16 @@ BEFORE INSTALLING this mod:
  2) • make sure your game's "Speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
  3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 
-To INSTALL this mod, copy the contents of its "scripts" folder into the "scripts" folder located
-in your game's installation folder. If your game does not have a "scripts" folder, create one.
+To INSTALL this mod:
+ 1) • if it does not exist already, create a "scripts" folder in your game's installation folder;
+ 2) • copy the contents of this mod's "scripts" folder into your game's "scripts" folder; and
+ 3) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
 
 AFTER INSTALLING this mod, you can customise its features through its configuration (.ini) files.
 You can find these configuration files in the "scripts\BartenderSettings" folder.
 
-To UNINSTALL this mod, remove its files from your game's "scripts" folder.
+To UNINSTALL this mod, remove its files from your game's "scripts" folder. There is no need to
+remove the optional Heat-level textures, as the game will never access them without this mod.
 
 To UPDATE this mod, uninstall it and repeat the installation process above.
 Whenever you do, make sure to replace ALL old configuration files properly!
@@ -108,6 +115,20 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 ── ■ "BASIC" FEATURE SET ■ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+GENERAL:
+
+ • The Heat-level reset fix is completely incompatible with the "HeatLevelOverride" feature of 
+   the "NFSMW ExtraOptions" mod by ExOptsTeam. I strongly recommend you disable this ExtraOptions
+   feature by editing that mod's "NFSMWExtraOptionsSettings.ini" configuration file, as it might
+   also interfere with other Bartender features in subtle ways. You can set the maximum Heat level
+   available at a given Blacklist rank XY by changing the value of the "0xe8c24416" parameter in
+   the corresponding "race_bin_XY" VltEd entry instead.
+
+ • If you do not install the missing menu textures ("FixMissingTextures.end"), then the game will
+   simply not display a number next to Heat gauges in menus when your car's Heat level is greater
+   than 5. (Whether you install these textures has no bearing on the Heat-level reset fix.)
+
+
 COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
 
  • This feature is completely incompatible with the "EnableCopDestroyedStringHook" feature of the
@@ -119,7 +140,7 @@ GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
  • All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should
    each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) assigned to them in their 
-   "aivehicle" VltEd entry; otherwise, they might cause stability issues by joining the pursuit
+   "aivehicle" VltEd entries; otherwise, they might cause stability issues by joining the pursuit
    long-term after their ramming attempt(s), effectively circumventing the global cop-spawn limit.
 
  • All vehicles you specify to replace Cross in LeaderStrategy 5 / 7 should each not be used by 
@@ -139,8 +160,8 @@ GENERAL:
    because the feature set fulfils their intended purposes with much greater customisation:
    "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
 
- • In each Heat level's "pursuitsupport" VltEd entry, ensure that every HeavyStrategy enabled is 
-   specified exactly once (e.g. there is not a second HeavyStrategy 3), and that there is no more
+ • In each Heat level's "pursuitsupport" VltEd entry, ensure that every HeavyStrategy enabled
+   is only listed once (e.g. there is not a second HeavyStrategy 3), and that there is no more
    than one LeaderStrategy enabled; otherwise, their "Duration" VltEd parameters might be misread.
 
    
@@ -168,7 +189,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    generally stay stable if it does not crash there.
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned
-   to them in their "pvehicle" VltEd entry, either directly or through a parent entry.
+   to them in their "pvehicle" VltEd entries, either directly or through a parent entry.
 
  • All empty spawn tables for race Heat levels will become copies of their free-roam versions.
 
@@ -204,13 +225,12 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    the Heat level as it requests those spawns. If you want to keep fast transitions, you can avoid
    this issue by setting the event's "ForceHeatLevel" VltEd parameter to the target Heat level.
 
- • There are two types of patrol spawns: free patrols that spawn when there is no active pursuit,
-   and searching patrols that spawn in pursuits when you are in "COOLDOWN" mode. The free patrols
-   are overwritten by the "Patrols" spawn table, and the searching patrols are taken from the 
-   "Chasers" table. For both patrol types, the "NumPatrolCars" VltEd parameter controls how many 
-   cars may spawn at any given time; free patrol spawns ignore the global cop-spawn limit, while 
-   searching patrol spawns ignore the remaining engagement count (but not the global limit). All
-   of this is vanilla behaviour, which is why you should not set high "NumPatrolCars" values.
+ • Depending on their type, patrol spawns are taken from different spawn tables: Free patrols that
+   spawn when there is no active pursuit are taken from "Chasers" tables, while searching patrols
+   that spawn in pursuits when you are in "COOLDOWN" mode are taken from "Patrols" tables instead.
+   For both types, the "NumPatrolCars" VltEd parameter controls how many cars may spawn at any
+   given time; free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns
+   ignore the remaining engagement count (but not the global limit). This is all vanilla behaviour.
 
 
 
@@ -224,10 +244,11 @@ required. If you include the .asi file, however, I ask that you do your users a 
 a link to this mod's GitHub repository in your mod's README file.
 
 This mod would not have seen the light of day without
+ • DarkByte, for Cheat Engine;
  • rx, for encouraging me to try .asi modding;
  • nlgxzef, for the Most Wanted debug symbols;
- • DarkByte, for Cheat Engine;
  • GuidedHacking, for their Cheat Engine tutorials;
+ • ExOptsTeam, for permitting me to use their Heat-level fixes;
  • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a resource; and
  • Orsal, Aven, Astra King79, and MORELLO, for testing and providing feedback.
 
@@ -289,3 +310,5 @@ v1.7.04: Rephrased parts of the README for what feels like the millionth time
 
 v1.8.00: Added support for separate free-roam and race pursuit parameters
 v1.8.01: Improved performance slightly and expanded "LIMITATIONS" section of README
+
+v1.9.00: Added fixes for Heat levels above 5 resetting in Career mode and missing menu textures

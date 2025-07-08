@@ -23,11 +23,15 @@ namespace Globals
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
+	// Heat levels
+	constexpr size_t maxHeatLevel = 10;
+	constexpr float  maxHeat      = (float)maxHeatLevel;
+	
+	// Logging
+	constexpr bool loggingEnabled = false;
+
 	std::unique_ptr<std::fstream> logStream;
 
-	constexpr bool   loggingEnabled = false;
-	constexpr size_t maxHeatLevel   = 10;
-	
 	const std::string logFile       = "BartenderLog.txt";
 	const std::string logIndent     = "        ";
 	const std::string logLongIndent = "              ";

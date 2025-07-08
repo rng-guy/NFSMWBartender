@@ -313,9 +313,9 @@ namespace GroundSupport
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
 
-    void Initialise(ConfigParser::Parser& parser)
+    bool Initialise(ConfigParser::Parser& parser)
     {
-		if (not parser.LoadFile(Globals::configPathBasic + "Supports.ini")) return;
+		if (not parser.LoadFile(Globals::configPathBasic + "Supports.ini")) return false;
 
 		// Pursuit parameters
 		ParseCooldowns
@@ -410,7 +410,7 @@ namespace GroundSupport
 		MemoryEditor::DigCodeCave(&HenchmenSub,       henchmenSubEntrance,       henchmenSubExit);
         MemoryEditor::DigCodeCave(&RhinoSelector,     rhinoSelectorEntrance,     rhinoSelectorExit);
 
-        featureEnabled = true;
+		return (featureEnabled = true);
     }
 
 

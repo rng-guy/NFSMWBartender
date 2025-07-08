@@ -1,10 +1,13 @@
 #include <Windows.h>
 
 #include "ConfigParser.h"
+#include "MemoryEditor.h"
+
 #include "StateObserver.h"
+
 #include "DestructionStrings.h"
-#include "Miscellaneous.h"
 #include "GroundSupport.h"
+#include "Miscellaneous.h"
 #include "PursuitBar.h"
 
 #include "PursuitObserver.h"
@@ -17,13 +20,26 @@ static void Initialise()
 {
     ConfigParser::Parser parser;
 
-    GroundSupport::Initialise(parser);
-    DestructionStrings::Initialise(parser);
-    Miscellaneous::Initialise(parser);
-    PursuitBar::Initialise(parser);
-    PursuitObserver::Initialise(parser);
+    // "Basic" feature set
+    bool basicSetEnabled = false;
 
-    StateObserver::Initialise();
+    basicSetEnabled |= DestructionStrings::Initialise(parser);
+    basicSetEnabled |= GroundSupport::Initialise(parser);
+    basicSetEnabled |= Miscellaneous::Initialise(parser);
+    basicSetEnabled |= PursuitBar::Initialise(parser);
+
+    if (basicSetEnabled) // Heat-level fixes (credit: ExOptsTeam)
+    {
+        MemoryEditor::Write<float>       (Globals::maxHeat,    0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088);
+        MemoryEditor::Write<const float*>(&(Globals::maxHeat), 0x435079, 0x7A5B03, 0x7A5B12);
+    }
+
+    // "Advanced" feature set
+    const bool advancedSetEnabled = PursuitObserver::Initialise(parser);
+
+    // General Heat and state observer
+    if (basicSetEnabled or advancedSetEnabled)
+        StateObserver::Initialise(parser);
 }
 
 

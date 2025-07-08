@@ -284,11 +284,11 @@ namespace HelicopterOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	void Initialise(ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
 		MemoryEditor::Write<BYTE>(0xEB, 0x42BB2D); // prevent spawns in Cooldown mode
 
-		if (not parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini")) return;
+		if (not parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini")) return false;
 
 		// Free-roam timers
 		ParseTimers
@@ -321,7 +321,7 @@ namespace HelicopterOverrides
 		// Code caves
 		MemoryEditor::DigCodeCave(&FuelTime, fuelTimeEntrance, fuelTimeExit);
 
-		featureEnabled = true;
+		return (featureEnabled = true);
 	}
 
 

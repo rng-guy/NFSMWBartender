@@ -360,7 +360,7 @@ namespace CopFleeOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	void Initialise(ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
 		parser.LoadFile(Globals::configPathAdvanced + "Cars.ini");
 
@@ -384,7 +384,7 @@ namespace CopFleeOverrides
 			raceMaxFleeDelays
 		);
 
-		featureEnabled = true;
+		return (featureEnabled = true);
 	}
 
 

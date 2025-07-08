@@ -3,10 +3,12 @@
 #include <Windows.h>
 
 #include "Globals.h"
+#include "ConfigParser.h"
 #include "MemoryEditor.h"
+
 #include "DestructionStrings.h"
-#include "Miscellaneous.h"
 #include "GroundSupport.h"
+#include "Miscellaneous.h"
 #include "PursuitBar.h"
 
 #include "PursuitObserver.h"
@@ -300,7 +302,7 @@ namespace StateObserver
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	void Initialise()
+	bool Initialise(ConfigParser::Parser& parser)
 	{
 		MemoryEditor::DigCodeCave(&HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
 		MemoryEditor::DigCodeCave(&GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
@@ -309,5 +311,7 @@ namespace StateObserver
 		MemoryEditor::DigCodeCave(&RetryObserver,     retryObserverEntrance,     retryObserverExit);
 		MemoryEditor::DigCodeCave(&HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
 		MemoryEditor::DigCodeCave(&PerpVehicle,       perpVehicleEntrance,       perpVehicleExit);
+
+		return true;
 	}
 }

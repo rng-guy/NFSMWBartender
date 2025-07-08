@@ -104,9 +104,9 @@ namespace Miscellaneous
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
 
-    void Initialise(ConfigParser::Parser& parser)
+    bool Initialise(ConfigParser::Parser& parser)
     {
-		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return;
+		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return false;
 
 		// Pursuit parameters
 		Globals::ParseHeatParameter<float>
@@ -133,7 +133,7 @@ namespace Miscellaneous
         MemoryEditor::DigCodeCave(&PassiveBounty, passiveBountyEntrance, passiveBountyExit);
         MemoryEditor::DigCodeCave(&CopCombo,      copComboEntrance,      copComboExit);
 
-        featureEnabled = true;
+        return (featureEnabled = true);
     }
 
 

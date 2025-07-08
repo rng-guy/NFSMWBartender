@@ -181,9 +181,16 @@
     <None Include="..\BartenderSettings\Basic\Others.ini" />
     <None Include="..\BartenderSettings\Basic\Labels.ini" />
     <None Include="..\BartenderSettings\Basic\Supports.ini" />
+    <None Include="..\FixMissingTextures.end" />
     <None Include="..\README.md" />
+    <None Include="..\Textures\Modscript.end" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\Textures\Missing\HEAT_X10.dds" />
+    <Image Include="..\Textures\Missing\HEAT_X6.dds" />
+    <Image Include="..\Textures\Missing\HEAT_X7.dds" />
+    <Image Include="..\Textures\Missing\HEAT_X8.dds" />
+    <Image Include="..\Textures\Missing\HEAT_X9.dds" />
     <Image Include="..\Thumbnail.jpg" />
   </ItemGroup>
   <ItemGroup>
