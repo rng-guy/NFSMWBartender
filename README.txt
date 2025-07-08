@@ -122,9 +122,9 @@ GENERAL:
  • The Heat-level reset fix is completely incompatible with the "HeatLevelOverride" feature of 
    the "NFSMW ExtraOptions" mod by ExOptsTeam. I strongly recommend you disable this ExtraOptions
    feature, as it might also interfere with other Bartender features in subtle ways; to do so, edit
-   ExtraOptions' "NFSMWExtraOptionsSettings.ini" configuration file. To set the maximum Heat level
-   available at a given Blacklist rank XY without this ExtraOptions feature, just change the value
-   of the "0xe8c24416" parameter in the corresponding "race_bin_XY" VltEd entry instead.
+   ExtraOptions' "NFSMWExtraOptionsSettings.ini" configuration file. You can set the maximum Heat 
+   level at a given Blacklist rank XY by changing the value of the "0xe8c24416" parameter in the
+   corresponding "race_bin_XY" VltEd entry instead.
 
  • If you do not install the missing menu textures ("FixMissingTextures.end"), then the game will
    simply not display a number next to Heat gauges in menus when your car's Heat level is above 5. 
