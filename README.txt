@@ -120,7 +120,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 GENERAL:
 
  • The Heat-level reset fix is completely incompatible with the "HeatLevelOverride" feature of 
-   the "NFSMW ExtraOptions" mod by ExOptsTeam. I strongly recommend you disable this ExtraOptions
+   the "NFSMW ExtraOptions" mod by ExOptsTeam. I generally recommend you disable this ExtraOptions
    feature, as it might also interfere with other Bartender features in subtle ways; to do so, edit
    ExtraOptions' "NFSMWExtraOptionsSettings.ini" configuration file. You can set the maximum Heat 
    level at a given Blacklist rank XY by changing the value of the "0xe8c24416" parameter in the
