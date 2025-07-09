@@ -327,4 +327,4 @@ v1.8.01: Improved performance slightly and expanded "LIMITATIONS" section of REA
 
 v1.9.00: Added fixes for Heat levels above 5 resetting and missing menu textures in Career mode
 v1.9.01: It's a bird! It's a plane! No, it's yet another fresh batch of phrasing corrections!
-v1.9.02: Added information about how individual bug fixes are enabled / disabled to README
+v1.9.02: Added information about enabling / disabling individual bug fixes to README
