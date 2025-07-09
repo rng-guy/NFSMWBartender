@@ -33,7 +33,7 @@ This feature set **lets you change** (per Heat level)
 &nbsp;
 
 This feature set **fixes four bugs**:
-* Heat levels > 5 on cars no longer reset back to 5 when you enter free-roam or start an event,
+* Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in safehouse and shop menus (requires .end script),
 * you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
 * regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
@@ -46,7 +46,7 @@ You can also **assign new (Binary) strings** for the game to display when cop ve
 
 The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Basic`.
 
-To **disable** a given feature of this set, delete its .ini section or the entire file. As long as at least one configuration file of this set remains, the two Heat-level bug fixes will be applied.
+To **disable** a given feature of this set, delete its parameter group or the file containing it; the four bug fixes, however, can each only be disabled through the deletion of specific files.
 
 > [!IMPORTANT]
 > Before you use this feature set, see the [limitations](#Limitations) section further below.
@@ -142,6 +142,8 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 **General**:
 
+* Deleting all files of this set is the only way to disable the two Heat-level fixes.
+
 * The Heat-level reset fix is completely incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. I recommend you disable this ExtraOptions feature in general, as it might also interfere with other Bartender features in subtle ways; to do so, edit ExtraOptions' `NFSMWExtraOptionsSettings.ini` configuration file. You can set the maximum Heat level (1-10) at a given Blacklist rank XY by changing the value of the `0xe8c24416` parameter in the corresponding `race_bin_XY` VltEd entry instead.
 
 * If you do not install the missing menu textures (`FixMissingTextures.end`), then the game will simply not display a number next to Heat gauges in menus when your car's Heat level is above 5. The Heat-level reset fix, on the other hand, will work even without these missing textures.
@@ -156,9 +158,17 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 **Ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
+* Deleting this file disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
+
 * All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should each have a low `MAXIMUM_AI_SPEED` value (the vanilla SUVs use 50) assigned to them in their `aivehicle` VltEd entries; otherwise, they might cause stability issues by joining the pursuit long-term after their ramming attempt(s), effectively circumventing the global cop-spawn limit.
 
 * All vehicles you specify to replace Cross in LeaderStrategy 5 / 7 should each not be used by any other cop elsewhere. If another cop uses the same vehicle as Cross, no LeaderStrategy will be able to spawn as long as that cop is present in the pursuit.
+
+&nbsp;
+
+**Uncategorised features** (`BartenderSettings\Basic\Others.ini`):
+
+* Deleting this file disables the fix for getting busted while the "EVADE" bar fills.
 
 &nbsp;
 
@@ -171,6 +181,8 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 * The entire feature set is disabled if *any* free-roam Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); each table must contain at least one vehicle.
 
 * If the feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because the feature set fulfils their intended purposes with much greater customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
+
+* If the feature set is enabled, the fix for the displayed engagement count will also be applied.
 
 * In each Heat level's `pursuitsupport` VltEd entry, ensure that every HeavyStrategy enabled is only listed once (e.g. there is not a second HeavyStrategy 3), and that there is no more than one LeaderStrategy enabled; otherwise, their `Duration` VltEd parameters might be misread.
 

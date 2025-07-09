@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.9.01) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.9.02) │ ■ ──────────────────────────────────────────────────────────────
 
 You can view this README with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -29,7 +29,7 @@ This feature set LETS YOU CHANGE (per Heat level)
  • which vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
 This feature set FIXES FOUR BUGS:
- • Heat levels > 5 on cars no longer reset back to 5 when you enter free-roam or start an event,
+ • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
  • Heat levels > 5 are now shown correctly in safehouse and shop menus (requires .end script),
  • you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
  • regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
@@ -41,8 +41,8 @@ ignoring any specified strings that do not actually exist in the game's (modifie
 
 The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSettings/Basic".
 
-To DISABLE a given feature of this set, delete its .ini section or the entire file. As long as at
-least one configuration file of this set remains, the two Heat-level bug fixes will be applied.
+To DISABLE a given feature of this set, delete its parameter group or the file containing it;
+the four bug fixes, however, can each only be disabled through the deletion of specific files.
 
 Before you use this feature set, see the "LIMITATIONS" section further below.
 
@@ -119,6 +119,8 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 GENERAL:
 
+ • Deleting all files of this set is the only way to disable the two Heat-level fixes.
+
  • The Heat-level reset fix is completely incompatible with the "HeatLevelOverride" feature of 
    the "NFSMW ExtraOptions" mod by ExOptsTeam. I recommend you disable this ExtraOptions feature in
    general, as it might also interfere with other Bartender features in subtle ways; to do so, edit
@@ -140,6 +142,8 @@ COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
 
 GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
+ • Deleting this file disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
+
  • All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should
    each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) assigned to them in their 
    "aivehicle" VltEd entries; otherwise, they might cause stability issues by joining the pursuit
@@ -148,6 +152,11 @@ GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
  • All vehicles you specify to replace Cross in LeaderStrategy 5 / 7 should each not be used by 
    any other cop elsewhere. If another cop uses the same vehicle as Cross, no LeaderStrategy 
    will be able to spawn as long as that cop is present in the pursuit.
+
+
+UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
+
+ • Deleting this file disables the fix for getting busted while the "EVADE" bar fills.
 
 
 
@@ -161,6 +170,8 @@ GENERAL:
  • If the feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
    because the feature set fulfils their intended purposes with much greater customisation:
    "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
+
+ • If the feature set is enabled, the fix for the displayed engagement count will also be applied.
 
  • In each Heat level's "pursuitsupport" VltEd entry, ensure that every HeavyStrategy enabled
    is only listed once (e.g. there is not a second HeavyStrategy 3), and that there is no more
@@ -315,3 +326,4 @@ v1.8.01: Improved performance slightly and expanded "LIMITATIONS" section of REA
 
 v1.9.00: Added fixes for Heat levels above 5 resetting and missing menu textures in Career mode
 v1.9.01: It's a bird! It's a plane! No, it's yet another fresh batch of phrasing corrections!
+v1.9.02: Added information about how individual bug fixes are enabled / disabled to README
