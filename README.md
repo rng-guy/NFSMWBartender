@@ -204,7 +204,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * All vehicles you specify in any of the spawn tables must each have the `CAR` class assigned to them in their `pvehicle` VltEd entries, either directly or through parent entries.
 
-* All empty spawn tables for race Heat levels become copies of their free-roam versions.
+* All empty spawn tables for race Heat levels become copies of their free-roam counterparts.
 
 * Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This does not apply to vehicles with `count` values of at least 5, as no roadblock contains more than 5 cars.
 

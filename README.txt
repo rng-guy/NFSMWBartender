@@ -205,7 +205,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned
    to them in their "pvehicle" VltEd entries, either directly or through parent entries.
 
- • All empty spawn tables for race Heat levels become copies of their free-roam versions.
+ • All empty spawn tables for race Heat levels become copies of their free-roam counterparts.
 
  • Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position 
    of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, 
