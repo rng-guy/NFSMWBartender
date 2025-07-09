@@ -144,7 +144,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 **General**:
 
-* Deleting all files of this set is the only way to disable the two Heat-level fixes.
+* Deleting all files of this feature set is the only way to disable the two Heat-level fixes.
 
 * The Heat-level reset fix is completely incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. I recommend you disable this ExtraOptions feature in general, as it might also interfere with other Bartender features in subtle ways; to do so, edit ExtraOptions' `NFSMWExtraOptionsSettings.ini` configuration file. Note that you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd entry is what sets the maximum Heat level (1-10) while you are at Blacklist rival #XY.
 
@@ -203,6 +203,8 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 * Pushing any global cop-spawn limit beyond 8 requires the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) mod by Zolika1351 to work properly. Without it, the game will start unloading models and assets because its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. To make LA compatible with this mod, open its `NFSMWLimitAdjuster.ini` configuration file and disable *all* features in its `[Options]` section; this will fully unlock the spawn limit without forcing an infinite amount of cops to spawn. Note that LA is not perfectly stable either: It is prone to crashing in the first 30 seconds of the first pursuit in a play session, but will generally stay stable if it does not crash there.
 
 * All vehicles you specify in any of the spawn tables must each have the `CAR` class assigned to them in their `pvehicle` VltEd entries, either directly or through parent entries.
+
+* All empty "Roadblocks", "Events", and "Patrols" spawn tables for free-roam Heat levels become copies of their respective "Chasers" table, which must contain at least one vehicle.
 
 * All empty spawn tables for race Heat levels become copies of their free-roam counterparts.
 
