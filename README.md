@@ -204,7 +204,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * All vehicles you specify in any of the spawn tables must each have the `CAR` class assigned to them in their `pvehicle` VltEd entries, either directly or through parent entries.
 
-* All empty "Roadblocks", "Events", and "Patrols" spawn tables for free-roam Heat levels become copies of their respective "Chasers" table, which must contain at least one vehicle.
+* All empty "Roadblocks", "Events", and "Patrols" spawn tables for free-roam Heat levels become copies of their respective "Chasers" tables, which must each contain at least one vehicle.
 
 * All empty spawn tables for race Heat levels become copies of their free-roam counterparts.
 

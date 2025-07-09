@@ -206,7 +206,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    to them in their "pvehicle" VltEd entries, either directly or through parent entries.
 
  • All empty "Roadblocks", "Events", and "Patrols" spawn tables for free-roam Heat levels become
-   copies of their respective "Chasers" table, which must contain at least one vehicle.
+   copies of their respective "Chasers" tables, which must each contain at least one vehicle.
 
  • All empty spawn tables for race Heat levels become copies of their free-roam counterparts.
 
