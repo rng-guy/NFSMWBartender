@@ -182,7 +182,7 @@ GENERAL:
 HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
 
  • All vehicles you specify to replace the regular helicopter must each have the "CHOPPER" class
-   assigned to them in their "pvehicle" VltEd entry, either directly or through a parent entry.
+   assigned to them in their "pvehicle" VltEd entries, either directly or through parent entries.
 
 
 COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
@@ -203,7 +203,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    generally stay stable if it does not crash there.
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned
-   to them in their "pvehicle" VltEd entries, either directly or through a parent entry.
+   to them in their "pvehicle" VltEd entries, either directly or through parent entries.
 
  • All empty spawn tables for race Heat levels will become copies of their free-roam versions.
 
