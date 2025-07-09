@@ -46,7 +46,9 @@ You can also **assign new (Binary) strings** for the game to display when cop ve
 
 The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Basic`.
 
-To **disable** a given feature of this set, delete its parameter group or the file containing it; the four bug fixes, however, can each only be disabled through the deletion of specific files.
+To **disable**..
+* ..a given feature of this set, either delete its parameter group or the file containing it.
+* ..a given bug fix of this set, you must delete one or more specific configuration files.
 
 > [!IMPORTANT]
 > Before you use this feature set, see the [limitations](#Limitations) section further below.

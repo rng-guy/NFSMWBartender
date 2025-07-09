@@ -41,8 +41,9 @@ ignoring any specified strings that do not actually exist in the game's (modifie
 
 The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSettings/Basic".
 
-To DISABLE a given feature of this set, delete its parameter group or the file containing it;
-the four bug fixes, however, can each only be disabled through the deletion of specific files.
+To DISABLE..
+ • ..a given feature of this set, either delete its parameter group or the file containing it.
+ • ..a given bug fix of this set, you must delete one or more specific configuration files.
 
 Before you use this feature set, see the "LIMITATIONS" section further below.
 
