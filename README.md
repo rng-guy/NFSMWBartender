@@ -34,7 +34,7 @@ This feature set **lets you change** (per Heat level)
 
 This feature set **fixes four bugs**:
 * Heat levels > 5 on cars no longer reset back to 5 when you enter free-roam or start an event,
-* Heat-levels > 5 are now shown correctly in safehouse and shop menus (requires .end script),
+* Heat levels > 5 are now shown correctly in safehouse and shop menus (requires .end script),
 * you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
 * regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
