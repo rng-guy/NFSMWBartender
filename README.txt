@@ -17,7 +17,7 @@ There are also separate sections for "INSTALLATION" instructions and the "LIMITA
 
 ── ■ │ "BASIC" FEATURE SET │ ■ ────────────────────────────────────────────────────────────────────
 
-Before you use this feature set, see the "LIMITATIONS" section further below.
+BEFORE USING this feature set, see the "LIMITATIONS" section further below.
 
 This feature set LETS YOU CHANGE (per Heat level)
  • at which distance and how quickly you can get busted,
@@ -54,7 +54,7 @@ To DISABLE..
 
 ── ■ │ "ADVANCED" FEATURE SET │ ■ ─────────────────────────────────────────────────────────────────
 
-Before you use this feature set, see the "LIMITATIONS" section further below.
+BEFORE USING this feature set, see the "LIMITATIONS" section further below.
 
 This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,

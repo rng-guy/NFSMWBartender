@@ -20,7 +20,7 @@ For **details** on which features and configuration files each set includes, see
 # "Basic" feature set
 
 > [!IMPORTANT]
-> Before you use this feature set, see the [limitations](#Limitations) section further below.
+> Before using this feature set, see the [limitations](#Limitations) section further below.
 
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
@@ -64,7 +64,7 @@ To **disable**..
 # "Advanced" feature set
 
 > [!IMPORTANT]
-> Before you use this feature set, see the [limitations](#Limitations) section further below.
+> Before using this feature set, see the [limitations](#Limitations) section further below.
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
