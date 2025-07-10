@@ -17,6 +17,8 @@ There are also separate sections for "INSTALLATION" instructions and the "LIMITA
 
 ── ■ │ "BASIC" FEATURE SET │ ■ ────────────────────────────────────────────────────────────────────
 
+Before you use this feature set, see the "LIMITATIONS" section further below.
+
 This feature set LETS YOU CHANGE (per Heat level)
  • at which distance and how quickly you can get busted,
  • how long it takes to fill the "EVADE" bar and enter "COOLDOWN" mode,
@@ -30,7 +32,7 @@ This feature set LETS YOU CHANGE (per Heat level)
 
 This feature set FIXES FOUR BUGS:
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
- • Heat levels > 5 are now shown correctly in safehouse and shop menus (also requires Binary),
+ • Heat levels > 5 are now shown correctly in menus (requires Binary for missing textures),
  • you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
  • regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
@@ -45,14 +47,14 @@ To DISABLE..
  • ..a given customisation option, either delete its parameter group or the file containing it.
  • ..a given bug fix, you must delete specific configuration files (see "LIMITATIONS" section).
 
-Before you use this feature set, see the "LIMITATIONS" section further below.
-
 
 
 
 
 
 ── ■ │ "ADVANCED" FEATURE SET │ ■ ─────────────────────────────────────────────────────────────────
+
+Before you use this feature set, see the "LIMITATIONS" section further below.
 
 This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
@@ -72,8 +74,6 @@ and all vehicles that join the pursuit by detaching themselves from roadblocks.
 
 The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSettings/Advanced".
 To DISABLE this feature set, delete the entire "scripts/BartenderSettings/Advanced" folder.
-
-Before you use this feature set, see the "LIMITATIONS" section further below.
 
 
 
@@ -129,7 +129,7 @@ GENERAL:
    the maximum available Heat level with VltEd: The "0xe8c24416" parameter of a given "race_bin_XY"
    VltEd entry is what sets the maximum Heat level (1-10) while you are at Blacklist rival #XY.
 
- • If you do not install the missing menu textures ("FixMissingTextures.end"), then the game will
+ • If you do not install the missing menu textures ("FixMissingTextures.end"), then the game will 
    simply not display a number next to Heat gauges in menus when your car's Heat level is above 5. 
    The Heat-level reset fix, on the other hand, will work even without these missing textures.
 

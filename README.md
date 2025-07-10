@@ -37,7 +37,7 @@ This feature set **lets you change** (per Heat level)
 
 This feature set **fixes four bugs**:
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
-* Heat levels > 5 are now shown correctly in safehouse and shop menus (also requires [Binary](https://github.com/SpeedReflect/Binary/releases)),
+* Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures),
 * you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
 * regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
