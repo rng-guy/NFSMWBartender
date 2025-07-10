@@ -19,6 +19,9 @@ For **details** on which features and configuration files each set includes, see
 
 # "Basic" feature set
 
+> [!IMPORTANT]
+> Before you use this feature set, see the [limitations](#Limitations) section further below.
+
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
 * how long it takes to fill the "EVADE" bar and enter "COOLDOWN" mode,
@@ -34,7 +37,7 @@ This feature set **lets you change** (per Heat level)
 
 This feature set **fixes four bugs**:
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
-* Heat levels > 5 are now shown correctly in safehouse and shop menus (requires .end script),
+* Heat levels > 5 are now shown correctly in safehouse and shop menus (also requires [Binary](https://github.com/SpeedReflect/Binary/releases)),
 * you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
 * regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
@@ -48,10 +51,7 @@ The **configuration (.ini) files** for this set are located in `scripts/Bartende
 
 To **disable**..
 * ..a given customisation option, either delete its parameter group or the file containing it.
-* ..a given bug fix of this set, you must delete one or more specific configuration files.
-
-> [!IMPORTANT]
-> Before you use this feature set, see the [limitations](#Limitations) section further below.
+* ..a given bug fix, you must delete specific configuration files (see [limitations](#Limitations) section).
 
 &nbsp;
 
@@ -62,6 +62,9 @@ To **disable**..
 
 
 # "Advanced" feature set
+
+> [!IMPORTANT]
+> Before you use this feature set, see the [limitations](#Limitations) section further below.
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
@@ -83,9 +86,6 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Advanced`.
 
 To **disable** this feature set, delete the entire `scripts/BartenderSettings/Advanced` folder.
-
-> [!IMPORTANT]
-> Before you use this feature set, see the [limitations](#Limitations) section further below.
 
 &nbsp;
 
@@ -144,7 +144,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 **General**:
 
-* Deleting all files of this feature set is the only way to disable the two Heat-level fixes.
+* Deleting all files of this feature set disables the two Heat-level fixes.
 
 * The Heat-level reset fix is completely incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. I recommend you disable this ExtraOptions feature in general, as it might also interfere with other Bartender features in subtle ways; to do so, edit ExtraOptions' `NFSMWExtraOptionsSettings.ini` configuration file. Note that you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd entry is what sets the maximum Heat level (1-10) while you are at Blacklist rival #XY.
 
@@ -220,7 +220,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * Making Heat transitions very fast (`0x80deb840` VltEd parameter(s) set to < 5 seconds) can cause a mix of cops from more than one "Events" spawn table to appear in events that feature scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. If you want to keep fast transitions, you can avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level.
 
-* Depending on their type, patrol spawns are taken from different spawn tables: Free patrols that spawn when there is no active pursuit are taken from "Chasers" tables, while searching patrols that spawn in pursuits when you are in "COOLDOWN" mode are taken from "Patrols" tables instead. For both types, the `NumPatrolCars` VltEd parameter controls how many cars may spawn at any given time; free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count (but not the global limit). This is all vanilla behaviour.
+* Depending on their type, patrol spawns are taken from different spawn tables: Free patrols that spawn when there is no active pursuit are taken from "Patrols" tables, while searching patrols that spawn in pursuits when you are in "COOLDOWN" mode are taken from "Chasers" tables instead. For both types, the `NumPatrolCars` VltEd parameter controls how many cars may spawn at any given time; free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count (but not the global limit). This is all vanilla behaviour.
 
 &nbsp;
 

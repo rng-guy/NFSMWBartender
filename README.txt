@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.9.03) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.9.04) │ ■ ──────────────────────────────────────────────────────────────
 
 You can view this README with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -30,7 +30,7 @@ This feature set LETS YOU CHANGE (per Heat level)
 
 This feature set FIXES FOUR BUGS:
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
- • Heat levels > 5 are now shown correctly in safehouse and shop menus (requires .end script),
+ • Heat levels > 5 are now shown correctly in safehouse and shop menus (also requires Binary),
  • you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
  • regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
@@ -43,7 +43,7 @@ The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSet
 
 To DISABLE..
  • ..a given customisation option, either delete its parameter group or the file containing it.
- • ..a given bug fix of this set, you must delete one or more specific configuration files.
+ • ..a given bug fix, you must delete specific configuration files (see "LIMITATIONS" section).
 
 Before you use this feature set, see the "LIMITATIONS" section further below.
 
@@ -120,7 +120,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 GENERAL:
 
- • Deleting all files of this feature set is the only way to disable the two Heat-level fixes.
+ • Deleting all files of this feature set disables the two Heat-level fixes.
 
  • The Heat-level reset fix is completely incompatible with the "HeatLevelOverride" feature of 
    the "NFSMW ExtraOptions" mod by ExOptsTeam. I recommend you disable this ExtraOptions feature in
@@ -243,8 +243,8 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    this issue by setting the event's "ForceHeatLevel" VltEd parameter to the target Heat level.
 
  • Depending on their type, patrol spawns are taken from different spawn tables: Free patrols that
-   spawn when there is no active pursuit are taken from "Chasers" tables, while searching patrols
-   that spawn in pursuits when you are in "COOLDOWN" mode are taken from "Patrols" tables instead.
+   spawn when there is no active pursuit are taken from "Patrols" tables, while searching patrols
+   that spawn in pursuits when you are in "COOLDOWN" mode are taken from "Chasers" tables instead.
    For both types, the "NumPatrolCars" VltEd parameter controls how many cars may spawn at any
    given time; free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns
    ignore the remaining engagement count (but not the global limit). This is all vanilla behaviour.
@@ -332,3 +332,4 @@ v1.9.00: Added fixes for Heat levels above 5 resetting and missing menu textures
 v1.9.01: It's a bird! It's a plane! No, it's yet another fresh batch of phrasing corrections!
 v1.9.02: Added information about enabling / disabling individual bug fixes to README
 v1.9.03: Clarified logic of spawn-table copying in "LIMITATIONS" section of README
+v1.9.04: Corrected mislabelled spawn tables in "LIMITATIONS" section of README
