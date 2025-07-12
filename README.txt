@@ -202,8 +202,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. 
    To fully unlock the global cop-spawn limit without taking spawn control away from Bartender,
    open LA's "NFSMWLimitAdjuster.ini" configuration file and disable EVERYTHING in its "[Options]"
-   parameter group. Note that LA itself is not perfectly stable either: it is prone to crashing
-   either in the first 30 seconds of the first pursuit per session or not at all.
+   parameter group. LA itself may crash within 30 seconds of the first pursuit per play session.
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned
    to them in their "pvehicle" VltEd entries, either directly or through parent entries.
