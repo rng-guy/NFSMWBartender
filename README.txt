@@ -200,10 +200,10 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • Pushing any global cop-spawn limit beyond 8 requires the "NFSMW LimitAdjuster" (LA) mod by 
    Zolika1351 for stability. Without LA, the game will start unloading models and assets because
    its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. 
-   To make LA compatible with this mod, open LA's "NFSMWLimitAdjuster.ini" configuration file and 
-   disable ALL features in its "[Options]" parameter group; this fully unlocks the cop-spawn limit
-   without taking control away from Bartender. LA itself, however, is not perfectly stable either:
-   it tends to crash either in the first 30 seconds of the first pursuit per session or not at all.
+   To fully unlock the global cop-spawn limit without taking spawn control away from Bartender,
+   open LA's "NFSMWLimitAdjuster.ini" configuration file and disable EVERYTHING in its "[Options]"
+   parameter group. Note that LA itself is also not perfectly stable: it tends to crash 
+   either in the first 30 seconds of the first pursuit per session or not at all.
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned
    to them in their "pvehicle" VltEd entries, either directly or through parent entries.
