@@ -197,7 +197,7 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    affects "Chasers") is compared against. This total is calculated across all active pursuits, 
    meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
    
- • Pushing any global cop-spawn limit beyond 8 requires the "NFSMW LimitAdjuster" (LA) mod by 
+ • Pushing any global cop-spawn limit beyond 8 requires the "NFSMW LimitAdjuster" mod (LA) by
    Zolika1351 for stability. Without LA, the game will start unloading models and assets because
    its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. 
    To fully unlock the global cop-spawn limit without taking spawn control away from Bartender,
