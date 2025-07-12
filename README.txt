@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.9.04) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.9.05) │ ■ ──────────────────────────────────────────────────────────────
 
 You can view this README with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -41,11 +41,12 @@ similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, this mod
 feature is easier to configure, leaner, and even checks strings for correctness on game launch,
 ignoring any specified strings that do not actually exist in the game's (modified) binary files.
 
-The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSettings/Basic".
+The CONFIGURATION (.ini) FILES for this feature set are located in "BartenderSettings/Basic".
 
 To DISABLE..
  • ..a given customisation option, either delete its parameter group or the file containing it.
  • ..a given bug fix, you must delete specific configuration files (see "LIMITATIONS" section).
+ • ..the entire feature set, delete all its configuration files or the folder containing them.
 
 
 
@@ -72,8 +73,11 @@ its value now accurately reflects how many chasing cop spawns remain in the curr
 The count ignores vehicles spawned through any Heavy / LeaderStrategy, the helicopter,
 and all vehicles that join the pursuit by detaching themselves from roadblocks.
 
-The CONFIGURATION (.ini) FILES for this set are located in "scripts/BartenderSettings/Advanced".
-To DISABLE this feature set, delete the entire "scripts/BartenderSettings/Advanced" folder.
+The CONFIGURATION (.ini) FILES for this feature set are located in "BartenderSettings/Advanced".
+
+To DISABLE.. 
+ • ..a given customisation option, either delete its parameter group or the file containing it.
+ • ..the entire feature set, delete all its configuration files or the folder containing them.
 
 
 
@@ -120,7 +124,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 GENERAL:
 
- • Deleting all files of this feature set disables the two Heat-level fixes.
+ • Deleting all configuration files of this feature set disables the two Heat-level fixes.
 
  • The Heat-level reset fix is completely incompatible with the "HeatLevelOverride" feature of 
    the "NFSMW ExtraOptions" mod by ExOptsTeam. I recommend you disable this ExtraOptions feature in
@@ -172,7 +176,7 @@ GENERAL:
    because the feature set fulfils their intended purposes with much greater customisation:
    "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
 
- • If the feature set is enabled, the fix for the displayed engagement count will also be applied.
+ • If the feature set is enabled, the fix for the displayed engagement count is also applied.
 
  • In each Heat level's "pursuitsupport" VltEd entry, ensure that every HeavyStrategy enabled
    is only listed once (e.g. there is not a second HeavyStrategy 3), and that there is no more
@@ -194,13 +198,12 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
    
  • Pushing any global cop-spawn limit beyond 8 requires the "NFSMW LimitAdjuster" (LA) mod by 
-   Zolika1351 to work properly. Without it, the game will start unloading models and assets because
+   Zolika1351 for stability. Without LA, the game will start unloading models and assets because
    its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. 
-   To make LA compatible with this mod, open its "NFSMWLimitAdjuster.ini" configuration file and 
-   disable ALL features in its "[Options]" section; this will fully unlock the spawn limit without 
-   forcing an infinite amount of cops to spawn. Note that LA is not perfectly stable either: It is 
-   prone to crashing in the first 30 seconds of the first pursuit in a play session, but will 
-   generally stay stable if it does not crash there.
+   To make LA compatible with this mod, open LA's "NFSMWLimitAdjuster.ini" configuration file and 
+   disable ALL features in its "[Options]" parameter group; this fully unlocks the cop-spawn limit
+   without taking control away from Bartender. LA itself, however, is not perfectly stable either:
+   it tends to crash either in the first 30 seconds of the first pursuit per session or not at all.
 
  • All vehicles you specify in any of the spawn tables must each have the "CAR" class assigned
    to them in their "pvehicle" VltEd entries, either directly or through parent entries.
@@ -219,13 +222,13 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • Rarely, cops that are not in "Roadblocks" spawn tables might still show up in roadblocks. This 
    is a vanilla bug; it usually happens when the game attempts to spawn a "Chaser" while it is
    processing a roadblock request, causing it to place the wrong car in the requested roadblock.
-   This bug is not restricted to cop spawns: if the stars align, it can also happen with traffic.
+   This bug is not restricted to cop spawns: if the stars align, it can even happen with traffic.
 
  • The "Events" spawn tables do NOT apply to the scripted patrols that spawn in any of the prologue
    D-Day events; those spawns are special and a real hassle to deal with, even among event spawns.
 
  • The "Events" spawn tables do NOT apply to the very first scripted, pre-generated cop that 
-   spawns in a given event; instead, this first cop is always of the type specified in the event's 
+   spawns in a given event; instead, this first cop is always of the type listed in the event's 
    "CopSpawnType" VltEd parameter. This is because the game requests this vehicle before it has
    loaded any pursuit or Heat level information, making it impossible for the mod to know which 
    spawn table to use to replace it. This vehicle, however, is still properly accounted for in 
@@ -333,3 +336,4 @@ v1.9.01: It's a bird! It's a plane! No, it's yet another fresh batch of phrasing
 v1.9.02: Added information about enabling / disabling individual bug fixes to README
 v1.9.03: Clarified logic of spawn-table copying in "LIMITATIONS" section of README
 v1.9.04: Corrected mislabelled spawn tables in "LIMITATIONS" section of README
+v1.9.05: Rephrased a couple more parts of the README to remove ambiguity

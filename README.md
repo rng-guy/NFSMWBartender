@@ -2,12 +2,12 @@
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
 This .asi mod adds new customisation options to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in **two feature sets**:
-* the "**Basic**" set lets you change many otherwise hard-coded values of the game, and
-* the "**Advanced**" set lets you [change cop-spawning behaviour and spawn tables without limits](https://youtu.be/XwFSpc97hF4).
+* the "**[Basic](#basic-feature-set)**" set lets you change many otherwise hard-coded values of the game, and
+* the "**[Advanced](#advanced-feature-set)**" set lets you [change cop-spawning behaviour and spawn tables without limits](https://youtu.be/XwFSpc97hF4).
 
 &nbsp;
 
-For **details** on which features and configuration files each set includes, see the sections below. There are also separate sections for [installation](#installation) instructions and the [limitations](#limitations) of this mod.
+For **details** on which features and configuration files each set includes, see the sections below. There are also separate sections for [installation instructions](#installation) and the [limitations](#limitations) of this mod.
 
 &nbsp;
 
@@ -20,7 +20,7 @@ For **details** on which features and configuration files each set includes, see
 # "Basic" feature set
 
 > [!IMPORTANT]
-> Before using this feature set, see the [limitations](#Limitations) section further below.
+> Before using this feature set, see the [limitations section](#basic-feature-set-1) further below.
 
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
@@ -43,15 +43,16 @@ This feature set **fixes four bugs**:
 
 &nbsp;
 
-You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. Compared to Unlimiter, this mod's version of this feature is easier to configure, leaner, and even checks strings for correctness on game launch, ignoring any specified strings that do not actually exist in the game's (modified) binary files.
+You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Compared to Unlimiter, this mod's version of this feature is easier to configure, leaner, and even checks strings for correctness on game launch, ignoring any specified strings that do not actually exist in the game's (modified) binary files.
 
 &nbsp;
 
-The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Basic`.
+The **configuration (.ini) files** for this feature set are located in `BartenderSettings/Basic`.
 
 To **disable**..
 * ..a given customisation option, either delete its parameter group or the file containing it.
-* ..a given bug fix, you must delete specific configuration files (see [limitations](#Limitations) section).
+* ..a given bug fix, you must delete specific configuration files (see [limitations section](#basic-feature-set-1)).
+* ..the entire feature set, delete all its configuration files or the folder containing them.
 
 &nbsp;
 
@@ -64,7 +65,7 @@ To **disable**..
 # "Advanced" feature set
 
 > [!IMPORTANT]
-> Before using this feature set, see the [limitations](#Limitations) section further below.
+> Before using this feature set, see the [limitations section](#advanced-feature-set-1) further below.
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
@@ -83,9 +84,11 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 
 &nbsp;
 
-The **configuration (.ini) files** for this set are located in `scripts/BartenderSettings/Advanced`.
+The **configuration (.ini) files** for this feature set are located in `BartenderSettings/Advanced`.
 
-To **disable** this feature set, delete the entire `scripts/BartenderSettings/Advanced` folder.
+To **disable**..
+* ..a given customisation option, either delete its parameter group or the file containing it.
+* ..the entire feature set, delete all its configuration files or the folder containing them.
 
 &nbsp;
 
@@ -98,9 +101,9 @@ To **disable** this feature set, delete the entire `scripts/BartenderSettings/Ad
 # Installation
 
 **Before installing** this mod:
-1. make sure you have read and understood the [limitations](#Limitations) section further below,
+1. make sure you have read and understood the [limitations section](#Limitations) further below,
 2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
-3. install an .asi loader or any mod with one (e.g. the [WideScreenFix](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) mod by ThirteenAG).
+3. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
 
 &nbsp;
 
@@ -144,9 +147,9 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 **General**:
 
-* Deleting all files of this feature set disables the two Heat-level fixes.
+* Deleting all configuration files of this feature set disables the two Heat-level fixes.
 
-* The Heat-level reset fix is completely incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. I recommend you disable this ExtraOptions feature in general, as it might also interfere with other Bartender features in subtle ways; to do so, edit ExtraOptions' `NFSMWExtraOptionsSettings.ini` configuration file. Note that you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd entry is what sets the maximum Heat level (1-10) while you are at Blacklist rival #XY.
+* The Heat-level reset fix is completely incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions mod](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam. I recommend you disable this ExtraOptions feature in general, as it might also interfere with other Bartender features in subtle ways; to do so, edit ExtraOptions' `NFSMWExtraOptionsSettings.ini` configuration file. Note that you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd entry is what sets the maximum Heat level (1-10) while you are at Blacklist rival #XY.
 
 * If you do not install the missing menu textures (`FixMissingTextures.end`), then the game will simply not display a number next to Heat gauges in menus when your car's Heat level is above 5. The Heat-level reset fix, on the other hand, will work even without these missing textures.
 
@@ -154,7 +157,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 **Cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
 
-* This feature is completely incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. Either delete Bartender's `Labels.ini` configuration file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` file.
+* This feature is completely incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Either delete Bartender's `Labels.ini` configuration file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` file.
 
 &nbsp;
 
@@ -184,7 +187,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * If the feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because the feature set fulfils their intended purposes with much greater customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
-* If the feature set is enabled, the fix for the displayed engagement count will also be applied.
+* If the feature set is enabled, the fix for the displayed engagement count is also applied.
 
 * In each Heat level's `pursuitsupport` VltEd entry, ensure that every HeavyStrategy enabled is only listed once (e.g. there is not a second HeavyStrategy 3), and that there is no more than one LeaderStrategy enabled; otherwise, their `Duration` VltEd parameters might be misread.
 
@@ -200,7 +203,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning (but not the other way around). This is vanilla behaviour, as these spawns count toward the total number of cops loaded that the global cop-spawn limit (which only affects "Chasers") is compared against. This total is calculated across all active pursuits, meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
   
-* Pushing any global cop-spawn limit beyond 8 requires the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) mod by Zolika1351 to work properly. Without it, the game will start unloading models and assets because its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. To make LA compatible with this mod, open its `NFSMWLimitAdjuster.ini` configuration file and disable *all* features in its `[Options]` section; this will fully unlock the spawn limit without forcing an infinite amount of cops to spawn. Note that LA is not perfectly stable either: It is prone to crashing in the first 30 seconds of the first pursuit in a play session, but will generally stay stable if it does not crash there.
+* Pushing any global cop-spawn limit beyond 8 requires the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351 for stability. Without LA, the game will start unloading models and assets because its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. To make LA compatible with this mod, open LA's `NFSMWLimitAdjuster.ini` configuration file and disable *all* features in its `[Options]` group; this fully unlocks the cop-spawn limit without taking control away from Bartender. LA itself, however, is not perfectly stable either: it tends to crash either in the first 30 seconds of the first pursuit per session or not at all.
 
 * All vehicles you specify in any of the spawn tables must each have the `CAR` class assigned to them in their `pvehicle` VltEd entries, either directly or through parent entries.
 
@@ -210,11 +213,11 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This does not apply to vehicles with `count` values of at least 5, as no roadblock contains more than 5 cars.
 
-* Rarely, cops that are not in "Roadblocks" spawn tables might still show up in roadblocks. This is a vanilla bug; it usually happens when the game attempts to spawn a "Chaser" while it is processing a roadblock request, causing it to place the wrong car in the requested roadblock. This bug is not restricted to cop spawns: if the stars align, it can also happen with traffic.
+* Rarely, cops that are not in "Roadblocks" spawn tables might still show up in roadblocks. This is a vanilla bug; it usually happens when the game attempts to spawn a "Chaser" while it is processing a roadblock request, causing it to place the wrong car in the requested roadblock. This bug is not restricted to cop spawns: if the stars align, it can even happen with traffic.
 
 * The "Events" spawn tables do *not* apply to the scripted patrols that spawn in any of the prologue D-Day events; those spawns are special and a real hassle to deal with, even among event spawns.
 
-* The "Events" spawn tables do *not* apply to the very first scripted, pre-generated cop that spawns in a given event; instead, this first cop is always of the type specified in the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it has loaded any pursuit or Heat level information, making it impossible for the mod to know which spawn table to use to replace it. This vehicle, however, is still properly accounted for in `count` calculations for any following vehicle spawns.
+* The "Events" spawn tables do *not* apply to the very first scripted, pre-generated cop that spawns in a given event; instead, this first cop is always of the type listed in the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it has loaded any pursuit or Heat level information, making it impossible for the mod to know which spawn table to use to replace it. This vehicle, however, is still properly accounted for in `count` calculations for any following vehicle spawns.
 
 * `count` values in "Roadblocks" and "Events" spawn tables are ignored whenever the game requests more vehicles in total than these values would allow: When all their `count` values have been exhausted for a given roadblock / event, every vehicle in the relevant table may spawn without restriction until the next roadblock / event begins.
 
@@ -242,5 +245,5 @@ This mod would not have seen the light of day without
 * **[nlgxzef](https://github.com/nlgxzef)**, for the Most Wanted debug symbols;
 * **GuidedHacking**, for their [Cheat Engine tutorials](https://www.youtube.com/playlist?list=PLt9cUwGw6CYFSoQHsf9b12kHWLdgYRhmQ);
 * **[ExOptsTeam](https://github.com/ExOptsTeam)**, for permitting me to use their Heat-level fixes;
-* **trelbutate**, for his [NFSMW Cop Car Healthbars](https://github.com/trelbutate/MWHealthbars/) mod as a resource; and
+* **trelbutate**, for his [NFSMW Cop Car Healthbars mod](https://github.com/trelbutate/MWHealthbars/) as a resource; and
 * **Orsal**, **Aven**, **Astra King79**, and **MORELLO**, for testing and providing feedback.
