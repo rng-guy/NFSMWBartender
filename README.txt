@@ -1,6 +1,8 @@
 
 ── ■ │ WHAT IS NFSMW Bartender? (v1.9.06) │ ■ ─────────────────────────────────────────────────────
 
+You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
+
 This .asi mod ADDS NEW CUSTOMISATION OPTIONS TO PURSUITS. These options come in two feature sets:
  • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
@@ -12,8 +14,6 @@ This document ANSWERS THESE QUESTIONS in detail:
  4) • How do I install Bartender in my game?
  5) • How may I redistribute or bundle Bartender?
  6) • What changed in each version of Bartender?
-
-You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
 
 
