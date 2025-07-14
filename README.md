@@ -143,7 +143,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-## What should I know about Bartender's "Basic" feature set?
+## What should I know before I use its "Basic" feature set?
 
 **General**:
 
@@ -179,7 +179,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-## What should I know about Bartender's "Advanced" feature set?
+## What should I know before I use its "Advanced" feature set?
 
 **General**:
 

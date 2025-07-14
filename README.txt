@@ -120,7 +120,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 
 
-── ■ WHAT SHOULD I KNOW ABOUT BARTENDER'S "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - - - 
+── ■ WHAT SHOULD I KNOW BEFORE I USE ITS "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - - - -
 
 GENERAL:
 
@@ -165,7 +165,7 @@ UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
 
 
-── ■ WHAT SHOULD I KNOW ABOUT BARTENDER'S "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - - - -
+── ■ WHAT SHOULD I KNOW BEFORE I USE ITS "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - - - - 
 
 GENERAL:
 
