@@ -155,7 +155,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-Regarding **cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
+Regarding **cop ([Binary](https://github.com/SpeedReflect/Binary/releases)) strings** (`BartenderSettings\Basic\Labels.ini`):
 
 * This feature is completely incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Either delete Bartender's `Labels.ini` configuration file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` file.
 
