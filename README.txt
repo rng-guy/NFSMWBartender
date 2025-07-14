@@ -8,19 +8,19 @@ This .asi mod ADDS NEW CUSTOMISATION OPTIONS TO PURSUITS. These options come in 
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
 This document ANSWERS THE FOLLOWING QUESTIONS in detail:
- 1) • What does Bartender's "Basic" feature set do?
- 2) • What does Bartender's "Advanced" feature set do?
+ 1) • What does the "Basic" feature set do?
+ 2) • What does the "Advanced" feature set do?
  3) • What should I know before I use Bartender?
  4) • How do I install Bartender in my game?
  5) • How may I redistribute or bundle Bartender?
- 6) • What changed in each version of Bartender?
+ 6) • What changed in each version?
 
 
 
 
 
 
-── ■ │ 1 - WHAT DOES BARTENDER'S "BASIC" FEATURE SET DO? │ ■ ──────────────────────────────────────
+── ■ │ 1 - WHAT DOES THE "BASIC" FEATURE SET DO? │ ■ ──────────────────────────────────────────────
 
 This feature set LETS YOU CHANGE (per Heat level)
  • at which distance and how quickly you can get busted,
@@ -49,7 +49,7 @@ ignoring any specified strings that do not actually exist in the game's (modifie
 
 
 
-── ■ │ 2 - WHAT DOES BARTENDER'S "ADVANCED" FEATURE SET DO? │ ■ ───────────────────────────────────
+── ■ │ 2 - WHAT DOES THE "ADVANCED" FEATURE SET DO? │ ■ ───────────────────────────────────────────
 
 This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
@@ -82,7 +82,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 
 
-── ■ 3.1 - WHAT SHOULD I KNOW BEFORE I USE ITS "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - -
+── ■ 3.1 - WHAT SHOULD I KNOW ABOUT ITS "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - - - - 
 
 IN GENERAL:
 
@@ -132,7 +132,7 @@ Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
 
 
-── ■ 3.2 - WHAT SHOULD I KNOW BEFORE I USE ITS "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - 
+── ■ 3.2 - WHAT SHOULD I KNOW ABOUT ITS "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - - - - -
 
 IN GENERAL:
 
@@ -272,7 +272,7 @@ This mod would not have seen the light of day without
 
 
 
-── ■ │ 6 - WHAT CHANGED IN EACH VERSION OF BARTENDER? │ ■ ─────────────────────────────────────────
+── ■ │ 6 - WHAT CHANGED IN EACH VERSION? │ ■ ──────────────────────────────────────────────────────
 
 v1.0.00: Initial release
 v1.0.01: Revised "LIMITATIONS" section of README

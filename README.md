@@ -8,8 +8,8 @@ This .asi mod **adds new customisation options to pursuits** in *Need for Speed:
 &nbsp;
 
 This document **answers the following questions** in detail:
-1. [What does Bartender's "Basic" feature set do?](#1---what-does-bartenders-basic-feature-set-do)
-2. [What does Bartender's "Advanced" feature set do?](#2---what-does-bartenders-advanced-feature-set-do)
+1. [What does the "Basic" feature set do?](#1---what-does-the-basic-feature-set-do)
+2. [What does the "Advanced" feature set do?](#2---what-does-the-advanced-feature-set-do)
 3. [What should I know before I use Bartender?](#3---what-should-i-know-before-i-use-bartender)
 4. [How do I install Bartender in my game?](#4---how-do-i-install-bartender-in-my-game)
 5. [How may I redistribute or bundle Bartender?](#5---how-may-i-redistribute-or-bundle-bartender)
@@ -22,7 +22,7 @@ This document **answers the following questions** in detail:
 
 
 
-# 1 - What does Bartender's "Basic" feature set do?
+# 1 - What does the "Basic" feature set do?
 
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
@@ -55,7 +55,7 @@ You can also **assign new ([Binary](https://github.com/SpeedReflect/Binary/relea
 
 
 
-# 2 - What does Bartender's "Advanced" feature set do?
+# 2 - What does the "Advanced" feature set do?
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
