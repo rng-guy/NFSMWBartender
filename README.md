@@ -226,6 +226,7 @@ To **update** this mod, uninstall it and repeat the installation process above.
 You are free to bundle this mod and any of its files with your own pursuit mod, **no credit required**. If you include the .asi file, however, I ask that you do your users a favour and provide a link to [Bartender's GitHub repository](https://github.com/rng-guy/NFSMWBartender) in your mod's README.
 
 &nbsp;
+
 Finally, this mod would not have seen the light of day without
 * **DarkByte**, for [Cheat Engine](https://www.cheatengine.org/);
 * **[rx](https://github.com/rxyyy)**, for encouraging me to try .asi modding;
