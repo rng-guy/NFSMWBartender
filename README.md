@@ -2,8 +2,8 @@
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
 This is an .asi mod that extends pursuit customisation options in *Need for Speed: Most Wanted* (2005). These new options come in **two sets**:
-* the "**["Basic" set](#what-does-bartenders-basic-feature-set-offer)**" lets you change many otherwise hard-coded values of the game, and
-* the "**["Advanced" set](#what-does-bartenders-advanced-feature-set-offer)**" lets you [change cop-spawning behaviour and spawn tables without limits](https://youtu.be/XwFSpc97hF4).
+* the **["Basic" set](#what-does-bartenders-basic-feature-set-offer)** lets you change many otherwise hard-coded values of the game, and
+* the **["Advanced" set](#what-does-bartenders-advanced-feature-set-offer)** lets you [change cop-spawning behaviour and spawn tables without limits](https://youtu.be/XwFSpc97hF4).
 
 &nbsp;
 
