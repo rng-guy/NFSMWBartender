@@ -41,8 +41,8 @@ This feature set FIXES FOUR BUGS:
 
 You can also ASSIGN NEW (BINARY) STRINGS for the game to display when cop vehicles are destroyed,
 similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, this mod's version of this
-feature is easier to configure, leaner, and even checks strings for correctness on game launch,
-ignoring any specified strings that do not actually exist in the game's (modified) binary files.
+feature is easier to configure, leaner, and even checks strings for correctness on game launch:
+it ignores any strings that do not actually exist in the game's (modified) compiled resource files.
 
 
 
