@@ -86,7 +86,7 @@ If improperly configured, this mod can cause **stability issues** in your game d
 
 To help you avoid nasty surprises and instability, the following two subsections cover everything you need to know to make informed decisions when you edit the configuration files of this mod.
 
-The following two subsections also contain **compatibility notes** for any mods known to conflict with Bartender in any way; however, each of its two feature sets should be compatible with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html), [Binary](https://github.com/SpeedReflect/Binary/releases), and most .asi mods that do not modify the game's cop-spawning code.
+The following two subsections also contain **compatibility notes** for any mods known to conflict with Bartender in any way; however, each of its two feature sets should be compatible with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html), [Binary](https://github.com/SpeedReflect/Binary/releases), and most .asi mods that do not modify the game's actual cop-spawning code.
 
 &nbsp;
 
