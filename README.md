@@ -1,13 +1,13 @@
 
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
-This .asi mod adds new customisation options to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in **two feature sets**:
+This is an .asi mod that extends pursuit customisation options in *Need for Speed: Most Wanted* (2005). These new options come in **two sets**:
 * the "**[Basic](#basic-feature-set)**" set lets you change many otherwise hard-coded values of the game, and
 * the "**[Advanced](#advanced-feature-set)**" set lets you [change cop-spawning behaviour and spawn tables without limits](https://youtu.be/XwFSpc97hF4).
 
 &nbsp;
 
-For **details** on which features and configuration files each set includes, see the sections below. There are also separate sections for [installation instructions](#installation) and the [limitations](#limitations) of this mod.
+For **details** on which features and configuration files each set includes, see the sections below. There are also separate sections covering installation instructions and usage notes for this mod.
 
 &nbsp;
 
@@ -17,10 +17,10 @@ For **details** on which features and configuration files each set includes, see
 
 
 
-# "Basic" feature set
+# What does Bartender's "Basic" feature set offer?
 
 > [!IMPORTANT]
-> Before using this feature set, see the [limitations section](#basic-feature-set-1) further below.
+> Before you use this feature set, see the ["What should I know...?" section](#basic-feature-set-1) further below.
 
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
@@ -51,7 +51,7 @@ The **configuration (.ini) files** for this feature set are located in `Bartende
 
 To **disable**..
 * ..a given customisation option, either delete its parameter group or the file containing it.
-* ..a given bug fix, you must delete specific configuration files (see [limitations section](#basic-feature-set-1)).
+* ..a given bug fix, you must delete specific files (see the ["What should I know...?" section](#basic-feature-set-1)).
 * ..the entire feature set, delete all its configuration files or the folder containing them.
 
 &nbsp;
@@ -62,10 +62,10 @@ To **disable**..
 
 
 
-# "Advanced" feature set
+# What does Bartender's "Advanced" feature set offer?
 
 > [!IMPORTANT]
-> Before using this feature set, see the [limitations section](#advanced-feature-set-1) further below.
+> Before you use this feature set, see the ["What should I know...?" section](#basic-feature-set-1)" further below.
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
@@ -98,10 +98,10 @@ To **disable**..
 
 
 
-# Installation
+# How do I install Bartender?
 
 **Before installing** this mod:
-1. make sure you have read and understood the [limitations section](#Limitations) further below,
+1. make sure you have read and understood the ["What should I know...?" section](#basic-feature-set-1) further below,
 2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
 3. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
 
@@ -133,7 +133,7 @@ To **update** this mod, uninstall it and repeat the installation process above.
 
 
 
-# Limitations
+# What should I know before I use Bartender?
 
 The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises and game instability, make sure you understand them all before you use this mod in any capacity.
 
@@ -143,7 +143,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-## "Basic" feature set
+## What should I know about Bartender's "Basic" feature set?
 
 **General**:
 
@@ -179,7 +179,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-## "Advanced" feature set
+## What should I know about Bartender's "Advanced" feature set?
 
 **General**:
 
@@ -233,7 +233,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 
 
-# Acknowledgement(s)
+# How may I redistribute or bundle Bartender?
 
 You are free to bundle this mod and any of its .ini files with your own pursuit mod(s), **no credit required**. If you include the .asi file, however, I ask that you do your users a favour and provide a link to this mod's GitHub repository in your mod's README file.
 

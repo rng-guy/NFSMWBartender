@@ -1,23 +1,23 @@
 
-── ■ │ NFSMW Bartender (v1.9.06) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW Bartender? (v1.9.06) │ ■ ─────────────────────────────────────────────────────
 
-You can view this README with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
-
-This .asi mod adds new customisation options to pursuits. These options come in two sets:
+This is an .asi mod that extends pursuit customisation options. These new options come in two sets:
  • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" set lets you change cop-spawning behaviour and spawn tables without limits.
 
 For DETAILS on which features and configuration files each set includes, see the sections below.
-There are also separate sections for "INSTALLATION" instructions and the "LIMITATIONS" of this mod.
+There are also separate sections covering installation instructions and usage notes for this mod.
+
+You can view this README with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
 
 
 
 
 
-── ■ │ "BASIC" FEATURE SET │ ■ ────────────────────────────────────────────────────────────────────
+── ■ │ WHAT DOES BARTENDER'S "BASIC" FEATURE SET OFFER? │ ■ ───────────────────────────────────────
 
-BEFORE USING this feature set, see the "LIMITATIONS" section further below.
+BEFORE YOU USE this feature set, see the "WHAT SHOULD I KNOW...?" section further below.
 
 This feature set LETS YOU CHANGE (per Heat level)
  • at which distance and how quickly you can get busted,
@@ -45,7 +45,7 @@ The CONFIGURATION (.ini) FILES for this feature set are located in "BartenderSet
 
 To DISABLE..
  • ..a given customisation option, either delete its parameter group or the file containing it.
- • ..a given bug fix, you must delete specific configuration files (see "LIMITATIONS" section).
+ • ..a given bug fix, you must delete specific files (see the "WHAT SHOULD I KNOW...?" section).
  • ..the entire feature set, delete all its configuration files or the folder containing them.
 
 
@@ -53,9 +53,9 @@ To DISABLE..
 
 
 
-── ■ │ "ADVANCED" FEATURE SET │ ■ ─────────────────────────────────────────────────────────────────
+── ■ │ WHAT DOES BARTENDER'S "ADVANCED" FEATURE SET OFFER? │ ■ ────────────────────────────────────
 
-BEFORE USING this feature set, see the "LIMITATIONS" section further below.
+BEFORE YOU USE this feature set, see the "WHAT SHOULD I KNOW...?" section further below.
 
 This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
@@ -84,10 +84,10 @@ To DISABLE..
 
 
 
-── ■ │ INSTALLATION │ ■ ───────────────────────────────────────────────────────────────────────────
+── ■ │ HOW DO I INSTALL BARTENDER? │ ■ ────────────────────────────────────────────────────────────
 
 BEFORE INSTALLING this mod:
- 1) • make sure you have read and understood the "LIMITATIONS" section further below,
+ 1) • make sure you have read and understood the "WHAT SHOULD I KNOW...?" section further below,
  2) • make sure your game's "Speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
  3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 
@@ -110,7 +110,7 @@ Whenever you do, make sure to replace ALL old configuration files properly!
 
 
 
-── ■ │ LIMITATIONS │ ■ ────────────────────────────────────────────────────────────────────────────
+── ■ │ WHAT SHOULD I KNOW BEFORE I USE BARTENDER? │ ■ ─────────────────────────────────────────────
 
 The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises 
 and game instability, make sure you understand them all before you use this mod in any capacity.
@@ -120,7 +120,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 
 
-── ■ "BASIC" FEATURE SET ■ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+── ■ WHAT SHOULD I KNOW ABOUT BARTENDER'S "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - - - 
 
 GENERAL:
 
@@ -165,7 +165,7 @@ UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
 
 
-── ■ "ADVANCED" FEATURE SET ■ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+── ■ WHAT SHOULD I KNOW ABOUT BARTENDER'S "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - - - -
 
 GENERAL:
 
@@ -256,10 +256,10 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
 
 
-── ■ │ ACKNOWLEDGEMENT(S) │ ■ ─────────────────────────────────────────────────────────────────────
+── ■ │ HOW MAY I REDISTRIBUTE OR BUNDLE BARTENDER? │ ■ ────────────────────────────────────────────
 
-You are free to bundle this mod and any of its .ini files with your own pursuit mod(s), no credit 
-required. If you include the .asi file, however, I ask that you do your users a favour and provide
+You are free to bundle this mod and any of its .ini files with your own pursuit mod(s), NO CREDIT
+REQUIRED. If you include the .asi file, however, I ask that you do your users a favour and provide
 a link to this mod's GitHub repository in your mod's README file.
 
 This mod would not have seen the light of day without
@@ -276,7 +276,7 @@ This mod would not have seen the light of day without
 
 
 
-── ■ │ CHANGELOG │ ■ ──────────────────────────────────────────────────────────────────────────────
+── ■ │ WHAT CHANGED IN EACH VERSION OF BARTENDER? │ ■ ─────────────────────────────────────────────
 
 v1.0.00: Initial release
 v1.0.01: Revised "LIMITATIONS" section of README
