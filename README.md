@@ -80,7 +80,7 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 
 
 
-# 3 What should I know before I use Bartender?
+# 3  What should I know before I use Bartender?
 
 The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises and game instability, make sure you understand them all before you use this mod in any capacity.
 
