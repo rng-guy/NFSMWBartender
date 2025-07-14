@@ -6,8 +6,8 @@ This is an .asi mod that extends pursuit customisation options. These new option
  • the "ADVANCED" feature set lets you change cop-spawning behaviour and tables without limits.
 
 This document also ANSWERS THESE QUESTIONS (in order):
- 1) • "What does Bartender's "Basic" feature set offer?"
- 2) • "What does Bartender's "Advanced" feature set offer?"
+ 1) • "What does Bartender's "Basic" feature set do?"
+ 2) • "What does Bartender's "Advanced" feature set do?"
  3) • "What should I know before I use Bartender?"
  4) • "How do I install Bartender in my game?"
  5) • "How may I redistribute or bundle Bartender?"
@@ -20,7 +20,7 @@ You can view this document with web formatting on GitHub: https://github.com/rng
 
 
 
-── ■ │ 1: WHAT DOES BARTENDER'S "BASIC" FEATURE SET OFFER? │ ■ ────────────────────────────────────
+── ■ │ 1: WHAT DOES BARTENDER'S "BASIC" FEATURE SET DO? │ ■ ───────────────────────────────────────
 
 This feature set LETS YOU CHANGE (per Heat level)
  • at which distance and how quickly you can get busted,
@@ -49,7 +49,7 @@ ignoring any specified strings that do not actually exist in the game's (modifie
 
 
 
-── ■ │ 2: WHAT DOES BARTENDER'S "ADVANCED" FEATURE SET OFFER? │ ■ ─────────────────────────────────
+── ■ │ 2: WHAT DOES BARTENDER'S "ADVANCED" FEATURE SET DO? │ ■ ────────────────────────────────────
 
 This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
