@@ -240,7 +240,7 @@ To **update** this mod, uninstall it and repeat the installation process above.
 
 # How may I redistribute or bundle Bartender?
 
-You are free to bundle this mod and any of its .ini files with your own pursuit mod(s), **no credit required**. If you include the .asi file, however, I ask that you do your users a favour and provide a link to this mod's GitHub repository in your mod's README file.
+You are free to bundle this mod and any of its files with your own pursuit mod, **no credit required**. If you include the .asi file, however, I ask that you do your users a favour and provide a link to [this mod's GitHub repository](https://github.com/rng-guy/NFSMWBartender) in your mod's README file.
 
 &nbsp;
 

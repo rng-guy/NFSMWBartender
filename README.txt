@@ -263,9 +263,9 @@ Whenever you do, make sure to replace ALL old configuration files properly!
 
 ── ■ │ HOW MAY I REDISTRIBUTE OR BUNDLE BARTENDER? │ ■ ────────────────────────────────────────────
 
-You are free to bundle this mod and any of its .ini files with your own pursuit mod(s), NO CREDIT
-REQUIRED. If you include the .asi file, however, I ask that you do your users a favour and provide
-a link to this mod's GitHub repository in your mod's README file.
+You are free to bundle this mod and any of its files with your own pursuit mod, NO CREDIT REQUIRED.
+If you include the .asi file, however, I ask that you do your users a favour and provide a link to
+this mod's GitHub repository (https://github.com/rng-guy/NFSMWBartender) in your mod's README file.
 
 This mod would not have seen the light of day without
  • DarkByte, for Cheat Engine;
