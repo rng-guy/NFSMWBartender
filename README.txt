@@ -94,7 +94,7 @@ IN GENERAL:
  • The configuration (.ini) files for this feature set are located in "BartenderSettings/Basic".
 
  • You can disable any feature of this set by deleting the file containing its parameters,
-   but bug fixes do not have parameters and are tied to specific files implicitly instead.
+   but the bug fixes do not have parameters and are tied to specific files implicitly instead.
 
  • Only deleting all configuration files of this feature set disables the two Heat-level fixes.
 
