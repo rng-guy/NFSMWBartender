@@ -1,5 +1,5 @@
 
-── ■ │ NFSMW Bartender (v1.9.05) │ ■ ──────────────────────────────────────────────────────────────
+── ■ │ NFSMW Bartender (v1.9.06) │ ■ ──────────────────────────────────────────────────────────────
 
 You can view this README with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -97,10 +97,10 @@ To INSTALL this mod:
  3) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
 
 AFTER INSTALLING this mod, you can customise its features through its configuration (.ini) files.
-You can find these configuration files in the "scripts\BartenderSettings" folder.
+You can find these configuration files in the game's new "scripts\BartenderSettings" folder.
 
 To UNINSTALL this mod, remove its files from your game's "scripts" folder. There is no need to
-remove the optional Heat-level textures, as the game will never access them without this mod.
+remove the optional missing textures, as the game does not ever use them without this mod.
 
 To UPDATE this mod, uninstall it and repeat the installation process above.
 Whenever you do, make sure to replace ALL old configuration files properly!
@@ -133,9 +133,9 @@ GENERAL:
    the maximum available Heat level with VltEd: The "0xe8c24416" parameter of a given "race_bin_XY"
    VltEd entry is what sets the maximum Heat level (1-10) while you are at Blacklist rival #XY.
 
- • If you do not install the missing menu textures ("FixMissingTextures.end"), then the game will 
-   simply not display a number next to Heat gauges in menus when your car's Heat level is above 5. 
-   The Heat-level reset fix, on the other hand, will work even without these missing textures.
+ • If you do not install the optional missing textures ("FixMissingTextures.end"), then the game
+   will not display a number next to Heat gauges in menus for any car with a Heat level above 5. 
+   The Heat-level reset fix, on the other hand, will work even without these optional textures.
 
 
 COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
@@ -336,3 +336,4 @@ v1.9.02: Added information about enabling / disabling individual bug fixes to RE
 v1.9.03: Clarified logic of spawn-table copying in "LIMITATIONS" section of README
 v1.9.04: Corrected mislabelled spawn tables in "LIMITATIONS" section of README
 v1.9.05: Rephrased a couple more parts of the README to remove ambiguity
+v1.9.06: Fixed a few more minor wording inconsistencies in README

@@ -114,9 +114,9 @@ To **install** this mod:
 
 &nbsp;
 
-**After installing** this mod, you can customise its features through its configuration (.ini) files. You can find these configuration files in the `scripts\BartenderSettings` folder.
+**After installing** this mod, you can customise its features through its configuration (.ini) files. You can find these configuration files in the game's new `scripts\BartenderSettings` folder.
 
-To **uninstall** this mod, remove its files from your game's `scripts` folder. There is no need to remove the optional Heat-level textures, as the game will never access them without this mod.
+To **uninstall** this mod, remove its files from your game's `scripts` folder. There is no need to remove the optional missing textures, as the game does not ever use them without this mod.
 
 &nbsp;
 
@@ -151,7 +151,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * The Heat-level reset fix is completely incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions mod](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam. I recommend you disable this ExtraOptions feature in general, as it might also interfere with other Bartender features in subtle ways; to do so, edit ExtraOptions' `NFSMWExtraOptionsSettings.ini` configuration file. Note that you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd entry is what sets the maximum Heat level (1-10) while you are at Blacklist rival #XY.
 
-* If you do not install the missing menu textures (`FixMissingTextures.end`), then the game will simply not display a number next to Heat gauges in menus when your car's Heat level is above 5. The Heat-level reset fix, on the other hand, will work even without these missing textures.
+* If you do not install the optional missing textures (`FixMissingTextures.end`), then the game will not display a number next to Heat gauges in menus for any car with a Heat level above 5. The Heat-level reset fix, on the other hand, will work even without these optional textures.
 
 &nbsp;
 
