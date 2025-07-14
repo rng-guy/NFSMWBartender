@@ -11,7 +11,7 @@ This document ANSWERS THE FOLLOWING QUESTIONS in detail:
  1) • What does the "Basic" feature set do?
  2) • What does the "Advanced" feature set do?
  3) • What should I know before I use Bartender?
- 4) • How do I install Bartender in my game?
+ 4) • How do I install Bartender for my game?
  5) • How may I redistribute or bundle Bartender?
  6) • What changed in each version?
 
@@ -226,7 +226,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
 
 
-── ■ │ 4 - HOW DO I INSTALL BARTENDER IN MY GAME? │ ■ ─────────────────────────────────────────────
+── ■ │ 4 - HOW DO I INSTALL BARTENDER FOR MY GAME? │ ■ ────────────────────────────────────────────
 
 BEFORE INSTALLING this mod:
  1) • make sure you have read and understood the "WHAT SHOULD I KNOW...?" section above,
