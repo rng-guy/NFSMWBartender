@@ -6,12 +6,12 @@ This is an .asi mod that extends pursuit customisation options. These new option
  • the "ADVANCED" feature set lets you change cop-spawning behaviour and tables without limits.
 
 This document ANSWERS THE FOLLOWING QUESTIONS (in order):
- • "What does Bartender's "Basic" feature set offer?"
- • "What does Bartender's "Advanced" feature set offer?"
- • "What should I know before I use Bartender?"
- • "How do I install Bartender?"
- • "How may I redistribute or bundle Bartender?"
- • "What changed in each version of Bartender?"
+ 1) • "What does Bartender's "Basic" feature set offer?"
+ 2) • "What does Bartender's "Advanced" feature set offer?"
+ 3) • "What should I know before I use Bartender?"
+ 4) • "How do I install Bartender in my game?"
+ 5) • "How may I redistribute or bundle Bartender?"
+ 6) • "What changed in each version of Bartender?"
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -20,7 +20,7 @@ You can view this document with web formatting on GitHub: https://github.com/rng
 
 
 
-── ■ │ WHAT DOES BARTENDER'S "BASIC" FEATURE SET OFFER? │ ■ ───────────────────────────────────────
+── ■ │ 1: WHAT DOES BARTENDER'S "BASIC" FEATURE SET OFFER? │ ■ ────────────────────────────────────
 
 BEFORE YOU USE this feature set, see the "WHAT SHOULD I KNOW...?" section further below.
 
@@ -58,7 +58,7 @@ To DISABLE..
 
 
 
-── ■ │ WHAT DOES BARTENDER'S "ADVANCED" FEATURE SET OFFER? │ ■ ────────────────────────────────────
+── ■ │ 2: WHAT DOES BARTENDER'S "ADVANCED" FEATURE SET OFFER? │ ■ ─────────────────────────────────
 
 BEFORE YOU USE this feature set, see the "WHAT SHOULD I KNOW...?" section further below.
 
@@ -89,7 +89,7 @@ To DISABLE..
 
 
 
-── ■ │ WHAT SHOULD I KNOW BEFORE I USE BARTENDER? │ ■ ─────────────────────────────────────────────
+── ■ │ 3: WHAT SHOULD I KNOW BEFORE I USE BARTENDER? │ ■ ──────────────────────────────────────────
 
 The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises 
 and game instability, make sure you understand them all before you use this mod in any capacity.
@@ -99,7 +99,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 
 
-── ■ WHAT SHOULD I KNOW BEFORE I USE ITS "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - - - -
+── ■ 3.1: WHAT SHOULD I KNOW BEFORE I USE ITS "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - 
 
 IN GENERAL:
 
@@ -144,7 +144,7 @@ Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
 
 
-── ■ WHAT SHOULD I KNOW BEFORE I USE ITS "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - - - - 
+── ■ 3.2: WHAT SHOULD I KNOW BEFORE I USE ITS "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - -
 
 IN GENERAL:
 
@@ -235,7 +235,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
 
 
-── ■ │ HOW DO I INSTALL BARTENDER? │ ■ ────────────────────────────────────────────────────────────
+── ■ │ 4: HOW DO I INSTALL BARTENDER IN MY GAME? │ ■ ──────────────────────────────────────────────
 
 BEFORE INSTALLING this mod:
  1) • make sure you have read and understood the "WHAT SHOULD I KNOW...?" section above,
@@ -261,7 +261,7 @@ Whenever you do, make sure to replace ALL old configuration files properly!
 
 
 
-── ■ │ HOW MAY I REDISTRIBUTE OR BUNDLE BARTENDER? │ ■ ────────────────────────────────────────────
+── ■ │ 5: HOW MAY I REDISTRIBUTE OR BUNDLE BARTENDER? │ ■ ─────────────────────────────────────────
 
 You are free to bundle this mod and any of its files with your own pursuit mod, NO CREDIT REQUIRED.
 If you include the .asi file, however, I ask that you do your users a favour and provide a link to
@@ -281,7 +281,7 @@ This mod would not have seen the light of day without
 
 
 
-── ■ │ WHAT CHANGED IN EACH VERSION OF BARTENDER? │ ■ ─────────────────────────────────────────────
+── ■ │ 6: WHAT CHANGED IN EACH VERSION OF BARTENDER? │ ■ ──────────────────────────────────────────
 
 v1.0.00: Initial release
 v1.0.01: Revised "LIMITATIONS" section of README
@@ -341,4 +341,4 @@ v1.9.02: Added information about enabling / disabling individual bug fixes to RE
 v1.9.03: Clarified logic of spawn-table copying in "LIMITATIONS" section of README
 v1.9.04: Corrected mislabelled spawn tables in "LIMITATIONS" section of README
 v1.9.05: Rephrased a couple more parts of the README to remove ambiguity
-v1.9.06: Fixed a few more minor wording inconsistencies in README
+v1.9.06: Overhauled and restructured entire README to improve navigability

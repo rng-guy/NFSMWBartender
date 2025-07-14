@@ -8,11 +8,11 @@ This is an .asi mod that extends pursuit customisation options in *Need for Spee
 &nbsp;
 
 This document **answers the following questions** (in order):
-* "[What does Bartender's "Basic" feature set offer?](#what-does-bartenders-basic-feature-set-offer)"
-* "[What does Bartender's "Advanced" feature set offer?](#what-does-bartenders-advanced-feature-set-offer)"
-* "[What should I know before I use Bartender?](#what-should-i-know-before-i-use-bartender)"
-* "[How do I install Bartender?](#how-do-i-install-bartender)"
-* "[How may I redistribute or bundle Bartender?](#how-may-i-redistribute-or-bundle-bartender)"
+1. "[What does Bartender's "Basic" feature set offer?](#what-does-bartenders-basic-feature-set-offer)"
+2. "[What does Bartender's "Advanced" feature set offer?](#what-does-bartenders-advanced-feature-set-offer)"
+3. "[What should I know before I use Bartender?](#what-should-i-know-before-i-use-bartender)"
+4. "[How do I install Bartender in my game?](#how-do-i-install-bartender-in-my-game)"
+5. "[How may I redistribute or bundle Bartender?](#how-may-i-redistribute-or-bundle-bartender)"
 
 &nbsp;
 
@@ -22,7 +22,7 @@ This document **answers the following questions** (in order):
 
 
 
-# What does Bartender's "Basic" feature set offer?
+# 1: What does Bartender's "Basic" feature set offer?
 
 > [!IMPORTANT]
 > Before you use this feature set, see the ["What should I know...?" section](#what-should-i-know-about-its-basic-feature-set) further below.
@@ -67,7 +67,7 @@ To **disable**..
 
 
 
-# What does Bartender's "Advanced" feature set offer?
+# 2: What does Bartender's "Advanced" feature set offer?
 
 > [!IMPORTANT]
 > Before you use this feature set, see the ["What should I know...?" section](#what-should-i-know-about-its-advanced-feature-set) further below.
@@ -103,7 +103,7 @@ To **disable**..
 
 
 
-# What should I know before I use Bartender?
+# 3: What should I know before I use Bartender?
 
 The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises and game instability, make sure you understand them all before you use this mod in any capacity.
 
@@ -113,7 +113,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-## What should I know about its "Basic" feature set?
+## 3.1: What should I know about its "Basic" feature set?
 
 **In general**:
 
@@ -149,7 +149,7 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 &nbsp;
 
-## What should I know about its "Advanced" feature set?
+## 3.2: What should I know about its "Advanced" feature set?
 
 **In general**:
 
@@ -203,7 +203,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 
 
-# How do I install Bartender?
+# 4: How do I install Bartender in my game?
 
 **Before installing** this mod:
 1. make sure you have read and understood the ["What should I know...?" section](#what-should-i-know-before-i-use-bartender) above,
@@ -238,7 +238,7 @@ To **update** this mod, uninstall it and repeat the installation process above.
 
 
 
-# How may I redistribute or bundle Bartender?
+# 5: How may I redistribute or bundle Bartender?
 
 You are free to bundle this mod and any of its files with your own pursuit mod, **no credit required**. If you include the .asi file, however, I ask that you do your users a favour and provide a link to [this mod's GitHub repository](https://github.com/rng-guy/NFSMWBartender) in your mod's README file.
 
