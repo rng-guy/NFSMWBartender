@@ -83,7 +83,7 @@ you need to know to make informed decisions when you edit the configuration file
 
 The following two subsections also contain COMPATIBILITY NOTES for any mods known to conflict with
 Bartender in any way; however, each of its two feature sets should be compatible with all VltEd,
-Binary, and most .asi mods that do not modify the game's cop-spawning logic directly.
+Binary, and most .asi mods that do not modify the game's cop-spawning code.
 
 
 
