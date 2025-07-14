@@ -45,7 +45,7 @@ This feature set **fixes four bugs**:
 
 &nbsp;
 
-You can also **assign new ([Binary](https://github.com/SpeedReflect/Binary/releases)) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Compared to Unlimiter, this mod's version of this feature is easier to configure, leaner, and even checks strings for correctness on game launch: it ignores any strings that do not actually exist in the game's (modified) compiled resource files.
+You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Compared to Unlimiter, this mod's version of this feature is easier to configure, leaner, and even checks strings for correctness on game launch: it ignores any strings that do not actually exist in the game's (modified) compiled resource files.
 
 &nbsp;
 
@@ -82,9 +82,11 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 
 # 3 - What should I know before I use Bartender?
 
-The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises and game instability, make sure you understand them all before you use this mod in any capacity.
+If improperly configured, this mod can cause **stability issues** in your game due to how much control it gives you over the game's cop-spawning logic. Also, the way this mod reads its configuration files has a few built-in assumptions that you should be aware of before you edit any of them.
 
-Both feature sets of this mod should be **compatible** with all VltEd, Binary, and most .asi mods. All known and notable exceptions to this are explicitly mentioned in this section.
+To help you avoid nasty surprises and instability, the following two subsections cover everything you need to know to make informed decisions when you edit the configuration files of this mod.
+
+The following two subsections also contain **compatibility notes** for any mods known to conflict with Bartender in any way; however, each of its two feature sets should be compatible with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html), [Binary](https://github.com/SpeedReflect/Binary/releases), and most .asi mods that do not modify the game's cop-spawning logic directly.
 
 &nbsp;
 
@@ -96,7 +98,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * The configuration (.ini) files for this feature set are located in `BartenderSettings/Basic`.
 
-* You can disable any feature of this set by deleting the file containing its parameters, but bug fixes do not have parameters and are implicitly tied to specific files instead.
+* You can disable any feature of this set by deleting the file containing its parameters, but bug fixes do not have parameters and are tied to specific files implicitly instead.
 
 * Only deleting all configuration files of this feature set disables the two Heat-level fixes.
 
@@ -106,7 +108,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-Regarding **cop ([Binary](https://github.com/SpeedReflect/Binary/releases)) strings** (`BartenderSettings\Basic\Labels.ini`):
+Regarding **cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
 
 * This feature is completely incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Either delete Bartender's `Labels.ini` configuration file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` file.
 

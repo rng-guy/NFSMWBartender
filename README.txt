@@ -74,11 +74,16 @@ and all vehicles that join the pursuit by detaching themselves from roadblocks.
 
 ── ■ │ 3 - WHAT SHOULD I KNOW BEFORE I USE BARTENDER? │ ■ ─────────────────────────────────────────
 
-The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises 
-and game instability, make sure you understand them all before you use this mod in any capacity.
+If improperly configured, this mod can cause STABILITY ISSUES in your game due to how much control
+it gives you over the game's cop-spawning logic. Also, the way this mod reads its configuration
+files has a few built-in assumptions that you should be aware of before you edit any of them.
 
-Both feature sets of this mod should be compatible with all VltEd, Binary, and most .asi mods.
-All known and notable exceptions to this are explicitly mentioned in this section.
+To help you avoid nasty surprises and instability, the following two subsections cover everything
+you need to know to make informed decisions when you edit the configuration files of this mod.
+
+The following two subsections also contain COMPATIBILITY NOTES for any mods known to conflict with
+Bartender in any way; however, each of its two feature sets should be compatible with all VltEd,
+Binary, and most .asi mods that do not modify the game's cop-spawning logic directly.
 
 
 
@@ -89,7 +94,7 @@ IN GENERAL:
  • The configuration (.ini) files for this feature set are located in "BartenderSettings/Basic".
 
  • You can disable any feature of this set by deleting the file containing its parameters,
-   but bug fixes do not have parameters and are implicitly tied to specific files instead.
+   but bug fixes do not have parameters and are tied to specific files implicitly instead.
 
  • Only deleting all configuration files of this feature set disables the two Heat-level fixes.
 
