@@ -145,7 +145,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 ## What should I know about its "Basic" feature set?
 
-In **general**:
+**In general**:
 
 * Deleting all configuration files of this feature set disables the two Heat-level fixes.
 
@@ -181,7 +181,7 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 ## What should I know about its "Advanced" feature set?
 
-In **general**:
+**In general**:
 
 * The entire feature set is disabled if *any* free-roam Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); each table must contain at least one vehicle.
 
