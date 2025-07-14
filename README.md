@@ -7,7 +7,7 @@ This is an .asi mod that extends pursuit customisation options in *Need for Spee
 
 &nbsp;
 
-For **details** on which features and configuration files each set includes, see the sections below. There are also separate sections covering installation instructions and usage notes for this mod.
+For **details** on which features and configuration files each set includes, see the sections below. There are also separate sections covering [installation instructions](#how-do-i-install-bartender) and [usage notes](#what-should-i-know-before-i-use-bartender) for this mod.
 
 &nbsp;
 
@@ -20,7 +20,7 @@ For **details** on which features and configuration files each set includes, see
 # What does Bartender's "Basic" feature set offer?
 
 > [!IMPORTANT]
-> Before you use this feature set, see the ["What should I know...?" section](#basic-feature-set-1) further below.
+> Before you use this feature set, see the ["What should I know...?" section](#what-should-i-know-before-i-use-its-basic-feature-set) further below.
 
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
@@ -51,7 +51,7 @@ The **configuration (.ini) files** for this feature set are located in `Bartende
 
 To **disable**..
 * ..a given customisation option, either delete its parameter group or the file containing it.
-* ..a given bug fix, you must delete specific files (see the ["What should I know...?" section](#basic-feature-set-1)).
+* ..a given bug fix, you must delete specific files (see the ["What should I know...?" section](#what-should-i-know-before-i-use-its-basic-feature-set)).
 * ..the entire feature set, delete all its configuration files or the folder containing them.
 
 &nbsp;
@@ -65,7 +65,7 @@ To **disable**..
 # What does Bartender's "Advanced" feature set offer?
 
 > [!IMPORTANT]
-> Before you use this feature set, see the ["What should I know...?" section](#basic-feature-set-1)" further below.
+> Before you use this feature set, see the ["What should I know...?" section](#what-should-i-know-before-i-use-its-advanced-feature-set)" further below.
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
@@ -101,7 +101,7 @@ To **disable**..
 # How do I install Bartender?
 
 **Before installing** this mod:
-1. make sure you have read and understood the ["What should I know...?" section](#basic-feature-set-1) further below,
+1. make sure you have read and understood the ["What should I know...?" section](#what-should-i-know-before-i-use-bartender) further below,
 2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
 3. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
 
