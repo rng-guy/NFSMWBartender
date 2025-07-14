@@ -7,7 +7,7 @@ This is an .asi mod that extends pursuit customisation options in *Need for Spee
 
 &nbsp;
 
-This document **answers the following questions** (in order):
+This document also **answers these questions** (in order):
 1. "[What does Bartender's "Basic" feature set offer?](#1-what-does-bartenders-basic-feature-set-offer)"
 2. "[What does Bartender's "Advanced" feature set offer?](#2-what-does-bartenders-advanced-feature-set-offer)"
 3. "[What should I know before I use Bartender?](#3-what-should-i-know-before-i-use-bartender)"
@@ -23,9 +23,6 @@ This document **answers the following questions** (in order):
 
 
 # 1 What does Bartender's "Basic" feature set offer?
-
-> [!IMPORTANT]
-> Before you use this feature set, see the ["What should I know...?" section](#31-what-should-i-know-about-its-basic-feature-set) further below.
 
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
@@ -52,15 +49,6 @@ You can also **assign new ([Binary](https://github.com/SpeedReflect/Binary/relea
 
 &nbsp;
 
-The **configuration (.ini) files** for this feature set are located in `BartenderSettings/Basic`.
-
-To **disable**..
-* ..a given customisation option, either delete its parameter group or the file containing it.
-* ..a given bug fix, you must delete specific files (see the ["What should I know...?" section](#31-what-should-i-know-about-its-basic-feature-set)).
-* ..the entire feature set, delete all its configuration files or the folder containing them.
-
-&nbsp;
-
 &nbsp;
 
 &nbsp;
@@ -68,9 +56,6 @@ To **disable**..
 
 
 # 2 What does Bartender's "Advanced" feature set offer?
-
-> [!IMPORTANT]
-> Before you use this feature set, see the ["What should I know...?" section](#32-what-should-i-know-about-its-advanced-feature-set) further below.
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
@@ -86,14 +71,6 @@ This feature set **lets you change** (per Heat level)
 &nbsp;
 
 This feature set **also fixes** the displayed engagement count in the centre of the pursuit bar: its value now accurately reflects how many chasing cop spawns remain in the current wave. The count ignores vehicles spawned through any Heavy / LeaderStrategy, the helicopter, and all vehicles that join the pursuit by detaching themselves from roadblocks.
-
-&nbsp;
-
-The **configuration (.ini) files** for this feature set are located in `BartenderSettings/Advanced`.
-
-To **disable**..
-* ..a given customisation option, either delete its parameter group or the file containing it.
-* ..the entire feature set, delete all its configuration files or the folder containing them.
 
 &nbsp;
 
@@ -116,6 +93,10 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 ## 3.1 What should I know about its "Basic" feature set?
 
 **In general**:
+
+* The configuration (.ini) files for this feature set are located in `BartenderSettings/Basic`.
+
+* You can disable any feature of this set by deleting its parameter group or the file containing it. This does not apply to the bug fixes, however: they are tied to entire configuration files instead.
 
 * Deleting all configuration files of this feature set disables the two Heat-level fixes.
 
@@ -153,11 +134,13 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 **In general**:
 
-* The entire feature set is disabled if *any* free-roam Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); each table must contain at least one vehicle.
+* The configuration (.ini) files for this feature set are located in `BartenderSettings/Advanced`.
 
-* If the feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because the feature set fulfils their intended purposes with much greater customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
+* You can disable any feature of this set by deleting its parameter group or the file containing it. This does not apply to the engagement-count fix, however: it is tied to this feature set.
 
-* If the feature set is enabled, the fix for the displayed engagement count is also applied.
+* This entire feature set is disabled if *any* free-roam Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); each table must contain at least one vehicle.
+
+* If this feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because this feature set fulfils their intended purposes with much greater customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
 * In each Heat level's `pursuitsupport` VltEd entry, ensure that every HeavyStrategy enabled is only listed once (e.g. there is not a second HeavyStrategy 3), and that there is no more than one LeaderStrategy enabled; otherwise, their `Duration` VltEd parameters might be misread.
 
