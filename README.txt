@@ -1,7 +1,7 @@
 
 ── ■ │ WHAT IS NFSMW Bartender? (v1.9.06) │ ■ ─────────────────────────────────────────────────────
 
-This is an .asi mod that ADDS NEW PURSUIT CUSTOMISATION OPTIONS. These options come in two sets:
+This .asi mod ADDS NEW CUSTOMISATION OPTIONS TO PURSUITS. These options come in two feature sets:
  • the "BASIC" feature set lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" feature set lets you change cop-spawning behaviour and tables without limits.
 

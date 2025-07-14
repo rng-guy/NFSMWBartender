@@ -1,7 +1,7 @@
 
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
-This is an .asi mod that **adds new pursuit customisation options** to *Need for Speed: Most Wanted* (2005). These options come in two sets:
+This .asi mod **adds new customisation options to pursuits** in *Need for Speed: Most Wanted* (2005). These options come in two feature sets:
 * the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
 * the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/XwFSpc97hF4).
 
