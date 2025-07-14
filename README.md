@@ -2,12 +2,17 @@
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
 This is an .asi mod that extends pursuit customisation options in *Need for Speed: Most Wanted* (2005). These new options come in **two sets**:
-* the **["Basic" set](#what-does-bartenders-basic-feature-set-offer)** lets you change many otherwise hard-coded values of the game, and
-* the **["Advanced" set](#what-does-bartenders-advanced-feature-set-offer)** lets you [change cop-spawning behaviour and spawn tables without limits](https://youtu.be/XwFSpc97hF4).
+* the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
+* the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/XwFSpc97hF4).
 
 &nbsp;
 
-For **details** on which features and configuration files each set includes, see the sections below. There are also separate sections covering [installation instructions](#how-do-i-install-bartender) and [usage notes](#what-should-i-know-before-i-use-bartender) for this mod.
+This document **answers the following questions** (in order):
+* "[What does Bartender's "Basic" feature set offer?](#what-does-bartenders-basic-feature-set-offer)"
+* "[What does Bartender's "Advanced" feature set offer?](#what-does-bartenders-advanced-feature-set-offer)"
+* "[What should I know before I use Bartender?](#what-should-i-know-before-i-use-bartender)"
+* "[How do I install Bartender?](#how-do-i-install-bartender)"
+* "[How may I redistribute or bundle Bartender?](#how-may-i-redistribute-or-bundle-bartender)"
 
 &nbsp;
 
@@ -89,41 +94,6 @@ The **configuration (.ini) files** for this feature set are located in `Bartende
 To **disable**..
 * ..a given customisation option, either delete its parameter group or the file containing it.
 * ..the entire feature set, delete all its configuration files or the folder containing them.
-
-&nbsp;
-
-&nbsp;
-
-&nbsp;
-
-
-
-# How do I install Bartender?
-
-**Before installing** this mod:
-1. make sure you have read and understood the ["What should I know...?" section](#what-should-i-know-before-i-use-bartender) further below,
-2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
-3. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
-
-&nbsp;
-
-To **install** this mod:
-1. if it does not exist already, create a `scripts` folder in your game's installation folder;
-2. copy the `BartenderSettings` folder and compiled .asi file into the game's `scripts` folder; and
-3. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.
-
-&nbsp;
-
-**After installing** this mod, you can customise its features through its configuration (.ini) files. You can find these configuration files in the game's new `scripts\BartenderSettings` folder.
-
-To **uninstall** this mod, remove its files from your game's `scripts` folder. There is no need to remove the optional missing textures, as the game does not ever use them without this mod.
-
-&nbsp;
-
-To **update** this mod, uninstall it and repeat the installation process above.
-
-> [!WARNING]
-> Whenever you update this mod, make sure to replace *all* old configuration files!
 
 &nbsp;
 
@@ -224,6 +194,41 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 * Making Heat transitions very fast (`0x80deb840` VltEd parameter(s) set to < 5 seconds) can cause a mix of cops from more than one "Events" spawn table to appear in events that feature scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. If you want to keep fast transitions, you can avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level.
 
 * Depending on their type, patrol spawns are taken from different spawn tables: Free patrols that spawn when there is no active pursuit are taken from "Patrols" tables, while searching patrols that spawn in pursuits when you are in "COOLDOWN" mode are taken from "Chasers" tables instead. For both types, the `NumPatrolCars` VltEd parameter controls how many cars may spawn at any given time; free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count (but not the global limit). This is all vanilla behaviour.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+
+# How do I install Bartender?
+
+**Before installing** this mod:
+1. make sure you have read and understood the ["What should I know...?" section](#what-should-i-know-before-i-use-bartender) above,
+2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
+3. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
+
+&nbsp;
+
+To **install** this mod:
+1. if it does not exist already, create a `scripts` folder in your game's installation folder;
+2. copy the `BartenderSettings` folder and compiled .asi file into the game's `scripts` folder; and
+3. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.
+
+&nbsp;
+
+**After installing** this mod, you can customise its features through its configuration (.ini) files. You can find these configuration files in the game's new `scripts\BartenderSettings` folder.
+
+To **uninstall** this mod, remove its files from your game's `scripts` folder. There is no need to remove the optional missing textures, as the game does not ever use them without this mod.
+
+&nbsp;
+
+To **update** this mod, uninstall it and repeat the installation process above.
+
+> [!WARNING]
+> Whenever you update this mod, make sure to replace *all* old configuration files!
 
 &nbsp;
 

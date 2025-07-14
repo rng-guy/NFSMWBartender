@@ -2,13 +2,18 @@
 ── ■ │ WHAT IS NFSMW Bartender? (v1.9.06) │ ■ ─────────────────────────────────────────────────────
 
 This is an .asi mod that extends pursuit customisation options. These new options come in two sets:
- • the "BASIC" set lets you change many otherwise hard-coded values of the game, and
- • the "ADVANCED" set lets you change cop-spawning behaviour and spawn tables without limits.
+ • the "BASIC" feature set lets you change many otherwise hard-coded values of the game, and
+ • the "ADVANCED" feature set lets you change cop-spawning behaviour and tables without limits.
 
-For DETAILS on which features and configuration files each set includes, see the sections below.
-There are also separate sections covering installation instructions and usage notes for this mod.
+This document ANSWERS THE FOLLOWING QUESTIONS (in order):
+ • "What does Bartender's "Basic" feature set offer?"
+ • "What does Bartender's "Advanced" feature set offer?"
+ • "What should I know before I use Bartender?"
+ • "How do I install Bartender?"
+ • "How may I redistribute or bundle Bartender?"
+ • "What changed in each version of Bartender?"
 
-You can view this README with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
+You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
 
 
@@ -78,32 +83,6 @@ The CONFIGURATION (.ini) FILES for this feature set are located in "BartenderSet
 To DISABLE.. 
  • ..a given customisation option, either delete its parameter group or the file containing it.
  • ..the entire feature set, delete all its configuration files or the folder containing them.
-
-
-
-
-
-
-── ■ │ HOW DO I INSTALL BARTENDER? │ ■ ────────────────────────────────────────────────────────────
-
-BEFORE INSTALLING this mod:
- 1) • make sure you have read and understood the "WHAT SHOULD I KNOW...?" section further below,
- 2) • make sure your game's "Speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
- 3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
-
-To INSTALL this mod:
- 1) • if it does not exist already, create a "scripts" folder in your game's installation folder;
- 2) • copy the contents of this mod's "scripts" folder into your game's "scripts" folder; and
- 3) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
-
-AFTER INSTALLING this mod, you can customise its features through its configuration (.ini) files.
-You can find these configuration files in the game's new "scripts\BartenderSettings" folder.
-
-To UNINSTALL this mod, remove its files from your game's "scripts" folder. There is no need to
-remove the optional missing textures, as the game does not ever use them without this mod.
-
-To UPDATE this mod, uninstall it and repeat the installation process above.
-Whenever you do, make sure to replace ALL old configuration files properly!
 
 
 
@@ -250,6 +229,32 @@ COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    For both types, the "NumPatrolCars" VltEd parameter controls how many cars may spawn at any
    given time; free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns
    ignore the remaining engagement count (but not the global limit). This is all vanilla behaviour.
+
+
+
+
+
+
+── ■ │ HOW DO I INSTALL BARTENDER? │ ■ ────────────────────────────────────────────────────────────
+
+BEFORE INSTALLING this mod:
+ 1) • make sure you have read and understood the "WHAT SHOULD I KNOW...?" section above,
+ 2) • make sure your game's "Speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
+ 3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
+
+To INSTALL this mod:
+ 1) • if it does not exist already, create a "scripts" folder in your game's installation folder;
+ 2) • copy the contents of this mod's "scripts" folder into your game's "scripts" folder; and
+ 3) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
+
+AFTER INSTALLING this mod, you can customise its features through its configuration (.ini) files.
+You can find these configuration files in the game's new "scripts\BartenderSettings" folder.
+
+To UNINSTALL this mod, remove its files from your game's "scripts" folder. There is no need to
+remove the optional missing textures, as the game does not ever use them without this mod.
+
+To UPDATE this mod, uninstall it and repeat the installation process above.
+Whenever you do, make sure to replace ALL old configuration files properly!
 
 
 
