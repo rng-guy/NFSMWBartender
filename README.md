@@ -114,7 +114,7 @@ Regarding **cop ([Binary](https://github.com/SpeedReflect/Binary/releases)) stri
 
 Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
-* Deleting this file disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
+* Deleting this file also disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
 
 * All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should each have a low `MAXIMUM_AI_SPEED` value (the vanilla SUVs use 50) assigned to them in their `aivehicle` VltEd entries; otherwise, they might cause stability issues by joining the pursuit long-term after their ramming attempt(s), effectively circumventing the global cop-spawn limit.
 
@@ -124,7 +124,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
-* Deleting this file disables the fix for getting busted while the "EVADE" bar fills.
+* Deleting this file also disables the fix for getting busted while the "EVADE" bar fills.
 
 &nbsp;
 

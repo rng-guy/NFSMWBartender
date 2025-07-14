@@ -114,7 +114,7 @@ Regarding COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
 
 Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
- • Deleting this file disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
+ • Deleting this file also disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
 
  • All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should
    each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) assigned to them in their 
@@ -128,7 +128,7 @@ Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
 Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
- • Deleting this file disables the fix for getting busted while the "EVADE" bar fills.
+ • Deleting this file also disables the fix for getting busted while the "EVADE" bar fills.
 
 
 
