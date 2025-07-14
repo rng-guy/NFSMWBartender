@@ -90,7 +90,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-## 3.1 - What should I know about its "Basic" feature set?
+## 3.1 - What should I know about the "Basic" feature set?
 
 **In general**:
 
@@ -130,7 +130,7 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 &nbsp;
 
-## 3.2 - What should I know about its "Advanced" feature set?
+## 3.2 - What should I know about the "Advanced" feature set?
 
 **In general**:
 
