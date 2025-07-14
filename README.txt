@@ -20,7 +20,7 @@ You can view this document with web formatting on GitHub: https://github.com/rng
 
 
 
-── ■ │ 1: WHAT DOES BARTENDER'S "BASIC" FEATURE SET DO? │ ■ ───────────────────────────────────────
+── ■ │ 1 - WHAT DOES BARTENDER'S "BASIC" FEATURE SET DO? │ ■ ──────────────────────────────────────
 
 This feature set LETS YOU CHANGE (per Heat level)
  • at which distance and how quickly you can get busted,
@@ -49,7 +49,7 @@ ignoring any specified strings that do not actually exist in the game's (modifie
 
 
 
-── ■ │ 2: WHAT DOES BARTENDER'S "ADVANCED" FEATURE SET DO? │ ■ ────────────────────────────────────
+── ■ │ 2 - WHAT DOES BARTENDER'S "ADVANCED" FEATURE SET DO? │ ■ ───────────────────────────────────
 
 This feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
@@ -72,7 +72,7 @@ and all vehicles that join the pursuit by detaching themselves from roadblocks.
 
 
 
-── ■ │ 3: WHAT SHOULD I KNOW BEFORE I USE BARTENDER? │ ■ ──────────────────────────────────────────
+── ■ │ 3 - WHAT SHOULD I KNOW BEFORE I USE BARTENDER? │ ■ ─────────────────────────────────────────
 
 The two feature sets of this mod each come with caveats and limitations. To avoid nasty surprises 
 and game instability, make sure you understand them all before you use this mod in any capacity.
@@ -82,7 +82,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 
 
-── ■ 3.1: WHAT SHOULD I KNOW BEFORE I USE ITS "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - 
+── ■ 3.1 - WHAT SHOULD I KNOW BEFORE I USE ITS "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - -
 
 IN GENERAL:
 
@@ -132,7 +132,7 @@ Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
 
 
-── ■ 3.2: WHAT SHOULD I KNOW BEFORE I USE ITS "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - -
+── ■ 3.2 - WHAT SHOULD I KNOW BEFORE I USE ITS "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - 
 
 IN GENERAL:
 
@@ -226,7 +226,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
 
 
-── ■ │ 4: HOW DO I INSTALL BARTENDER IN MY GAME? │ ■ ──────────────────────────────────────────────
+── ■ │ 4 - HOW DO I INSTALL BARTENDER IN MY GAME? │ ■ ─────────────────────────────────────────────
 
 BEFORE INSTALLING this mod:
  1) • make sure you have read and understood the "WHAT SHOULD I KNOW...?" section above,
@@ -252,7 +252,7 @@ Whenever you do, make sure to replace ALL old configuration files properly!
 
 
 
-── ■ │ 5: HOW MAY I REDISTRIBUTE OR BUNDLE BARTENDER? │ ■ ─────────────────────────────────────────
+── ■ │ 5 - HOW MAY I REDISTRIBUTE OR BUNDLE BARTENDER? │ ■ ────────────────────────────────────────
 
 You are free to bundle this mod and any of its files with your own pursuit mod, NO CREDIT REQUIRED.
 If you include the .asi file, however, I ask that you do your users a favour and provide a link to
@@ -272,7 +272,7 @@ This mod would not have seen the light of day without
 
 
 
-── ■ │ 6: WHAT CHANGED IN EACH VERSION OF BARTENDER? │ ■ ──────────────────────────────────────────
+── ■ │ 6 - WHAT CHANGED IN EACH VERSION OF BARTENDER? │ ■ ─────────────────────────────────────────
 
 v1.0.00: Initial release
 v1.0.01: Revised "LIMITATIONS" section of README

@@ -8,11 +8,11 @@ This is an .asi mod that extends pursuit customisation options in *Need for Spee
 &nbsp;
 
 This document also **answers these questions** (in order):
-1. "[What does Bartender's "Basic" feature set do?](#1-what-does-bartenders-basic-feature-set-do)"
-2. "[What does Bartender's "Advanced" feature set do?](#2-what-does-bartenders-advanced-feature-set-do)"
-3. "[What should I know before I use Bartender?](#3-what-should-i-know-before-i-use-bartender)"
-4. "[How do I install Bartender in my game?](#4-how-do-i-install-bartender-in-my-game)"
-5. "[How may I redistribute or bundle Bartender?](#5-how-may-i-redistribute-or-bundle-bartender)"
+1. "[What does Bartender's "Basic" feature set do?](#1---what-does-bartenders-basic-feature-set-do)"
+2. "[What does Bartender's "Advanced" feature set do?](#2---what-does-bartenders-advanced-feature-set-do)"
+3. "[What should I know before I use Bartender?](#3---what-should-i-know-before-i-use-bartender)"
+4. "[How do I install Bartender in my game?](#4---how-do-i-install-bartender-in-my-game)"
+5. "[How may I redistribute or bundle Bartender?](#5---how-may-i-redistribute-or-bundle-bartender)"
 
 &nbsp;
 
@@ -22,7 +22,7 @@ This document also **answers these questions** (in order):
 
 
 
-# 1 What does Bartender's "Basic" feature set do?
+# 1 - What does Bartender's "Basic" feature set do?
 
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
@@ -55,7 +55,7 @@ You can also **assign new ([Binary](https://github.com/SpeedReflect/Binary/relea
 
 
 
-# 2 What does Bartender's "Advanced" feature set do?
+# 2 - What does Bartender's "Advanced" feature set do?
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
@@ -186,10 +186,10 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 
 
-# 4 How do I install Bartender in my game?
+# 4 - How do I install Bartender in my game?
 
 **Before installing** this mod:
-1. make sure you have read and understood the ["What should I know...?" section](#3-what-should-i-know-before-i-use-bartender) above,
+1. make sure you have read and understood the ["What should I know...?" section](#3---what-should-i-know-before-i-use-bartender) above,
 2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
 3. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
 
@@ -221,7 +221,7 @@ To **update** this mod, uninstall it and repeat the installation process above.
 
 
 
-# 5 How may I redistribute or bundle Bartender?
+# 5 - How may I redistribute or bundle Bartender?
 
 You are free to bundle this mod and any of its files with your own pursuit mod, **no credit required**. If you include the .asi file, however, I ask that you do your users a favour and provide a link to [this mod's GitHub repository](https://github.com/rng-guy/NFSMWBartender) in your mod's README file.
 
