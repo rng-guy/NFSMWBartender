@@ -211,7 +211,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • Making Heat transitions very fast ("0x80deb840" VltEd parameter(s) set to < 5 seconds) can cause
    a mix of cops from more than one "Events" spawn table to appear in events that feature scripted, 
    pre-generated cops. This happens because, depending on your loading times, the game might update 
-   the Heat level as it requests those spawns. If you want to use fast transitions, you can avoid
+   the Heat level as it requests those spawns. If you want to have fast transitions, you can avoid
    this issue by setting the event's "ForceHeatLevel" VltEd parameter to the target Heat level.
 
  • Depending on their type, patrol spawns are taken from different spawn tables: Free patrols that
