@@ -88,8 +88,8 @@ IN GENERAL:
 
  • The configuration (.ini) files for this feature set are located in "BartenderSettings/Basic".
 
- • You can disable any feature of this set by deleting its parameter group or the file containing
-   it. This does not apply to the bug fixes: they are tied to entire configuration files instead.
+ • You can disable any feature of this set by deleting the file containing its parameters,
+   but bug fixes do not have parameters and are implicitly tied to specific files instead.
 
  • Only deleting all configuration files of this feature set disables the two Heat-level fixes.
 
@@ -138,8 +138,8 @@ IN GENERAL:
 
  • The configuration (.ini) files for this feature set are located in "BartenderSettings/Advanced".
 
- • You can disable any feature of this set by deleting its parameter group or the file containing
-   it. This does not apply to the engagement-count fix, which is tied to this entire feature set.
+ • You can disable any feature of this set by deleting the file containing its parameters. This
+   does not apply to the engagement-count fix, which is tied to this entire feature set instead.
 
  • This entire feature set is disabled if ANY free-roam Heat level lacks a valid "Chasers" spawn
    table ("BartenderSettings\Advanced\Cars.ini"); each table must contain at least one vehicle.
