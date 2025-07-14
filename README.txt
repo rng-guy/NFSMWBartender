@@ -91,7 +91,7 @@ IN GENERAL:
  • You can disable any feature of this set by deleting its parameter group or the file containing
    it. This does not apply to the bug fixes: they are tied to entire configuration files instead.
 
- • Deleting all configuration files of this feature set disables the two Heat-level fixes.
+ • Only deleting all configuration files of this feature set disables the two Heat-level fixes.
 
  • The Heat-level reset fix is completely incompatible with the "HeatLevelOverride" feature of 
    the "NFSMW ExtraOptions" mod by ExOptsTeam. I recommend you disable this ExtraOptions feature in

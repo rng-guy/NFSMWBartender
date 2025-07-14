@@ -98,7 +98,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 * You can disable any feature of this set by deleting its parameter group or the file containing it. This does not apply to the bug fixes, however: they are tied to entire configuration files instead.
 
-* Deleting all configuration files of this feature set disables the two Heat-level fixes.
+* Only deleting all configuration files of this feature set disables the two Heat-level fixes.
 
 * The Heat-level reset fix is completely incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions mod](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam. I recommend you disable this ExtraOptions feature in general, as it might also interfere with other Bartender features in subtle ways; to do so, edit ExtraOptions' `NFSMWExtraOptionsSettings.ini` configuration file. Note that you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd entry is what sets the maximum Heat level (1-10) while you are at Blacklist rival #XY.
 
