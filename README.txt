@@ -6,12 +6,12 @@ This is an .asi mod that extends pursuit customisation options. These new option
  • the "ADVANCED" feature set lets you change cop-spawning behaviour and tables without limits.
 
 This document also ANSWERS THESE QUESTIONS (in order):
- 1) • "What does Bartender's "Basic" feature set do?"
- 2) • "What does Bartender's "Advanced" feature set do?"
- 3) • "What should I know before I use Bartender?"
- 4) • "How do I install Bartender in my game?"
- 5) • "How may I redistribute or bundle Bartender?"
- 6) • "What changed in each version of Bartender?"
+ 1) • What does Bartender's "Basic" feature set do?
+ 2) • What does Bartender's "Advanced" feature set do?
+ 3) • What should I know before I use Bartender?
+ 4) • How do I install Bartender in my game?
+ 5) • How may I redistribute or bundle Bartender?
+ 6) • What changed in each version of Bartender?
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 

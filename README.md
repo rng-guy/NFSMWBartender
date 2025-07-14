@@ -8,11 +8,11 @@ This is an .asi mod that extends pursuit customisation options in *Need for Spee
 &nbsp;
 
 This document also **answers these questions** (in order):
-1. "[What does Bartender's "Basic" feature set do?](#1---what-does-bartenders-basic-feature-set-do)"
-2. "[What does Bartender's "Advanced" feature set do?](#2---what-does-bartenders-advanced-feature-set-do)"
-3. "[What should I know before I use Bartender?](#3---what-should-i-know-before-i-use-bartender)"
-4. "[How do I install Bartender in my game?](#4---how-do-i-install-bartender-in-my-game)"
-5. "[How may I redistribute or bundle Bartender?](#5---how-may-i-redistribute-or-bundle-bartender)"
+1. [What does Bartender's "Basic" feature set do?](#1---what-does-bartenders-basic-feature-set-do)
+2. [What does Bartender's "Advanced" feature set do?](#2---what-does-bartenders-advanced-feature-set-do)
+3. [What should I know before I use Bartender?](#3---what-should-i-know-before-i-use-bartender)
+4. [How do I install Bartender in my game?](#4---how-do-i-install-bartender-in-my-game)
+5. [How may I redistribute or bundle Bartender?](#5---how-may-i-redistribute-or-bundle-bartender)
 
 &nbsp;
 
