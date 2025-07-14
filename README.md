@@ -70,7 +70,7 @@ To **disable**..
 # What does Bartender's "Advanced" feature set offer?
 
 > [!IMPORTANT]
-> Before you use this feature set, see the ["What should I know...?" section](#what-should-i-know-about-its-advanced-feature-set)" further below.
+> Before you use this feature set, see the ["What should I know...?" section](#what-should-i-know-about-its-advanced-feature-set) further below.
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,

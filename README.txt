@@ -101,7 +101,7 @@ All known and notable exceptions to this are explicitly mentioned in this sectio
 
 ── ■ WHAT SHOULD I KNOW BEFORE I USE ITS "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - - - -
 
-GENERAL:
+IN GENERAL:
 
  • Deleting all configuration files of this feature set disables the two Heat-level fixes.
 
@@ -117,14 +117,14 @@ GENERAL:
    The Heat-level reset fix, on the other hand, will work even without these optional textures.
 
 
-COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
+Regarding COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
 
  • This feature is completely incompatible with the "EnableCopDestroyedStringHook" feature of the
    "NFSMW Unlimiter" mod by nlgxzef. Either delete Bartender's "Labels.ini" configuration file or 
    disable Unlimiter's version of the feature by editing its "NFSMWUnlimiterSettings.ini" file.
 
 
-GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
+Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
  • Deleting this file disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
 
@@ -138,7 +138,7 @@ GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
    will be able to spawn as long as that cop is present in the pursuit.
 
 
-UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
+Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
  • Deleting this file disables the fix for getting busted while the "EVADE" bar fills.
 
@@ -146,7 +146,7 @@ UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
 ── ■ WHAT SHOULD I KNOW BEFORE I USE ITS "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - - - - 
 
-GENERAL:
+IN GENERAL:
 
  • The entire feature set is disabled if ANY free-roam Heat level lacks a valid "Chasers" spawn
    table ("BartenderSettings\Advanced\Cars.ini"); each table must contain at least one vehicle.
@@ -162,13 +162,13 @@ GENERAL:
    than one LeaderStrategy enabled; otherwise, their "Duration" VltEd parameters might be misread.
 
    
-HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
+Regarding HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
 
  • All vehicles you specify to replace the regular helicopter must each have the "CHOPPER" class
    assigned to them in their "pvehicle" VltEd entries, either directly or through parent entries.
 
 
-COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
+Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
    "Chasers" from spawning (but not the other way around). This is vanilla behaviour, as these
