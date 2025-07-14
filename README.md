@@ -20,7 +20,7 @@ For **details** on which features and configuration files each set includes, see
 # What does Bartender's "Basic" feature set offer?
 
 > [!IMPORTANT]
-> Before you use this feature set, see the ["What should I know...?" section](#what-should-i-know-before-i-use-its-basic-feature-set) further below.
+> Before you use this feature set, see the ["What should I know...?" section](#what-should-i-know-about-its-basic-feature-set) further below.
 
 This feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
@@ -51,7 +51,7 @@ The **configuration (.ini) files** for this feature set are located in `Bartende
 
 To **disable**..
 * ..a given customisation option, either delete its parameter group or the file containing it.
-* ..a given bug fix, you must delete specific files (see the ["What should I know...?" section](#what-should-i-know-before-i-use-its-basic-feature-set)).
+* ..a given bug fix, you must delete specific files (see the ["What should I know...?" section](#what-should-i-know-about-its-basic-feature-set)).
 * ..the entire feature set, delete all its configuration files or the folder containing them.
 
 &nbsp;
@@ -65,7 +65,7 @@ To **disable**..
 # What does Bartender's "Advanced" feature set offer?
 
 > [!IMPORTANT]
-> Before you use this feature set, see the ["What should I know...?" section](#what-should-i-know-before-i-use-its-advanced-feature-set)" further below.
+> Before you use this feature set, see the ["What should I know...?" section](#what-should-i-know-about-its-advanced-feature-set)" further below.
 
 This feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
@@ -143,9 +143,9 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-## What should I know before I use its "Basic" feature set?
+## What should I know about its "Basic" feature set?
 
-**General**:
+In **general**:
 
 * Deleting all configuration files of this feature set disables the two Heat-level fixes.
 
@@ -155,13 +155,13 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-**Cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
+Regarding **cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
 
 * This feature is completely incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Either delete Bartender's `Labels.ini` configuration file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` file.
 
 &nbsp;
 
-**Ground supports** (`BartenderSettings\Basic\Supports.ini`):
+Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Deleting this file disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
 
@@ -171,7 +171,7 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-**Uncategorised features** (`BartenderSettings\Basic\Others.ini`):
+Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 * Deleting this file disables the fix for getting busted while the "EVADE" bar fills.
 
@@ -179,9 +179,9 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-## What should I know before I use its "Advanced" feature set?
+## What should I know about its "Advanced" feature set?
 
-**General**:
+In **general**:
 
 * The entire feature set is disabled if *any* free-roam Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); each table must contain at least one vehicle.
 
@@ -193,13 +193,13 @@ Both feature sets of this mod should be **compatible** with all VltEd, Binary, a
 
 &nbsp;
 
-**Helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopter.ini`):
+Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopter.ini`):
 
 * All vehicles you specify to replace the helicopter must each have the ``CHOPPER`` class assigned to them in their `pvehicle` VltEd entries, either directly or through parent entries.
 
 &nbsp;
 
-**Cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
+Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning (but not the other way around). This is vanilla behaviour, as these spawns count toward the total number of cops loaded that the global cop-spawn limit (which only affects "Chasers") is compared against. This total is calculated across all active pursuits, meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
   
