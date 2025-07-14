@@ -7,7 +7,7 @@ This .asi mod ADDS NEW CUSTOMISATION OPTIONS TO PURSUITS. These options come in 
  • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
-This document ANSWERS THESE QUESTIONS in detail:
+This document ANSWERS THE FOLLOWING QUESTIONS in detail:
  1) • What does Bartender's "Basic" feature set do?
  2) • What does Bartender's "Advanced" feature set do?
  3) • What should I know before I use Bartender?

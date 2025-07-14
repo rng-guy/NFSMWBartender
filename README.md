@@ -7,7 +7,7 @@ This .asi mod **adds new customisation options to pursuits** in *Need for Speed:
 
 &nbsp;
 
-This document **answers these questions** in detail:
+This document **answers the following questions** in detail:
 1. [What does Bartender's "Basic" feature set do?](#1---what-does-bartenders-basic-feature-set-do)
 2. [What does Bartender's "Advanced" feature set do?](#2---what-does-bartenders-advanced-feature-set-do)
 3. [What should I know before I use Bartender?](#3---what-should-i-know-before-i-use-bartender)
