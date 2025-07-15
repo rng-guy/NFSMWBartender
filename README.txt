@@ -102,8 +102,8 @@ IN GENERAL:
    the "NFSMW ExtraOptions" mod by ExOptsTeam. I recommend you disable this ExtraOptions feature in
    general, as it might also interfere with other Bartender features in subtle ways; to do so, edit
    ExtraOptions' "NFSMWExtraOptionsSettings.ini" configuration file. Note that you can still change
-   the maximum available Heat level with VltEd: The "0xe8c24416" parameter of a given "race_bin_XY"
-   VltEd entry is what sets the maximum Heat level (1-10) while you are at Blacklist rival #XY.
+   the maximum available Heat level with just VltEd instead: The "0xe8c24416" parameter of a given
+   "race_bin_XY" VltEd entry is what sets the maximum Heat level (1-10) at Blacklist rival #XY.
 
  • If you do not install the optional missing textures ("FixMissingTextures.end"), then the game
    will not display a number next to Heat gauges in menus for any car with a Heat level above 5. 
