@@ -339,4 +339,4 @@ v1.9.02: Added information about enabling / disabling individual bug fixes to RE
 v1.9.03: Clarified logic of spawn-table copying in "LIMITATIONS" section of README
 v1.9.04: Corrected mislabelled spawn tables in "LIMITATIONS" section of README
 v1.9.05: Rephrased a couple more parts of the README to remove ambiguity
-v1.9.06: Overhauled and restructured entire README to improve navigability
+v1.9.06: Overhauled entire README and renamed parameter group in "Labels.ini" file
