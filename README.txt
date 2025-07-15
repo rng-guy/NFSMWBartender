@@ -122,13 +122,13 @@ Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
  • Deleting this file also disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
 
  • All vehicles you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs) should
-   each have a low "MAXIMUM_AI_SPEED" value (the vanilla SUVs use 50) assigned to them in their 
+   each have low "MAXIMUM_AI_SPEED" values (the vanilla SUVs use 50) assigned to them in their
    "aivehicle" VltEd entries; otherwise, they might cause stability issues by joining the pursuit
    long-term after their ramming attempt(s), effectively circumventing the global cop-spawn limit.
 
  • All vehicles you specify to replace Cross in LeaderStrategy 5 / 7 should each not be used by 
    any other cop elsewhere. If another cop uses the same vehicle as Cross, no LeaderStrategy 
-   will be able to spawn as long as that cop is present in the pursuit.
+   will be able to spawn as long as that cop is present anywhere in the pursuit.
 
 
 Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
