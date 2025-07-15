@@ -261,7 +261,7 @@ Whenever you do, make sure to replace ALL old configuration files properly!
 ── ■ │ 5 - HOW MAY I SHARE OR BUNDLE BARTENDER? │ ■ ───────────────────────────────────────────────
 
 You are free to bundle this mod and any of its files with your own pursuit mod, NO CREDIT REQUIRED.
-If you include the .asi file, however, I ask that you do your users a favour and provide a link to
+If you include the compiled .asi file, however, I ask that you at least provide a direct link to
 Bartender's GitHub repository (https://github.com/rng-guy/NFSMWBartender) in your mod's README.
 
 Finally, this mod would not have seen the light of day without
