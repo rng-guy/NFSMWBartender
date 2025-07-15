@@ -3,7 +3,7 @@
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
-This .asi mod ADDS NEW CUSTOMISATION OPTIONS TO PURSUITS. These options come in two feature sets:
+This .asi mod adds NEW CUSTOMISATION OPTIONS to pursuits. These options come in two feature sets:
  • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
@@ -82,8 +82,8 @@ To help you avoid nasty surprises and instability, the following two subsections
 you need to know to make informed decisions when you edit the configuration files of this mod.
 
 The following two subsections also contain COMPATIBILITY NOTES for any mods known to conflict with
-Bartender in any way; however, each of its two feature sets should be compatible with all VltEd,
-Binary, and most .asi mods that do not change the game's actual cop-spawning code.
+Bartender in any way. In general, this mod should be compatible with all VltEd and Binary mods;
+any .asi mods that do not change the game's actual cop-spawning code should also be compatible.
 
 
 
@@ -96,7 +96,7 @@ IN GENERAL:
  • You can disable any feature of this set by deleting the file containing its parameters,
    but the bug fixes do not have parameters and are tied to specific files implicitly instead.
 
- • Only deleting all configuration files of this feature set disables the two Heat-level fixes.
+ • To disable the two Heat-level fixes, delete all configuration files of this feature set.
 
  • The Heat-level reset fix is completely incompatible with the "HeatLevelOverride" feature of 
    the "NFSMW ExtraOptions" mod by ExOptsTeam. I recommend you disable this ExtraOptions feature in
@@ -106,8 +106,8 @@ IN GENERAL:
    "race_bin_XY" VltEd entry is what sets the maximum Heat level (1-10) at Blacklist rival #XY.
 
  • If you do not install the optional missing textures ("FixMissingTextures.end"), then the game
-   will not display a number next to Heat gauges in menus for any car with a Heat level above 5. 
-   The Heat-level reset fix, on the other hand, will work even without these optional textures.
+   will not display a number next to Heat gauges in menus for cars with Heat levels above 5.
+   Whether you install these textures does not affect the Heat-level reset fix in any way.
 
 
 Regarding COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
@@ -150,10 +150,10 @@ IN GENERAL:
    table ("BartenderSettings\Advanced\Cars.ini"); each table must contain at least one vehicle.
 
  • If this feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
-   because this feature set fulfils their intended purposes with much greater customisation:
+   because this feature set fulfils their intended purposes with extended customisation:
    "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
 
- • In each Heat level's "pursuitsupport" VltEd entry, ensure that every HeavyStrategy enabled
+ • In each Heat level's "pursuitsupport" VltEd entry, ensure that every enabled HeavyStrategy
    is only listed once (e.g. there is not a second HeavyStrategy 3), and that there is no more
    than one LeaderStrategy enabled; otherwise, their "Duration" VltEd parameters might be misread.
 
@@ -167,10 +167,11 @@ Regarding HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.i
 Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new
-   "Chasers" from spawning (but not the other way around). This is vanilla behaviour, as these
-   spawns count toward the total number of cops loaded that the global cop-spawn limit (which only
-   affects "Chasers") is compared against. This total is calculated across all active pursuits, 
-   meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
+   "Chasers" from spawning (but not the other way around). This is vanilla behaviour: These
+   spawns also count toward the total number of cops loaded by the game, which the game compares
+   against the global cop-spawn limit to make spawn decisions for "Chasers". Cops spawned in NPC
+   pursuits can also affect how many "Chasers" the game may spawn in yours, as the total number
+   of cops loaded by the game includes all non-roadblock cars of every active pursuit at once.
    
  • Pushing any global cop-spawn limit beyond 8 requires the "NFSMW LimitAdjuster" mod (LA) by
    Zolika1351 for stability. Without LA, the game will start unloading models and assets because

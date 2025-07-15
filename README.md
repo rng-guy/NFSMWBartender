@@ -1,7 +1,7 @@
 
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
-This .asi mod **adds new customisation options to pursuits** in *Need for Speed: Most Wanted* (2005). These options come in two feature sets:
+This .asi mod adds **new customisation options** to pursuits in *Need for Speed: Most Wanted* (2005). These options come in two feature sets:
 * the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
 * the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/XwFSpc97hF4).
 
@@ -86,7 +86,7 @@ If improperly configured, this mod can cause **stability issues** in your game d
 
 To help you avoid nasty surprises and instability, the following two subsections cover everything you need to know to make informed decisions when you edit the configuration files of this mod.
 
-The following two subsections also contain **compatibility notes** for any mods known to conflict with Bartender in any way; however, each of its two feature sets should be compatible with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html), [Binary](https://github.com/SpeedReflect/Binary/releases), and most .asi mods that do not change the game's actual cop-spawning code.
+The following two subsections also contain **compatibility notes** for any mods known to conflict with Bartender in any way. In general, this mod should be compatible with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods; any .asi mods that do not change the game's actual cop-spawning code should also be compatible.
 
 &nbsp;
 
@@ -100,11 +100,11 @@ The following two subsections also contain **compatibility notes** for any mods 
 
 * You can disable any feature of this set by deleting the file containing its parameters, but the bug fixes do not have parameters and are tied to specific files implicitly instead.
 
-* Only deleting all configuration files of this feature set disables the two Heat-level fixes.
+* To disable the two Heat-level fixes, delete all configuration files of this feature set.
 
 * The Heat-level reset fix is completely incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions mod](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam. I recommend you disable this ExtraOptions feature in general, as it might also interfere with other Bartender features in subtle ways; to do so, edit ExtraOptions' `NFSMWExtraOptionsSettings.ini` configuration file. Note that you can still change the maximum available Heat level with just VltEd instead: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd entry is what sets the maximum Heat level (1-10) at Blacklist rival #XY.
 
-* If you do not install the optional missing textures (`FixMissingTextures.end`), then the game will not display a number next to Heat gauges in menus for any car with a Heat level above 5. The Heat-level reset fix, on the other hand, will work even without these optional textures.
+* If you do not install the optional missing textures (`FixMissingTextures.end`), then the game will not display a number next to Heat gauges in menus for cars with Heat levels above 5. Whether you install these textures does not affect the Heat-level reset fix in any way.
 
 &nbsp;
 
@@ -142,9 +142,9 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 * This entire feature set is disabled if *any* free-roam Heat level lacks a valid "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`); each table must contain at least one vehicle.
 
-* If this feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because this feature set fulfils their intended purposes with much greater customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
+* If this feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because this feature set fulfils their intended purposes with extended customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
-* In each Heat level's `pursuitsupport` VltEd entry, ensure that every HeavyStrategy enabled is only listed once (e.g. there is not a second HeavyStrategy 3), and that there is no more than one LeaderStrategy enabled; otherwise, their `Duration` VltEd parameters might be misread.
+* In each Heat level's `pursuitsupport` VltEd entry, ensure that every enabled HeavyStrategy is only listed once (e.g. there is not a second HeavyStrategy 3), and that there is no more than one LeaderStrategy enabled; otherwise, their `Duration` VltEd parameters might be misread.
 
 &nbsp;
 
@@ -156,8 +156,8 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
-* Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning (but not the other way around). This is vanilla behaviour, as these spawns count toward the total number of cops loaded that the global cop-spawn limit (which only affects "Chasers") is compared against. This total is calculated across all active pursuits, meaning cops spawned in NPC pursuits can also affect how many "Chasers" may spawn in yours.
-  
+* Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning (but not the other way around). This is vanilla behaviour: These spawns also count toward the total number of cops loaded by the game, and the game then compares this number against the global cop-spawn limit to make spawn decisions for "Chasers". Cops spawned in NPC pursuits can also affect how many "Chasers" the game may spawn in yours, as the total number of cops loaded by the game includes all non-roadblock cars of every active pursuit at once.
+
 * Pushing any global cop-spawn limit beyond 8 requires the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351 for stability. Without LA, the game will start unloading models and assets because its default car loader cannot handle the workload of managing (potentially) dozens of vehicles. To fully unlock the global cop-spawn limit without taking spawn control away from Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file and disable *everything* in its `[Options]` parameter group. Even with these changes, however, LA itself might still crash on occasion: usually within the first 30 seconds of the first pursuit per play session, or not at all.
 
 * All vehicles you specify in any of the spawn tables must each have the `CAR` class assigned to them in their `pvehicle` VltEd entries, either directly or through parent entries.
@@ -199,7 +199,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 To **install** this mod:
 1. if it does not exist already, create a `scripts` folder in your game's installation folder;
-2. copy the `BartenderSettings` folder and compiled .asi file into the game's `scripts` folder; and
+2. copy the `BartenderSettings` folder and .asi file into the game's `scripts` folder; and
 3. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.
 
 &nbsp;
