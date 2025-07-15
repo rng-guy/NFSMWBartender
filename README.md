@@ -12,7 +12,7 @@ This document **answers the following questions** in detail:
 2. [What does the "Advanced" feature set do?](#2---what-does-the-advanced-feature-set-do)
 3. [What should I know before I use Bartender?](#3---what-should-i-know-before-i-use-bartender)
 4. [How do I install Bartender for my game?](#4---how-do-i-install-bartender-for-my-game)
-5. [How may I redistribute or bundle Bartender?](#5---how-may-i-redistribute-or-bundle-bartender)
+5. [How may I share or bundle Bartender?](#5---how-may-i-share-or-bundle-bartender)
 
 &nbsp;
 
@@ -223,7 +223,7 @@ To **update** this mod, uninstall it and repeat the installation process above.
 
 
 
-# 5 - How may I redistribute or bundle Bartender?
+# 5 - How may I share or bundle Bartender?
 
 You are free to bundle this mod and any of its files with your own pursuit mod, **no credit required**. If you include the .asi file, however, I ask that you do your users a favour and provide a link to [Bartender's GitHub repository](https://github.com/rng-guy/NFSMWBartender) in your mod's README.
 

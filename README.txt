@@ -12,7 +12,7 @@ This document ANSWERS THE FOLLOWING QUESTIONS in detail:
  2) • What does the "Advanced" feature set do?
  3) • What should I know before I use Bartender?
  4) • How do I install Bartender for my game?
- 5) • How may I redistribute or bundle Bartender?
+ 5) • How may I share or bundle Bartender?
  6) • What changed in each version?
 
 
@@ -258,7 +258,7 @@ Whenever you do, make sure to replace ALL old configuration files properly!
 
 
 
-── ■ │ 5 - HOW MAY I REDISTRIBUTE OR BUNDLE BARTENDER? │ ■ ────────────────────────────────────────
+── ■ │ 5 - HOW MAY I SHARE OR BUNDLE BARTENDER? │ ■ ───────────────────────────────────────────────
 
 You are free to bundle this mod and any of its files with your own pursuit mod, NO CREDIT REQUIRED.
 If you include the .asi file, however, I ask that you do your users a favour and provide a link to
