@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW Bartender? (v1.9.06) │ ■ ─────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.9.06) │ ■ ─────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
