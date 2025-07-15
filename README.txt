@@ -42,7 +42,7 @@ This feature set FIXES FOUR BUGS:
 You can also ASSIGN NEW (BINARY) STRINGS for the game to display when cop vehicles are destroyed,
 similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, this mod's version of this
 feature is easier to configure, leaner, and even checks strings for correctness on game launch:
-it ignores any strings that do not actually exist in the game's (modified) compiled resource files.
+it ignores any strings that do not actually exist in the game's (modified) resource files.
 
 
 
@@ -83,7 +83,7 @@ you need to know to make informed decisions when you edit the configuration file
 
 The following two subsections also contain COMPATIBILITY NOTES for any mods known to conflict with
 Bartender in any way. In general, this mod should be compatible with all VltEd and Binary mods;
-any .asi mods that do not change the game's actual cop-spawning code should also be compatible.
+.asi mods that do not change the game's actual cop-spawning code should also be compatible.
 
 
 

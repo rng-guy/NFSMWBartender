@@ -45,7 +45,7 @@ This feature set **fixes four bugs**:
 
 &nbsp;
 
-You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Compared to Unlimiter, this mod's version of this feature is easier to configure, leaner, and even checks strings for correctness on game launch: it ignores any strings that do not actually exist in the game's (modified) compiled resource files.
+You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Compared to Unlimiter, this mod's version of this feature is easier to configure, leaner, and even checks strings for correctness on game launch: it ignores any strings that do not actually exist in the game's (modified) resource files.
 
 &nbsp;
 
@@ -86,7 +86,7 @@ If improperly configured, this mod can cause **stability issues** in your game d
 
 To help you avoid nasty surprises and instability, the following two subsections cover everything you need to know to make informed decisions when you edit the configuration files of this mod.
 
-The following two subsections also contain **compatibility notes** for any mods known to conflict with Bartender in any way. In general, this mod should be compatible with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods; any .asi mods that do not change the game's actual cop-spawning code should also be compatible.
+The following two subsections also contain **compatibility notes** for any mods known to conflict with Bartender in any way. In general, this mod should be compatible with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods; .asi mods that do not change the game's actual cop-spawning code should also be compatible.
 
 &nbsp;
 
