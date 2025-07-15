@@ -251,7 +251,7 @@ To UNINSTALL this mod, remove its files from your game's "scripts" folder. There
 remove the optional missing textures, as the game does not ever use them without this mod.
 
 To UPDATE this mod, uninstall it and repeat the installation process above.
-Whenever you do, make sure to replace ALL old configuration files properly!
+Whenever you update this mod, make sure to replace ALL old configuration files!
 
 
 
@@ -261,8 +261,8 @@ Whenever you do, make sure to replace ALL old configuration files properly!
 ── ■ │ 5 - HOW MAY I SHARE OR BUNDLE BARTENDER? │ ■ ───────────────────────────────────────────────
 
 You are free to bundle this mod and any of its files with your own pursuit mod, NO CREDIT REQUIRED.
-If you include the compiled .asi file, however, I ask that you at least provide a direct link to
-Bartender's GitHub repository (https://github.com/rng-guy/NFSMWBartender) in your mod's README.
+If you plan to include its .asi file, I strongly suggest you link to Bartender's GitHub repository
+(https://github.com/rng-guy/NFSMWBartender) in your mod's README to ensure software transparency.
 
 Finally, this mod would not have seen the light of day without
  • DarkByte, for Cheat Engine;
