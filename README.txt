@@ -74,15 +74,15 @@ and all vehicles that join the pursuit by detaching themselves from roadblocks.
 
 ── ■ │ 3 - WHAT SHOULD I KNOW BEFORE I USE BARTENDER? │ ■ ─────────────────────────────────────────
 
-This mod should be COMPATIBLE with all VltEd and Binary mods; .asi mods that do not change the
-game's actual cop-spawning code should also be compatible (unless mentioned in this section).
-
 If improperly configured, this mod can cause STABILITY ISSUES in your game due to how much control
 it gives you over its cop-spawning logic; also, the way this mod reads its configuration files has
 a few built-in assumptions that you should be aware of before you edit any of them. To help you 
 avoid nasty surprises and game instability, the following two subsections contain
  • everything you need to make informed edits to the configuration files of this mod, and
  • detailed compatibility notes for all mods known to conflict with Bartender in any way.
+
+This mod should be COMPATIBLE with all VltEd and Binary mods; .asi mods that do not change the
+game's actual cop-spawning code should also be compatible unless they are mentioned below.
 
 
 
