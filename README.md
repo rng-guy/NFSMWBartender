@@ -88,7 +88,7 @@ If improperly configured, this mod can cause **stability issues** in your game d
 
 &nbsp;
 
-Barring exceptions mentioned below, this mod should be **compatible** with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods; .asi mods that do not change the game's actual cop-spawning code should also be compatible.
+Barring any exceptions mentioned in the following two subsections, this mod should be **compatible** with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods; .asi mods without pursuit features should also be compatible.
 
 &nbsp;
 

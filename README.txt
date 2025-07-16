@@ -81,8 +81,8 @@ avoid nasty surprises and game instability, the following two subsections contai
  • everything you need to make informed edits to the configuration files of this mod, and
  • detailed compatibility notes for all mods known to conflict with Bartender in any way.
 
-Barring exceptions mentioned below, this mod should be COMPATIBLE with all VltEd and Binary mods;
-.asi mods that do not change the game's actual cop-spawning code should also be compatible.
+Barring any exceptions mentioned in the following two subsections, this mod should be COMPATIBLE
+with all VltEd and Binary mods; .asi mods without pursuit features should also be compatible.
 
 
 
