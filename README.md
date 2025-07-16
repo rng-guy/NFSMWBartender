@@ -225,7 +225,7 @@ To **update** this mod, uninstall it and repeat the installation process above.
 
 # 5 - How may I share or bundle Bartender?
 
-You are free to bundle this mod and any of its files with your own pursuit mod, **no credit required**. Still, consider a link to [Bartender's GitHub repository](https://github.com/rng-guy/NFSMWBartender) somewhere in your mod's README for the sake of code transparency and software security.
+You are free to bundle this mod and any of its files with your own pursuit mod, **no credit required**. In the interest of code transparency, however, consider linking to [Bartender's GitHub repository](https://github.com/rng-guy/NFSMWBartender) somewhere in your mod's documentation (e.g. README).
 
 &nbsp;
 

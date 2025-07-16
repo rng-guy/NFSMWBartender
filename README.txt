@@ -262,8 +262,8 @@ Whenever you update this mod, make sure to replace ALL old configuration files!
 ── ■ │ 5 - HOW MAY I SHARE OR BUNDLE BARTENDER? │ ■ ───────────────────────────────────────────────
 
 You are free to bundle this mod and any of its files with your own pursuit mod, NO CREDIT REQUIRED.
-Still, consider a link to Bartender's GitHub repository (https://github.com/rng-guy/NFSMWBartender)
-somewhere in your mod's README for the sake of code transparency and software security.
+In the interest of code transparency, however, consider linking to Bartender's GitHub repository 
+(https://github.com/rng-guy/NFSMWBartender) somewhere in your mod's documentation (e.g. README).
 
 Finally, this mod would not have seen the light of day without
  • DarkByte, for Cheat Engine;
