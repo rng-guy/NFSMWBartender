@@ -263,7 +263,7 @@ Whenever you update this mod, make sure to replace ALL old configuration files!
 
 You are free to bundle this mod and any of its files with your own pursuit mod, NO CREDIT REQUIRED.
 If you include its .asi file, I would strongly suggest you link to Bartender's GitHub repository
-(https://github.com/rng-guy/NFSMWBartender) in your mod's README to ensure code accessibility.
+(https://github.com/rng-guy/NFSMWBartender) in your mod's README to ensure code transparency.
 
 Finally, this mod would not have seen the light of day without
  • DarkByte, for Cheat Engine;
