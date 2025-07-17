@@ -96,7 +96,7 @@ Barring any exceptions mentioned in the subsections below, Bartender should be *
 
 ## 3.1 - What should I know about the "Basic" feature set?
 
-(In this subsection, "this feature set" always refers to the "Basic" feature set.)
+(In this subsection, "this (feature) set" always refers to the "Basic" feature set.)
 
 &nbsp;
 
@@ -140,7 +140,7 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 ## 3.2 - What should I know about the "Advanced" feature set?
 
-(In this subsection, "this feature set" always refers to the "Advanced" feature set.)
+(In this subsection, "this (feature) set" always refers to the "Advanced" feature set.)
 
 &nbsp;
 
