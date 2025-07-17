@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.9.06) │ ■ ─────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.9.07) │ ■ ─────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -7,7 +7,7 @@ Bartender adds NEW CUSTOMISATION OPTIONS to pursuits. These options come in two 
  • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
-This document ANSWERS THE FOLLOWING QUESTIONS in detail:
+This documentation ANSWERS THE FOLLOWING QUESTIONS in detail:
  1) • What does the "Basic" feature set do?
  2) • What does the "Advanced" feature set do?
  3) • What should I know before I use Bartender?
@@ -339,3 +339,4 @@ v1.9.03: Clarified logic of spawn-table copying in "LIMITATIONS" section of READ
 v1.9.04: Corrected mislabelled spawn tables in "LIMITATIONS" section of README
 v1.9.05: Rephrased a couple more parts of the README to remove ambiguity
 v1.9.06: Overhauled entire README and renamed parameter group in "Labels.ini" file
+v1.9.07: Improved clarity of README by replacing most references with nouns
