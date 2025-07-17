@@ -82,13 +82,13 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 
 # 3 - What should I know before I use Bartender?
 
-If improperly configured, this mod can cause **stability issues** in your game due to how much control it gives you over its cop-spawning logic; also, the way this mod reads its configuration files has a few built-in assumptions that you should be aware of before you edit any of them. To help you avoid nasty surprises and game instability, the following two subsections contain
+If improperly configured, this mod can cause **stability issues** in your game due to how much control it gives you over its cop-spawning logic; also, the way this mod reads its configuration files has a few built-in assumptions that you should be aware of before you edit any of them. To help you avoid nasty surprises and game instability, the two subsections below contain
 * everything you need to make informed edits to the configuration files of this mod, and
 * detailed compatibility notes for all mods known to conflict with Bartender in any way.
 
 &nbsp;
 
-Barring any exceptions mentioned in the following two subsections, this mod should be **compatible** with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods; .asi mods without pursuit features should also be compatible.
+Barring any exceptions mentioned in the subsections below, this mod should be **fully compatible** with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods; .asi mods without pursuit features should also be compatible.
 
 &nbsp;
 
