@@ -96,11 +96,7 @@ Barring any exceptions mentioned in the subsections below, Bartender should be *
 
 ## 3.1 - What should I know about the "Basic" feature set?
 
-(In this subsection, "this (feature) set" always refers to the "Basic" feature set.)
-
-&nbsp;
-
-**In general**:
+Regarding the "Basic" feature set **in general**:
 
 * The configuration (.ini) files for this feature set are located in `BartenderSettings/Basic`.
 
@@ -140,11 +136,7 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 ## 3.2 - What should I know about the "Advanced" feature set?
 
-(In this subsection, "this (feature) set" always refers to the "Advanced" feature set.)
-
-&nbsp;
-
-**In general**:
+Regarding the "Advanced" feature set **in general**:
 
 * The configuration (.ini) files for this feature set are located in `BartenderSettings/Advanced`.
 
