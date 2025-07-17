@@ -24,7 +24,7 @@ This document **answers the following questions** in detail:
 
 # 1 - What does the "Basic" feature set do?
 
-This feature set **lets you change** (per Heat level)
+The "Basic" feature set **lets you change** (per Heat level)
 * at which distance and how quickly you can get busted,
 * how long it takes to fill the "EVADE" bar and enter "COOLDOWN" mode,
 * at which time interval you gain passive bounty,
@@ -37,7 +37,7 @@ This feature set **lets you change** (per Heat level)
 
 &nbsp;
 
-This feature set **fixes four bugs**:
+The "Basic" feature set **fixes four bugs**:
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures),
 * you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
@@ -57,7 +57,7 @@ You can also **assign new (Binary) strings** for the game to display when cop ve
 
 # 2 - What does the "Advanced" feature set do?
 
-This feature set **lets you change** (per Heat level)
+The "Advanced" feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
 * the global cop-spawn limit for how many cops in total may chase you at any given time,
 * how quickly (if at all) cops flee the pursuit if they do not belong,
@@ -70,7 +70,7 @@ This feature set **lets you change** (per Heat level)
 
 &nbsp;
 
-This feature set **also fixes** the displayed engagement count in the centre of the pursuit bar: its value now accurately reflects how many chasing cop spawns remain in the current wave. The count ignores vehicles spawned through any Heavy / LeaderStrategy, the helicopter, and all vehicles that join the pursuit by detaching themselves from roadblocks.
+The "Advanced" feature set **also fixes** the displayed engagement count in the centre of the pursuit bar: its value now accurately reflects how many chasing cop spawns remain in the current wave. The count ignores vehicles spawned through any Heavy / LeaderStrategy, the helicopter, and all vehicles that join the pursuit by detaching themselves from roadblocks.
 
 &nbsp;
 
@@ -95,6 +95,10 @@ Barring any exceptions mentioned in the subsections below, Bartender should be *
 &nbsp;
 
 ## 3.1 - What should I know about the "Basic" feature set?
+
+Within this subsection, "this feature set" always refers to the "Basic" feature set.
+
+&nbsp;
 
 **In general**:
 
@@ -135,6 +139,10 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 &nbsp;
 
 ## 3.2 - What should I know about the "Advanced" feature set?
+
+Within this subsection, "this feature set" always refers to the "Advanced" feature set.
+
+&nbsp;
 
 **In general**:
 

@@ -22,7 +22,7 @@ This document ANSWERS THE FOLLOWING QUESTIONS in detail:
 
 ── ■ │ 1 - WHAT DOES THE "BASIC" FEATURE SET DO? │ ■ ──────────────────────────────────────────────
 
-This feature set LETS YOU CHANGE (per Heat level)
+The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • at which distance and how quickly you can get busted,
  • how long it takes to fill the "EVADE" bar and enter "COOLDOWN" mode,
  • at which time interval you gain passive bounty,
@@ -33,7 +33,7 @@ This feature set LETS YOU CHANGE (per Heat level)
  • which vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
  • which vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
-This feature set FIXES FOUR BUGS:
+The "Basic" feature set FIXES FOUR BUGS:
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
  • Heat levels > 5 are now shown correctly in menus (requires Binary for missing textures),
  • you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
@@ -51,7 +51,7 @@ it ignores any strings that do not actually exist in the game's (modified) resou
 
 ── ■ │ 2 - WHAT DOES THE "ADVANCED" FEATURE SET DO? │ ■ ───────────────────────────────────────────
 
-This feature set LETS YOU CHANGE (per Heat level)
+The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
  • the global cop-spawn limit for how many cops in total may chase you at any given time,
  • how quickly (if at all) cops flee the pursuit if they do not belong,
@@ -62,8 +62,8 @@ This feature set LETS YOU CHANGE (per Heat level)
  • which vehicle spawns in place of the regular helicopter, and
  • when exactly (if at all) the helicopter can (de / re)spawn.
 
-This feature set ALSO FIXES the displayed engagement count in the centre of the pursuit bar:
-its value now accurately reflects how many chasing cop spawns remain in the current wave.
+The "Advanced" feature set ALSO FIXES the displayed engagement count in the centre of the pursuit
+bar: its value now accurately reflects how many chasing cop spawns remain in the current wave.
 The count ignores vehicles spawned through any Heavy / LeaderStrategy, the helicopter,
 and all vehicles that join the pursuit by detaching themselves from roadblocks.
 
@@ -87,6 +87,9 @@ with all VltEd and Binary mods; .asi mods without pursuit features should also b
 
 
 ── ■ 3.1 - WHAT SHOULD I KNOW ABOUT THE "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - - - - 
+
+Within this subsection, "this feature set" always refers to the "Basic" feature set.
+
 
 IN GENERAL:
 
@@ -137,6 +140,9 @@ Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
 
 ── ■ 3.2 - WHAT SHOULD I KNOW ABOUT THE "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - - - - -
+
+Within this subsection, "this feature set" always refers to the "Advanced" feature set.
+
 
 IN GENERAL:
 
