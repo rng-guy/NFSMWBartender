@@ -88,7 +88,7 @@ with all VltEd and Binary mods; .asi mods without pursuit features should also b
 
 ── ■ 3.1 - WHAT SHOULD I KNOW ABOUT THE "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - - - - 
 
-Within this subsection, "this feature set" always refers to the "Basic" feature set.
+(In this subsection, "this feature set" always refers to the "Basic" feature set.)
 
 
 IN GENERAL:
@@ -141,7 +141,7 @@ Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
 ── ■ 3.2 - WHAT SHOULD I KNOW ABOUT THE "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - - - - -
 
-Within this subsection, "this feature set" always refers to the "Advanced" feature set.
+(In this subsection, "this feature set" always refers to the "Advanced" feature set.)
 
 
 IN GENERAL:
