@@ -83,7 +83,7 @@ The "Advanced" feature set **also fixes** the displayed engagement count in the 
 # 3 - What should I know before I use Bartender?
 
 If improperly configured, Bartender can cause **stability issues** in your game due to how much control it gives you over its cop-spawning logic; also, the way Bartender reads its configuration files has a few built-in assumptions that you should be aware of before you edit any of them. To help you avoid nasty surprises and game instability, the subsections below contain
-* everything you need to make informed edits to the configuration files of Bartender, and
+* everything you need to make informed edits to Bartender's configuration files, and
 * detailed compatibility notes for mods known to conflict with any Bartender features.
 
 &nbsp;
