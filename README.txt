@@ -3,7 +3,7 @@
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
-This .asi mod adds NEW CUSTOMISATION OPTIONS to pursuits. These options come in two feature sets:
+Bartender adds NEW CUSTOMISATION OPTIONS to pursuits. These options come in two feature sets:
  • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
@@ -40,7 +40,7 @@ This feature set FIXES FOUR BUGS:
  • regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
 You can also ASSIGN NEW (BINARY) STRINGS for the game to display when cop vehicles are destroyed,
-similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, this mod's version of this
+similar to the "NFSMW Unlimiter" mod by nlgxzef. Compared to Unlimiter, Bartender's version of this
 feature is easier to configure, leaner, and even checks strings for correctness on game launch:
 it ignores any strings that do not actually exist in the game's (modified) resource files.
 
@@ -74,14 +74,14 @@ and all vehicles that join the pursuit by detaching themselves from roadblocks.
 
 ── ■ │ 3 - WHAT SHOULD I KNOW BEFORE I USE BARTENDER? │ ■ ─────────────────────────────────────────
 
-If improperly configured, this mod can cause STABILITY ISSUES in your game due to how much control
-it gives you over its cop-spawning logic; also, the way this mod reads its configuration files has
+If improperly configured, Bartender can cause STABILITY ISSUES in your game due to how much control
+it gives you over its cop-spawning logic; also, the way Bartender reads its configuration files has
 a few built-in assumptions that you should be aware of before you edit any of them. To help you 
 avoid nasty surprises and game instability, the subsections below contain
- • everything you need to make informed edits to the configuration files of this mod, and
+ • everything you need to make informed edits to Bartender's configuration files, and
  • detailed compatibility notes for mods known to conflict with any Bartender features.
 
-Barring any exceptions mentioned in the subsections below, this mod should be FULLY COMPATIBLE
+Barring any exceptions mentioned in the subsections below, Bartender should be FULLY COMPATIBLE
 with all VltEd and Binary mods; .asi mods without pursuit features should also be compatible.
 
 
@@ -205,7 +205,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • The "Events" spawn tables do NOT apply to the very first scripted, pre-generated cop that 
    spawns in a given event; instead, this first cop is always of the type listed in the event's 
    "CopSpawnType" VltEd parameter. This is because the game requests this vehicle before it loads
-   any pursuit or Heat-level information, making it impossible for this mod to know which spawn
+   any pursuit or Heat-level information, making it impossible for Bartender to know which spawn
    table to use for this one vehicle. This vehicle, however, is still properly accounted for in 
    "count" calculations for any following vehicle spawns.
 
@@ -234,24 +234,24 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
 ── ■ │ 4 - HOW DO I INSTALL BARTENDER FOR MY GAME? │ ■ ────────────────────────────────────────────
 
-BEFORE INSTALLING this mod:
+BEFORE INSTALLING Bartender:
  1) • make sure you have read and understood the "WHAT SHOULD I KNOW...?" section above,
  2) • make sure your game's "Speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
  3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 
-To INSTALL this mod:
+To INSTALL Bartender:
  1) • if it does not exist already, create a "scripts" folder in your game's installation folder;
- 2) • copy the contents of this mod's "scripts" folder into your game's "scripts" folder; and
+ 2) • copy the contents of Bartender's "scripts" folder into your game's "scripts" folder; and
  3) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
 
-AFTER INSTALLING this mod, you can customise its features through its configuration (.ini) files.
+AFTER INSTALLING Bartender, you can customise its features through its configuration (.ini) files.
 You can find these configuration files in the game's new "scripts\BartenderSettings" folder.
 
-To UNINSTALL this mod, remove its files from your game's "scripts" folder. There is no need to
-remove the optional missing textures, as the game does not ever use them without this mod.
+To UNINSTALL Bartender, remove its files from your game's "scripts" folder. There is no need to
+remove the optional missing textures, as the game does not ever use them without Bartender.
 
-To UPDATE this mod, uninstall it and repeat the installation process above.
-Whenever you update this mod, make sure to replace ALL old configuration files!
+To UPDATE Bartender, uninstall it and repeat the installation process above.
+Whenever you update, make sure to replace ALL old configuration files!
 
 
 
@@ -260,11 +260,11 @@ Whenever you update this mod, make sure to replace ALL old configuration files!
 
 ── ■ │ 5 - HOW MAY I SHARE OR BUNDLE BARTENDER? │ ■ ───────────────────────────────────────────────
 
-You are free to bundle this mod and any of its files with your own pursuit mod, NO CREDIT REQUIRED.
+You are free to bundle Bartender and its files with your own pursuit mod, NO CREDIT REQUIRED.
 In the interest of code transparency, however, consider linking to Bartender's GitHub repository 
 (https://github.com/rng-guy/NFSMWBartender) somewhere in your mod's documentation (e.g. README).
 
-Finally, this mod would not have seen the light of day without
+Finally, Bartender would not have seen the light of day without
  • DarkByte, for Cheat Engine;
  • rx, for encouraging me to try .asi modding;
  • nlgxzef, for the Most Wanted debug symbols;

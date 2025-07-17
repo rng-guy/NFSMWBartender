@@ -1,7 +1,7 @@
 
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
-This .asi mod adds **new customisation options** to pursuits in *Need for Speed: Most Wanted* (2005). These options come in two feature sets:
+Bartender adds **new customisation options** to pursuits in *Need for Speed: Most Wanted* (2005). These options come in two feature sets:
 * the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
 * the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/XwFSpc97hF4).
 
@@ -45,7 +45,7 @@ This feature set **fixes four bugs**:
 
 &nbsp;
 
-You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Compared to Unlimiter, this mod's version of this feature is easier to configure, leaner, and even checks strings for correctness on game launch: it ignores any strings that do not actually exist in the game's (modified) resource files.
+You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Compared to Unlimiter, Bartender's version of this feature is easier to configure, leaner, and even checks strings for correctness on game launch: it ignores any strings that do not actually exist in the game's (modified) resource files.
 
 &nbsp;
 
@@ -82,13 +82,13 @@ This feature set **also fixes** the displayed engagement count in the centre of 
 
 # 3 - What should I know before I use Bartender?
 
-If improperly configured, this mod can cause **stability issues** in your game due to how much control it gives you over its cop-spawning logic; also, the way this mod reads its configuration files has a few built-in assumptions that you should be aware of before you edit any of them. To help you avoid nasty surprises and game instability, the two subsections below contain
-* everything you need to make informed edits to the configuration files of this mod, and
+If improperly configured, Bartender can cause **stability issues** in your game due to how much control it gives you over its cop-spawning logic; also, the way Bartender reads its configuration files has a few built-in assumptions that you should be aware of before you edit any of them. To help you avoid nasty surprises and game instability, the two subsections below contain
+* everything you need to make informed edits to the configuration files of Bartender, and
 * detailed compatibility notes for mods known to conflict with any Bartender features.
 
 &nbsp;
 
-Barring any exceptions mentioned in the subsections below, this mod should be **fully compatible** with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods; .asi mods without pursuit features should also be compatible.
+Barring any exceptions mentioned in the subsections below, Bartender should be **fully compatible** with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods; .asi mods without pursuit features should also be compatible.
 
 &nbsp;
 
@@ -174,7 +174,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * The "Events" spawn tables do *not* apply to the scripted patrols that spawn in any of the prologue D-Day events; those spawns are special and a real hassle to deal with, even among event spawns.
 
-* The "Events" spawn tables do *not* apply to the very first scripted, pre-generated cop that spawns in a given event; instead, this first cop is always of the type listed in the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible for this mod to know which spawn table to use for this one vehicle. This vehicle, however, is still properly accounted for in `count` calculations for any following vehicle spawns.
+* The "Events" spawn tables do *not* apply to the very first scripted, pre-generated cop that spawns in a given event; instead, this first cop is always of the type listed in the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible for Bartender to know which spawn table to use for this one vehicle. This vehicle, however, is still properly accounted for in `count` calculations for any following vehicle spawns.
 
 * `count` values in "Roadblocks" and "Events" spawn tables are ignored whenever the game requests more vehicles in total than these values would allow: When all their `count` values have been exhausted for a given roadblock / event, every vehicle in the relevant table may spawn without restriction until the next roadblock / event begins.
 
@@ -192,30 +192,30 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 # 4 - How do I install Bartender for my game?
 
-**Before installing** this mod:
+**Before installing** Bartender:
 1. make sure you have read and understood the ["What should I know...?" section](#3---what-should-i-know-before-i-use-bartender) above,
 2. make sure your game's `Speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
 3. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
 
 &nbsp;
 
-To **install** this mod:
+To **install** Bartender:
 1. if it does not exist already, create a `scripts` folder in your game's installation folder;
 2. copy the `BartenderSettings` folder and .asi file into the game's `scripts` folder; and
 3. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.
 
 &nbsp;
 
-**After installing** this mod, you can customise its features through its configuration (.ini) files. You can find these configuration files in the game's new `scripts\BartenderSettings` folder.
+**After installing** Bartender, you can customise its features through its configuration (.ini) files. You can find these configuration files in the game's new `scripts\BartenderSettings` folder.
 
-To **uninstall** this mod, remove its files from your game's `scripts` folder. There is no need to remove the optional missing textures, as the game does not ever use them without this mod.
+To **uninstall** Bartender, remove its files from your game's `scripts` folder. There is no need to remove the optional missing textures, as the game does not ever use them without Bartender.
 
 &nbsp;
 
-To **update** this mod, uninstall it and repeat the installation process above.
+To **update** Bartender, uninstall it and repeat the installation process above.
 
 > [!WARNING]
-> Whenever you update this mod, make sure to replace *all* old configuration files!
+> Whenever you update, make sure to replace *all* old configuration files!
 
 &nbsp;
 
@@ -227,11 +227,11 @@ To **update** this mod, uninstall it and repeat the installation process above.
 
 # 5 - How may I share or bundle Bartender?
 
-You are free to bundle this mod and any of its files with your own pursuit mod, **no credit required**. In the interest of code transparency, however, consider linking to [Bartender's GitHub repository](https://github.com/rng-guy/NFSMWBartender) somewhere in your mod's documentation (e.g. README).
+You are free to bundle Bartender and its files with your own pursuit mod, **no credit required**. In the interest of code transparency, however, consider linking to [Bartender's GitHub repository](https://github.com/rng-guy/NFSMWBartender) somewhere in your mod's documentation (e.g. README).
 
 &nbsp;
 
-Finally, this mod would not have seen the light of day without
+Finally, Bartender would not have seen the light of day without
 * **DarkByte**, for [Cheat Engine](https://www.cheatengine.org/);
 * **[rx](https://github.com/rxyyy)**, for encouraging me to try .asi modding;
 * **[nlgxzef](https://github.com/nlgxzef)**, for the Most Wanted debug symbols;
