@@ -7,7 +7,7 @@ Bartender adds NEW CUSTOMISATION OPTIONS to pursuits. These options come in two 
  • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
-This documentation ANSWERS THE FOLLOWING QUESTIONS in detail:
+The sections below ADDRESS THE FOLLOWING QUESTIONS in detail:
  1) • What does the "Basic" feature set do?
  2) • What does the "Advanced" feature set do?
  3) • What should I know before I use Bartender?

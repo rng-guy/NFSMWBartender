@@ -7,7 +7,7 @@ Bartender adds **new customisation options** to pursuits in *Need for Speed: Mos
 
 &nbsp;
 
-This documentation **answers the following questions** in detail:
+The sections below **address the following questions** in detail:
 1. [What does the "Basic" feature set do?](#1---what-does-the-basic-feature-set-do)
 2. [What does the "Advanced" feature set do?](#2---what-does-the-advanced-feature-set-do)
 3. [What should I know before I use Bartender?](#3---what-should-i-know-before-i-use-bartender)
