@@ -281,64 +281,64 @@ Finally, Bartender would not have seen the light of day without
 ── ■ │ 6 - WHAT CHANGED IN EACH VERSION? │ ■ ──────────────────────────────────────────────────────
 
 v1.00.00: Initial release
-v1.00.01: Revised "LIMITATIONS" section of README
-v1.00.02: Revised multiple sections of README
-v1.00.03: Yet another minor README revision
-v1.00.04: README? More like "FIXME"
-v1.00.05: Clarified "Events" spawns in "Cars.ini"
-v1.00.06: Clarified string assignment in "Labels.ini"
-v1.00.07: Clarified ignored VltEd parameters when "Advanced" feature set is enabled
-v1.00.08: Corrected a few typos in README
-v1.00.09: Clarified cooldowns in "Supports.ini" and helicopter spawns in "Helicopter.ini"
-v1.00.10: Revised multiple .ini comments and enforced consistency
-v1.00.11: Further clarified cooldowns in "Supports.ini"
-v1.00.12: Improved formatting of .ini files and expanded "LIMITATIONS" section of README
-v1.00.13: Added compatibility note for VltEd and other .asi mods in "LIMITATIONS" section of README
-v1.00.14: Added compatibility note for Binary mods in "LIMITATIONS" section of README
-v1.00.15: Added note about README structure
-v1.00.16: Clarified stability of "NFSMW LimitAdjuster" in "LIMITATIONS" section of README
+      01: Revised "LIMITATIONS" section of README
+      02: Revised multiple sections of README
+      03: Yet another minor README revision
+      04: README? More like "FIXME"
+      05: Clarified "Events" spawns in "Cars.ini"
+      06: Clarified string assignment in "Labels.ini"
+      07: Clarified ignored VltEd parameters when "Advanced" feature set is enabled
+      08: Corrected a few typos in README
+      09: Clarified cooldowns in "Supports.ini" and helicopter spawns in "Helicopter.ini"
+      10: Revised multiple .ini comments and enforced consistency
+      11: Further clarified cooldowns in "Supports.ini"
+      12: Improved formatting of .ini files and expanded "LIMITATIONS" section of README
+      13: Added compatibility note for VltEd and other .asi mods in "LIMITATIONS" section of README
+      14: Added compatibility note for Binary mods in "LIMITATIONS" section of README
+      15: Added note about README structure
+      16: Clarified stability of "NFSMW LimitAdjuster" in "LIMITATIONS" section of README
 
-v1.01.00: Fixed a bug with vehicle names containing underscores
-v1.01.01: Removed some superfluous memory patches
+   01.00: Fixed a bug with vehicle names containing underscores
+      01: Removed some superfluous memory patches
 
-v1.02.00: Improved thread safety of cop-spawn interceptor functions
-v1.02.01: Rephrased spawning-related entries in "LIMITATIONS" section of README
-v1.02.02: Removed redundant push / pop instructions
+   02.00: Improved thread safety of cop-spawn interceptor functions
+      01: Rephrased spawning-related entries in "LIMITATIONS" section of README
+      02: Removed redundant push / pop instructions
 
-v1.03.00: Fixed the Heat-level update in free-roam and a rare bug of the game miscounting cops
-v1.03.01: Rephrased "LIMITATIONS" section of README yet again
+   03.00: Fixed the Heat-level update in free-roam and a rare bug of the game miscounting cops
+      01: Rephrased "LIMITATIONS" section of README yet again
 
-v1.04.00: Added post-race pursuit hook and changed cop count to decrement after full despawns only
-v1.04.01: Added workaround for vanilla bug of fleeing HeavyStrategy 3 spawns ("ADVANCED" set only)
-v1.04.02: Improved phrasing and corrected some typos in README
+   04.00: Added post-race pursuit hook and changed cop count to decrement after full despawns only
+      01: Added workaround for vanilla bug of fleeing HeavyStrategy 3 spawns ("ADVANCED" set only)
+      02: Improved phrasing and corrected some typos in README
 
-v1.05.00: Added "count" support to custom "Roadblocks" and "Events" spawn tables
-v1.05.01: Rephrased README to better reflect recent changes to both feature sets
-v1.05.02: Restructured "LIMITATIONS" section of README and renamed both "General.ini" files
-v1.05.03: Restructured and rephrased README some more
-v1.05.04: Merged "Behaviour.ini" with "Cars.ini" file
-v1.05.05: Clarified global cop-spawn limit in "LIMITATIONS" section of README and "Cars.ini" file
-v1.05.06: Added missing number-format comment to "Others.ini" file
+   05.00: Added "count" support to custom "Roadblocks" and "Events" spawn tables
+      01: Rephrased README to better reflect recent changes to both feature sets
+      02: Restructured "LIMITATIONS" section of README and renamed both "General.ini" files
+      03: Restructured and rephrased README some more
+      04: Merged "Behaviour.ini" with "Cars.ini" file
+      05: Clarified global cop-spawn limit in "LIMITATIONS" section of README and "Cars.ini" file
+      06: Added missing number-format comment to "Others.ini" file
 
-v1.06.00: Fixed incorrect labelling of roadblock vehicles joining pursuits after spike-strip hits
-v1.06.01: Made terminology in README and .ini files files more consistent, and rephrased some parts
+   06.00: Fixed incorrect labelling of roadblock vehicles joining pursuits after spike-strip hits
+      01: Made terminology in README and .ini files files more consistent, and rephrased some parts
 
-v1.07.00: Fixed Heavy / LeaderStrategy spawns not fleeing as per their "Duration" VltEd parameters
-v1.07.01: Improved general performance of cop management functions for the "ADVANCED" set
-v1.07.02: Clarified some ambiguous phrasing in "LIMITATIONS" section of README
-v1.07.03: Clarified the different types of patrol spawns in README and "Cars.ini" file
-v1.07.04: Rephrased parts of the README for what feels like the millionth time
+   07.00: Fixed Heavy / LeaderStrategy spawns not fleeing as per their "Duration" VltEd parameters
+      01: Improved general performance of cop management functions for the "ADVANCED" set
+      02: Clarified some ambiguous phrasing in "LIMITATIONS" section of README
+      03: Clarified the different types of patrol spawns in README and "Cars.ini" file
+      04: Rephrased parts of the README for what feels like the millionth time
 
-v1.08.00: Added support for separate free-roam and race pursuit parameters
-v1.08.01: Improved performance slightly and expanded "LIMITATIONS" section of README
+   08.00: Added support for separate free-roam and race pursuit parameters
+      01: Improved performance slightly and expanded "LIMITATIONS" section of README
 
-v1.09.00: Added fixes for Heat levels above 5 resetting and missing menu textures in Career mode
-v1.09.01: It's a bird! It's a plane! No, it's yet another fresh batch of phrasing corrections!
-v1.09.02: Added information about enabling / disabling individual bug fixes to README
-v1.09.03: Clarified logic of spawn-table copying in "LIMITATIONS" section of README
-v1.09.04: Corrected mislabelled spawn tables in "LIMITATIONS" section of README
-v1.09.05: Rephrased a couple more parts of the README to remove ambiguity
-v1.09.06: Overhauled entire README and renamed parameter group in "Labels.ini" file
-v1.09.07: Improved clarity of README by replacing most references with nouns
+   09.00: Added fixes for Heat levels above 5 resetting and missing menu textures in Career mode
+      01: It's a bird! It's a plane! No, it's yet another fresh batch of phrasing corrections!
+      02: Added information about enabling / disabling individual bug fixes to README
+      03: Clarified logic of spawn-table copying in "LIMITATIONS" section of README
+      04: Corrected mislabelled spawn tables in "LIMITATIONS" section of README
+      05: Rephrased a couple more parts of the README to remove ambiguity
+      06: Overhauled entire README and renamed parameter group in "Labels.ini" file
+      07: Improved clarity of README by replacing most references with nouns
 
-v1.10.00: Assigned correct spawn table to first cop spawn in Career milestone / bounty pursuits
+   10.00: Assigned correct spawn table to first cop spawn in Career milestone / bounty pursuits
