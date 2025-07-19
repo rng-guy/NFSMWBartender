@@ -112,9 +112,9 @@ namespace CopFleeOverrides
 
 				for (size_t strategyID = 0; strategyID < numHeavyStrategies; strategyID++)
 				{
-					if (*(int*)heavyStrategy == rammingStrategy)
+					if (*((int*)heavyStrategy) == rammingStrategy)
 					{
-						this->heavyStrategyDuration = *(float*)(heavyStrategy + 0x8);
+						this->heavyStrategyDuration = *((float*)(heavyStrategy + 0x8));
 
 						if constexpr (Globals::loggingEnabled)
 							Globals::Log(this->pursuit, "[FLE] HeavyStrategy 3 duration:", this->heavyStrategyDuration);
@@ -135,7 +135,7 @@ namespace CopFleeOverrides
 
 			if (leaderStrategies and (numLeaderStrategies > 0))
 			{
-				this->leaderStrategyDuration = *(float*)(leaderStrategies + 0x8);
+				this->leaderStrategyDuration = *((float*)(leaderStrategies + 0x8));
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::Log(this->pursuit, "[FLE] LeaderStrategy duration:", this->leaderStrategyDuration);
@@ -229,7 +229,7 @@ namespace CopFleeOverrides
 		{
 			static void (__thiscall* const StartFlee)(address) = (void (__thiscall*)(address))0x423370;
 
-			const address copAIVehicle = *(address*)(copVehicle + 0x54);
+			const address copAIVehicle = *((address*)(copVehicle + 0x54));
 			if (copAIVehicle) StartFlee(copAIVehicle + 0x70C);
 		}
 

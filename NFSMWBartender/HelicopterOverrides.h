@@ -109,9 +109,9 @@ namespace HelicopterOverrides
 		{
 			static const address* const helicopterObject = (address*)0x90D61C;
 
-			if (*helicopterObject) 
+			if (*helicopterObject)
 			{ 
-				*(float*)(*helicopterObject + 0x7D8) = fuel; 
+				*((float*)(*helicopterObject + 0x7D8)) = fuel;
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::Log(this->pursuit, "[HEL] Despawning in", fuel);

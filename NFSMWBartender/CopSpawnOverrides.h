@@ -181,7 +181,7 @@ namespace CopSpawnOverrides
 			static address (__thiscall* const GetAttribute)(address, key, int) = (address (__thiscall*)(address, key, int))0x454810;
 
 			const address numPatrolCars = GetAttribute(GetPursuitAttributes(this->pursuit), patrolCarsAttribute, 0);
-			this->numPatrolCarsToSpawn  = (numPatrolCars) ? *(int*)numPatrolCars : 0;
+			this->numPatrolCarsToSpawn = (numPatrolCars) ? *((int*)numPatrolCars) : 0;
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "[SPA] Patrol cars:", this->numPatrolCarsToSpawn);
@@ -190,7 +190,7 @@ namespace CopSpawnOverrides
 
 		bool IsSearchModeActive() const 
 		{
-			return (*(int*)(this->pursuit + 0x218) == 2);
+			return (*((int*)(this->pursuit + 0x218)) == 2);
 		}
 
 
@@ -369,19 +369,18 @@ namespace CopSpawnOverrides
 			case 0x4269E6: // helicopter
 				return CopSpawnTables::helicopterVehicle;
 
+			case 0x42EAAD: // first cop of milestone / bounty pursuit
+				[[fallthrough]];
+
 			case 0x430DAD: // free-roam patrol
 				return CopSpawnTables::patrolSpawnTable->GetRandomCopName();
 				
-			case 0x42EAAD: // first cop of milestone / bounty pursuit
-				return CopSpawnTables::pursuitSpawnTable->GetRandomCopName();
-				
 			case 0x43E049: // roadblock
 				return roadblockManager.get()->GetRandomCopName();
-
-			default:
-				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [SPA] Unknown ByClass return address:", spawnReturn);
 			}
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::Log("WARNING: [SPA] Unknown ByClass return address:", spawnReturn);
 		}
 
 		return nullptr;

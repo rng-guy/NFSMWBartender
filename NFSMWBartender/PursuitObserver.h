@@ -53,7 +53,7 @@ namespace PursuitObserver
 
 		static const char* GetCopName(const address copVehicle)
 		{
-			return (const char*)(*(address*)(*(address*)(copVehicle + 0x2C) + 0x24));
+			return (const char*)(*((address*)(*((address*)(copVehicle + 0x2C)) + 0x24)));
 		}
 
 
@@ -90,13 +90,12 @@ namespace PursuitObserver
 
 			case 0x4311EC: // pursuit spawn
 				return CopLabel::CHASER;
-
-			default:
-				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [OBS] Unknown AddVehicle return address:", callReturn);
-
-				return CopLabel::UNKNOWN;
 			}
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::Log("WARNING: [OBS] Unknown AddVehicle return address:", callReturn);
+
+			return CopLabel::UNKNOWN;
 		}
 
 

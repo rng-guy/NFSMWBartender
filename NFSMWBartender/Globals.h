@@ -118,7 +118,7 @@ namespace Globals
 
 	void OpenLog()
 	{
-		if (not logStream.get())
+		if (not logStream)
 			logStream = std::make_unique<std::fstream>(logFile, std::ios::app);
 	}
 
@@ -148,10 +148,10 @@ namespace Globals
 
 	template<>
 	void Print<float>
-		(
-			std::fstream* const file,
-			const float         value
-		) {
+	(
+		std::fstream* const file,
+		const float         value
+	) {
 		*file << std::format("{:.3f}", value);
 	}
 
@@ -160,13 +160,19 @@ namespace Globals
 	template <typename ...T>
 	void Log(const T ...segments)
 	{
-		std::fstream* const file = logStream.get();
-		if (not file) return;
+		if (not logStream) return;
 
-		constexpr size_t numArgs = sizeof...(T);
-		size_t           argID   = 0;
+		constexpr size_t    numArgs = sizeof...(T);
+		std::fstream* const file    = logStream.get();
+		size_t              argID   = 0;
 
-		([&]{Print<T>(file, segments); if (++argID < numArgs) *file << ' ';}(), ...);
+		(
+			[&]
+			{
+				Print<T>(file, segments); 
+				if (++argID < numArgs) *file << ' ';
+			}
+		(), ...);
 
 		*file << std::endl;
 	}
