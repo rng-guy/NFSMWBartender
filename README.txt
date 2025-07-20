@@ -41,8 +41,8 @@ The "Basic" feature set FIXES FOUR BUGS:
 
 You can also ASSIGN NEW (BINARY) STRINGS for the game to display when cop vehicles are destroyed,
 similar to the "NFSMW Unlimiter" mod by nlgxzef. Bartender's version of this feature is easier to
-configure and will never cause the game to display a string error, as it checks every string you
-specify against the game's (potentially modified) resource files whenever you launch the game.
+configure and will never cause "FENG: Default string error" popups, as it checks every string you
+specify against the game's (potentially modified) resource files whenever you launch it.
 
 
 
@@ -76,7 +76,7 @@ vehicles that join the pursuit from roadblocks, and the helicopter.
 
 If you configure Bartender improperly, it might cause STABILITY ISSUES in your game due to how much
 control it gives you over the game's cop-spawning logic. Also, there are a few quirks to the way 
-Bartender reads its configuration files that you should be aware of before you edit any of them.
+Bartender parses its configuration files that you should be aware of before you edit any of them.
 
 To help you AVOID GAME INSTABILITY, the subsections below contain
  • everything you need to make informed edits to Bartender's configuration files, and
@@ -87,7 +87,21 @@ with all VltEd and Binary mods. Any .asi mods without pursuit features should al
 
 
 
-── ■ 3.1 - WHAT SHOULD I KNOW ABOUT THE "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - - - - 
+── ■ 3.1 - WHAT SHOULD I KNOW ABOUT CONFIGURATION PARSING? ■ - - - - - - - - - - - - - - - - - - - 
+
+Some PARAMETER GROUPS (indicated by "[...]") in Bartender's configuration files allow you to
+specify a "default" value (see their comments). Bartender parses these groups in three steps:
+ 1) • Bartender sets this "default" to the game's vanilla value(s) if you omit it,
+ 2) • Bartender sets all free-roam Heat levels (format: "heatXY") you omit to this "default", and
+ 3) • Bartender sets all race Heat levels (format: "raceXY") you omit to their free-roam values.
+
+Bartender treats all INVALID VALUES you specify in its configuration files as omitted instead.
+A value is invalid if, for example, you specify a decimal where Bartender expects a whole number.
+Negative numbers are never invalid: Bartender sets them to 0 instead when it parses a file.
+
+
+
+── ■ 3.2 - WHAT SHOULD I KNOW ABOUT THE "BASIC" FEATURE SET? ■ - - - - - - - - - - - - - - - - - - 
 
 Regarding the "BASIC" feature set IN GENERAL:
 
@@ -135,7 +149,7 @@ Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
 
 
-── ■ 3.2 - WHAT SHOULD I KNOW ABOUT THE "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - - - - -
+── ■ 3.3 - WHAT SHOULD I KNOW ABOUT THE "ADVANCED" FEATURE SET? ■ - - - - - - - - - - - - - - - - -
 
 Regarding the "Advanced" feature set IN GENERAL:
 

@@ -45,7 +45,7 @@ The "Basic" feature set **fixes four bugs**:
 
 &nbsp;
 
-You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause the game to display a string error, as it checks every string you specify against the game's (potentially modified) resource files whenever you launch the game.
+You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause `FENG: Default string error` popups, as it checks every string you specify against the game's (potentially modified) resource files whenever you launch it.
 
 &nbsp;
 
@@ -82,7 +82,7 @@ The "Advanced" feature set **also fixes** the displayed engagement count in the 
 
 # 3 - What should I know before I use Bartender?
 
-If you configure Bartender improperly, it might cause **stability issues** in your game due to how much control it gives you over the game's cop-spawning logic. Also, there are a few quirks to the way Bartender reads its configuration files that you should be aware of before you edit any of them.
+If you configure Bartender improperly, it might cause **stability issues** in your game due to how much control it gives you over the game's cop-spawning logic. Also, there are a few quirks to the way Bartender parses its configuration files that you should be aware of before you edit any of them.
 
 &nbsp;
 
@@ -98,7 +98,22 @@ Barring any exceptions mentioned in the subsections below, Bartender should be *
 
 &nbsp;
 
-## 3.1 - What should I know about the "Basic" feature set?
+## 3.1 - What should I know about configuration parsing?
+
+Some **parameter groups** (indicated by `[...]`) in Bartender's configuration files allow you to specify a `default` value (see their comments). Bartender parses these groups in three steps:
+1. Bartender sets this `default` to the game's vanilla value(s) if you omit it,
+2. Bartender sets all free-roam Heat levels (format: `heatXY`) you omit to this `default`, and
+3. Bartender sets all race Heat levels (format: `raceXY`) you omit to their free-roam values.
+
+&nbsp;
+
+Bartender treats all **invalid values** you specify in its configuration files as omitted instead. A value is invalid if, for example, you specify a decimal where Bartender expects a whole number. Negative numbers are never invalid: Bartender sets them to 0 instead when it parses a file.
+
+&nbsp;
+
+&nbsp;
+
+## 3.2 - What should I know about the "Basic" feature set?
 
 Regarding the "Basic" feature set **in general**:
 
@@ -138,7 +153,7 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 &nbsp;
 
-## 3.2 - What should I know about the "Advanced" feature set?
+## 3.3 - What should I know about the "Advanced" feature set?
 
 Regarding the "Advanced" feature set **in general**:
 
