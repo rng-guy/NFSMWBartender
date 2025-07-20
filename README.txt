@@ -97,6 +97,7 @@ Some PARAMETER GROUPS (indicated by "[...]") in Bartender's configuration files 
  3) • Bartender sets all race Heat levels (format: "raceXY") you omitted to their free-roam values.
 
 Bartender treats all INVALID VALUES you provide in its configuration files as omitted instead.
+For comma-separated value tuples, Bartender treats them as omitted if any value in them is invalid.
 A value is invalid if, for example, you provide a decimal where Bartender expects a whole number.
 Negative numbers are never invalid: Bartender sets them to 0 instead as it parses a file.
 
