@@ -141,7 +141,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * You should assign low `MAXIMUM_AI_SPEED` values (~50) to the `aivehicle` VltEd entries of all vehicles you provide as replacements for the ramming SUVs in HeavyStrategy 3 spawns. If you don't limit their speeds, they might cause stability issues by joining the pursuit as regular cops regardless of the global cop-spawn limit after their ramming attempt(s).
 
-* You should not use the vehicles you provide as replacements for Cross in LeaderStrategy spawns anywhere else in the game, else they will block LeaderStrategy spawns whenever they are present.
+* You should not use the vehicles you provide as replacements for Cross in LeaderStrategy spawns anywhere else in the game, as they will block LeaderStrategy spawns whenever they are present.
 
 &nbsp;
 

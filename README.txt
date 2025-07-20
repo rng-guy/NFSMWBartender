@@ -140,7 +140,7 @@ Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
    regular cops regardless of the global cop-spawn limit after their ramming attempt(s).
 
  • You should not use the vehicles you provide as replacements for Cross in LeaderStrategy spawns
-   anywhere else in the game, else they will block LeaderStrategy spawns whenever they are present.
+   anywhere else in the game, as they will block LeaderStrategy spawns whenever they are present.
 
 
 Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
