@@ -87,7 +87,7 @@ with all VltEd and Binary mods. Any .asi mods without pursuit features should al
 
 
 
-── ■ 3.1 - WHAT SHOULD I KNOW ABOUT CONFIGURATION PARSING? ■ - - - - - - - - - - - - - - - - - - - 
+── ■ 3.1 - WHAT SHOULD I KNOW ABOUT THE FILE PARSING? ■ - - - - - - - - - - - - - - - - - - - - - -
 
 Some PARAMETER GROUPS (indicated by "[...]") in Bartender's configuration files allow you to
 provide a "default" value (see their comments). Bartender parses these groups in three steps:

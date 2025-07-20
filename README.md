@@ -98,7 +98,7 @@ Barring any exceptions mentioned in the subsections below, Bartender should be *
 
 &nbsp;
 
-## 3.1 - What should I know about configuration parsing?
+## 3.1 - What should I know about the file parsing?
 
 Some **parameter groups** (indicated by `[...]`) in Bartender's configuration files allow you to provide a `default` value (see their comments). Bartender parses these groups in three steps:
 1. Bartender sets this `default` to the game's vanilla value(s) if you omit it,
