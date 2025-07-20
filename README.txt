@@ -89,8 +89,8 @@ with all VltEd and Binary mods. Any .asi mods without pursuit features should al
 
 ── ■ 3.1 - WHAT SHOULD I KNOW ABOUT THE FILE PARSING? ■ - - - - - - - - - - - - - - - - - - - - - -
 
-Some PARAMETER GROUPS (indicated by "[...]") in Bartender's configuration files allow you to
-provide a "default" value (see their comments). Bartender parses these groups in three steps:
+Some PARAMETER GROUPS (indicated by "[...]") in Bartender's configuration files allow you
+(see their comments) to provide a "default" value. Bartender parses these groups in three steps:
  1) • Bartender sets this "default" to the game's vanilla value(s) if you omit it,
  2) • Bartender sets all free-roam Heat levels (format: "heatXY") you omit to this "default", and
  3) • Bartender sets all race Heat levels (format: "raceXY") you omit to their free-roam values.
