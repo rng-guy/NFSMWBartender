@@ -221,8 +221,8 @@ namespace HelicopterOverrides
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	const address fuelTimeEntrance = 0x42AD9B;
-	const address fuelTimeExit     = 0x42ADA1;
+	constexpr address fuelTimeEntrance = 0x42AD9B;
+	constexpr address fuelTimeExit     = 0x42ADA1;
 
 	__declspec(naked) void FuelTime()
 	{

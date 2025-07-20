@@ -93,8 +93,8 @@ namespace StateObserver
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	const address heatLevelObserverEntrance = 0x409091;
-	const address heatLevelObserverExit     = 0x409096;
+	constexpr address heatLevelObserverEntrance = 0x409091;
+	constexpr address heatLevelObserverExit     = 0x409096;
 
 	// Active when loading into areas or during pursuits
 	__declspec(naked) void HeatLevelObserver()
@@ -143,8 +143,8 @@ namespace StateObserver
 
 
 
-	const address gameStartObserverEntrance = 0x570620;
-	const address gameStartObserverExit     = 0x570626;
+	constexpr address gameStartObserverEntrance = 0x570620;
+	constexpr address gameStartObserverExit     = 0x570626;
 
 	// Active when entering the main menu screen
 	__declspec(naked) void GameStartObserver()
@@ -170,8 +170,8 @@ namespace StateObserver
 
 
 
-	const address worldLoadObserverEntrance = 0x66296C;
-	const address worldLoadObserverExit     = 0x662971;
+	constexpr address worldLoadObserverEntrance = 0x66296C;
+	constexpr address worldLoadObserverExit     = 0x662971;
 
 	// Active during world loading screens
 	__declspec(naked) void WorldLoadObserver()
@@ -193,22 +193,25 @@ namespace StateObserver
 
 
 
-	const address gameplayObserverEntrance = 0x71D080;
-	const address gameplayObserverExit     = 0x71D088;
+	constexpr address gameplayObserverEntrance = 0x71D085;
+	constexpr address gameplayObserverExit     = 0x71D08A;
 
 	// Constantly active during gameplay, but not excessively so
 	__declspec(naked) void GameplayObserver()
 	{
 		__asm
 		{
+			push eax
 			push ecx
+
 			call OnGameplayUpdates
+
 			pop ecx
+			pop eax
 
 			// Execute original and resume
-			mov eax, 0x92D884
-			mov eax, [eax]
 			sub esp, 0x18
+			test eax, eax
 
 			jmp dword ptr gameplayObserverExit
 		}
@@ -216,8 +219,8 @@ namespace StateObserver
 
 
 
-	const address retryObserverEntrance = 0x6F4768;
-	const address retryObserverExit     = 0x6F476D;
+	constexpr address retryObserverEntrance = 0x6F4768;
+	constexpr address retryObserverExit     = 0x6F476D;
 
 	// Active during event / race resets
 	__declspec(naked) void RetryObserver()
@@ -241,8 +244,8 @@ namespace StateObserver
 
 
 
-	const address heatEqualiserEntrance = 0x409084;
-	const address heatEqualiserExit     = 0x40908A;
+	constexpr address heatEqualiserEntrance = 0x409084;
+	constexpr address heatEqualiserExit     = 0x40908A;
 
 	// Non-player drivers have the same heat as the player
 	__declspec(naked) void HeatEqualiser()
@@ -271,8 +274,8 @@ namespace StateObserver
 
 
 
-	const address perpVehicleEntrance = 0x43D252;
-	const address perpVehicleExit     = 0x43D257;
+	constexpr address perpVehicleEntrance = 0x43D252;
+	constexpr address perpVehicleExit     = 0x43D257;
 
 	// Identifies the player's AIPerpVehicle
 	__declspec(naked) void PerpVehicle()

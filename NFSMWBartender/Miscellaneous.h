@@ -29,7 +29,7 @@ namespace Miscellaneous
 	std::array<int,   Globals::maxHeatLevel> raceCopComboLimits = {};
 
 	// Code caves
-	const address floorFunction = 0x7C4B80;
+	constexpr address floorFunction = 0x7C4B80;
 
 
 
@@ -37,8 +37,8 @@ namespace Miscellaneous
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	const address passiveBountyEntrance = 0x44450D;
-	const address passiveBountyExit     = 0x444542;
+	constexpr address passiveBountyEntrance = 0x44450D;
+	constexpr address passiveBountyExit     = 0x444542;
 
 	__declspec(naked) void PassiveBounty()
 	{
@@ -71,8 +71,8 @@ namespace Miscellaneous
 
 
 
-	const address copComboEntrance = 0x418FBA;
-	const address copComboExit     = 0x418FD2;
+	constexpr address copComboEntrance = 0x418FBA;
+	constexpr address copComboExit     = 0x418FD2;
 
 	__declspec(naked) void CopCombo()
 	{

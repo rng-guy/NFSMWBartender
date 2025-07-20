@@ -62,11 +62,11 @@ namespace GroundSupport
 	std::array<std::string, Globals::maxHeatLevel> raceHenchmenVehicles       = {};
 
 	// Code caves
-	const address getRandom                 = 0x6ED200;
-	const address scaleRandom               = 0x402870;
-	const address clearSupportRequest       = 0x42BCF0;
-	const address getStringHash             = 0x5CC240;
-	const float   strategyCooldownThreshold = 0.f;
+	constexpr address getRandom                 = 0x6ED200;
+	constexpr address scaleRandom               = 0x402870;
+	constexpr address clearSupportRequest       = 0x42BCF0;
+	constexpr address getStringHash             = 0x5CC240;
+	constexpr float   strategyCooldownThreshold = 0.f;
 
 
 
@@ -74,8 +74,8 @@ namespace GroundSupport
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	const address roadblockCooldownEntrance = 0x419535;
-	const address roadblockCooldownExit     = 0x41954C;
+	constexpr address roadblockCooldownEntrance = 0x419535;
+	constexpr address roadblockCooldownExit     = 0x41954C;
 
 	__declspec(naked) void RoadblockCooldown()
 	{
@@ -93,8 +93,8 @@ namespace GroundSupport
 
 
 
-	const address roadblockHeavyEntrance = 0x4197EC;
-	const address roadblockHeavyExit     = 0x4197F6;
+	constexpr address roadblockHeavyEntrance = 0x4197EC;
+	constexpr address roadblockHeavyExit     = 0x4197F6;
 
 	__declspec(naked) void RoadblockHeavy()
 	{
@@ -109,9 +109,9 @@ namespace GroundSupport
 
 
 
-	const address requestCooldownEntrance = 0x4196BF;
-	const address requestCooldownExit     = 0x4196E4;
-	const address requestCooldownSkip     = 0x41988A;
+	constexpr address requestCooldownEntrance = 0x4196BF;
+	constexpr address requestCooldownExit     = 0x4196E4;
+	constexpr address requestCooldownSkip     = 0x41988A;
 
 	__declspec(naked) void RequestCooldown()
 	{
@@ -137,8 +137,8 @@ namespace GroundSupport
 
 
 
-	const address requestDelayEntrance = 0x419680;
-	const address requestDelayExit     = 0x419689;
+	constexpr address requestDelayEntrance = 0x419680;
+	constexpr address requestDelayExit     = 0x419689;
 
 	__declspec(naked) void RequestDelay()
 	{
@@ -170,8 +170,8 @@ namespace GroundSupport
 
 
 
-	const address onAttachedEntrance = 0x423F92;
-	const address onAttachedExit     = 0x423FC8;
+	constexpr address onAttachedEntrance = 0x423F92;
+	constexpr address onAttachedExit     = 0x423FC8;
 
 	__declspec(naked) void OnAttached()
 	{
@@ -199,8 +199,8 @@ namespace GroundSupport
 
 
 
-	const address onDetachedEntrance = 0x42B5F1;
-	const address onDetachedExit     = 0x42B5F6;
+	constexpr address onDetachedEntrance = 0x42B5F1;
+	constexpr address onDetachedExit     = 0x42B5F6;
 
 	__declspec(naked) void OnDetached()
 	{
@@ -213,8 +213,8 @@ namespace GroundSupport
 
 
 
-	const address leaderSubEntrance = 0x41F504;
-	const address leaderSubExit     = 0x41F50C;
+	constexpr address leaderSubEntrance = 0x41F504;
+	constexpr address leaderSubExit     = 0x41F50C;
 
 	__declspec(naked) void LeaderSub()
 	{
@@ -229,8 +229,8 @@ namespace GroundSupport
 
 
 
-	const address henchmenSubEntrance = 0x41F485;
-	const address henchmenSubExit     = 0x41F48A;
+	constexpr address henchmenSubEntrance = 0x41F485;
+	constexpr address henchmenSubExit     = 0x41F48A;
 
 	__declspec(naked) void HenchmenSub()
 	{
@@ -243,8 +243,8 @@ namespace GroundSupport
 
 
 
-	const address rhinoSelectorEntrance = 0x41F1BC;
-	const address rhinoSelectorExit     = 0x41F1C8;
+	constexpr address rhinoSelectorEntrance = 0x41F1BC;
+	constexpr address rhinoSelectorExit     = 0x41F1C8;
 
 	__declspec(naked) void RhinoSelector()
 	{

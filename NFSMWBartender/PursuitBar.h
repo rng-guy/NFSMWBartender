@@ -32,9 +32,9 @@ namespace PursuitBar
 	std::array<float, Globals::maxHeatLevel> raceBustTimers       = {};
 
 	// Code caves
-	const float oneHalf                = .5f;
-	const float evadeStateThreshold    = 0.f;
-	const float obstructedBustDistance = 0.f;
+	constexpr float oneHalf                = .5f;
+	constexpr float evadeStateThreshold    = 0.f;
+	constexpr float obstructedBustDistance = 0.f;
 
 
 
@@ -42,8 +42,8 @@ namespace PursuitBar
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	const address maxBustDistanceEntrance = 0x444483;
-	const address maxBustDistanceExit     = 0x44448B;
+	constexpr address maxBustDistanceEntrance = 0x444483;
+	constexpr address maxBustDistanceExit     = 0x44448B;
 
 	__declspec(naked) void MaxBustDistance()
 	{
@@ -71,8 +71,8 @@ namespace PursuitBar
 
 
 
-	const address evadeBarEntrance = 0x444A38;
-	const address evadeBarExit     = 0x444A3E;
+	constexpr address evadeBarEntrance = 0x444A38;
+	constexpr address evadeBarExit     = 0x444A3E;
 
 	__declspec(naked) void EvadeBar()
 	{

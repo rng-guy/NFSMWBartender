@@ -42,9 +42,9 @@ namespace DestructionStrings
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	const address copDestructionEntrance = 0x595B0D;
-	const address copDestructionExit     = 0x595C37;
-	const address copDestructionSkip     = 0x595CB3;
+	constexpr address copDestructionEntrance = 0x595B0D;
+	constexpr address copDestructionExit     = 0x595C37;
+	constexpr address copDestructionSkip     = 0x595CB3;
 
 	// Looks up Binary key of destroyed vehicle
 	__declspec(naked) void CopDestruction()

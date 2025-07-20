@@ -315,8 +315,8 @@ namespace PursuitObserver
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	const address eventSpawnEntrance = 0x42E8A8;
-	const address eventSpawnExit     = 0x42E8AF;
+	constexpr address eventSpawnEntrance = 0x42E8A8;
+	constexpr address eventSpawnExit     = 0x42E8AF;
 
 	__declspec(naked) void EventSpawn()
 	{
@@ -345,8 +345,8 @@ namespace PursuitObserver
 
 
 
-	const address patrolSpawnEntrance = 0x430E37;
-	const address patrolSpawnExit     = 0x430E3D;
+	constexpr address patrolSpawnEntrance = 0x430E37;
+	constexpr address patrolSpawnExit     = 0x430E3D;
 
 	__declspec(naked) void PatrolSpawn()
 	{
@@ -364,8 +364,8 @@ namespace PursuitObserver
 
 
 
-	const address pursuitConstructorEntrance = 0x4432D0;
-	const address pursuitConstructorExit     = 0x4432D7;
+	constexpr address pursuitConstructorEntrance = 0x4432D0;
+	constexpr address pursuitConstructorExit     = 0x4432D7;
 
 	__declspec(naked) void PursuitConstructor()
 	{
@@ -388,8 +388,8 @@ namespace PursuitObserver
 
 
 
-	const address pursuitDestructorEntrance = 0x433775;
-	const address pursuitDestructorExit     = 0x43377A;
+	constexpr address pursuitDestructorEntrance = 0x433775;
+	constexpr address pursuitDestructorExit     = 0x43377A;
 
 	__declspec(naked) void PursuitDestructor()
 	{
@@ -411,8 +411,8 @@ namespace PursuitObserver
 
 
 
-	const address vehicleDespawnedEntrance = 0x6693C0;
-	const address vehicleDespawnedExit     = 0x6693C7;
+	constexpr address vehicleDespawnedEntrance = 0x6693C0;
+	constexpr address vehicleDespawnedExit     = 0x6693C7;
 
 	__declspec(naked) void VehicleDespawned()
 	{
@@ -433,8 +433,8 @@ namespace PursuitObserver
 
 
 
-	const address copAddedEntrance = 0x4338A0;
-	const address copAddedExit     = 0x4338A5;
+	constexpr address copAddedEntrance = 0x4338A0;
+	constexpr address copAddedExit     = 0x4338A5;
 
 	__declspec(naked) void CopAdded()
 	{
@@ -456,8 +456,8 @@ namespace PursuitObserver
 
 
 
-	const address copRemovedEntrance = 0x4338B0;
-	const address copRemovedExit     = 0x4338B5;
+	constexpr address copRemovedEntrance = 0x4338B0;
+	constexpr address copRemovedExit     = 0x4338B5;
 
 	__declspec(naked) void CopRemoved()
 	{
@@ -478,8 +478,8 @@ namespace PursuitObserver
 
 
 
-	const address mainSpawnLimitEntrance = 0x43EB84;
-	const address mainSpawnLimitExit     = 0x43EB90;
+	constexpr address mainSpawnLimitEntrance = 0x43EB84;
+	constexpr address mainSpawnLimitExit     = 0x43EB90;
 
 	__declspec(naked) void MainSpawnLimit()
 	{
@@ -498,8 +498,8 @@ namespace PursuitObserver
 
 
 
-	const address otherSpawnLimitEntrance = 0x426C4E;
-	const address otherSpawnLimitExit     = 0x426C54;
+	constexpr address otherSpawnLimitEntrance = 0x426C4E;
+	constexpr address otherSpawnLimitExit     = 0x426C54;
 
 	__declspec(naked) void OtherSpawnLimit()
 	{

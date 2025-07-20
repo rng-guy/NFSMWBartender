@@ -109,10 +109,10 @@ namespace CopSpawnOverrides
 	// Code caves
 	bool skipEventSpawns = true;
 
-	const address addVehicleToRoadblock   = 0x43C4E0;
-	const address getPursuitVehicleByName = 0x41ECD0;
-	const address stringToHashFunction    = 0x5CC240;
-	const address copTableComparison      = 0x90D8C8;
+	constexpr address addVehicleToRoadblock   = 0x43C4E0;
+	constexpr address getPursuitVehicleByName = 0x41ECD0;
+	constexpr address stringToHashFunction    = 0x5CC240;
+	constexpr address copTableComparison      = 0x90D8C8;
 
 	std::unique_ptr<GlobalSpawnManager> eventManager     = nullptr;
 	std::unique_ptr<GlobalSpawnManager> roadblockManager = nullptr;
@@ -421,9 +421,9 @@ namespace CopSpawnOverrides
 
 	// Code caves --------------------------------------------------------------------------------------------------------------------------------------
 
-	const address roadblockSpawnEntrance = 0x43E04F;
-	const address roadblockSpawnExit     = 0x43E06C;
-	const address roadblockSpawnSkip     = 0x43E031;
+	constexpr address roadblockSpawnEntrance = 0x43E04F;
+	constexpr address roadblockSpawnExit     = 0x43E06C;
+	constexpr address roadblockSpawnSkip     = 0x43E031;
 
 	__declspec(naked) void RoadblockSpawn()
 	{
@@ -460,8 +460,8 @@ namespace CopSpawnOverrides
 
 
 
-	const address byNameInterceptorEntrance = 0x41ECEC;
-	const address byNameInterceptorExit     = 0x41ECF2;
+	constexpr address byNameInterceptorEntrance = 0x41ECEC;
+	constexpr address byNameInterceptorExit     = 0x41ECF2;
 
 	__declspec(naked) void ByNameInterceptor()
 	{
@@ -497,8 +497,8 @@ namespace CopSpawnOverrides
 
 
 
-	const address byClassInterceptorEntrance = 0x426621;
-	const address byClassInterceptorExit     = 0x426627;
+	constexpr address byClassInterceptorEntrance = 0x426621;
+	constexpr address byClassInterceptorExit     = 0x426627;
 
 	__declspec(naked) void ByClassInterceptor()
 	{
@@ -529,8 +529,8 @@ namespace CopSpawnOverrides
 
 
 
-	const address copRefillEntrance = 0x4442AE;
-	const address copRefillExit     = 0x4442B6;
+	constexpr address copRefillEntrance = 0x4442AE;
+	constexpr address copRefillExit     = 0x4442B6;
 
 	__declspec(naked) void CopRefill()
 	{
@@ -550,8 +550,8 @@ namespace CopSpawnOverrides
 
 
 
-	const address firstCopTableEntrance = 0x4242F9;
-	const address firstCopTableExit     = 0x424323;
+	constexpr address firstCopTableEntrance = 0x4242F9;
+	constexpr address firstCopTableExit     = 0x424323;
 
 	__declspec(naked) void FirstCopTable()
 	{
@@ -583,8 +583,8 @@ namespace CopSpawnOverrides
 
 
 
-	const address secondCopTableEntrance = 0x424205;
-	const address secondCopTableExit     = 0x42420E;
+	constexpr address secondCopTableEntrance = 0x424205;
+	constexpr address secondCopTableExit     = 0x42420E;
 
 	__declspec(naked) void SecondCopTable()
 	{
@@ -604,8 +604,8 @@ namespace CopSpawnOverrides
 
 
 
-	const address thirdCopTableEntrance = 0x424210;
-	const address thirdCopTableExit     = 0x424217;
+	constexpr address thirdCopTableEntrance = 0x424210;
+	constexpr address thirdCopTableExit     = 0x424217;
 
 	__declspec(naked) void ThirdCopTable()
 	{
@@ -620,8 +620,8 @@ namespace CopSpawnOverrides
 
 
 
-	const address fourthCopTableEntrance = 0x424298;
-	const address fourthCopTableExit     = 0x4242A1;
+	constexpr address fourthCopTableEntrance = 0x424298;
+	constexpr address fourthCopTableExit     = 0x4242A1;
 
 	__declspec(naked) void FourthCopTable()
 	{
@@ -641,8 +641,8 @@ namespace CopSpawnOverrides
 
 
 
-	const address fifthCopTableEntrance = 0x4242D2;
-	const address fifthCopTableExit     = 0x4242D7;
+	constexpr address fifthCopTableEntrance = 0x4242D2;
+	constexpr address fifthCopTableExit     = 0x4242D7;
 
 	__declspec(naked) void FifthCopTable()
 	{
