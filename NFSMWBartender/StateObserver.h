@@ -163,6 +163,7 @@ namespace StateObserver
 			// Execute original code and resume
 			add esp, 0x4
 			mov [esp], eax
+
 			jmp dword ptr gameStartObserverExit
 		}
 	}
