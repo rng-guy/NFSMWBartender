@@ -45,7 +45,7 @@ The "Basic" feature set **fixes four bugs**:
 
 &nbsp;
 
-You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause `FENG: Default string error` popups, as it checks every string you specify against the game's (potentially modified) resource files whenever you launch it.
+You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause `FENG: Default string error` popups, as it checks every string you provide against the game's (potentially modified) resource files whenever you launch it.
 
 &nbsp;
 
@@ -100,14 +100,14 @@ Barring any exceptions mentioned in the subsections below, Bartender should be *
 
 ## 3.1 - What should I know about configuration parsing?
 
-Some **parameter groups** (indicated by `[...]`) in Bartender's configuration files allow you to specify a `default` value (see their comments). Bartender parses these groups in three steps:
+Some **parameter groups** (indicated by `[...]`) in Bartender's configuration files allow you to provide a `default` value (see their comments). Bartender parses these groups in three steps:
 1. Bartender sets this `default` to the game's vanilla value(s) if you omit it,
 2. Bartender sets all free-roam Heat levels (format: `heatXY`) you omit to this `default`, and
 3. Bartender sets all race Heat levels (format: `raceXY`) you omit to their free-roam values.
 
 &nbsp;
 
-Bartender treats all **invalid values** you specify in its configuration files as omitted instead. A value is invalid if, for example, you specify a decimal where Bartender expects a whole number. Negative numbers are never invalid: Bartender sets them to 0 instead when it parses a file.
+Bartender treats all **invalid values** you provide in its configuration files as omitted instead. A value is invalid if, for example, you provide a decimal where Bartender expects a whole number. Negative numbers are never invalid: Bartender sets them to 0 instead as it parses a file.
 
 &nbsp;
 
@@ -139,9 +139,9 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Deleting this file also disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
 
-* You should assign low `MAXIMUM_AI_SPEED` values (~50 should be fine) to the `aivehicle` VltEd entries of every vehicle you specify to replace the HeavyStrategy 3 spawns (the ramming SUVs). If you don't limit their speeds, they might cause stability issues by joining the pursuit as regular cops after their ramming attempt(s) regardless of the global cop-spawn limit.
+* You should assign low `MAXIMUM_AI_SPEED` values (~50) to the `aivehicle` VltEd entries of all vehicles you provide as replacements for the ramming SUVs in HeavyStrategy 3 spawns. If you don't limit their speeds, they might cause stability issues by joining the pursuit as regular cops regardless of the global cop-spawn limit after their ramming attempt(s).
 
-* Don't use the vehicles you specify to replace Cross in LeaderStrategy 5 / 7 spawns anywhere else in the game. If you reuse them, no LeaderStrategy will spawn as long as they are present.
+* You should not use the vehicles you provide as replacements for Cross in LeaderStrategy spawns anywhere else in the game, else they will block LeaderStrategy spawns whenever they are present.
 
 &nbsp;
 
@@ -161,7 +161,7 @@ Regarding the "Advanced" feature set **in general**:
 
 * You can disable any feature of this set by deleting the file containing its parameters. This does not apply to the engagement-count fix, which is tied to this entire feature set instead.
 
-* You must specify at least one vehicle in each free-roam "Chasers" spawn table (`BartenderSettings\Advanced\Cars.ini`), else Bartender will disable this entire feature set.
+* You must provide at least one vehicle in the "Chasers" spawn table of each free-roam Heat level (`BartenderSettings\Advanced\Cars.ini`), else Bartender disables this entire feature set.
 
 * You should ensure that every HeavyStrategy you include in a given Heat level's `pursuitsupport` VltEd entry is only listed there once (e.g. there is not a second HeavyStrategy 3), and that there is also no more than one LeaderStrategy listed there. If you have duplicates there, they can cause the game (and Bartender) to misread their `Duration` VltEd parameters.
 
@@ -171,7 +171,7 @@ Regarding the "Advanced" feature set **in general**:
 
 Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopter.ini`):
 
-* You must assign the `CHOPPER` class to the `pvehicle` VltEd entries of all vehicles you pecify to replace the regular helicopter, either directly or through their parent VltEd entries.
+* You must assign the `CHOPPER` class to the `pvehicle` VltEd entries of all vehicles you provide as replacements for the regular helicopter. You can do this directly or through parent entries.
 
 &nbsp;
 
@@ -181,11 +181,11 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * You must install the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351 for game stability if you set any global cop-spawn limit above 8. Without LA, the game will start unloading models and assets because its default cop loader simply cannot handle managing more than 8 vehicles for very long. To fully unlock the global cop-spawn limit without taking spawning control away from Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file and disable *everything* in its `[Options]` parameter group. Even with these changes, LA itself might still crash sometimes.
 
-* You must assign the `CAR` class to the `pvehicle` VltEd entries of all vehicles you specify in any of the spawn tables, either directly or through their parent VltEd entries.
+* You must assign the `CAR` class to the `pvehicle` VltEd entries of all vehicles you provide in any of the spawn tables. You can do this directly or through parent entries.
 
-* All free-roam "Roadblocks", "Events", and "Patrols" spawn tables that you leave empty become copies of their respective "Chasers" tables (which must each contain at least one vehicle).
+* Bartender uses the respective "Chasers" spawn table (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
 
-* All race spawn tables that you leave empty become copies of their free-roam counterparts.
+* Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
 
 * Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This does not apply to vehicles with `count` values of at least 5, as no roadblock contains more than 5 cars.
 
