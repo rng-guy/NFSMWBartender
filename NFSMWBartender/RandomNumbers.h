@@ -75,7 +75,7 @@ namespace RandomNumbers
 			const T min,
 			const T max  // exclusive
 		){
-			return T();
+			return min + (T)(this->Generate<double>(0., (double)(max - min)));
 		}
 
 
@@ -96,16 +96,6 @@ namespace RandomNumbers
 			const float max  // exclusive
 		) {
 			return min + (this->Advance() >> 40) * 0x1.0p-24f * (max - min);
-		}
-
-
-		template <>
-		int Generate<int>
-		(
-			const int min,
-			const int max  // exclusive
-		) {
-			return min + (int)(this->Generate<double>(0., (double)(max - min)));
 		}
 	};
 }
