@@ -106,7 +106,7 @@ namespace PursuitObserver
 			: pursuit(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log("     NEW [OBS] Instance", this->pursuit);
+				Globals::Log("     NEW [OBS] Pursuit", this->pursuit);
 
 			if (CopSpawnOverrides::featureEnabled)
 				this->AddFeature<CopSpawnOverrides::ContingentManager>(this->pursuit);
@@ -122,7 +122,7 @@ namespace PursuitObserver
 		~PursuitObserver()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log("     DEL [OBS] Instance", this->pursuit);
+				Globals::Log("     DEL [OBS] Pursuit", this->pursuit);
 		}
 
 

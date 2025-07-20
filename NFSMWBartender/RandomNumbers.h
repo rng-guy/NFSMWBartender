@@ -35,7 +35,7 @@ namespace RandomNumbers
 		}
 
 
-		uint64_t Generate()
+		uint64_t Advance()
 		{
 			const uint64_t result = this->Rotate(this->state[0] + this->state[3], 23) + this->state[0];
 			const uint64_t      t = this->state[1] << 17;
@@ -69,30 +69,43 @@ namespace RandomNumbers
 		}
 
 
-		double GetDouble
+		template <typename T>
+		T Generate
 		(
-			const double max,
-			const double min = 0.
-		) {
-			return min + (this->Generate() >> 11) * 0x1.0p-53 * (max - min);
+			const T min,
+			const T max  // exclusive
+		){
+			return T();
 		}
 
 
-		float GetFloat
+		template <>
+		double Generate<double>
 		(
-			const float max,
-			const float min = 0.f
+			const double min,
+			const double max  // exclusive
 		) {
-			return min + (this->Generate() >> 40) * 0x1.0p-24f * (max - min);
+			return min + (this->Advance() >> 11) * 0x1.0p-53 * (max - min);
 		}
 
 
-		int GetInt
+		template <>
+		float Generate<float>
 		(
-			const int max,
-			const int min = 0
+			const float min,
+			const float max  // exclusive
 		) {
-			return min + (int)(this->GetDouble(max - min));
+			return min + (this->Advance() >> 40) * 0x1.0p-24f * (max - min);
+		}
+
+
+		template <>
+		int Generate<int>
+		(
+			const int min,
+			const int max  // exclusive
+		) {
+			return min + (int)(this->Generate<double>(0., (double)(max - min)));
 		}
 	};
 }

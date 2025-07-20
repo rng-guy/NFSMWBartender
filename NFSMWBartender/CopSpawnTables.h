@@ -152,7 +152,7 @@ namespace CopSpawnTables
 		{
 			if (this->IsEmpty()) return nullptr;
 
-			const int randomNumber     = this->prng.GetInt(this->availableTotalCopChance);
+			const int randomNumber     = this->prng.Generate<int>(0, this->availableTotalCopChance);
 			int       cumulativeChance = 0;
 
 			for (const hash copType : this->availableCopTypes)

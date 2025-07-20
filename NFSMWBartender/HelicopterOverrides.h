@@ -131,14 +131,14 @@ namespace HelicopterOverrides
 
 			if (this->hasSpawnedBefore)
 			{
-				this->nextSpawnTimestamp += this->prng.GetFloat(maxRespawnDelay, minRespawnDelay);
+				this->nextSpawnTimestamp += this->prng.Generate<float>(minRespawnDelay, maxRespawnDelay);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::Log(this->pursuit, "[HEL] Respawning in", this->nextSpawnTimestamp - *(this->simulationTime));
 			}
 			else
 			{
-				this->nextSpawnTimestamp += this->prng.GetFloat(maxSpawnDelay, minSpawnDelay);
+				this->nextSpawnTimestamp += this->prng.Generate<float>(minSpawnDelay, maxSpawnDelay);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::Log(this->pursuit, "[HEL] Spawning in", this->nextSpawnTimestamp - *(this->simulationTime));
@@ -157,7 +157,7 @@ namespace HelicopterOverrides
 			if (this->helicopterActive)
 			{
 				this->hasSpawnedBefore = true;
-				this->SetHelicopterFuel(this->prng.GetFloat(maxDespawnDelay, minDespawnDelay));
+				this->SetHelicopterFuel(this->prng.Generate<float>(minDespawnDelay, maxDespawnDelay));
 			}
 			else this->UpdateNextSpawnTimestamp();
 		}

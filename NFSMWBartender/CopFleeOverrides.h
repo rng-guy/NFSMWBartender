@@ -138,7 +138,7 @@ namespace CopFleeOverrides
 				this->leaderStrategyDuration = *((float*)(leaderStrategies + 0x8));
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[FLE] LeaderStrategy duration:", this->leaderStrategyDuration);
+					Globals::Log(this->pursuit, "[FLE] LeaderStrategy  duration:", this->leaderStrategyDuration);
 			}
 		}
 
@@ -184,7 +184,7 @@ namespace CopFleeOverrides
 
 			case CopLabel::CHASER:
 				flagVehicle = (fleeingEnabled and (not CopSpawnTables::pursuitSpawnTable->IsInTable(assessment.copType)));
-				if (flagVehicle) timeUntilFlee = this->prng.GetFloat(maxFleeDelay, minFleeDelay);
+				if (flagVehicle) timeUntilFlee = this->prng.Generate<float>(minFleeDelay, maxFleeDelay);
 				break;
 
 			default:
