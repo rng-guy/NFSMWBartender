@@ -87,6 +87,7 @@ with all VltEd and Binary mods. Any .asi mods without pursuit features should al
 
 
 
+
 ── ■ 3.1 - WHAT SHOULD I KNOW ABOUT THE FILE PARSING? ■ - - - - - - - - - - - - - - - - - - - - - -
 
 Some PARAMETER GROUPS (indicated by "[...]") in Bartender's configuration files allow you
@@ -98,6 +99,7 @@ Some PARAMETER GROUPS (indicated by "[...]") in Bartender's configuration files 
 Bartender treats all INVALID VALUES you provide in its configuration files as omitted instead.
 A value is invalid if, for example, you provide a decimal where Bartender expects a whole number.
 Negative numbers are never invalid: Bartender sets them to 0 instead as it parses a file.
+
 
 
 
@@ -114,9 +116,9 @@ Regarding the "BASIC" feature set IN GENERAL:
 
  • The Heat-level reset fix is incompatible with the "HeatLevelOverride" feature of the 
    "NFSMW ExtraOptions" mod by ExOptsTeam. To disable this ExtraOptions feature, edit its
-   "NFSMWExtraOptionsSettings.ini" configuration file. If you do this, you can still change the
-   maximum available Heat level with VltEd: The "0xe8c24416" parameter of a given "race_bin_XY"
-   VltEd entry determines the maximum Heat level (1-10) while you are at Blacklist rival #XY.
+   "NFSMWExtraOptionsSettings.ini" configuration file. If you do this, you can still change 
+   the maximum available Heat level with VltEd: The "0xe8c24416" parameter of a given
+   "race_bin_XY" VltEd entry determines the maximum Heat level (1-10) at Blacklist rival #XY.
 
  • If you don't install the optional missing textures ("FixMissingTextures.end"), then the game
    will not display a number next to Heat gauges in menus for cars with Heat levels above 5.
@@ -146,6 +148,7 @@ Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
  • Deleting this file also disables the fix for getting busted while the "EVADE" bar fills.
+
 
 
 
