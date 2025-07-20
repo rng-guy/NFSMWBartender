@@ -163,7 +163,7 @@ Regarding the "Advanced" feature set **in general**:
 
 * You must provide at least one vehicle in the "Chasers" spawn table of each free-roam Heat level (`BartenderSettings\Advanced\Cars.ini`), else Bartender disables this entire feature set.
 
-* You should ensure that every HeavyStrategy you include in a given Heat level's `pursuitsupport` VltEd entry is only listed there once (e.g. there is not a second HeavyStrategy 3), and that there is also no more than one LeaderStrategy listed there. If you have duplicates there, they can cause the game (and Bartender) to misread their `Duration` VltEd parameters.
+* You should ensure that every HeavyStrategy you enable in a given Heat level's `pursuitsupport` VltEd entry is only listed there once (e.g. there is not a second HeavyStrategy 3), and that there is also no more than one LeaderStrategy listed there. If you have duplicates there, they can cause the game (and Bartender) to misread their `Duration` VltEd parameters.
 
 * If this feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because this feature set fulfils their intended purposes with extended customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
@@ -187,15 +187,15 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
 
-* Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock vehicles in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This does not apply to vehicles with `count` values of at least 5, as no roadblock contains more than 5 cars.
+* Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock spawns in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This does not apply to vehicles with `count` values of at least 5, as no roadblock consists of more than 5 cars.
 
-* Rarely, cops that are not in "Roadblocks" spawn tables might still show up in roadblocks. This is a vanilla bug: it usually happens when the game attempts to spawn a "Chaser" while it is processing a roadblock request, causing it to place the wrong car in the requested roadblock. This bug is not restricted to cop spawns: if the stars align, it can even happen with traffic.
+* Rarely, vehicles that are not in a "Roadblocks" spawn table will still show up in roadblocks. This is a vanilla bug: it usually happens when the game attempts to spawn a "Chaser" while it is processing a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
 * The "Events" spawn tables don't apply to the scripted patrols that spawn in any of the prologue D-Day events; those spawns are special and a real hassle to deal with, even among event spawns.
 
 * The "Events" spawn tables don't apply to the very first scripted, pre-generated cop that spawns in a given event. Instead, this first cop is always of the type listed in the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible for Bartender to know which spawn table to use for this single vehicle.
 
-* Bartender temporarily ignores the `count` values in "Roadblocks" and "Events" spawn tables whenever the game requests more roadblock / event vehicles in total than they would allow.
+* Bartender temporarily ignores the `count` values in a "Roadblocks" / "Events" spawn table whenever a roadblock / event requests more vehicles in total than they would otherwise allow. You can avoid this by ensuring that the totals of all `count` values amount to at least 5 / 6 for each "Roadblocks" / "Events" spawn table, as no roadblock / event in the vanilla game consists of more than 5 / 6 vehicles in total.
 
 * You should not use fast Heat transitions (`0x80deb840` VltEd parameter(s) set to < 5 seconds), else you might see a mix of cops from more than one "Events" spawn table appear in events with scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
 
