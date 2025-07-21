@@ -70,7 +70,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 
 &nbsp;
 
-The "Advanced" feature set **also fixes** the displayed engagement count in the centre of the pursuit bar at the bottom of the pursuit HUD: The count now accurately reflects how many chasing cop spawns remain in the current wave by ignoring vehicles that spawn through any Heavy / LeaderStrategy, vehicles that join the pursuit from roadblocks, and the helicopter.
+The "Advanced" feature set **also fixes** the engagement count displayed over of the pursuit board: The count now accurately reflects how many chasing cop spawns remain in the current wave by disregarding vehicles that spawn through any Heavy / LeaderStrategy, vehicles that join the pursuit by detaching themselves from roadblocks, and the helicopter.
 
 &nbsp;
 
