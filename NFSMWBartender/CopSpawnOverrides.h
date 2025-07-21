@@ -2,7 +2,6 @@
 
 #include <Windows.h>
 #include <unordered_map>
-#include <memory>
 #include <string>
 #include <array>
 
@@ -114,8 +113,8 @@ namespace CopSpawnOverrides
 	constexpr address stringToHashFunction    = 0x5CC240;
 	constexpr address copTableComparison      = 0x90D8C8;
 
-	std::unique_ptr<GlobalSpawnManager> eventManager     = nullptr;
-	std::unique_ptr<GlobalSpawnManager> roadblockManager = nullptr;
+	GlobalSpawnManager eventManager(&(CopSpawnTables::eventSpawnTable));
+	GlobalSpawnManager roadblockManager(&(CopSpawnTables::roadblockSpawnTable));
 
 
 
@@ -341,21 +340,21 @@ namespace CopSpawnOverrides
 
 	void __fastcall NotifyRoadblockManager(const address copVehicle)
 	{
-		roadblockManager.get()->NotifyOfSpawn(copVehicle);
+		roadblockManager.NotifyOfSpawn(copVehicle);
 	}
 
 
 
 	void ResetRoadblockManager()
 	{
-		roadblockManager.get()->ResetSpawnTable();
+		roadblockManager.ResetSpawnTable();
 	}
 
 
 
 	void __fastcall NotifyEventManager(const address copVehicle)
 	{
-		eventManager.get()->NotifyOfSpawn(copVehicle);
+		eventManager.NotifyOfSpawn(copVehicle);
 	}
 
 
@@ -376,7 +375,7 @@ namespace CopSpawnOverrides
 				return CopSpawnTables::patrolSpawnTable->GetRandomCopName();
 				
 			case 0x43E049: // roadblock
-				return roadblockManager.get()->GetRandomCopName();
+				return roadblockManager.GetRandomCopName();
 			}
 
 			if constexpr (Globals::loggingEnabled)
@@ -400,7 +399,7 @@ namespace CopSpawnOverrides
 			{
 			case 0x42E72E: // scripted event spawn
 				if (skipEventSpawns) break;
-				*newCopName = eventManager.get()->GetRandomCopName();
+				*newCopName = eventManager.GetRandomCopName();
 				return true;
 				
 			case 0x43EBD0: // pursuit spawn, Cooldown mode patrol
@@ -699,9 +698,6 @@ namespace CopSpawnOverrides
 		MemoryEditor::DigCodeCave(&FourthCopTable,  fourthCopTableEntrance,  fourthCopTableExit);
 		MemoryEditor::DigCodeCave(&FifthCopTable,   fifthCopTableEntrance,   fifthCopTableExit);
 
-		eventManager     = std::make_unique<GlobalSpawnManager>(&(CopSpawnTables::eventSpawnTable));
-		roadblockManager = std::make_unique<GlobalSpawnManager>(&(CopSpawnTables::roadblockSpawnTable));
-
 		return (featureEnabled = true);
 	}
 
@@ -725,8 +721,8 @@ namespace CopSpawnOverrides
 			maxActiveCount = roamMaxActiveCounts[heatLevel - 1];
 		}
 
-		eventManager.get()->ReloadSpawnTable();
-		roadblockManager.get()->ReloadSpawnTable();
+		eventManager.ReloadSpawnTable();
+		roadblockManager.ReloadSpawnTable();
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -745,7 +741,7 @@ namespace CopSpawnOverrides
 
 		skipEventSpawns = true;
 
-		eventManager.get()->ResetSpawnTable();
-		roadblockManager.get()->ResetSpawnTable();
+		eventManager.ResetSpawnTable();
+		roadblockManager.ResetSpawnTable();
 	}
 }
