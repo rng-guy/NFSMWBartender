@@ -90,7 +90,7 @@ with all VltEd and Binary mods. Any .asi mods without pursuit features should al
 
 ── ■ 3.1 - WHAT SHOULD I KNOW ABOUT THE FILE PARSING? ■ - - - - - - - - - - - - - - - - - - - - - -
 
-Some PARAMETER GROUPS (indicated by "[...]") in Bartender's configuration files allow you
+Some **parameter groups** (indicated by "[...]") in Bartender's configuration files allow you
 to provide a "default" value. For each parameter group, a comment in the relevant file states
 whether the group allows this. Bartender parses groups that allow "default" values in three steps:
  1) • Bartender sets the "default" to the game's vanilla value(s) if you omitted it,
