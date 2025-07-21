@@ -62,7 +62,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • which vehicle spawns in place of the regular helicopter, and
  • when exactly (if at all) the helicopter can (de / re)spawn.
 
-The "Advanced" feature set ALSO FIXES the engagement count displayed over of the pursuit board:
+The "Advanced" feature set ALSO FIXES the engagement count displayed above the pursuit board:
 The count now accurately reflects how many chasing cop spawns remain in the current wave by 
 disregarding vehicles that spawn through any Heavy / LeaderStrategy, vehicles that join
 the pursuit by detaching themselves from roadblocks, and the helicopter.
