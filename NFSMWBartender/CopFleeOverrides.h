@@ -138,7 +138,7 @@ namespace CopFleeOverrides
 				this->leaderStrategyDuration = *((float*)(leaderStrategies + 0x8));
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[FLE] LeaderStrategy  duration:", this->leaderStrategyDuration);
+					Globals::Log(this->pursuit, "[FLE] LeaderStrategy duration:", this->leaderStrategyDuration);
 			}
 		}
 
