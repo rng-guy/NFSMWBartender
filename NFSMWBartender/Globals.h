@@ -24,22 +24,13 @@ namespace Globals
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
+	// Pseudorandom number generator
+	RandomNumbers::Generator prng;
+
 	// Heat levels
 	constexpr size_t maxHeatLevel = 10;
 	constexpr float  maxHeat      = (float)maxHeatLevel;
-
-	// Pseudorandom number generator
-	RandomNumbers::Generator prng;
 	
-	// Logging
-	constexpr bool loggingEnabled = false;
-
-	std::unique_ptr<std::fstream> logStream;
-
-	const std::string logFile       = "BartenderLog.txt";
-	const std::string logIndent     = "        ";
-	const std::string logLongIndent = "              ";
-
 	// Configuration files
 	const std::string configFormatRoam   = "heat{:02}";
 	const std::string configFormatRace   = "race{:02}";
@@ -47,8 +38,17 @@ namespace Globals
 	const std::string configPathBasic    = configPathMain + "Basic/";
 	const std::string configPathAdvanced = configPathMain + "Advanced/";
 
+	// Logging
+	constexpr bool loggingEnabled = true;
 
+	std::unique_ptr<std::fstream> logStream;
+
+	const std::string logFile       = "BartenderLog.txt";
+	const std::string logIndent     = "        ";
+	const std::string logLongIndent = "              ";
 	
+
+
 
 
 	// Special parsing functions --------------------------------------------------------------------------------------------------------------------
