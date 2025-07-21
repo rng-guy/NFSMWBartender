@@ -107,7 +107,7 @@ Some **parameter groups** (indicated by `[...]`) in Bartender's configuration fi
 
 &nbsp;
 
-Bartender can handle any **invalid values** you might happen to provide in its configuration files. It treats
+Bartender can handle any **invalid values** you provide in its configuration files. Bartender treats
 * values of incorrect type as omitted,
 * negative values that should be positive as 0,
 * incorrectly ordered interval values (a `max` < `min`) both as the highest value, and
