@@ -96,7 +96,7 @@ Some PARAMETER GROUPS (indicated by "[...]") in Bartender's configuration files 
  2) • Bartender sets all free-roam Heat levels (format: "heatXY") you omitted to the "default", and
  3) • Bartender sets all race Heat levels (format: "raceXY") you omitted to their free-roam values.
 
-Bartender can handle any INVALID VALUES you provide in its configuration files. Bartender treats
+Bartender can handle any INVALID VALUES you provide in its configuration files: Bartender treats
  • values of incorrect type as omitted,
  • negative values that should be positive as 0,
  • incorrectly ordered interval values (a "max" < "min") both as the highest value, and
