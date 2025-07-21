@@ -11,7 +11,6 @@
 #include "Globals.h"
 #include "ConfigParser.h"
 #include "MemoryEditor.h"
-#include "RandomNumbers.h"
 
 
 
@@ -23,8 +22,6 @@ namespace CopSpawnTables
 	class SpawnTable
 	{
 	private:
-
-		inline static RandomNumbers::Generator prng;
 
 		struct Entry
 		{
@@ -152,7 +149,7 @@ namespace CopSpawnTables
 		{
 			if (this->IsEmpty()) return nullptr;
 
-			const int randomNumber     = this->prng.Generate<int>(0, this->availableTotalCopChance);
+			const int randomNumber     = Globals::prng.Generate<int>(0, this->availableTotalCopChance);
 			int       cumulativeChance = 0;
 
 			for (const hash copType : this->availableCopTypes)

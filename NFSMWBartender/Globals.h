@@ -7,6 +7,7 @@
 #include <format>
 #include <string>
 
+#include "RandomNumbers.h"
 #include "ConfigParser.h"
 
 #undef min
@@ -26,6 +27,9 @@ namespace Globals
 	// Heat levels
 	constexpr size_t maxHeatLevel = 10;
 	constexpr float  maxHeat      = (float)maxHeatLevel;
+
+	// Random-number generator
+	RandomNumbers::Generator prng;
 	
 	// Logging
 	constexpr bool loggingEnabled = false;

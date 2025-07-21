@@ -3,7 +3,6 @@
 #include <Windows.h>
 
 #include "Globals.h"
-#include "RandomNumbers.h"
 
 
 
@@ -40,7 +39,6 @@ namespace PursuitFeatures
 		friend void ResetState();
 
 		static constexpr const float* simulationTime = (float*)0x9885D8;
-		inline static                 RandomNumbers::Generator prng;
 		
 		CopVehicleReaction() = default;
 
