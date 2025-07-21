@@ -107,11 +107,11 @@ Some **parameter groups** (indicated by `[...]`) in Bartender's configuration fi
 
 &nbsp;
 
-Bartender can handle any **invalid values** you provide in its configuration files: Bartender treats
-* values of incorrect type as omitted,
-* negative values that should be positive as 0,
-* incorrectly ordered interval values (a `max` < `min`) both as the highest value, and
-* comma-separated value pairs / tuples with at least one value of incorrect type as omitted.
+Bartender can handle any **invalid values** you provide in its configuration files:
+* negative values that should be positive count as 0,
+* values of incorrect type count as omitted (and therefore `default` where allowed),
+* incorrectly ordered interval values (i.e. `max` < `min`) both count as the lower value, and
+* comma-separated value pairs / tuples with at least one value of incorrect type count as omitted.
 
 &nbsp;
 
