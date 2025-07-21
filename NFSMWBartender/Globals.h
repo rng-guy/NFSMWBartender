@@ -28,7 +28,7 @@ namespace Globals
 	constexpr size_t maxHeatLevel = 10;
 	constexpr float  maxHeat      = (float)maxHeatLevel;
 
-	// Random-number generator
+	// Pseudorandom number generator
 	RandomNumbers::Generator prng;
 	
 	// Logging
@@ -40,6 +40,7 @@ namespace Globals
 	const std::string logIndent     = "        ";
 	const std::string logLongIndent = "              ";
 
+	// Configuration files
 	const std::string configFormatRoam   = "heat{:02}";
 	const std::string configFormatRace   = "race{:02}";
 	const std::string configPathMain     = "BartenderSettings/";
