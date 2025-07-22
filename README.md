@@ -100,7 +100,7 @@ Barring any exceptions mentioned in the subsections below, Bartender should be *
 
 ## 3.1 - What should I know about the file parsing?
 
-Some **parameter groups** (indicated by `[...]`) in Bartender's configuration files allow you to provide a `default` value. For each parameter group, a comment in the relevant file states whether the group allows this. Bartender parses groups that allow `default` values in three steps:
+Some **parameter groups** (indicated by `[GroupName]`) in Bartender's configuration files allow you to provide a `default` value. For each parameter group, a comment in the relevant file states whether the group allows this. Bartender parses groups that allow `default` values in three steps:
 1. If you omitted it, the `default` value is set to the game's vanilla (i.e. unmodded) value.
 2. All free-roam Heat levels (format: `heatXY`) you omitted are set to the `default` value.
 3. All race Heat levels (format: `raceXY`) you omitted are set to their free-roam values.
