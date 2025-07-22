@@ -41,7 +41,7 @@ The "Basic" feature set FIXES FOUR BUGS:
 
 You can also ASSIGN NEW (BINARY) STRINGS for the game to display when cop vehicles are destroyed,
 similar to the "NFSMW Unlimiter" mod by nlgxzef. Bartender's version of this feature is easier to
-configure and will never cause "FENG: Default string error" popups, as it checks every string you
+configure and will never cause "FENG: Default string error" pop-ups, as it checks every string you
 provide against the game's (potentially modified) resource files whenever you launch it.
 
 
