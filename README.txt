@@ -93,14 +93,14 @@ with all VltEd and Binary mods. Any .asi mods without pursuit features should al
 Some PARAMETER GROUPS (indicated by "[...]") in Bartender's configuration files allow you
 to provide a "default" value. For each parameter group, a comment in the relevant file states
 whether the group allows this. Bartender parses groups that allow "default" values in three steps:
- 1) • Bartender sets the "default" to the game's vanilla value(s) if you omitted it,
- 2) • Bartender sets all free-roam Heat levels (format: "heatXY") you omitted to the "default", and
- 3) • Bartender sets all race Heat levels (format: "raceXY") you omitted to their free-roam values.
+ 1) • If you omitted it, the "default" value is set to the game's vanilla (i.e. unmodded) value.
+ 2) • All free-roam Heat levels (format: "heatXY") you omitted are set to the "default" value.
+ 3) • All race Heat levels (format: "raceXY") you omitted are set to their free-roam values.
 
 Bartender can handle any INVALID VALUES you provide in its configuration files:
- • negative values that should be positive count as 0,
+ • negative values that should be positive are set to 0,
  • values of incorrect type count as omitted (and therefore "default" where allowed),
- • incorrectly ordered interval values (i.e. "max" < "min") both count as the lower value, and
+ • incorrectly ordered interval values (i.e. "max" < "min") are both set to the lower value, and
  • comma-separated value pairs / tuples with at least one value of incorrect type count as omitted.
 
 
