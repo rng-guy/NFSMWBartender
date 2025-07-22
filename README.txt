@@ -99,7 +99,7 @@ whether the group allows this. Bartender parses groups that allow "default" valu
 
 Bartender can handle any INVALID VALUES you provide in its configuration files:
  • negative values that should be positive are set to 0,
- • values of incorrect type count as omitted (and therefore "default" where allowed),
+ • values of incorrect type count as omitted (and are therefore set to their "default" values),
  • incorrectly ordered interval values (i.e. "max" < "min") are both set to the lower value, and
  • comma-separated value pairs / tuples with at least one value of incorrect type count as omitted.
 
