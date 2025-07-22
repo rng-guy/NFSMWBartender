@@ -361,4 +361,4 @@ v1.00.00: Initial release
       07: Improved clarity of README by replacing most references with nouns
 
    10.00: Assigned correct spawn table to first cop spawn in Career milestone / bounty pursuits
-      01: Improved readability of README by simplifying language and phrasing throughout
+      01: Improved readability of README by overhauling language and phrasing throughout
