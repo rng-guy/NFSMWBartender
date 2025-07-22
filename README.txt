@@ -23,7 +23,7 @@ The sections below ADDRESS THE FOLLOWING QUESTIONS in detail:
 ── ■ │ 1 - WHAT DOES THE "BASIC" FEATURE SET DO? │ ■ ──────────────────────────────────────────────
 
 The "Basic" feature set LETS YOU CHANGE (per Heat level)
- • at which distance and how quickly you can get busted,
+ • at what distance and how quickly you can get busted,
  • how long it takes to fill the "EVADE" bar and enter "COOLDOWN" mode,
  • at which time interval you gain passive bounty,
  • the maximum combo-bounty multiplier for destroying cops quickly,
@@ -267,7 +267,7 @@ AFTER INSTALLING Bartender, you can customise its features through its configura
 You can find these configuration files in the game's new "scripts\BartenderSettings" folder.
 
 To UNINSTALL Bartender, remove its files from your game's "scripts" folder. There is no need to
-remove the optional missing textures, as the game doesn't ever use them without Bartender.
+remove the optional missing textures, as the game will not use them without Bartender.
 
 To UPDATE Bartender, uninstall it and repeat the installation process above.
 Whenever you update, make sure to replace ALL old configuration files!
