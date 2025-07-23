@@ -59,13 +59,8 @@ namespace RandomNumbers
 		{
 			std::random_device rng;
 
-			this->state =
-			{
-				this->Join(rng(), rng()),
-				this->Join(rng(), rng()),
-				this->Join(rng(), rng()),
-				this->Join(rng(), rng())
-			};
+			for (uint64_t& value : this->state)
+				value = this->Join(rng(), rng());
 		}
 
 
