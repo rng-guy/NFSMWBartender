@@ -19,8 +19,8 @@ namespace RandomNumbers
 
 		static uint64_t Join
 		(
-			uint32_t upper,
-			uint32_t lower
+			const uint32_t upper,
+			const uint32_t lower
 		) {
 			return ((uint64_t)upper << 32) bitor lower;
 		}
