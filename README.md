@@ -25,7 +25,7 @@ The sections below **address the following questions** in detail:
 # 1 - What does the "Basic" feature set do?
 
 The "Basic" feature set **lets you change** (per Heat level)
-* how quickly and at what (maximum) distance from cops the red "BUSTED" bar fills,
+* how quickly and at what distances from cops the red "BUSTED" bar fills,
 * how quickly the green "EVADE" bar fills once all cops have lost sight of you,
 * at what time interval you gain passive bounty,
 * the maximum combo-bounty multiplier for destroying cops quickly,
@@ -107,11 +107,11 @@ Some **parameter groups** (indicated by `[GroupName]`) in Bartender's configurat
 
 &nbsp;
 
-Bartender can handle any **invalid values** you provide in its configuration files:
-* negative values that should be positive are set to 0,
-* values of incorrect type count as omitted (and are therefore set to their `default` values),
-* incorrectly ordered interval values (i.e. `max` < `min`) are both set to the lower value, and
-* comma-separated value pairs / tuples with at least one value of incorrect type count as omitted.
+Bartender can handle any **invalid values** you might provide in its configuration files:
+* negative values that should be positive are set to 0 during parsing instead,
+* values of incorrect type (e.g. a string instead of a decimal) count as omitted,
+* mismatched interval values (i.e. where `max` < `min`) are each set to the lower value, and
+* comma-separated value pairs / tuples with too many or too few (valid) values count as omitted.
 
 &nbsp;
 
@@ -122,6 +122,8 @@ Bartender can handle any **invalid values** you provide in its configuration fil
 Regarding the "Basic" feature set **in general**:
 
 * The configuration (.ini) files for this feature set are located in `BartenderSettings/Basic`.
+
+* The unedited configuration files for this feature set use the game's vanilla values.
 
 * You can disable any feature of this set by deleting the file containing its parameters. Bug fixes, however, don't have parameters and are tied to specific files implicitly instead.
 
@@ -186,6 +188,10 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 * You must install the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351 for game stability if you set any global cop-spawn limit above 8. Without LA, the game will start unloading models and assets because its default cop loader simply cannot handle managing more than 8 vehicles for very long. To fully unlock the global cop-spawn limit without taking spawning control away from Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file and disable *everything* in its `[Options]` parameter group. Even with these changes, LA itself might still crash sometimes.
 
 * You must assign the `CAR` class to the `pvehicle` VltEd entries of all vehicles you provide in any of the spawn tables. You can do this directly or through parent entries.
+
+* All `count` and `chance` values you provide in any of the spawn tables must each be > 0. Vehicles with `count` and / or `chance` values of 0 are invalid and count as omitted.
+
+* The `chance` values are weights (like in VltEd), not percentages. The actual spawn chance of a vehicle is its `chance` value divided by the sum of the `chance` values of all vehicles from the same spawn table. Whenever a vehicle reaches its `count` value (i.e. spawn cap), Bartender treats its `chance` value as 0 until there is room for further spawns of that vehicle again.
 
 * Bartender uses the respective "Chasers" spawn table (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
 

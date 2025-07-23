@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.10.02) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.10.03) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -23,7 +23,7 @@ The sections below ADDRESS THE FOLLOWING QUESTIONS in detail:
 ── ■ │ 1 - WHAT DOES THE "BASIC" FEATURE SET DO? │ ■ ──────────────────────────────────────────────
 
 The "Basic" feature set LETS YOU CHANGE (per Heat level)
- • how quickly and at what (maximum) distance from cops the red "BUSTED" bar fills,
+ • how quickly and at what distances from cops the red "BUSTED" bar fills,
  • how quickly the green "EVADE" bar fills once all cops have lost sight of you,
  • at what time interval you gain passive bounty,
  • the maximum combo-bounty multiplier for destroying cops quickly,
@@ -97,11 +97,11 @@ whether the group allows this. Bartender parses groups that allow "default" valu
  2) • All free-roam Heat levels (format: "heatXY") you omitted are set to the "default" value.
  3) • All race Heat levels (format: "raceXY") you omitted are set to their free-roam values.
 
-Bartender can handle any INVALID VALUES you provide in its configuration files:
- • negative values that should be positive are set to 0,
- • values of incorrect type count as omitted (and are therefore set to their "default" values),
- • incorrectly ordered interval values (i.e. "max" < "min") are both set to the lower value, and
- • comma-separated value pairs / tuples with at least one value of incorrect type count as omitted.
+Bartender can handle any INVALID VALUES you might provide in its configuration files:
+ • negative values that should be positive are set to 0 during parsing instead,
+ • values of incorrect type (e.g. a string instead of a decimal) count as omitted,
+ • mismatched interval values (i.e. where "max" < "min") are each set to the lower value, and
+ • comma-separated value pairs / tuples with too many or too few (valid) values count as omitted.
 
 
 
@@ -111,6 +111,8 @@ Bartender can handle any INVALID VALUES you provide in its configuration files:
 Regarding the "BASIC" feature set IN GENERAL:
 
  • The configuration (.ini) files for this feature set are located in "BartenderSettings/Basic".
+
+ • The unedited configuration files for this feature set use the game's vanilla values.
 
  • You can disable any feature of this set by deleting the file containing its parameters.
    Bug fixes, however, don't have parameters and are tied to specific files implicitly instead.
@@ -201,6 +203,14 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • You must assign the "CAR" class to the "pvehicle" VltEd entries of all vehicles you provide
    in any of the spawn tables. You can do this directly or through parent entries.
+
+ • All "count" and "chance" values you provide in any of the spawn tables must each be > 0.
+   Vehicles with "count" and / or "chance" values of 0 are invalid and count as omitted.
+
+ • The "chance" values are weights (like in VltEd), not percentages. The actual spawn chance of
+   a vehicle is its "chance" value divided by the sum of the "chance" values of all vehicles from
+   the same spawn table. Whenever a vehicle reaches its "count" value (i.e. spawn cap), Bartender
+   treats its "chance" value as 0 until there is room for further spawns of that vehicle again.
 
  • Bartender uses the respective "Chasers" spawn table (which must contain at least one vehicle) 
    in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
@@ -363,3 +373,4 @@ v1.00.00: Initial release
    10.00: Assigned correct spawn table to first cop spawn in Career milestone / bounty pursuits
       01: Improved readability of README by overhauling language and phrasing throughout
       02: Expanded all comments and also rearranged busting parameters in configuration files
+      03: Further expanded file parsing and usage notes subsections in README
