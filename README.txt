@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.10.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.10.02) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -23,15 +23,15 @@ The sections below ADDRESS THE FOLLOWING QUESTIONS in detail:
 ── ■ │ 1 - WHAT DOES THE "BASIC" FEATURE SET DO? │ ■ ──────────────────────────────────────────────
 
 The "Basic" feature set LETS YOU CHANGE (per Heat level)
- • at what distance and how quickly you can get busted,
- • how long it takes to fill the "EVADE" bar and enter "COOLDOWN" mode,
- • at which time interval you gain passive bounty,
+ • how quickly and at what (maximum) distance from cops the red "BUSTED" bar fills,
+ • how quickly the green "EVADE" bar fills once all cops have lost sight of you,
+ • at what time interval you gain passive bounty,
  • the maximum combo-bounty multiplier for destroying cops quickly,
  • the internal cooldown for regular roadblock spawns,
- • the internal cooldown for Heavy and LeaderStrategy spawns,
- • which vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
- • which vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
- • which vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
+ • the internal cooldown for Heavy / LeaderStrategy spawns,
+ • what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
+ • what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
+ • what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
 The "Basic" feature set FIXES FOUR BUGS:
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
@@ -42,7 +42,7 @@ The "Basic" feature set FIXES FOUR BUGS:
 You can also ASSIGN NEW (BINARY) STRINGS for the game to display when cop vehicles are destroyed,
 similar to the "NFSMW Unlimiter" mod by nlgxzef. Bartender's version of this feature is easier to
 configure and will never cause "FENG: Default string error" pop-ups, as it checks every string you
-provide against the game's (potentially modified) resource files whenever you launch it.
+provide against the game's (potentially modified) language files whenever you launch it.
 
 
 
@@ -55,11 +55,11 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
  • the global cop-spawn limit for how many cops in total may chase you at any given time,
  • how quickly (if at all) cops flee the pursuit if they don't belong,
- • which vehicles (any amount, with counts and chances) may spawn to chase and search for you,
- • which vehicles (same liberties as above) may spawn in regular roadblocks,
- • which vehicles (ditto) may spawn as pre-generated cops in scripted events,
- • which vehicles (without counts) may spawn as free patrols when there is no active pursuit,
- • which vehicle spawns in place of the regular helicopter, and
+ • what vehicles (any amount, with counts and chances) may spawn to chase and search for you,
+ • what vehicles (same liberties as above) may spawn in regular roadblocks,
+ • what vehicles (ditto) may spawn as pre-generated cops in scripted events,
+ • what vehicles (without counts) may spawn as free patrols when there is no active pursuit,
+ • what vehicle spawns in place of the regular helicopter, and
  • when exactly (if at all) the helicopter can (de / re)spawn.
 
 The "Advanced" feature set ALSO FIXES the engagement count displayed above the pursuit board:
@@ -362,3 +362,4 @@ v1.00.00: Initial release
 
    10.00: Assigned correct spawn table to first cop spawn in Career milestone / bounty pursuits
       01: Improved readability of README by overhauling language and phrasing throughout
+      02: Expanded all comments and also rearranged busting parameters in configuration files

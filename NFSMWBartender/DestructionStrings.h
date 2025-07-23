@@ -20,9 +20,8 @@ namespace DestructionStrings
 
 	std::unordered_map<hash, key> stringHashToKey;
 
-	const char* const defaultVehicle = "default";
-	hash              defaultHash    = 0x0;
-	key               defaultKey     = 0x0;
+	hash defaultHash = 0x0;
+	key  defaultKey  = 0x0;
 
 
 
@@ -33,7 +32,7 @@ namespace DestructionStrings
 	key __fastcall GetBinaryKey(const hash stringHash)
 	{
 		const auto foundHash = stringHashToKey.find(stringHash);
-		return (foundHash == stringHashToKey.end()) ? defaultKey : foundHash->second;
+		return (foundHash != stringHashToKey.end()) ? foundHash->second : defaultKey;
 	}
 
 
@@ -54,7 +53,7 @@ namespace DestructionStrings
 			mov ecx, [esp + 0x54]
 			call GetBinaryKey // ecx: stringHash
 			test eax, eax
-			je skip           // hash is unknown
+			je skip           // hash unknown and no valid default
 
 			push eax
 
@@ -85,16 +84,18 @@ namespace DestructionStrings
 
 		if (not (featureEnabled = (numCopVehicles > 0))) return false;
 
-		defaultHash = GetStringHash(defaultVehicle);
+		defaultHash = GetStringHash("default");
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
+		{
 			stringHashToKey.insert
 			(
-				{ 
-					GetStringHash(copVehicles[vehicleID].c_str()), 
-					GetBinaryKey(binaryLabels[vehicleID].c_str()) 
+				{
+					GetStringHash(copVehicles[vehicleID].c_str()),
+					GetBinaryKey(binaryLabels[vehicleID].c_str())
 				}
 			);
+		}
 	
 		MemoryEditor::DigCodeCave(&CopDestruction, copDestructionEntrance, copDestructionExit);
 

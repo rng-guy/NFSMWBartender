@@ -25,15 +25,15 @@ The sections below **address the following questions** in detail:
 # 1 - What does the "Basic" feature set do?
 
 The "Basic" feature set **lets you change** (per Heat level)
-* at what distance and how quickly you can get busted,
-* how long it takes to fill the "EVADE" bar and enter "COOLDOWN" mode,
-* at which time interval you gain passive bounty,
+* how quickly and at what (maximum) distance from cops the red "BUSTED" bar fills,
+* how quickly the green "EVADE" bar fills once all cops have lost sight of you,
+* at what time interval you gain passive bounty,
 * the maximum combo-bounty multiplier for destroying cops quickly,
 * the internal cooldown for regular roadblock spawns,
-* the internal cooldown for Heavy and LeaderStrategy spawns,
-* which vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
-* which vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
-* which vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
+* the internal cooldown for Heavy / LeaderStrategy spawns,
+* what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
+* what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
+* what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
 &nbsp;
 
@@ -45,7 +45,7 @@ The "Basic" feature set **fixes four bugs**:
 
 &nbsp;
 
-You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause `FENG: Default string error` pop-ups, as it checks every string you provide against the game's (potentially modified) resource files whenever you launch it.
+You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause `FENG: Default string error` pop-ups, as it checks every string you provide against the game's (potentially modified) language files whenever you launch it.
 
 &nbsp;
 
@@ -61,11 +61,11 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
 * the global cop-spawn limit for how many cops in total may chase you at any given time,
 * how quickly (if at all) cops flee the pursuit if they don't belong,
-* which vehicles (any amount, with counts and chances) may spawn to chase and search for you,
-* which vehicles (same liberties as above) may spawn in regular roadblocks,
-* which vehicles (ditto) may spawn as pre-generated cops in scripted events,
-* which vehicles (without counts) may spawn as free patrols when there is no active pursuit,
-* which vehicle spawns in place of the regular helicopter, and
+* what vehicles (any amount, with counts and chances) may spawn to chase and search for you,
+* what vehicles (same liberties as above) may spawn in regular roadblocks,
+* what vehicles (ditto) may spawn as pre-generated cops in scripted events,
+* what vehicles (without counts) may spawn as free patrols when there is no active pursuit,
+* what vehicle spawns in place of the regular helicopter, and
 * when exactly (if at all) the helicopter can (de / re)spawn.
 
 &nbsp;

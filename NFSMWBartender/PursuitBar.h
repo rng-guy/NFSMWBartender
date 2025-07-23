@@ -100,14 +100,14 @@ namespace PursuitBar
 		(
 			parser,
 			"Busting:General",
-			roamMaxBustDistances,
 			roamBustTimers,
-			raceMaxBustDistances,
+			roamMaxBustDistances,
 			raceBustTimers,
-			maxBustDistance,
+			raceMaxBustDistances,
 			bustTimer,
-			0.f,
-			.001f
+			maxBustDistance,
+			.001f,
+			0.f
 		);
 
 		Globals::ParseHeatParameter<float>
