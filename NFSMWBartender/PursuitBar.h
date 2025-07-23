@@ -142,14 +142,14 @@ namespace PursuitBar
 
 		if (isRacing)
 		{ 
-			maxBustDistance = raceMaxBustDistances[heatLevel - 1];
 			bustTimer       = raceBustTimers[heatLevel - 1];
+			maxBustDistance = raceMaxBustDistances[heatLevel - 1];
 			evadeTimer      = raceEvadeTimers[heatLevel - 1];
 		}
 		else
 		{
-			maxBustDistance = roamMaxBustDistances[heatLevel - 1];
 			bustTimer       = roamBustTimers[heatLevel - 1];
+			maxBustDistance = roamMaxBustDistances[heatLevel - 1];
 			evadeTimer      = roamEvadeTimers[heatLevel - 1];
 		}
 
@@ -157,8 +157,8 @@ namespace PursuitBar
 		{
 			Globals::LogIndent("[BAR] PursuitBar");
 
-			Globals::LogLongIndent("maxBustDistance        :", maxBustDistance);
 			Globals::LogLongIndent("bustTimer              :", bustTimer);
+			Globals::LogLongIndent("maxBustDistance        :", maxBustDistance);
 			Globals::LogLongIndent("evadeTimer             :", evadeTimer);
 		}
     }

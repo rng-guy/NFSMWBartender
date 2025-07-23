@@ -37,7 +37,7 @@ namespace StateObserver
 		if ((currentHeatLevel >= 1) and (currentHeatLevel <= Globals::maxHeatLevel))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log("-------- [STA] Heat level now", (int)currentHeatLevel, (playerIsRacing) ? "(racing)" : "(free-roam)");
+				Globals::Log("-------- [STA] Heat level now", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
 
 			GroundSupport::SetToHeat(currentHeatLevel, playerIsRacing);
 			Miscellaneous::SetToHeat(currentHeatLevel, playerIsRacing);
