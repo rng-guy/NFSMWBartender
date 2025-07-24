@@ -114,6 +114,8 @@ Regarding the "BASIC" feature set IN GENERAL:
 
  • The unedited configuration files for this feature set use the game's vanilla values.
 
+ • You can disable this entire feature set by deleting all of its configuration files.
+
  • You can disable any feature of this set by deleting the file containing its parameters.
    Bug fixes, however, don't have parameters and are tied to specific files implicitly instead.
 
@@ -143,8 +145,8 @@ Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
  • You should assign low "MAXIMUM_AI_SPEED" values (~50) to the "aivehicle" VltEd entries of all
    vehicles you provide as replacements for the ramming SUVs in HeavyStrategy 3 spawns. If you
-   don't limit their speeds, they might cause stability issues by joining the pursuit as 
-   regular cops regardless of the global cop-spawn limit after their ramming attempt(s).
+   don't limit their speeds, they might cause stability issues by joining the pursuit as regular
+   cops (regardless of the global cop-spawn limit) after their ramming attempt(s).
 
  • You should not use the vehicles you provide as replacements for Cross in LeaderStrategy spawns
    anywhere else in the game, as they will block LeaderStrategy spawns whenever they are present.
@@ -165,6 +167,8 @@ Regarding the "Advanced" feature set IN GENERAL:
 
  • The unedited configuration files for this feature set use the game's vanilla values.
 
+ • You can disable this entire feature set by deleting all of its configuration files.
+
  • You can disable any feature of this set by deleting the file containing its parameters. This
    does not apply to the engagement-count fix, which is tied to this entire feature set instead.
 
@@ -173,8 +177,8 @@ Regarding the "Advanced" feature set IN GENERAL:
 
  • You should ensure that every HeavyStrategy you enable in a given Heat level's "pursuitsupport"
    VltEd entry is only listed there once (e.g. there is not a second HeavyStrategy 3), and that
-   there is also no more than one LeaderStrategy listed there. If you have duplicates there,
-   they can cause the game (and Bartender) to misread their "Duration" VltEd parameters.
+   there is also no more than one LeaderStrategy listed. Otherwise, such duplicates can cause
+   the game (and Bartender) to misread their "Duration" VltEd parameters.
 
  • If this feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
    because this feature set fulfils their intended purposes with extended customisation:
@@ -214,7 +218,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    the same spawn table. Whenever a vehicle reaches its "count" value (i.e. spawn cap), Bartender
    treats its "chance" value as 0 until there is room for further spawns of that vehicle again.
 
- • Bartender uses the respective "Chasers" spawn table (which must contain at least one vehicle) 
+ • Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) 
    in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
 
  • Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
