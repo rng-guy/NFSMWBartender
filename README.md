@@ -180,8 +180,8 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 * You must assign the `CHOPPER` class to the `pvehicle` VltEd entries of all vehicles you provide as replacements for the regular helicopter. You can do this directly or through parent entries.
 
 &nbsp;
-<details>
-<summary>Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):</summary>
+
+Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning (but not the other way around). This is vanilla behaviour: These spawns also count toward the total number of cops loaded by the game, and the game then compares this number against the global cop-spawn limit to make spawn decisions for "Chasers". Cops spawned in NPC pursuits can also affect how many "Chasers" the game may spawn in yours, as the total number of cops loaded by the game includes all non-roadblock cars of every active pursuit at once.
 
@@ -210,7 +210,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 * You should not use fast Heat transitions (`0x80deb840` VltEd parameter(s) set to < 5 seconds), else you might see a mix of cops from more than one "Events" spawn table appear in events with scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
 
 * Bartender uses different spawn tables for each of the two patrol-spawn types in the game: "Patrols" tables replace the free patrols that spawn when there is no active pursuit, and "Chasers" tables replace the searching patrols that spawn in pursuits when you are in "COOLDOWN" mode. You can control the number of patrol spawns through the `NumPatrolCars` VltEd parameter, but there are two important quirks: Free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count.
-</details>
+
 &nbsp;
 
 &nbsp;
