@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.10.03) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.10.04) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -162,6 +162,8 @@ Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 Regarding the "Advanced" feature set IN GENERAL:
 
  • The configuration (.ini) files for this feature set are located in "BartenderSettings/Advanced".
+
+ • The unedited configuration files for this feature set use the game's vanilla values.
 
  • You can disable any feature of this set by deleting the file containing its parameters. This
    does not apply to the engagement-count fix, which is tied to this entire feature set instead.
@@ -374,3 +376,4 @@ v1.00.00: Initial release
       01: Improved readability of README by overhauling language and phrasing throughout
       02: Expanded all comments and also rearranged busting parameters in configuration files
       03: Further expanded file parsing and usage notes subsections in README
+      04: Edited configuration files of "Advanced" feature set to use vanilla values by default

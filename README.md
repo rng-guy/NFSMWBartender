@@ -165,6 +165,8 @@ Regarding the "Advanced" feature set **in general**:
 
 * The configuration (.ini) files for this feature set are located in `BartenderSettings/Advanced`.
 
+* The unedited configuration files for this feature set use the game's vanilla values.
+
 * You can disable any feature of this set by deleting the file containing its parameters. This does not apply to the engagement-count fix, which is tied to this entire feature set instead.
 
 * You must provide at least one vehicle in the "Chasers" spawn table of each free-roam Heat level (`BartenderSettings\Advanced\Cars.ini`), else Bartender disables this entire feature set.
