@@ -376,4 +376,4 @@ v1.00.00: Initial release
       01: Improved readability of README by overhauling language and phrasing throughout
       02: Expanded all comments and also rearranged busting parameters in configuration files
       03: Further expanded file parsing and usage notes subsections in README
-      04: Edited configuration files of "Advanced" feature set to use vanilla values by default
+      04: Edited configuration files of "Advanced" feature set to use the game's vanilla values
