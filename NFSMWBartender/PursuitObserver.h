@@ -76,7 +76,7 @@ namespace PursuitObserver
 			case 0x426BC6: // helicopter
 				return CopLabel::HELICOPTER;
 
-			case 0x43EAF5: // free-roam patrol
+			case 0x43EAF5: // non-pursuit patrol
 				[[fallthrough]];
 
 			case 0x43EE97: // first patrol in race

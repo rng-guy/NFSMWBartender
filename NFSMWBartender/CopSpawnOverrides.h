@@ -712,6 +712,8 @@ namespace CopSpawnOverrides
 
 		if (isRacing)
 		{
+			skipEventSpawns = false;
+
 			minActiveCount = raceMinActiveCounts[heatLevel - 1];
 			maxActiveCount = raceMaxActiveCounts[heatLevel - 1];
 		}

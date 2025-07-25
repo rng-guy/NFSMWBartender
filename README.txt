@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.10.04) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.11.00) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -234,14 +234,13 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    is processing a roadblock request, causing it to place the wrong car in the requested roadblock.
    Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
- • The "Events" spawn tables don't apply to the scripted patrols that spawn in any of the prologue
-   D-Day events; those spawns are special and a real hassle to deal with, even among event spawns.
+ • The "Events" spawn tables also apply to the scripted patrols in prologue (DDay) race events.
 
- • The "Events" spawn tables don't apply to the very first scripted, pre-generated cop that 
-   spawns in a given event. Instead, this first cop is always of the type listed in the event's 
-   "CopSpawnType" VltEd parameter. This is because the game requests this vehicle before it loads
-   any pursuit or Heat-level information, making it impossible for Bartender to know which spawn
-   table to use for this single vehicle.
+ • The "Events" spawn tables don't apply to the very first scripted, pre-generated cop that
+   spawns in a given free-roam event (e.g. a Challenge Series pursuit). Instead, this first cop
+   is always of the type defined by the event's "CopSpawnType" VltEd parameter. This is because
+   the game requests this vehicle before it loads any pursuit or Heat-level information, making
+   it impossible for Bartender to know which spawn table to use for this single vehicle.
 
  • Bartender temporarily ignores the "count" values in a "Roadblocks" / "Events" spawn table
    whenever a roadblock / event requests more vehicles in total than they would otherwise allow.
@@ -381,3 +380,5 @@ v1.00.00: Initial release
       02: Expanded all comments and also rearranged busting parameters in configuration files
       03: Further expanded file parsing and usage notes subsections in README
       04: Edited configuration files of "Advanced" feature set to use the game's vanilla values
+
+   11.00: Fixed "Events" spawn tables not applying to scripted patrol spawns in prologue races
