@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.11.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.11.01) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -382,3 +382,4 @@ v1.00.00: Initial release
       04: Edited configuration files of "Advanced" feature set to use the game's vanilla values
 
    11.00: Fixed "Events" spawn tables not applying to scripted patrol spawns in prologue races
+      01: Added missing reset hook for "Events" spawn tables between consecutive (prologue) races

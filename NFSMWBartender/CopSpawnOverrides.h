@@ -338,6 +338,20 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
 
+	void __fastcall NotifyEventManager(const address copVehicle)
+	{
+		eventManager.NotifyOfSpawn(copVehicle);
+	}
+
+
+
+	void ResetEventManager()
+	{
+		eventManager.ResetSpawnTable();
+	}
+
+
+
 	void __fastcall NotifyRoadblockManager(const address copVehicle)
 	{
 		roadblockManager.NotifyOfSpawn(copVehicle);
@@ -348,13 +362,6 @@ namespace CopSpawnOverrides
 	void ResetRoadblockManager()
 	{
 		roadblockManager.ResetSpawnTable();
-	}
-
-
-
-	void __fastcall NotifyEventManager(const address copVehicle)
-	{
-		eventManager.NotifyOfSpawn(copVehicle);
 	}
 
 
@@ -454,6 +461,27 @@ namespace CopSpawnOverrides
 
 			skip:
 			jmp dword ptr roadblockSpawnSkip
+		}
+	}
+
+
+
+	constexpr address eventSpawnResetEntrance = 0x58E7E0;
+	constexpr address eventSpawnResetExit     = 0x58E7E6;
+
+	__declspec(naked) void EventSpawnReset()
+	{
+		__asm
+		{
+			add esp, 0x4
+
+			push eax
+			call ResetEventManager
+			pop eax
+
+			mov [esp], eax
+
+			jmp dword ptr eventSpawnResetExit
 		}
 	}
 
@@ -688,6 +716,7 @@ namespace CopSpawnOverrides
 		MemoryEditor::Write<BYTE>(0xEB, 0x42B9AA, 0x44389E); // foreign / HeavyStrategy cops fleeing
 
 		MemoryEditor::DigCodeCave(&RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
+		MemoryEditor::DigCodeCave(&EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
 		MemoryEditor::DigCodeCave(&ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
 		MemoryEditor::DigCodeCave(&ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 
