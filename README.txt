@@ -200,8 +200,8 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    pursuits can also affect how many "Chasers" the game may spawn in yours, as the total number
    of cops loaded by the game includes all non-roadblock cars of every active pursuit at once.
    
- • You must install the "NFSMW LimitAdjuster" mod (LA) by Zolika1351 for game stability if you set
-   any global cop-spawn limit above 8. Without LA, the game will start unloading models and assets
+ • You must install the "NFSMW LimitAdjuster" mod (LA) by Zolika1351 for game stability if you
+   set any global cop-spawn limit > 8. Without LA, the game will start unloading models and assets
    because its default cop loader simply cannot handle managing more than 8 vehicles for very long. 
    To fully unlock the global cop-spawn limit without taking spawning control away from Bartender,
    open LA's "NFSMWLimitAdjuster.ini" configuration file and disable EVERYTHING in its "[Options]"
