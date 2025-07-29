@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.11.02) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.11.03) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -200,12 +200,11 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    pursuits can also affect how many "Chasers" the game may spawn in yours, as the total number
    of cops loaded by the game includes all non-roadblock cars of every active pursuit at once.
    
- • You must install the "NFSMW LimitAdjuster" mod (LA) by Zolika1351 for game stability if you
-   set any global cop-spawn limit > 8. Without LA, the game will start unloading models and assets
-   because its default cop loader simply cannot handle managing more than 8 vehicles for very long. 
-   To fully unlock the global cop-spawn limit without taking spawning control away from Bartender,
-   open LA's "NFSMWLimitAdjuster.ini" configuration file and disable EVERYTHING in its "[Options]"
-   parameter group. Even with these changes, LA itself might still crash sometimes.
+ • You must install and configure the "NFSMW LimitAdjuster" mod (LA) by Zolika1351 if you want
+   to use global cop-spawn limits > 8. This is necessary because the game's vanilla cop loader
+   cannot handle managing > 8 vehicles for very long. To configure LA to work with Bartender,
+   open LA's "NFSMWLimitAdjuster.ini" configuration file and disable EVERYTHING in its 
+   "[Options]" parameter group. Even with this, LA itself might still crash sometimes.
 
  • You must assign the "CAR" class to the "pvehicle" VltEd entries of all vehicles you provide
    in any of the spawn tables. You can do this directly or through parent entries.
@@ -384,3 +383,4 @@ v1.00.00: Initial release
    11.00: Fixed "Events" spawn tables not applying to scripted patrol spawns in prologue races
       01: Added missing reset hook for "Events" spawn tables between consecutive (prologue) races
       02: Made phrasing of comments in configuration files more internally consistent
+      03: Clarified comments about "NFSMW LimitAdjuster" in "Cars.ini" file and README
