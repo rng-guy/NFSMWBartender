@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.11.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.11.02) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -98,8 +98,8 @@ whether the group allows this. Bartender parses groups that allow "default" valu
  3) • All race Heat levels (format: "raceXY") you omitted are set to their free-roam values.
 
 Bartender can handle any INVALID VALUES you might provide in its configuration files:
- • negative values that should be positive are set to 0 during parsing instead,
  • values of incorrect type (e.g. a string instead of a decimal) count as omitted,
+ • negative values that should be positive are set to 0 instead of counting as omitted,
  • mismatched interval values (i.e. where "max" < "min") are each set to the lower value, and
  • comma-separated value pairs / tuples with too many or too few (valid) values count as omitted.
 
@@ -383,3 +383,4 @@ v1.00.00: Initial release
 
    11.00: Fixed "Events" spawn tables not applying to scripted patrol spawns in prologue races
       01: Added missing reset hook for "Events" spawn tables between consecutive (prologue) races
+      02: Made phrasing of comments in configuration files more internally consistent

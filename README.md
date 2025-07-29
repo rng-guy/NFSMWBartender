@@ -108,8 +108,8 @@ Some **parameter groups** (indicated by `[GroupName]`) in Bartender's configurat
 &nbsp;
 
 Bartender can handle any **invalid values** you might provide in its configuration files:
-* negative values that should be positive are set to 0 during parsing instead,
 * values of incorrect type (e.g. a string instead of a decimal) count as omitted,
+* negative values that should be positive are set to 0 instead of counting as omitted,
 * mismatched interval values (i.e. where `max` < `min`) are each set to the lower value, and
 * comma-separated value pairs / tuples with too many or too few (valid) values count as omitted.
 
