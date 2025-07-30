@@ -579,10 +579,40 @@ namespace CopSpawnOverrides
 
 
 
-	constexpr address firstCopTableEntrance = 0x4242F9;
-	constexpr address firstCopTableExit     = 0x424323;
+	constexpr address firstCopTableEntrance = 0x424205;
+	constexpr address firstCopTableExit     = 0x424213;
 
 	__declspec(naked) void FirstCopTable()
+	{
+		__asm
+		{
+			mov edx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
+
+			jmp dword ptr firstCopTableExit
+		}
+	}
+
+
+
+	constexpr address secondCopTableEntrance = 0x424298;
+	constexpr address secondCopTableExit     = 0x4242D5;
+
+	__declspec(naked) void SecondCopTable()
+	{
+		__asm
+		{
+			mov ebx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
+
+			jmp dword ptr secondCopTableExit
+		}
+	}
+
+
+
+	constexpr address thirdCopTableEntrance = 0x4242F9;
+	constexpr address thirdCopTableExit     = 0x424323;
+
+	__declspec(naked) void ThirdCopTable()
 	{
 		__asm
 		{
@@ -601,36 +631,6 @@ namespace CopSpawnOverrides
 
 			mov edx, 0x1 // CHANCE
 			mov dword ptr [ecx + 0x14], edx
-
-			jmp dword ptr firstCopTableExit
-		}
-	}
-
-
-
-	constexpr address secondCopTableEntrance = 0x424205;
-	constexpr address secondCopTableExit     = 0x424213;
-
-	__declspec(naked) void SecondCopTable()
-	{
-		__asm
-		{
-			mov edx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
-
-			jmp dword ptr secondCopTableExit
-		}
-	}
-
-
-
-	constexpr address thirdCopTableEntrance = 0x424298;
-	constexpr address thirdCopTableExit     = 0x4242D5;
-
-	__declspec(naked) void ThirdCopTable()
-	{
-		__asm
-		{
-			mov ebx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
 
 			jmp dword ptr thirdCopTableExit
 		}
