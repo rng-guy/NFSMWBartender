@@ -579,16 +579,60 @@ namespace CopSpawnOverrides
 
 
 
-	constexpr address copTableCheckEntrance = 0x42415F;
-	constexpr address copTableCheckExit     = 0x42436F;
+	constexpr address firstCopTableEntrance = 0x4242F9;
+	constexpr address firstCopTableExit     = 0x424323;
 
-	__declspec(naked) void CopTableCheck()
+	__declspec(naked) void FirstCopTable()
 	{
 		__asm
 		{
-			mov eax, 0x1
-			
-			jmp dword ptr copTableCheckExit
+			xor edx, edx
+
+			lea ecx, dword ptr [ecx + ecx * 0x2]
+			mov dword ptr [ebp + ecx * 0x8 + 0xC], edx // DWORD 4
+
+			lea ecx, dword ptr [ebp + ecx * 0x8 + 0x0]
+			mov dword ptr [ecx], edx       // DWORD 1
+			mov dword ptr [ecx + 0x4], edx // DWORD 2
+			mov dword ptr [ecx + 0x8], edx // DWORD 3
+
+			mov edx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
+			mov dword ptr [ecx + 0x10], edx
+
+			mov edx, 0x1 // CHANCE
+			mov dword ptr [ecx + 0x14], edx
+
+			jmp dword ptr firstCopTableExit
+		}
+	}
+
+
+
+	constexpr address secondCopTableEntrance = 0x424205;
+	constexpr address secondCopTableExit     = 0x424213;
+
+	__declspec(naked) void SecondCopTable()
+	{
+		__asm
+		{
+			mov edx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
+
+			jmp dword ptr secondCopTableExit
+		}
+	}
+
+
+
+	constexpr address thirdCopTableEntrance = 0x424298;
+	constexpr address thirdCopTableExit     = 0x4242D5;
+
+	__declspec(naked) void ThirdCopTable()
+	{
+		__asm
+		{
+			mov ebx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
+
+			jmp dword ptr thirdCopTableExit
 		}
 	}
 
@@ -630,8 +674,10 @@ namespace CopSpawnOverrides
 		MemoryEditor::DigCodeCave(&ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
 		MemoryEditor::DigCodeCave(&ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 
-		MemoryEditor::DigCodeCave(&CopRefill,     copRefillEntrance,     copRefillExit);
-		MemoryEditor::DigCodeCave(&CopTableCheck, copTableCheckEntrance, copTableCheckExit);
+		MemoryEditor::DigCodeCave(&CopRefill,      copRefillEntrance,      copRefillExit);
+		MemoryEditor::DigCodeCave(&FirstCopTable,  firstCopTableEntrance,  firstCopTableExit);
+		MemoryEditor::DigCodeCave(&SecondCopTable, secondCopTableEntrance, secondCopTableExit);
+		MemoryEditor::DigCodeCave(&ThirdCopTable,  thirdCopTableEntrance,  thirdCopTableExit);
 
 		return (featureEnabled = true);
 	}
