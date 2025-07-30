@@ -49,7 +49,7 @@ namespace Miscellaneous
 			call dword ptr floorFunction // pops st(0)
 			mov ebx, eax
 
-			fld dword ptr[esi + 0xF4] // current
+			fld dword ptr [esi + 0xF4] // current
 			fdiv dword ptr bountyInterval
 			call dword ptr floorFunction
 
@@ -57,9 +57,9 @@ namespace Miscellaneous
 			je conclusion // not yet at interval threshold
 
 			sub eax, ebx // accounts for short intervals
-			imul eax, [esi + 0x174]
+			imul eax, dword ptr [esi + 0x174]
 
-			mov edx, [ebp]
+			mov edx, dword ptr [ebp]
 			push eax
 			mov ecx, ebp
 			call dword ptr [edx + 0x3C]
@@ -78,21 +78,21 @@ namespace Miscellaneous
 	{
 		__asm
 		{
-			mov eax, copComboLimit
+			mov eax, dword ptr copComboLimit
 
-			cmp [esi + 0xF0], eax
+			cmp dword ptr [esi + 0xF0], eax
 			je conclusion // at current limit
 			jg reset      // above
 
-			mov eax, [esi + 0xF0]
+			mov eax, dword ptr [esi + 0xF0]
 			inc eax
 
 			reset:
-			mov [esi + 0xF0], eax
+			mov dword ptr [esi + 0xF0], eax
 
 			conclusion:
 			// Execute original code and resume
-			mov ecx, [esi + 0xF0]
+			mov ecx, dword ptr [esi + 0xF0]
 
 			jmp dword ptr copComboExit
 		}

@@ -228,10 +228,10 @@ namespace HelicopterOverrides
 	{
 		__asm
 		{
-			mov ecx, maxDespawnDelay
+			mov ecx, dword ptr maxDespawnDelay
 
 			// Execute original code and resume
-			mov [esi + 0x34], ecx
+			mov dword ptr [esi + 0x34], ecx
 
 			jmp dword ptr fuelTimeExit
 		}

@@ -107,7 +107,7 @@ namespace StateObserver
 			cmp esi, ebx
 			jne conclusion // not player vehicle
 
-			mov ebx, [esp + 0x20] // return address
+			mov ebx, dword ptr [esp + 0x20] // return address
 
 			cmp ebx, 0x443DEA // pursuit update
 			je update
@@ -124,18 +124,18 @@ namespace StateObserver
 			jmp conclusion // argument is not true Heat
 
 			update:
-			cmp eax, currentHeatLevel
+			cmp eax, dword ptr currentHeatLevel
 			je conclusion // Heat is unchanged
 
 			push ecx
-			mov currentHeatLevel, eax
+			mov dword ptr currentHeatLevel, eax
 			call OnHeatLevelUpdates
 			pop ecx
 
 			conclusion:
 			// Execute original code and resume
 			mov eax, 0x91E000
-			mov eax, [eax]
+			mov eax, dword ptr [eax]
 
 			jmp dword ptr heatLevelObserverExit
 		}
@@ -162,7 +162,7 @@ namespace StateObserver
 			conclusion:
 			// Execute original code and resume
 			add esp, 0x4
-			mov [esp], eax
+			mov dword ptr [esp], eax
 
 			jmp dword ptr gameStartObserverExit
 		}
@@ -252,7 +252,7 @@ namespace StateObserver
 	{
 		__asm
 		{
-			mov ebx, playerPerpVehicle
+			mov ebx, dword ptr playerPerpVehicle
 
 			test ebx, ebx
 			je conclusion // player vehicle unknown
@@ -260,8 +260,8 @@ namespace StateObserver
 			cmp esi, ebx
 			je conclusion // is player vehicle
 
-			mov edx, [ebx + 0x1C] // player Heat
-			mov [esp + 0x24], edx
+			mov edx, dword ptr [ebx + 0x1C] // player Heat
+			mov dword ptr [esp + 0x24], edx
 
 			conclusion:
 			// Execute original code and resume
@@ -282,12 +282,12 @@ namespace StateObserver
 	{
 		__asm
 		{
-			mov ebx, [esp + 0x3C] // return address
+			mov ebx, dword ptr [esp + 0x3C] // return address
 			cmp ebx, 0x43EF99
 			jne conclusion        // not player vehicle
 
-			lea ebx, [esi + 0x758]
-			mov playerPerpVehicle, ebx
+			lea ebx, dword ptr [esi + 0x758]
+			mov dword ptr playerPerpVehicle, ebx
 
 			conclusion:
 			// Execute original code and resume

@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.11.03) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.11.04) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -384,3 +384,4 @@ v1.00.00: Initial release
       01: Added missing reset hook for "Events" spawn tables between consecutive (prologue) races
       02: Made phrasing of comments in configuration files more internally consistent
       03: Clarified comments about "NFSMW LimitAdjuster" in "Cars.ini" file and README
+      04: Improved performance slightly by removing redundant assembly instructions

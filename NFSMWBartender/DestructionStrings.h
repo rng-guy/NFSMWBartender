@@ -50,7 +50,7 @@ namespace DestructionStrings
 	{
 		__asm
 		{
-			mov ecx, [esp + 0x54]
+			mov ecx, dword ptr [esp + 0x54]
 			call GetBinaryKey // ecx: stringHash
 			test eax, eax
 			je skip           // hash unknown and no valid default

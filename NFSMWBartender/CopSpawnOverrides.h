@@ -443,12 +443,12 @@ namespace CopSpawnOverrides
 			call NotifyRoadblockManager // ecx: PVehicle
 			pop ecx
 
-			mov edx, [ecx]
+			mov edx, dword ptr [ecx]
 			call dword ptr [edx + 0x80]
 
-			lea eax, [esp + 0x1C]
+			lea eax, dword ptr [esp + 0x1C]
 			push eax
-			lea ecx, [esp + 0x48]
+			lea ecx, dword ptr [esp + 0x48]
 			call dword ptr addVehicleToRoadblock
 
 			conclusion:
@@ -479,7 +479,7 @@ namespace CopSpawnOverrides
 			call ResetEventManager
 			pop eax
 
-			mov [esp], eax
+			mov dword ptr [esp], eax
 
 			jmp dword ptr eventSpawnResetExit
 		}
@@ -495,24 +495,24 @@ namespace CopSpawnOverrides
 		__asm
 		{
 			// Execute original code first
-			mov ebp, [esp + 0x74]
+			mov ebp, dword ptr [esp + 0x74]
 			test ebp, ebp
 			je failure // spawn intended to fail
 
-			lea eax, [esp - 0x4] // new const char**
+			lea eax, dword ptr [esp - 0x4] // new const char**
 
-			push eax          // newCopName
-			push esi          // AIPursuit (only for "Chasers" calls)
-			push [esp + 0x78] // return address
+			push eax                    // newCopName
+			push esi                    // AIPursuit (only for "Chasers" calls)
+			push dword ptr [esp + 0x78] // return address
 			call IsByNameReplacementAvailable
-			add esp, 0x8      // pop return address and AIPursuit
+			add esp, 0x8                // pop return address and AIPursuit
 
 			test al, al
 			pop eax       // pop newCopName     
 			je conclusion // valid spawn, but do not intercept
 
 			mov ebp, eax
-			mov [esp + 0x74], ebp
+			mov dword ptr [esp + 0x74], ebp
 
 			conclusion:
 			test ebp, ebp
@@ -533,7 +533,7 @@ namespace CopSpawnOverrides
 		{
 			je failure // spawn intended to fail
 
-			mov ecx, [esp + 0x8]
+			mov ecx, dword ptr [esp + 0x8]
 			call GetByClassReplacement // ecx: return address
 			test eax, eax
 			je conclusion              // skip this spawn
@@ -567,7 +567,7 @@ namespace CopSpawnOverrides
 			je conclusion // zero is valid engagement count
 
 			inc edx
-			mov [esi + 0x184], edx
+			mov dword ptr [esi + 0x184], edx
 			inc eax
 
 			conclusion:
@@ -584,25 +584,22 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			mov edx, 0x0 // DWORD 4
-			lea ecx, [ecx + ecx * 0x2]
-			mov [ebp + ecx * 0x8 + 0xC], edx
+			xor edx, edx
 
-			mov edx, 0x0 // DWORD 1
-			lea ecx, [ebp + ecx * 0x8 + 0x0]
-			mov [ecx], edx
+			lea ecx, dword ptr [ecx + ecx * 0x2]
+			mov dword ptr [ebp + ecx * 0x8 + 0xC], edx // DWORD 4
 
-			mov edx, 0x0 // DWORD 2
-			mov [ecx + 0x4], edx
+			lea ecx, dword ptr [ebp + ecx * 0x8 + 0x0]
+			mov dword ptr [ecx], edx // DWORD 1
 
-			mov edx, 0x0 // DWORD 3
-			mov [ecx + 0x8], edx
+			mov dword ptr [ecx + 0x4], edx // DWORD 2
+			mov dword ptr [ecx + 0x8], edx // DWORD 3
 
-			mov edx, CopSpawnTables::currentMaxCopCapacity // COUNT
-			mov [ecx + 0x10], edx
+			mov edx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
+			mov dword ptr [ecx + 0x10], edx
 
 			mov edx, 0x1 // CHANCE
-			mov [ecx + 0x14], edx
+			mov dword ptr [ecx + 0x14], edx
 
 			jmp dword ptr firstCopTableExit
 		}
@@ -617,13 +614,9 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			mov ecx, 0x0 // DWORD 3
-
-			push eax
-			mov eax, copTableComparison
-			mov eax, [eax]
-			cmp ecx, eax
-			pop eax
+			mov eax, dword ptr copTableComparison
+			mov eax, dword ptr [eax]
+			test eax, eax // DWORD 3
 
 			jmp dword ptr secondCopTableExit
 		}
@@ -638,8 +631,8 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			mov edx, CopSpawnTables::currentMaxCopCapacity // COUNT
-			add [esp + 0x28], edx
+			mov edx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
+			add dword ptr [esp + 0x28], edx
 
 			jmp dword ptr thirdCopTableExit
 		}
@@ -654,13 +647,9 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			mov ecx, 0x0 // DWORD 3
-
-			push eax
-			mov eax, copTableComparison
-			mov eax, [eax]
-			cmp ecx, eax
-			pop eax
+			mov eax, dword ptr copTableComparison
+			mov eax, dword ptr [eax]
+			test eax, eax // DWORD 3
 
 			jmp dword ptr fourthCopTableExit
 		}
@@ -675,7 +664,7 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			mov ebx, CopSpawnTables::currentMaxCopCapacity // COUNT
+			mov ebx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
 			mov eax, ebx
 
 			jmp dword ptr fifthCopTableExit

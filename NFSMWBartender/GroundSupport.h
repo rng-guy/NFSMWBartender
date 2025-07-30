@@ -100,8 +100,8 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			mov eax, roadblockHeavyCooldown
-			mov [esi + 0xC8], eax
+			mov eax, dword ptr roadblockHeavyCooldown
+			mov dword ptr [esi + 0xC8], eax
 
 			jmp dword ptr roadblockHeavyExit
 		}
@@ -124,9 +124,9 @@ namespace GroundSupport
 			je skip // cooldown still ongoing
 
 			push ebp
-			lea ecx, [esi - 0x48]
-			mov eax, strategyCooldown
-			mov [esi + 0x210], eax
+			lea ecx, dword ptr [esi - 0x48]
+			mov eax, dword ptr strategyCooldown
+			mov dword ptr [esi + 0x210], eax
 
 			jmp dword ptr requestCooldownExit
 
@@ -162,7 +162,7 @@ namespace GroundSupport
 			// Execute original code and resume
 			push esi
 			mov esi, ecx
-			mov al, [esi + 0xE8]
+			mov al, byte ptr [esi + 0xE8]
 
 			jmp dword ptr requestDelayExit
 		}
@@ -177,20 +177,20 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			push leaderVehicle
-			mov [esi + 0x148], ebx
+			push dword ptr leaderVehicle
+			mov dword ptr [esi + 0x148], ebx
 			call dword ptr getStringHash
 
-			push heavyRammingVehicle
+			push dword ptr heavyRammingVehicle
 			mov ebx, eax
 			call dword ptr getStringHash
 
-			push lightRammingVehicle
+			push dword ptr lightRammingVehicle
 			mov ebp, eax
 			call dword ptr getStringHash
 
-			push henchmenVehicle
-			mov [esp + 0x30], eax
+			push dword ptr henchmenVehicle
+			mov dword ptr [esp + 0x30], eax
 			call dword ptr getStringHash
 
 			jmp dword ptr onAttachedExit
@@ -206,7 +206,7 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			push leaderVehicle
+			push dword ptr leaderVehicle
 			jmp dword ptr onDetachedExit
 		}
 	}
@@ -220,8 +220,8 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			mov ecx, leaderVehicle
-			mov [esp + 0x24], ecx
+			mov ecx, dword ptr leaderVehicle
+			mov dword ptr [esp + 0x24], ecx
 
 			jmp dword ptr leaderSubExit
 		}
@@ -236,7 +236,7 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			mov eax, henchmenVehicle
+			mov eax, dword ptr henchmenVehicle
 			jmp dword ptr henchmenSubExit
 		}
 	}
@@ -250,20 +250,20 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			mov eax, [esi]
+			mov eax, dword ptr [esi]
 			jl heavy // is "heavy" Rhino variant
 
 			cmp byte ptr [eax], 0x3
-			mov eax, lightRammingVehicle
+			mov eax, dword ptr lightRammingVehicle
 			je conclusion  // is ramming strategy (3)
-			mov eax, lightRoadblockVehicle
+			mov eax, dword ptr lightRoadblockVehicle
 			jmp conclusion // is roadblock strategy (4)
 
 			heavy:
 			cmp byte ptr [eax], 0x3
-			mov eax, heavyRammingVehicle
+			mov eax, dword ptr heavyRammingVehicle
 			je conclusion
-			mov eax, heavyRoadblockVehicle
+			mov eax, dword ptr heavyRoadblockVehicle
 
 			conclusion:
 			jmp dword ptr rhinoSelectorExit

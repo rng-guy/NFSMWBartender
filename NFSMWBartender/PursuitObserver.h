@@ -337,7 +337,7 @@ namespace PursuitObserver
 
 			conclusion:
 			// Execute original code and resume
-			mov ecx, [esp + 0x314]
+			mov ecx, dword ptr [esp + 0x314]
 
 			jmp dword ptr eventSpawnExit
 		}
@@ -375,12 +375,12 @@ namespace PursuitObserver
 			add eax, 0x2C
 			
 			push eax
-			lea ecx, [eax + 0x1C]
+			lea ecx, dword ptr [eax + 0x1C]
 			call CreateObserver // ecx: AIPursuit
 			pop eax
 
 			// Execute original code and resume
-			mov ecx, [esp + 0x8]
+			mov ecx, dword ptr [esp + 0x8]
 
 			jmp dword ptr pursuitConstructorExit
 		}
@@ -423,7 +423,7 @@ namespace PursuitObserver
 			pop ecx
 
 			// Execute original code and resume
-			mov eax, [ecx]
+			mov eax, dword ptr [ecx]
 			push 0x0
 			call dword ptr [eax + 0x34]
 
@@ -441,14 +441,14 @@ namespace PursuitObserver
 		__asm
 		{
 			push ecx
-			mov edx, [esp + 0x8]
-			push [esp + 0x4]
+			mov edx, dword ptr [esp + 0x8]
+			push dword ptr [esp + 0x4]
 			call NotifyObserverOfAddition // ecx: AIPursuit; edx: PVehicle; stack: addVehicleReturn
 			pop ecx
 
 			// Execute original code and resume
 			add ecx, -0x1C
-			mov eax, [ecx]
+			mov eax, dword ptr [ecx]
 
 			jmp dword ptr copAddedExit
 		}
@@ -464,13 +464,13 @@ namespace PursuitObserver
 		__asm
 		{
 			push ecx
-			mov edx, [esp + 0x8]
+			mov edx, dword ptr [esp + 0x8]
 			call NotifyObserverOfRemoval // ecx: AIPursuit; edx: PVehicle
 			pop ecx
 
 			// Execute original code and resume
 			add ecx, -0x1C
-			mov eax, [ecx]
+			mov eax, dword ptr [ecx]
 
 			jmp dword ptr copRemovedExit
 		}
@@ -490,7 +490,7 @@ namespace PursuitObserver
 			mov ecx, eax
 			pop eax
 
-			cmp ecx, CopSpawnOverrides::maxActiveCount
+			cmp ecx, dword ptr CopSpawnOverrides::maxActiveCount
 
 			jmp dword ptr mainSpawnLimitExit
 		}
@@ -506,7 +506,7 @@ namespace PursuitObserver
 		__asm
 		{
 			call PursuitObserver::GetNumCopsLoaded
-			cmp eax, CopSpawnOverrides::maxActiveCount
+			cmp eax, dword ptr CopSpawnOverrides::maxActiveCount
 
 			jmp dword ptr otherSpawnLimitExit
 		}
