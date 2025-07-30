@@ -111,7 +111,6 @@ namespace CopSpawnOverrides
 	constexpr address addVehicleToRoadblock   = 0x43C4E0;
 	constexpr address getPursuitVehicleByName = 0x41ECD0;
 	constexpr address stringToHashFunction    = 0x5CC240;
-	constexpr address copTableComparison      = 0x90D8C8;
 
 	GlobalSpawnManager eventManager(&(CopSpawnTables::eventSpawnTable));
 	GlobalSpawnManager roadblockManager(&(CopSpawnTables::roadblockSpawnTable));
@@ -394,31 +393,39 @@ namespace CopSpawnOverrides
 
 
 
-	bool __cdecl IsByNameReplacementAvailable
-	(
-		const address spawnReturn,
-		const address pursuit,
-		const char**  newCopName
-	) {
-		if (ContingentManager::IsHeatLevelKnown())
+	bool __fastcall IsByNameInterceptable(const address spawnReturn)
+	{
+		switch (spawnReturn)
 		{
-			switch (spawnReturn)
-			{
-			case 0x42E72E: // scripted event spawn
-				if (skipEventSpawns) break;
-				*newCopName = eventManager.GetRandomCopName();
-				return true;
+		case 0x42E72E: // scripted event spawn
+			return ((not skipEventSpawns) and ContingentManager::IsHeatLevelKnown());
 				
-			case 0x43EBD0: // pursuit spawn, Cooldown mode patrol
-				const ContingentManager* const manager = ContingentManager::GetInstance(pursuit);
-				*newCopName = (manager) ? manager->GetRandomCopName() : nullptr;
-				return manager;
-			}
+		case 0x43EBD0: // chaser / "Cooldown" patrol
+			return true;
 		}
 
-		*newCopName = nullptr;
-
 		return false;
+	}
+
+
+
+	const char* __fastcall GetByNameReplacement
+	(
+		const address spawnReturn,
+		const address pursuit
+	) {
+		switch (spawnReturn)
+		{
+		case 0x42E72E: // scripted event spawn
+			return eventManager.GetRandomCopName();
+
+		case 0x43EBD0: // chaser / "Cooldown" patrol
+			if (not ContingentManager::IsHeatLevelKnown()) break;
+			const ContingentManager* const manager = ContingentManager::GetInstance(pursuit);
+			if (manager) return manager->GetRandomCopName();
+		}
+
+		return nullptr;
 	}
 
 
@@ -499,20 +506,15 @@ namespace CopSpawnOverrides
 			test ebp, ebp
 			je failure // spawn intended to fail
 
-			lea eax, dword ptr [esp - 0x4] // new const char**
-
-			push eax                    // newCopName
-			push esi                    // AIPursuit (only for "Chasers" calls)
-			push dword ptr [esp + 0x78] // return address
-			call IsByNameReplacementAvailable
-			add esp, 0x8                // pop return address and AIPursuit
-
+			mov ecx, dword ptr [esp + 0x70]
+			call IsByNameInterceptable // ecx: return address
 			test al, al
-			pop eax       // pop newCopName     
-			je conclusion // valid spawn, but do not intercept
+			je conclusion              // do not intercept
 
+			mov ecx, dword ptr [esp + 0x70]
+			mov edx, esi
+			call GetByNameReplacement // ecx: return address; edx: AIPursuit
 			mov ebp, eax
-			mov dword ptr [esp + 0x74], ebp
 
 			conclusion:
 			test ebp, ebp
@@ -590,8 +592,7 @@ namespace CopSpawnOverrides
 			mov dword ptr [ebp + ecx * 0x8 + 0xC], edx // DWORD 4
 
 			lea ecx, dword ptr [ebp + ecx * 0x8 + 0x0]
-			mov dword ptr [ecx], edx // DWORD 1
-
+			mov dword ptr [ecx], edx       // DWORD 1
 			mov dword ptr [ecx + 0x4], edx // DWORD 2
 			mov dword ptr [ecx + 0x8], edx // DWORD 3
 
@@ -608,15 +609,13 @@ namespace CopSpawnOverrides
 
 
 	constexpr address secondCopTableEntrance = 0x424205;
-	constexpr address secondCopTableExit     = 0x42420E;
+	constexpr address secondCopTableExit     = 0x424213;
 
 	__declspec(naked) void SecondCopTable()
 	{
 		__asm
 		{
-			mov eax, dword ptr copTableComparison
-			mov eax, dword ptr [eax]
-			test eax, eax // DWORD 3
+			mov edx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
 
 			jmp dword ptr secondCopTableExit
 		}
@@ -624,50 +623,16 @@ namespace CopSpawnOverrides
 
 
 
-	constexpr address thirdCopTableEntrance = 0x424210;
-	constexpr address thirdCopTableExit     = 0x424217;
+	constexpr address thirdCopTableEntrance = 0x424298;
+	constexpr address thirdCopTableExit     = 0x4242D5;
 
 	__declspec(naked) void ThirdCopTable()
 	{
 		__asm
 		{
-			mov edx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
-			add dword ptr [esp + 0x28], edx
+			mov ebx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
 
 			jmp dword ptr thirdCopTableExit
-		}
-	}
-
-
-
-	constexpr address fourthCopTableEntrance = 0x424298;
-	constexpr address fourthCopTableExit     = 0x4242A1;
-
-	__declspec(naked) void FourthCopTable()
-	{
-		__asm
-		{
-			mov eax, dword ptr copTableComparison
-			mov eax, dword ptr [eax]
-			test eax, eax // DWORD 3
-
-			jmp dword ptr fourthCopTableExit
-		}
-	}
-
-
-
-	constexpr address fifthCopTableEntrance = 0x4242D2;
-	constexpr address fifthCopTableExit     = 0x4242D7;
-
-	__declspec(naked) void FifthCopTable()
-	{
-		__asm
-		{
-			mov ebx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
-			mov eax, ebx
-
-			jmp dword ptr fifthCopTableExit
 		}
 	}
 
@@ -709,12 +674,10 @@ namespace CopSpawnOverrides
 		MemoryEditor::DigCodeCave(&ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
 		MemoryEditor::DigCodeCave(&ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 
-		MemoryEditor::DigCodeCave(&CopRefill,       copRefillEntrance,       copRefillExit);
-		MemoryEditor::DigCodeCave(&FirstCopTable,   firstCopTableEntrance,   firstCopTableExit);
-		MemoryEditor::DigCodeCave(&SecondCopTable,  secondCopTableEntrance,  secondCopTableExit);
-		MemoryEditor::DigCodeCave(&ThirdCopTable,   thirdCopTableEntrance,   thirdCopTableExit);
-		MemoryEditor::DigCodeCave(&FourthCopTable,  fourthCopTableEntrance,  fourthCopTableExit);
-		MemoryEditor::DigCodeCave(&FifthCopTable,   fifthCopTableEntrance,   fifthCopTableExit);
+		MemoryEditor::DigCodeCave(&CopRefill,      copRefillEntrance,      copRefillExit);
+		MemoryEditor::DigCodeCave(&FirstCopTable,  firstCopTableEntrance,  firstCopTableExit);
+		MemoryEditor::DigCodeCave(&SecondCopTable, secondCopTableEntrance, secondCopTableExit);
+		MemoryEditor::DigCodeCave(&ThirdCopTable,  thirdCopTableEntrance,  thirdCopTableExit);
 
 		return (featureEnabled = true);
 	}
