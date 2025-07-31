@@ -18,9 +18,9 @@ namespace DestructionStrings
 
 	bool featureEnabled = false;
 
-	std::unordered_map<hash, key> stringHashToKey;
+	std::unordered_map<hash, key> copTypeToDestructionKey;
 
-	hash defaultHash = 0x0;
+	hash defaultType = 0x0;
 	key  defaultKey  = 0x0;
 
 
@@ -29,10 +29,10 @@ namespace DestructionStrings
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	key __fastcall GetBinaryKey(const hash stringHash)
+	key __fastcall GetDestructionKey(const hash copType)
 	{
-		const auto foundHash = stringHashToKey.find(stringHash);
-		return (foundHash != stringHashToKey.end()) ? foundHash->second : defaultKey;
+		const auto foundType = copTypeToDestructionKey.find(copType);
+		return (foundType != copTypeToDestructionKey.end()) ? foundType->second : defaultKey;
 	}
 
 
@@ -51,9 +51,9 @@ namespace DestructionStrings
 		__asm
 		{
 			mov ecx, dword ptr [esp + 0x54]
-			call GetBinaryKey // ecx: stringHash
+			call GetDestructionKey // ecx: copType
 			test eax, eax
-			je skip           // hash unknown and no valid default
+			je skip                // type unknown and no valid default key
 
 			push eax
 
@@ -72,10 +72,10 @@ namespace DestructionStrings
 
 	bool Initialise(ConfigParser::Parser& parser)
 	{
+		if (not parser.LoadFile(Globals::configPathBasic + "Labels.ini")) return false;
+
 		static hash (__cdecl* const GetStringHash)(const char*) = (hash (__cdecl*)(const char*))0x5CC240;
 		static key (__cdecl* const GetBinaryKey)(const char*)   = (key (__cdecl*)(const char*))0x460BF0;
-
-		if (not parser.LoadFile(Globals::configPathBasic + "Labels.ini")) return false;
 
 		std::vector<std::string> copVehicles;
 		std::vector<std::string> binaryLabels;
@@ -84,18 +84,10 @@ namespace DestructionStrings
 
 		if (not (featureEnabled = (numCopVehicles > 0))) return false;
 
-		defaultHash = GetStringHash("default");
+		defaultType = GetStringHash("default");
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
-		{
-			stringHashToKey.insert
-			(
-				{
-					GetStringHash(copVehicles[vehicleID].c_str()),
-					GetBinaryKey(binaryLabels[vehicleID].c_str())
-				}
-			);
-		}
+			copTypeToDestructionKey.insert({GetStringHash(copVehicles[vehicleID].c_str()), GetBinaryKey(binaryLabels[vehicleID].c_str())});
 	
 		MemoryEditor::DigCodeCave(&CopDestruction, copDestructionEntrance, copDestructionExit);
 
@@ -110,10 +102,10 @@ namespace DestructionStrings
 
 		// Can't be run on startup as the game would still be loading assets
 		static const char* (__fastcall* const GetString)(int, key) = (const char* (__fastcall*)(int, key))0x56BB80;
-		std::erase_if(stringHashToKey, [](const auto& pair) {return (not GetString(0, pair.second));});
+		std::erase_if(copTypeToDestructionKey, [](const auto& pair) {return (not GetString(0, pair.second));});
 
 		// Extract "default" key if provided (and valid)
-		const auto pair = stringHashToKey.extract(defaultHash);
+		const auto pair = copTypeToDestructionKey.extract(defaultType);
 		if (not pair.empty()) defaultKey = pair.mapped();
 	}
 }

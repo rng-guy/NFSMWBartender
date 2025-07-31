@@ -15,19 +15,19 @@ namespace MemoryEditor
 		const T          data,
 		const address ...locations
 	) {
-		const SIZE_T dataSize = sizeof(data);
+		constexpr size_t size = sizeof(T);
 
-		DWORD previousSetting = 0;
 		void* memory          = nullptr;
+		DWORD previousSetting = 0x0;
 
 		(
 			[&]
 			{
 				memory = (void*)locations;
 
-				VirtualProtect(memory, dataSize, PAGE_READWRITE, &previousSetting);
-				memcpy(memory, &data, dataSize);
-				VirtualProtect(memory, dataSize, previousSetting, &previousSetting);
+				VirtualProtect(memory, size, PAGE_READWRITE, &previousSetting);
+				memcpy(memory, &data, size);
+				VirtualProtect(memory, size, previousSetting, &previousSetting);
 			}
 		(), ...);
 	}
@@ -36,9 +36,9 @@ namespace MemoryEditor
 
 	void WriteToByteRange
 	(
-		const BYTE     value,
-		const address  start,
-		const SIZE_T   byteRange
+		const BYTE    value,
+		const address start,
+		const SIZE_T  byteRange
 	) {
 		void* memory = (void*)start;
 
@@ -53,9 +53,9 @@ namespace MemoryEditor
 
 	void WriteToAddressRange
 	(
-		const BYTE     value,
-		const address  start,
-		const address  end
+		const BYTE    value,
+		const address start,
+		const address end
 	) {
 		WriteToByteRange(value, start, end - start);
 	}
@@ -68,12 +68,8 @@ namespace MemoryEditor
 		const address entrance,
 		const address exit
 	) {
-		static constexpr BYTE opcodeNOP = 0x90;
-		static constexpr BYTE opcodeJMP = 0xE9; // JMP rel16
-		static constexpr int  offsetJMP = 5;    // JMP instruction length
-
-		WriteToAddressRange(opcodeNOP, entrance, exit);
-		Write<BYTE>(opcodeJMP, entrance);
-		Write<address>((address)code - (entrance + offsetJMP), entrance + sizeof(opcodeJMP));
+		WriteToAddressRange(0x90, entrance, exit);                    // NOP
+		Write<BYTE>(0xE9, entrance);                                  // JMP rel16
+		Write<address>((address)code - (entrance + 5), entrance + 1); // accounting for instruction length
 	}
 }
