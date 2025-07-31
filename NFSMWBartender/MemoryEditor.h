@@ -12,7 +12,7 @@ namespace MemoryEditor
 	template <typename T, typename ...address>
 	void Write
 	(
-		const T&         data,
+		const T          data,
 		const address ...locations
 	) {
 		const SIZE_T dataSize = sizeof(data);
