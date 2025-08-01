@@ -108,10 +108,6 @@ namespace CopSpawnOverrides
 	// Code caves
 	bool skipEventSpawns = true;
 
-	constexpr address addVehicleToRoadblock   = 0x43C4E0;
-	constexpr address getPursuitVehicleByName = 0x41ECD0;
-	constexpr address stringToHashFunction    = 0x5CC240;
-
 	GlobalSpawnManager eventManager(&(CopSpawnTables::eventSpawnTable));
 	GlobalSpawnManager roadblockManager(&(CopSpawnTables::roadblockSpawnTable));
 
@@ -131,8 +127,8 @@ namespace CopSpawnOverrides
 
 		const address pursuit;
 
-		int  numPatrolCarsToSpawn = 0;
-		int  numCopsInContingent  = 0;
+		int numPatrolCarsToSpawn = 0;
+		int numCopsInContingent  = 0;
 
 		int* const fullWaveCapacity  = (int*)(pursuit + 0x144);
 		int* const numCopsLostInWave = (int*)(pursuit + 0x14C);
@@ -440,6 +436,8 @@ namespace CopSpawnOverrides
 
 	__declspec(naked) void RoadblockSpawn()
 	{
+		static constexpr address addVehicleToRoadblock = 0x43C4E0;
+
 		__asm
 		{
 			je conclusion // spawn intended to fail
@@ -531,6 +529,8 @@ namespace CopSpawnOverrides
 
 	__declspec(naked) void ByClassInterceptor()
 	{
+		static constexpr address getPursuitVehicleByName = 0x41ECD0;
+
 		__asm
 		{
 			je failure // spawn intended to fail

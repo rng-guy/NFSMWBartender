@@ -61,13 +61,6 @@ namespace GroundSupport
 	std::array<std::string, Globals::maxHeatLevel> raceLeaderVehicles         = {};
 	std::array<std::string, Globals::maxHeatLevel> raceHenchmenVehicles       = {};
 
-	// Code caves
-	constexpr address getRandom                 = 0x6ED200;
-	constexpr address scaleRandom               = 0x402870;
-	constexpr address clearSupportRequest       = 0x42BCF0;
-	constexpr address getStringHash             = 0x5CC240;
-	constexpr float   strategyCooldownThreshold = 0.f;
-
 
 
 
@@ -79,6 +72,9 @@ namespace GroundSupport
 
 	__declspec(naked) void RoadblockCooldown()
 	{
+		static constexpr address getRandom   = 0x6ED200;
+		static constexpr address scaleRandom = 0x402870;
+
 		__asm
 		{
 			push roadblockCooldownRange
@@ -115,6 +111,8 @@ namespace GroundSupport
 
 	__declspec(naked) void RequestCooldown()
 	{
+		static constexpr float strategyCooldownThreshold = 0.f;
+
 		__asm
 		{
 			fld dword ptr [esi + 0x210]
@@ -142,6 +140,8 @@ namespace GroundSupport
 
 	__declspec(naked) void RequestDelay()
 	{
+		static constexpr address clearSupportRequest = 0x42BCF0;
+
 		__asm
 		{
 			cmp byte ptr [ecx + 0x20C], 0x2
@@ -175,6 +175,8 @@ namespace GroundSupport
 
 	__declspec(naked) void OnAttached()
 	{
+		static constexpr address getStringHash = 0x5CC240;
+
 		__asm
 		{
 			push dword ptr leaderVehicle
@@ -207,6 +209,7 @@ namespace GroundSupport
 		__asm
 		{
 			push dword ptr leaderVehicle
+
 			jmp dword ptr onDetachedExit
 		}
 	}
@@ -237,6 +240,7 @@ namespace GroundSupport
 		__asm
 		{
 			mov eax, dword ptr henchmenVehicle
+
 			jmp dword ptr henchmenSubExit
 		}
 	}

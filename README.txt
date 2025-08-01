@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.11.04) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.12.00) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -33,7 +33,8 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
  • what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
-The "Basic" feature set FIXES FOUR BUGS:
+The "Basic" feature set FIXES FIVE BUGS:
+ • helicopters no longer cast static shadows (like cars do) with incorrect placements,
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
  • Heat levels > 5 are now shown correctly in menus (requires Binary for missing textures),
  • you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
@@ -119,7 +120,7 @@ Regarding the "BASIC" feature set IN GENERAL:
  • You can disable any feature of this set by deleting the file containing its parameters.
    Bug fixes, however, don't have parameters and are tied to specific files implicitly instead.
 
- • To disable the two Heat-level fixes, delete all configuration files of this feature set.
+ • To disable the shadow and Heat-level fixes, delete all configuration files of this feature set.
 
  • The Heat-level reset fix is incompatible with the "HeatLevelOverride" feature of the 
    "NFSMW ExtraOptions" mod by ExOptsTeam. To disable this ExtraOptions feature, edit its
@@ -385,3 +386,5 @@ v1.00.00: Initial release
       02: Made phrasing of comments in configuration files more internally consistent
       03: Clarified comments about "NFSMW LimitAdjuster" in "Cars.ini" file and README
       04: Improved performance slightly by removing redundant assembly instructions
+
+   12.00: Added fix for vanilla bug of helicopters casting incorrect static shadows

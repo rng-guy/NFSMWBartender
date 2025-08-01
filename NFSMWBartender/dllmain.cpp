@@ -28,8 +28,12 @@ static void Initialise()
     basicSetEnabled |= Miscellaneous::Initialise(parser);
     basicSetEnabled |= PursuitBar::Initialise(parser);
 
-    if (basicSetEnabled) // Heat-level fixes (credit: ExOptsTeam)
+    if (basicSetEnabled) 
     {
+        // Helicopter shadow fix
+        MemoryEditor::Write<float>(0.f, 0x903660);
+
+        // Heat-level fixes (credit: ExOptsTeam)
         MemoryEditor::Write<float>       (Globals::maxHeat,    0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088);
         MemoryEditor::Write<const float*>(&(Globals::maxHeat), 0x435079, 0x7A5B03, 0x7A5B12);
     }

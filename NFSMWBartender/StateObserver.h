@@ -284,7 +284,7 @@ namespace StateObserver
 		{
 			mov ebx, dword ptr [esp + 0x3C] // return address
 			cmp ebx, 0x43EF99
-			jne conclusion        // not player vehicle
+			jne conclusion                  // not player vehicle
 
 			lea ebx, dword ptr [esi + 0x758]
 			mov dword ptr playerPerpVehicle, ebx

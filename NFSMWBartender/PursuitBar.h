@@ -31,11 +31,6 @@ namespace PursuitBar
 	std::array<float, Globals::maxHeatLevel> raceEvadeTimers      = {};
 	std::array<float, Globals::maxHeatLevel> raceBustTimers       = {};
 
-	// Code caves
-	constexpr float oneHalf                = .5f;
-	constexpr float evadeStateThreshold    = 0.f;
-	constexpr float obstructedBustDistance = 0.f;
-
 
 
 
@@ -47,6 +42,9 @@ namespace PursuitBar
 
 	__declspec(naked) void MaxBustDistance()
 	{
+		static constexpr float evadeStateThreshold    = 0.f;
+		static constexpr float obstructedBustDistance = 0.f;
+
 		__asm
 		{
 			fld dword ptr [esi + 0x168] // EVADE progress
@@ -76,6 +74,8 @@ namespace PursuitBar
 
 	__declspec(naked) void EvadeBar()
 	{
+		static constexpr float oneHalf = .5f;
+
 		__asm
 		{
 			fdiv dword ptr evadeTimer

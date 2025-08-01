@@ -37,7 +37,8 @@ The "Basic" feature set **lets you change** (per Heat level)
 
 &nbsp;
 
-The "Basic" feature set **fixes four bugs**:
+The "Basic" feature set **fixes five bugs**:
+* helicopters no longer cast static shadows (like cars do) with incorrect placements,
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures),
 * you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
@@ -129,7 +130,7 @@ Regarding the "Basic" feature set **in general**:
 
 * You can disable any feature of this set by deleting the file containing its parameters. Bug fixes, however, don't have parameters and are tied to specific files implicitly instead.
 
-* To disable the two Heat-level fixes, delete all configuration files of this feature set.
+* To disable the shadow and Heat-level fixes, delete all configuration files of this feature set.
 
 * The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions mod](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd entry determines the maximum Heat level (1-10) at Blacklist rival #XY.
 

@@ -28,9 +28,6 @@ namespace Miscellaneous
 	std::array<float, Globals::maxHeatLevel> raceBountyIntervals = {};
 	std::array<int,   Globals::maxHeatLevel> raceCopComboLimits = {};
 
-	// Code caves
-	constexpr address floorFunction = 0x7C4B80;
-
 
 
 
@@ -42,6 +39,8 @@ namespace Miscellaneous
 
 	__declspec(naked) void PassiveBounty()
 	{
+		static constexpr address floorFunction = 0x7C4B80;
+
 		__asm
 		{
 			fld dword ptr [esp + 0x30] // previous timestamp
