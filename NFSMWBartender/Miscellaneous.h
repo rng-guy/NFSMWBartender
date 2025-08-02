@@ -39,18 +39,18 @@ namespace Miscellaneous
 
 	__declspec(naked) void PassiveBounty()
 	{
-		static constexpr address floorFunction = 0x7C4B80;
+		static constexpr address floatFloor = 0x7C4B80;
 
 		__asm
 		{
 			fld dword ptr [esp + 0x30] // previous timestamp
 			fdiv dword ptr bountyInterval
-			call dword ptr floorFunction // pops st(0)
+			call dword ptr floatFloor  // pops st(0)
 			mov ebx, eax
 
 			fld dword ptr [esi + 0xF4] // current
 			fdiv dword ptr bountyInterval
-			call dword ptr floorFunction
+			call dword ptr floatFloor
 
 			cmp eax, ebx
 			je conclusion // not yet at interval threshold

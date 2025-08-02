@@ -432,10 +432,10 @@ namespace CopSpawnOverrides
 
 	constexpr address roadblockSpawnEntrance = 0x43E04F;
 	constexpr address roadblockSpawnExit     = 0x43E06C;
-	constexpr address roadblockSpawnSkip     = 0x43E031;
 
 	__declspec(naked) void RoadblockSpawn()
 	{
+		static constexpr address roadblockSpawnSkip    = 0x43E031;
 		static constexpr address addVehicleToRoadblock = 0x43C4E0;
 
 		__asm

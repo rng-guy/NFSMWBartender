@@ -107,16 +107,16 @@ namespace GroundSupport
 
 	constexpr address requestCooldownEntrance = 0x4196BF;
 	constexpr address requestCooldownExit     = 0x4196E4;
-	constexpr address requestCooldownSkip     = 0x41988A;
 
 	__declspec(naked) void RequestCooldown()
 	{
-		static constexpr float strategyCooldownThreshold = 0.f;
+		static constexpr address requestCooldownSkip = 0x41988A;
+		static constexpr float   cooldownThreshold   = 0.f;
 
 		__asm
 		{
 			fld dword ptr [esi + 0x210]
-			fcomp dword ptr strategyCooldownThreshold
+			fcomp dword ptr cooldownThreshold
 			fnstsw ax
 			test ah, 0x1
 			je skip // cooldown still ongoing

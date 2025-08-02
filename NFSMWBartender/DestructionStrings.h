@@ -43,11 +43,12 @@ namespace DestructionStrings
 
 	constexpr address copDestructionEntrance = 0x595B0D;
 	constexpr address copDestructionExit     = 0x595C37;
-	constexpr address copDestructionSkip     = 0x595CB3;
 
 	// Looks up Binary key of destroyed vehicle
 	__declspec(naked) void CopDestruction()
 	{
+		static constexpr address copDestructionSkip = 0x595CB3;
+
 		__asm
 		{
 			mov ecx, dword ptr [esp + 0x54]
