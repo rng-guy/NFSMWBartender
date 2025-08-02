@@ -52,10 +52,9 @@ namespace Miscellaneous
 			fdiv dword ptr bountyInterval
 			call dword ptr floatFloor
 
-			cmp eax, ebx
+			sub eax, ebx  // accounts for short intervals
 			je conclusion // not yet at interval threshold
 
-			sub eax, ebx // accounts for short intervals
 			imul eax, dword ptr [esi + 0x174]
 
 			mov edx, dword ptr [ebp]
