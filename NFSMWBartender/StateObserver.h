@@ -93,35 +93,15 @@ namespace StateObserver
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address heatLevelObserverEntrance = 0x409084;
-	constexpr address heatLevelObserverExit     = 0x409091;
+	constexpr address heatLevelObserverEntrance = 0x409091;
+	constexpr address heatLevelObserverExit     = 0x409096;
 
 	// Active when loading into areas or during pursuits
 	__declspec(naked) void HeatLevelObserver()
 	{
-		static constexpr address floatFloor = 0x7C4B80;
-
 		__asm
 		{
-			mov ebx, dword ptr playerPerpVehicle
-
-			test ebx, ebx
-			je skip // player vehicle unknown
-
-			cmp esi, ebx
-			je skip // is player vehicle
-
-			mov edx, dword ptr [ebx + 0x1C] // player Heat
-			mov dword ptr [esp + 0x24], edx
-
-			skip:
-			// Execute original code and resume
-			fld dword ptr [esp + 0x24]
-			mov edi, eax
-			call dword ptr floatFloor
-			mov ebp, eax
-
-			test ebx, ebx
+			test ebx, ebx // from HeatEqualiser
 			je conclusion // player vehicle unknown
 
 			cmp esi, ebx
