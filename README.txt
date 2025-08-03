@@ -303,6 +303,8 @@ Finally, Bartender would not have seen the light of day without
  • rx, for encouraging me to try .asi modding;
  • nlgxzef, for the Most Wanted debug symbols;
  • GuidedHacking, for their Cheat Engine tutorials;
+ • Sebastiano Vigna, for his pseudorandom number generators;
+ • Matthias C. M. Troffaes, for his configuration-file parser;
  • ExOptsTeam, for permitting me to use their Heat-level fixes;
  • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a resource; and
  • Orsal, Aven, Astra King79, and MORELLO, for testing and providing feedback.
@@ -387,4 +389,4 @@ v1.00.00: Initial release
       03: Clarified comments about "NFSMW LimitAdjuster" in "Cars.ini" file and README
       04: Improved performance slightly by removing redundant assembly instructions
 
-   12.00: Added fix for vanilla bug of helicopters casting incorrect static shadows
+   12.00: Added fix for vanilla helicopter shadows and further improved performance

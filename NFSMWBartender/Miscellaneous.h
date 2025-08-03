@@ -17,8 +17,8 @@ namespace Miscellaneous
 	bool featureEnabled = false;
 
 	// Current Heat level
-	float bountyInterval = 10.f; // seconds
-	int   copComboLimit  = 3;    // kills
+	float bountyInterval  = 10.f; // seconds
+	int   copComboLimit   = 3;    // kills
 
 	// Free-roam Heat levels
 	std::array<float, Globals::maxHeatLevel> roamBountyIntervals = {};
@@ -28,30 +28,22 @@ namespace Miscellaneous
 	std::array<float, Globals::maxHeatLevel> raceBountyIntervals = {};
 	std::array<int,   Globals::maxHeatLevel> raceCopComboLimits = {};
 
+	// Conversions
+	float bountyFrequency = 1.f / bountyInterval;
+
 
 
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address passiveBountyEntrance = 0x44450D;
+	constexpr address passiveBountyEntrance = 0x44452F;
 	constexpr address passiveBountyExit     = 0x444542;
 
 	__declspec(naked) void PassiveBounty()
 	{
-		static constexpr address floatFloor = 0x7C4B80;
-
 		__asm
 		{
-			fld dword ptr [esp + 0x30] // previous timestamp
-			fdiv dword ptr bountyInterval
-			call dword ptr floatFloor  // pops st(0)
-			mov ebx, eax
-
-			fld dword ptr [esi + 0xF4] // current
-			fdiv dword ptr bountyInterval
-			call dword ptr floatFloor
-
 			sub eax, ebx  // accounts for short intervals
 			je conclusion // not yet at interval threshold
 
@@ -128,6 +120,8 @@ namespace Miscellaneous
 		);
 
 		// Code caves
+		MemoryEditor::Write<float*>(&bountyFrequency, 0x444513, 0x444524);
+
         MemoryEditor::DigCodeCave(&PassiveBounty, passiveBountyEntrance, passiveBountyExit);
         MemoryEditor::DigCodeCave(&CopCombo,      copComboEntrance,      copComboExit);
 
@@ -153,6 +147,8 @@ namespace Miscellaneous
 			bountyInterval = roamBountyIntervals[heatLevel - 1];
 			copComboLimit  = roamCopComboLimits[heatLevel - 1];
 		}
+
+		bountyFrequency = 1.f / bountyInterval;
 
 		if constexpr (Globals::loggingEnabled)
 		{

@@ -270,6 +270,8 @@ Finally, Bartender would not have seen the light of day without
 * **[rx](https://github.com/rxyyy)**, for encouraging me to try .asi modding;
 * **[nlgxzef](https://github.com/nlgxzef)**, for the Most Wanted debug symbols;
 * **GuidedHacking**, for their [Cheat Engine tutorials](https://www.youtube.com/playlist?list=PLt9cUwGw6CYFSoQHsf9b12kHWLdgYRhmQ);
+* **Sebastiano Vigna**, for his [pseudorandom number generators](https://prng.di.unimi.it/);
+* **Matthias C. M. Troffaes**, for his [configuration-file parser](https://github.com/mcmtroffaes/inipp);
 * **[ExOptsTeam](https://github.com/ExOptsTeam)**, for permitting me to use their Heat-level fixes;
 * **trelbutate**, for his [NFSMW Cop Car Healthbars mod](https://github.com/trelbutate/MWHealthbars/) as a resource; and
 * **Orsal**, **Aven**, **Astra King79**, and **MORELLO**, for testing and providing feedback.

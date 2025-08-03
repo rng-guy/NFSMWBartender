@@ -54,7 +54,7 @@ namespace DestructionStrings
 			mov ecx, dword ptr [esp + 0x54]
 			call GetDestructionKey // ecx: copType
 			test eax, eax
-			je skip                // type unknown and no valid default key
+			je skip                // type unknown and no default key
 
 			push eax
 

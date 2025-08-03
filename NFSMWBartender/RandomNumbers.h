@@ -8,7 +8,7 @@
 namespace RandomNumbers
 {
 
-	// xoshiro256++ PRNG (taken from https://prng.di.unimi.it/) -------------------------------------------------------------------------------------
+	// xoshiro256++ PRNG (based on code from https://prng.di.unimi.it/) -----------------------------------------------------------------------------
 
 	class Generator
 	{

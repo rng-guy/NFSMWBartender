@@ -31,6 +31,10 @@ namespace PursuitBar
 	std::array<float, Globals::maxHeatLevel> raceEvadeTimers      = {};
 	std::array<float, Globals::maxHeatLevel> raceBustTimers       = {};
 
+	// Conversions
+	float halfEvadeRate = .5f / evadeTimer;
+	float bustRate      = 1.f / bustTimer;
+
 
 
 
@@ -51,10 +55,10 @@ namespace PursuitBar
 			fcomp dword ptr evadeStateThreshold
 			fnstsw ax
 			test ah, ah
-			je obstructed // green EVADE bar is filling
+			je obstructed               // in EVADE state
 
 			fld dword ptr maxBustDistance
-			jmp conclusion // is not in EVADE state
+			jmp conclusion
 
 			obstructed:
 			fld dword ptr obstructedBustDistance
@@ -64,24 +68,6 @@ namespace PursuitBar
 			test bl, bl
 
 			jmp dword ptr maxBustDistanceExit
-		}
-	}
-
-
-
-	constexpr address evadeBarEntrance = 0x444A38;
-	constexpr address evadeBarExit     = 0x444A3E;
-
-	__declspec(naked) void EvadeBar()
-	{
-		static constexpr float oneHalf = .5f;
-
-		__asm
-		{
-			fdiv dword ptr evadeTimer
-			fmul dword ptr oneHalf
-
-			jmp dword ptr evadeBarExit
 		}
 	}
 
@@ -121,12 +107,12 @@ namespace PursuitBar
 		);
 
 		// Code caves
-        MemoryEditor::Write<WORD>  (0x35D8,      0x40AED9); // opcode fdiv m
-        MemoryEditor::Write<float*>(&bustTimer,  0x4445CE, 0x40AEDB);
-        MemoryEditor::Write<float*>(&evadeTimer, 0x4448E6, 0x444802, 0x4338F8);
+        MemoryEditor::Write<float*>(&bustTimer,     0x4445CE);
+		MemoryEditor::Write<float*>(&bustRate,      0x40AEDB);
+        MemoryEditor::Write<float*>(&evadeTimer,    0x4448E6, 0x444802, 0x4338F8);
+		MemoryEditor::Write<float*>(&halfEvadeRate, 0x444A3A);
 
         MemoryEditor::DigCodeCave(&MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
-        MemoryEditor::DigCodeCave(&EvadeBar,        evadeBarEntrance,        evadeBarExit);
 
 		return (featureEnabled = true);
     }
@@ -152,6 +138,9 @@ namespace PursuitBar
 			maxBustDistance = roamMaxBustDistances[heatLevel - 1];
 			evadeTimer      = roamEvadeTimers[heatLevel - 1];
 		}
+
+		halfEvadeRate = .5f / evadeTimer;
+		bustRate      = 1.f / bustTimer;
 
 		if constexpr (Globals::loggingEnabled)
 		{

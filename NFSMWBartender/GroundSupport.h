@@ -68,20 +68,13 @@ namespace GroundSupport
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address roadblockCooldownEntrance = 0x419535;
-	constexpr address roadblockCooldownExit     = 0x41954C;
+	constexpr address roadblockCooldownExit     = 0x41953A;
 
 	__declspec(naked) void RoadblockCooldown()
 	{
-		static constexpr address getRandom   = 0x6ED200;
-		static constexpr address scaleRandom = 0x402870;
-
 		__asm
 		{
-			push roadblockCooldownRange
-			call dword ptr getRandom
-			mov ecx, eax
-			call dword ptr scaleRandom
-			fadd dword ptr minRoadblockCooldown
+			push dword ptr roadblockCooldownRange
 
 			jmp dword ptr roadblockCooldownExit
 		}
@@ -105,31 +98,17 @@ namespace GroundSupport
 
 
 
-	constexpr address requestCooldownEntrance = 0x4196BF;
+	constexpr address requestCooldownEntrance = 0x4196DA;
 	constexpr address requestCooldownExit     = 0x4196E4;
 
 	__declspec(naked) void RequestCooldown()
 	{
-		static constexpr address requestCooldownSkip = 0x41988A;
-		static constexpr float   cooldownThreshold   = 0.f;
-
 		__asm
 		{
-			fld dword ptr [esi + 0x210]
-			fcomp dword ptr cooldownThreshold
-			fnstsw ax
-			test ah, 0x1
-			je skip // cooldown still ongoing
-
-			push ebp
-			lea ecx, dword ptr [esi - 0x48]
 			mov eax, dword ptr strategyCooldown
 			mov dword ptr [esi + 0x210], eax
 
 			jmp dword ptr requestCooldownExit
-
-			skip:
-			jmp dword ptr requestCooldownSkip
 		}
 	}
 
@@ -404,6 +383,8 @@ namespace GroundSupport
 		);
 
 		// Code caves
+		MemoryEditor::Write<float*>(&minRoadblockCooldown, 0x419548);
+
 		MemoryEditor::DigCodeCave(&RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);
 		MemoryEditor::DigCodeCave(&RoadblockHeavy,    roadblockHeavyEntrance,    roadblockHeavyExit);
         MemoryEditor::DigCodeCave(&RequestCooldown,   requestCooldownEntrance,   requestCooldownExit);
