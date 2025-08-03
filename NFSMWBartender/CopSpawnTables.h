@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <string>
+#include <format>
 #include <vector>
 #include <array>
 
@@ -232,7 +233,7 @@ namespace CopSpawnTables
 			if (hasCounts) 
 				numberOfEntries = parser.ParseParameterTable
 				(
-					section, 
+					section,
 					copNames, 
 					ConfigParser::UserParameter<int>(copCounts, 1), 
 					ConfigParser::UserParameter<int>(copChances, 1)
@@ -261,9 +262,7 @@ namespace CopSpawnTables
 		(
 			parser,
 			"Helicopter:Vehicle",
-			roamHelicopterVehicles,
-			raceHelicopterVehicles,
-			helicopterVehicle
+			{roamHelicopterVehicles, raceHelicopterVehicles, helicopterVehicle}
 		);
 
 		std::for_each(roamHelicopterVehicles.begin(), roamHelicopterVehicles.end(), SpawnTable::RegisterHelicopter);

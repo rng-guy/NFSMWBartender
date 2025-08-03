@@ -99,24 +99,18 @@ namespace Miscellaneous
 		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return false;
 
 		// Pursuit parameters
-		Globals::ParseHeatParameter<float>
+		Globals::ParseHeatParameterTable<float>
 		(
 			parser,
 			"BountyInterval",
-			roamBountyIntervals,
-			raceBountyIntervals,
-			bountyInterval,
-			.001f
+			{roamBountyIntervals, raceBountyIntervals, bountyInterval, .001f}
 		);
 
 		Globals::ParseHeatParameter<int>
 		(
 			parser,
 			"CopComboLimit",
-			roamCopComboLimits,
-			raceCopComboLimits,
-			copComboLimit,
-			1
+			{roamCopComboLimits, raceCopComboLimits, copComboLimit, 1}
 		);
 
 		// Code caves

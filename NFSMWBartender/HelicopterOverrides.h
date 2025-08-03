@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Windows.h>
-#include <algorithm>
 #include <array>
 
 #include "Globals.h"
@@ -241,47 +240,6 @@ namespace HelicopterOverrides
 
 
 
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	void ParseTimers
-	(
-		ConfigParser::Parser&                     parser,
-		const std::string&                        format,
-		std::array<bool,  Globals::maxHeatLevel>& helicoptersEnabled,
-		std::array<float, Globals::maxHeatLevel>& minSpawnDelays,
-		std::array<float, Globals::maxHeatLevel>& maxSpawnDelays,
-		std::array<float, Globals::maxHeatLevel>& minDespawnDelays,
-		std::array<float, Globals::maxHeatLevel>& maxDespawnDelays,
-		std::array<float, Globals::maxHeatLevel>& minRespawnDelays,
-		std::array<float, Globals::maxHeatLevel>& maxRespawnDelays
-	) {
-		helicoptersEnabled = parser.ParseParameterTable
-		(
-			"Helicopter:Timers",
-			format,
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(minSpawnDelays,   {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(maxSpawnDelays,   {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(minDespawnDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(maxDespawnDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(minRespawnDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(maxRespawnDelays, {}, 0.f)
-		);
-
-		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
-		{
-			if (helicoptersEnabled[heatLevel - 1])
-			{
-				minSpawnDelays[heatLevel - 1]   = std::min<float>(minSpawnDelays[heatLevel - 1],   maxSpawnDelays[heatLevel - 1]);
-				minDespawnDelays[heatLevel - 1] = std::min<float>(minDespawnDelays[heatLevel - 1], maxDespawnDelays[heatLevel - 1]);
-				minRespawnDelays[heatLevel - 1] = std::min<float>(minRespawnDelays[heatLevel - 1], maxRespawnDelays[heatLevel - 1]);
-			}
-		}
-	}
-
-
-
-
-
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
 	bool Initialise(ConfigParser::Parser& parser)
@@ -290,33 +248,39 @@ namespace HelicopterOverrides
 
 		if (not parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini")) return false;
 
-		// Free-roam timers
-		ParseTimers
+		// Free-roam parameters
+		roamHelicoptersEnabled = parser.ParseParameterTable<float, float, float, float, float, float>
 		(
-			parser,
+			"Helicopter:Timers",
 			Globals::configFormatRoam,
-			roamHelicoptersEnabled,
-			roamMinSpawnDelays,
-			roamMaxSpawnDelays,
-			roamMinDespawnDelays,
-			roamMaxDespawnDelays,
-			roamMinRespawnDelays,
-			roamMaxRespawnDelays
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMinSpawnDelays,   {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMaxSpawnDelays,   {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMinDespawnDelays, {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMaxDespawnDelays, {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMinRespawnDelays, {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMaxRespawnDelays, {}, 0.f)
 		);
 
-		// Racing timers
-		ParseTimers
+		Globals::CheckIntervalValues<float>(roamMinSpawnDelays,   roamMaxSpawnDelays);
+		Globals::CheckIntervalValues<float>(roamMinDespawnDelays, roamMaxDespawnDelays);
+		Globals::CheckIntervalValues<float>(roamMinRespawnDelays, roamMaxRespawnDelays);
+
+		// Race parameters
+		raceHelicoptersEnabled = parser.ParseParameterTable<float, float, float, float, float, float>
 		(
-			parser,
+			"Helicopter:Timers",
 			Globals::configFormatRace,
-			raceHelicoptersEnabled,
-			raceMinSpawnDelays,
-			raceMaxSpawnDelays,
-			raceMinDespawnDelays,
-			raceMaxDespawnDelays,
-			raceMinRespawnDelays,
-			raceMaxRespawnDelays
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMinSpawnDelays,   {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMaxSpawnDelays,   {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMinDespawnDelays, {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMaxDespawnDelays, {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMinRespawnDelays, {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMaxRespawnDelays, {}, 0.f)
 		);
+
+		Globals::CheckIntervalValues<float>(raceMinSpawnDelays,   raceMaxSpawnDelays);
+		Globals::CheckIntervalValues<float>(raceMinDespawnDelays, raceMaxDespawnDelays);
+		Globals::CheckIntervalValues<float>(raceMinRespawnDelays, raceMaxRespawnDelays);
 
 		// Code caves
 		MemoryEditor::DigCodeCave(&FuelTime, fuelTimeEntrance, fuelTimeExit);

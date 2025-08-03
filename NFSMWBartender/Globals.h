@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <algorithm>
 #include <optional>
 #include <fstream>
 #include <memory>
@@ -51,68 +52,107 @@ namespace Globals
 
 
 
-	// Special parsing functions --------------------------------------------------------------------------------------------------------------------
+	// Special parsing types and functions -------------------------------------------------------------------------------------------------------------
+
+	template <typename T>
+	struct HeatParameter
+	{
+		std::array<T, maxHeatLevel>& roamValues;
+		std::array<T, maxHeatLevel>& raceValues;
+		const std::optional<T>       defaultValue = {};
+		const std::optional<T>       lowerBound   = {};
+		const std::optional<T>       upperBound   = {};
+	};
+
+
 
 	template <typename T>
 	void ParseHeatParameter
 	(
-		ConfigParser::Parser&        parser,
-		const std::string&           section,
-		std::array<T, maxHeatLevel>& roamValues,
-		std::array<T, maxHeatLevel>& raceValues,
-		const std::optional<T>       defaultValue = {},
-		const std::optional<T>       lowerBound   = {},
-		const std::optional<T>       upperBound   = {}
+		ConfigParser::Parser& parser,
+		const std::string&    section,
+		HeatParameter<T>&&    parameter
 	) {
-		parser.ParseFormatParameter<T>(section, configFormatRoam, roamValues, defaultValue, lowerBound, upperBound);
+		parser.ParseFormatParameter<T>
+		(
+			section, 
+			configFormatRoam, 
+			parameter.roamValues, 
+			parameter.defaultValue, 
+			parameter.lowerBound, 
+			parameter.upperBound
+		);
 
-		raceValues = roamValues;
+		parameter.raceValues = parameter.roamValues;
 
-		parser.ParseFormatParameter<T>(section, configFormatRace, raceValues, {}, lowerBound, upperBound);
+		parser.ParseFormatParameter<T>
+		(
+			section, 
+			configFormatRace, 
+			parameter.raceValues, 
+			{}, 
+			parameter.lowerBound, 
+			parameter.upperBound
+		);
 	}
 
 
 
-	template <typename T, typename U>
-	void ParseHeatParameterPair
+	template <typename ...T>
+	void ParseHeatParameterTable
 	(
-		ConfigParser::Parser&        parser,
-		const std::string&           section,
-		std::array<T, maxHeatLevel>& firstRoamValues,
-		std::array<U, maxHeatLevel>& secondRoamValues,
-		std::array<T, maxHeatLevel>& firstRaceValues,
-		std::array<U, maxHeatLevel>& secondRaceValues,
-		const std::optional<T>       firstDefaultValue  = {},
-		const std::optional<U>       secondDefaultValue = {},
-		const std::optional<T>       firstLowerBound    = {},
-		const std::optional<U>       secondLowerBound   = {},
-		const std::optional<T>       firstUpperBound    = {},
-		const std::optional<U>       secondUpperBound   = {}
+		ConfigParser::Parser&    parser,
+		const std::string&       section,
+		HeatParameter<T>&&    ...columns
 	) {
-		parser.ParseParameterTable
+		parser.ParseParameterTable<T...>
 		(
 			section,
 			configFormatRoam,
-			ConfigParser::FormatParameter<T, maxHeatLevel>(firstRoamValues,  firstDefaultValue,  firstLowerBound,  firstUpperBound),
-			ConfigParser::FormatParameter<U, maxHeatLevel>(secondRoamValues, secondDefaultValue, secondLowerBound, secondUpperBound)
+			ConfigParser::FormatParameter<T, maxHeatLevel>
+			(
+				columns.roamValues, 
+				columns.defaultValue, 
+				columns.lowerBound, 
+				columns.upperBound
+			)...
 		);
 
-		const std::array<bool, maxHeatLevel> isValids = parser.ParseParameterTable
+		const std::array<bool, maxHeatLevel> isValids = parser.ParseParameterTable<T...>
 		(
 			section,
 			configFormatRace,
-			ConfigParser::FormatParameter<T, maxHeatLevel>(firstRaceValues,  {}, firstLowerBound,  firstUpperBound),
-			ConfigParser::FormatParameter<U, maxHeatLevel>(secondRaceValues, {}, secondLowerBound, secondUpperBound)
+			ConfigParser::FormatParameter<T, maxHeatLevel>
+			(
+				columns.raceValues, 
+				{}, 
+				columns.lowerBound, 
+				columns.upperBound
+			)...
 		);
 
-		for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
-		{
-			if (not isValids[heatLevel - 1])
+		(
+			[&]
 			{
-				firstRaceValues[heatLevel - 1]  = firstRoamValues[heatLevel - 1];
-				secondRaceValues[heatLevel - 1] = secondRoamValues[heatLevel - 1];
+				for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
+				{
+					if (not isValids[heatLevel - 1])
+						columns.raceValues[heatLevel - 1] = columns.roamValues[heatLevel - 1];
+				}
 			}
-		}
+		(), ...);
+	}
+
+
+
+	template <typename T>
+	void CheckIntervalValues
+	(
+		std::array<T, maxHeatLevel>& minValues,
+		std::array<T, maxHeatLevel>& maxValues
+	) {
+		for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
+			minValues[heatLevel - 1] = std::min<T>(minValues[heatLevel - 1], maxValues[heatLevel - 1]);
 	}
 
 

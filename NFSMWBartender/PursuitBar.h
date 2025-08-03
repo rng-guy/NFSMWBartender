@@ -82,28 +82,19 @@ namespace PursuitBar
 		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return false;
 
 		// Pursuit parameters
-		Globals::ParseHeatParameterPair<float, float>
+		Globals::ParseHeatParameterTable<float, float>
 		(
 			parser,
 			"Busting:General",
-			roamBustTimers,
-			roamMaxBustDistances,
-			raceBustTimers,
-			raceMaxBustDistances,
-			bustTimer,
-			maxBustDistance,
-			.001f,
-			0.f
+			{roamBustTimers,       raceBustTimers,       bustTimer,       .001f},
+			{roamMaxBustDistances, raceMaxBustDistances, maxBustDistance, 0.f}
 		);
 
 		Globals::ParseHeatParameter<float>
 		(
 			parser,
 			"Evading:Timer",
-			roamEvadeTimers,
-			raceEvadeTimers,
-			evadeTimer,
-			.001f
+			{roamEvadeTimers , raceEvadeTimers , evadeTimer, .001f}
 		);
 
 		// Code caves

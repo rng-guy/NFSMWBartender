@@ -3,7 +3,6 @@
 #include <Windows.h>
 #include <unordered_map>
 #include <unordered_set>
-#include <algorithm>
 #include <string>
 #include <array>
 #include <map>
@@ -329,60 +328,33 @@ namespace CopFleeOverrides
 
 
 
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	void ParseTimers
-	(
-		ConfigParser::Parser&                     parser,
-		const std::string&                        format,
-		std::array<bool,  Globals::maxHeatLevel>& fleeingEnableds,
-		std::array<float, Globals::maxHeatLevel>& minFleeDelays,
-		std::array<float, Globals::maxHeatLevel>& maxFleeDelays
-	) {
-		fleeingEnableds = parser.ParseParameterTable
-		(
-			"Fleeing:Timers",
-			format,
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(minFleeDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(maxFleeDelays, {}, 0.f)
-		);
-
-		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
-		{
-			if (fleeingEnableds[heatLevel - 1]) 
-				minFleeDelays[heatLevel - 1] = std::min<float>(minFleeDelays[heatLevel - 1], maxFleeDelays[heatLevel - 1]);
-		}
-	}
-
-
-
-
-
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
 	bool Initialise(ConfigParser::Parser& parser)
 	{
 		parser.LoadFile(Globals::configPathAdvanced + "Cars.ini");
 
-		// Free-roam timers
-		ParseTimers
+		// Free-roam parameters
+		roamFleeingEnableds = parser.ParseParameterTable<float, float>
 		(
-			parser,
+			"Fleeing:Timers",
 			Globals::configFormatRoam,
-			roamFleeingEnableds,
-			roamMinFleeDelays,
-			roamMaxFleeDelays
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMinFleeDelays, {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMaxFleeDelays, {}, 0.f)
 		);
 
-		// Racing timers
-		ParseTimers
+		Globals::CheckIntervalValues<float>(roamMinFleeDelays, roamMaxFleeDelays);
+
+		// Race parameters
+		raceFleeingEnableds = parser.ParseParameterTable<float, float>
 		(
-			parser,
+			"Fleeing:Timers",
 			Globals::configFormatRace,
-			raceFleeingEnableds,
-			raceMinFleeDelays,
-			raceMaxFleeDelays
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMinFleeDelays, {}, 0.f),
+			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMaxFleeDelays, {}, 0.f)
 		);
+
+		Globals::CheckIntervalValues<float>(raceMinFleeDelays, raceMaxFleeDelays);
 
 		return (featureEnabled = true);
 	}

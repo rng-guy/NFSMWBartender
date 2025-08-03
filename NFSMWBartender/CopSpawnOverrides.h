@@ -647,18 +647,12 @@ namespace CopSpawnOverrides
 		parser.LoadFile(Globals::configPathAdvanced + "Cars.ini");
 
 		// Pursuit parameters
-		Globals::ParseHeatParameterPair<int, int>
+		Globals::ParseHeatParameterTable<int, int>
 		(
 			parser,
 			"Spawning:Limits",
-			roamMinActiveCounts,
-			roamMaxActiveCounts,
-			raceMinActiveCounts,
-			raceMaxActiveCounts,
-			minActiveCount,
-			maxActiveCount,
-			0,
-			0
+			{roamMinActiveCounts, raceMinActiveCounts, minActiveCount , 0},
+			{roamMaxActiveCounts, raceMaxActiveCounts, maxActiveCount , 0}
 		);
 
 		// Code caves
