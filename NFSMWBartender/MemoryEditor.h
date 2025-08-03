@@ -36,9 +36,9 @@ namespace MemoryEditor
 
 	void WriteToByteRange
 	(
-		const BYTE    value,
+		const byte    value,
 		const address start,
-		const SIZE_T  byteRange
+		const size_t  byteRange
 	) {
 		void* memory = (void*)start;
 
@@ -53,7 +53,7 @@ namespace MemoryEditor
 
 	void WriteToAddressRange
 	(
-		const BYTE    value,
+		const byte    value,
 		const address start,
 		const address end
 	) {
@@ -69,7 +69,7 @@ namespace MemoryEditor
 		const address exit
 	) {
 		WriteToAddressRange(0x90, entrance, exit);                    // NOP
-		Write<BYTE>(0xE9, entrance);                                  // JMP rel16
+		Write<byte>(0xE9, entrance);                                  // JMP rel16
 		Write<address>((address)code - (entrance + 5), entrance + 1); // accounting for instruction length
 	}
 }

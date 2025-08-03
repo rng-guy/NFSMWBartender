@@ -314,15 +314,15 @@ namespace GroundSupport
 		// Code caves
 		MemoryEditor::Write<float*>(&minRoadblockCooldown, 0x419548);
 
-		MemoryEditor::DigCodeCave(&RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);
-		MemoryEditor::DigCodeCave(&RoadblockHeavy,    roadblockHeavyEntrance,    roadblockHeavyExit);
-        MemoryEditor::DigCodeCave(&RequestCooldown,   requestCooldownEntrance,   requestCooldownExit);
-        MemoryEditor::DigCodeCave(&RequestDelay,      requestDelayEntrance,      requestDelayExit);
-		MemoryEditor::DigCodeCave(&OnAttached,        onAttachedEntrance,        onAttachedExit);
-		MemoryEditor::DigCodeCave(&OnDetached,        onDetachedEntrance,        onDetachedExit);
-        MemoryEditor::DigCodeCave(&LeaderSub,         leaderSubEntrance,         leaderSubExit);
-		MemoryEditor::DigCodeCave(&HenchmenSub,       henchmenSubEntrance,       henchmenSubExit);
-        MemoryEditor::DigCodeCave(&RhinoSelector,     rhinoSelectorEntrance,     rhinoSelectorExit);
+		MemoryEditor::DigCodeCave(RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);
+		MemoryEditor::DigCodeCave(RoadblockHeavy,    roadblockHeavyEntrance,    roadblockHeavyExit);
+        MemoryEditor::DigCodeCave(RequestCooldown,   requestCooldownEntrance,   requestCooldownExit);
+        MemoryEditor::DigCodeCave(RequestDelay,      requestDelayEntrance,      requestDelayExit);
+		MemoryEditor::DigCodeCave(OnAttached,        onAttachedEntrance,        onAttachedExit);
+		MemoryEditor::DigCodeCave(OnDetached,        onDetachedEntrance,        onDetachedExit);
+        MemoryEditor::DigCodeCave(LeaderSub,         leaderSubEntrance,         leaderSubExit);
+		MemoryEditor::DigCodeCave(HenchmenSub,       henchmenSubEntrance,       henchmenSubExit);
+        MemoryEditor::DigCodeCave(RhinoSelector,     rhinoSelectorEntrance,     rhinoSelectorExit);
 
 		return (featureEnabled = true);
     }

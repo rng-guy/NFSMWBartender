@@ -18,7 +18,7 @@ namespace DestructionStrings
 
 	bool featureEnabled = false;
 
-	std::unordered_map<hash, key> copTypeToDestructionKey;
+	std::unordered_map<hash, key, Globals::IdentityHash> copTypeToDestructionKey;
 
 	hash defaultType = 0x0;
 	key  defaultKey  = 0x0;
@@ -90,7 +90,7 @@ namespace DestructionStrings
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
 			copTypeToDestructionKey.insert({GetStringHash(copVehicles[vehicleID].c_str()), GetBinaryKey(binaryLabels[vehicleID].c_str())});
 	
-		MemoryEditor::DigCodeCave(&CopDestruction, copDestructionEntrance, copDestructionExit);
+		MemoryEditor::DigCodeCave(CopDestruction, copDestructionEntrance, copDestructionExit);
 
 		return true;
 	}

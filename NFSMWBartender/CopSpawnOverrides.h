@@ -22,7 +22,7 @@ namespace CopSpawnOverrides
 	{
 	private:
 
-		std::unordered_map<hash, int> copTypeToCurrentCount;
+		std::unordered_map<hash, int, Globals::IdentityHash> copTypeToCurrentCount;
 
 		CopSpawnTables::SpawnTable               spawnTable;
 		const CopSpawnTables::SpawnTable** const sourceSpawnTable;
@@ -133,10 +133,11 @@ namespace CopSpawnOverrides
 		int* const fullWaveCapacity  = (int*)(pursuit + 0x144);
 		int* const numCopsLostInWave = (int*)(pursuit + 0x14C);
 
-		CopSpawnTables::SpawnTable    spawnTable;
-		std::unordered_map<hash, int> copTypeToCurrentCount;
+		CopSpawnTables::SpawnTable spawnTable;
 
-		inline static std::unordered_map<address, ContingentManager*> pursuitToManager;
+		std::unordered_map<hash, int, Globals::IdentityHash> copTypeToCurrentCount;
+
+		inline static std::unordered_map<address, ContingentManager*, Globals::IdentityHash> pursuitToManager;
 
 
 		void UpdateSpawnTable()
@@ -659,19 +660,19 @@ namespace CopSpawnOverrides
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
 		MemoryEditor::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
 
-		MemoryEditor::Write<BYTE>(0x00, 0x433CB2);           // min. displayed count
-		MemoryEditor::Write<BYTE>(0x90, 0x57B188, 0x4443E4); // helicopter / roadblock increment
-		MemoryEditor::Write<BYTE>(0xEB, 0x42B9AA, 0x44389E); // foreign / HeavyStrategy cops fleeing
+		MemoryEditor::Write<byte>(0x00, 0x433CB2);           // min. displayed count
+		MemoryEditor::Write<byte>(0x90, 0x57B188, 0x4443E4); // helicopter / roadblock increment
+		MemoryEditor::Write<byte>(0xEB, 0x42B9AA, 0x44389E); // foreign / HeavyStrategy cops fleeing
 
-		MemoryEditor::DigCodeCave(&RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
-		MemoryEditor::DigCodeCave(&EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
-		MemoryEditor::DigCodeCave(&ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
-		MemoryEditor::DigCodeCave(&ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
+		MemoryEditor::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
+		MemoryEditor::DigCodeCave(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
+		MemoryEditor::DigCodeCave(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
+		MemoryEditor::DigCodeCave(ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 
-		MemoryEditor::DigCodeCave(&CopRefill,      copRefillEntrance,      copRefillExit);
-		MemoryEditor::DigCodeCave(&FirstCopTable,  firstCopTableEntrance,  firstCopTableExit);
-		MemoryEditor::DigCodeCave(&SecondCopTable, secondCopTableEntrance, secondCopTableExit);
-		MemoryEditor::DigCodeCave(&ThirdCopTable,  thirdCopTableEntrance,  thirdCopTableExit);
+		MemoryEditor::DigCodeCave(CopRefill,      copRefillEntrance,      copRefillExit);
+		MemoryEditor::DigCodeCave(FirstCopTable,  firstCopTableEntrance,  firstCopTableExit);
+		MemoryEditor::DigCodeCave(SecondCopTable, secondCopTableEntrance, secondCopTableExit);
+		MemoryEditor::DigCodeCave(ThirdCopTable,  thirdCopTableEntrance,  thirdCopTableExit);
 
 		return (featureEnabled = true);
 	}

@@ -75,8 +75,8 @@ namespace CopFleeOverrides
 		float heavyStrategyDuration  = 0.f;
 		float leaderStrategyDuration = 0.f;
 
-		std::unordered_set<address>             fleeingCopVehicles;
-		std::unordered_map<address, Assessment> copVehicleToAssessment;
+		std::unordered_set<address, Globals::IdentityHash>             fleeingCopVehicles;
+		std::unordered_map<address, Assessment, Globals::IdentityHash> copVehicleToAssessment;
 
 
 		void UpdateStrategyDurations()

@@ -116,8 +116,8 @@ namespace Miscellaneous
 		// Code caves
 		MemoryEditor::Write<float*>(&bountyFrequency, 0x444513, 0x444524);
 
-        MemoryEditor::DigCodeCave(&PassiveBounty, passiveBountyEntrance, passiveBountyExit);
-        MemoryEditor::DigCodeCave(&CopCombo,      copComboEntrance,      copComboExit);
+        MemoryEditor::DigCodeCave(PassiveBounty, passiveBountyEntrance, passiveBountyExit);
+        MemoryEditor::DigCodeCave(CopCombo,      copComboEntrance,      copComboExit);
 
         return (featureEnabled = true);
     }

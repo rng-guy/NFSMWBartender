@@ -37,10 +37,10 @@ namespace PursuitObserver
 		bool inPursuitUpdatePending    = true;
 		bool perHeatLevelUpdatePending = true;
 
-		std::unordered_map<address, CopLabel>            copVehicleToLabel;
-		std::vector<std::unique_ptr<CopVehicleReaction>> copVehicleReactions;
+		std::unordered_map<address, CopLabel, Globals::IdentityHash> copVehicleToLabel;
+		std::vector<std::unique_ptr<CopVehicleReaction>>             copVehicleReactions;
 
-		inline static std::unordered_set<address> copVehiclesLoaded;
+		inline static std::unordered_set<address, Globals::IdentityHash> copVehiclesLoaded;
 		inline static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
 
 
@@ -256,7 +256,7 @@ namespace PursuitObserver
 
 	bool featureEnabled = false;
 
-	std::unordered_map<address, PursuitObserver> pursuitToObserver;
+	std::unordered_map<address, PursuitObserver, Globals::IdentityHash> pursuitToObserver;
 
 
 
@@ -526,17 +526,17 @@ namespace PursuitObserver
 		CopFleeOverrides::Initialise(parser);
 		HelicopterOverrides::Initialise(parser);
 
-		MemoryEditor::DigCodeCave(&EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
-		MemoryEditor::DigCodeCave(&PatrolSpawn, patrolSpawnEntrance, patrolSpawnExit);
+		MemoryEditor::DigCodeCave(EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
+		MemoryEditor::DigCodeCave(PatrolSpawn, patrolSpawnEntrance, patrolSpawnExit);
 
-		MemoryEditor::DigCodeCave(&PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
-		MemoryEditor::DigCodeCave(&PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
-		MemoryEditor::DigCodeCave(&VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);
-		MemoryEditor::DigCodeCave(&CopRemoved,         copRemovedEntrance,         copRemovedExit);
-		MemoryEditor::DigCodeCave(&CopAdded,           copAddedEntrance,           copAddedExit);
+		MemoryEditor::DigCodeCave(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
+		MemoryEditor::DigCodeCave(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
+		MemoryEditor::DigCodeCave(VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);
+		MemoryEditor::DigCodeCave(CopRemoved,         copRemovedEntrance,         copRemovedExit);
+		MemoryEditor::DigCodeCave(CopAdded,           copAddedEntrance,           copAddedExit);
 
-		MemoryEditor::DigCodeCave(&MainSpawnLimit,  mainSpawnLimitEntrance,  mainSpawnLimitExit);
-		MemoryEditor::DigCodeCave(&OtherSpawnLimit, otherSpawnLimitEntrance, otherSpawnLimitExit);
+		MemoryEditor::DigCodeCave(MainSpawnLimit,  mainSpawnLimitEntrance,  mainSpawnLimitExit);
+		MemoryEditor::DigCodeCave(OtherSpawnLimit, otherSpawnLimitEntrance, otherSpawnLimitExit);
 
 		return (featureEnabled = true);
 	}

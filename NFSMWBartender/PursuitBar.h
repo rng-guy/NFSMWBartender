@@ -103,7 +103,7 @@ namespace PursuitBar
         MemoryEditor::Write<float*>(&evadeTimer,    0x4448E6, 0x444802, 0x4338F8);
 		MemoryEditor::Write<float*>(&halfEvadeRate, 0x444A3A);
 
-        MemoryEditor::DigCodeCave(&MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
+        MemoryEditor::DigCodeCave(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 
 		return (featureEnabled = true);
     }

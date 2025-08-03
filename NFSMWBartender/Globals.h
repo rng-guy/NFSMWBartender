@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <algorithm>
 #include <optional>
+#include <cstdint>
 #include <fstream>
 #include <memory>
 #include <format>
@@ -14,9 +15,10 @@
 #undef min
 #undef max
 
-using address = DWORD;
-using hash    = DWORD;
-using key     = DWORD;
+using byte    = unsigned char;
+using address = uint32_t;
+using hash    = uint32_t;
+using key     = uint32_t;
 
 
 
@@ -48,6 +50,20 @@ namespace Globals
 	const std::string logIndent     = "        ";
 	const std::string logLongIndent = "              ";
 	
+
+
+
+
+	// Custom hash function (if you can call it that) --------------------------------------------------------------------------------------------------
+
+	struct IdentityHash 
+	{
+		size_t operator()(const uint32_t value) const
+		{
+			return value;
+		}
+	};
+
 
 
 
@@ -181,10 +197,10 @@ namespace Globals
 
 
 	template<>
-	void Print<DWORD>
+	void Print<uint32_t>
 	(
 		std::fstream* const file,
-		const DWORD         value
+		const uint32_t      value
 	) {
 		*file << std::format("{:08x}", value);
 	}

@@ -244,7 +244,7 @@ namespace HelicopterOverrides
 
 	bool Initialise(ConfigParser::Parser& parser)
 	{
-		MemoryEditor::Write<BYTE>(0xEB, 0x42BB2D); // prevent spawns in Cooldown mode
+		MemoryEditor::Write<byte>(0xEB, 0x42BB2D); // prevent spawns in Cooldown mode
 
 		if (not parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini")) return false;
 
@@ -283,7 +283,7 @@ namespace HelicopterOverrides
 		Globals::CheckIntervalValues<float>(raceMinRespawnDelays, raceMaxRespawnDelays);
 
 		// Code caves
-		MemoryEditor::DigCodeCave(&FuelTime, fuelTimeEntrance, fuelTimeExit);
+		MemoryEditor::DigCodeCave(FuelTime, fuelTimeEntrance, fuelTimeExit);
 
 		return (featureEnabled = true);
 	}

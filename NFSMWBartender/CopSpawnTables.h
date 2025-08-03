@@ -36,12 +36,10 @@ namespace CopSpawnTables
 		int availableTotalCopCapacity = 0;
 		int availableTotalCopChance   = 0;
 
-		std::unordered_set<hash>        availableCopTypes;
-		std::unordered_map<hash, Entry> copTypeToEntry;
+		std::unordered_map<hash, Entry, Globals::IdentityHash> copTypeToEntry;
 
-		inline static std::unordered_set<hash>              helicopterTypes;
-		inline static std::unordered_map<std::string, hash> copNameToType;
-		inline static std::unordered_map<hash, std::string> copTypeToName;
+		inline static std::unordered_set<hash, Globals::IdentityHash>              helicopterTypes;
+		inline static std::unordered_map<hash, std::string, Globals::IdentityHash> copTypeToName;
 		
 
 
@@ -51,11 +49,7 @@ namespace CopSpawnTables
 		{
 			static hash (__cdecl* const GetType)(const char*) = (hash (__cdecl*)(const char*))0x5CC240;	
 
-			const auto foundName = SpawnTable::copNameToType.find(copName);
-			if (foundName != SpawnTable::copNameToType.end()) return foundName->second;
-
 			const hash copType = GetType(copName.c_str());
-			SpawnTable::copNameToType.insert({copName, copType});
 			SpawnTable::copTypeToName.insert({copType, copName});
 
 			return copType;
@@ -92,23 +86,25 @@ namespace CopSpawnTables
 			
 			const hash copType = this->ConvertToType(copName);
 			if (this->helicopterTypes.contains(copType)) return false;
-			if (this->IsInTable(copType))                return false;
 
-			this->maxTotalCopCapacity       += copCount;
-			this->maxTotalCopChance         += copChance;
-			this->availableTotalCopCapacity += copCount;
-			this->availableTotalCopChance   += copChance;
+			if (this->copTypeToEntry.insert({copType, {copCount, copChance}}).second)
+			{
+				this->maxTotalCopCapacity       += copCount;
+				this->maxTotalCopChance         += copChance;
+				this->availableTotalCopCapacity += copCount;
+				this->availableTotalCopChance   += copChance;
 
-			this->availableCopTypes.insert(copType);
-			this->copTypeToEntry.insert({copType, {copCount, copChance}});
-
-			return true;
+				return true;
+			}
+			
+			return false;
 		}
 
 
 		int GetCapacity(const hash copType) const
 		{
-			return (this->IsInTable(copType)) ? copTypeToEntry.at(copType).capacity : 0;
+			const auto foundType = this->copTypeToEntry.find(copType);
+			return (foundType != this->copTypeToEntry.end()) ? foundType->second.capacity : 0;
 		}
 
 
@@ -117,26 +113,21 @@ namespace CopSpawnTables
 			const hash copType,
 			const int  change
 		) {
-			if (not this->IsInTable(copType)) return false;
+			const auto foundType = this->copTypeToEntry.find(copType);
+			if (foundType == this->copTypeToEntry.end()) return false;
 
-			Entry&     typeEntry    = copTypeToEntry.at(copType);
-			const bool wasAvailable = (typeEntry.capacity > 0);
+			const bool wasAvailable = (foundType->second.capacity > 0);
 
-			typeEntry.capacity              += change;
+			foundType->second.capacity      += change;
 			this->availableTotalCopCapacity += change;
 
-			if (wasAvailable xor (typeEntry.capacity > 0))
+			if (wasAvailable xor (foundType->second.capacity > 0))
 			{
 				if (wasAvailable)
-				{
-					this->availableTotalCopChance -= typeEntry.chance;
-					this->availableCopTypes.erase(copType);
-				}
+					this->availableTotalCopChance -= foundType->second.chance;
+				
 				else
-				{
-					this->availableTotalCopChance += typeEntry.chance;
-					this->availableCopTypes.insert(copType);
-				}
+					this->availableTotalCopChance += foundType->second.chance;
 			}
 
 			return true;
@@ -153,10 +144,15 @@ namespace CopSpawnTables
 			const int randomNumber     = Globals::prng.Generate<int>(0, this->availableTotalCopChance);
 			int       cumulativeChance = 0;
 
-			for (const hash copType : this->availableCopTypes)
+			for (const auto& pair : this->copTypeToEntry)
 			{
-				cumulativeChance += this->copTypeToEntry.at(copType).chance;
-				if (randomNumber < cumulativeChance) return this->ConvertToName(copType);
+				if (pair.second.capacity > 0)
+				{
+					cumulativeChance += pair.second.chance;
+
+					if (randomNumber < cumulativeChance) 
+						return this->ConvertToName(pair.first);
+				}
 			}
 
 			if constexpr (Globals::loggingEnabled)

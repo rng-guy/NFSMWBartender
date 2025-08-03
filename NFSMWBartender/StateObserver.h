@@ -308,13 +308,13 @@ namespace StateObserver
 
 	bool Initialise(ConfigParser::Parser& parser)
 	{
-		MemoryEditor::DigCodeCave(&HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
-		MemoryEditor::DigCodeCave(&GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
-		MemoryEditor::DigCodeCave(&WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);
-		MemoryEditor::DigCodeCave(&GameplayObserver,  gameplayObserverEntrance,  gameplayObserverExit);
-		MemoryEditor::DigCodeCave(&RetryObserver,     retryObserverEntrance,     retryObserverExit);
-		MemoryEditor::DigCodeCave(&HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
-		MemoryEditor::DigCodeCave(&PerpVehicle,       perpVehicleEntrance,       perpVehicleExit);
+		MemoryEditor::DigCodeCave(HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
+		MemoryEditor::DigCodeCave(GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
+		MemoryEditor::DigCodeCave(WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);
+		MemoryEditor::DigCodeCave(GameplayObserver,  gameplayObserverEntrance,  gameplayObserverExit);
+		MemoryEditor::DigCodeCave(RetryObserver,     retryObserverEntrance,     retryObserverExit);
+		MemoryEditor::DigCodeCave(HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
+		MemoryEditor::DigCodeCave(PerpVehicle,       perpVehicleEntrance,       perpVehicleExit);
 
 		return true;
 	}
