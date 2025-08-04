@@ -77,11 +77,11 @@ the pursuit by detaching themselves from roadblocks, and the helicopter.
 
 Your ANTIVIRUS SOFTWARE might falsely flag Bartender as a virus when you launch your game,
 causing the .asi loader to display an error message ("Error code: 225") and your antivirus to 
-quarantine the .asi file somewhere. If that happens, you need to whitelist Bartender's .asi file
-in your antivirus software before you launch your game with Bartender installed. This is a common
-risk for all .asi mods, as they often rely on virus-like methods such as code injection and memory
-manipulation to function. Avoiding false positives with .asi mods as extensive as Bartender is
-very difficult, but I still apologise in advance for any headaches Bartender might cause you.
+quarantine the .asi file somewhere. If Bartender gets flagged, you need to whitelist its .asi file
+in your antivirus software before you launch your game with Bartender installed. False flagging is
+a risk for all .asi mods, as they must often rely on virus-like methods such as code injection and 
+memory manipulation to function. This makes avoiding false flagging with .asi mods as invasive as
+Bartender extremely difficult, so I apologise in advance for any headaches Bartender might cause.
 
 If you configure Bartender improperly, it might cause STABILITY ISSUES in your game due to how much
 control it gives you over the game's cop-spawning logic. Also, there are a few quirks to the way 
