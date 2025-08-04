@@ -83,7 +83,7 @@ The "Advanced" feature set **also fixes** the engagement count displayed above t
 
 # 3 - What should I know before I use Bartender?
 
-Your **antivirus software** might falsely flag Bartender as a virus when you launch your game, causing the .asi loader to display an error message ("Error code: 225") and your antivirus to quarantine the .asi file somewhere. If that happens, you need to whitelist Bartender's .asi file in your antivirus software before you launch your game with Bartender installed. This is a common risk with all .asi mods, as they often rely on virus-like methods like code injection and memory manipulation to function. Avoiding false positives with .asi mods as extensive as Bartender is very difficult, but I still apologise in advance for any headaches Bartender might cause you.
+Your **antivirus software** might falsely flag Bartender as a virus when you launch your game, causing the .asi loader to display an error message (`Error code: 225`) and your antivirus to quarantine the .asi file somewhere. If that happens, you need to whitelist Bartender's .asi file in your antivirus software before you launch your game with Bartender installed. This is a common risk with all .asi mods, as they often rely on virus-like methods like code injection and memory manipulation to function. Avoiding false positives with .asi mods as extensive as Bartender is very difficult, but I still apologise in advance for any headaches Bartender might cause you.
 
 &nbsp;
 
