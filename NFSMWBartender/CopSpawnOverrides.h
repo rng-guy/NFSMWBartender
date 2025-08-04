@@ -145,12 +145,13 @@ namespace CopSpawnOverrides
 			if (not this->IsHeatLevelKnown())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[SPA] Updating table: skipped");
+					Globals::Log(this->pursuit, "[SPA] Skipping updating spawn table");
 
 				return;
 			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[SPA] Updating table: success");
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::Log(this->pursuit, "[SPA] Updating table");
 
 			this->spawnTable = *(CopSpawnTables::pursuitSpawnTable);
 
@@ -162,7 +163,13 @@ namespace CopSpawnOverrides
 				this->spawnTable.UpdateCapacity(pair.first, -(pair.second));
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(pair.first));
+				{
+					if (this->spawnTable.Contains(pair.first))
+						Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(pair.first));
+
+					else
+						Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
+				}
 			}
 		}
 
@@ -268,23 +275,25 @@ namespace CopSpawnOverrides
 		) 
 			override
 		{
-			if (skipEventSpawns) skipEventSpawns = false;
+			skipEventSpawns = false;
+
 			if (copLabel != CopLabel::CHASER) return;
 
-			const auto foundType = this->copTypeToCurrentCount.find(copType);
-
-			if (foundType == this->copTypeToCurrentCount.end())
-				this->copTypeToCurrentCount.insert({copType, 1});
-			
-			else (foundType->second)++;
+			const auto addedType = this->copTypeToCurrentCount.insert({copType, 1});
+			if (not addedType.second) (addedType.first->second)++;
 
 			this->spawnTable.UpdateCapacity(copType, -1);
 			(this->numCopsInContingent)++;
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(copType));
-				Globals::Log(this->pursuit, "[SPA] Contingent:",    this->numCopsInContingent);
+				if (this->spawnTable.Contains(copType))
+					Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(copType));
+
+				else
+					Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
+
+				Globals::Log(this->pursuit, "[SPA] Contingent:", addedType.first->second, '/', this->numCopsInContingent);
 			}
 		}
 
@@ -303,19 +312,25 @@ namespace CopSpawnOverrides
 
 			if (foundType != this->copTypeToCurrentCount.end())
 			{
-				if (--(foundType->second) == 0)
-					this->copTypeToCurrentCount.erase(foundType);
+				(foundType->second)--;
+				(this->numCopsInContingent)--;
+				(*(this->numCopsLostInWave))++;
 
 				this->spawnTable.UpdateCapacity(copType, +1);
-				(this->numCopsInContingent)--;
-
-				(*(this->numCopsLostInWave))++;
 
 				if constexpr (Globals::loggingEnabled)
 				{
-					Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(copType));
-					Globals::Log(this->pursuit, "[SPA] Contingent:",    this->numCopsInContingent);
+					if (this->spawnTable.Contains(copType))
+						Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(copType));
+
+					else
+						Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
+
+					Globals::Log(this->pursuit, "[SPA] Contingent:", foundType->second, '/', this->numCopsInContingent);
 				}
+
+				if (foundType->second < 1)
+					this->copTypeToCurrentCount.erase(foundType);
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::Log("WARNING: [SPA] Unknown type", copType, "in", this->pursuit);

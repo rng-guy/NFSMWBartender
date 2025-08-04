@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.12.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.12.02) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -74,6 +74,14 @@ the pursuit by detaching themselves from roadblocks, and the helicopter.
 
 
 ── ■ │ 3 - WHAT SHOULD I KNOW BEFORE I USE BARTENDER? │ ■ ─────────────────────────────────────────
+
+Your ANTIVIRUS SOFTWARE might falsely flag Bartender as a virus when you launch your game,
+causing the .asi loader to display an error message ("Error code: 225") and your antivirus to 
+quarantine the .asi file somewhere. If that happens, you need to whitelist Bartender's .asi file
+in your antivirus software before you launch your game with Bartender installed. This is a common
+risk with all .asi mods, as they often rely on virus-like methods like code injection and memory
+manipulation to function. Avoiding false positives with .asi mods as extensive as Bartender is
+very difficult, but I still apologise in advance for any headaches Bartender might cause you.
 
 If you configure Bartender improperly, it might cause STABILITY ISSUES in your game due to how much
 control it gives you over the game's cop-spawning logic. Also, there are a few quirks to the way 
@@ -391,3 +399,4 @@ v1.00.00: Initial release
 
    12.00: Added fix for vanilla helicopter shadows and further improved performance
       01: Improved performance even more by removing redundant re-hashing
+      02: Fixed rare edge case of "Events" spawns temporarily blocking "Chasers" spawns

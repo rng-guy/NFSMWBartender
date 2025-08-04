@@ -30,11 +30,9 @@ namespace CopSpawnTables
 			int chance;
 		};
 
-		int maxTotalCopCapacity = 0;
-		int maxTotalCopChance   = 0;
-
-		int availableTotalCopCapacity = 0;
-		int availableTotalCopChance   = 0;
+		int maxTotalCopCapacity   = 0;
+		int maxTotalCopChance     = 0;
+		int currentTotalCopChance = 0;
 
 		std::unordered_map<hash, Entry, Globals::IdentityHash> copTypeToEntry;
 
@@ -69,7 +67,7 @@ namespace CopSpawnTables
 		}
 
 
-		bool IsInTable(const hash copType) const
+		bool Contains(const hash copType) const
 		{
 			return this->copTypeToEntry.contains(copType);
 		}
@@ -89,10 +87,9 @@ namespace CopSpawnTables
 
 			if (this->copTypeToEntry.insert({copType, {copCount, copChance}}).second)
 			{
-				this->maxTotalCopCapacity       += copCount;
-				this->maxTotalCopChance         += copChance;
-				this->availableTotalCopCapacity += copCount;
-				this->availableTotalCopChance   += copChance;
+				this->maxTotalCopCapacity   += copCount;
+				this->maxTotalCopChance     += copChance;
+				this->currentTotalCopChance += copChance;
 
 				return true;
 			}
@@ -118,30 +115,29 @@ namespace CopSpawnTables
 
 			const bool wasAvailable = (foundType->second.capacity > 0);
 
-			foundType->second.capacity      += change;
-			this->availableTotalCopCapacity += change;
+			foundType->second.capacity += change;
 
 			if (wasAvailable xor (foundType->second.capacity > 0))
 			{
 				if (wasAvailable)
-					this->availableTotalCopChance -= foundType->second.chance;
+					this->currentTotalCopChance -= foundType->second.chance;
 				
 				else
-					this->availableTotalCopChance += foundType->second.chance;
+					this->currentTotalCopChance += foundType->second.chance;
 			}
 
 			return true;
 		}
 
 
-		bool IsEmpty() const {return (this->availableTotalCopCapacity < 1);}
+		bool IsEmpty() const {return (this->maxTotalCopCapacity < 1);}
 
 
 		const char* GetRandomCopName() const
 		{
-			if (this->IsEmpty()) return nullptr;
+			if (this->currentTotalCopChance < 1) return nullptr;
 
-			const int randomNumber     = Globals::prng.Generate<int>(0, this->availableTotalCopChance);
+			const int randomNumber     = Globals::prng.Generate<int>(0, this->currentTotalCopChance);
 			int       cumulativeChance = 0;
 
 			for (const auto& pair : this->copTypeToEntry)
@@ -150,22 +146,19 @@ namespace CopSpawnTables
 				{
 					cumulativeChance += pair.second.chance;
 
-					if (randomNumber < cumulativeChance) 
+					if (cumulativeChance > randomNumber) 
 						return this->ConvertToName(pair.first);
 				}
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [TAB] Failed to select vehicle:", randomNumber, cumulativeChance, this->availableTotalCopChance);
+				Globals::Log("WARNING: [TAB] Failed to select vehicle:", randomNumber, cumulativeChance, this->currentTotalCopChance);
 
 			return nullptr;
 		}
 
 
-		int GetMaxTotalCopCapacity()       const {return this->maxTotalCopCapacity;}
-		int GetMaxTotalCopChance()         const {return this->maxTotalCopChance;}
-		int GetAvailableTotalCopCapacity() const {return this->availableTotalCopCapacity;}
-		int GetAvailableTotalCopChance()   const {return this->availableTotalCopChance;}
+		int GetMaxTotalCopCapacity() const {return this->maxTotalCopCapacity;}
 	};
 
 

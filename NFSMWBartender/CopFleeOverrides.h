@@ -182,7 +182,7 @@ namespace CopFleeOverrides
 				break;
 
 			case CopLabel::CHASER:
-				flagVehicle = (fleeingEnabled and (not CopSpawnTables::pursuitSpawnTable->IsInTable(assessment.copType)));
+				flagVehicle = (fleeingEnabled and (not (CopSpawnTables::pursuitSpawnTable->Contains(assessment.copType))));
 				if (flagVehicle) timeUntilFlee = Globals::prng.Generate<float>(minFleeDelay, maxFleeDelay);
 				break;
 
