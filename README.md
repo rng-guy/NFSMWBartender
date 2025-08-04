@@ -126,7 +126,7 @@ Bartender can handle any **invalid values** you might provide in its configurati
 
 Regarding the "Basic" feature set **in general**:
 
-* The configuration (.ini) files for this feature set are located in `BartenderSettings/Basic`.
+* The configuration (.ini) files for this feature set are located in `BartenderSettings\Basic`.
 
 * The unedited configuration files for this feature set use the game's vanilla values.
 
@@ -170,7 +170,7 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 Regarding the "Advanced" feature set **in general**:
 
-* The configuration (.ini) files for this feature set are located in `BartenderSettings/Advanced`.
+* The configuration (.ini) files for this feature set are located in `BartenderSettings\Advanced`.
 
 * The unedited configuration files for this feature set use the game's vanilla values.
 
