@@ -43,7 +43,7 @@ namespace CopSpawnTables
 
 	public:
 
-		static hash NameToType(const std::string& copName)
+		static hash ConvertToType(const std::string& copName)
 		{
 			const hash copType = Globals::GetStringHash(copName.c_str());
 			SpawnTable::copTypeToName.insert({copType, copName});
@@ -51,7 +51,7 @@ namespace CopSpawnTables
 		}
 
 
-		static const char* TypeToName(const hash copType)
+		static const char* ConvertToName(const hash copType)
 		{
 			const auto foundType = SpawnTable::copTypeToName.find(copType);
 			return (foundType != SpawnTable::copTypeToName.end()) ? (foundType->second).c_str() : nullptr;
@@ -60,7 +60,7 @@ namespace CopSpawnTables
 
 		static void RegisterHelicopter(const std::string& helicopterName)
 		{
-			SpawnTable::helicopterTypes.insert(SpawnTable::NameToType(helicopterName));
+			SpawnTable::helicopterTypes.insert(SpawnTable::ConvertToType(helicopterName));
 		}
 
 
@@ -79,7 +79,7 @@ namespace CopSpawnTables
 			if (copCount < 1)  return false;
 			if (copChance < 1) return false;
 			
-			const hash copType = this->NameToType(copName);
+			const hash copType = this->ConvertToType(copName);
 			if (this->helicopterTypes.contains(copType)) return false;
 
 			if (this->copTypeToEntry.insert({copType, {copCount, copChance}}).second)
@@ -144,7 +144,7 @@ namespace CopSpawnTables
 					cumulativeChance += pair.second.chance;
 
 					if (cumulativeChance > randomNumber) 
-						return this->TypeToName(pair.first);
+						return this->ConvertToName(pair.first);
 				}
 			}
 
