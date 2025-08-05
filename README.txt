@@ -104,6 +104,7 @@ whether the group allows this. Bartender parses groups that allow "default" valu
  3) • All race Heat levels (format: "raceXY") you omitted are set to their free-roam values.
 
 Bartender can handle any INVALID VALUES you might provide in its configuration files:
+ • duplicates (e.g. another "heat02" value) within parameter groups are ignored,
  • values of incorrect type (e.g. a string instead of a decimal) count as omitted,
  • negative values that should be positive are set to 0 instead of counting as omitted,
  • mismatched interval values (i.e. where "max" < "min") are each set to the lower value, and
