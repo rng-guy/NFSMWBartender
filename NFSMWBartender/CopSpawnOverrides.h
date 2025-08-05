@@ -50,6 +50,9 @@ namespace CopSpawnOverrides
 
 		void ResetSpawnTable()
 		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogIndent("[GLO] Resetting spawn table");
+
 			for (const auto& pair : this->copTypeToCurrentCount)
 				this->spawnTable.UpdateCapacity(pair.first, pair.second);
 
@@ -62,7 +65,20 @@ namespace CopSpawnOverrides
 			const char* copName = this->spawnTable.GetRandomCopName();
 
 			if ((not copName) and *(this->sourceSpawnTable))
+			{
 				copName = (*(*(this->sourceSpawnTable))).GetRandomCopName();
+
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (not copName)
+						Globals::Log("WARNING: [GLO] Failed to select spawn");
+				}
+			}
+			else if constexpr (Globals::loggingEnabled)
+			{
+				if (not copName)
+					Globals::Log("WARNING: [GLO] Invalid source-table pointer");
+			}
 
 			return copName;
 		}
@@ -74,6 +90,9 @@ namespace CopSpawnOverrides
 
 			const auto addedType = this->copTypeToCurrentCount.insert({copType, 1});
 			if (not addedType.second) (addedType.first->second)++;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogIndent("[GLO] Spawned", Globals::GetCopName(copVehicle), addedType.first->second);
 
 			this->spawnTable.UpdateCapacity(copType, -1);
 		}
@@ -159,10 +178,10 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->spawnTable.Contains(pair.first))
-						Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(pair.first));
+						Globals::Log(this->pursuit, "[SPA] Capacity:", this->spawnTable.GetCapacity(pair.first));
 
 					else
-						Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
+						Globals::Log(this->pursuit, "[SPA] Capacity undefined");
 				}
 			}
 		}
@@ -282,12 +301,12 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->spawnTable.Contains(copType))
-					Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(copType));
+					Globals::Log(this->pursuit, "[SPA] Capacity:", this->spawnTable.GetCapacity(copType));
 
 				else
-					Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
+					Globals::Log(this->pursuit, "[SPA] Capacity undefined");
 
-				Globals::Log(this->pursuit, "[SPA] Contingent:", addedType.first->second, '/', this->numCopsInContingent);
+				Globals::Log(this->pursuit, "[SPA] Contingent ratio:", addedType.first->second, '/', this->numCopsInContingent);
 			}
 		}
 
@@ -315,12 +334,12 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->spawnTable.Contains(copType))
-						Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(copType));
+						Globals::Log(this->pursuit, "[SPA] Capacity:", this->spawnTable.GetCapacity(copType));
 
 					else
-						Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
+						Globals::Log(this->pursuit, "[SPA] Capacity undefined");
 
-					Globals::Log(this->pursuit, "[SPA] Contingent:", foundType->second, '/', this->numCopsInContingent);
+					Globals::Log(this->pursuit, "[SPA] Contingent ratio:", foundType->second, '/', this->numCopsInContingent);
 				}
 
 				if (foundType->second < 1)
@@ -341,7 +360,7 @@ namespace CopSpawnOverrides
 
 
 
-	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
 	void __fastcall NotifyEventManager(const address copVehicle)
 	{
@@ -438,7 +457,7 @@ namespace CopSpawnOverrides
 
 
 
-	// Code caves --------------------------------------------------------------------------------------------------------------------------------------
+	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address roadblockSpawnEntrance = 0x43E04F;
 	constexpr address roadblockSpawnExit     = 0x43E06C;

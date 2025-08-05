@@ -46,7 +46,7 @@ namespace Globals
 	const std::string configPathAdvanced = configPathMain + "Advanced/";
 
 	// Logging
-	constexpr bool loggingEnabled = false;
+	constexpr bool loggingEnabled = true;
 
 	std::unique_ptr<std::fstream> logStream;
 
@@ -58,7 +58,7 @@ namespace Globals
 
 
 
-	// Custom hash function (if you can call it that) --------------------------------------------------------------------------------------------------
+	// Auxiliary types and functions ----------------------------------------------------------------------------------------------------------------
 
 	struct IdentityHash 
 	{
@@ -68,11 +68,16 @@ namespace Globals
 		}
 	};
 
+	const char* GetCopName(const address copVehicle)
+	{
+		return (const char*)(*((address*)(*((address*)(copVehicle + 0x2C)) + 0x24)));
+	}
 
 
 
 
-	// Special parsing types and functions -------------------------------------------------------------------------------------------------------------
+
+	// Special parsing types and functions ----------------------------------------------------------------------------------------------------------
 
 	template <typename T>
 	struct HeatParameter

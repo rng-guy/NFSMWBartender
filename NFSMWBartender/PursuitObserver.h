@@ -50,12 +50,6 @@ namespace PursuitObserver
 		}
 
 
-		static const char* GetCopName(const address copVehicle)
-		{
-			return (const char*)(*((address*)(*((address*)(copVehicle + 0x2C)) + 0x24)));
-		}
-
-
 		static CopLabel LabelAddVehicleCall(const address callReturn)
 		{
 			switch (callReturn)
@@ -164,7 +158,7 @@ namespace PursuitObserver
 			{
 				if ((PursuitObserver::copVehiclesLoaded.insert(copVehicle)).second)
 				{
-					Globals::LogIndent("[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
+					Globals::LogIndent("[REG] +", copVehicle, Globals::GetCopName(copVehicle));
 					Globals::LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
 			}
@@ -178,7 +172,7 @@ namespace PursuitObserver
 			{
 				if (PursuitObserver::copVehiclesLoaded.erase(copVehicle) > 0)
 				{
-					Globals::LogIndent("[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
+					Globals::LogIndent("[REG] -", copVehicle, Globals::GetCopName(copVehicle));
 					Globals::LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
 			}
@@ -207,14 +201,14 @@ namespace PursuitObserver
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::Log(this->pursuit, "[OBS] =", copVehicle, (int)copLabel, 
-						this->GetCopName(copVehicle), "is already", (int)(addedVehicle.first->second));
+						Globals::GetCopName(copVehicle), "is already", (int)(addedVehicle.first->second));
 
 				return;
 			}
 			else if (copLabel != CopLabel::HELICOPTER) this->Register(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
+				Globals::Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, Globals::GetCopName(copVehicle));
 
 			const hash copType = Globals::GetCopType(copVehicle);
 
@@ -230,7 +224,7 @@ namespace PursuitObserver
 			if (foundVehicle == this->copVehicleToLabel.end())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [OBS] Unknown vehicle", copVehicle, this->GetCopName(copVehicle), "in", this->pursuit);
+					Globals::Log("WARNING: [OBS] Unknown vehicle", copVehicle, Globals::GetCopName(copVehicle), "in", this->pursuit);
 
 				return;
 			}
@@ -238,7 +232,7 @@ namespace PursuitObserver
 			const hash copType = Globals::GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), this->GetCopName(copVehicle));
+				Globals::Log(this->pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), Globals::GetCopName(copVehicle));
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessRemoval(copVehicle, copType, foundVehicle->second);
