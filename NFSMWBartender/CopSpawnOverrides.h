@@ -37,13 +37,14 @@ namespace CopSpawnOverrides
 		void ReloadSpawnTable()
 		{
 			if (*(this->sourceSpawnTable))
+			{
 				this->spawnTable = *(*(this->sourceSpawnTable));
 
+				for (const auto& pair : this->copTypeToCurrentCount)
+					this->spawnTable.UpdateCapacity(pair.first, -pair.second);
+			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [GLO] Failed table reload");
-
-			for (const auto& pair : this->copTypeToCurrentCount)
-				this->spawnTable.UpdateCapacity(pair.first, -pair.second);
+				Globals::Log("WARNING: [GLO] Failed to reload table");
 		}
 
 
@@ -69,17 +70,10 @@ namespace CopSpawnOverrides
 
 		void NotifyOfSpawn(const address copVehicle)
 		{
-			static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
+			const hash copType = Globals::GetCopType(copVehicle);
 
-			const hash copType = GetCopType(copVehicle);
-			if (not copType) return;
-
-			const auto foundType = this->copTypeToCurrentCount.find(copType);
-
-			if (foundType == this->copTypeToCurrentCount.end())
-				this->copTypeToCurrentCount.insert({copType, 1});
-
-			else (foundType->second)++;
+			const auto addedType = this->copTypeToCurrentCount.insert({copType, 1});
+			if (not addedType.second) (addedType.first->second)++;
 
 			this->spawnTable.UpdateCapacity(copType, -1);
 		}
@@ -158,7 +152,7 @@ namespace CopSpawnOverrides
 			for (const auto& pair : this->copTypeToCurrentCount)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[SPA] Initialising table:", pair.first, -(pair.second));
+					Globals::Log(this->pursuit, "[SPA] Copying", pair.second, 'x', pair.first);
 
 				this->spawnTable.UpdateCapacity(pair.first, -(pair.second));
 

@@ -154,10 +154,9 @@ namespace CopFleeOverrides
 
 			case CopLabel::CHASER:
 				return true;
-
-			default:
-				return false;
 			}
+
+			return false;
 		}
 
 

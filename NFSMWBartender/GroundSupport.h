@@ -156,25 +156,23 @@ namespace GroundSupport
 
 	__declspec(naked) void OnAttached()
 	{
-		static constexpr address getStringHash = 0x5CC240;
-
 		__asm
 		{
 			push dword ptr leaderVehicle
 			mov dword ptr [esi + 0x148], ebx
-			call dword ptr getStringHash
+			call Globals::GetStringHash
 
 			push dword ptr heavyRammingVehicle
 			mov ebx, eax
-			call dword ptr getStringHash
+			call Globals::GetStringHash
 
 			push dword ptr lightRammingVehicle
 			mov ebp, eax
-			call dword ptr getStringHash
+			call Globals::GetStringHash
 
 			push dword ptr henchmenVehicle
 			mov dword ptr [esp + 0x30], eax
-			call dword ptr getStringHash
+			call Globals::GetStringHash
 
 			jmp dword ptr onAttachedExit
 		}

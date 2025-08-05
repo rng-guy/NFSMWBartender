@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.12.02) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.12.03) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -75,24 +75,21 @@ the pursuit by detaching themselves from roadblocks, and the helicopter.
 
 ── ■ │ 3 - WHAT SHOULD I KNOW BEFORE I USE BARTENDER? │ ■ ─────────────────────────────────────────
 
-Your ANTIVIRUS SOFTWARE might falsely flag Bartender as a virus when you launch your game,
-causing the .asi loader to display an error message ("Error code: 225") and your antivirus to 
-quarantine the .asi file somewhere. If Bartender gets flagged, you need to whitelist its .asi file
-in your antivirus software before you launch your game with Bartender installed. False flagging is
-a risk for all .asi mods, as they must often rely on virus-like methods such as code injection and 
-memory manipulation to function. This makes avoiding false flagging with .asi mods as invasive as
-Bartender extremely difficult, so I apologise in advance for any headaches Bartender might cause.
+Rarely, ANTIVIRUS SOFTWARE might falsely flag Bartender as a virus when you launch your game.
+This causes the .asi loader to display an error message ("Error code: 225") and your antivirus
+to quarantine the .asi file somewhere. If Bartender gets flagged, you need to whitelist its .asi
+file in your antivirus software before you reattempt to launch your game with Bartender installed.
 
-If you configure Bartender improperly, it might cause STABILITY ISSUES in your game due to how much
-control it gives you over the game's cop-spawning logic. Also, there are a few quirks to the way 
-Bartender parses its configuration files that you should be aware of before you edit any of them.
+If you configure Bartender improperly, it might cause ODD BEHAVIOUR / STABILITY ISSUES in your game
+due to how much control Bartender gives you over the game's hard-coded values. There are also a few
+quirks to the way Bartender parses its configuration files that you should be aware of beforehand.
 
-To help you AVOID GAME INSTABILITY, the subsections below contain
+To help you AVOID SURPRISES AND GAME INSTABILITY, the subsections below contain
  • everything you need to make informed edits to Bartender's configuration files, and
  • detailed compatibility notes for mods known to conflict with any Bartender features.
 
 Barring any exceptions mentioned in the subsections below, Bartender should be FULLY COMPATIBLE
-with all VltEd and Binary mods. Any .asi mods without pursuit features should also be compatible.
+with all VltEd and Binary mods. Other .asi mods without pursuit features should also be compatible.
 
 
 
@@ -400,3 +397,4 @@ v1.00.00: Initial release
    12.00: Added fix for vanilla helicopter shadows and further improved performance
       01: Improved performance even more by removing redundant re-hashing
       02: Fixed rare edge case of "Events" spawns temporarily blocking "Chasers" spawns
+      03: Another performance improvement by reducing re-hashing even further

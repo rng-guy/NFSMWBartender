@@ -41,7 +41,6 @@ namespace PursuitObserver
 		std::vector<std::unique_ptr<CopVehicleReaction>>             copVehicleReactions;
 
 		inline static std::unordered_set<address, Globals::IdentityHash> copVehiclesLoaded;
-		inline static hash (__thiscall* const GetCopType)(address) = (hash (__thiscall*)(address))0x6880A0;
 
 
 		template <std::derived_from<CopVehicleReaction> F, typename ...T>
@@ -217,7 +216,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
-			const hash copType = this->GetCopType(copVehicle);
+			const hash copType = Globals::GetCopType(copVehicle);
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
@@ -236,7 +235,7 @@ namespace PursuitObserver
 				return;
 			}
 
-			const hash copType = this->GetCopType(copVehicle);
+			const hash copType = Globals::GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), this->GetCopName(copVehicle));
@@ -256,6 +255,7 @@ namespace PursuitObserver
 
 	bool featureEnabled = false;
 
+	// Code caves
 	std::unordered_map<address, PursuitObserver, Globals::IdentityHash> pursuitToObserver;
 
 

@@ -47,6 +47,7 @@ namespace StateObserver
 	}
 
 
+
 	void OnGameStartUpdates()
 	{
 		if constexpr (Globals::loggingEnabled) 
@@ -54,6 +55,7 @@ namespace StateObserver
 
 		DestructionStrings::VerifyBinaryKeys();
 	}
+
 
 
 	void OnGameplayUpdates()
@@ -70,6 +72,7 @@ namespace StateObserver
 	}
 
 
+
 	void OnWorldLoadUpdates()
 	{
 		currentHeatLevel  = 0;
@@ -78,6 +81,7 @@ namespace StateObserver
 
 		PursuitObserver::HardResetState();
 	}
+
 
 
 	void OnRetryUpdates() 

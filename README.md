@@ -83,21 +83,21 @@ The "Advanced" feature set **also fixes** the engagement count displayed above t
 
 # 3 - What should I know before I use Bartender?
 
-Your **antivirus software** might falsely flag Bartender as a virus when you launch your game, causing the .asi loader to display an error message (`Error code: 225`) and your antivirus to quarantine the .asi file somewhere. If Bartender gets flagged, you need to whitelist its .asi file in your antivirus software before you launch your game with Bartender installed. False flagging is a risk for all .asi mods, as they must often rely on virus-like methods such as code injection and memory manipulation to function. This makes avoiding false flagging with .asi mods as invasive as Bartender extremely difficult, so I apologise in advance for any headaches Bartender might cause.
+Rarely, **antivirus software** might falsely flag Bartender as a virus when you launch your game. This causes the .asi loader to display an error message (`Error code: 225`) and your antivirus to quarantine the .asi file somewhere. If Bartender gets flagged, you need to whitelist its .asi file in your antivirus software before you reattempt to launch your game with Bartender installed.
 
 &nbsp;
 
-If you configure Bartender improperly, it might cause **stability issues** in your game due to how much control it gives you over the game's cop-spawning logic. Also, there are a few quirks to the way Bartender parses its configuration files that you should be aware of before you edit any of them.
+If you configure Bartender improperly, it might cause **odd behaviour / stability issues** in your game due to how much control Bartender gives you over the game's hard-coded values. There are also a few quirks to the way Bartender parses its configuration files that you should be aware of beforehand.
 
 &nbsp;
 
-To help you **avoid game instability**, the subsections below contain
+To help you **avoid surprises and game instability**, the subsections below contain
 * everything you need to make informed edits to Bartender's configuration files, and
 * detailed compatibility notes for mods known to conflict with any Bartender features.
 
 &nbsp;
 
-Barring any exceptions mentioned in the subsections below, Bartender should be **fully compatible** with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods. Any .asi mods without pursuit features should also be compatible.
+Barring any exceptions mentioned in the subsections below, Bartender should be **fully compatible** with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods. Other .asi mods without pursuit features should also be compatible.
 
 &nbsp;
 

@@ -33,6 +33,10 @@ namespace Globals
 	// Heat levels
 	constexpr size_t maxHeatLevel = 10;
 	constexpr float  maxHeat      = (float)maxHeatLevel;
+
+	// Common function pointers
+	hash (__cdecl* const GetStringHash)(const char*) = (hash (__cdecl*)(const char*))0x5CC240;
+	hash (__thiscall* const GetCopType)(address)     = (hash (__thiscall*)(address))0x6880A0;
 	
 	// Configuration files
 	const std::string configFormatRoam   = "heat{:02}";
@@ -49,7 +53,7 @@ namespace Globals
 	const std::string logFile       = "BartenderLog.txt";
 	const std::string logIndent     = "        ";
 	const std::string logLongIndent = "              ";
-	
+
 
 
 

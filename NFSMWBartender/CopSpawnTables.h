@@ -45,11 +45,8 @@ namespace CopSpawnTables
 
 		static hash ConvertToType(const std::string& copName)
 		{
-			static hash (__cdecl* const GetType)(const char*) = (hash (__cdecl*)(const char*))0x5CC240;	
-
-			const hash copType = GetType(copName.c_str());
+			const hash copType = Globals::GetStringHash(copName.c_str());
 			SpawnTable::copTypeToName.insert({copType, copName});
-
 			return copType;
 		}
 
