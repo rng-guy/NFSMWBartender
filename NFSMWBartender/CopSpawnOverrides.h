@@ -62,7 +62,20 @@ namespace CopSpawnOverrides
 			const char* copName = this->spawnTable.GetRandomCopName();
 
 			if ((not copName) and *(this->sourceSpawnTable))
+			{
 				copName = (*(*(this->sourceSpawnTable))).GetRandomCopName();
+
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (not copName)
+						Globals::Log("WARNING: [GLO] Failed to select vehicle");
+				}
+			}
+			else if constexpr (Globals::loggingEnabled)
+			{
+				if (not copName)
+					Globals::Log("WARNING: [GLO] Invalid source-table pointer");
+			}
 
 			return copName;
 		}
