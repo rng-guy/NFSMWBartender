@@ -114,7 +114,7 @@ namespace Globals
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			return (forRaces) ? this->race[heatLevel - 1] : this->roam[heatLevel - 1];
+			return ((forRaces) ? this->race : this->roam)[heatLevel - 1];
 		}
 
 
@@ -125,7 +125,7 @@ namespace Globals
 		) 
 			const 
 		{
-			return (forRaces) ? this->race[heatLevel - 1] : this->roam[heatLevel - 1];
+			return ((forRaces) ? this->race : this->roam)[heatLevel - 1];
 		}
 	};
 

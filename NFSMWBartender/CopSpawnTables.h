@@ -213,7 +213,7 @@ namespace CopSpawnTables
 				(
 					section,
 					copNames, 
-					ConfigParser::UserParameter<int>(copCounts, 1), 
+					ConfigParser::UserParameter<int>(copCounts,  1), 
 					ConfigParser::UserParameter<int>(copChances, 1)
 				);
 
