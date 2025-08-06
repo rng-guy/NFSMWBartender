@@ -142,7 +142,7 @@ namespace CopSpawnTables
 				{
 					cumulativeChance += pair.second.chance;
 
-					if (cumulativeChance > randomNumber) 
+					if (cumulativeChance > randomNumber)
 						return this->TypeToName(pair.first);
 				}
 			}

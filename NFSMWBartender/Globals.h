@@ -50,7 +50,7 @@ namespace Globals
 	const std::string configPathAdvanced = configPathMain + "Advanced/";
 
 	// Logging
-	constexpr bool loggingEnabled = false;
+	constexpr bool loggingEnabled = true;
 
 	std::unique_ptr<std::fstream> logStream;
 
