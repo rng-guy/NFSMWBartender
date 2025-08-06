@@ -19,7 +19,7 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves
-	key defaultDestructionKey = 0x0;
+	key defaultDestructionKey;
 
 	std::unordered_map<hash, key, Globals::IdentityHash> copTypeToDestructionKey;
 
@@ -102,9 +102,7 @@ namespace DestructionStrings
 		std::erase_if(copTypeToDestructionKey, [](const auto& pair) {return (not GetBinaryString(0, pair.second));});
 
 		// Extract "default" key if provided (and valid)
-		const auto pair = copTypeToDestructionKey.extract(Globals::GetStringHash("default"));
-
-		if (not pair.empty()) 
-			defaultDestructionKey = pair.mapped();
+		const auto pair       = copTypeToDestructionKey.extract(Globals::GetStringHash("default"));
+		defaultDestructionKey = (not pair.empty()) ? pair.mapped() : 0x0;
 	}
 }

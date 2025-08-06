@@ -7,7 +7,6 @@
 #include <string>
 #include <format>
 #include <vector>
-#include <array>
 
 #include "Globals.h"
 #include "ConfigParser.h"
@@ -173,19 +172,12 @@ namespace CopSpawnTables
 	const SpawnTable* pursuitSpawnTable   = nullptr;
 	const SpawnTable* roadblockSpawnTable = nullptr;
 
-	// Free-roam Heat levels
-	std::array<std::string, Globals::maxHeatLevel> roamHelicopterVehicles   = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> roamEventSpawnTables     = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> roamPatrolSpawnTables    = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> roamPursuitSpawnTables   = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> roamRoadblockSpawnTables = {};
-
-	// Racing Heat levels
-	std::array<std::string, Globals::maxHeatLevel> raceHelicopterVehicles   = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> raceEventSpawnTables     = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> racePatrolSpawnTables    = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> racePursuitSpawnTables   = {};
-	std::array<SpawnTable,  Globals::maxHeatLevel> raceRoadblockSpawnTables = {};
+	// Heat levels
+	Globals::HeatParametersPair<std::string> helicopterVehicles;
+	Globals::HeatParametersPair<SpawnTable>  eventSpawnTables;
+	Globals::HeatParametersPair<SpawnTable>  patrolSpawnTables;
+	Globals::HeatParametersPair<SpawnTable>  pursuitSpawnTables;
+	Globals::HeatParametersPair<SpawnTable>  roadblockSpawnTables;
 
 	// Code caves
 	int currentMaxCopCapacity = 0;
@@ -198,11 +190,11 @@ namespace CopSpawnTables
 
 	void ParseTables
 	(
-		ConfigParser::Parser&                          parser,
-		const std::string&                             name,
-		const std::string&                             format,
-		std::array<SpawnTable, Globals::maxHeatLevel>& spawnTables,
-		const bool                                     hasCounts
+		ConfigParser::Parser&                parser,
+		const std::string&                   name,
+		const std::string&                   format,
+		Globals::HeatParameters<SpawnTable>& spawnTables,
+		const bool                           hasCounts
 	) {
 		std::string section;
 
@@ -235,6 +227,17 @@ namespace CopSpawnTables
 
 
 
+	void ValidateTables
+	(
+		Globals::HeatParameters<SpawnTable>&       tables,
+		const Globals::HeatParameters<SpawnTable>& fallbacks
+	) {
+		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
+			if (tables[heatLevel - 1].IsEmpty()) tables[heatLevel - 1] = fallbacks[heatLevel - 1];
+	}
+
+
+
 
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
@@ -244,50 +247,40 @@ namespace CopSpawnTables
 		parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini");
 
 		// Pursuit parameters
-		Globals::ParseHeatParameter<std::string>
+		Globals::ParseHeatParameters<std::string>
 		(
 			parser,
 			"Helicopter:Vehicle",
-			{roamHelicopterVehicles, raceHelicopterVehicles, helicopterVehicle}
+			{helicopterVehicles, helicopterVehicle}
 		);
 
-		std::for_each(roamHelicopterVehicles.begin(), roamHelicopterVehicles.end(), SpawnTable::RegisterHelicopter);
-		std::for_each(raceHelicopterVehicles.begin(), raceHelicopterVehicles.end(), SpawnTable::RegisterHelicopter);
+		std::for_each(helicopterVehicles.roam.begin(), helicopterVehicles.roam.end(), SpawnTable::RegisterHelicopter);
+		std::for_each(helicopterVehicles.race.begin(), helicopterVehicles.race.end(), SpawnTable::RegisterHelicopter);
 
-		// Free-roam spawn tables
+		// Spawn tables
 		if (not parser.LoadFile(Globals::configPathAdvanced + "Cars.ini")) return false;
 
-		const std::string formatRoam = "Heat{:02}:";
-
-		ParseTables(parser, "Chasers", formatRoam, roamPursuitSpawnTables, true);
-		for (const auto& spawnTable : roamPursuitSpawnTables) if (spawnTable.IsEmpty()) return false;
-
-		ParseTables(parser, "Events",     formatRoam, roamEventSpawnTables,     true);
-		ParseTables(parser, "Patrols",    formatRoam, roamPatrolSpawnTables,    false);
-		ParseTables(parser, "Roadblocks", formatRoam, roamRoadblockSpawnTables, true);
-
-		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
+		for (const bool forRaces : {false, true})
 		{
-			if (roamEventSpawnTables[heatLevel - 1].IsEmpty())     roamEventSpawnTables[heatLevel - 1]     = roamPursuitSpawnTables[heatLevel - 1];
-			if (roamPatrolSpawnTables[heatLevel - 1].IsEmpty())    roamPatrolSpawnTables[heatLevel - 1]    = roamPursuitSpawnTables[heatLevel - 1];
-			if (roamRoadblockSpawnTables[heatLevel - 1].IsEmpty()) roamRoadblockSpawnTables[heatLevel - 1] = roamPursuitSpawnTables[heatLevel - 1];
+			const std::string format = (forRaces) ? "Race{:02}:" : "Heat{:02}:";
+
+			ParseTables(parser, "Chasers",    format, pursuitSpawnTables  (forRaces), true);
+			ParseTables(parser, "Events",     format, eventSpawnTables    (forRaces), true);
+			ParseTables(parser, "Patrols",    format, patrolSpawnTables   (forRaces), false);
+			ParseTables(parser, "Roadblocks", format, roadblockSpawnTables(forRaces), true);
 		}
 
-		// Racing spawn tables
-		const std::string formatRace = "Race{:02}:";
+		// Validation
+		for (const SpawnTable& table : pursuitSpawnTables.roam) if (table.IsEmpty()) return false;
 
-		ParseTables(parser, "Chasers",    formatRace, racePursuitSpawnTables,   true);
-		ParseTables(parser, "Events",     formatRace, raceEventSpawnTables,     true);
-		ParseTables(parser, "Patrols",    formatRace, racePatrolSpawnTables,    false);
-		ParseTables(parser, "Roadblocks", formatRace, raceRoadblockSpawnTables, true);
+		ValidateTables(eventSpawnTables.roam,     pursuitSpawnTables.roam);
+		ValidateTables(patrolSpawnTables.roam,    pursuitSpawnTables.roam);
+		ValidateTables(roadblockSpawnTables.roam, pursuitSpawnTables.roam);
 
-		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
-		{
-			if (racePursuitSpawnTables[heatLevel - 1].IsEmpty())   racePursuitSpawnTables[heatLevel - 1]   = roamPursuitSpawnTables[heatLevel - 1];
-			if (raceEventSpawnTables[heatLevel - 1].IsEmpty())     raceEventSpawnTables[heatLevel - 1]     = roamEventSpawnTables[heatLevel - 1];
-			if (racePatrolSpawnTables[heatLevel - 1].IsEmpty())    racePatrolSpawnTables[heatLevel - 1]    = roamPatrolSpawnTables[heatLevel - 1];
-			if (raceRoadblockSpawnTables[heatLevel - 1].IsEmpty()) raceRoadblockSpawnTables[heatLevel - 1] = roamRoadblockSpawnTables[heatLevel - 1];
-		}
+		ValidateTables(pursuitSpawnTables.race,   pursuitSpawnTables.roam);
+		ValidateTables(eventSpawnTables.race,     eventSpawnTables.roam);
+		ValidateTables(patrolSpawnTables.race,    patrolSpawnTables.roam);
+		ValidateTables(roadblockSpawnTables.race, roadblockSpawnTables.roam);
 
 		return (featureEnabled = true);
 	}
@@ -296,29 +289,16 @@ namespace CopSpawnTables
 
 	void SetToHeat
 	(
-		const size_t heatLevel,
-		const bool   isRacing
+		const bool   isRacing,
+		const size_t heatLevel
 	) {
 		if (not featureEnabled) return;
 
-		if (isRacing)
-		{
-			helicopterVehicle = raceHelicopterVehicles[heatLevel - 1].c_str();
-
-			eventSpawnTable     = &raceEventSpawnTables[heatLevel - 1];
-			patrolSpawnTable    = &racePatrolSpawnTables[heatLevel - 1];
-			pursuitSpawnTable   = &racePursuitSpawnTables[heatLevel - 1];
-			roadblockSpawnTable = &raceRoadblockSpawnTables[heatLevel - 1];
-		}
-		else
-		{
-			helicopterVehicle = roamHelicopterVehicles[heatLevel - 1].c_str();
-
-			eventSpawnTable     = &roamEventSpawnTables[heatLevel - 1];
-			patrolSpawnTable    = &roamPatrolSpawnTables[heatLevel - 1];
-			pursuitSpawnTable   = &roamPursuitSpawnTables[heatLevel - 1];
-			roadblockSpawnTable = &roamRoadblockSpawnTables[heatLevel - 1];
-		}
+		helicopterVehicle   = helicopterVehicles    (isRacing, heatLevel).c_str();
+		eventSpawnTable     = &(eventSpawnTables    (isRacing, heatLevel));
+		patrolSpawnTable    = &(patrolSpawnTables   (isRacing, heatLevel));
+		pursuitSpawnTable   = &(pursuitSpawnTables  (isRacing, heatLevel));
+		roadblockSpawnTable = &(roadblockSpawnTables(isRacing, heatLevel));
 
 		currentMaxCopCapacity = pursuitSpawnTable->GetMaxTotalCopCapacity();
 

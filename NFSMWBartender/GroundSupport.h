@@ -3,7 +3,6 @@
 #include <Windows.h>
 #include <optional>
 #include <string>
-#include <array>
 
 #include "Globals.h"
 #include "ConfigParser.h"
@@ -32,33 +31,19 @@ namespace GroundSupport
 	const char* henchmenVehicle       = "copsporthench";
 	const char* leaderVehicle         = "copcross";
 
-	// Free-roam Heat levels
-	std::array<float, Globals::maxHeatLevel> roamMinRoadblockCooldowns   = {};
-	std::array<float, Globals::maxHeatLevel> roamMaxRoadblockCooldowns   = {};
-	std::array<float, Globals::maxHeatLevel> roamRoadblockHeavyCooldowns = {};
-	std::array<float, Globals::maxHeatLevel> roamStrategyCooldowns       = {};
-	std::array<float, Globals::maxHeatLevel> roamMaxStrategyDelays       = {};
+	// Heat levels
+	Globals::HeatParametersPair<float> minRoadblockCooldowns;
+	Globals::HeatParametersPair<float> maxRoadblockCooldowns;
+	Globals::HeatParametersPair<float> roadblockHeavyCooldowns;
+	Globals::HeatParametersPair<float> strategyCooldowns;
+	Globals::HeatParametersPair<float> maxStrategyDelays;
 	
-	std::array<std::string, Globals::maxHeatLevel> roamLightRammingVehicles   = {};
-	std::array<std::string, Globals::maxHeatLevel> roamHeavyRammingVehicles   = {};
-	std::array<std::string, Globals::maxHeatLevel> roamLightRoadblockVehicles = {};
-	std::array<std::string, Globals::maxHeatLevel> roamHeavyRoadblockVehicles = {};
-	std::array<std::string, Globals::maxHeatLevel> roamLeaderVehicles         = {};
-	std::array<std::string, Globals::maxHeatLevel> roamHenchmenVehicles       = {};
-
-	// Racing Heat levels
-	std::array<float, Globals::maxHeatLevel> raceMinRoadblockCooldowns   = {};
-	std::array<float, Globals::maxHeatLevel> raceMaxRoadblockCooldowns   = {};
-	std::array<float, Globals::maxHeatLevel> raceRoadblockHeavyCooldowns = {};
-	std::array<float, Globals::maxHeatLevel> raceStrategyCooldowns       = {};
-	std::array<float, Globals::maxHeatLevel> raceMaxStrategyDelays       = {};
-
-	std::array<std::string, Globals::maxHeatLevel> raceLightRammingVehicles   = {};
-	std::array<std::string, Globals::maxHeatLevel> raceHeavyRammingVehicles   = {};
-	std::array<std::string, Globals::maxHeatLevel> raceLightRoadblockVehicles = {};
-	std::array<std::string, Globals::maxHeatLevel> raceHeavyRoadblockVehicles = {};
-	std::array<std::string, Globals::maxHeatLevel> raceLeaderVehicles         = {};
-	std::array<std::string, Globals::maxHeatLevel> raceHenchmenVehicles       = {};
+	Globals::HeatParametersPair<std::string> lightRammingVehicles;
+	Globals::HeatParametersPair<std::string> heavyRammingVehicles;
+	Globals::HeatParametersPair<std::string> lightRoadblockVehicles;
+	Globals::HeatParametersPair<std::string> heavyRoadblockVehicles;
+	Globals::HeatParametersPair<std::string> leaderVehicles;
+	Globals::HeatParametersPair<std::string> henchmenVehicles;
 
 	// Conversions
 	float roadblockCooldownRange = maxRoadblockCooldown - minRoadblockCooldown;
@@ -264,49 +249,48 @@ namespace GroundSupport
 		if (not parser.LoadFile(Globals::configPathBasic + "Supports.ini")) return false;
 
 		// Roadblock timers
-		Globals::ParseHeatParameterTable<float, float, float>
+		Globals::ParseHeatParameters<float, float, float>
 		(
 			parser,
 			"Roadblocks:Timers",
-			{roamMinRoadblockCooldowns,   raceMinRoadblockCooldowns,   minRoadblockCooldown,   0.f},
-			{roamMaxRoadblockCooldowns,   raceMaxRoadblockCooldowns,   maxRoadblockCooldown,   0.f},
-			{roamRoadblockHeavyCooldowns, raceRoadblockHeavyCooldowns, roadblockHeavyCooldown, 0.f}
+			{minRoadblockCooldowns,   minRoadblockCooldown,   0.f},
+			{maxRoadblockCooldowns,   maxRoadblockCooldown,   0.f},
+			{roadblockHeavyCooldowns, roadblockHeavyCooldown, 0.f}
 		);
 
-		Globals::CheckIntervalValues<float>(roamMinRoadblockCooldowns, roamMaxRoadblockCooldowns);
-		Globals::CheckIntervalValues<float>(raceMinRoadblockCooldowns, raceMaxRoadblockCooldowns);
+		Globals::CheckIntervalValues<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
 
 		// Other pursuit parameters
-		Globals::ParseHeatParameterTable<float, float>
+		Globals::ParseHeatParameters<float, float>
 		(
 			parser,
 			"Strategies:Timers",
-			{roamStrategyCooldowns, raceStrategyCooldowns, strategyCooldown, 0.f},
-			{roamMaxStrategyDelays, raceMaxStrategyDelays, maxStrategyDelay, 0.f}
+			{strategyCooldowns, strategyCooldown, 0.f},
+			{maxStrategyDelays, maxStrategyDelay, 0.f}
 		);
 
-		Globals::ParseHeatParameterTable<std::string, std::string>
+		Globals::ParseHeatParameters<std::string, std::string>
 		(
 			parser,
 			"Heavy:Ramming",
-			{roamLightRammingVehicles, raceLightRammingVehicles, lightRammingVehicle},
-			{roamHeavyRammingVehicles, raceHeavyRammingVehicles, heavyRammingVehicle}
+			{lightRammingVehicles, lightRammingVehicle},
+			{heavyRammingVehicles, heavyRammingVehicle}
 		);
 
-		Globals::ParseHeatParameterTable<std::string, std::string>
+		Globals::ParseHeatParameters<std::string, std::string>
 		(
 			parser,
 			"Heavy:Roadblock",
-			{roamLightRoadblockVehicles, raceLightRoadblockVehicles, lightRoadblockVehicle},
-			{roamHeavyRoadblockVehicles, raceHeavyRoadblockVehicles, heavyRoadblockVehicle}
+			{lightRoadblockVehicles, lightRoadblockVehicle},
+			{heavyRoadblockVehicles, heavyRoadblockVehicle}
 		);
 
-		Globals::ParseHeatParameterTable<std::string, std::string>
+		Globals::ParseHeatParameters<std::string, std::string>
 		(
 			parser,
 			"Leader:General",
-			{roamLeaderVehicles,   raceLeaderVehicles,   leaderVehicle},
-			{roamHenchmenVehicles, raceHenchmenVehicles, henchmenVehicle}
+			{leaderVehicles,   leaderVehicle},
+			{henchmenVehicles, henchmenVehicle}
 		);
 
 		// Code caves
@@ -329,41 +313,23 @@ namespace GroundSupport
 
 	void SetToHeat
 	(
-		const size_t heatLevel,
-		const bool   isRacing
+		const bool   isRacing,
+		const size_t heatLevel
 	) {
         if (not featureEnabled) return;
 
-		if (isRacing)
-		{
-			minRoadblockCooldown   = raceMinRoadblockCooldowns[heatLevel - 1];
-			maxRoadblockCooldown   = raceMaxRoadblockCooldowns[heatLevel - 1];
-			roadblockHeavyCooldown = raceRoadblockHeavyCooldowns[heatLevel - 1];
-			strategyCooldown       = raceStrategyCooldowns[heatLevel - 1];
-			maxStrategyDelay       = raceMaxStrategyDelays[heatLevel - 1];
+		minRoadblockCooldown   = minRoadblockCooldowns  (isRacing, heatLevel);
+		maxRoadblockCooldown   = maxRoadblockCooldowns  (isRacing, heatLevel);
+		roadblockHeavyCooldown = roadblockHeavyCooldowns(isRacing, heatLevel);
+		strategyCooldown       = strategyCooldowns      (isRacing, heatLevel);
+		maxStrategyDelay       = maxStrategyDelays      (isRacing, heatLevel);
 
-			lightRammingVehicle   = raceLightRammingVehicles[heatLevel - 1].c_str();
-			heavyRammingVehicle   = raceHeavyRammingVehicles[heatLevel - 1].c_str();
-			lightRoadblockVehicle = raceLightRoadblockVehicles[heatLevel - 1].c_str();
-			heavyRoadblockVehicle = raceHeavyRoadblockVehicles[heatLevel - 1].c_str();
-			leaderVehicle         = raceLeaderVehicles[heatLevel - 1].c_str();
-			henchmenVehicle       = raceHenchmenVehicles[heatLevel - 1].c_str();
-		}
-		else
-		{
-			minRoadblockCooldown   = roamMinRoadblockCooldowns[heatLevel - 1];
-			maxRoadblockCooldown   = roamMaxRoadblockCooldowns[heatLevel - 1];
-			roadblockHeavyCooldown = roamRoadblockHeavyCooldowns[heatLevel - 1];
-			strategyCooldown       = roamStrategyCooldowns[heatLevel - 1];
-			maxStrategyDelay       = roamMaxStrategyDelays[heatLevel - 1];
-
-			lightRammingVehicle   = roamLightRammingVehicles[heatLevel - 1].c_str();
-			heavyRammingVehicle   = roamHeavyRammingVehicles[heatLevel - 1].c_str();
-			lightRoadblockVehicle = roamLightRoadblockVehicles[heatLevel - 1].c_str();
-			heavyRoadblockVehicle = roamHeavyRoadblockVehicles[heatLevel - 1].c_str();
-			leaderVehicle         = roamLeaderVehicles[heatLevel - 1].c_str();
-			henchmenVehicle       = roamHenchmenVehicles[heatLevel - 1].c_str();
-		}
+		lightRammingVehicle   = lightRammingVehicles  (isRacing, heatLevel).c_str();
+		heavyRammingVehicle   = heavyRammingVehicles  (isRacing, heatLevel).c_str();
+		lightRoadblockVehicle = lightRoadblockVehicles(isRacing, heatLevel).c_str();
+		heavyRoadblockVehicle = heavyRoadblockVehicles(isRacing, heatLevel).c_str();
+		leaderVehicle         = leaderVehicles        (isRacing, heatLevel).c_str();
+		henchmenVehicle       = henchmenVehicles      (isRacing, heatLevel).c_str();
 
 		roadblockCooldownRange = maxRoadblockCooldown - minRoadblockCooldown;
 

@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <string>
-#include <array>
 #include <map>
 
 #include "Globals.h"
@@ -27,15 +26,10 @@ namespace CopFleeOverrides
 	float minFleeDelay   = 0.f;
 	float maxFleeDelay   = 0.f;
 
-	// Free-roam Heat levels
-	std::array<bool,  Globals::maxHeatLevel> roamFleeingEnableds = {};
-	std::array<float, Globals::maxHeatLevel> roamMinFleeDelays   = {};
-	std::array<float, Globals::maxHeatLevel> roamMaxFleeDelays   = {};
-
-	// Racing Heat levels
-	std::array<bool,  Globals::maxHeatLevel> raceFleeingEnableds = {};
-	std::array<float, Globals::maxHeatLevel> raceMinFleeDelays   = {};
-	std::array<float, Globals::maxHeatLevel> raceMaxFleeDelays   = {};
+	// Heat levels
+	Globals::HeatParametersPair<bool>  fleeingEnableds;
+	Globals::HeatParametersPair<float> minFleeDelays;
+	Globals::HeatParametersPair<float> maxFleeDelays;
 
 
 
@@ -333,27 +327,19 @@ namespace CopFleeOverrides
 	{
 		parser.LoadFile(Globals::configPathAdvanced + "Cars.ini");
 
-		// Free-roam parameters
-		roamFleeingEnableds = parser.ParseParameterTable<float, float>
-		(
-			"Fleeing:Timers",
-			Globals::configFormatRoam,
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMinFleeDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMaxFleeDelays, {}, 0.f)
-		);
+		// Heat parameters
+		for (const bool forRaces : {false, true})
+		{
+			fleeingEnableds(forRaces) = parser.ParseParameterTable<float, float>
+			(
+				"Fleeing:Timers",
+				(forRaces) ? Globals::configFormatRace : Globals::configFormatRoam,
+				Globals::FormatParameter<float>(minFleeDelays(forRaces), {}, 0.f),
+				Globals::FormatParameter<float>(maxFleeDelays(forRaces), {}, 0.f)
+			);
+		}
 
-		Globals::CheckIntervalValues<float>(roamMinFleeDelays, roamMaxFleeDelays);
-
-		// Race parameters
-		raceFleeingEnableds = parser.ParseParameterTable<float, float>
-		(
-			"Fleeing:Timers",
-			Globals::configFormatRace,
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMinFleeDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMaxFleeDelays, {}, 0.f)
-		);
-
-		Globals::CheckIntervalValues<float>(raceMinFleeDelays, raceMaxFleeDelays);
+		Globals::CheckIntervalValues<float>(minFleeDelays, maxFleeDelays);
 
 		return (featureEnabled = true);
 	}
@@ -362,30 +348,15 @@ namespace CopFleeOverrides
 
 	void SetToHeat
 	(
-		const size_t heatLevel,
-		const bool   isRacing
+		const bool   isRacing,
+		const size_t heatLevel
 	) {
 		if (not featureEnabled) return;
 
-		if (isRacing)
+		if (fleeingEnabled = fleeingEnableds(isRacing, heatLevel))
 		{
-			fleeingEnabled = raceFleeingEnableds[heatLevel - 1];
-
-			if (fleeingEnabled)
-			{
-				minFleeDelay = raceMinFleeDelays[heatLevel - 1];
-				maxFleeDelay = raceMaxFleeDelays[heatLevel - 1];
-			}
-		}
-		else
-		{
-			fleeingEnabled = roamFleeingEnableds[heatLevel - 1];
-
-			if (fleeingEnabled)
-			{
-				minFleeDelay = roamMinFleeDelays[heatLevel - 1];
-				maxFleeDelay = roamMaxFleeDelays[heatLevel - 1];
-			}
+			minFleeDelay = minFleeDelays(isRacing, heatLevel);
+			maxFleeDelay = maxFleeDelays(isRacing, heatLevel);
 		}
 
 		if constexpr (Globals::loggingEnabled)

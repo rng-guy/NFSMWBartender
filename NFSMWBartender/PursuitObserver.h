@@ -520,8 +520,8 @@ namespace PursuitObserver
 	{
 		if (not CopSpawnTables::Initialise(parser)) return false;
 
-		CopSpawnOverrides::Initialise(parser);
-		CopFleeOverrides::Initialise(parser);
+		CopSpawnOverrides::Initialise  (parser);
+		CopFleeOverrides::Initialise   (parser);
 		HelicopterOverrides::Initialise(parser);
 
 		MemoryEditor::DigCodeCave(EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
@@ -543,17 +543,16 @@ namespace PursuitObserver
 
 	void SetToHeat
 	(
-		const size_t heatLevel,
-		const bool   isRacing
+		const bool   isRacing,
+		const size_t heatLevel
 	) {
 		if (not featureEnabled) return;
 
-		CopSpawnTables::SetToHeat(heatLevel, isRacing);
-
-		PursuitFeatures::SetToHeat(heatLevel, isRacing);
-		CopSpawnOverrides::SetToHeat(heatLevel, isRacing);
-		CopFleeOverrides::SetToHeat(heatLevel, isRacing);
-		HelicopterOverrides::SetToHeat(heatLevel, isRacing);
+		CopSpawnTables::SetToHeat     (isRacing, heatLevel);
+		PursuitFeatures::SetToHeat    (isRacing, heatLevel);
+		CopSpawnOverrides::SetToHeat  (isRacing, heatLevel);
+		CopFleeOverrides::SetToHeat   (isRacing, heatLevel);
+		HelicopterOverrides::SetToHeat(isRacing, heatLevel);
 
 		for (auto& pair : pursuitToObserver) 
 			pair.second.UpdateOnHeatChange();

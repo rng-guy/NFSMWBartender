@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Windows.h>
-#include <array>
 
 #include "Globals.h"
 #include "ConfigParser.h"
@@ -21,15 +20,10 @@ namespace PursuitBar
 	float evadeTimer      = 7.f;  // seconds
 	float bustTimer       = 5.f;  // seconds
 	
-	// Free-roam Heat levels
-	std::array<float, Globals::maxHeatLevel> roamMaxBustDistances = {};
-	std::array<float, Globals::maxHeatLevel> roamEvadeTimers      = {};
-	std::array<float, Globals::maxHeatLevel> roamBustTimers       = {};
-
-	// Racing Heat levels
-	std::array<float, Globals::maxHeatLevel> raceMaxBustDistances = {};
-	std::array<float, Globals::maxHeatLevel> raceEvadeTimers      = {};
-	std::array<float, Globals::maxHeatLevel> raceBustTimers       = {};
+	// Heat levels
+	Globals::HeatParametersPair<float> maxBustDistances;
+	Globals::HeatParametersPair<float> evadeTimers;
+	Globals::HeatParametersPair<float> bustTimers;
 
 	// Conversions
 	float halfEvadeRate = .5f / evadeTimer;
@@ -82,19 +76,19 @@ namespace PursuitBar
 		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return false;
 
 		// Pursuit parameters
-		Globals::ParseHeatParameterTable<float, float>
+		Globals::ParseHeatParameters<float, float>
 		(
 			parser,
 			"Busting:General",
-			{roamBustTimers,       raceBustTimers,       bustTimer,       .001f},
-			{roamMaxBustDistances, raceMaxBustDistances, maxBustDistance, 0.f}
+			{bustTimers,       bustTimer,       .001f},
+			{maxBustDistances, maxBustDistance, 0.f}
 		);
 
-		Globals::ParseHeatParameter<float>
+		Globals::ParseHeatParameters<float>
 		(
 			parser,
 			"Evading:Timer",
-			{roamEvadeTimers , raceEvadeTimers , evadeTimer, .001f}
+			{evadeTimers, evadeTimer, .001f}
 		);
 
 		// Code caves
@@ -112,23 +106,14 @@ namespace PursuitBar
 
     void SetToHeat
 	(
-		const size_t heatLevel,
-		const bool   isRacing
+		const bool   isRacing,
+		const size_t heatLevel
 	) {
         if (not featureEnabled) return;
 
-		if (isRacing)
-		{ 
-			bustTimer       = raceBustTimers[heatLevel - 1];
-			maxBustDistance = raceMaxBustDistances[heatLevel - 1];
-			evadeTimer      = raceEvadeTimers[heatLevel - 1];
-		}
-		else
-		{
-			bustTimer       = roamBustTimers[heatLevel - 1];
-			maxBustDistance = roamMaxBustDistances[heatLevel - 1];
-			evadeTimer      = roamEvadeTimers[heatLevel - 1];
-		}
+		bustTimer       = bustTimers      (isRacing, heatLevel);
+		maxBustDistance = maxBustDistances(isRacing, heatLevel);
+		evadeTimer      = evadeTimers     (isRacing, heatLevel);
 
 		halfEvadeRate = .5f / evadeTimer;
 		bustRate      = 1.f / bustTimer;

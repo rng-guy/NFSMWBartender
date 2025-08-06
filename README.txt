@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.12.03) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.13.00) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -399,3 +399,5 @@ v1.00.00: Initial release
       01: Improved performance even more by removing redundant re-hashing
       02: Fixed rare edge case of "Events" spawns temporarily blocking "Chasers" spawns
       03: Another performance improvement by reducing re-hashing even further
+
+   13.00: Improved performance by rewriting and streamlining the internal file-parsing logic

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Windows.h>
-#include <array>
 
 #include "Globals.h"
 #include "PursuitFeatures.h"
@@ -26,23 +25,14 @@ namespace HelicopterOverrides
 	float minDespawnDelay   = 0.f;
 	float maxDespawnDelay   = 0.f;
 
-	// Free-roam Heat levels
-	std::array<bool,  Globals::maxHeatLevel> roamHelicoptersEnabled = {};
-	std::array<float, Globals::maxHeatLevel> roamMinSpawnDelays     = {};
-	std::array<float, Globals::maxHeatLevel> roamMaxSpawnDelays     = {};
-	std::array<float, Globals::maxHeatLevel> roamMinDespawnDelays   = {};
-	std::array<float, Globals::maxHeatLevel> roamMaxDespawnDelays   = {};
-	std::array<float, Globals::maxHeatLevel> roamMinRespawnDelays   = {};
-	std::array<float, Globals::maxHeatLevel> roamMaxRespawnDelays   = {};
-
-	// Racing Heat levels
-	std::array<bool,  Globals::maxHeatLevel> raceHelicoptersEnabled = {};
-	std::array<float, Globals::maxHeatLevel> raceMinSpawnDelays     = {};
-	std::array<float, Globals::maxHeatLevel> raceMaxSpawnDelays     = {};
-	std::array<float, Globals::maxHeatLevel> raceMinDespawnDelays   = {};
-	std::array<float, Globals::maxHeatLevel> raceMaxDespawnDelays   = {};
-	std::array<float, Globals::maxHeatLevel> raceMinRespawnDelays   = {};
-	std::array<float, Globals::maxHeatLevel> raceMaxRespawnDelays   = {};
+	// Heat levels
+	Globals::HeatParametersPair<bool>  helicopterEnableds;
+	Globals::HeatParametersPair<float> minSpawnDelays;
+	Globals::HeatParametersPair<float> maxSpawnDelays;
+	Globals::HeatParametersPair<float> minDespawnDelays;
+	Globals::HeatParametersPair<float> maxDespawnDelays;
+	Globals::HeatParametersPair<float> minRespawnDelays;
+	Globals::HeatParametersPair<float> maxRespawnDelays;
 
 
 
@@ -244,43 +234,29 @@ namespace HelicopterOverrides
 
 	bool Initialise(ConfigParser::Parser& parser)
 	{
-		MemoryEditor::Write<byte>(0xEB, 0x42BB2D); // prevent spawns in Cooldown mode
+		MemoryEditor::Write<byte>(0xEB, 0x42BB2D); // prevents spawns in Cooldown mode through VltEd
 
 		if (not parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini")) return false;
 
-		// Free-roam parameters
-		roamHelicoptersEnabled = parser.ParseParameterTable<float, float, float, float, float, float>
-		(
-			"Helicopter:Timers",
-			Globals::configFormatRoam,
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMinSpawnDelays,   {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMaxSpawnDelays,   {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMinDespawnDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMaxDespawnDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMinRespawnDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(roamMaxRespawnDelays, {}, 0.f)
-		);
+		// Heat parameters
+		for (const bool forRaces : {false, true})
+		{
+			helicopterEnableds(forRaces) = parser.ParseParameterTable<float, float, float, float, float, float>
+			(
+				"Helicopter:Timers",
+				(forRaces) ? Globals::configFormatRace : Globals::configFormatRoam,
+				Globals::FormatParameter<float>(minSpawnDelays  (forRaces), {}, 0.f),
+				Globals::FormatParameter<float>(maxSpawnDelays  (forRaces), {}, 0.f),
+				Globals::FormatParameter<float>(minDespawnDelays(forRaces), {}, 0.f),
+				Globals::FormatParameter<float>(maxDespawnDelays(forRaces), {}, 0.f),
+				Globals::FormatParameter<float>(minRespawnDelays(forRaces), {}, 0.f),
+				Globals::FormatParameter<float>(maxRespawnDelays(forRaces), {}, 0.f)
+			);
+		}
 
-		Globals::CheckIntervalValues<float>(roamMinSpawnDelays,   roamMaxSpawnDelays);
-		Globals::CheckIntervalValues<float>(roamMinDespawnDelays, roamMaxDespawnDelays);
-		Globals::CheckIntervalValues<float>(roamMinRespawnDelays, roamMaxRespawnDelays);
-
-		// Race parameters
-		raceHelicoptersEnabled = parser.ParseParameterTable<float, float, float, float, float, float>
-		(
-			"Helicopter:Timers",
-			Globals::configFormatRace,
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMinSpawnDelays,   {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMaxSpawnDelays,   {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMinDespawnDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMaxDespawnDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMinRespawnDelays, {}, 0.f),
-			ConfigParser::FormatParameter<float, Globals::maxHeatLevel>(raceMaxRespawnDelays, {}, 0.f)
-		);
-
-		Globals::CheckIntervalValues<float>(raceMinSpawnDelays,   raceMaxSpawnDelays);
-		Globals::CheckIntervalValues<float>(raceMinDespawnDelays, raceMaxDespawnDelays);
-		Globals::CheckIntervalValues<float>(raceMinRespawnDelays, raceMaxRespawnDelays);
+		Globals::CheckIntervalValues<float>(minSpawnDelays,   maxSpawnDelays);
+		Globals::CheckIntervalValues<float>(minDespawnDelays, maxDespawnDelays);
+		Globals::CheckIntervalValues<float>(minRespawnDelays, maxRespawnDelays);
 
 		// Code caves
 		MemoryEditor::DigCodeCave(FuelTime, fuelTimeEntrance, fuelTimeExit);
@@ -292,38 +268,19 @@ namespace HelicopterOverrides
 
 	void SetToHeat
 	(
-		const size_t heatLevel,
-		const bool   isRacing
+		const bool   isRacing,
+		const size_t heatLevel
 	) {
 		if (not featureEnabled) return;
-		
-		if (isRacing)
-		{
-			helicopterEnabled = raceHelicoptersEnabled[heatLevel - 1];
 
-			if (helicopterEnabled)
-			{
-				minSpawnDelay   = raceMinSpawnDelays[heatLevel - 1];
-				maxSpawnDelay   = raceMaxSpawnDelays[heatLevel - 1];
-				minDespawnDelay = raceMinDespawnDelays[heatLevel - 1];
-				maxDespawnDelay = raceMaxDespawnDelays[heatLevel - 1];
-				minRespawnDelay = raceMinRespawnDelays[heatLevel - 1];
-				maxRespawnDelay = raceMaxRespawnDelays[heatLevel - 1];
-			}
-		}
-		else
+		if (helicopterEnabled = helicopterEnableds(isRacing, heatLevel))
 		{
-			helicopterEnabled = roamHelicoptersEnabled[heatLevel - 1];
-
-			if (helicopterEnabled)
-			{
-				minSpawnDelay   = roamMinSpawnDelays[heatLevel - 1];
-				maxSpawnDelay   = roamMaxSpawnDelays[heatLevel - 1];
-				minDespawnDelay = roamMinDespawnDelays[heatLevel - 1];
-				maxDespawnDelay = roamMaxDespawnDelays[heatLevel - 1];
-				minRespawnDelay = roamMinRespawnDelays[heatLevel - 1];
-				maxRespawnDelay = roamMaxRespawnDelays[heatLevel - 1];
-			}
+			minSpawnDelay   = minSpawnDelays  (isRacing, heatLevel);
+			maxSpawnDelay   = maxSpawnDelays  (isRacing, heatLevel);
+			minDespawnDelay = minDespawnDelays(isRacing, heatLevel);
+			maxDespawnDelay = maxDespawnDelays(isRacing, heatLevel);
+			minRespawnDelay = minRespawnDelays(isRacing, heatLevel);
+			maxRespawnDelay = maxRespawnDelays(isRacing, heatLevel);
 		}
 
 		if constexpr (Globals::loggingEnabled)

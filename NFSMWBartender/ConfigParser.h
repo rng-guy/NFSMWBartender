@@ -269,6 +269,7 @@ namespace ConfigParser
 			this->ParseUserParameter<std::string>(section, unverifiedKeys, tableRows);
 
 			parameterKeys.clear();
+
 			([&]{parameters.values.clear();}(), ...);
 
 			for (size_t rowID = 0; rowID < tableRows.size(); rowID++)

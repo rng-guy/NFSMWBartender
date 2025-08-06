@@ -37,7 +37,7 @@ namespace PursuitFeatures
 
 		static constexpr const float* simulationTime = (float*)0x9885D8;
 
-		friend void SetToHeat(const size_t, const bool);
+		friend void SetToHeat(const bool, const size_t);
 		friend void ResetState();
 		
 		CopVehicleReaction() = default;
@@ -82,8 +82,8 @@ namespace PursuitFeatures
 
 	void SetToHeat
 	(
-		const size_t heatLevel,
-		const bool   isRacing
+		const bool   isRacing,
+		const size_t heatLevel
 	) {
 		CopVehicleReaction::isHeatLevelKnown = true;
 	}

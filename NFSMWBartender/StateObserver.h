@@ -39,10 +39,10 @@ namespace StateObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log("-------- [STA] Heat level now", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
 
-			GroundSupport::SetToHeat(currentHeatLevel, playerIsRacing);
-			Miscellaneous::SetToHeat(currentHeatLevel, playerIsRacing);
-			PursuitBar::SetToHeat(currentHeatLevel, playerIsRacing);
-			PursuitObserver::SetToHeat(currentHeatLevel, playerIsRacing);
+			GroundSupport::SetToHeat  (playerIsRacing, currentHeatLevel);
+			Miscellaneous::SetToHeat  (playerIsRacing, currentHeatLevel);
+			PursuitBar::SetToHeat     (playerIsRacing, currentHeatLevel);
+			PursuitObserver::SetToHeat(playerIsRacing, currentHeatLevel);
 		}
 	}
 

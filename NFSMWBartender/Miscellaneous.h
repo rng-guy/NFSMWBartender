@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Windows.h>
-#include <array>
 
 #include "Globals.h"
 #include "ConfigParser.h"
@@ -20,13 +19,9 @@ namespace Miscellaneous
 	float bountyInterval  = 10.f; // seconds
 	int   copComboLimit   = 3;    // kills
 
-	// Free-roam Heat levels
-	std::array<float, Globals::maxHeatLevel> roamBountyIntervals = {};
-	std::array<int,   Globals::maxHeatLevel> roamCopComboLimits  = {};
-
-	// Racing Heat levels
-	std::array<float, Globals::maxHeatLevel> raceBountyIntervals = {};
-	std::array<int,   Globals::maxHeatLevel> raceCopComboLimits = {};
+	// Heat levels
+	Globals::HeatParametersPair<float> bountyIntervals;
+	Globals::HeatParametersPair<int>   copComboLimits;
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyInterval;
@@ -99,18 +94,18 @@ namespace Miscellaneous
 		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return false;
 
 		// Pursuit parameters
-		Globals::ParseHeatParameterTable<float>
+		Globals::ParseHeatParameters<float>
 		(
 			parser,
 			"BountyInterval",
-			{roamBountyIntervals, raceBountyIntervals, bountyInterval, .001f}
+			{bountyIntervals, bountyInterval, .001f}
 		);
 
-		Globals::ParseHeatParameter<int>
+		Globals::ParseHeatParameters<int>
 		(
 			parser,
 			"CopComboLimit",
-			{roamCopComboLimits, raceCopComboLimits, copComboLimit, 1}
+			{copComboLimits, copComboLimit, 1}
 		);
 
 		// Code caves
@@ -126,21 +121,13 @@ namespace Miscellaneous
 
 	void SetToHeat
 	(
-		const size_t heatLevel,
-		const bool   isRacing
+		const bool   isRacing,
+		const size_t heatLevel
 	) {
         if (not featureEnabled) return;
 
-		if (isRacing)
-		{
-			bountyInterval = raceBountyIntervals[heatLevel - 1];
-			copComboLimit  = raceCopComboLimits[heatLevel - 1];
-		}
-		else
-		{
-			bountyInterval = roamBountyIntervals[heatLevel - 1];
-			copComboLimit  = roamCopComboLimits[heatLevel - 1];
-		}
+		bountyInterval = bountyIntervals(isRacing, heatLevel);
+		copComboLimit  = copComboLimits (isRacing, heatLevel);
 
 		bountyFrequency = 1.f / bountyInterval;
 

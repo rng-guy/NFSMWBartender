@@ -8,6 +8,7 @@
 #include <memory>
 #include <format>
 #include <string>
+#include <array>
 
 #include "RandomNumbers.h"
 #include "ConfigParser.h"
@@ -15,6 +16,9 @@
 #undef min
 #undef max
 
+
+
+// Unscoped aliases
 using byte    = unsigned char;
 using address = uint32_t;
 using hash    = uint32_t;
@@ -58,7 +62,7 @@ namespace Globals
 
 
 
-	// Custom hash function (if you can call it that) --------------------------------------------------------------------------------------------------
+	// Custom hash function (if you can call it that) -----------------------------------------------------------------------------------------------
 
 	struct IdentityHash 
 	{
@@ -72,79 +76,135 @@ namespace Globals
 
 
 
-	// Special parsing types and functions -------------------------------------------------------------------------------------------------------------
+	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
-	struct HeatParameter
+	using HeatParameters = std::array<T, maxHeatLevel>;
+
+	template <typename T>
+	using FormatParameter = ConfigParser::FormatParameter<T, maxHeatLevel>;
+
+
+
+
+
+	// HeatParametersPair struct --------------------------------------------------------------------------------------------------------------------
+
+	template <typename T>
+	struct HeatParametersPair
 	{
-		std::array<T, maxHeatLevel>& roamValues;
-		std::array<T, maxHeatLevel>& raceValues;
-		const std::optional<T>       defaultValue = {};
-		const std::optional<T>       lowerBound   = {};
-		const std::optional<T>       upperBound   = {};
+		HeatParameters<T> roam = {};
+		HeatParameters<T> race = {};
+
+
+		HeatParameters<T>& operator ()(const bool forRaces)
+		{
+			return (forRaces) ? this->race : this->roam;
+		}
+
+
+		const HeatParameters<T>& operator ()(const bool forRaces) const
+		{
+			return (forRaces) ? this->race : this->roam;
+		}
+
+
+		T& operator ()
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			return (forRaces) ? this->race[heatLevel - 1] : this->roam[heatLevel - 1];
+		}
+
+
+		const T& operator ()
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) 
+			const 
+		{
+			return (forRaces) ? this->race[heatLevel - 1] : this->roam[heatLevel - 1];
+		}
+	};
+
+
+
+
+
+	// Special parsing types and functions ----------------------------------------------------------------------------------------------------------
+
+	template <typename T>
+	struct ParsingSetup
+	{
+		HeatParametersPair<T>& pair;
+		const std::optional<T> defaultValue = {};
+		const std::optional<T> lowerBound   = {};
+		const std::optional<T> upperBound   = {};
 	};
 
 
 
 	template <typename T>
-	void ParseHeatParameter
+	void ParseHeatParameters
 	(
 		ConfigParser::Parser& parser,
 		const std::string&    section,
-		HeatParameter<T>&&    parameter
+		ParsingSetup<T>&&     setup
 	) {
 		parser.ParseFormatParameter<T>
 		(
-			section, 
-			configFormatRoam, 
-			parameter.roamValues, 
-			parameter.defaultValue, 
-			parameter.lowerBound, 
-			parameter.upperBound
+			section,
+			configFormatRoam,
+			setup.pair.roam,
+			setup.defaultValue,
+			setup.lowerBound,
+			setup.upperBound
 		);
 
-		parameter.raceValues = parameter.roamValues;
+		setup.pair.race = setup.pair.roam;
 
 		parser.ParseFormatParameter<T>
 		(
-			section, 
-			configFormatRace, 
-			parameter.raceValues, 
-			{}, 
-			parameter.lowerBound, 
-			parameter.upperBound
+			section,
+			configFormatRace,
+			setup.pair.race,
+			{},
+			setup.lowerBound,
+			setup.upperBound
 		);
 	}
 
 
 
 	template <typename ...T>
-	void ParseHeatParameterTable
+	void ParseHeatParameters
 	(
 		ConfigParser::Parser&    parser,
 		const std::string&       section,
-		HeatParameter<T>&&    ...columns
+		ParsingSetup<T>&&     ...columns
 	) {
 		parser.ParseParameterTable<T...>
 		(
 			section,
 			configFormatRoam,
-			ConfigParser::FormatParameter<T, maxHeatLevel>
+			FormatParameter<T>
 			(
-				columns.roamValues, 
+				columns.pair.roam, 
 				columns.defaultValue, 
 				columns.lowerBound, 
 				columns.upperBound
 			)...
 		);
 
-		const std::array<bool, maxHeatLevel> isValids = parser.ParseParameterTable<T...>
+		const HeatParameters<bool> isValids = parser.ParseParameterTable<T...>
 		(
 			section,
 			configFormatRace,
-			ConfigParser::FormatParameter<T, maxHeatLevel>
+			FormatParameter<T>
 			(
-				columns.raceValues, 
+				columns.pair.race,
 				{}, 
 				columns.lowerBound, 
 				columns.upperBound
@@ -157,7 +217,7 @@ namespace Globals
 				for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
 				{
 					if (not isValids[heatLevel - 1])
-						columns.raceValues[heatLevel - 1] = columns.roamValues[heatLevel - 1];
+						columns.pair.race[heatLevel - 1] = columns.pair.roam[heatLevel - 1];
 				}
 			}
 		(), ...);
@@ -168,11 +228,17 @@ namespace Globals
 	template <typename T>
 	void CheckIntervalValues
 	(
-		std::array<T, maxHeatLevel>& minValues,
-		std::array<T, maxHeatLevel>& maxValues
+		HeatParametersPair<T>&       minValues,
+		const HeatParametersPair<T>& maxValues
 	) {
-		for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
-			minValues[heatLevel - 1] = std::min<T>(minValues[heatLevel - 1], maxValues[heatLevel - 1]);
+		for (const bool forRaces : {false, true})
+		{
+			HeatParameters<T>&       lowers = minValues(forRaces);
+			const HeatParameters<T>& uppers = maxValues(forRaces);
+
+			for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
+				lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
+		}
 	}
 
 
@@ -201,10 +267,10 @@ namespace Globals
 
 
 	template<>
-	void Print<uint32_t>
+	void Print<address>
 	(
 		std::fstream* const file,
-		const uint32_t      value
+		const address       value
 	) {
 		*file << std::format("{:08x}", value);
 	}

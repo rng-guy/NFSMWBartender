@@ -3,7 +3,6 @@
 #include <Windows.h>
 #include <unordered_map>
 #include <string>
-#include <array>
 
 #include "Globals.h"
 #include "PursuitFeatures.h"
@@ -104,13 +103,9 @@ namespace CopSpawnOverrides
 	int minActiveCount = 0; // vehicles
 	int maxActiveCount = 8; // vehicles
 
-	// Free-roam Heat levels
-	std::array<int, Globals::maxHeatLevel> roamMinActiveCounts = {};
-	std::array<int, Globals::maxHeatLevel> roamMaxActiveCounts = {};
-
-	// Racing Heat levels
-	std::array<int, Globals::maxHeatLevel> raceMinActiveCounts = {};
-	std::array<int, Globals::maxHeatLevel> raceMaxActiveCounts = {};
+	// Heat levels
+	Globals::HeatParametersPair<int> minActiveCounts;
+	Globals::HeatParametersPair<int> maxActiveCounts;
 
 	// Code caves
 	bool skipEventSpawns = true;
@@ -670,12 +665,12 @@ namespace CopSpawnOverrides
 		parser.LoadFile(Globals::configPathAdvanced + "Cars.ini");
 
 		// Pursuit parameters
-		Globals::ParseHeatParameterTable<int, int>
+		Globals::ParseHeatParameters<int, int>
 		(
 			parser,
 			"Spawning:Limits",
-			{roamMinActiveCounts, raceMinActiveCounts, minActiveCount , 0},
-			{roamMaxActiveCounts, raceMaxActiveCounts, maxActiveCount , 0}
+			{minActiveCounts, minActiveCount , 0},
+			{maxActiveCounts, maxActiveCount , 0}
 		);
 
 		// Code caves
@@ -703,23 +698,15 @@ namespace CopSpawnOverrides
 
 	void SetToHeat
 	(
-		const size_t heatLevel,
-		const bool   isRacing
+		const bool   isRacing,
+		const size_t heatLevel
 	) {
 		if (not featureEnabled) return;
 
-		if (isRacing)
-		{
-			skipEventSpawns = false;
+		minActiveCount = minActiveCounts(isRacing, heatLevel);
+		maxActiveCount = maxActiveCounts(isRacing, heatLevel);
 
-			minActiveCount = raceMinActiveCounts[heatLevel - 1];
-			maxActiveCount = raceMaxActiveCounts[heatLevel - 1];
-		}
-		else
-		{
-			minActiveCount = roamMinActiveCounts[heatLevel - 1];
-			maxActiveCount = roamMaxActiveCounts[heatLevel - 1];
-		}
+		if (isRacing) skipEventSpawns = false;
 
 		eventManager.ReloadSpawnTable();
 		roadblockManager.ReloadSpawnTable();

@@ -24,9 +24,9 @@ static void Initialise()
     bool basicSetEnabled = false;
 
     basicSetEnabled |= DestructionStrings::Initialise(parser);
-    basicSetEnabled |= GroundSupport::Initialise(parser);
-    basicSetEnabled |= Miscellaneous::Initialise(parser);
-    basicSetEnabled |= PursuitBar::Initialise(parser);
+    basicSetEnabled |=      GroundSupport::Initialise(parser);
+    basicSetEnabled |=      Miscellaneous::Initialise(parser);
+    basicSetEnabled |=         PursuitBar::Initialise(parser);
 
     if (basicSetEnabled) 
     {
@@ -58,5 +58,6 @@ BOOL APIENTRY DllMain
     LPVOID  lpReserved
 ) {
     if (ul_reason_for_call == DLL_PROCESS_ATTACH) Initialise();
+
     return TRUE;
 }
