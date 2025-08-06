@@ -171,13 +171,13 @@ namespace CopFleeOverrides
 			switch (assessment.copLabel)
 			{
 			case CopLabel::HEAVY:
-				flagVehicle = (this->heavyStrategyDuration > 0.f);
-				if (flagVehicle) timeUntilFlee = this->heavyStrategyDuration;
+				flagVehicle   = true;
+				timeUntilFlee = this->heavyStrategyDuration;
 				break;
 
 			case CopLabel::LEADER:
-				flagVehicle = (this->leaderStrategyDuration > 0.f);
-				if (flagVehicle) timeUntilFlee = this->leaderStrategyDuration;
+				flagVehicle   = true;
+				timeUntilFlee = this->leaderStrategyDuration;
 				break;
 
 			case CopLabel::CHASER:

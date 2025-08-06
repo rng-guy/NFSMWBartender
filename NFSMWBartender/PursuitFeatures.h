@@ -35,10 +35,10 @@ namespace PursuitFeatures
 
 	protected:
 
+		static constexpr const float* simulationTime = (float*)0x9885D8;
+
 		friend void SetToHeat(const size_t, const bool);
 		friend void ResetState();
-
-		static constexpr const float* simulationTime = (float*)0x9885D8;
 		
 		CopVehicleReaction() = default;
 
@@ -48,8 +48,6 @@ namespace PursuitFeatures
 
 		virtual ~CopVehicleReaction() = default;
 
-		CopVehicleReaction(const CopVehicleReaction&)            = delete;
-		CopVehicleReaction& operator=(const CopVehicleReaction&) = delete;
 
 		virtual void UpdateOnGameplay()       {}
 		virtual void UpdateOnHeatChange()     {}

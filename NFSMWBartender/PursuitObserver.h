@@ -325,15 +325,13 @@ namespace PursuitObserver
 			test al, al
 			je conclusion // spawn failed
 
-			push eax
-
 			mov ecx, esi
 			call CopSpawnOverrides::NotifyEventManager // ecx: PVehicle
 
 			mov ecx, esi
 			call PursuitObserver::Register // ecx: PVehicle
 
-			pop eax
+			mov al, 0x1
 
 			conclusion:
 			// Execute original code and resume
