@@ -295,7 +295,7 @@ namespace CopSpawnOverrides
 				else
 					Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
 
-				Globals::Log(this->pursuit, "[SPA] Contingent:", addedType.first->second, '/', this->numCopsInContingent);
+				Globals::Log(this->pursuit, "[SPA] Contingent ratio:", addedType.first->second, '/', this->numCopsInContingent);
 			}
 		}
 
@@ -328,7 +328,7 @@ namespace CopSpawnOverrides
 					else
 						Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
 
-					Globals::Log(this->pursuit, "[SPA] Contingent:", foundType->second, '/', this->numCopsInContingent);
+					Globals::Log(this->pursuit, "[SPA] Contingent ratio:", foundType->second, '/', this->numCopsInContingent);
 				}
 
 				if (foundType->second < 1)
