@@ -176,6 +176,7 @@
     <ClInclude Include="inipp.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\APPENDIX.md" />
     <None Include="..\BartenderSettings\Advanced\Cars.ini" />
     <None Include="..\BartenderSettings\Advanced\Helicopter.ini" />
     <None Include="..\BartenderSettings\Basic\Others.ini" />
@@ -194,6 +195,7 @@
     <Image Include="..\Thumbnail.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="..\APPENDIX.txt" />
     <Text Include="..\README.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

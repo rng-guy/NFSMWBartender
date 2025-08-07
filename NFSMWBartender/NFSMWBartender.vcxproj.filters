@@ -126,6 +126,9 @@
     <None Include="..\FixMissingTextures.end">
       <Filter>Textures\Binary Scripts</Filter>
     </None>
+    <None Include="..\APPENDIX.md">
+      <Filter>Documentation</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Thumbnail.jpg">
@@ -149,6 +152,9 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\README.txt">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\APPENDIX.txt">
       <Filter>Documentation</Filter>
     </Text>
   </ItemGroup>
