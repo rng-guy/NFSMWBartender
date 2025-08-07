@@ -10,7 +10,7 @@ Bartender adds **new customisation options** to pursuits in *Need for Speed: Mos
 The sections below **address the following questions** in detail:
 1. [What does the "Basic" feature set do?](#1---what-does-the-basic-feature-set-do)
 2. [What does the "Advanced" feature set do?](#2---what-does-the-advanced-feature-set-do)
-3. [What mods are (in)compatible with Bartender?](#3---what-mods-are-(in)compatible-with-bartender)
+3. [What mods are (in)compatible with Bartender?](#3---what-mods-are-incompatible-with-bartender)
 4. [How do I install Bartender for my game?](#4---how-do-i-install-bartender-for-my-game)
 5. [How may I share or bundle Bartender?](#5---how-may-i-share-or-bundle-bartender)
 
@@ -118,7 +118,7 @@ To **install** Bartender:
 
 **After installing** Bartender: 
 1. check out its configuration (.ini) files in the `scripts\BartenderSettings` folder, and
-2. see the [appendix](APPENDIX.md) should you encounter any issues or want technical details.
+2. see the [appendix](APPENDIX.md) should you encounter any issues or want more technical details.
 
 &nbsp;
 

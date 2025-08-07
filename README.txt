@@ -101,7 +101,7 @@ To INSTALL Bartender:
 
 AFTER INSTALLING Bartender: 
  1) • check out its configuration (.ini) files in the "scripts\BartenderSettings" folder, and
- 2) • see the "APPENDIX.txt" file should you encounter any issues or want technical details.
+ 2) • see the "APPENDIX.txt" file should you encounter any issues or want more technical details.
 
 To UNINSTALL Bartender, remove its files from your game's "scripts" folder. There is no need to
 remove the optional missing textures, as the game will not use them without Bartender.
