@@ -165,15 +165,8 @@ namespace CopSpawnTables
 
 	bool featureEnabled = false;
 
-	// Current Heat level
-	const char*       helicopterVehicle   = "copheli";
-	const SpawnTable* eventSpawnTable     = nullptr;
-	const SpawnTable* patrolSpawnTable    = nullptr;
-	const SpawnTable* pursuitSpawnTable   = nullptr;
-	const SpawnTable* roadblockSpawnTable = nullptr;
-
 	// Heat levels
-	Globals::HeatParametersPair<std::string> helicopterVehicles;
+	Globals::HeatParametersPair<std::string> helicopterVehicles("copheli");
 	Globals::HeatParametersPair<SpawnTable>  eventSpawnTables;
 	Globals::HeatParametersPair<SpawnTable>  patrolSpawnTables;
 	Globals::HeatParametersPair<SpawnTable>  pursuitSpawnTables;
@@ -247,13 +240,7 @@ namespace CopSpawnTables
 		parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini");
 
 		// Pursuit parameters
-		Globals::ParseHeatParameters<std::string>
-		(
-			parser,
-			"Helicopter:Vehicle",
-			{helicopterVehicles, helicopterVehicle}
-		);
-
+		Globals::ParseHeatParameters<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
 		std::for_each(helicopterVehicles.roam.begin(), helicopterVehicles.roam.end(), SpawnTable::RegisterHelicopter);
 		std::for_each(helicopterVehicles.race.begin(), helicopterVehicles.race.end(), SpawnTable::RegisterHelicopter);
 
@@ -294,19 +281,19 @@ namespace CopSpawnTables
 	) {
 		if (not featureEnabled) return;
 
-		helicopterVehicle   = helicopterVehicles    (isRacing, heatLevel).c_str();
-		eventSpawnTable     = &(eventSpawnTables    (isRacing, heatLevel));
-		patrolSpawnTable    = &(patrolSpawnTables   (isRacing, heatLevel));
-		pursuitSpawnTable   = &(pursuitSpawnTables  (isRacing, heatLevel));
-		roadblockSpawnTable = &(roadblockSpawnTables(isRacing, heatLevel));
+		helicopterVehicles.SetToHeat  (isRacing, heatLevel);
+		eventSpawnTables.SetToHeat    (isRacing, heatLevel);
+		patrolSpawnTables.SetToHeat   (isRacing, heatLevel);
+		pursuitSpawnTables.SetToHeat  (isRacing, heatLevel);
+		roadblockSpawnTables.SetToHeat(isRacing, heatLevel);
 
-		currentMaxCopCapacity = pursuitSpawnTable->GetMaxTotalCopCapacity();
+		currentMaxCopCapacity = pursuitSpawnTables.current->GetMaxTotalCopCapacity();
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::LogIndent("[TAB] CopSpawnTables");
 
-			Globals::LogLongIndent("helicopterVehicle      :", helicopterVehicle);
+			Globals::LogLongIndent("helicopterVehicle      :", helicopterVehicles.current);
 		}
 	}
 }

@@ -50,7 +50,7 @@ namespace Globals
 	const std::string configPathAdvanced = configPathMain + "Advanced/";
 
 	// Logging
-	constexpr bool loggingEnabled = false;
+	constexpr bool loggingEnabled = true;
 
 	std::unique_ptr<std::fstream> logStream;
 
@@ -91,7 +91,7 @@ namespace Globals
 	// HeatParametersPair struct --------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
-	struct HeatParametersPair
+	struct BaseHeatParametersPair
 	{
 		HeatParameters<T> roam = {};
 		HeatParameters<T> race = {};
@@ -109,23 +109,67 @@ namespace Globals
 		}
 
 
-		T& operator ()
+	protected:
+
+		BaseHeatParametersPair() {}
+	};
+
+
+
+	template <typename T>
+	struct HeatParametersPair : public BaseHeatParametersPair<T>
+	{
+		const T* current = &(this->roam[0]);
+
+
+		void SetToHeat
 		(
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			return ((forRaces) ? this->race : this->roam)[heatLevel - 1];
+			this->current = &(((forRaces) ? this->race : this->roam)[heatLevel - 1]);
 		}
+	};
 
 
-		const T& operator ()
+
+	template <>
+	struct HeatParametersPair<std::string> : public BaseHeatParametersPair<std::string>
+	{
+		const char* current;
+
+
+		HeatParametersPair(const char* const initial) : current(initial) {}
+
+
+		void SetToHeat
 		(
 			const bool   forRaces,
 			const size_t heatLevel
-		) 
-			const 
-		{
-			return ((forRaces) ? this->race : this->roam)[heatLevel - 1];
+		) {
+			this->current = (((forRaces) ? this->race : this->roam)[heatLevel - 1]).c_str();
+		}
+	};
+
+
+
+	template<typename T> concept arithmetic = std::is_arithmetic_v<T>;
+
+	template <arithmetic T>
+	struct HeatParametersPair<T> : public BaseHeatParametersPair<T>
+	{
+		T current;
+
+
+		HeatParametersPair(const T initial) : current(initial) {}
+
+
+		void SetToHeat
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->current = ((forRaces) ? this->race : this->roam)[heatLevel - 1];
 		}
 	};
 
@@ -139,9 +183,8 @@ namespace Globals
 	struct ParsingSetup
 	{
 		HeatParametersPair<T>& pair;
-		const std::optional<T> defaultValue = {};
-		const std::optional<T> lowerBound   = {};
-		const std::optional<T> upperBound   = {};
+		const std::optional<T> lowerBound = {};
+		const std::optional<T> upperBound = {};
 	};
 
 
@@ -158,7 +201,7 @@ namespace Globals
 			section,
 			configFormatRoam,
 			setup.pair.roam,
-			setup.defaultValue,
+			setup.pair.current,
 			setup.lowerBound,
 			setup.upperBound
 		);
@@ -192,7 +235,7 @@ namespace Globals
 			FormatParameter<T>
 			(
 				columns.pair.roam, 
-				columns.defaultValue, 
+				columns.pair.current, 
 				columns.lowerBound, 
 				columns.upperBound
 			)...

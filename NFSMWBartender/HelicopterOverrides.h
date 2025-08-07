@@ -16,23 +16,14 @@ namespace HelicopterOverrides
 
 	bool featureEnabled = false;
 
-	// Current Heat level
-	bool  helicopterEnabled = false;
-	float minSpawnDelay     = 0.f;
-	float maxSpawnDelay     = 0.f;
-	float minRespawnDelay   = 0.f;
-	float maxRespawnDelay   = 0.f;
-	float minDespawnDelay   = 0.f;
-	float maxDespawnDelay   = 0.f;
-
 	// Heat levels
-	Globals::HeatParametersPair<bool>  helicopterEnableds;
-	Globals::HeatParametersPair<float> minSpawnDelays;
-	Globals::HeatParametersPair<float> maxSpawnDelays;
-	Globals::HeatParametersPair<float> minDespawnDelays;
-	Globals::HeatParametersPair<float> maxDespawnDelays;
-	Globals::HeatParametersPair<float> minRespawnDelays;
-	Globals::HeatParametersPair<float> maxRespawnDelays;
+	Globals::HeatParametersPair<bool>  helicopterEnableds(false);
+	Globals::HeatParametersPair<float> minSpawnDelays    (0.f);   // seconds
+	Globals::HeatParametersPair<float> maxSpawnDelays    (0.f);
+	Globals::HeatParametersPair<float> minDespawnDelays  (0.f);
+	Globals::HeatParametersPair<float> maxDespawnDelays  (0.f);
+	Globals::HeatParametersPair<float> minRespawnDelays  (0.f);
+	Globals::HeatParametersPair<float> maxRespawnDelays  (0.f);
 
 
 
@@ -73,9 +64,9 @@ namespace HelicopterOverrides
 		{
 			static char (__thiscall* const SpawnHelicopter)(address, address) = (char (__thiscall*)(address, address))0x4269A0;
 
-			if (not helicopterEnabled)        return;
-			if (not this->isPlayerPursuit)    return;
-			if (not this->IsHeatLevelKnown()) return;
+			if (not helicopterEnableds.current) return;
+			if (not this->isPlayerPursuit)      return;
+			if (not this->IsHeatLevelKnown())   return;
 
 			if (this->helicopterActive)                             return;
 			if (*(this->simulationTime) < this->nextSpawnTimestamp) return;
@@ -112,22 +103,22 @@ namespace HelicopterOverrides
 
 		void UpdateNextSpawnTimestamp()
 		{
-			if (not helicopterEnabled)        return;
-			if (not this->IsHeatLevelKnown()) return;
-			if (this->helicopterActive)       return;
+			if (not helicopterEnableds.current) return;
+			if (not this->IsHeatLevelKnown())   return;
+			if (this->helicopterActive)         return;
 
 			this->nextSpawnTimestamp = this->statusChangeTimestamp;
 
 			if (this->hasSpawnedBefore)
 			{
-				this->nextSpawnTimestamp += Globals::prng.Generate<float>(minRespawnDelay, maxRespawnDelay);
+				this->nextSpawnTimestamp += Globals::prng.Generate<float>(minRespawnDelays.current, maxRespawnDelays.current);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::Log(this->pursuit, "[HEL] Respawning in", this->nextSpawnTimestamp - *(this->simulationTime));
 			}
 			else
 			{
-				this->nextSpawnTimestamp += Globals::prng.Generate<float>(minSpawnDelay, maxSpawnDelay);
+				this->nextSpawnTimestamp += Globals::prng.Generate<float>(minSpawnDelays.current, maxSpawnDelays.current);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::Log(this->pursuit, "[HEL] Spawning in", this->nextSpawnTimestamp - *(this->simulationTime));
@@ -146,7 +137,7 @@ namespace HelicopterOverrides
 			if (this->helicopterActive)
 			{
 				this->hasSpawnedBefore = true;
-				this->SetHelicopterFuel(Globals::prng.Generate<float>(minDespawnDelay, maxDespawnDelay));
+				this->SetHelicopterFuel(Globals::prng.Generate<float>(minDespawnDelays.current, maxDespawnDelays.current));
 			}
 			else this->UpdateNextSpawnTimestamp();
 		}
@@ -217,7 +208,7 @@ namespace HelicopterOverrides
 	{
 		__asm
 		{
-			mov ecx, dword ptr maxDespawnDelay
+			mov ecx, dword ptr maxDespawnDelays.current
 
 			// Execute original code and resume
 			mov dword ptr [esi + 0x34], ecx
@@ -273,29 +264,31 @@ namespace HelicopterOverrides
 	) {
 		if (not featureEnabled) return;
 
-		if (helicopterEnabled = helicopterEnableds(isRacing, heatLevel))
+		helicopterEnableds.SetToHeat(isRacing, heatLevel);
+
+		if (helicopterEnableds.current)
 		{
-			minSpawnDelay   = minSpawnDelays  (isRacing, heatLevel);
-			maxSpawnDelay   = maxSpawnDelays  (isRacing, heatLevel);
-			minDespawnDelay = minDespawnDelays(isRacing, heatLevel);
-			maxDespawnDelay = maxDespawnDelays(isRacing, heatLevel);
-			minRespawnDelay = minRespawnDelays(isRacing, heatLevel);
-			maxRespawnDelay = maxRespawnDelays(isRacing, heatLevel);
+			minSpawnDelays.SetToHeat  (isRacing, heatLevel);
+			maxSpawnDelays.SetToHeat  (isRacing, heatLevel);
+			minDespawnDelays.SetToHeat(isRacing, heatLevel);
+			maxDespawnDelays.SetToHeat(isRacing, heatLevel);
+			minRespawnDelays.SetToHeat(isRacing, heatLevel);
+			maxRespawnDelays.SetToHeat(isRacing, heatLevel);
 		}
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::LogIndent("[HEL] HelicopterOverrides");
-			Globals::LogLongIndent("Helicopter", (helicopterEnabled) ? "enabled" : "disabled");
+			Globals::LogLongIndent("Helicopter", (helicopterEnableds.current) ? "enabled" : "disabled");
 
-			if (helicopterEnabled)
+			if (helicopterEnableds.current)
 			{
-				Globals::LogLongIndent("minSpawnDelay          :", minSpawnDelay);
-				Globals::LogLongIndent("maxSpawnDelay          :", maxSpawnDelay);
-				Globals::LogLongIndent("minDespawnDelay        :", minDespawnDelay);
-				Globals::LogLongIndent("maxDespawnDelay        :", maxDespawnDelay);
-				Globals::LogLongIndent("minRespawnDelay        :", minRespawnDelay);
-				Globals::LogLongIndent("maxRespawnDelay        :", maxRespawnDelay);
+				Globals::LogLongIndent("minSpawnDelay          :", minSpawnDelays.current);
+				Globals::LogLongIndent("maxSpawnDelay          :", maxSpawnDelays.current);
+				Globals::LogLongIndent("minDespawnDelay        :", minDespawnDelays.current);
+				Globals::LogLongIndent("maxDespawnDelay        :", maxDespawnDelays.current);
+				Globals::LogLongIndent("minRespawnDelay        :", minRespawnDelays.current);
+				Globals::LogLongIndent("maxRespawnDelay        :", maxRespawnDelays.current);
 			}
 		}
 	}

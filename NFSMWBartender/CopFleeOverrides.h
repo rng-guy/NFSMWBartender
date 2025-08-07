@@ -21,15 +21,10 @@ namespace CopFleeOverrides
 
 	bool featureEnabled = false;
 
-	// Current Heat Level
-	bool  fleeingEnabled = false;
-	float minFleeDelay   = 0.f;
-	float maxFleeDelay   = 0.f;
-
 	// Heat levels
-	Globals::HeatParametersPair<bool>  fleeingEnableds;
-	Globals::HeatParametersPair<float> minFleeDelays;
-	Globals::HeatParametersPair<float> maxFleeDelays;
+	Globals::HeatParametersPair<bool>  fleeingEnableds(false);
+	Globals::HeatParametersPair<float> minFleeDelays  (0.f);   // seconds
+	Globals::HeatParametersPair<float> maxFleeDelays  (0.f);
 
 
 
@@ -175,8 +170,8 @@ namespace CopFleeOverrides
 				break;
 
 			case CopLabel::CHASER:
-				flagVehicle = (fleeingEnabled and (not (CopSpawnTables::pursuitSpawnTable->Contains(assessment.copType))));
-				if (flagVehicle) timeUntilFlee = Globals::prng.Generate<float>(minFleeDelay, maxFleeDelay);
+				flagVehicle = (fleeingEnableds.current and (not (CopSpawnTables::pursuitSpawnTables.current->Contains(assessment.copType))));
+				if (flagVehicle) timeUntilFlee = Globals::prng.Generate<float>(minFleeDelays.current, maxFleeDelays.current);
 				break;
 
 			default:
@@ -353,21 +348,23 @@ namespace CopFleeOverrides
 	) {
 		if (not featureEnabled) return;
 
-		if (fleeingEnabled = fleeingEnableds(isRacing, heatLevel))
+		fleeingEnableds.SetToHeat(isRacing, heatLevel);
+
+		if (fleeingEnableds.current)
 		{
-			minFleeDelay = minFleeDelays(isRacing, heatLevel);
-			maxFleeDelay = maxFleeDelays(isRacing, heatLevel);
+			minFleeDelays.SetToHeat(isRacing, heatLevel);
+			maxFleeDelays.SetToHeat(isRacing, heatLevel);
 		}
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::LogIndent("[FLE] CopFleeOverrides");
-			Globals::LogLongIndent("Fleeing", (fleeingEnabled) ? "enabled" : "disabled");
+			Globals::LogLongIndent("Fleeing", (fleeingEnableds.current) ? "enabled" : "disabled");
 
-			if (fleeingEnabled)
+			if (fleeingEnableds.current)
 			{
-				Globals::LogLongIndent("minFleeDelay           :", minFleeDelay);
-				Globals::LogLongIndent("maxFleeDelay           :", maxFleeDelay);
+				Globals::LogLongIndent("minFleeDelay           :", minFleeDelays.current);
+				Globals::LogLongIndent("maxFleeDelay           :", maxFleeDelays.current);
 			}
 		}
 	}

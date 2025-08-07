@@ -15,16 +15,12 @@ namespace Miscellaneous
 
 	bool featureEnabled = false;
 
-	// Current Heat level
-	float bountyInterval  = 10.f; // seconds
-	int   copComboLimit   = 3;    // kills
-
 	// Heat levels
-	Globals::HeatParametersPair<float> bountyIntervals;
-	Globals::HeatParametersPair<int>   copComboLimits;
+	Globals::HeatParametersPair<float> bountyIntervals(10.f); // seconds
+	Globals::HeatParametersPair<int>   copComboLimits (3);    // kills
 
 	// Conversions
-	float bountyFrequency = 1.f / bountyInterval;
+	float bountyFrequency = 1.f / bountyIntervals.current;
 
 
 
@@ -63,7 +59,7 @@ namespace Miscellaneous
 	{
 		__asm
 		{
-			mov eax, dword ptr copComboLimit
+			mov eax, dword ptr copComboLimits.current
 
 			cmp dword ptr [esi + 0xF0], eax
 			je conclusion // at current limit
@@ -94,19 +90,8 @@ namespace Miscellaneous
 		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return false;
 
 		// Pursuit parameters
-		Globals::ParseHeatParameters<float>
-		(
-			parser,
-			"BountyInterval",
-			{bountyIntervals, bountyInterval, .001f}
-		);
-
-		Globals::ParseHeatParameters<int>
-		(
-			parser,
-			"CopComboLimit",
-			{copComboLimits, copComboLimit, 1}
-		);
+		Globals::ParseHeatParameters<float>(parser, "BountyInterval", {bountyIntervals, .001f});
+		Globals::ParseHeatParameters<int>  (parser, "CopComboLimit",  {copComboLimits,  1});
 
 		// Code caves
 		MemoryEditor::Write<float*>(&bountyFrequency, 0x444513, 0x444524);
@@ -126,17 +111,17 @@ namespace Miscellaneous
 	) {
         if (not featureEnabled) return;
 
-		bountyInterval = bountyIntervals(isRacing, heatLevel);
-		copComboLimit  = copComboLimits (isRacing, heatLevel);
+		bountyIntervals.SetToHeat(isRacing, heatLevel);
+		copComboLimits.SetToHeat (isRacing, heatLevel);
 
-		bountyFrequency = 1.f / bountyInterval;
+		bountyFrequency = 1.f / bountyIntervals.current;
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::LogIndent("[MSC] Miscellaneous");
 
-			Globals::LogLongIndent("bountyInterval         :", bountyInterval);
-			Globals::LogLongIndent("copComboLimit          :", copComboLimit);
+			Globals::LogLongIndent("bountyInterval         :", bountyIntervals.current);
+			Globals::LogLongIndent("copComboLimit          :", copComboLimits.current);
 		}
     }
 }

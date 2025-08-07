@@ -99,19 +99,15 @@ namespace CopSpawnOverrides
 
 	bool featureEnabled = false;
 
-	// Current Heat level
-	int minActiveCount = 0; // vehicles
-	int maxActiveCount = 8; // vehicles
-
 	// Heat levels
-	Globals::HeatParametersPair<int> minActiveCounts;
-	Globals::HeatParametersPair<int> maxActiveCounts;
+	Globals::HeatParametersPair<int> minActiveCounts(1);
+	Globals::HeatParametersPair<int> maxActiveCounts(8);
 
 	// Code caves
 	bool skipEventSpawns = true;
 
-	GlobalSpawnManager eventManager(&(CopSpawnTables::eventSpawnTable));
-	GlobalSpawnManager roadblockManager(&(CopSpawnTables::roadblockSpawnTable));
+	GlobalSpawnManager eventManager(&(CopSpawnTables::eventSpawnTables.current));
+	GlobalSpawnManager roadblockManager(&(CopSpawnTables::roadblockSpawnTables.current));
 
 
 
@@ -155,7 +151,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "[SPA] Updating table");
 
-			this->spawnTable = *(CopSpawnTables::pursuitSpawnTable);
+			this->spawnTable = *(CopSpawnTables::pursuitSpawnTables.current);
 
 			for (const auto& pair : this->copTypeToCurrentCount)
 			{
@@ -222,7 +218,7 @@ namespace CopSpawnOverrides
 
 		bool IsWaveExhausted() const
 		{
-			const int minCount = (this->IsSearchModeActive()) ? this->numPatrolCarsToSpawn : minActiveCount;
+			const int minCount = (this->IsSearchModeActive()) ? this->numPatrolCarsToSpawn : minActiveCounts.current;
 			return (not ((this->GetWaveCapacity() > 0) or (this->numCopsInContingent < minCount)));
 		}
 
@@ -386,13 +382,13 @@ namespace CopSpawnOverrides
 			switch (spawnReturn)
 			{
 			case 0x4269E6: // helicopter
-				return CopSpawnTables::helicopterVehicle;
+				return CopSpawnTables::helicopterVehicles.current;
 
 			case 0x42EAAD: // first cop of milestone / bounty pursuit
 				[[fallthrough]];
 
 			case 0x430DAD: // free-roam patrol
-				return CopSpawnTables::patrolSpawnTable->GetRandomCopName();
+				return CopSpawnTables::patrolSpawnTables.current->GetRandomCopName();
 				
 			case 0x43E049: // roadblock
 				return roadblockManager.GetRandomCopName();
@@ -583,7 +579,7 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			cmp dword ptr minActiveCount, 0x0
+			cmp dword ptr minActiveCounts.current, 0x0
 			je conclusion // zero is valid engagement count
 
 			inc edx
@@ -665,13 +661,7 @@ namespace CopSpawnOverrides
 		parser.LoadFile(Globals::configPathAdvanced + "Cars.ini");
 
 		// Pursuit parameters
-		Globals::ParseHeatParameters<int, int>
-		(
-			parser,
-			"Spawning:Limits",
-			{minActiveCounts, minActiveCount , 0},
-			{maxActiveCounts, maxActiveCount , 0}
-		);
+		Globals::ParseHeatParameters<int, int>(parser, "Spawning:Limits", {minActiveCounts, 0}, {maxActiveCounts, 0});
 
 		// Code caves
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
@@ -703,8 +693,8 @@ namespace CopSpawnOverrides
 	) {
 		if (not featureEnabled) return;
 
-		minActiveCount = minActiveCounts(isRacing, heatLevel);
-		maxActiveCount = maxActiveCounts(isRacing, heatLevel);
+		minActiveCounts.SetToHeat(isRacing, heatLevel);
+		maxActiveCounts.SetToHeat(isRacing, heatLevel);
 
 		if (isRacing) skipEventSpawns = false;
 
@@ -715,8 +705,8 @@ namespace CopSpawnOverrides
 		{
 			Globals::LogIndent("[SPA] CopSpawnOverrides");
 
-			Globals::LogLongIndent("minActiveCount         :", minActiveCount);
-			Globals::LogLongIndent("maxActiveCount         :", maxActiveCount);
+			Globals::LogLongIndent("minActiveCount         :", minActiveCounts.current);
+			Globals::LogLongIndent("maxActiveCount         :", maxActiveCounts.current);
 		}
 	}
 

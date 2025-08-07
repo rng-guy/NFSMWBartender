@@ -15,19 +15,14 @@ namespace PursuitBar
 
 	bool featureEnabled = false;
 
-	// Current Heat level
-	float maxBustDistance = 15.f; // metres
-	float evadeTimer      = 7.f;  // seconds
-	float bustTimer       = 5.f;  // seconds
-	
 	// Heat levels
-	Globals::HeatParametersPair<float> maxBustDistances;
-	Globals::HeatParametersPair<float> evadeTimers;
-	Globals::HeatParametersPair<float> bustTimers;
+	Globals::HeatParametersPair<float> maxBustDistances(15.f); // metres
+	Globals::HeatParametersPair<float> evadeTimers     (7.f);  // seconds
+	Globals::HeatParametersPair<float> bustTimers      (5.f);
 
 	// Conversions
-	float halfEvadeRate = .5f / evadeTimer;
-	float bustRate      = 1.f / bustTimer;
+	float halfEvadeRate = .5f / evadeTimers.current; // Hertz
+	float bustRate      = 1.f / bustTimers.current;
 
 
 
@@ -51,7 +46,7 @@ namespace PursuitBar
 			test ah, ah
 			je obstructed               // in EVADE state
 
-			fld dword ptr maxBustDistance
+			fld dword ptr maxBustDistances.current
 			jmp conclusion
 
 			obstructed:
@@ -76,26 +71,14 @@ namespace PursuitBar
 		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return false;
 
 		// Pursuit parameters
-		Globals::ParseHeatParameters<float, float>
-		(
-			parser,
-			"Busting:General",
-			{bustTimers,       bustTimer,       .001f},
-			{maxBustDistances, maxBustDistance, 0.f}
-		);
-
-		Globals::ParseHeatParameters<float>
-		(
-			parser,
-			"Evading:Timer",
-			{evadeTimers, evadeTimer, .001f}
-		);
+		Globals::ParseHeatParameters<float, float>(parser, "Busting:General", {bustTimers,  .001f}, {maxBustDistances, 0.f});
+		Globals::ParseHeatParameters<float>       (parser, "Evading:Timer",   {evadeTimers, .001f});
 
 		// Code caves
-        MemoryEditor::Write<float*>(&bustTimer,     0x4445CE);
-		MemoryEditor::Write<float*>(&bustRate,      0x40AEDB);
-        MemoryEditor::Write<float*>(&evadeTimer,    0x4448E6, 0x444802, 0x4338F8);
-		MemoryEditor::Write<float*>(&halfEvadeRate, 0x444A3A);
+		MemoryEditor::Write<float*>(&bustRate,              0x40AEDB);
+		MemoryEditor::Write<float*>(&halfEvadeRate,         0x444A3A);
+		MemoryEditor::Write<float*>(&(bustTimers.current),  0x4445CE);
+        MemoryEditor::Write<float*>(&(evadeTimers.current), 0x4448E6, 0x444802, 0x4338F8);
 
         MemoryEditor::DigCodeCave(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 
@@ -111,20 +94,20 @@ namespace PursuitBar
 	) {
         if (not featureEnabled) return;
 
-		bustTimer       = bustTimers      (isRacing, heatLevel);
-		maxBustDistance = maxBustDistances(isRacing, heatLevel);
-		evadeTimer      = evadeTimers     (isRacing, heatLevel);
+		bustTimers.SetToHeat      (isRacing, heatLevel);
+		maxBustDistances.SetToHeat(isRacing, heatLevel);
+		evadeTimers.SetToHeat     (isRacing, heatLevel);
 
-		halfEvadeRate = .5f / evadeTimer;
-		bustRate      = 1.f / bustTimer;
+		halfEvadeRate = .5f / evadeTimers.current;
+		bustRate      = 1.f / bustTimers.current;
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::LogIndent("[BAR] PursuitBar");
 
-			Globals::LogLongIndent("bustTimer              :", bustTimer);
-			Globals::LogLongIndent("maxBustDistance        :", maxBustDistance);
-			Globals::LogLongIndent("evadeTimer             :", evadeTimer);
+			Globals::LogLongIndent("bustTimer              :", bustTimers.current);
+			Globals::LogLongIndent("maxBustDistance        :", maxBustDistances.current);
+			Globals::LogLongIndent("evadeTimer             :", evadeTimers.current);
 		}
     }
 }

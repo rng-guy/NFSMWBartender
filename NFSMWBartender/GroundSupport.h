@@ -17,36 +17,22 @@ namespace GroundSupport
 
 	bool featureEnabled = false;
 
-	// Current Heat level
-	float minRoadblockCooldown   = 8.f;  // seconds
-	float maxRoadblockCooldown   = 12.f;
-	float roadblockHeavyCooldown = 15.f;
-	float strategyCooldown       = 10.f;
-	float maxStrategyDelay       = 10.f;
-
-	const char* heavyRoadblockVehicle = "copsuv";
-	const char* lightRoadblockVehicle = "copsuvl";
-	const char* heavyRammingVehicle   = "copsuv";
-	const char* lightRammingVehicle   = "copsuvl";
-	const char* henchmenVehicle       = "copsporthench";
-	const char* leaderVehicle         = "copcross";
-
 	// Heat levels
-	Globals::HeatParametersPair<float> minRoadblockCooldowns;
-	Globals::HeatParametersPair<float> maxRoadblockCooldowns;
-	Globals::HeatParametersPair<float> roadblockHeavyCooldowns;
-	Globals::HeatParametersPair<float> strategyCooldowns;
-	Globals::HeatParametersPair<float> maxStrategyDelays;
+	Globals::HeatParametersPair<float> minRoadblockCooldowns  (8.f);  // seconds
+	Globals::HeatParametersPair<float> maxRoadblockCooldowns  (12.f);
+	Globals::HeatParametersPair<float> roadblockHeavyCooldowns(15.f);
+	Globals::HeatParametersPair<float> strategyCooldowns      (10.f);
+	Globals::HeatParametersPair<float> maxStrategyDelays      (20.f);
 	
-	Globals::HeatParametersPair<std::string> lightRammingVehicles;
-	Globals::HeatParametersPair<std::string> heavyRammingVehicles;
-	Globals::HeatParametersPair<std::string> lightRoadblockVehicles;
-	Globals::HeatParametersPair<std::string> heavyRoadblockVehicles;
-	Globals::HeatParametersPair<std::string> leaderVehicles;
-	Globals::HeatParametersPair<std::string> henchmenVehicles;
+	Globals::HeatParametersPair<std::string> lightRammingVehicles  ("copsuvl");
+	Globals::HeatParametersPair<std::string> heavyRammingVehicles  ("copsuv");
+	Globals::HeatParametersPair<std::string> lightRoadblockVehicles("copsuvl");
+	Globals::HeatParametersPair<std::string> heavyRoadblockVehicles("copsuv");
+	Globals::HeatParametersPair<std::string> leaderVehicles        ("copcross");
+	Globals::HeatParametersPair<std::string> henchmenVehicles      ("copsporthench");
 
 	// Conversions
-	float roadblockCooldownRange = maxRoadblockCooldown - minRoadblockCooldown;
+	float roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;
 
 
 
@@ -76,7 +62,7 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			mov eax, dword ptr roadblockHeavyCooldown
+			mov eax, dword ptr roadblockHeavyCooldowns.current
 			mov dword ptr [esi + 0xC8], eax
 
 			jmp dword ptr roadblockHeavyExit
@@ -92,7 +78,7 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			mov eax, dword ptr strategyCooldown
+			mov eax, dword ptr strategyCooldowns.current
 			mov dword ptr [esi + 0x210], eax
 
 			jmp dword ptr requestCooldownExit
@@ -113,7 +99,7 @@ namespace GroundSupport
 			cmp byte ptr [ecx + 0x20C], 0x2
 			jne conclusion // is not the dreaded 2 flag
 
-			fld dword ptr maxStrategyDelay
+			fld dword ptr maxStrategyDelays.current
 			fchs
 			fcomp dword ptr [ecx + 0x210]
 			fnstsw ax
@@ -143,19 +129,19 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			push dword ptr leaderVehicle
+			push dword ptr leaderVehicles.current
 			mov dword ptr [esi + 0x148], ebx
 			call Globals::GetStringHash
 
-			push dword ptr heavyRammingVehicle
+			push dword ptr heavyRammingVehicles.current
 			mov ebx, eax
 			call Globals::GetStringHash
 
-			push dword ptr lightRammingVehicle
+			push dword ptr lightRammingVehicles.current
 			mov ebp, eax
 			call Globals::GetStringHash
 
-			push dword ptr henchmenVehicle
+			push dword ptr henchmenVehicles.current
 			mov dword ptr [esp + 0x30], eax
 			call Globals::GetStringHash
 
@@ -172,7 +158,7 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			push dword ptr leaderVehicle
+			push dword ptr leaderVehicles.current
 
 			jmp dword ptr onDetachedExit
 		}
@@ -187,7 +173,7 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			mov ecx, dword ptr leaderVehicle
+			mov ecx, dword ptr leaderVehicles.current
 			mov dword ptr [esp + 0x24], ecx
 
 			jmp dword ptr leaderSubExit
@@ -203,7 +189,7 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			mov eax, dword ptr henchmenVehicle
+			mov eax, dword ptr henchmenVehicles.current
 
 			jmp dword ptr henchmenSubExit
 		}
@@ -222,16 +208,16 @@ namespace GroundSupport
 			jl heavy // is "heavy" Rhino variant
 
 			cmp byte ptr [eax], 0x3
-			mov eax, dword ptr lightRammingVehicle
+			mov eax, dword ptr lightRammingVehicles.current
 			je conclusion  // is ramming strategy (3)
-			mov eax, dword ptr lightRoadblockVehicle
+			mov eax, dword ptr lightRoadblockVehicles.current
 			jmp conclusion // is roadblock strategy (4)
 
 			heavy:
 			cmp byte ptr [eax], 0x3
-			mov eax, dword ptr heavyRammingVehicle
+			mov eax, dword ptr heavyRammingVehicles.current
 			je conclusion
-			mov eax, dword ptr heavyRoadblockVehicle
+			mov eax, dword ptr heavyRoadblockVehicles.current
 
 			conclusion:
 			jmp dword ptr rhinoSelectorExit
@@ -253,48 +239,22 @@ namespace GroundSupport
 		(
 			parser,
 			"Roadblocks:Timers",
-			{minRoadblockCooldowns,   minRoadblockCooldown,   0.f},
-			{maxRoadblockCooldowns,   maxRoadblockCooldown,   0.f},
-			{roadblockHeavyCooldowns, roadblockHeavyCooldown, 0.f}
+			{minRoadblockCooldowns,   0.f},
+			{maxRoadblockCooldowns,   0.f},
+			{roadblockHeavyCooldowns, 0.f}
 		);
 
 		Globals::CheckIntervalValues<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
 
 		// Other pursuit parameters
-		Globals::ParseHeatParameters<float, float>
-		(
-			parser,
-			"Strategies:Timers",
-			{strategyCooldowns, strategyCooldown, 0.f},
-			{maxStrategyDelays, maxStrategyDelay, 0.f}
-		);
+		Globals::ParseHeatParameters<float, float>(parser, "Strategies:Timers", {strategyCooldowns, 0.f}, {maxStrategyDelays, 0.f});
 
-		Globals::ParseHeatParameters<std::string, std::string>
-		(
-			parser,
-			"Heavy:Ramming",
-			{lightRammingVehicles, lightRammingVehicle},
-			{heavyRammingVehicles, heavyRammingVehicle}
-		);
-
-		Globals::ParseHeatParameters<std::string, std::string>
-		(
-			parser,
-			"Heavy:Roadblock",
-			{lightRoadblockVehicles, lightRoadblockVehicle},
-			{heavyRoadblockVehicles, heavyRoadblockVehicle}
-		);
-
-		Globals::ParseHeatParameters<std::string, std::string>
-		(
-			parser,
-			"Leader:General",
-			{leaderVehicles,   leaderVehicle},
-			{henchmenVehicles, henchmenVehicle}
-		);
+		Globals::ParseHeatParameters<std::string, std::string>(parser, "Heavy:Ramming",   {lightRammingVehicles},   {heavyRammingVehicles});
+		Globals::ParseHeatParameters<std::string, std::string>(parser, "Heavy:Roadblock", {lightRoadblockVehicles}, {heavyRoadblockVehicles});
+		Globals::ParseHeatParameters<std::string, std::string>(parser, "Leader:General",  {leaderVehicles},         {henchmenVehicles});
 
 		// Code caves
-		MemoryEditor::Write<float*>(&minRoadblockCooldown, 0x419548);
+		MemoryEditor::Write<float*>(&(minRoadblockCooldowns.current), 0x419548);
 
 		MemoryEditor::DigCodeCave(RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);
 		MemoryEditor::DigCodeCave(RoadblockHeavy,    roadblockHeavyEntrance,    roadblockHeavyExit);
@@ -318,37 +278,37 @@ namespace GroundSupport
 	) {
         if (not featureEnabled) return;
 
-		minRoadblockCooldown   = minRoadblockCooldowns  (isRacing, heatLevel);
-		maxRoadblockCooldown   = maxRoadblockCooldowns  (isRacing, heatLevel);
-		roadblockHeavyCooldown = roadblockHeavyCooldowns(isRacing, heatLevel);
-		strategyCooldown       = strategyCooldowns      (isRacing, heatLevel);
-		maxStrategyDelay       = maxStrategyDelays      (isRacing, heatLevel);
+		minRoadblockCooldowns.SetToHeat  (isRacing, heatLevel);
+		maxRoadblockCooldowns.SetToHeat  (isRacing, heatLevel);
+		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
+		strategyCooldowns.SetToHeat      (isRacing, heatLevel);
+		maxStrategyDelays.SetToHeat      (isRacing, heatLevel);
 
-		lightRammingVehicle   = lightRammingVehicles  (isRacing, heatLevel).c_str();
-		heavyRammingVehicle   = heavyRammingVehicles  (isRacing, heatLevel).c_str();
-		lightRoadblockVehicle = lightRoadblockVehicles(isRacing, heatLevel).c_str();
-		heavyRoadblockVehicle = heavyRoadblockVehicles(isRacing, heatLevel).c_str();
-		leaderVehicle         = leaderVehicles        (isRacing, heatLevel).c_str();
-		henchmenVehicle       = henchmenVehicles      (isRacing, heatLevel).c_str();
+		lightRammingVehicles.SetToHeat  (isRacing, heatLevel);
+		heavyRammingVehicles.SetToHeat  (isRacing, heatLevel);
+		lightRoadblockVehicles.SetToHeat(isRacing, heatLevel);
+		heavyRoadblockVehicles.SetToHeat(isRacing, heatLevel);
+		leaderVehicles.SetToHeat        (isRacing, heatLevel);
+		henchmenVehicles.SetToHeat      (isRacing, heatLevel);
 
-		roadblockCooldownRange = maxRoadblockCooldown - minRoadblockCooldown;
+		roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::LogIndent("[SUP] GroundSupport");
 
-			Globals::LogLongIndent("minRoadblockCooldown   :", minRoadblockCooldown);
-			Globals::LogLongIndent("maxRoadblockCooldown   :", maxRoadblockCooldown);
-			Globals::LogLongIndent("roadblockHeavyCooldown :", roadblockHeavyCooldown);
-			Globals::LogLongIndent("strategyCooldown       :", strategyCooldown);
-			Globals::LogLongIndent("maxStrategyDelay       :", maxStrategyDelay);
+			Globals::LogLongIndent("minRoadblockCooldown   :", minRoadblockCooldowns.current);
+			Globals::LogLongIndent("maxRoadblockCooldown   :", maxRoadblockCooldowns.current);
+			Globals::LogLongIndent("roadblockHeavyCooldown :", roadblockHeavyCooldowns.current);
+			Globals::LogLongIndent("strategyCooldown       :", strategyCooldowns.current);
+			Globals::LogLongIndent("maxStrategyDelay       :", maxStrategyDelays.current);
 
-			Globals::LogLongIndent("lightRammingVehicle    :", lightRammingVehicle);
-			Globals::LogLongIndent("heavyRammingVehicle    :", heavyRammingVehicle);
-			Globals::LogLongIndent("lightRoadblockVehicle  :", lightRoadblockVehicle);
-			Globals::LogLongIndent("heavyRoadblockVehicle  :", heavyRoadblockVehicle);
-			Globals::LogLongIndent("leaderVehicle          :", leaderVehicle);
-			Globals::LogLongIndent("henchmenVehicle        :", henchmenVehicle);
+			Globals::LogLongIndent("lightRammingVehicle    :", lightRammingVehicles.current);
+			Globals::LogLongIndent("heavyRammingVehicle    :", heavyRammingVehicles.current);
+			Globals::LogLongIndent("lightRoadblockVehicle  :", lightRoadblockVehicles.current);
+			Globals::LogLongIndent("heavyRoadblockVehicle  :", heavyRoadblockVehicles.current);
+			Globals::LogLongIndent("leaderVehicle          :", leaderVehicles.current);
+			Globals::LogLongIndent("henchmenVehicle        :", henchmenVehicles.current);
 		}
     }
 }

@@ -488,7 +488,7 @@ namespace PursuitObserver
 			mov ecx, eax
 			pop eax
 
-			cmp ecx, dword ptr CopSpawnOverrides::maxActiveCount
+			cmp ecx, dword ptr CopSpawnOverrides::maxActiveCounts.current
 
 			jmp dword ptr mainSpawnLimitExit
 		}
@@ -504,7 +504,7 @@ namespace PursuitObserver
 		__asm
 		{
 			call PursuitObserver::GetNumCopsLoaded
-			cmp eax, dword ptr CopSpawnOverrides::maxActiveCount
+			cmp eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
 
 			jmp dword ptr otherSpawnLimitExit
 		}
