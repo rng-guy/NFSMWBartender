@@ -34,7 +34,7 @@ namespace Globals
 	hash (__thiscall* const GetCopType)(address)     = (hash (__thiscall*)(address))0x6880A0;
 
 	// Logging
-	constexpr bool loggingEnabled = true;
+	constexpr bool loggingEnabled = false;
 
 	std::unique_ptr<std::fstream> logStream;
 
