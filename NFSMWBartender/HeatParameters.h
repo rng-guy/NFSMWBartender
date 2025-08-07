@@ -97,6 +97,29 @@ namespace HeatParameters
 
 
 
+	template <typename T>
+	requires std::is_arithmetic_v<T>
+	class Pair<T> : public BasePair<T>
+	{
+	public:
+
+		T current;
+
+
+		Pair(const T initial) : current(initial) {}
+
+
+		void SetToHeat
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->current = ((forRaces) ? this->race : this->roam)[heatLevel - 1];
+		}
+	};
+
+
+
 	template <>
 	class Pair<std::string> : public BasePair<std::string>
 	{
@@ -114,33 +137,6 @@ namespace HeatParameters
 			const size_t heatLevel
 		) {
 			this->current = (((forRaces) ? this->race : this->roam)[heatLevel - 1]).c_str();
-		}
-	};
-
-
-
-	template <typename T> 
-	concept arithmetic = std::is_arithmetic_v<T>;
-
-
-
-	template <arithmetic T>
-	class Pair<T> : public BasePair<T>
-	{
-	public:
-
-		T current;
-
-
-		Pair(const T initial) : current(initial) {}
-
-
-		void SetToHeat
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->current = ((forRaces) ? this->race : this->roam)[heatLevel - 1];
 		}
 	};
 
