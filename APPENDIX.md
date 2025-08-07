@@ -31,7 +31,7 @@ If you configure Bartender improperly, it might cause **odd behaviour / stabilit
 
 &nbsp;
 
-To help you **avoid surprises and game instability**, the other sections below contain
+To help you **avoid surprises and game instability**, the next three sections below contain
 * everything you need to make informed edits to Bartender's configuration files, and
 * detailed compatibility notes for mods known to conflict with any Bartender features.
 
