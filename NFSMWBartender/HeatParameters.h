@@ -3,6 +3,7 @@
 #include <array>
 #include <string>
 #include <concepts>
+#include <optional>
 #include <algorithm>
 
 #include "ConfigParser.h"
