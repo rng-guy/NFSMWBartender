@@ -1,12 +1,11 @@
 #pragma once
 
-#include <Windows.h>
 #include <optional>
 #include <string>
 
 #include "Globals.h"
-#include "ConfigParser.h"
 #include "MemoryEditor.h"
+#include "HeatParameters.h"
 
 
 
@@ -18,18 +17,18 @@ namespace GroundSupport
 	bool featureEnabled = false;
 
 	// Heat levels
-	Globals::HeatParametersPair<float> minRoadblockCooldowns  (8.f);  // seconds
-	Globals::HeatParametersPair<float> maxRoadblockCooldowns  (12.f);
-	Globals::HeatParametersPair<float> roadblockHeavyCooldowns(15.f);
-	Globals::HeatParametersPair<float> strategyCooldowns      (10.f);
-	Globals::HeatParametersPair<float> maxStrategyDelays      (20.f);
+	HeatParameters::Pair<float> minRoadblockCooldowns  {8.f};  // seconds
+	HeatParameters::Pair<float> maxRoadblockCooldowns  {12.f};
+	HeatParameters::Pair<float> roadblockHeavyCooldowns{15.f};
+	HeatParameters::Pair<float> strategyCooldowns      {10.f};
+	HeatParameters::Pair<float> maxStrategyDelays      {20.f};
 	
-	Globals::HeatParametersPair<std::string> lightRammingVehicles  ("copsuvl");
-	Globals::HeatParametersPair<std::string> heavyRammingVehicles  ("copsuv");
-	Globals::HeatParametersPair<std::string> lightRoadblockVehicles("copsuvl");
-	Globals::HeatParametersPair<std::string> heavyRoadblockVehicles("copsuv");
-	Globals::HeatParametersPair<std::string> leaderVehicles        ("copcross");
-	Globals::HeatParametersPair<std::string> henchmenVehicles      ("copsporthench");
+	HeatParameters::Pair<std::string> lightRammingVehicles  {"copsuvl"};
+	HeatParameters::Pair<std::string> heavyRammingVehicles  {"copsuv"};
+	HeatParameters::Pair<std::string> lightRoadblockVehicles{"copsuvl"};
+	HeatParameters::Pair<std::string> heavyRoadblockVehicles{"copsuv"};
+	HeatParameters::Pair<std::string> leaderVehicles        {"copcross"};
+	HeatParameters::Pair<std::string> henchmenVehicles      {"copsporthench"};
 
 	// Conversions
 	float roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;
@@ -230,12 +229,12 @@ namespace GroundSupport
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
 
-    bool Initialise(ConfigParser::Parser& parser)
+    bool Initialise(HeatParameters::Parser& parser)
     {
-		if (not parser.LoadFile(Globals::configPathBasic + "Supports.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic + "Supports.ini")) return false;
 
 		// Roadblock timers
-		Globals::ParseHeatParameters<float, float, float>
+		HeatParameters::Parse<float, float, float>
 		(
 			parser,
 			"Roadblocks:Timers",
@@ -244,14 +243,13 @@ namespace GroundSupport
 			{roadblockHeavyCooldowns, 0.f}
 		);
 
-		Globals::CheckIntervalValues<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
+		HeatParameters::CheckIntervals<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
 
 		// Other pursuit parameters
-		Globals::ParseHeatParameters<float, float>(parser, "Strategies:Timers", {strategyCooldowns, 0.f}, {maxStrategyDelays, 0.f});
-
-		Globals::ParseHeatParameters<std::string, std::string>(parser, "Heavy:Ramming",   {lightRammingVehicles},   {heavyRammingVehicles});
-		Globals::ParseHeatParameters<std::string, std::string>(parser, "Heavy:Roadblock", {lightRoadblockVehicles}, {heavyRoadblockVehicles});
-		Globals::ParseHeatParameters<std::string, std::string>(parser, "Leader:General",  {leaderVehicles},         {henchmenVehicles});
+		HeatParameters::Parse<float, float>            (parser, "Strategies:Timers", {strategyCooldowns, 0.f}, {maxStrategyDelays, 0.f});
+		HeatParameters::Parse<std::string, std::string>(parser, "Heavy:Ramming",     {lightRammingVehicles},   {heavyRammingVehicles});
+		HeatParameters::Parse<std::string, std::string>(parser, "Heavy:Roadblock",   {lightRoadblockVehicles}, {heavyRoadblockVehicles});
+		HeatParameters::Parse<std::string, std::string>(parser, "Leader:General",    {leaderVehicles},         {henchmenVehicles});
 
 		// Code caves
 		MemoryEditor::Write<float*>(&(minRoadblockCooldowns.current), 0x419548);

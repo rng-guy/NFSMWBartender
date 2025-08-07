@@ -3,7 +3,7 @@ This document contains all **technical details** regarding Bartender and its fea
 
 You **do not need to read** this file unless you are either
 * having issues with your game after installing Bartender, or
-* curious about the more technical details of Bartender and its features.
+* curious about the limitations and inner workings of Bartender.
 
 &nbsp;
 
@@ -165,7 +165,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * The "Events" spawn tables don't apply to the very first scripted, pre-generated cop that spawns in a given free-roam event (e.g. a Challenge Series pursuit). Instead, this first cop is always of the type defined by the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible for Bartender to know which spawn table to use for this single vehicle.
 
-* Bartender temporarily ignores the `count` values in a "Roadblocks" / "Events" spawn table whenever a roadblock / event requests more vehicles in total than they would otherwise allow. You can avoid this by ensuring that the totals of all `count` values amount to at least 5 / 6 for each "Roadblocks" / "Events" spawn table, as no roadblock / event in the vanilla game consists of more than 5 / 6 vehicles in total.
+* Bartender temporarily ignores the `count` values in a "Roadblocks" / "Events" spawn table whenever a roadblock / event requests more vehicles in total than they would otherwise allow. You can avoid this by ensuring that the totals of all `count` values amount to at least 5 / 8 for each "Roadblocks" / "Events" spawn table, as no roadblock / event in the vanilla game consists of more than 5 / 8 vehicles in total.
 
 * You should not use fast Heat transitions (`0x80deb840` VltEd parameter(s) set to < 5 seconds), else you might see a mix of cops from more than one "Events" spawn table appear in events with scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
 

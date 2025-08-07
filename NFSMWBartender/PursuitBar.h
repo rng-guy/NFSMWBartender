@@ -1,10 +1,8 @@
 #pragma once
 
-#include <Windows.h>
-
 #include "Globals.h"
-#include "ConfigParser.h"
 #include "MemoryEditor.h"
+#include "HeatParameters.h"
 
 
 
@@ -16,9 +14,9 @@ namespace PursuitBar
 	bool featureEnabled = false;
 
 	// Heat levels
-	Globals::HeatParametersPair<float> maxBustDistances(15.f); // metres
-	Globals::HeatParametersPair<float> evadeTimers     (7.f);  // seconds
-	Globals::HeatParametersPair<float> bustTimers      (5.f);
+	HeatParameters::Pair<float> maxBustDistances{15.f}; // metres
+	HeatParameters::Pair<float> evadeTimers     {7.f};  // seconds
+	HeatParameters::Pair<float> bustTimers      {5.f};
 
 	// Conversions
 	float halfEvadeRate = .5f / evadeTimers.current; // Hertz
@@ -66,13 +64,13 @@ namespace PursuitBar
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
 
-    bool Initialise(ConfigParser::Parser& parser)
+    bool Initialise(HeatParameters::Parser& parser)
     {
-		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic + "Others.ini")) return false;
 
 		// Pursuit parameters
-		Globals::ParseHeatParameters<float, float>(parser, "Busting:General", {bustTimers,  .001f}, {maxBustDistances, 0.f});
-		Globals::ParseHeatParameters<float>       (parser, "Evading:Timer",   {evadeTimers, .001f});
+		HeatParameters::Parse<float, float>(parser, "Busting:General", {bustTimers,  .001f}, {maxBustDistances, 0.f});
+		HeatParameters::Parse<float>       (parser, "Evading:Timer",   {evadeTimers, .001f});
 
 		// Code caves
 		MemoryEditor::Write<float*>(&bustRate,              0x40AEDB);

@@ -165,6 +165,7 @@
     <ClInclude Include="HelicopterOverrides.h" />
     <ClInclude Include="Miscellaneous.h" />
     <ClInclude Include="DestructionStrings.h" />
+    <ClInclude Include="HeatParameters.h" />
     <ClInclude Include="PursuitBar.h" />
     <ClInclude Include="GroundSupport.h" />
     <ClInclude Include="PursuitObserver.h" />

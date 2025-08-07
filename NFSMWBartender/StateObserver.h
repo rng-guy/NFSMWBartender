@@ -1,10 +1,8 @@
 #pragma once
 
-#include <Windows.h>
-
 #include "Globals.h"
-#include "ConfigParser.h"
 #include "MemoryEditor.h"
+#include "HeatParameters.h"
 
 #include "DestructionStrings.h"
 #include "GroundSupport.h"
@@ -34,7 +32,7 @@ namespace StateObserver
 	void OnHeatLevelUpdates()
 	{
 		// Shouldn't be necessary, but this is a BlackBox game..
-		if ((currentHeatLevel >= 1) and (currentHeatLevel <= Globals::maxHeatLevel))
+		if ((currentHeatLevel >= 1) and (currentHeatLevel <= HeatParameters::maxHeatLevel))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log("-------- [STA] Heat level now", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
@@ -310,7 +308,7 @@ namespace StateObserver
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(ConfigParser::Parser& parser)
+	bool Initialise(HeatParameters::Parser& parser)
 	{
 		MemoryEditor::DigCodeCave(HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
 		MemoryEditor::DigCodeCave(GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);

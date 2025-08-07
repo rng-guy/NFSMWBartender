@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Windows.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <concepts>
@@ -10,6 +9,7 @@
 #include <memory>
 
 #include "Globals.h"
+#include "HeatParameters.h"
 #include "CopSpawnTables.h"
 #include "PursuitFeatures.h"
 #include "CopSpawnOverrides.h"
@@ -516,7 +516,7 @@ namespace PursuitObserver
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(ConfigParser::Parser& parser)
+	bool Initialise(HeatParameters::Parser& parser)
 	{
 		if (not CopSpawnTables::Initialise(parser)) return false;
 

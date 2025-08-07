@@ -1,13 +1,12 @@
 #pragma once
 
-#include <Windows.h>
 #include <unordered_map>
 #include <string>
 
 #include "Globals.h"
 #include "PursuitFeatures.h"
 #include "CopSpawnTables.h"
-#include "ConfigParser.h"
+#include "HeatParameters.h"
 #include "MemoryEditor.h"
 
 
@@ -84,7 +83,7 @@ namespace CopSpawnOverrides
 		{
 			const hash copType = Globals::GetCopType(copVehicle);
 
-			const auto addedType = this->copTypeToCurrentCount.insert({copType, 1});
+			const auto addedType = this->copTypeToCurrentCount.insert({ copType, 1 });
 			if (not addedType.second) (addedType.first->second)++;
 
 			this->spawnTable.UpdateCapacity(copType, -1);
@@ -100,14 +99,14 @@ namespace CopSpawnOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	Globals::HeatParametersPair<int> minActiveCounts(1);
-	Globals::HeatParametersPair<int> maxActiveCounts(8);
+	HeatParameters::Pair<int> minActiveCounts{1};
+	HeatParameters::Pair<int> maxActiveCounts{8};
 
 	// Code caves
 	bool skipEventSpawns = true;
 
-	GlobalSpawnManager eventManager(&(CopSpawnTables::eventSpawnTables.current));
-	GlobalSpawnManager roadblockManager(&(CopSpawnTables::roadblockSpawnTables.current));
+	GlobalSpawnManager eventManager    {&(CopSpawnTables::eventSpawnTables.current)};
+	GlobalSpawnManager roadblockManager{&(CopSpawnTables::roadblockSpawnTables.current)};
 
 
 
@@ -656,12 +655,12 @@ namespace CopSpawnOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(ConfigParser::Parser& parser)
+	bool Initialise(HeatParameters::Parser& parser)
 	{
-		parser.LoadFile(Globals::configPathAdvanced + "Cars.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
 		// Pursuit parameters
-		Globals::ParseHeatParameters<int, int>(parser, "Spawning:Limits", {minActiveCounts, 0}, {maxActiveCounts, 0});
+		HeatParameters::Parse<int, int>(parser, "Spawning:Limits", {minActiveCounts, 0}, {maxActiveCounts, 0});
 
 		// Code caves
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment

@@ -118,7 +118,7 @@ To **install** Bartender:
 
 **After installing** Bartender: 
 1. check out its configuration (.ini) files in the `scripts\BartenderSettings` folder, and
-2. read the [appendix](APPENDIX.md) should you encounter any issues or want technical details.
+2. see the [appendix](APPENDIX.md) should you encounter any issues or want technical details.
 
 &nbsp;
 

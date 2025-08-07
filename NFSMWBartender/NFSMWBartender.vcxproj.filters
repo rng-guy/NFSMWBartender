@@ -100,6 +100,9 @@
     <ClInclude Include="PursuitObserver.h">
       <Filter>Header Files\Modifications\Advanced</Filter>
     </ClInclude>
+    <ClInclude Include="HeatParameters.h">
+      <Filter>Header Files\General</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Basic\Others.ini">

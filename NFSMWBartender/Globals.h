@@ -1,17 +1,12 @@
 #pragma once
 
-#include <Windows.h>
-#include <algorithm>
-#include <optional>
 #include <cstdint>
 #include <fstream>
 #include <memory>
 #include <format>
 #include <string>
-#include <array>
 
 #include "RandomNumbers.h"
-#include "ConfigParser.h"
 
 #undef min
 #undef max
@@ -34,20 +29,9 @@ namespace Globals
 	// Pseudorandom number generator
 	RandomNumbers::Generator prng;
 
-	// Heat levels
-	constexpr size_t maxHeatLevel = 10;
-	constexpr float  maxHeat      = (float)maxHeatLevel;
-
 	// Common function pointers
 	hash (__cdecl* const GetStringHash)(const char*) = (hash (__cdecl*)(const char*))0x5CC240;
 	hash (__thiscall* const GetCopType)(address)     = (hash (__thiscall*)(address))0x6880A0;
-	
-	// Configuration files
-	const std::string configFormatRoam   = "heat{:02}";
-	const std::string configFormatRace   = "race{:02}";
-	const std::string configPathMain     = "BartenderSettings/";
-	const std::string configPathBasic    = configPathMain + "Basic/";
-	const std::string configPathAdvanced = configPathMain + "Advanced/";
 
 	// Logging
 	constexpr bool loggingEnabled = true;
@@ -72,219 +56,7 @@ namespace Globals
 		}
 	};
 
-
-
-
-
-	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
-
-	template <typename T>
-	using HeatParameters = std::array<T, maxHeatLevel>;
-
-	template <typename T>
-	using FormatParameter = ConfigParser::FormatParameter<T, maxHeatLevel>;
-
-
-
-
-
-	// HeatParametersPair struct --------------------------------------------------------------------------------------------------------------------
-
-	template <typename T>
-	struct BaseHeatParametersPair
-	{
-		HeatParameters<T> roam = {};
-		HeatParameters<T> race = {};
-
-
-		HeatParameters<T>& operator ()(const bool forRaces)
-		{
-			return (forRaces) ? this->race : this->roam;
-		}
-
-
-		const HeatParameters<T>& operator ()(const bool forRaces) const
-		{
-			return (forRaces) ? this->race : this->roam;
-		}
-
-
-	protected:
-
-		BaseHeatParametersPair() {}
-	};
-
-
-
-	template <typename T>
-	struct HeatParametersPair : public BaseHeatParametersPair<T>
-	{
-		const T* current = &(this->roam[0]);
-
-
-		void SetToHeat
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->current = &(((forRaces) ? this->race : this->roam)[heatLevel - 1]);
-		}
-	};
-
-
-
-	template <>
-	struct HeatParametersPair<std::string> : public BaseHeatParametersPair<std::string>
-	{
-		const char* current;
-
-
-		HeatParametersPair(const char* const initial) : current(initial) {}
-
-
-		void SetToHeat
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->current = (((forRaces) ? this->race : this->roam)[heatLevel - 1]).c_str();
-		}
-	};
-
-
-
-	template<typename T> concept arithmetic = std::is_arithmetic_v<T>;
-
-	template <arithmetic T>
-	struct HeatParametersPair<T> : public BaseHeatParametersPair<T>
-	{
-		T current;
-
-
-		HeatParametersPair(const T initial) : current(initial) {}
-
-
-		void SetToHeat
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->current = ((forRaces) ? this->race : this->roam)[heatLevel - 1];
-		}
-	};
-
-
-
-
-
-	// Special parsing types and functions ----------------------------------------------------------------------------------------------------------
-
-	template <typename T>
-	struct ParsingSetup
-	{
-		HeatParametersPair<T>& pair;
-		const std::optional<T> lowerBound = {};
-		const std::optional<T> upperBound = {};
-	};
-
-
-
-	template <typename T>
-	void ParseHeatParameters
-	(
-		ConfigParser::Parser& parser,
-		const std::string&    section,
-		ParsingSetup<T>&&     setup
-	) {
-		parser.ParseFormatParameter<T>
-		(
-			section,
-			configFormatRoam,
-			setup.pair.roam,
-			setup.pair.current,
-			setup.lowerBound,
-			setup.upperBound
-		);
-
-		setup.pair.race = setup.pair.roam;
-
-		parser.ParseFormatParameter<T>
-		(
-			section,
-			configFormatRace,
-			setup.pair.race,
-			{},
-			setup.lowerBound,
-			setup.upperBound
-		);
-	}
-
-
-
-	template <typename ...T>
-	void ParseHeatParameters
-	(
-		ConfigParser::Parser&    parser,
-		const std::string&       section,
-		ParsingSetup<T>&&     ...columns
-	) {
-		parser.ParseParameterTable<T...>
-		(
-			section,
-			configFormatRoam,
-			FormatParameter<T>
-			(
-				columns.pair.roam, 
-				columns.pair.current, 
-				columns.lowerBound, 
-				columns.upperBound
-			)...
-		);
-
-		const HeatParameters<bool> isValids = parser.ParseParameterTable<T...>
-		(
-			section,
-			configFormatRace,
-			FormatParameter<T>
-			(
-				columns.pair.race,
-				{}, 
-				columns.lowerBound, 
-				columns.upperBound
-			)...
-		);
-
-		(
-			[&]
-			{
-				for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
-				{
-					if (not isValids[heatLevel - 1])
-						columns.pair.race[heatLevel - 1] = columns.pair.roam[heatLevel - 1];
-				}
-			}
-		(), ...);
-	}
-
-
-
-	template <typename T>
-	void CheckIntervalValues
-	(
-		HeatParametersPair<T>&       minValues,
-		const HeatParametersPair<T>& maxValues
-	) {
-		for (const bool forRaces : {false, true})
-		{
-			HeatParameters<T>&       lowers = minValues(forRaces);
-			const HeatParameters<T>& uppers = maxValues(forRaces);
-
-			for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
-				lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
-		}
-	}
-
-
+	
 
 
 

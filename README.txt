@@ -13,7 +13,6 @@ The sections below ADDRESS THE FOLLOWING QUESTIONS in detail:
  3) • What mods are (in)compatible with Bartender?
  4) • How do I install Bartender for my game?
  5) • How may I share or bundle Bartender?
- 6) • What changed in each version?
 
 
 
@@ -79,9 +78,9 @@ Bartender should be FULLY COMPATIBLE with all VltEd and Binary mods. Other .asi 
 without pursuit features should also be compatible unless they are listed below.
 
 Some popular .asi mods REQUIRE CONFIGURATION to be compatible with Bartender:
-* In "NFSMW ExtraOptions" by ExOptsTeam, disable the "HeatLevelOverride" feature.
-* In "NFSMW Unlimiter" by nlgxzef, disable the "EnableCopDestroyedStringHook" feature.
-* In "NFSMW LimitAdjuster" by Zolika1351, disable everything under "[Options]".
+ • In "NFSMW ExtraOptions" by ExOptsTeam, disable the "HeatLevelOverride" feature.
+ • In "NFSMW Unlimiter" by nlgxzef, disable the "EnableCopDestroyedStringHook" feature.
+ • In "NFSMW LimitAdjuster" by Zolika1351, disable everything under "[Options]".
 
 
 
@@ -101,8 +100,8 @@ To INSTALL Bartender:
  3) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
 
 AFTER INSTALLING Bartender: 
- 1) • check out its configuration (.ini) files in the `scripts\BartenderSettings` folder, and
- 2) • read the "APPENDIX.txt" file should you encounter any issues or want technical details.
+ 1) • check out its configuration (.ini) files in the "scripts\BartenderSettings" folder, and
+ 2) • see the "APPENDIX.txt" file should you encounter any issues or want technical details.
 
 To UNINSTALL Bartender, remove its files from your game's "scripts" folder. There is no need to
 remove the optional missing textures, as the game will not use them without Bartender.
@@ -131,90 +130,3 @@ Finally, Bartender would not have seen the light of day without
  • ExOptsTeam, for permitting me to use their Heat-level fixes;
  • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a resource; and
  • Orsal, Aven, Astra King79, and MORELLO, for testing and providing feedback.
-
-
-
-
-
-
-── ■ │ 6 - WHAT CHANGED IN EACH VERSION? │ ■ ──────────────────────────────────────────────────────
-
-v1.00.00: Initial release
-      01: Revised "LIMITATIONS" section of README
-      02: Revised multiple sections of README
-      03: Yet another minor README revision
-      04: README? More like "FIXME"
-      05: Clarified "Events" spawns in "Cars.ini"
-      06: Clarified string assignment in "Labels.ini"
-      07: Clarified ignored VltEd parameters when "Advanced" feature set is enabled
-      08: Corrected a few typos in README
-      09: Clarified cooldowns in "Supports.ini" and helicopter spawns in "Helicopter.ini"
-      10: Revised multiple .ini comments and enforced consistency
-      11: Further clarified cooldowns in "Supports.ini"
-      12: Improved formatting of .ini files and expanded "LIMITATIONS" section of README
-      13: Added compatibility note for VltEd and other .asi mods in "LIMITATIONS" section of README
-      14: Added compatibility note for Binary mods in "LIMITATIONS" section of README
-      15: Added note about README structure
-      16: Clarified stability of "NFSMW LimitAdjuster" in "LIMITATIONS" section of README
-
-   01.00: Fixed a bug with vehicle names containing underscores
-      01: Removed some superfluous memory patches
-
-   02.00: Improved thread safety of cop-spawn interceptor functions
-      01: Rephrased spawning-related entries in "LIMITATIONS" section of README
-      02: Removed redundant push / pop instructions
-
-   03.00: Fixed the Heat-level update in free-roam and a rare bug of the game miscounting cops
-      01: Rephrased "LIMITATIONS" section of README yet again
-
-   04.00: Added post-race pursuit hook and changed cop count to decrement after full despawns only
-      01: Added workaround for vanilla bug of fleeing HeavyStrategy 3 spawns ("ADVANCED" set only)
-      02: Improved phrasing and corrected some typos in README
-
-   05.00: Added "count" support to custom "Roadblocks" and "Events" spawn tables
-      01: Rephrased README to better reflect recent changes to both feature sets
-      02: Restructured "LIMITATIONS" section of README and renamed both "General.ini" files
-      03: Restructured and rephrased README some more
-      04: Merged "Behaviour.ini" with "Cars.ini" file
-      05: Clarified global cop-spawn limit in "LIMITATIONS" section of README and "Cars.ini" file
-      06: Added missing number-format comment to "Others.ini" file
-
-   06.00: Fixed incorrect labelling of roadblock vehicles joining pursuits after spike-strip hits
-      01: Made terminology in README and .ini files files more consistent, and rephrased some parts
-
-   07.00: Fixed Heavy / LeaderStrategy spawns not fleeing as per their "Duration" VltEd parameters
-      01: Improved general performance of cop management functions for the "ADVANCED" set
-      02: Clarified some ambiguous phrasing in "LIMITATIONS" section of README
-      03: Clarified the different types of patrol spawns in README and "Cars.ini" file
-      04: Rephrased parts of the README for what feels like the millionth time
-
-   08.00: Added support for separate free-roam and race pursuit parameters
-      01: Improved performance slightly and expanded "LIMITATIONS" section of README
-
-   09.00: Added fixes for Heat levels above 5 resetting and missing menu textures in Career mode
-      01: It's a bird! It's a plane! No, it's yet another fresh batch of phrasing corrections!
-      02: Added information about enabling / disabling individual bug fixes to README
-      03: Clarified logic of spawn-table copying in "LIMITATIONS" section of README
-      04: Corrected mislabelled spawn tables in "LIMITATIONS" section of README
-      05: Rephrased a couple more parts of the README to remove ambiguity
-      06: Overhauled entire README and renamed parameter group in "Labels.ini" file
-      07: Improved clarity of README by replacing most references with nouns
-
-   10.00: Assigned correct spawn table to first cop spawn in Career milestone / bounty pursuits
-      01: Improved readability of README by overhauling language and phrasing throughout
-      02: Expanded all comments and also rearranged busting parameters in configuration files
-      03: Further expanded file parsing and usage notes subsections in README
-      04: Edited configuration files of "Advanced" feature set to use the game's vanilla values
-
-   11.00: Fixed "Events" spawn tables not applying to scripted patrol spawns in prologue races
-      01: Added missing reset hook for "Events" spawn tables between consecutive (prologue) races
-      02: Made phrasing of comments in configuration files more internally consistent
-      03: Clarified comments about "NFSMW LimitAdjuster" in "Cars.ini" file and README
-      04: Improved performance slightly by removing redundant assembly instructions
-
-   12.00: Added fix for vanilla helicopter shadows and further improved performance
-      01: Improved performance even more by removing redundant re-hashing
-      02: Fixed rare edge case of "Events" spawns temporarily blocking "Chasers" spawns
-      03: Another performance improvement by reducing re-hashing even further
-
-   13.00: Improved performance by rewriting and streamlining the internal file-parsing logic

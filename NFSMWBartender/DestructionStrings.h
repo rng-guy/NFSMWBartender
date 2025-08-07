@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Windows.h>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include <unordered_map>
 
 #include "Globals.h"
-#include "ConfigParser.h"
 #include "MemoryEditor.h"
+#include "HeatParameters.h"
 
 
 
@@ -71,9 +71,9 @@ namespace DestructionStrings
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(ConfigParser::Parser& parser)
+	bool Initialise(HeatParameters::Parser& parser)
 	{
-		if (not parser.LoadFile(Globals::configPathBasic + "Labels.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic + "Labels.ini")) return false;
 
 		std::vector<std::string> copVehicles;
 		std::vector<std::string> binaryLabels;

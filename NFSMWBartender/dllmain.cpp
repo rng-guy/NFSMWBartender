@@ -1,7 +1,7 @@
 #include <Windows.h>
 
-#include "ConfigParser.h"
 #include "MemoryEditor.h"
+#include "HeatParameters.h"
 
 #include "StateObserver.h"
 
@@ -18,7 +18,7 @@
 
 static void Initialise() 
 {
-    ConfigParser::Parser parser;
+    HeatParameters::Parser parser{};
 
     // "Basic" feature set
     bool basicSetEnabled = false;
@@ -34,8 +34,8 @@ static void Initialise()
         MemoryEditor::Write<float>(0.f, 0x903660);
 
         // Heat-level fixes (credit: ExOptsTeam)
-        MemoryEditor::Write<float>       (Globals::maxHeat,    0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088);
-        MemoryEditor::Write<const float*>(&(Globals::maxHeat), 0x435079, 0x7A5B03, 0x7A5B12);
+        MemoryEditor::Write<float>       (HeatParameters::maxHeat,    0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088);
+        MemoryEditor::Write<const float*>(&(HeatParameters::maxHeat), 0x435079, 0x7A5B03, 0x7A5B12);
     }
 
     // "Advanced" feature set

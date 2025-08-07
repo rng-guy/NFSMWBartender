@@ -1,9 +1,7 @@
 #pragma once
 
-#include <Windows.h>
-
 #include "Globals.h"
-#include "ConfigParser.h"
+#include "HeatParameters.h"
 #include "MemoryEditor.h"
 
 
@@ -16,8 +14,8 @@ namespace Miscellaneous
 	bool featureEnabled = false;
 
 	// Heat levels
-	Globals::HeatParametersPair<float> bountyIntervals(10.f); // seconds
-	Globals::HeatParametersPair<int>   copComboLimits (3);    // kills
+	HeatParameters::Pair<float> bountyIntervals{10.f}; // seconds
+	HeatParameters::Pair<int>   copComboLimits {3};    // kills
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current;
@@ -85,13 +83,13 @@ namespace Miscellaneous
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
 
-    bool Initialise(ConfigParser::Parser& parser)
+    bool Initialise(HeatParameters::Parser& parser)
     {
-		if (not parser.LoadFile(Globals::configPathBasic + "Others.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic + "Others.ini")) return false;
 
 		// Pursuit parameters
-		Globals::ParseHeatParameters<float>(parser, "BountyInterval", {bountyIntervals, .001f});
-		Globals::ParseHeatParameters<int>  (parser, "CopComboLimit",  {copComboLimits,  1});
+		HeatParameters::Parse<float>(parser, "BountyInterval", {bountyIntervals, .001f});
+		HeatParameters::Parse<int>  (parser, "CopComboLimit",  {copComboLimits,  1});
 
 		// Code caves
 		MemoryEditor::Write<float*>(&bountyFrequency, 0x444513, 0x444524);

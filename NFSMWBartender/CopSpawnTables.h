@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Windows.h>
 #include <unordered_set>
 #include <unordered_map>
 #include <algorithm>
@@ -9,8 +8,8 @@
 #include <vector>
 
 #include "Globals.h"
-#include "ConfigParser.h"
 #include "MemoryEditor.h"
+#include "HeatParameters.h"
 
 
 
@@ -166,11 +165,11 @@ namespace CopSpawnTables
 	bool featureEnabled = false;
 
 	// Heat levels
-	Globals::HeatParametersPair<std::string> helicopterVehicles("copheli");
-	Globals::HeatParametersPair<SpawnTable>  eventSpawnTables;
-	Globals::HeatParametersPair<SpawnTable>  patrolSpawnTables;
-	Globals::HeatParametersPair<SpawnTable>  pursuitSpawnTables;
-	Globals::HeatParametersPair<SpawnTable>  roadblockSpawnTables;
+	HeatParameters::Pair<std::string> helicopterVehicles  {"copheli"};
+	HeatParameters::Pair<SpawnTable>  eventSpawnTables    {};
+	HeatParameters::Pair<SpawnTable>  patrolSpawnTables   {};
+	HeatParameters::Pair<SpawnTable>  pursuitSpawnTables  {};
+	HeatParameters::Pair<SpawnTable>  roadblockSpawnTables{};
 
 	// Code caves
 	int currentMaxCopCapacity = 0;
@@ -183,11 +182,11 @@ namespace CopSpawnTables
 
 	void ParseTables
 	(
-		ConfigParser::Parser&                parser,
-		const std::string&                   name,
-		const std::string&                   format,
-		Globals::HeatParameters<SpawnTable>& spawnTables,
-		const bool                           hasCounts
+		HeatParameters::Parser&             parser,
+		const std::string&                  name,
+		const std::string&                  format,
+		HeatParameters::Values<SpawnTable>& spawnTables,
+		const bool                          hasCounts
 	) {
 		std::string section;
 
@@ -197,7 +196,7 @@ namespace CopSpawnTables
 
 		size_t numberOfEntries;
 
-		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
+		for (size_t heatLevel = 1; heatLevel <= HeatParameters::maxHeatLevel; heatLevel++)
 		{
 			section = std::vformat(format + name, std::make_format_args(heatLevel));
 
@@ -222,10 +221,10 @@ namespace CopSpawnTables
 
 	void ValidateTables
 	(
-		Globals::HeatParameters<SpawnTable>&       tables,
-		const Globals::HeatParameters<SpawnTable>& fallbacks
+		HeatParameters::Values<SpawnTable>&       tables,
+		const HeatParameters::Values<SpawnTable>& fallbacks
 	) {
-		for (size_t heatLevel = 1; heatLevel <= Globals::maxHeatLevel; heatLevel++)
+		for (size_t heatLevel = 1; heatLevel <= HeatParameters::maxHeatLevel; heatLevel++)
 			if (tables[heatLevel - 1].IsEmpty()) tables[heatLevel - 1] = fallbacks[heatLevel - 1];
 	}
 
@@ -235,17 +234,17 @@ namespace CopSpawnTables
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(ConfigParser::Parser& parser)
+	bool Initialise(HeatParameters::Parser& parser)
 	{
-		parser.LoadFile(Globals::configPathAdvanced + "Helicopter.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini");
 
 		// Pursuit parameters
-		Globals::ParseHeatParameters<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
+		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
 		std::for_each(helicopterVehicles.roam.begin(), helicopterVehicles.roam.end(), SpawnTable::RegisterHelicopter);
 		std::for_each(helicopterVehicles.race.begin(), helicopterVehicles.race.end(), SpawnTable::RegisterHelicopter);
 
 		// Spawn tables
-		if (not parser.LoadFile(Globals::configPathAdvanced + "Cars.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini")) return false;
 
 		for (const bool forRaces : {false, true})
 		{

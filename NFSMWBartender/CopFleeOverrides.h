@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Windows.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <string>
@@ -9,7 +8,7 @@
 #include "Globals.h"
 #include "PursuitFeatures.h"
 #include "CopSpawnTables.h"
-#include "ConfigParser.h"
+#include "HeatParameters.h"
 #include "MemoryEditor.h"
 
 
@@ -22,9 +21,9 @@ namespace CopFleeOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	Globals::HeatParametersPair<bool>  fleeingEnableds(false);
-	Globals::HeatParametersPair<float> minFleeDelays  (0.f);   // seconds
-	Globals::HeatParametersPair<float> maxFleeDelays  (0.f);
+	HeatParameters::Pair<bool>  fleeingEnableds{false};
+	HeatParameters::Pair<float> minFleeDelays  {0.f};   // seconds
+	HeatParameters::Pair<float> maxFleeDelays  {0.f};
 
 
 
@@ -318,9 +317,9 @@ namespace CopFleeOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(ConfigParser::Parser& parser)
+	bool Initialise(HeatParameters::Parser& parser)
 	{
-		parser.LoadFile(Globals::configPathAdvanced + "Cars.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
 		// Heat parameters
 		for (const bool forRaces : {false, true})
@@ -328,13 +327,13 @@ namespace CopFleeOverrides
 			fleeingEnableds(forRaces) = parser.ParseParameterTable<float, float>
 			(
 				"Fleeing:Timers",
-				(forRaces) ? Globals::configFormatRace : Globals::configFormatRoam,
-				Globals::FormatParameter<float>(minFleeDelays(forRaces), {}, 0.f),
-				Globals::FormatParameter<float>(maxFleeDelays(forRaces), {}, 0.f)
+				(forRaces) ? HeatParameters::configFormatRace : HeatParameters::configFormatRoam,
+				HeatParameters::Format<float>(minFleeDelays(forRaces), {}, 0.f),
+				HeatParameters::Format<float>(maxFleeDelays(forRaces), {}, 0.f)
 			);
 		}
 
-		Globals::CheckIntervalValues<float>(minFleeDelays, maxFleeDelays);
+		HeatParameters::CheckIntervals<float>(minFleeDelays, maxFleeDelays);
 
 		return (featureEnabled = true);
 	}
