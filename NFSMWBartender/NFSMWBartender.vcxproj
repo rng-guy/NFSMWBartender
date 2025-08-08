@@ -158,6 +158,7 @@
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BasicLogger.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="ConfigParser.h" />
     <ClInclude Include="CopFleeOverrides.h" />

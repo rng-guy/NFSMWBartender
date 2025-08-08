@@ -39,7 +39,7 @@ namespace CopSpawnOverrides
 					this->table.UpdateCapacity(pair.first, -(pair.second));
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [GLO] Failed to reload table");
+				Globals::logger.Log("WARNING: [GLO] Failed to reload table");
 		}
 
 
@@ -63,13 +63,13 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (not copName)
-						Globals::Log("WARNING: [GLO] Failed to select vehicle");
+						Globals::logger.Log("WARNING: [GLO] Failed to select vehicle");
 				}
 			}
 			else if constexpr (Globals::loggingEnabled)
 			{
 				if (not copName)
-					Globals::Log("WARNING: [GLO] Invalid source-table pointer");
+					Globals::logger.Log("WARNING: [GLO] Invalid source-table pointer");
 			}
 
 			return copName;
@@ -138,30 +138,30 @@ namespace CopSpawnOverrides
 			if (not this->IsHeatLevelKnown())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[SPA] Skipping updating spawn table");
+					Globals::logger.Log(this->pursuit, "[SPA] Skipping updating spawn table");
 
 				return;
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[SPA] Updating table");
+				Globals::logger.Log(this->pursuit, "[SPA] Updating table");
 
 			this->table = *(CopSpawnTables::pursuitSpawnTables.current);
 
 			for (const auto& pair : this->copTypeToCurrentCount)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[SPA] Copying", pair.second, 'x', pair.first);
+					Globals::logger.Log(this->pursuit, "[SPA] Copying", pair.second, 'x', pair.first);
 
 				this->table.UpdateCapacity(pair.first, -(pair.second));
 
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->table.Contains(pair.first))
-						Globals::Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(pair.first));
+						Globals::logger.Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(pair.first));
 
 					else
-						Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
+						Globals::logger.Log(this->pursuit, "[SPA] Type capacity undefined");
 				}
 			}
 		}
@@ -179,7 +179,7 @@ namespace CopSpawnOverrides
 			this->numPatrolCarsToSpawn = (numPatrolCars) ? *((int*)numPatrolCars) : 0;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[SPA] Patrol cars:", this->numPatrolCarsToSpawn);
+				Globals::logger.Log(this->pursuit, "[SPA] Patrol cars:", this->numPatrolCarsToSpawn);
 		}
 
 
@@ -206,7 +206,7 @@ namespace CopSpawnOverrides
 				*(this->fullWaveCapacity) -= waveCapacity;
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[SPA] Wave correction:", -waveCapacity);
+					Globals::logger.Log(this->pursuit, "[SPA] Wave correction:", -waveCapacity);
 			}
 		}
 
@@ -281,12 +281,12 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->table.Contains(copType))
-					Globals::Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(copType));
+					Globals::logger.Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(copType));
 
 				else
-					Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
+					Globals::logger.Log(this->pursuit, "[SPA] Type capacity undefined");
 
-				Globals::Log(this->pursuit, "[SPA] Contingent ratio:", addedType.first->second, '/', this->numCopsInContingent);
+				Globals::logger.Log(this->pursuit, "[SPA] Contingent ratio:", addedType.first->second, '/', this->numCopsInContingent);
 			}
 		}
 
@@ -314,19 +314,19 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->table.Contains(copType))
-						Globals::Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(copType));
+						Globals::logger.Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(copType));
 
 					else
-						Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
+						Globals::logger.Log(this->pursuit, "[SPA] Type capacity undefined");
 
-					Globals::Log(this->pursuit, "[SPA] Contingent ratio:", foundType->second, '/', this->numCopsInContingent);
+					Globals::logger.Log(this->pursuit, "[SPA] Contingent ratio:", foundType->second, '/', this->numCopsInContingent);
 				}
 
 				if (foundType->second < 1)
 					this->copTypeToCurrentCount.erase(foundType);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [SPA] Unknown type", copType, "in", this->pursuit);
+				Globals::logger.Log("WARNING: [SPA] Unknown type", copType, "in", this->pursuit);
 		}
 
 
@@ -390,7 +390,7 @@ namespace CopSpawnOverrides
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [SPA] Unknown ByClass return address:", spawnReturn);
+				Globals::logger.Log("WARNING: [SPA] Unknown ByClass return address:", spawnReturn);
 		}
 
 		return nullptr;
@@ -698,10 +698,10 @@ namespace CopSpawnOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogIndent("[SPA] CopSpawnOverrides");
+			Globals::logger.LogIndent("[SPA] CopSpawnOverrides");
 
-			Globals::LogLongIndent("minActiveCount         :", minActiveCounts.current);
-			Globals::LogLongIndent("maxActiveCount         :", maxActiveCounts.current);
+			Globals::logger.LogLongIndent("minActiveCount         :", minActiveCounts.current);
+			Globals::logger.LogLongIndent("maxActiveCount         :", maxActiveCounts.current);
 		}
 	}
 

@@ -103,6 +103,9 @@
     <ClInclude Include="HeatParameters.h">
       <Filter>Header Files\General</Filter>
     </ClInclude>
+    <ClInclude Include="BasicLogger.h">
+      <Filter>Header Files\General</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Basic\Others.ini">

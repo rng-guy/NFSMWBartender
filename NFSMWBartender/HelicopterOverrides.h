@@ -54,7 +54,7 @@ namespace HelicopterOverrides
 			this->isPlayerPursuit = IsPlayerPursuit(this->pursuit);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[HEL]", (this->isPlayerPursuit) ? "Confirmed" : "Not", "player pursuit");
+				Globals::logger.Log(this->pursuit, "[HEL]", (this->isPlayerPursuit) ? "Confirmed" : "Not", "player pursuit");
 		}
 
 
@@ -74,12 +74,12 @@ namespace HelicopterOverrides
 			if (*copManager) 
 			{ 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[HEL] Requesting helicopter");
+					Globals::logger.Log(this->pursuit, "[HEL] Requesting helicopter");
 
 				SpawnHelicopter(*copManager, this->pursuit);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [HEL] Invalid AICopManager pointer");
+				Globals::logger.Log("WARNING: [HEL] Invalid AICopManager pointer");
 		}
 
 
@@ -92,10 +92,10 @@ namespace HelicopterOverrides
 				*((float*)(*helicopterObject + 0x7D8)) = fuel;
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[HEL] Despawning in", fuel);
+					Globals::logger.Log(this->pursuit, "[HEL] Despawning in", fuel);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [HEL] Invalid helicopter pointer");
+				Globals::logger.Log("WARNING: [HEL] Invalid helicopter pointer");
 		}
 
 
@@ -112,14 +112,14 @@ namespace HelicopterOverrides
 				this->nextSpawnTimestamp += Globals::prng.Generate<float>(minRespawnDelays.current, maxRespawnDelays.current);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[HEL] Respawning in", this->nextSpawnTimestamp - *(this->simulationTime));
+					Globals::logger.Log(this->pursuit, "[HEL] Respawning in", this->nextSpawnTimestamp - *(this->simulationTime));
 			}
 			else
 			{
 				this->nextSpawnTimestamp += Globals::prng.Generate<float>(minSpawnDelays.current, maxSpawnDelays.current);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[HEL] Spawning in", this->nextSpawnTimestamp - *(this->simulationTime));
+					Globals::logger.Log(this->pursuit, "[HEL] Spawning in", this->nextSpawnTimestamp - *(this->simulationTime));
 			}
 		}
 
@@ -130,7 +130,7 @@ namespace HelicopterOverrides
 			this->statusChangeTimestamp = *(this->simulationTime);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[HEL] Helicopter now", (this->helicopterActive) ? "active" : "inactive");
+				Globals::logger.Log(this->pursuit, "[HEL] Helicopter now", (this->helicopterActive) ? "active" : "inactive");
 
 			if (this->helicopterActive)
 			{
@@ -276,17 +276,17 @@ namespace HelicopterOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogIndent("[HEL] HelicopterOverrides");
-			Globals::LogLongIndent("Helicopter", (helicopterEnableds.current) ? "enabled" : "disabled");
+			Globals::logger.LogIndent("[HEL] HelicopterOverrides");
+			Globals::logger.LogLongIndent("Helicopter", (helicopterEnableds.current) ? "enabled" : "disabled");
 
 			if (helicopterEnableds.current)
 			{
-				Globals::LogLongIndent("minSpawnDelay          :", minSpawnDelays.current);
-				Globals::LogLongIndent("maxSpawnDelay          :", maxSpawnDelays.current);
-				Globals::LogLongIndent("minDespawnDelay        :", minDespawnDelays.current);
-				Globals::LogLongIndent("maxDespawnDelay        :", maxDespawnDelays.current);
-				Globals::LogLongIndent("minRespawnDelay        :", minRespawnDelays.current);
-				Globals::LogLongIndent("maxRespawnDelay        :", maxRespawnDelays.current);
+				Globals::logger.LogLongIndent("minSpawnDelay          :", minSpawnDelays.current);
+				Globals::logger.LogLongIndent("maxSpawnDelay          :", maxSpawnDelays.current);
+				Globals::logger.LogLongIndent("minDespawnDelay        :", minDespawnDelays.current);
+				Globals::logger.LogLongIndent("maxDespawnDelay        :", maxDespawnDelays.current);
+				Globals::logger.LogLongIndent("minRespawnDelay        :", minRespawnDelays.current);
+				Globals::logger.LogLongIndent("maxRespawnDelay        :", maxRespawnDelays.current);
 			}
 		}
 	}

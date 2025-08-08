@@ -116,10 +116,10 @@ namespace Miscellaneous
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogIndent("[MSC] Miscellaneous");
+			Globals::logger.LogIndent("[MSC] Miscellaneous");
 
-			Globals::LogLongIndent("bountyInterval         :", bountyIntervals.current);
-			Globals::LogLongIndent("copComboLimit          :", copComboLimits.current);
+			Globals::logger.LogLongIndent("bountyInterval         :", bountyIntervals.current);
+			Globals::logger.LogLongIndent("copComboLimit          :", copComboLimits.current);
 		}
     }
 }

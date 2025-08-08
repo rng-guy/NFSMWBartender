@@ -101,11 +101,11 @@ namespace PursuitBar
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogIndent("[BAR] PursuitBar");
+			Globals::logger.LogIndent("[BAR] PursuitBar");
 
-			Globals::LogLongIndent("bustTimer              :", bustTimers.current);
-			Globals::LogLongIndent("maxBustDistance        :", maxBustDistances.current);
-			Globals::LogLongIndent("evadeTimer             :", evadeTimers.current);
+			Globals::logger.LogLongIndent("bustTimer              :", bustTimers.current);
+			Globals::logger.LogLongIndent("maxBustDistance        :", maxBustDistances.current);
+			Globals::logger.LogLongIndent("evadeTimer             :", evadeTimers.current);
 		}
     }
 }

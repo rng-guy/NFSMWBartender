@@ -145,7 +145,7 @@ namespace CopSpawnTables
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [TAB] Failed to select vehicle:", randomNumber, cumulativeChance, this->currentTotalCopChance);
+				Globals::logger.Log("WARNING: [TAB] Failed to select vehicle:", randomNumber, cumulativeChance, this->currentTotalCopChance);
 
 			return nullptr;
 		}
@@ -288,9 +288,9 @@ namespace CopSpawnTables
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogIndent("[TAB] CopSpawnTables");
+			Globals::logger.LogIndent("[TAB] CopSpawnTables");
 
-			Globals::LogLongIndent("helicopterVehicle      :", helicopterVehicles.current);
+			Globals::logger.LogLongIndent("helicopterVehicle      :", helicopterVehicles.current);
 		}
 	}
 }

@@ -89,7 +89,7 @@ namespace PursuitObserver
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log("WARNING: [OBS] Unknown AddVehicle return address:", callReturn);
+				Globals::logger.Log("WARNING: [OBS] Unknown AddVehicle return address:", callReturn);
 
 			return CopLabel::UNKNOWN;
 		}
@@ -102,7 +102,7 @@ namespace PursuitObserver
 			: pursuit(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log("     NEW [OBS] Pursuit", this->pursuit);
+				Globals::logger.Log("     NEW [OBS] Pursuit", this->pursuit);
 
 			if (CopSpawnOverrides::featureEnabled)
 				this->AddFeature<CopSpawnOverrides::ContingentManager>(this->pursuit);
@@ -118,7 +118,7 @@ namespace PursuitObserver
 		~PursuitObserver()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log("     DEL [OBS] Pursuit", this->pursuit);
+				Globals::logger.Log("     DEL [OBS] Pursuit", this->pursuit);
 		}
 
 
@@ -161,8 +161,8 @@ namespace PursuitObserver
 			{
 				if ((PursuitObserver::copVehiclesLoaded.insert(copVehicle)).second)
 				{
-					Globals::LogIndent("[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
-					Globals::LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
+					Globals::logger.LogIndent("[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
+					Globals::logger.LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
 			}
 			else PursuitObserver::copVehiclesLoaded.insert(copVehicle);
@@ -175,8 +175,8 @@ namespace PursuitObserver
 			{
 				if (PursuitObserver::copVehiclesLoaded.erase(copVehicle) > 0)
 				{
-					Globals::LogIndent("[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
-					Globals::LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
+					Globals::logger.LogIndent("[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
+					Globals::logger.LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
 			}
 			else PursuitObserver::copVehiclesLoaded.erase(copVehicle);
@@ -186,7 +186,7 @@ namespace PursuitObserver
 		static void ClearRegistrations()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogIndent("[REG] Clearing all cops loaded");
+				Globals::logger.LogIndent("[REG] Clearing all cops loaded");
 
 			PursuitObserver::copVehiclesLoaded.clear();
 		}
@@ -203,7 +203,7 @@ namespace PursuitObserver
 			if (not addedVehicle.second)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log(this->pursuit, "[OBS] =", copVehicle, (int)copLabel, 
+					Globals::logger.Log(this->pursuit, "[OBS] =", copVehicle, (int)copLabel, 
 						this->GetCopName(copVehicle), "is already", (int)(addedVehicle.first->second));
 
 				return;
@@ -211,7 +211,7 @@ namespace PursuitObserver
 			else if (copLabel != CopLabel::HELICOPTER) this->Register(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
+				Globals::logger.Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
 			const hash copType = Globals::GetCopType(copVehicle);
 
@@ -227,7 +227,7 @@ namespace PursuitObserver
 			if (foundVehicle == this->copVehicleToLabel.end())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::Log("WARNING: [OBS] Unknown vehicle", copVehicle, this->GetCopName(copVehicle), "in", this->pursuit);
+					Globals::logger.Log("WARNING: [OBS] Unknown vehicle", copVehicle, this->GetCopName(copVehicle), "in", this->pursuit);
 
 				return;
 			}
@@ -235,7 +235,7 @@ namespace PursuitObserver
 			const hash copType = Globals::GetCopType(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::Log(this->pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), this->GetCopName(copVehicle));
+				Globals::logger.Log(this->pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), this->GetCopName(copVehicle));
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessRemoval(copVehicle, copType, foundVehicle->second);
@@ -287,7 +287,7 @@ namespace PursuitObserver
 			foundPursuit->second.NotifyFeaturesOfAddition(copVehicle, addVehicleReturn);
 
 		else if constexpr (Globals::loggingEnabled)
-			Globals::Log("WARNING: [OBS] Addition to unknown pursuit", pursuit);
+			Globals::logger.Log("WARNING: [OBS] Addition to unknown pursuit", pursuit);
 	}
 
 
@@ -303,7 +303,7 @@ namespace PursuitObserver
 			foundPursuit->second.NotifyFeaturesOfRemoval(copVehicle);
 
 		else if constexpr (Globals::loggingEnabled)
-			Globals::Log("WARNING: [OBS] Removal from unknown pursuit", pursuit);
+			Globals::logger.Log("WARNING: [OBS] Removal from unknown pursuit", pursuit);
 	}
 
 

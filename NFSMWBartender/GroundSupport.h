@@ -292,20 +292,20 @@ namespace GroundSupport
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogIndent("[SUP] GroundSupport");
+			Globals::logger.LogIndent("[SUP] GroundSupport");
 
-			Globals::LogLongIndent("minRoadblockCooldown   :", minRoadblockCooldowns.current);
-			Globals::LogLongIndent("maxRoadblockCooldown   :", maxRoadblockCooldowns.current);
-			Globals::LogLongIndent("roadblockHeavyCooldown :", roadblockHeavyCooldowns.current);
-			Globals::LogLongIndent("strategyCooldown       :", strategyCooldowns.current);
-			Globals::LogLongIndent("maxStrategyDelay       :", maxStrategyDelays.current);
+			Globals::logger.LogLongIndent("minRoadblockCooldown   :", minRoadblockCooldowns.current);
+			Globals::logger.LogLongIndent("maxRoadblockCooldown   :", maxRoadblockCooldowns.current);
+			Globals::logger.LogLongIndent("roadblockHeavyCooldown :", roadblockHeavyCooldowns.current);
+			Globals::logger.LogLongIndent("strategyCooldown       :", strategyCooldowns.current);
+			Globals::logger.LogLongIndent("maxStrategyDelay       :", maxStrategyDelays.current);
 
-			Globals::LogLongIndent("lightRammingVehicle    :", lightRammingVehicles.current);
-			Globals::LogLongIndent("heavyRammingVehicle    :", heavyRammingVehicles.current);
-			Globals::LogLongIndent("lightRoadblockVehicle  :", lightRoadblockVehicles.current);
-			Globals::LogLongIndent("heavyRoadblockVehicle  :", heavyRoadblockVehicles.current);
-			Globals::LogLongIndent("leaderVehicle          :", leaderVehicles.current);
-			Globals::LogLongIndent("henchmenVehicle        :", henchmenVehicles.current);
+			Globals::logger.LogLongIndent("lightRammingVehicle    :", lightRammingVehicles.current);
+			Globals::logger.LogLongIndent("heavyRammingVehicle    :", heavyRammingVehicles.current);
+			Globals::logger.LogLongIndent("lightRoadblockVehicle  :", lightRoadblockVehicles.current);
+			Globals::logger.LogLongIndent("heavyRoadblockVehicle  :", heavyRoadblockVehicles.current);
+			Globals::logger.LogLongIndent("leaderVehicle          :", leaderVehicles.current);
+			Globals::logger.LogLongIndent("henchmenVehicle        :", henchmenVehicles.current);
 		}
     }
 }
