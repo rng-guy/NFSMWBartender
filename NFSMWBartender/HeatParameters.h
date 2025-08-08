@@ -51,7 +51,7 @@ namespace HeatParameters
 	{
 	protected:
 
-		BasePair() {}
+		BasePair() = default;
 
 
 
@@ -61,13 +61,13 @@ namespace HeatParameters
 		Values<T> race = {};
 
 
-		Values<T>& operator ()(const bool forRaces)
+		Values<T>& Get(const bool forRaces)
 		{
 			return (forRaces) ? this->race : this->roam;
 		}
 
 
-		const Values<T>& operator ()(const bool forRaces) const
+		const Values<T>& Get(const bool forRaces) const
 		{
 			return (forRaces) ? this->race : this->roam;
 		}
@@ -81,9 +81,6 @@ namespace HeatParameters
 	public:
 
 		const T* current = &(this->roam[0]);
-
-
-		Pair() {}
 
 
 		void SetToHeat
@@ -106,7 +103,7 @@ namespace HeatParameters
 		T current;
 
 
-		Pair(const T initial) : current(initial) {}
+		explicit Pair(const T initial) : current(initial) {}
 
 
 		void SetToHeat
@@ -128,7 +125,7 @@ namespace HeatParameters
 		const char* current;
 
 
-		Pair(const char* const initial) : current(initial) {}
+		explicit Pair(const char* const initial) : current(initial) {}
 
 
 		void SetToHeat
@@ -243,8 +240,8 @@ namespace HeatParameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
-			Values<T>&       lowers = minValues(forRaces);
-			const Values<T>& uppers = maxValues(forRaces);
+			Values<T>&       lowers = minValues.Get(forRaces);
+			const Values<T>& uppers = maxValues.Get(forRaces);
 
 			for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
 				lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);

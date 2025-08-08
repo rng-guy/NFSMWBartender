@@ -16,18 +16,18 @@ namespace GroundSupport
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<float> minRoadblockCooldowns  {8.f};  // seconds
-	HeatParameters::Pair<float> maxRoadblockCooldowns  {12.f};
-	HeatParameters::Pair<float> roadblockHeavyCooldowns{15.f};
-	HeatParameters::Pair<float> strategyCooldowns      {10.f};
-	HeatParameters::Pair<float> maxStrategyDelays      {20.f};
+	HeatParameters::Pair<float> minRoadblockCooldowns  (8.f);  // seconds
+	HeatParameters::Pair<float> maxRoadblockCooldowns  (12.f);
+	HeatParameters::Pair<float> roadblockHeavyCooldowns(15.f);
+	HeatParameters::Pair<float> strategyCooldowns      (10.f);
+	HeatParameters::Pair<float> maxStrategyDelays      (20.f);
 	
-	HeatParameters::Pair<std::string> lightRammingVehicles  {"copsuvl"};
-	HeatParameters::Pair<std::string> heavyRammingVehicles  {"copsuv"};
-	HeatParameters::Pair<std::string> lightRoadblockVehicles{"copsuvl"};
-	HeatParameters::Pair<std::string> heavyRoadblockVehicles{"copsuv"};
-	HeatParameters::Pair<std::string> leaderVehicles        {"copcross"};
-	HeatParameters::Pair<std::string> henchmenVehicles      {"copsporthench"};
+	HeatParameters::Pair<std::string> lightRammingVehicles  ("copsuvl");
+	HeatParameters::Pair<std::string> heavyRammingVehicles  ("copsuv");
+	HeatParameters::Pair<std::string> lightRoadblockVehicles("copsuvl");
+	HeatParameters::Pair<std::string> heavyRoadblockVehicles("copsuv");
+	HeatParameters::Pair<std::string> leaderVehicles        ("copcross");
+	HeatParameters::Pair<std::string> henchmenVehicles      ("copsporthench");
 
 	// Conversions
 	float roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;

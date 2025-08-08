@@ -14,9 +14,9 @@ namespace PursuitBar
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<float> maxBustDistances{15.f}; // metres
-	HeatParameters::Pair<float> evadeTimers     {7.f};  // seconds
-	HeatParameters::Pair<float> bustTimers      {5.f};
+	HeatParameters::Pair<float> maxBustDistances(15.f); // metres
+	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
+	HeatParameters::Pair<float> bustTimers      (5.f);
 
 	// Conversions
 	float halfEvadeRate = .5f / evadeTimers.current; // Hertz

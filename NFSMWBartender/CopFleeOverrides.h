@@ -1,7 +1,5 @@
 #pragma once
 
-#include <unordered_map>
-#include <unordered_set>
 #include <map>
 
 #include "Globals.h"
@@ -20,9 +18,9 @@ namespace CopFleeOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<bool>  fleeingEnableds{false};
-	HeatParameters::Pair<float> minFleeDelays  {0.f};   // seconds
-	HeatParameters::Pair<float> maxFleeDelays  {0.f};
+	HeatParameters::Pair<bool>  fleeingEnableds(false);
+	HeatParameters::Pair<float> minFleeDelays  (0.f);   // seconds
+	HeatParameters::Pair<float> maxFleeDelays  (0.f);
 
 
 
@@ -62,8 +60,8 @@ namespace CopFleeOverrides
 		float heavyStrategyDuration  = 0.f;
 		float leaderStrategyDuration = 0.f;
 
-		std::unordered_set<address, Globals::IdentityHash>             fleeingCopVehicles;
-		std::unordered_map<address, Assessment, Globals::IdentityHash> copVehicleToAssessment;
+		Globals::AddressSet             fleeingCopVehicles;
+		Globals::AddressMap<Assessment> copVehicleToAssessment;
 
 
 		void UpdateStrategyDurations()
@@ -244,7 +242,7 @@ namespace CopFleeOverrides
 
 	public:
 
-		MembershipManager(const address pursuit) : pursuit(pursuit) {}
+		explicit MembershipManager(const address pursuit) : pursuit(pursuit) {}
 
 
 		void UpdateOnGameplay() override 
@@ -323,12 +321,12 @@ namespace CopFleeOverrides
 		// Heat parameters
 		for (const bool forRaces : {false, true})
 		{
-			fleeingEnableds(forRaces) = parser.ParseParameterTable<float, float>
+			fleeingEnableds.Get(forRaces) = parser.ParseParameterTable<float, float>
 			(
 				"Fleeing:Timers",
 				(forRaces) ? HeatParameters::configFormatRace : HeatParameters::configFormatRoam,
-				HeatParameters::Format<float>(minFleeDelays(forRaces), {}, 0.f),
-				HeatParameters::Format<float>(maxFleeDelays(forRaces), {}, 0.f)
+				HeatParameters::Format<float>(minFleeDelays.Get(forRaces), {}, 0.f),
+				HeatParameters::Format<float>(maxFleeDelays.Get(forRaces), {}, 0.f)
 			);
 		}
 

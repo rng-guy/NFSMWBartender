@@ -1,7 +1,5 @@
 #pragma once
 
-#include <unordered_map>
-
 #include "Globals.h"
 #include "PursuitFeatures.h"
 #include "CopSpawnTables.h"
@@ -19,26 +17,26 @@ namespace CopSpawnOverrides
 	{
 	private:
 
-		std::unordered_map<hash, int, Globals::IdentityHash> copTypeToCurrentCount;
+		Globals::HashMap<int> copTypeToCurrentCount;
 
-		CopSpawnTables::SpawnTable               spawnTable;
-		const CopSpawnTables::SpawnTable** const sourceSpawnTable;
+		CopSpawnTables::SpawnTable               table;
+		const CopSpawnTables::SpawnTable** const source;
 
 
 
 	public:
 
-		GlobalSpawnManager(const CopSpawnTables::SpawnTable** const sourceSpawnTable) : sourceSpawnTable(sourceSpawnTable) {}
+		explicit GlobalSpawnManager(const CopSpawnTables::SpawnTable** const source) : source(source) {}
 
 
 		void ReloadSpawnTable()
 		{
-			if (*(this->sourceSpawnTable))
+			if (*(this->source))
 			{
-				this->spawnTable = *(*(this->sourceSpawnTable));
+				this->table = *(*(this->source));
 
 				for (const auto& pair : this->copTypeToCurrentCount)
-					this->spawnTable.UpdateCapacity(pair.first, -pair.second);
+					this->table.UpdateCapacity(pair.first, -(pair.second));
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::Log("WARNING: [GLO] Failed to reload table");
@@ -48,7 +46,7 @@ namespace CopSpawnOverrides
 		void ResetSpawnTable()
 		{
 			for (const auto& pair : this->copTypeToCurrentCount)
-				this->spawnTable.UpdateCapacity(pair.first, pair.second);
+				this->table.UpdateCapacity(pair.first, pair.second);
 
 			this->copTypeToCurrentCount.clear();
 		}
@@ -56,11 +54,11 @@ namespace CopSpawnOverrides
 
 		const char* GetRandomCopName()
 		{
-			const char* copName = this->spawnTable.GetRandomCopName();
+			const char* copName = this->table.GetRandomCopName();
 
-			if ((not copName) and *(this->sourceSpawnTable))
+			if ((not copName) and *(this->source))
 			{
-				copName = (*(*(this->sourceSpawnTable))).GetRandomCopName();
+				copName = (*(*(this->source))).GetRandomCopName();
 
 				if constexpr (Globals::loggingEnabled)
 				{
@@ -85,7 +83,7 @@ namespace CopSpawnOverrides
 			const auto addedType = this->copTypeToCurrentCount.insert({ copType, 1 });
 			if (not addedType.second) (addedType.first->second)++;
 
-			this->spawnTable.UpdateCapacity(copType, -1);
+			this->table.UpdateCapacity(copType, -1);
 		}
 	};
 
@@ -98,14 +96,14 @@ namespace CopSpawnOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<int> minActiveCounts{1};
-	HeatParameters::Pair<int> maxActiveCounts{8};
+	HeatParameters::Pair<int> minActiveCounts(1);
+	HeatParameters::Pair<int> maxActiveCounts(8);
 
 	// Code caves
 	bool skipEventSpawns = true;
 
-	GlobalSpawnManager eventManager    {&(CopSpawnTables::eventSpawnTables.current)};
-	GlobalSpawnManager roadblockManager{&(CopSpawnTables::roadblockSpawnTables.current)};
+	GlobalSpawnManager eventManager    (&(CopSpawnTables::eventSpawnTables.current));
+	GlobalSpawnManager roadblockManager(&(CopSpawnTables::roadblockSpawnTables.current));
 
 
 
@@ -129,11 +127,10 @@ namespace CopSpawnOverrides
 		int* const fullWaveCapacity  = (int*)(pursuit + 0x144);
 		int* const numCopsLostInWave = (int*)(pursuit + 0x14C);
 
-		CopSpawnTables::SpawnTable spawnTable;
+		CopSpawnTables::SpawnTable table;
+		Globals::HashMap<int>      copTypeToCurrentCount;
 
-		std::unordered_map<hash, int, Globals::IdentityHash> copTypeToCurrentCount;
-
-		inline static std::unordered_map<address, ContingentManager*, Globals::IdentityHash> pursuitToManager;
+		inline static Globals::AddressMap<ContingentManager*> pursuitToManager;
 
 
 		void UpdateSpawnTable()
@@ -149,19 +146,19 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::Log(this->pursuit, "[SPA] Updating table");
 
-			this->spawnTable = *(CopSpawnTables::pursuitSpawnTables.current);
+			this->table = *(CopSpawnTables::pursuitSpawnTables.current);
 
 			for (const auto& pair : this->copTypeToCurrentCount)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::Log(this->pursuit, "[SPA] Copying", pair.second, 'x', pair.first);
 
-				this->spawnTable.UpdateCapacity(pair.first, -(pair.second));
+				this->table.UpdateCapacity(pair.first, -(pair.second));
 
 				if constexpr (Globals::loggingEnabled)
 				{
-					if (this->spawnTable.Contains(pair.first))
-						Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(pair.first));
+					if (this->table.Contains(pair.first))
+						Globals::Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(pair.first));
 
 					else
 						Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
@@ -231,7 +228,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		ContingentManager(const address pursuit) 
+		explicit ContingentManager(const address pursuit)
 			: pursuit(pursuit)
 		{
 			this->pursuitToManager.insert({this->pursuit, this});
@@ -278,13 +275,13 @@ namespace CopSpawnOverrides
 			const auto addedType = this->copTypeToCurrentCount.insert({copType, 1});
 			if (not addedType.second) (addedType.first->second)++;
 
-			this->spawnTable.UpdateCapacity(copType, -1);
+			this->table.UpdateCapacity(copType, -1);
 			(this->numCopsInContingent)++;
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->spawnTable.Contains(copType))
-					Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(copType));
+				if (this->table.Contains(copType))
+					Globals::Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(copType));
 
 				else
 					Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
@@ -312,12 +309,12 @@ namespace CopSpawnOverrides
 				(this->numCopsInContingent)--;
 				(*(this->numCopsLostInWave))++;
 
-				this->spawnTable.UpdateCapacity(copType, +1);
+				this->table.UpdateCapacity(copType, +1);
 
 				if constexpr (Globals::loggingEnabled)
 				{
-					if (this->spawnTable.Contains(copType))
-						Globals::Log(this->pursuit, "[SPA] Type capacity:", this->spawnTable.GetCapacity(copType));
+					if (this->table.Contains(copType))
+						Globals::Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(copType));
 
 					else
 						Globals::Log(this->pursuit, "[SPA] Type capacity undefined");
@@ -335,7 +332,7 @@ namespace CopSpawnOverrides
 
 		const char* GetRandomCopName() const
 		{		
-			return (this->IsWaveExhausted()) ? nullptr : this->spawnTable.GetRandomCopName();
+			return (this->IsWaveExhausted()) ? nullptr : this->table.GetRandomCopName();
 		}
 	};
 

@@ -38,7 +38,7 @@ namespace PursuitFeatures
 		friend void SetToHeat(const bool, const size_t);
 		friend void ResetState();
 		
-		CopVehicleReaction() = default;
+		explicit CopVehicleReaction() = default;
 
 
 

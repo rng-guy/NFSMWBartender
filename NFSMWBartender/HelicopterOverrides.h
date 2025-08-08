@@ -15,13 +15,13 @@ namespace HelicopterOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<bool>  helicopterEnableds{false};
-	HeatParameters::Pair<float> minSpawnDelays    {0.f};   // seconds
-	HeatParameters::Pair<float> maxSpawnDelays    {0.f};
-	HeatParameters::Pair<float> minDespawnDelays  {0.f};
-	HeatParameters::Pair<float> maxDespawnDelays  {0.f};
-	HeatParameters::Pair<float> minRespawnDelays  {0.f};
-	HeatParameters::Pair<float> maxRespawnDelays  {0.f};
+	HeatParameters::Pair<bool>  helicopterEnableds(false);
+	HeatParameters::Pair<float> minSpawnDelays    (0.f);   // seconds
+	HeatParameters::Pair<float> maxSpawnDelays    (0.f);
+	HeatParameters::Pair<float> minDespawnDelays  (0.f);
+	HeatParameters::Pair<float> maxDespawnDelays  (0.f);
+	HeatParameters::Pair<float> minRespawnDelays  (0.f);
+	HeatParameters::Pair<float> maxRespawnDelays  (0.f);
 
 
 
@@ -144,7 +144,7 @@ namespace HelicopterOverrides
 
 	public:
 
-		HelicopterManager(const address pursuit) 
+		explicit HelicopterManager(const address pursuit) 
 			: pursuit(pursuit) 
 		{
 			this->UpdateNextSpawnTimestamp();
@@ -230,16 +230,16 @@ namespace HelicopterOverrides
 		// Heat parameters
 		for (const bool forRaces : {false, true})
 		{
-			helicopterEnableds(forRaces) = parser.ParseParameterTable<float, float, float, float, float, float>
+			helicopterEnableds.Get(forRaces) = parser.ParseParameterTable<float, float, float, float, float, float>
 			(
 				"Helicopter:Timers",
 				(forRaces) ? HeatParameters::configFormatRace : HeatParameters::configFormatRoam,
-				HeatParameters::Format<float>(minSpawnDelays  (forRaces), {}, 0.f),
-				HeatParameters::Format<float>(maxSpawnDelays  (forRaces), {}, 0.f),
-				HeatParameters::Format<float>(minDespawnDelays(forRaces), {}, 0.f),
-				HeatParameters::Format<float>(maxDespawnDelays(forRaces), {}, 0.f),
-				HeatParameters::Format<float>(minRespawnDelays(forRaces), {}, 0.f),
-				HeatParameters::Format<float>(maxRespawnDelays(forRaces), {}, 0.f)
+				HeatParameters::Format<float>(minSpawnDelays.Get  (forRaces), {}, 0.f),
+				HeatParameters::Format<float>(maxSpawnDelays.Get  (forRaces), {}, 0.f),
+				HeatParameters::Format<float>(minDespawnDelays.Get(forRaces), {}, 0.f),
+				HeatParameters::Format<float>(maxDespawnDelays.Get(forRaces), {}, 0.f),
+				HeatParameters::Format<float>(minRespawnDelays.Get(forRaces), {}, 0.f),
+				HeatParameters::Format<float>(maxRespawnDelays.Get(forRaces), {}, 0.f)
 			);
 		}
 

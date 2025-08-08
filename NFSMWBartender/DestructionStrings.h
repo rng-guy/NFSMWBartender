@@ -3,7 +3,6 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include <unordered_map>
 
 #include "Globals.h"
 #include "MemoryEditor.h"
@@ -11,7 +10,7 @@
 
 
 
-namespace DestructionStrings 
+namespace DestructionStrings
 {
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
@@ -19,9 +18,8 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves
-	key defaultDestructionKey;
-
-	std::unordered_map<hash, key, Globals::IdentityHash> copTypeToDestructionKey;
+	key                   defaultDestructionKey;
+	Globals::HashMap<key> copTypeToDestructionKey;
 
 
 	

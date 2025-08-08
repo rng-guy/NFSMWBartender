@@ -1,7 +1,5 @@
 #pragma once
 
-#include <unordered_set>
-#include <unordered_map>
 #include <algorithm>
 #include <string>
 #include <format>
@@ -32,10 +30,10 @@ namespace CopSpawnTables
 		int maxTotalCopChance     = 0;
 		int currentTotalCopChance = 0;
 
-		std::unordered_map<hash, Entry, Globals::IdentityHash> copTypeToEntry;
+		Globals::HashMap<Entry> copTypeToEntry;
 
-		inline static std::unordered_set<hash, Globals::IdentityHash>              helicopterTypes;
-		inline static std::unordered_map<hash, std::string, Globals::IdentityHash> copTypeToName;
+		inline static Globals::HashSet              helicopterTypes;
+		inline static Globals::HashMap<std::string> copTypeToName;
 		
 
 
@@ -165,11 +163,11 @@ namespace CopSpawnTables
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<std::string> helicopterVehicles  {"copheli"};
-	HeatParameters::Pair<SpawnTable>  eventSpawnTables    {};
-	HeatParameters::Pair<SpawnTable>  patrolSpawnTables   {};
-	HeatParameters::Pair<SpawnTable>  pursuitSpawnTables  {};
-	HeatParameters::Pair<SpawnTable>  roadblockSpawnTables{};
+	HeatParameters::Pair<std::string> helicopterVehicles("copheli");
+	HeatParameters::Pair<SpawnTable>  eventSpawnTables;
+	HeatParameters::Pair<SpawnTable>  patrolSpawnTables;
+	HeatParameters::Pair<SpawnTable>  pursuitSpawnTables;
+	HeatParameters::Pair<SpawnTable>  roadblockSpawnTables;
 
 	// Code caves
 	int currentMaxCopCapacity = 0;
@@ -250,10 +248,10 @@ namespace CopSpawnTables
 		{
 			const std::string format = (forRaces) ? "Race{:02}:" : "Heat{:02}:";
 
-			ParseTables(parser, "Chasers",    format, pursuitSpawnTables  (forRaces), true);
-			ParseTables(parser, "Events",     format, eventSpawnTables    (forRaces), true);
-			ParseTables(parser, "Patrols",    format, patrolSpawnTables   (forRaces), false);
-			ParseTables(parser, "Roadblocks", format, roadblockSpawnTables(forRaces), true);
+			ParseTables(parser, "Chasers",    format, pursuitSpawnTables.Get  (forRaces), true);
+			ParseTables(parser, "Events",     format, eventSpawnTables.Get    (forRaces), true);
+			ParseTables(parser, "Patrols",    format, patrolSpawnTables.Get   (forRaces), false);
+			ParseTables(parser, "Roadblocks", format, roadblockSpawnTables.Get(forRaces), true);
 		}
 
 		// Validation

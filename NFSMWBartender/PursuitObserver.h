@@ -1,7 +1,5 @@
 #pragma once
 
-#include <unordered_map>
-#include <unordered_set>
 #include <concepts>
 #include <utility>
 #include <vector>
@@ -36,10 +34,10 @@ namespace PursuitObserver
 		bool inPursuitUpdatePending    = true;
 		bool perHeatLevelUpdatePending = true;
 
-		std::unordered_map<address, CopLabel, Globals::IdentityHash> copVehicleToLabel;
-		std::vector<std::unique_ptr<CopVehicleReaction>>             copVehicleReactions;
+		Globals::AddressMap<CopLabel>                    copVehicleToLabel;
+		std::vector<std::unique_ptr<CopVehicleReaction>> copVehicleReactions;
 
-		inline static std::unordered_set<address, Globals::IdentityHash> copVehiclesLoaded;
+		inline static Globals::AddressSet copVehiclesLoaded;
 
 
 		template <std::derived_from<CopVehicleReaction> F, typename ...T>
@@ -100,7 +98,7 @@ namespace PursuitObserver
 
 	public:
 
-		PursuitObserver(const address pursuit) 
+		explicit PursuitObserver(const address pursuit) 
 			: pursuit(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
@@ -255,7 +253,7 @@ namespace PursuitObserver
 	bool featureEnabled = false;
 
 	// Code caves
-	std::unordered_map<address, PursuitObserver, Globals::IdentityHash> pursuitToObserver;
+	Globals::AddressMap<PursuitObserver> pursuitToObserver;
 
 
 

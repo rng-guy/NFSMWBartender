@@ -14,8 +14,8 @@ namespace Miscellaneous
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<float> bountyIntervals{10.f}; // seconds
-	HeatParameters::Pair<int>   copComboLimits {3};    // kills
+	HeatParameters::Pair<float> bountyIntervals(10.f); // seconds
+	HeatParameters::Pair<int>   copComboLimits (3);    // kills
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current;

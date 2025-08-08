@@ -56,7 +56,7 @@ namespace RandomNumbers
 
 	public:
 
-		Generator()
+		explicit Generator()
 		{
 			std::random_device rng;
 

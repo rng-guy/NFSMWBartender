@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+#include <unordered_set>
 #include <cstdint>
 #include <fstream>
 #include <memory>
@@ -58,8 +60,19 @@ namespace Globals
 
 	
 
+	template <typename T>
+	using AddressMap = std::unordered_map<address, T, IdentityHash>;
+
+	template <typename T>
+	using HashMap = std::unordered_map<hash, T, IdentityHash>;
+
+	using AddressSet = std::unordered_set<address, IdentityHash>;
+	using HashSet    = std::unordered_set<hash,    IdentityHash>;
 
 
+
+
+	
 	// Logging functions ----------------------------------------------------------------------------------------------------------------------------
 
 	void OpenLog()
