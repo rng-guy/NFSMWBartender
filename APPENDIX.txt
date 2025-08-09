@@ -185,7 +185,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    processing a roadblock request, causing it to place the wrong car in the requested roadblock.
    Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
- • All "Events" and "Patrols" spawns that end up joining a pursuit will also count towards
+ • All "Events" and "Patrols" spawns that end up joining a pursuit will then also count towards
    the spawn limits (i.e. "count" values) of the pursuit's current "Chasers" spawn table.
 
  • The "Events" spawn tables also apply to the scripted patrols in prologue (DDay) race events.
