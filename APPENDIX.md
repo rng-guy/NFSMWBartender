@@ -1,4 +1,6 @@
 
+![POV: You hit the RESET button by accident, and it did not fix your game's issues.](Thumbnail.jpg "I'm far too lazy to make another thumbnail for this.")
+
 This document contains the full **technical details and limitations** of Bartender and its features. In most cases, the usage comments in Bartender's configuration files should provide you with enough background information to help you avoid most (potential) configuration issues.
 
 &nbsp;
