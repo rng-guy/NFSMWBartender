@@ -1,13 +1,13 @@
 
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
-Bartender adds **new customisation options** to pursuits in *Need for Speed: Most Wanted* (2005). These options come in two feature sets:
+Bartender adds **new customisation options** to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in two feature sets:
 * the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
 * the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/XwFSpc97hF4).
 
 &nbsp;
 
-The sections below **address the following questions** in detail:
+The sections below **address these questions** in detail:
 1. [What does the "Basic" feature set do?](#1---what-does-the-basic-feature-set-do)
 2. [What does the "Advanced" feature set do?](#2---what-does-the-advanced-feature-set-do)
 3. [What mods are (in)compatible with Bartender?](#3---what-mods-are-incompatible-with-bartender)
@@ -87,10 +87,10 @@ Bartender should be **fully compatible** with all [VltEd](https://nfs-tools.blog
 
 &nbsp;
 
-Some popular .asi mods **require configuration** to be compatible with Bartender:
+Some popular .asi mods **require (re)configuration** to be compatible with Bartender:
 * In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable the `HeatLevelOverride` feature.
 * In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable the `EnableCopDestroyedStringHook` feature.
-* In [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, disable everything under `[Options]`.
+* In [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, disable everything in the `[Options]` group.
 
 &nbsp;
 
@@ -122,7 +122,7 @@ To **install** Bartender:
 
 &nbsp;
 
-To **uninstall** Bartender, remove its files from your game's `scripts` folder. There is no need to remove the optional missing textures, as the game will not use them without Bartender.
+To **uninstall** Bartender, remove its files from your game's `scripts` folder. There is no need to remove the optional missing textures, as the game won't ever use them without Bartender.
 
 &nbsp;
 

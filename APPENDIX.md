@@ -1,39 +1,33 @@
 
-This document contains all **technical details** regarding Bartender and its features.
-
-You **do not need to read** this file unless you are either
-* having issues with your game after installing Bartender, or
-* curious about the limitations and inner workings of Bartender.
+This document contains the full **technical details and limitations** of Bartender and its features. In most cases, the usage comments in Bartender's configuration files should provide you with enough background information to help you avoid most (potential) configuration issues.
 
 &nbsp;
 
-The sections below **address the following questions** in detail:
-1. [What is there to know about Bartender in general?](#1---what-is-there-to-know-about-bartender-in-general)
-2. [What is there to know about Bartender's file parsing?](#2---what-is-there-to-know-about-bartenders-file-parsing)
-3. [What is there to know about the "Basic" feature set?](#3---what-is-there-to-know-about-the-basic-feature-set)
-4. [What is there to know about the "Advanced" feature set?](#4---what-is-there-to-know-about-the-advanced-feature-set)
+This document also mentions any **incompatible features** of other .asi mods where they are relevant. For an overview of what you need to disable for Bartender to work, see the [main README](README.md) instead.
 
 &nbsp;
 
-&nbsp;
+You **only need to read this document** if you either
+* have persistent issues with your game after installing Bartender, or
+* are curious about the limitations and inner workings of Bartender.
 
 &nbsp;
 
-
-
-# 1 - What is there to know about Bartender in general?
-
-Rarely, **antivirus software** might falsely flag Bartender as a virus when you launch your game. This causes the .asi loader to display an error message (`Error code: 225`) and your antivirus to quarantine the .asi file somewhere. If Bartender gets flagged, you need to whitelist its .asi file in your antivirus software before you reattempt to launch your game with Bartender installed.
-
-&nbsp;
-
-If you configure Bartender improperly, it might cause **odd behaviour / stability issues** in your game due to how much control Bartender gives you over the game's hard-coded values. There are also a few quirks to the way Bartender parses its configuration files that you should be aware of beforehand.
+There are mostly **three potential causes** for any persistent issues you might have with Bartender:
+* features of other .asi mods that make changes to the same parts of the game as Bartender,
+* quirks in how Bartender reads and processes parameter values in its configuration files, and
+* the actual parameter values themselves that you provide in Bartender's configuration files.
 
 &nbsp;
 
-To help you **avoid surprises and game instability**, the next three sections below contain
-* everything you need to make informed edits to Bartender's configuration files, and
-* detailed compatibility notes for mods known to conflict with any Bartender features.
+To **help you troubleshoot issues** with Bartender, the sections below address these questions:
+1. [What is there to know about Bartender's file parsing?](#2---what-is-there-to-know-about-bartenders-file-parsing)
+2. [What is there to know about the "Basic" feature set?](#3---what-is-there-to-know-about-the-basic-feature-set)
+3. [What is there to know about the "Advanced" feature set?](#4---what-is-there-to-know-about-the-advanced-feature-set)
+
+&nbsp;
+
+For a detailed **version history** of Bartender, see the plain-text version of this document (`APPENDIX.txt`).
 
 &nbsp;
 
@@ -43,7 +37,7 @@ To help you **avoid surprises and game instability**, the next three sections be
 
 
 
-# 2 - What is there to know about Bartender's file parsing?
+# 1 - What is there to know about Bartender's file parsing?
 
 Some **parameter groups** (indicated by `[GroupName]`) in Bartender's configuration files allow you to provide a `default` value. For each parameter group, a comment in the relevant file states whether the group allows this. Bartender parses groups that allow `default` values in three steps:
 1. If you omitted it, the `default` value is set to the game's vanilla (i.e. unmodded) value.
@@ -67,7 +61,7 @@ Bartender can handle any **invalid values** you might provide in its configurati
 
 
 
-# 3 - What is there to know about the "Basic" feature set?
+# 2 - What is there to know about the "Basic" feature set?
 
 Regarding the "Basic" feature set **in general**:
 
@@ -83,7 +77,7 @@ Regarding the "Basic" feature set **in general**:
 
 * The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions mod](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd entry determines the maximum Heat level (1-10) at Blacklist rival #XY.
 
-* If you don't install the optional missing textures (`FixMissingTextures.end`), then the game will not display a number next to Heat gauges in menus for cars with Heat levels above 5. Whether you install these textures does not affect the Heat-level reset fix in any way.
+* If you don't install the optional missing textures (`FixMissingTextures.end`), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures does not affect the Heat-level reset fix in any way.
 
 &nbsp;
 
@@ -115,7 +109,7 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 
 
-# 4 - What is there to know about the "Advanced" feature set?
+# 3 - What is there to know about the "Advanced" feature set?
 
 Regarding the "Advanced" feature set **in general**:
 
@@ -129,7 +123,7 @@ Regarding the "Advanced" feature set **in general**:
 
 * You must provide at least one vehicle in the "Chasers" spawn table of each free-roam Heat level (`BartenderSettings\Advanced\Cars.ini`), else Bartender disables this entire feature set.
 
-* You should ensure that every HeavyStrategy you enable in a given Heat level's `pursuitsupport` VltEd entry is only listed there once (e.g. there is not a second HeavyStrategy 3), and that there is also no more than one LeaderStrategy listed. Otherwise, such duplicates can cause the game (and Bartender) to misread their `Duration` VltEd parameters.
+* You should ensure that every HeavyStrategy you enable in a given Heat level's `pursuitsupport` VltEd entry is only listed there once (e.g. there isn't a second HeavyStrategy 3), and that there is also no more than one LeaderStrategy listed. Otherwise, such duplicates can cause the game (and Bartender) to misread their `Duration` VltEd parameters.
 
 * If this feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because this feature set fulfils their intended purposes with extended customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 

@@ -24,7 +24,7 @@ namespace BasicLogger
 			this->file << value;
 		}
 
-
+		
 		template<>
 		void Print<uint32_t>(const uint32_t value) 
 		{

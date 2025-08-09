@@ -1,8 +1,7 @@
 #pragma once
 
-#include <unordered_map>
 #include <unordered_set>
-#include <cstdint>
+#include <unordered_map>
 
 #include "BasicLogger.h"
 #include "RandomNumbers.h"
@@ -53,12 +52,12 @@ namespace Globals
 
 	
 
+	using AddressSet = std::unordered_set<address, IdentityHash>;
+	using HashSet    = std::unordered_set<hash,    IdentityHash>;
+
 	template <typename T>
 	using AddressMap = std::unordered_map<address, T, IdentityHash>;
 
 	template <typename T>
 	using HashMap = std::unordered_map<hash, T, IdentityHash>;
-
-	using AddressSet = std::unordered_set<address, IdentityHash>;
-	using HashSet    = std::unordered_set<hash,    IdentityHash>;
 }

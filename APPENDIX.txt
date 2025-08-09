@@ -1,45 +1,36 @@
 ﻿
-── ■ │ WHAT IS IN THIS APPENDIX? (v1.13.00) │ ■ ───────────────────────────────────────────────────
+── ■ │ WHAT IS IN THIS APPENDIX? (v1.13.01) │ ■ ───────────────────────────────────────────────────
 
-This document contains all TECHNICAL DETAILS regarding Bartender and its features.
+This document is also on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
-You DO NOT NEED TO READ this file unless you are either
- • having issues with your game after installing Bartender, or
- • curious about the limitations and inner workings of Bartender.
+This document contains the full TECHNICAL DETAILS AND LIMITATIONS of Bartender and its features.
+In most cases, the usage comments in Bartender's configuration files should provide you with
+enough background information to help you avoid most (potential) configuration issues.
 
-The sections below ADDRESS THE FOLLOWING QUESTIONS in detail:
- 1) • What is there to know about Bartender in general?
- 2) • What is there to know about Bartender's file parsing?
- 3) • What is there to know about the "Basic" feature set?
- 4) • What is there to know about the "Advanced" feature set?
- 5) • What changed in each version of Bartender?
+This document also mentions any INCOMPATIBLE FEATURES of other .asi mods where they are relevant.
+For an overview of what you need to disable for Bartender to work, see the main README instead.
 
+You ONLY NEED TO READ THIS DOCUMENT if you either
+ • have persistent issues with your game after installing Bartender, or
+ • are curious about the limitations and inner workings of Bartender.
 
+There are mostly THREE POTENTIAL CAUSES for any persistent issues you might have with Bartender:
+ • features of other .asi mods that make changes to the same parts of the game as Bartender,
+ • quirks in how Bartender reads and processes parameter values in its configuration files, and
+ • the actual parameter values themselves that you provide in Bartender's configuration files.
 
-
-
-
-── ■ │ 1 - WHAT IS THERE TO KNOW ABOUT BARTENDER IN GENERAL? │ ■ ──────────────────────────────────
-
-Rarely, ANTIVIRUS SOFTWARE might falsely flag Bartender as a virus when you launch your game.
-This causes the .asi loader to display an error message ("Error code: 225") and your antivirus
-to quarantine the .asi file somewhere. If Bartender gets flagged, you need to whitelist its .asi
-file in your antivirus software before you reattempt to launch your game with Bartender installed.
-
-If you configure Bartender improperly, it might cause ODD BEHAVIOUR / STABILITY ISSUES in your game
-due to how much control Bartender gives you over the game's hard-coded values. There are also a few
-quirks to the way Bartender parses its configuration files that you should be aware of beforehand.
-
-To help you AVOID SURPRISES AND GAME INSTABILITY, the next three sections below contain
- • everything you need to make informed edits to Bartender's configuration files, and
- • detailed compatibility notes for mods known to conflict with any Bartender features.
+To HELP YOU TROUBLESHOOT ISSUES with Bartender, the sections below address these questions:
+ 1) • What is there to know about Bartender's file parsing?
+ 2) • What is there to know about the "Basic" feature set?
+ 3) • What is there to know about the "Advanced" feature set?
+ 4) • What changed in each version of Bartender?
 
 
 
 
 
 
-── ■ 2 - WHAT IS THERE TO KNOW ABOUT BARTENDER'S FILE PARSING? ■ ──────────────────────────────────
+── ■ 1 - WHAT IS THERE TO KNOW ABOUT BARTENDER'S FILE PARSING? ■ ──────────────────────────────────
 
 Some PARAMETER GROUPS (indicated by "[GroupName]") in Bartender's configuration files allow
 you to provide a "default" value. For each parameter group, a comment in the relevant file states
@@ -60,7 +51,7 @@ Bartender can handle any INVALID VALUES you might provide in its configuration f
 
 
 
-── ■ 3 - WHAT IS THERE TO KNOW ABOUT THE "BASIC" FEATURE SET? ■ ───────────────────────────────────
+── ■ 2 - WHAT IS THERE TO KNOW ABOUT THE "BASIC" FEATURE SET? ■ ───────────────────────────────────
 
 Regarding the "BASIC" feature set IN GENERAL:
 
@@ -81,8 +72,8 @@ Regarding the "BASIC" feature set IN GENERAL:
    the maximum available Heat level with VltEd: The "0xe8c24416" parameter of a given
    "race_bin_XY" VltEd entry determines the maximum Heat level (1-10) at Blacklist rival #XY.
 
- • If you don't install the optional missing textures ("FixMissingTextures.end"), then the game
-   will not display a number next to Heat gauges in menus for cars with Heat levels above 5.
+ • If you don't install the optional missing textures ("FixMissingTextures.end"), then the
+   game won't display a number next to Heat gauges in menus for cars with Heat levels > 5.
    Whether you install these textures does not affect the Heat-level reset fix in any way.
 
 
@@ -118,7 +109,7 @@ Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
 
 
-── ■ 4 - WHAT IS THERE TO KNOW ABOUT THE "ADVANCED" FEATURE SET? ■ ────────────────────────────────
+── ■ 3 - WHAT IS THERE TO KNOW ABOUT THE "ADVANCED" FEATURE SET? ■ ────────────────────────────────
 
 Regarding the "Advanced" feature set IN GENERAL:
 
@@ -135,7 +126,7 @@ Regarding the "Advanced" feature set IN GENERAL:
    ("BartenderSettings\Advanced\Cars.ini"), else Bartender disables this entire feature set.
 
  • You should ensure that every HeavyStrategy you enable in a given Heat level's "pursuitsupport"
-   VltEd entry is only listed there once (e.g. there is not a second HeavyStrategy 3), and that
+   VltEd entry is only listed there once (e.g. there isn't a second HeavyStrategy 3), and that
    there is also no more than one LeaderStrategy listed. Otherwise, such duplicates can cause
    the game (and Bartender) to misread their "Duration" VltEd parameters.
 
@@ -226,7 +217,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
 
 
-── ■ │ 5 - WHAT CHANGED IN EACH VERSION OF BARTENDER? │ ■ ─────────────────────────────────────────
+── ■ │ 4 - WHAT CHANGED IN EACH VERSION OF BARTENDER? │ ■ ─────────────────────────────────────────
 
 v1.00.00: Initial release
       01: Revised "LIMITATIONS" section of README
@@ -307,3 +298,4 @@ v1.00.00: Initial release
       03: Another performance improvement by reducing re-hashing even further
 
    13.00: Improved performance by rewriting and streamlining the internal file-parsing logic
+      01: Made more improvements to the code and overhauled the README for the billionth time

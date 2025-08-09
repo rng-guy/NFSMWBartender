@@ -1,13 +1,13 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.13.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.13.01) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
-Bartender adds NEW CUSTOMISATION OPTIONS to pursuits. These options come in two feature sets:
+Bartender adds NEW CUSTOMISATION OPTIONS to pursuits. These new options come in two feature sets:
  • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
-The sections below ADDRESS THE FOLLOWING QUESTIONS in detail:
+The sections below ADDRESS THESE QUESTIONS in detail:
  1) • What does the "Basic" feature set do?
  2) • What does the "Advanced" feature set do?
  3) • What mods are (in)compatible with Bartender?
@@ -77,10 +77,10 @@ the pursuit by detaching themselves from roadblocks, and the helicopter.
 Bartender should be FULLY COMPATIBLE with all VltEd and Binary mods. Other .asi mods
 without pursuit features should also be compatible unless they are listed below.
 
-Some popular .asi mods REQUIRE CONFIGURATION to be compatible with Bartender:
+Some popular .asi mods REQUIRE (RE)CONFIGURATION to be compatible with Bartender:
  • In "NFSMW ExtraOptions" by ExOptsTeam, disable the "HeatLevelOverride" feature.
  • In "NFSMW Unlimiter" by nlgxzef, disable the "EnableCopDestroyedStringHook" feature.
- • In "NFSMW LimitAdjuster" by Zolika1351, disable everything under "[Options]".
+ • In "NFSMW LimitAdjuster" by Zolika1351, disable everything in the "[Options]" group.
 
 
 
@@ -103,8 +103,8 @@ AFTER INSTALLING Bartender:
  1) • check out its configuration (.ini) files in the "scripts\BartenderSettings" folder, and
  2) • see the "APPENDIX.txt" file should you encounter any issues or want more technical details.
 
-To UNINSTALL Bartender, remove its files from your game's "scripts" folder. There is no need to
-remove the optional missing textures, as the game will not use them without Bartender.
+To UNINSTALL Bartender, remove its files from your game's "scripts" folder. There is no need
+to remove the optional missing textures, as the game won't ever use them without Bartender.
 
 To UPDATE Bartender, uninstall it and repeat the installation process above.
 Whenever you update, make sure to replace ALL old configuration files!
