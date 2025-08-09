@@ -39,12 +39,15 @@ whether the group allows this. Bartender parses groups that allow "default" valu
  2) • All free-roam Heat levels (format: "heatXY") you omitted are set to the "default" value.
  3) • All race Heat levels (format: "raceXY") you omitted are set to their free-roam values.
 
-Bartender can handle any INVALID VALUES you might provide in its configuration files:
+Bartender can handle most INVALID VALUES you might provide in its configuration files:
  • duplicates (e.g. another "heat02" value) within parameter groups are ignored,
  • values of incorrect type (e.g. a string instead of a decimal) count as omitted,
  • negative values that should be positive are set to 0 instead of counting as omitted,
  • mismatched interval values (i.e. where "max" < "min") are each set to the lower value, and
  • comma-separated value pairs / tuples with too many or too few (valid) values count as omitted.
+
+Bartender cannot detect whether any VEHICLES YOU PROVIDE in its configuration files actually exist
+in the game's database. If you provide non-existent vehicles, the game is likely to behave oddly.
 
 
 
