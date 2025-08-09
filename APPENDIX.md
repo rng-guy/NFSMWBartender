@@ -3,7 +3,7 @@ This document contains the full **technical details and limitations** of Bartend
 
 &nbsp;
 
-This document also mentions any **incompatible features** of other .asi mods where they are relevant. For an overview of what you need to disable for Bartender to work, see the [main README](README.md) instead.
+This document also mentions any **incompatible features** of other .asi mods where they are relevant. For an overview of what you need to disable for Bartender to work, see the [main README](README.md/#3---what-mods-are-incompatible-with-bartender) instead.
 
 &nbsp;
 
