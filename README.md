@@ -126,10 +126,7 @@ To **uninstall** Bartender, remove its files from your game's `scripts` folder. 
 
 &nbsp;
 
-To **update** Bartender, uninstall it and repeat the installation process above.
-
-> [!WARNING]
-> Whenever you update, make sure to replace *all* old configuration files!
+To **update** Bartender, uninstall it and repeat the installation process above. Whenever you update, make sure to replace *all* old configuration files!
 
 &nbsp;
 
