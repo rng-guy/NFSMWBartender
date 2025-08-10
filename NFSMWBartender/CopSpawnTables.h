@@ -30,24 +30,24 @@ namespace CopSpawnTables
 		int maxTotalCopChance     = 0;
 		int currentTotalCopChance = 0;
 
-		Globals::HashMap<Entry> copTypeToEntry;
+		Globals::VaultMap<Entry> copTypeToEntry;
 
-		inline static Globals::HashSet              helicopterTypes;
-		inline static Globals::HashMap<std::string> copTypeToName;
+		inline static Globals::VaultSet              helicopterTypes;
+		inline static Globals::VaultMap<std::string> copTypeToName;
 		
 
 
 	public:
 
-		static hash NameToType(const std::string& copName)
+		static vault NameToType(const std::string& copName)
 		{
-			const hash copType = Globals::GetStringHash(copName.c_str());
+			const vault copType = Globals::GetVaultKey(copName.c_str());
 			SpawnTable::copTypeToName.insert({copType, copName});
 			return copType;
 		}
 
 
-		static const char* TypeToName(const hash copType)
+		static const char* TypeToName(const vault copType)
 		{
 			const auto foundType = SpawnTable::copTypeToName.find(copType);
 			return (foundType != SpawnTable::copTypeToName.end()) ? (foundType->second).c_str() : nullptr;
@@ -60,7 +60,7 @@ namespace CopSpawnTables
 		}
 
 
-		bool Contains(const hash copType) const
+		bool Contains(const vault copType) const
 		{
 			return this->copTypeToEntry.contains(copType);
 		}
@@ -75,7 +75,7 @@ namespace CopSpawnTables
 			if (copCount < 1)  return false;
 			if (copChance < 1) return false;
 			
-			const hash copType = this->NameToType(copName);
+			const vault copType = this->NameToType(copName);
 			if (this->helicopterTypes.contains(copType)) return false;
 
 			if (this->copTypeToEntry.insert({copType, {copCount, copChance}}).second)
@@ -99,6 +99,9 @@ namespace CopSpawnTables
 			{
 				if (not HeatParameters::IsValidVehicle(iterator->first))
 				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::logger.LogLongIndent("Table: Removing", this->TypeToName(iterator->first));
+
 					this->maxTotalCopCapacity -= iterator->second.capacity;
 					this->maxTotalCopChance   -= iterator->second.chance;
 
@@ -110,11 +113,17 @@ namespace CopSpawnTables
 				else iterator++;
 			}
 
-			if (this->IsEmpty()) this->AddType("copmidsize", 1, 1);
+			if (this->IsEmpty())
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.LogLongIndent("Table: Now empty");
+
+				this->AddType("copmidsize", 1, 1);
+			}
 		}
 
 
-		int GetCapacity(const hash copType) const
+		int GetCapacity(const vault copType) const
 		{
 			const auto foundType = this->copTypeToEntry.find(copType);
 			return (foundType != this->copTypeToEntry.end()) ? foundType->second.capacity : 0;
@@ -123,8 +132,8 @@ namespace CopSpawnTables
 
 		bool UpdateCapacity
 		(
-			const hash copType,
-			const int  change
+			const vault copType,
+			const int   change
 		) {
 			const auto foundType = this->copTypeToEntry.find(copType);
 			if (foundType == this->copTypeToEntry.end()) return false;
@@ -298,6 +307,9 @@ namespace CopSpawnTables
 	{
 		if (not featureEnabled) return;
 
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [TAB] CopSpawnTables");
+
 		HeatParameters::ReplaceInvalidVehicles(helicopterVehicles);
 
 		for (const bool forRaces : {false, true})
@@ -328,7 +340,7 @@ namespace CopSpawnTables
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogIndent("[TAB] CopSpawnTables");
+			Globals::logger.Log("    HEAT [TAB] CopSpawnTables");
 
 			Globals::logger.LogLongIndent("helicopterVehicle      :", helicopterVehicles.current);
 		}

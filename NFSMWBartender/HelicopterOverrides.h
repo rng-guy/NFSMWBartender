@@ -172,7 +172,7 @@ namespace HelicopterOverrides
 		void ProcessAddition
 		(
 			const address  copVehicle,
-			const hash     copType,
+			const vault    copType,
 			const CopLabel copLabel
 		) 
 			override
@@ -184,7 +184,7 @@ namespace HelicopterOverrides
 		void ProcessRemoval
 		(
 			const address  copVehicle,
-			const address  copType,
+			const vault    copType,
 			const CopLabel copLabel
 		) 
 			override
@@ -276,7 +276,7 @@ namespace HelicopterOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogIndent("[HEL] HelicopterOverrides");
+			Globals::logger.Log("    HEAT [HEL] HelicopterOverrides");
 			Globals::logger.LogLongIndent("Helicopter", (helicopterEnableds.current) ? "enabled" : "disabled");
 
 			if (helicopterEnableds.current)

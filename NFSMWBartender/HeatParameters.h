@@ -255,9 +255,9 @@ namespace HeatParameters
 
 
 
-	bool IsValidVehicle(const hash vehicleType)
+	bool IsValidVehicle(const vault vehicleType)
 	{
-		static address* (__cdecl* const FindCollection)(key, hash) = (address * (__cdecl*)(key, hash))0x455FD0;
+		static address* (__cdecl* const FindCollection)(vault, vault) = (address* (__cdecl*)(vault, vault))0x455FD0;
 
 		return FindCollection(0x4A97EC8F, vehicleType); // searches "pvehicle" tree
 	}
@@ -266,7 +266,7 @@ namespace HeatParameters
 
 	bool IsValidVehicle(const std::string& vehicleName)
 	{
-		return IsValidVehicle(Globals::GetStringHash(vehicleName.c_str()));
+		return IsValidVehicle(Globals::GetVaultKey(vehicleName.c_str()));
 	}
 
 
@@ -276,7 +276,15 @@ namespace HeatParameters
 		for (const bool forRaces : {false, true})
 		{
 			for (std::string& vehicleName : vehicles.Get(forRaces))
-				if (not IsValidVehicle(vehicleName)) vehicleName = vehicles.current;
+			{
+				if (not IsValidVehicle(vehicleName))
+				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::logger.LogLongIndent("Replacing", vehicleName, "with", vehicles.current);
+
+					vehicleName = vehicles.current;
+				}
+			}
 		}
 	}
 }

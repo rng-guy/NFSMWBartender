@@ -17,7 +17,7 @@ namespace CopSpawnOverrides
 	{
 	private:
 
-		Globals::HashMap<int> copTypeToCurrentCount;
+		Globals::VaultMap<int> copTypeToCurrentCount;
 
 		CopSpawnTables::SpawnTable               table;
 		const CopSpawnTables::SpawnTable** const source;
@@ -78,7 +78,7 @@ namespace CopSpawnOverrides
 
 		void NotifyOfSpawn(const address copVehicle)
 		{
-			const hash copType = Globals::GetCopType(copVehicle);
+			const vault copType = Globals::GetCopType(copVehicle);
 
 			const auto addedType = this->copTypeToCurrentCount.insert({ copType, 1 });
 			if (not addedType.second) (addedType.first->second)++;
@@ -128,7 +128,7 @@ namespace CopSpawnOverrides
 		int* const numCopsLostInWave = (int*)(pursuit + 0x14C);
 
 		CopSpawnTables::SpawnTable table;
-		Globals::HashMap<int>      copTypeToCurrentCount;
+		Globals::VaultMap<int>     copTypeToCurrentCount;
 
 		inline static Globals::AddressMap<ContingentManager*> pursuitToManager;
 
@@ -169,13 +169,11 @@ namespace CopSpawnOverrides
 
 		void UpdateNumPatrolCars()
 		{
-			static constexpr key patrolCarsAttribute = 0x24F7A1BC;
-
 			// Cannot be called in the constructor or immediately after a Heat transition, as Vault values update slightly later
-			static address (__thiscall* const GetPursuitAttributes)(address)   = (address (__thiscall*)(address))0x418E90;
-			static address (__thiscall* const GetAttribute)(address, key, int) = (address (__thiscall*)(address, key, int))0x454810;
+			static address (__thiscall* const GetPursuitAttributes)(address)     = (address (__thiscall*)(address))0x418E90;
+			static address (__thiscall* const GetAttribute)(address, vault, int) = (address (__thiscall*)(address, vault, int))0x454810;
 
-			const address numPatrolCars = GetAttribute(GetPursuitAttributes(this->pursuit), patrolCarsAttribute, 0);
+			const address numPatrolCars = GetAttribute(GetPursuitAttributes(this->pursuit), 0x24F7A1BC, 0); // searches for "NumPatrolCars" value
 			this->numPatrolCarsToSpawn = (numPatrolCars) ? *((int*)numPatrolCars) : 0;
 
 			if constexpr (Globals::loggingEnabled)
@@ -263,7 +261,7 @@ namespace CopSpawnOverrides
 		void ProcessAddition
 		(
 			const address  copVehicle,
-			const hash     copType,
+			const vault    copType,
 			const CopLabel copLabel
 		) 
 			override
@@ -294,7 +292,7 @@ namespace CopSpawnOverrides
 		void ProcessRemoval
 		(
 			const address  copVehicle,
-			const address  copType,
+			const vault    copType,
 			const CopLabel copLabel
 		) 
 			override
@@ -698,7 +696,7 @@ namespace CopSpawnOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogIndent("[SPA] CopSpawnOverrides");
+			Globals::logger.Log("    HEAT [SPA] CopSpawnOverrides");
 
 			Globals::logger.LogLongIndent("minActiveCount         :", minActiveCounts.current);
 			Globals::logger.LogLongIndent("maxActiveCount         :", maxActiveCounts.current);

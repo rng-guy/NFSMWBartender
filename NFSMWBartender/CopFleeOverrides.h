@@ -47,7 +47,7 @@ namespace CopFleeOverrides
 		struct Assessment
 		{
 			address            copVehicle;
-			hash               copType;
+			vault              copType;
 			CopLabel           copLabel;
 			Status             status;
 			Schedule::iterator position;
@@ -265,7 +265,7 @@ namespace CopFleeOverrides
 		void ProcessAddition
 		(
 			const address  copVehicle,
-			const hash     copType,
+			const vault    copType,
 			const CopLabel copLabel
 		) 
 			override
@@ -279,7 +279,7 @@ namespace CopFleeOverrides
 		void ProcessRemoval
 		(
 			const address  copVehicle,
-			const address  copType,
+			const vault    copType,
 			const CopLabel copLabel
 		) 
 			override
@@ -353,7 +353,7 @@ namespace CopFleeOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogIndent("[FLE] CopFleeOverrides");
+			Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
 			Globals::logger.LogLongIndent("Fleeing", (fleeingEnableds.current) ? "enabled" : "disabled");
 
 			if (fleeingEnableds.current)

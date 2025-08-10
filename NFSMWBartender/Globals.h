@@ -14,8 +14,8 @@
 // Unscoped aliases
 using byte    = unsigned char;
 using address = uint32_t;
-using hash    = uint32_t;
-using key     = uint32_t;
+using binary  = uint32_t;
+using vault   = uint32_t;
 
 
 
@@ -28,8 +28,8 @@ namespace Globals
 	RandomNumbers::Generator prng;
 
 	// Common function pointers
-	hash (__cdecl* const GetStringHash)(const char*) = (hash (__cdecl*)(const char*))0x5CC240;
-	hash (__thiscall* const GetCopType)(address)     = (hash (__thiscall*)(address))0x6880A0;
+	vault (__cdecl* const GetVaultKey)(const char*) = (vault (__cdecl*)(const char*))0x5CC240;
+	vault (__thiscall* const GetCopType)(address)   = (vault (__thiscall*)(address))0x6880A0;
 
 	// Logging
 	constexpr bool loggingEnabled = false;
@@ -42,9 +42,10 @@ namespace Globals
 
 	// Custom hash function and (scoped) aliases ----------------------------------------------------------------------------------------------------
 
+	template <typename T>
 	struct IdentityHash 
 	{
-		size_t operator()(const uint32_t value) const
+		size_t operator()(const T value) const
 		{
 			return value;
 		}
@@ -52,12 +53,12 @@ namespace Globals
 
 	
 
-	using AddressSet = std::unordered_set<address, IdentityHash>;
-	using HashSet    = std::unordered_set<hash,    IdentityHash>;
+	using AddressSet = std::unordered_set<address, IdentityHash<address>>;
+	using VaultSet   = std::unordered_set<vault,   IdentityHash<vault>>;
 
 	template <typename T>
-	using AddressMap = std::unordered_map<address, T, IdentityHash>;
+	using AddressMap = std::unordered_map<address, T, IdentityHash<address>>;
 
 	template <typename T>
-	using HashMap = std::unordered_map<hash, T, IdentityHash>;
+	using VaultMap = std::unordered_map<vault, T, IdentityHash<vault>>;
 }

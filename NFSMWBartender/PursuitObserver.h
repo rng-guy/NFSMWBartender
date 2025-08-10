@@ -157,29 +157,31 @@ namespace PursuitObserver
 
 		static void __fastcall Register(const address copVehicle) 
 		{
+			const bool isNew = (PursuitObserver::copVehiclesLoaded.insert(copVehicle)).second;
+
 			if constexpr (Globals::loggingEnabled)
 			{
-				if ((PursuitObserver::copVehiclesLoaded.insert(copVehicle)).second)
+				if (isNew)
 				{
 					Globals::logger.LogIndent("[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
 					Globals::logger.LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
 			}
-			else PursuitObserver::copVehiclesLoaded.insert(copVehicle);
 		}
 
 
 		static void __fastcall Unregister(const address copVehicle)
 		{
+			const bool wasRegistered = (PursuitObserver::copVehiclesLoaded.erase(copVehicle) > 0);
+
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (PursuitObserver::copVehiclesLoaded.erase(copVehicle) > 0)
+				if (wasRegistered)
 				{
 					Globals::logger.LogIndent("[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
 					Globals::logger.LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
 			}
-			else PursuitObserver::copVehiclesLoaded.erase(copVehicle);
 		}
 
 
@@ -208,12 +210,13 @@ namespace PursuitObserver
 
 				return;
 			}
-			else if (copLabel != CopLabel::HELICOPTER) this->Register(copVehicle);
+			
+			if (copLabel != CopLabel::HELICOPTER) this->Register(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
-			const hash copType = Globals::GetCopType(copVehicle);
+			const vault copType = Globals::GetCopType(copVehicle);
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
@@ -232,10 +235,10 @@ namespace PursuitObserver
 				return;
 			}
 
-			const hash copType = Globals::GetCopType(copVehicle);
-
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), this->GetCopName(copVehicle));
+
+			const vault copType = Globals::GetCopType(copVehicle);
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessRemoval(copVehicle, copType, foundVehicle->second);

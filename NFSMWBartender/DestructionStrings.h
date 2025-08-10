@@ -18,8 +18,8 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves
-	key                   defaultDestructionKey;
-	Globals::HashMap<key> copTypeToDestructionKey;
+	binary                    defaultDestructionKey;
+	Globals::VaultMap<binary> copTypeToDestructionKey;
 
 
 	
@@ -27,7 +27,7 @@ namespace DestructionStrings
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	key __fastcall GetDestructionKey(const hash copType)
+	binary __fastcall GetDestructionKey(const vault copType)
 	{
 		const auto foundType = copTypeToDestructionKey.find(copType);
 		return (foundType != copTypeToDestructionKey.end()) ? foundType->second : defaultDestructionKey;
@@ -35,18 +35,18 @@ namespace DestructionStrings
 
 
 
-	bool IsValidBinaryKey(const key binaryKey)
+	bool IsValidBinaryKey(const binary key)
 	{
-		static const char* (__fastcall* const GetBinaryString)(int, key) = (const char* (__fastcall*)(int, key))0x56BB80;
+		static const char* (__fastcall* const GetBinaryString)(int, binary) = (const char* (__fastcall*)(int, binary))0x56BB80;
 
-		return GetBinaryString(0, binaryKey);
+		return GetBinaryString(0, key);
 	}
 
 
 
-	bool IsInvalidPair(const std::pair<const hash, key>& pair)
+	bool IsNotValidPair(const std::pair<const vault, binary>& pair)
 	{ 
-		return not (HeatParameters::IsValidVehicle(pair.first) and IsValidBinaryKey(pair.second));
+		return (not (HeatParameters::IsValidVehicle(pair.first) and IsValidBinaryKey(pair.second)));
 	}
 
 
@@ -95,14 +95,14 @@ namespace DestructionStrings
 		const size_t numCopVehicles = parser.ParseUserParameter("Cops:BinaryStrings", copVehicles, binaryLabels);
 		if (not (featureEnabled = (numCopVehicles > 0))) return false;
 
-		static key (__cdecl* const GetBinaryKey)(const char*) = (key (__cdecl*)(const char*))0x460BF0;
+		static binary (__cdecl* const GetBinaryKey)(const char*) = (binary (__cdecl*)(const char*))0x460BF0;
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
 		{
 			copTypeToDestructionKey.insert
 			(
 				{ 
-					Globals::GetStringHash(copVehicles[vehicleID].c_str()), 
+					Globals::GetVaultKey(copVehicles[vehicleID].c_str()),
 					GetBinaryKey(binaryLabels[vehicleID].c_str()) 
 				}
 			);
@@ -119,11 +119,21 @@ namespace DestructionStrings
 	{
 		if (not featureEnabled) return;
 
-		// Extract "default" key if provided (and valid)
-		const auto pair       = copTypeToDestructionKey.extract(Globals::GetStringHash("default"));
-		defaultDestructionKey = ((not pair.empty()) and IsValidBinaryKey(pair.mapped())) ? pair.mapped() : 0x0;
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [DST] DestructionStrings");
 
-		// Remove any invalid entries
-		std::erase_if(copTypeToDestructionKey, IsInvalidPair);
+		// Extract "default" key if provided (and valid)
+		const auto pair       = copTypeToDestructionKey.extract(Globals::GetVaultKey("default"));
+		const bool isValid    = (not pair.empty()) and IsValidBinaryKey(pair.mapped());
+		defaultDestructionKey = (isValid) ? pair.mapped() : 0x0;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.LogLongIndent((isValid) ? "Valid" : "No valid", "default key");
+
+		// Remove any invalid pairs
+		const size_t numInvalidPairs = std::erase_if(copTypeToDestructionKey, IsNotValidPair);
+
+		if constexpr (Globals::loggingEnabled)
+			if (numInvalidPairs > 0) Globals::logger.LogLongIndent("Removed", (int)numInvalidPairs, "invalid pairs");
 	}
 }

@@ -129,19 +129,19 @@ namespace GroundSupport
 		{
 			push dword ptr leaderVehicles.current
 			mov dword ptr [esi + 0x148], ebx
-			call Globals::GetStringHash
+			call Globals::GetVaultKey
 
 			push dword ptr heavyRammingVehicles.current
 			mov ebx, eax
-			call Globals::GetStringHash
+			call Globals::GetVaultKey
 
 			push dword ptr lightRammingVehicles.current
 			mov ebp, eax
-			call Globals::GetStringHash
+			call Globals::GetVaultKey
 
 			push dword ptr henchmenVehicles.current
 			mov dword ptr [esp + 0x30], eax
-			call Globals::GetStringHash
+			call Globals::GetVaultKey
 
 			jmp dword ptr onAttachedExit
 		}
@@ -272,6 +272,9 @@ namespace GroundSupport
 	{
 		if (not featureEnabled) return;
 
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
+
 		HeatParameters::ReplaceInvalidVehicles(lightRammingVehicles);
 		HeatParameters::ReplaceInvalidVehicles(heavyRammingVehicles);
 		HeatParameters::ReplaceInvalidVehicles(lightRoadblockVehicles);
@@ -306,7 +309,7 @@ namespace GroundSupport
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogIndent("[SUP] GroundSupport");
+			Globals::logger.Log("    HEAT [SUP] GroundSupport");
 
 			Globals::logger.LogLongIndent("minRoadblockCooldown   :", minRoadblockCooldowns.current);
 			Globals::logger.LogLongIndent("maxRoadblockCooldown   :", maxRoadblockCooldowns.current);

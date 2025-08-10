@@ -116,7 +116,7 @@ namespace Miscellaneous
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogIndent("[MSC] Miscellaneous");
+			Globals::logger.Log("    HEAT [MSC] Miscellaneous");
 
 			Globals::logger.LogLongIndent("bountyInterval         :", bountyIntervals.current);
 			Globals::logger.LogLongIndent("copComboLimit          :", copComboLimits.current);
