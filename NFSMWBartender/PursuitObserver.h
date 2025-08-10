@@ -538,6 +538,18 @@ namespace PursuitObserver
 
 
 
+	void Validate()
+	{
+		if (not featureEnabled) return;
+
+		CopSpawnTables::Validate();
+
+		CopSpawnOverrides::eventManager.ReloadSpawnTable();
+		CopSpawnOverrides::roadblockManager.ReloadSpawnTable();
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,

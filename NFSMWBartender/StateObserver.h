@@ -51,7 +51,9 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Open("BartenderLog.txt");
 
-		DestructionStrings::VerifyBinaryKeys();
+		DestructionStrings::Validate();
+		GroundSupport::Validate     ();
+		PursuitObserver::Validate   ();
 	}
 
 

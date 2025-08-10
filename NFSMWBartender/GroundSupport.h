@@ -268,6 +268,20 @@ namespace GroundSupport
 
 
 
+	void Validate()
+	{
+		if (not featureEnabled) return;
+
+		HeatParameters::ReplaceInvalidVehicles(lightRammingVehicles);
+		HeatParameters::ReplaceInvalidVehicles(heavyRammingVehicles);
+		HeatParameters::ReplaceInvalidVehicles(lightRoadblockVehicles);
+		HeatParameters::ReplaceInvalidVehicles(heavyRoadblockVehicles);
+		HeatParameters::ReplaceInvalidVehicles(leaderVehicles);
+		HeatParameters::ReplaceInvalidVehicles(henchmenVehicles);
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,

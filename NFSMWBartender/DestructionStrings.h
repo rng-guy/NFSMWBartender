@@ -35,6 +35,22 @@ namespace DestructionStrings
 
 
 
+	bool IsValidBinaryKey(const key binaryKey)
+	{
+		static const char* (__fastcall* const GetBinaryString)(int, key) = (const char* (__fastcall*)(int, key))0x56BB80;
+
+		return GetBinaryString(0, binaryKey);
+	}
+
+
+
+	bool IsInvalidPair(const std::pair<const hash, key>& pair)
+	{ 
+		return not (HeatParameters::IsValidVehicle(pair.first) and IsValidBinaryKey(pair.second));
+	}
+
+
+
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
@@ -82,7 +98,15 @@ namespace DestructionStrings
 		static key (__cdecl* const GetBinaryKey)(const char*) = (key (__cdecl*)(const char*))0x460BF0;
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
-			copTypeToDestructionKey.insert({Globals::GetStringHash(copVehicles[vehicleID].c_str()), GetBinaryKey(binaryLabels[vehicleID].c_str())});
+		{
+			copTypeToDestructionKey.insert
+			(
+				{ 
+					Globals::GetStringHash(copVehicles[vehicleID].c_str()), 
+					GetBinaryKey(binaryLabels[vehicleID].c_str()) 
+				}
+			);
+		}
 	
 		MemoryEditor::DigCodeCave(CopDestruction, copDestructionEntrance, copDestructionExit);
 
@@ -91,16 +115,15 @@ namespace DestructionStrings
 
 
 
-	void VerifyBinaryKeys()
+	void Validate()
 	{
 		if (not featureEnabled) return;
 
-		// Can't be run on startup as the game would still be loading assets
-		static const char* (__fastcall* const GetBinaryString)(int, key) = (const char* (__fastcall*)(int, key))0x56BB80;
-		std::erase_if(copTypeToDestructionKey, [](const auto& pair) {return (not GetBinaryString(0, pair.second));});
-
 		// Extract "default" key if provided (and valid)
 		const auto pair       = copTypeToDestructionKey.extract(Globals::GetStringHash("default"));
-		defaultDestructionKey = (not pair.empty()) ? pair.mapped() : 0x0;
+		defaultDestructionKey = ((not pair.empty()) and IsValidBinaryKey(pair.mapped())) ? pair.mapped() : 0x0;
+
+		// Remove any invalid entries
+		std::erase_if(copTypeToDestructionKey, IsInvalidPair);
 	}
 }

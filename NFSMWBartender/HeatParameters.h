@@ -6,6 +6,7 @@
 #include <optional>
 #include <algorithm>
 
+#include "Globals.h"
 #include "ConfigParser.h"
 
 
@@ -141,7 +142,7 @@ namespace HeatParameters
 
 
 
-	// Special parsing types and functions ----------------------------------------------------------------------------------------------------------
+	// Parsing types and functions ------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
 	struct ParsingSetup
@@ -232,6 +233,10 @@ namespace HeatParameters
 
 
 
+
+
+	// Validation functions -------------------------------------------------------------------------------------------------------------------------
+
 	template <typename T>
 	void CheckIntervals
 	(
@@ -245,6 +250,33 @@ namespace HeatParameters
 
 			for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
 				lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
+		}
+	}
+
+
+
+	bool IsValidVehicle(const hash vehicleType)
+	{
+		static address* (__cdecl* const FindCollection)(key, hash) = (address * (__cdecl*)(key, hash))0x455FD0;
+
+		return FindCollection(0x4A97EC8F, vehicleType); // searches "pvehicle" tree
+	}
+
+
+
+	bool IsValidVehicle(const std::string& vehicleName)
+	{
+		return IsValidVehicle(Globals::GetStringHash(vehicleName.c_str()));
+	}
+
+
+
+	void ReplaceInvalidVehicles(Pair<std::string>& vehicles)
+	{
+		for (const bool forRaces : {false, true})
+		{
+			for (std::string& vehicleName : vehicles.Get(forRaces))
+				if (not IsValidVehicle(vehicleName)) vehicleName = vehicles.current;
 		}
 	}
 }

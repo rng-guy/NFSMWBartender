@@ -39,15 +39,16 @@ whether the group allows this. Bartender parses groups that allow "default" valu
  2) • All free-roam Heat levels (format: "heatXY") you omitted are set to the "default" value.
  3) • All race Heat levels (format: "raceXY") you omitted are set to their free-roam values.
 
-Bartender can handle most INVALID VALUES you might provide in its configuration files:
+Bartender can handle any INVALID VALUES you might provide in its configuration files:
  • duplicates (e.g. another "heat02" value) within parameter groups are ignored,
  • values of incorrect type (e.g. a string instead of a decimal) count as omitted,
  • negative values that should be positive are set to 0 instead of counting as omitted,
  • mismatched interval values (i.e. where "max" < "min") are each set to the lower value, and
  • comma-separated value pairs / tuples with too many or too few (valid) values count as omitted.
 
-Bartender cannot detect whether any VEHICLES YOU PROVIDE in its configuration files actually exist
-in the game's database. If you provide non-existent vehicles, the game is likely to behave oddly.
+Bartender can handle any INVALID VEHICLES you might provide in its configuration files. A vehicle
+is invalid if it doesn't exist in the game's database (i.e. lacks a VltEd entry under "pvehicle").
+The sections below mention how Bartender handles such non-existent vehicles where it is relevant.
 
 
 
@@ -87,6 +88,8 @@ Regarding COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
    "NFSMW Unlimiter" mod by nlgxzef. Either delete Bartender's "Labels.ini" configuration file
    or disable Unlimiter's version of the feature by editing its "NFSMWUnlimiterSettings.ini" file.
 
+ • Bartender ignores all vehicles and (Binary) string labels that don't actually exist in the game.
+
 
 
 Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
@@ -100,6 +103,8 @@ Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
  • You should not use the vehicles you provide as replacements for Cross in LeaderStrategy spawns
    anywhere else in the game, as they will block LeaderStrategy spawns whenever they are present.
+
+ • Bartender replaces all vehicles that don't actually exist with whatever the vanilla game uses.
 
 
 
@@ -144,6 +149,8 @@ Regarding HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.i
  • You must assign the "CHOPPER" class to the "pvehicle" VltEd entries of all vehicles you provide
    as replacements for the regular helicopter. You can do this directly or through parent entries.
 
+ • Bartender replaces all vehicles that don't actually exist with whatever the vanilla game uses.
+
 
 
 Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
@@ -176,6 +183,10 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
 
  • Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
+
+ • Bartender ignores all vehicles that don't actually exist in the game.
+
+ • Bartender adds a "copmidsize" to all non-empty tables which contain only non-existent vehicles.
 
  • Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position 
    of a given roadblock formation. This is because the game processes roadblock spawns in a fixed,
@@ -304,4 +315,4 @@ v1.00.00: Initial release
       03: Another performance improvement by reducing re-hashing even further
 
    13.00: Improved performance by rewriting and streamlining the internal file-parsing logic
-      01: Made more improvements to the code and overhauled the README for the billionth time
+      01: Added checks for whether vehicles provided in configuration files actually exist

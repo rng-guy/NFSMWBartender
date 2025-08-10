@@ -86,9 +86,8 @@ namespace CopFleeOverrides
 			static address (__thiscall* const GetHeavyStrategies)(address, int) = (address (__thiscall*)(address, int))0x4035E0;
 			static size_t (__thiscall* const GetNumHeavyStrategies)(address)    = (size_t (__thiscall*)(address))0x403600;
 
-			static constexpr int rammingStrategy    = 3;
-			const address        heavyStrategies    = GetHeavyStrategies(supportAttributes, 0);
-			const size_t         numHeavyStrategies = GetNumHeavyStrategies(supportAttributes);
+			const address heavyStrategies    = GetHeavyStrategies(supportAttributes, 0);
+			const size_t  numHeavyStrategies = GetNumHeavyStrategies(supportAttributes);
 
 			if (heavyStrategies)
 			{
@@ -96,7 +95,7 @@ namespace CopFleeOverrides
 
 				for (size_t strategyID = 0; strategyID < numHeavyStrategies; strategyID++)
 				{
-					if (*((int*)heavyStrategy) == rammingStrategy)
+					if (*((int*)heavyStrategy) == 3) // is ramming strategy
 					{
 						this->heavyStrategyDuration = *((float*)(heavyStrategy + 0x8));
 

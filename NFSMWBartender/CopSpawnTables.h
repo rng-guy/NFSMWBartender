@@ -91,6 +91,29 @@ namespace CopSpawnTables
 		}
 
 
+		void RemoveInvalidVehicles()
+		{
+			auto iterator = this->copTypeToEntry.begin();
+
+			while (iterator != this->copTypeToEntry.end())
+			{
+				if (not HeatParameters::IsValidVehicle(iterator->first))
+				{
+					this->maxTotalCopCapacity -= iterator->second.capacity;
+					this->maxTotalCopChance   -= iterator->second.chance;
+
+					if (iterator->second.capacity > 0)
+						this->currentTotalCopChance -= iterator->second.chance;
+
+					this->copTypeToEntry.erase(iterator++);
+				}
+				else iterator++;
+			}
+
+			if (this->IsEmpty()) this->AddType("copmidsize", 1, 1);
+		}
+
+
 		int GetCapacity(const hash copType) const
 		{
 			const auto foundType = this->copTypeToEntry.find(copType);
@@ -203,12 +226,12 @@ namespace CopSpawnTables
 				(
 					section,
 					copNames, 
-					ConfigParser::UserParameter<int>(copCounts,  1), 
-					ConfigParser::UserParameter<int>(copChances, 1)
+					ConfigParser::UserParameter<int>(copCounts,  0), 
+					ConfigParser::UserParameter<int>(copChances, 0)
 				);
 
 			else 
-				numberOfEntries = parser.ParseUserParameter<int>(section, copNames, copChances, 1);
+				numberOfEntries = parser.ParseUserParameter<int>(section, copNames, copChances, 0);
 
 			for (size_t entryID = 0; entryID < numberOfEntries; entryID++)
 				spawnTables[heatLevel - 1].AddType(copNames[entryID], (hasCounts) ? copCounts[entryID] : 1, copChances[entryID]);
@@ -217,13 +240,13 @@ namespace CopSpawnTables
 
 
 
-	void ValidateTables
+	void ReplaceEmptyTables
 	(
 		HeatParameters::Values<SpawnTable>&       tables,
-		const HeatParameters::Values<SpawnTable>& fallbacks
+		const HeatParameters::Values<SpawnTable>& replacements
 	) {
 		for (size_t heatLevel = 1; heatLevel <= HeatParameters::maxHeatLevel; heatLevel++)
-			if (tables[heatLevel - 1].IsEmpty()) tables[heatLevel - 1] = fallbacks[heatLevel - 1];
+			if (tables[heatLevel - 1].IsEmpty()) tables[heatLevel - 1] = replacements[heatLevel - 1];
 	}
 
 
@@ -257,16 +280,33 @@ namespace CopSpawnTables
 		// Validation
 		for (const SpawnTable& table : pursuitSpawnTables.roam) if (table.IsEmpty()) return false;
 
-		ValidateTables(eventSpawnTables.roam,     pursuitSpawnTables.roam);
-		ValidateTables(patrolSpawnTables.roam,    pursuitSpawnTables.roam);
-		ValidateTables(roadblockSpawnTables.roam, pursuitSpawnTables.roam);
+		ReplaceEmptyTables(eventSpawnTables.roam,     pursuitSpawnTables.roam);
+		ReplaceEmptyTables(patrolSpawnTables.roam,    pursuitSpawnTables.roam);
+		ReplaceEmptyTables(roadblockSpawnTables.roam, pursuitSpawnTables.roam);
 
-		ValidateTables(pursuitSpawnTables.race,   pursuitSpawnTables.roam);
-		ValidateTables(eventSpawnTables.race,     eventSpawnTables.roam);
-		ValidateTables(patrolSpawnTables.race,    patrolSpawnTables.roam);
-		ValidateTables(roadblockSpawnTables.race, roadblockSpawnTables.roam);
+		ReplaceEmptyTables(pursuitSpawnTables.race,   pursuitSpawnTables.roam);
+		ReplaceEmptyTables(eventSpawnTables.race,     eventSpawnTables.roam);
+		ReplaceEmptyTables(patrolSpawnTables.race,    patrolSpawnTables.roam);
+		ReplaceEmptyTables(roadblockSpawnTables.race, roadblockSpawnTables.roam);
 
 		return (featureEnabled = true);
+	}
+
+
+
+	void Validate()
+	{
+		if (not featureEnabled) return;
+
+		HeatParameters::ReplaceInvalidVehicles(helicopterVehicles);
+
+		for (const bool forRaces : {false, true})
+		{
+			for (SpawnTable& table : eventSpawnTables.Get    (forRaces)) table.RemoveInvalidVehicles();
+			for (SpawnTable& table : patrolSpawnTables.Get   (forRaces)) table.RemoveInvalidVehicles();
+			for (SpawnTable& table : pursuitSpawnTables.Get  (forRaces)) table.RemoveInvalidVehicles();
+			for (SpawnTable& table : roadblockSpawnTables.Get(forRaces)) table.RemoveInvalidVehicles();
+		}
 	}
 
 

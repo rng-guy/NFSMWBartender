@@ -48,7 +48,7 @@ Some **parameter groups** (indicated by `[GroupName]`) in Bartender's configurat
 
 &nbsp;
 
-Bartender can handle most **invalid values** you might provide in its configuration files:
+Bartender can handle any **invalid values** you might provide in its configuration files:
 * duplicates (e.g. another `heat02` value) within parameter groups are ignored,
 * values of incorrect type (e.g. a string instead of a decimal) count as omitted,
 * negative values that should be positive are set to 0 instead of counting as omitted,
@@ -57,7 +57,7 @@ Bartender can handle most **invalid values** you might provide in its configurat
 
 &nbsp;
 
-Bartender cannot detect whether any **vehicles you provide** in its configuration files actually exist in the game's database. If you provide non-existent vehicles, the game is likely to behave oddly.
+Bartender can handle any **invalid vehicles** you might provide in its configuration files. A vehicle is invalid if it doesn't exist in the game's database (i.e. lacks a VltEd entry under `pvehicle`). The sections below mention how Bartender handles such non-existent vehicles where it is relevant.
 
 &nbsp;
 
@@ -91,6 +91,8 @@ Regarding **cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
 
 * This feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Either delete Bartender's `Labels.ini` configuration file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` file.
 
+* Bartender ignores all vehicles and (Binary) string labels that don't actually exist in the game.
+
 &nbsp;
 
 Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
@@ -100,6 +102,8 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 * You should assign low `MAXIMUM_AI_SPEED` values (~50) to the `aivehicle` VltEd entries of all vehicles you provide as replacements for the ramming SUVs in HeavyStrategy 3 spawns. If you don't limit their speeds, they might cause stability issues by joining the pursuit as regular cops (regardless of the global cop-spawn limit) after their ramming attempt(s).
 
 * You should not use the vehicles you provide as replacements for Cross in LeaderStrategy spawns anywhere else in the game, as they will block LeaderStrategy spawns whenever they are present.
+
+* Bartender replaces all vehicles that don't actually exist with whatever the vanilla game uses.
 
 &nbsp;
 
@@ -139,6 +143,8 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * You must assign the `CHOPPER` class to the `pvehicle` VltEd entries of all vehicles you provide as replacements for the regular helicopter. You can do this directly or through parent entries.
 
+* Bartender replaces all vehicles that don't actually exist with whatever the vanilla game uses.
+
 &nbsp;
 
 Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
@@ -156,6 +162,10 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 * Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
 
 * Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
+
+* Bartender ignores all vehicles that don't actually exist in the game.
+
+* Bartender adds a "copmidsize" to all non-empty tables which contain only non-existent vehicles.
 
 * Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock spawns in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This does not apply to vehicles with `count` values of at least 5, as no roadblock consists of more than 5 cars.
 
