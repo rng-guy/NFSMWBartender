@@ -100,7 +100,7 @@ namespace CopSpawnTables
 				if (not HeatParameters::IsValidVehicle(iterator->first))
 				{
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.LogLongIndent("table : removing", this->TypeToName(iterator->first));
+						Globals::logger.LogLongIndent("Table: Removing", this->TypeToName(iterator->first));
 
 					this->maxTotalCopCapacity -= iterator->second.capacity;
 					this->maxTotalCopChance   -= iterator->second.chance;
@@ -116,7 +116,7 @@ namespace CopSpawnTables
 			if (this->IsEmpty())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("table : now empty");
+					Globals::logger.LogLongIndent("Table: Now empty");
 
 				this->AddType("copmidsize", 1, 1);
 			}
@@ -177,7 +177,7 @@ namespace CopSpawnTables
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(" WARNING [TAB] failed to select vehicle  ", randomNumber, cumulativeChance, this->currentTotalCopChance);
+				Globals::logger.Log("WARNING: [TAB] Failed to select vehicle:", randomNumber, cumulativeChance, this->currentTotalCopChance);
 
 			return nullptr;
 		}
@@ -308,7 +308,7 @@ namespace CopSpawnTables
 		if (not featureEnabled) return;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  Config [TAB] CopSpawnTables");
+			Globals::logger.Log("  CONFIG [TAB] CopSpawnTables");
 
 		HeatParameters::ReplaceInvalidVehicles(helicopterVehicles);
 
@@ -340,9 +340,9 @@ namespace CopSpawnTables
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log("    Heat [TAB] CopSpawnTables");
+			Globals::logger.Log("    HEAT [TAB] CopSpawnTables");
 
-			Globals::logger.LogLongIndent("helicopterVehicle       ", helicopterVehicles.current);
+			Globals::logger.LogLongIndent("helicopterVehicle      :", helicopterVehicles.current);
 		}
 	}
 }

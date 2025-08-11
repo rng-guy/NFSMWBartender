@@ -32,7 +32,7 @@ namespace Globals
 	vault (__thiscall* const GetCopType)(address)   = (vault (__thiscall*)(address))0x6880A0;
 
 	// Logging
-	constexpr bool loggingEnabled = true;
+	constexpr bool loggingEnabled = false;
 
 	BasicLogger::Logger logger;
 
@@ -41,13 +41,6 @@ namespace Globals
 
 
 	// Custom hash function and (scoped) aliases ----------------------------------------------------------------------------------------------------
-
-	const char* GetCopName(const address copVehicle)
-	{
-		return (const char*)(*((address*)(*((address*)(copVehicle + 0x2C)) + 0x24)));
-	}
-
-
 
 	template <typename T>
 	struct IdentityHash 

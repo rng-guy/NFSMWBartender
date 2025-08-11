@@ -280,7 +280,7 @@ namespace HeatParameters
 				if (not IsValidVehicle(vehicleName))
 				{
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.LogLongIndent(vehicleName, "->", vehicles.current);
+						Globals::logger.LogLongIndent("Replacing", vehicleName, "with", vehicles.current);
 
 					vehicleName = vehicles.current;
 				}
