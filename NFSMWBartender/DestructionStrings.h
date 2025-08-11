@@ -120,7 +120,7 @@ namespace DestructionStrings
 		if (not featureEnabled) return;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [DST] DestructionStrings");
+			Globals::logger.Log("  Config [DST] DestructionStrings");
 
 		// Extract "default" key if provided (and valid)
 		const auto pair       = copTypeToDestructionKey.extract(Globals::GetVaultKey("default"));

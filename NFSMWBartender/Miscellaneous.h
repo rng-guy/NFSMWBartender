@@ -116,10 +116,10 @@ namespace Miscellaneous
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log("    HEAT [MSC] Miscellaneous");
+			Globals::logger.Log("    Heat [MSC] Miscellaneous");
 
-			Globals::logger.LogLongIndent("bountyInterval         :", bountyIntervals.current);
-			Globals::logger.LogLongIndent("copComboLimit          :", copComboLimits.current);
+			Globals::logger.LogLongIndent("bountyInterval          ", bountyIntervals.current, 's');
+			Globals::logger.LogLongIndent("copComboLimit           ", copComboLimits.current,  "kills");
 		}
     }
 }

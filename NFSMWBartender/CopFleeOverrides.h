@@ -77,7 +77,7 @@ namespace CopFleeOverrides
 			if (not supportAttributes)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [FLE] Invalid SupportAttributes pointer in", this->pursuit);
+					Globals::logger.Log(" WARNING [FLE] invalid SupportAttributes pointer in", this->pursuit);
 
 				return;
 			}
@@ -100,7 +100,7 @@ namespace CopFleeOverrides
 						this->heavyStrategyDuration = *((float*)(heavyStrategy + 0x8));
 
 						if constexpr (Globals::loggingEnabled)
-							Globals::logger.Log(this->pursuit, "[FLE] HeavyStrategy 3 duration:", this->heavyStrategyDuration);
+							Globals::logger.Log(this->pursuit, "[FLE] heavyStrategyDuration   ", this->heavyStrategyDuration, 's');
 
 						break;
 					}
@@ -121,7 +121,7 @@ namespace CopFleeOverrides
 				this->leaderStrategyDuration = *((float*)(leaderStrategies + 0x8));
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[FLE] LeaderStrategy duration:", this->leaderStrategyDuration);
+					Globals::logger.Log(this->pursuit, "[FLE] leaderStrategyDuration  ", this->leaderStrategyDuration, 's');
 			}
 		}
 
@@ -173,7 +173,7 @@ namespace CopFleeOverrides
 				flagVehicle = false;
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [FLE] Unknown label", (int)(assessment.copLabel), "in", this->pursuit);
+					Globals::logger.Log(" WARNING [FLE] unknown label", (int)(assessment.copLabel), "in", this->pursuit);
 			}
 
 			if (not flagVehicle) return;
@@ -182,15 +182,15 @@ namespace CopFleeOverrides
 			assessment.position = this->waitingToFlee.insert({*(this->simulationTime) + timeUntilFlee, assessment.copVehicle});
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[FLE]", assessment.copVehicle, "to flee in", timeUntilFlee);
+			{
+				Globals::logger.Log(this->pursuit, "[FLE] +", assessment.copVehicle, "flagged      ", Globals::GetCopName(assessment.copVehicle));
+				Globals::logger.LogLongIndent("timeUntilFlee           ", timeUntilFlee, 's');
+			}
 		}
 
 
 		void ReviewAll()
 		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[FLE] Reviewing contingent");
-
 			for (auto& pair : this->copVehicleToAssessment)
 			{
 				if (pair.second.copLabel != CopLabel::CHASER) continue;
@@ -225,13 +225,19 @@ namespace CopFleeOverrides
 			{
 				if (simulationTime < iterator->first) break;
 				Assessment& assessment = this->copVehicleToAssessment.at((iterator++)->second);
+				assessment.status      = Status::FLEEING;
 
-				assessment.status = Status::FLEEING;
 				this->waitingToFlee.erase(assessment.position);
 				this->fleeingCopVehicles.insert(assessment.copVehicle);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[FLE]", assessment.copVehicle, "now fleeing");
+				{
+					Globals::logger.Log
+					(
+						this->pursuit, "[FLE] +", assessment.copVehicle, 
+						"fleeing      ", Globals::GetCopName(assessment.copVehicle)
+					);
+				}
 			}
 
 			std::for_each(this->fleeingCopVehicles.begin(), this->fleeingCopVehicles.end(), this->MakeFlee);
@@ -272,7 +278,13 @@ namespace CopFleeOverrides
 		{
 			if (not this->IsTrackable(copLabel)) return;
 
-			this->Review(this->copVehicleToAssessment.insert({copVehicle, {copVehicle, copType, copLabel, Status::MEMBER}}).first->second);
+			this->Review
+			(
+				this->copVehicleToAssessment.insert
+				(
+					{copVehicle, {copVehicle, copType, copLabel, Status::MEMBER}}
+				).first->second
+			);
 		}
 
 
@@ -303,7 +315,7 @@ namespace CopFleeOverrides
 				this->copVehicleToAssessment.erase(foundVehicle);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [FLE] Unknown vehicle", copVehicle, "in", this->pursuit);
+				Globals::logger.Log(" WARNING [FLE] unknown vehicle", copVehicle, "in", this->pursuit);
 		}
 	};
 
@@ -353,13 +365,13 @@ namespace CopFleeOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
-			Globals::logger.LogLongIndent("Fleeing", (fleeingEnableds.current) ? "enabled" : "disabled");
+			Globals::logger.Log("    Heat [FLE] CopFleeOverrides");
+			Globals::logger.LogLongIndent("fleeingEnabled          ", (fleeingEnableds.current) ? "true" : "false");
 
 			if (fleeingEnableds.current)
 			{
-				Globals::logger.LogLongIndent("minFleeDelay           :", minFleeDelays.current);
-				Globals::logger.LogLongIndent("maxFleeDelay           :", maxFleeDelays.current);
+				Globals::logger.LogLongIndent("minFleeDelay            ", minFleeDelays.current, 's');
+				Globals::logger.LogLongIndent("maxFleeDelay            ", maxFleeDelays.current, 's');
 			}
 		}
 	}

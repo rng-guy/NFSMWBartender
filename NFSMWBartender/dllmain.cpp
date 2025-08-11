@@ -18,7 +18,7 @@
 
 static void Initialise() 
 {
-    HeatParameters::Parser parser{};
+    HeatParameters::Parser parser;
 
     // "Basic" feature set
     bool basicSetEnabled = false;

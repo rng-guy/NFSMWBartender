@@ -54,7 +54,7 @@ namespace HelicopterOverrides
 			this->isPlayerPursuit = IsPlayerPursuit(this->pursuit);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[HEL]", (this->isPlayerPursuit) ? "Confirmed" : "Not", "player pursuit");
+				Globals::logger.Log(this->pursuit, "[HEL] isPlayerPursuit         ", (this->isPlayerPursuit) ? "true" : "false");
 		}
 
 
@@ -71,15 +71,15 @@ namespace HelicopterOverrides
 
 			static const address* const copManager = (address*)0x989098;
 
-			if (*copManager) 
+			if (*copManager)
 			{ 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[HEL] Requesting helicopter");
+					Globals::logger.Log(this->pursuit, "[HEL] requesting spawn");
 
 				SpawnHelicopter(*copManager, this->pursuit);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [HEL] Invalid AICopManager pointer");
+				Globals::logger.Log(" WARNING [HEL] invalid AICopManager pointer");
 		}
 
 
@@ -92,10 +92,10 @@ namespace HelicopterOverrides
 				*((float*)(*helicopterObject + 0x7D8)) = fuel;
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[HEL] Despawning in", fuel);
+					Globals::logger.Log(this->pursuit, "[HEL] fuel duration           ", fuel, 's');
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [HEL] Invalid helicopter pointer");
+				Globals::logger.Log(" WARNING [HEL] invalid helicopter pointer");
 		}
 
 
@@ -112,14 +112,14 @@ namespace HelicopterOverrides
 				this->nextSpawnTimestamp += Globals::prng.Generate<float>(minRespawnDelays.current, maxRespawnDelays.current);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[HEL] Respawning in", this->nextSpawnTimestamp - *(this->simulationTime));
+					Globals::logger.Log(this->pursuit, "[HEL] respawning in           ", this->nextSpawnTimestamp - *(this->simulationTime), 's');
 			}
 			else
 			{
 				this->nextSpawnTimestamp += Globals::prng.Generate<float>(minSpawnDelays.current, maxSpawnDelays.current);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[HEL] Spawning in", this->nextSpawnTimestamp - *(this->simulationTime));
+					Globals::logger.Log(this->pursuit, "[HEL] spawning in             ", this->nextSpawnTimestamp - *(this->simulationTime), 's');
 			}
 		}
 
@@ -130,7 +130,7 @@ namespace HelicopterOverrides
 			this->statusChangeTimestamp = *(this->simulationTime);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[HEL] Helicopter now", (this->helicopterActive) ? "active" : "inactive");
+				Globals::logger.Log(this->pursuit, "[HEL] helicopterActive        ", (this->helicopterActive) ? "true" : "false");
 
 			if (this->helicopterActive)
 			{
@@ -276,17 +276,17 @@ namespace HelicopterOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log("    HEAT [HEL] HelicopterOverrides");
-			Globals::logger.LogLongIndent("Helicopter", (helicopterEnableds.current) ? "enabled" : "disabled");
+			Globals::logger.Log("    Heat [HEL] HelicopterOverrides");
+			Globals::logger.LogLongIndent("helicopterEnabled       ", (helicopterEnableds.current) ? "true" : "false");
 
 			if (helicopterEnableds.current)
 			{
-				Globals::logger.LogLongIndent("minSpawnDelay          :", minSpawnDelays.current);
-				Globals::logger.LogLongIndent("maxSpawnDelay          :", maxSpawnDelays.current);
-				Globals::logger.LogLongIndent("minDespawnDelay        :", minDespawnDelays.current);
-				Globals::logger.LogLongIndent("maxDespawnDelay        :", maxDespawnDelays.current);
-				Globals::logger.LogLongIndent("minRespawnDelay        :", minRespawnDelays.current);
-				Globals::logger.LogLongIndent("maxRespawnDelay        :", maxRespawnDelays.current);
+				Globals::logger.LogLongIndent("minSpawnDelay           ", minSpawnDelays.current,   's');
+				Globals::logger.LogLongIndent("maxSpawnDelay           ", maxSpawnDelays.current,   's');
+				Globals::logger.LogLongIndent("minDespawnDelay         ", minDespawnDelays.current, 's');
+				Globals::logger.LogLongIndent("maxDespawnDelay         ", maxDespawnDelays.current, 's');
+				Globals::logger.LogLongIndent("minRespawnDelay         ", minRespawnDelays.current, 's');
+				Globals::logger.LogLongIndent("maxRespawnDelay         ", maxRespawnDelays.current, 's');
 			}
 		}
 	}
