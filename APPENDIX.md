@@ -9,9 +9,9 @@ This document also mentions any **incompatible features** of other .asi mods whe
 
 &nbsp;
 
-You **only need to read this document** if you either
-* have persistent issues with your game after installing Bartender, or
-* are curious about the limitations and inner workings of Bartender (or the game itself).
+You really **only need to read this document** if
+* you have persistent issues with your game after installing / configuring Bartender, or
+* you are curious about the limitations and technicalities of Bartender's features.
 
 &nbsp;
 
@@ -134,16 +134,16 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 * Deleting this file also disables the fix for getting busted while the green "EVADE" bar fills.
 
 * The red "BUSTED" bar fills when you drive slowly enough and are near a cop who can see you. Once the bar is full, the cops apprehend you and end the pursuit in their favour.
+ 
+* The cops' visual range limits the effective max. bust distance. The cops' visual range is defined by the `frontLOSdistance`, `rearLOSdistance`, and `heliLOSdistance` VltEd parameters.
 
 * The `BustSpeed` VltEd parameter defines the speed threshold for busting.
-   
+
 * The green "EVADE" bar fills when you are not within line of sight of any cops. Once the bar is full, you enter "COOLDOWN" mode and need to stay hidden for a while to escape the pursuit.
 
 * The `evadetimeout` VltEd parameter defines how long you need to stay hidden in "COOLDOWN" mode.
 
 * The time you spend filling the green "EVADE" bar also counts towards how long you need to stay hidden in "COOLDOWN" mode. If the "EVADE" bar takes longer to fill, you will escape instantly.
-
-* The `frontLOSdistance` and `rearLOSdistance` VltEd parameters define the cops' visual range.
 
 * The `0x1e2a1051` VltEd parameter defines how much passive bounty you gain at each interval.
 

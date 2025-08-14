@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.13.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.13.02) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -99,9 +99,9 @@ To INSTALL Bartender:
  2) • copy the contents of Bartender's "scripts" folder into your game's "scripts" folder; and
  3) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
 
-AFTER INSTALLING Bartender: 
+AFTER INSTALLING Bartender:
  1) • check out its configuration (.ini) files in the "scripts\BartenderSettings" folder, and
- 2) • see the "APPENDIX.txt" file should you encounter any issues or want more technical details.
+ 2) • see the "APPENDIX.txt" file should you encounter any issues or want more feature details.
 
 To UNINSTALL Bartender, remove its files from your game's "scripts" folder. There is no need
 to remove the optional missing textures, as the game won't ever use them without Bartender.
