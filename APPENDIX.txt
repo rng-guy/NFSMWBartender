@@ -137,8 +137,8 @@ Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
  • The "BustSpeed" VltEd parameter defines the speed threshold for busting.
    
- • The green "EVADE" bar fills when you are not within line of sight of any cops. Once it is full,
-   you enter "COOLDOWN" mode and need to stay hidden for a while to escape (and end) the pursuit.
+ • The green "EVADE" bar fills when you are not within line of sight of any cops. Once the bar
+   is full, you enter "COOLDOWN" mode and need to stay hidden for a while to escape the pursuit.
 
  • The "evadetimeout" VltEd parameter defines how long you need to stay hidden in "COOLDOWN" mode.
 
