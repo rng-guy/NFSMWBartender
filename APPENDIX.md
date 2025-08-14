@@ -133,11 +133,11 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 * Deleting this file also disables the fix for getting busted while the green "EVADE" bar fills.
 
-* The "BUSTED" bar fills when you drive slowly enough and are near a cop who can see you. Once the bar is full, the cops apprehend you and end the pursuit (not in your favour).
+* The red "BUSTED" bar fills when you drive slowly enough and are near a cop who can see you. Once the bar is full, the cops apprehend you and end the pursuit in their favour.
 
 * The `BustSpeed` VltEd parameter defines the speed threshold for busting.
    
-* The "EVADE" bar fills when you are not within line of sight of any cops. Once the bar is full, you enter "COOLDOWN" mode and need to stay hidden for a while to escape (and end) the pursuit.
+* The green "EVADE" bar fills when you are not within line of sight of any cops. Once it is full, you enter "COOLDOWN" mode and need to stay hidden for a while to escape (and end) the pursuit.
 
 * The `evadetimeout` VltEd parameter defines how long you need to stay hidden in "COOLDOWN" mode.
 
