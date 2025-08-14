@@ -48,6 +48,12 @@ Some **parameter groups** (indicated by `[GroupName]`) in Bartender's configurat
 
 &nbsp;
 
+Bartender can handle any **invalid / missing parameter groups** in its configuration files:
+* duplicate (e.g. another `[Busting:General]`) and unknown groups are ignored, and
+* missing groups make Bartender count each of their would-be values as omitted.
+
+&nbsp;
+
 Bartender can handle any **invalid values** you might provide in its configuration files:
 * duplicates (e.g. another `heat02` value) within parameter groups are ignored,
 * values of incorrect type (e.g. a string instead of a decimal) count as omitted,
@@ -141,7 +147,9 @@ Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
 * The `0x1e2a1051` VltEd parameter defines how much passive bounty you gain at each interval.
 
-* Bartender sets all cop-combo limits that are < 1 to 1.
+* The `DestroyCopBonusTime` VltEd parameter defines the time window for cop combos.
+
+* Bartender sets all cop-combo limits that are < 1 to 1 instead.
 
 &nbsp;
 
@@ -201,7 +209,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * "Chasers" will only flee at Heat levels for which you provide valid delay values.
 
-* Bartender sets all `count` and `chance` values that are < 1 to 1.
+* Bartender sets all `count` and `chance` values that are < 1 to 1 instead.
 
 * The `chance` values are weights (like in VltEd), not percentages. The actual spawn chance of a vehicle is its `chance` value divided by the sum of the `chance` values of all vehicles from the same spawn table. Whenever a vehicle reaches its `count` value (i.e. spawn cap), Bartender treats its `chance` value as 0 until there is room for further spawns of that vehicle again.
 

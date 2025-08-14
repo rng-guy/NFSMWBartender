@@ -39,6 +39,10 @@ whether the group allows this. Bartender parses groups that allow "default" valu
  2) • All free-roam Heat levels (format: "heatXY") you omitted are set to the "default" value.
  3) • All race Heat levels (format: "raceXY") you omitted are set to their free-roam values.
 
+Bartender can handle any INVALID / MISSING PARAMETER GROUPS in its configuration files:
+ • duplicate (e.g. another "[Busting:General]") and unknown groups are ignored, and
+ • missing groups make Bartender count each of their would-be values as omitted.
+
 Bartender can handle any INVALID VALUES you might provide in its configuration files:
  • duplicates (e.g. another "heat02" value) within parameter groups are ignored,
  • values of incorrect type (e.g. a string instead of a decimal) count as omitted,
@@ -55,6 +59,7 @@ The CLASS OF A VEHICLE depends on its "CLASS" VltEd parameter in its "pvehicle" 
 considers a "CLASS" value of "CHOPPER" to represent a helicopter, and every other value a car.
 Most vanilla vehicles lack an explicit "CLASS" parameter in their "pvehicle" nodes because they
 inherit one from parent nodes instead, but you can add one manually to overwrite it if you wish.
+
 
 
 
@@ -142,7 +147,9 @@ Regarding UNCATEGORISED FEATURES ("BartenderSettings\Basic\Others.ini"):
 
  • The "0x1e2a1051" VltEd parameter defines how much passive bounty you gain at each interval.
 
- • Bartender sets all combo limits that are < 1 to 1.
+ • The "DestroyCopBonusTime" VltEd parameter defines the time window for cop combos.
+
+ • Bartender sets all cop-combo limits that are < 1 to 1.
 
 
 
@@ -362,4 +369,4 @@ v1.00.00: Initial release
       03: Another performance improvement by reducing re-hashing even further
 
    13.00: Improved performance by rewriting and streamlining the internal file-parsing logic
-      01: Added checks for whether vehicles in configuration files exist and are of the right type
+      01: Added checks for whether vehicles in configuration files exist and are of the right class
