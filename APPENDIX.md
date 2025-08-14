@@ -115,7 +115,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Very short cooldowns for regular roadblocks or Heavy / LeaderStrategy spawns can result in spam.
 
-* The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before regular roadblocks and Heavy / LeaderSupport spawns can first appear in a given pursuit.
+* The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before regular roadblocks and Heavy / LeaderStrategy spawns can first appear in a given pursuit.
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
@@ -185,7 +185,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * The helicopter will also spawn in "COOLDOWN" mode by default.
 
-* The helicopter uses whatever AirSupportStrategy you set in VltEd.
+* The helicopter uses whatever HeliStrategy you set in VltEd.
 
 * Only one helicopter will ever be active at any given time. This is a game limitation; you could technically spawn more, but they would count as cars and behave very oddly.
 
@@ -201,7 +201,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overwrites the min. engagement count.
 
-* The global cop-spawn limit determines whether the game may spawn new "Chasers" at any point. The game can spawn additional "Chasers" as long as the total amount of non-roadblock and non-helicopter cops that currently exist across all pursuits is less than this global limit. This also means that any active Heavy / LeaderSupport spawns or NPC pursuits can affect how many more "Chasers" can still spawn in your pursuit (this is vanilla behaviour).
+* The global cop-spawn limit determines whether the game may spawn new "Chasers" at any point. The game can spawn additional "Chasers" as long as the total amount of non-roadblock and non-helicopter cops that currently exist across all pursuits is less than this global limit. This also means that any active Heavy / LeaderStrategy spawns or NPC pursuits can affect how many more "Chasers" can still spawn in your pursuit (this is vanilla behaviour).
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
