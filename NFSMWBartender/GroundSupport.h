@@ -275,12 +275,13 @@ namespace GroundSupport
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
 
-		HeatParameters::ReplaceInvalidVehicles(lightRammingVehicles);
-		HeatParameters::ReplaceInvalidVehicles(heavyRammingVehicles);
-		HeatParameters::ReplaceInvalidVehicles(lightRoadblockVehicles);
-		HeatParameters::ReplaceInvalidVehicles(heavyRoadblockVehicles);
-		HeatParameters::ReplaceInvalidVehicles(leaderVehicles);
-		HeatParameters::ReplaceInvalidVehicles(henchmenVehicles);
+		// With logging disabled, the compiler optimises the string literals away
+		HeatParameters::ReplaceInvalidVehicles("Light ram. SUVs", lightRammingVehicles,   false);
+		HeatParameters::ReplaceInvalidVehicles("Heavy ram. SUVs", heavyRammingVehicles,   false);
+		HeatParameters::ReplaceInvalidVehicles("Light rdb. SUVs", lightRoadblockVehicles, false);
+		HeatParameters::ReplaceInvalidVehicles("Heavy rdb. SUVs", heavyRoadblockVehicles, false);
+		HeatParameters::ReplaceInvalidVehicles("Leader",          leaderVehicles,         false);
+		HeatParameters::ReplaceInvalidVehicles("Henchmen",        henchmenVehicles,       false);
 	}
 
 
@@ -292,18 +293,18 @@ namespace GroundSupport
 	) {
         if (not featureEnabled) return;
 
-		minRoadblockCooldowns.SetToHeat  (isRacing, heatLevel);
-		maxRoadblockCooldowns.SetToHeat  (isRacing, heatLevel);
+		minRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
+		maxRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
-		strategyCooldowns.SetToHeat      (isRacing, heatLevel);
-		maxStrategyDelays.SetToHeat      (isRacing, heatLevel);
+		strategyCooldowns      .SetToHeat(isRacing, heatLevel);
+		maxStrategyDelays      .SetToHeat(isRacing, heatLevel);
 
-		lightRammingVehicles.SetToHeat  (isRacing, heatLevel);
-		heavyRammingVehicles.SetToHeat  (isRacing, heatLevel);
+		lightRammingVehicles  .SetToHeat(isRacing, heatLevel);
+		heavyRammingVehicles  .SetToHeat(isRacing, heatLevel);
 		lightRoadblockVehicles.SetToHeat(isRacing, heatLevel);
 		heavyRoadblockVehicles.SetToHeat(isRacing, heatLevel);
-		leaderVehicles.SetToHeat        (isRacing, heatLevel);
-		henchmenVehicles.SetToHeat      (isRacing, heatLevel);
+		leaderVehicles        .SetToHeat(isRacing, heatLevel);
+		henchmenVehicles      .SetToHeat(isRacing, heatLevel);
 
 		roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;
 
@@ -311,18 +312,18 @@ namespace GroundSupport
 		{
 			Globals::logger.Log("    HEAT [SUP] GroundSupport");
 
-			Globals::logger.LogLongIndent("minRoadblockCooldown   :", minRoadblockCooldowns.current);
-			Globals::logger.LogLongIndent("maxRoadblockCooldown   :", maxRoadblockCooldowns.current);
-			Globals::logger.LogLongIndent("roadblockHeavyCooldown :", roadblockHeavyCooldowns.current);
-			Globals::logger.LogLongIndent("strategyCooldown       :", strategyCooldowns.current);
-			Globals::logger.LogLongIndent("maxStrategyDelay       :", maxStrategyDelays.current);
+			Globals::logger.LogLongIndent("minRoadblockCooldown    ", minRoadblockCooldowns.current);
+			Globals::logger.LogLongIndent("maxRoadblockCooldown    ", maxRoadblockCooldowns.current);
+			Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
+			Globals::logger.LogLongIndent("strategyCooldown        ", strategyCooldowns.current);
+			Globals::logger.LogLongIndent("maxStrategyDelay        ", maxStrategyDelays.current);
 
-			Globals::logger.LogLongIndent("lightRammingVehicle    :", lightRammingVehicles.current);
-			Globals::logger.LogLongIndent("heavyRammingVehicle    :", heavyRammingVehicles.current);
-			Globals::logger.LogLongIndent("lightRoadblockVehicle  :", lightRoadblockVehicles.current);
-			Globals::logger.LogLongIndent("heavyRoadblockVehicle  :", heavyRoadblockVehicles.current);
-			Globals::logger.LogLongIndent("leaderVehicle          :", leaderVehicles.current);
-			Globals::logger.LogLongIndent("henchmenVehicle        :", henchmenVehicles.current);
+			Globals::logger.LogLongIndent("lightRammingVehicle     ", lightRammingVehicles.current);
+			Globals::logger.LogLongIndent("heavyRammingVehicle     ", heavyRammingVehicles.current);
+			Globals::logger.LogLongIndent("lightRoadblockVehicle   ", lightRoadblockVehicles.current);
+			Globals::logger.LogLongIndent("heavyRoadblockVehicle   ", heavyRoadblockVehicles.current);
+			Globals::logger.LogLongIndent("leaderVehicle           ", leaderVehicles.current);
+			Globals::logger.LogLongIndent("henchmenVehicle         ", henchmenVehicles.current);
 		}
     }
 }

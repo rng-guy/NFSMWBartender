@@ -92,9 +92,9 @@ namespace PursuitBar
 	) {
         if (not featureEnabled) return;
 
-		bustTimers.SetToHeat      (isRacing, heatLevel);
+		bustTimers      .SetToHeat(isRacing, heatLevel);
 		maxBustDistances.SetToHeat(isRacing, heatLevel);
-		evadeTimers.SetToHeat     (isRacing, heatLevel);
+		evadeTimers     .SetToHeat(isRacing, heatLevel);
 
 		halfEvadeRate = .5f / evadeTimers.current;
 		bustRate      = 1.f / bustTimers.current;
@@ -103,9 +103,9 @@ namespace PursuitBar
 		{
 			Globals::logger.Log("    HEAT [BAR] PursuitBar");
 
-			Globals::logger.LogLongIndent("bustTimer              :", bustTimers.current);
-			Globals::logger.LogLongIndent("maxBustDistance        :", maxBustDistances.current);
-			Globals::logger.LogLongIndent("evadeTimer             :", evadeTimers.current);
+			Globals::logger.LogLongIndent("bustTimer               ", bustTimers.current);
+			Globals::logger.LogLongIndent("maxBustDistance         ", maxBustDistances.current);
+			Globals::logger.LogLongIndent("evadeTimer              ", evadeTimers.current);
 		}
     }
 }

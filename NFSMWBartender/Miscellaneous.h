@@ -110,7 +110,7 @@ namespace Miscellaneous
         if (not featureEnabled) return;
 
 		bountyIntervals.SetToHeat(isRacing, heatLevel);
-		copComboLimits.SetToHeat (isRacing, heatLevel);
+		copComboLimits .SetToHeat(isRacing, heatLevel);
 
 		bountyFrequency = 1.f / bountyIntervals.current;
 
@@ -118,8 +118,8 @@ namespace Miscellaneous
 		{
 			Globals::logger.Log("    HEAT [MSC] Miscellaneous");
 
-			Globals::logger.LogLongIndent("bountyInterval         :", bountyIntervals.current);
-			Globals::logger.LogLongIndent("copComboLimit          :", copComboLimits.current);
+			Globals::logger.LogLongIndent("bountyInterval          ", bountyIntervals.current);
+			Globals::logger.LogLongIndent("copComboLimit           ", copComboLimits.current);
 		}
     }
 }

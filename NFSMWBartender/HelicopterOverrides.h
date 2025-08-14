@@ -15,6 +15,8 @@ namespace HelicopterOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
+	HeatParameters::Pair<std::string> helicopterVehicles("copheli");
+
 	HeatParameters::Pair<bool>  helicopterEnableds(false);
 	HeatParameters::Pair<float> minSpawnDelays    (0.f);   // seconds
 	HeatParameters::Pair<float> maxSpawnDelays    (0.f);
@@ -177,7 +179,8 @@ namespace HelicopterOverrides
 		) 
 			override
 		{
-			if (copLabel == CopLabel::HELICOPTER) this->ChangeStatus();
+			if (copLabel == CopLabel::HELICOPTER) 
+				this->ChangeStatus();
 		}
 
 
@@ -189,7 +192,8 @@ namespace HelicopterOverrides
 		) 
 			override
 		{
-			if (copLabel == CopLabel::HELICOPTER) this->ChangeStatus();
+			if (copLabel == CopLabel::HELICOPTER) 
+				this->ChangeStatus();
 		}
 	};
 
@@ -228,14 +232,16 @@ namespace HelicopterOverrides
 		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini")) return false;
 
 		// Heat parameters
+		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
+
 		for (const bool forRaces : {false, true})
 		{
 			helicopterEnableds.Get(forRaces) = parser.ParseParameterTable<float, float, float, float, float, float>
 			(
 				"Helicopter:Timers",
 				(forRaces) ? HeatParameters::configFormatRace : HeatParameters::configFormatRoam,
-				HeatParameters::Format<float>(minSpawnDelays.Get  (forRaces), {}, 0.f),
-				HeatParameters::Format<float>(maxSpawnDelays.Get  (forRaces), {}, 0.f),
+				HeatParameters::Format<float>(minSpawnDelays  .Get(forRaces), {}, 0.f),
+				HeatParameters::Format<float>(maxSpawnDelays  .Get(forRaces), {}, 0.f),
 				HeatParameters::Format<float>(minDespawnDelays.Get(forRaces), {}, 0.f),
 				HeatParameters::Format<float>(maxDespawnDelays.Get(forRaces), {}, 0.f),
 				HeatParameters::Format<float>(minRespawnDelays.Get(forRaces), {}, 0.f),
@@ -255,6 +261,19 @@ namespace HelicopterOverrides
 
 
 
+	void Validate()
+	{
+		if (not featureEnabled) return;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [HEL] HelicopterOverrides");
+
+		// With logging disabled, the compiler optimises the string literal away
+		HeatParameters::ReplaceInvalidVehicles("Helicopters", helicopterVehicles, true);
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,
@@ -266,8 +285,10 @@ namespace HelicopterOverrides
 
 		if (helicopterEnableds.current)
 		{
-			minSpawnDelays.SetToHeat  (isRacing, heatLevel);
-			maxSpawnDelays.SetToHeat  (isRacing, heatLevel);
+			helicopterVehicles.SetToHeat(isRacing, heatLevel);
+
+			minSpawnDelays  .SetToHeat(isRacing, heatLevel);
+			maxSpawnDelays  .SetToHeat(isRacing, heatLevel);
 			minDespawnDelays.SetToHeat(isRacing, heatLevel);
 			maxDespawnDelays.SetToHeat(isRacing, heatLevel);
 			minRespawnDelays.SetToHeat(isRacing, heatLevel);
@@ -281,12 +302,14 @@ namespace HelicopterOverrides
 
 			if (helicopterEnableds.current)
 			{
-				Globals::logger.LogLongIndent("minSpawnDelay          :", minSpawnDelays.current);
-				Globals::logger.LogLongIndent("maxSpawnDelay          :", maxSpawnDelays.current);
-				Globals::logger.LogLongIndent("minDespawnDelay        :", minDespawnDelays.current);
-				Globals::logger.LogLongIndent("maxDespawnDelay        :", maxDespawnDelays.current);
-				Globals::logger.LogLongIndent("minRespawnDelay        :", minRespawnDelays.current);
-				Globals::logger.LogLongIndent("maxRespawnDelay        :", maxRespawnDelays.current);
+				Globals::logger.LogLongIndent("helicopterVehicle       ", helicopterVehicles.current);
+
+				Globals::logger.LogLongIndent("minSpawnDelay           ", minSpawnDelays.current);
+				Globals::logger.LogLongIndent("maxSpawnDelay           ", maxSpawnDelays.current);
+				Globals::logger.LogLongIndent("minDespawnDelay         ", minDespawnDelays.current);
+				Globals::logger.LogLongIndent("maxDespawnDelay         ", maxDespawnDelays.current);
+				Globals::logger.LogLongIndent("minRespawnDelay         ", minRespawnDelays.current);
+				Globals::logger.LogLongIndent("maxRespawnDelay         ", maxRespawnDelays.current);
 			}
 		}
 	}

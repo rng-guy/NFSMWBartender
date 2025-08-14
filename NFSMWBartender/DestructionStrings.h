@@ -35,18 +35,18 @@ namespace DestructionStrings
 
 
 
-	bool IsValidBinaryKey(const binary key)
+	bool VehicleExists(const vault vehicleType)
 	{
-		static const char* (__fastcall* const GetBinaryString)(int, binary) = (const char* (__fastcall*)(int, binary))0x56BB80;
-
-		return GetBinaryString(0, key);
+		return Globals::GetVaultParameter(0x4A97EC8F, vehicleType, 0x9CA1C8F9); // fetches "CollectionName" from "pvehicle"
 	}
 
 
 
-	bool IsNotValidPair(const std::pair<const vault, binary>& pair)
-	{ 
-		return (not (HeatParameters::IsValidVehicle(pair.first) and IsValidBinaryKey(pair.second)));
+	bool BinaryStringExists(const binary stringKey)
+	{
+		static const char* (__fastcall* const GetBinaryString)(int, binary) = (const char* (__fastcall*)(int, binary))0x56BB80;
+
+		return GetBinaryString(0, stringKey);
 	}
 
 
@@ -124,16 +124,42 @@ namespace DestructionStrings
 
 		// Extract "default" key if provided (and valid)
 		const auto pair       = copTypeToDestructionKey.extract(Globals::GetVaultKey("default"));
-		const bool isValid    = (not pair.empty()) and IsValidBinaryKey(pair.mapped());
+		const bool isValid    = (not pair.empty()) and BinaryStringExists(pair.mapped());
 		defaultDestructionKey = (isValid) ? pair.mapped() : 0x0;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.LogLongIndent((isValid) ? "Valid" : "No valid", "default key");
 
 		// Remove any invalid pairs
-		const size_t numInvalidPairs = std::erase_if(copTypeToDestructionKey, IsNotValidPair);
+		auto   iterator   = copTypeToDestructionKey.begin();
+		size_t numRemoved = 0;
+		size_t pairID     = 0;
+
+		while (iterator != copTypeToDestructionKey.end())
+		{
+			if (not (VehicleExists(iterator->first) and BinaryStringExists(iterator->second)))
+			{
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (numRemoved == 0) 
+						Globals::logger.LogLongIndent("Cop-to-label map");
+
+					Globals::logger.LogLongIndent("  -", iterator->first, iterator->second, (int)(pairID + 1));
+				}
+					
+				copTypeToDestructionKey.erase(iterator++);
+
+				numRemoved++;
+			}
+			else iterator++;
+
+			pairID++;
+		}
 
 		if constexpr (Globals::loggingEnabled)
-			if (numInvalidPairs > 0) Globals::logger.LogLongIndent("Removed", (int)numInvalidPairs, "invalid pairs");
+		{
+			if (numRemoved > 0) 
+				Globals::logger.LogLongIndent("  pairs left:", (int)copTypeToDestructionKey.size());
+		}
 	}
 }

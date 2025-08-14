@@ -28,13 +28,32 @@ namespace Globals
 	RandomNumbers::Generator prng;
 
 	// Common function pointers
-	vault (__cdecl* const GetVaultKey)(const char*) = (vault (__cdecl*)(const char*))0x5CC240;
-	vault (__thiscall* const GetCopType)(address)   = (vault (__thiscall*)(address))0x6880A0;
+	vault (__cdecl*    const GetVaultKey)   (const char*) = (vault  (__cdecl*)   (const char*))0x5CC240;
+	vault (__thiscall* const GetVehicleType)(address)     = (vault  (__thiscall*)(address))    0x6880A0;
 
 	// Logging
 	constexpr bool loggingEnabled = false;
 
 	BasicLogger::Logger logger;
+
+
+
+
+
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	address GetVaultParameter
+	(
+		const vault rootKey,
+		const vault nodeKey,
+		const vault parameterKey
+	) {
+		static address (__cdecl*    const GetNode)     (vault, vault)        = (address (__cdecl*)   (vault, vault))       0x455FD0;
+		static address (__thiscall* const GetParameter)(address, vault, int) = (address (__thiscall*)(address, vault, int))0x454190;
+
+		const address node = GetNode(rootKey, nodeKey);
+		return (node) ? GetParameter(node, parameterKey, 0) : 0x0;
+	}
 
 
 

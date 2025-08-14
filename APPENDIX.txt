@@ -46,9 +46,10 @@ Bartender can handle any INVALID VALUES you might provide in its configuration f
  • mismatched interval values (i.e. where "max" < "min") are each set to the lower value, and
  • comma-separated value pairs / tuples with too many or too few (valid) values count as omitted.
 
-Bartender can handle any INVALID VEHICLES you might provide in its configuration files. A vehicle
-is invalid if it doesn't exist in the game's database (i.e. lacks a VltEd entry under "pvehicle").
-The sections below mention how Bartender handles such non-existent vehicles where it is relevant.
+Bartender can handle any INVALID VEHICLES you might provide in its configuration files.
+The sections below mention how on a case-by-case basis, but a vehicle is generally invalid if
+ • it doesn't exist in the game's database (i.e. lacks a VltEd node under "pvehicle"), or
+ • it is of the wrong class (e.g. is a helicopter when Bartender expects a regular car).
 
 
 
@@ -74,7 +75,7 @@ Regarding the "BASIC" feature set IN GENERAL:
    "NFSMW ExtraOptions" mod by ExOptsTeam. To disable this ExtraOptions feature, edit its
    "NFSMWExtraOptionsSettings.ini" configuration file. If you do this, you can still change 
    the maximum available Heat level with VltEd: The "0xe8c24416" parameter of a given
-   "race_bin_XY" VltEd entry determines the maximum Heat level (1-10) at Blacklist rival #XY.
+   "race_bin_XY" VltEd node determines the maximum Heat level (1-10) at Blacklist rival #XY.
 
  • If you don't install the optional missing textures ("FixMissingTextures.end"), then the
    game won't display a number next to Heat gauges in menus for cars with Heat levels > 5.
@@ -96,15 +97,12 @@ Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
  • Deleting this file also disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
 
- • You should assign low "MAXIMUM_AI_SPEED" values (~50) to the "aivehicle" VltEd entries of all
-   vehicles you provide as replacements for the ramming SUVs in HeavyStrategy 3 spawns. If you
-   don't limit their speeds, they might cause stability issues by joining the pursuit as regular
-   cops (regardless of the global cop-spawn limit) after their ramming attempt(s).
-
  • You should not use the vehicles you provide as replacements for Cross in LeaderStrategy spawns
    anywhere else in the game, as they will block LeaderStrategy spawns whenever they are present.
 
- • Bartender replaces all vehicles that don't actually exist with whatever the vanilla game uses.
+ • Bartender replaces all vehicles that don't exist in the game with their vanilla counterparts.
+
+ • Bartender replaces all vehicles that are helicopters with their vanilla counterparts.
 
 
 
@@ -134,7 +132,7 @@ Regarding the "Advanced" feature set IN GENERAL:
    ("BartenderSettings\Advanced\Cars.ini"), else Bartender disables this entire feature set.
 
  • You should ensure that every HeavyStrategy you enable in a given Heat level's "pursuitsupport"
-   VltEd entry is only listed there once (e.g. there isn't a second HeavyStrategy 3), and that
+   VltEd node is only listed there once (e.g. there isn't a second HeavyStrategy 3), and that
    there is also no more than one LeaderStrategy listed. Otherwise, such duplicates can cause
    the game (and Bartender) to misread their "Duration" VltEd parameters.
 
@@ -146,10 +144,9 @@ Regarding the "Advanced" feature set IN GENERAL:
    
 Regarding HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
 
- • You must assign the "CHOPPER" class to the "pvehicle" VltEd entries of all vehicles you provide
-   as replacements for the regular helicopter. You can do this directly or through parent entries.
+ • Bartender replaces all vehicles that don't exist in the game with "copheli".
 
- • Bartender replaces all vehicles that don't actually exist with whatever the vanilla game uses.
+ • Bartender replaces all vehicles that aren't helicopters with "copheli".
 
 
 
@@ -165,15 +162,11 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • You must install and configure the "NFSMW LimitAdjuster" mod (LA) by Zolika1351 if you want
    to use global cop-spawn limits > 8. This is necessary because the game's vanilla cop loader
    cannot handle managing > 8 vehicles for very long. To configure LA to work with Bartender,
-   open LA's "NFSMWLimitAdjuster.ini" configuration file and disable EVERYTHING in its 
+   open LA's "NFSMWLimitAdjuster.ini" configuration file and disable everything in its 
    "[Options]" parameter group. Even with this, LA itself might still crash sometimes.
 
- • You must assign the "CAR" class to the "pvehicle" VltEd entries of all vehicles you provide
-   in any of the spawn tables. You can do this directly or through parent entries.
-
- • All "count" and "chance" values you provide in any of the spawn tables must each be > 0.
-   Vehicles with "count" and / or "chance" values of 0 are invalid and count as omitted.
-
+ • Bartender sets all "count" and "chance" values that are < 1 to 1.
+   
  • The "chance" values are weights (like in VltEd), not percentages. The actual spawn chance of
    a vehicle is its "chance" value divided by the sum of the "chance" values of all vehicles from
    the same spawn table. Whenever a vehicle reaches its "count" value (i.e. spawn cap), Bartender
@@ -184,9 +177,11 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
 
- • Bartender ignores all vehicles that don't actually exist in the game.
+ • Bartender ignores all vehicles that don't exist in the game.
 
- • Bartender adds a "copmidsize" to all non-empty tables which contain only non-existent vehicles.
+ • Bartender ignores all vehicles that are helicopters.
+
+ • Bartender adds a "copmidsize" to each non-empty table that contains only ignored vehicles.
 
  • Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position 
    of a given roadblock formation. This is because the game processes roadblock spawns in a fixed,
@@ -315,4 +310,4 @@ v1.00.00: Initial release
       03: Another performance improvement by reducing re-hashing even further
 
    13.00: Improved performance by rewriting and streamlining the internal file-parsing logic
-      01: Added checks for whether vehicles provided in configuration files actually exist
+      01: Added checks for whether vehicles in configuration files exist and are of the right type

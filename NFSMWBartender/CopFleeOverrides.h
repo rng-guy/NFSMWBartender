@@ -69,25 +69,25 @@ namespace CopFleeOverrides
 			this->heavyStrategyDuration  = 0.f;
 			this->leaderStrategyDuration = 0.f;
 
-			// SupportAttributes
-			static address (__thiscall* const GetSupportAttributes)(address) = (address (__thiscall*)(address))0x418EE0;
+			// PursuitSupportAttributes node
+			static address (__thiscall* const GetSupportNode)(address) = (address (__thiscall*)(address))0x418EE0;
 
-			const address supportAttributes = GetSupportAttributes(this->pursuit - 0x48);
+			const address supportNode = GetSupportNode(this->pursuit - 0x48);
 
-			if (not supportAttributes)
+			if (not supportNode)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [FLE] Invalid SupportAttributes pointer in", this->pursuit);
+					Globals::logger.Log("WARNING: [FLE] Invalid SupportNode pointer in", this->pursuit);
 
 				return;
 			}
 
 			// HeavyStrategy 3
-			static address (__thiscall* const GetHeavyStrategies)(address, int) = (address (__thiscall*)(address, int))0x4035E0;
-			static size_t (__thiscall* const GetNumHeavyStrategies)(address)    = (size_t (__thiscall*)(address))0x403600;
+			static address (__thiscall* const GetHeavyStrategies)   (address, int) = (address (__thiscall*)(address, int))0x4035E0;
+			static size_t  (__thiscall* const GetNumHeavyStrategies)(address)      = (size_t  (__thiscall*)(address))     0x403600;
 
-			const address heavyStrategies    = GetHeavyStrategies(supportAttributes, 0);
-			const size_t  numHeavyStrategies = GetNumHeavyStrategies(supportAttributes);
+			const address heavyStrategies    = GetHeavyStrategies(supportNode, 0);
+			const size_t  numHeavyStrategies = GetNumHeavyStrategies(supportNode);
 
 			if (heavyStrategies)
 			{
@@ -110,11 +110,11 @@ namespace CopFleeOverrides
 			}
 
 			// LeaderStrategies
-			static address (__thiscall* const GetLeaderStrategies)(address, int) = (address (__thiscall*)(address, int))0x403660;
-			static size_t (__thiscall* const GetNumLeaderStrategies)(address)    = (size_t (__thiscall*)(address))0x403680;
+			static address (__thiscall* const GetLeaderStrategies)   (address, int) = (address (__thiscall*)(address, int))0x403660;
+			static size_t  (__thiscall* const GetNumLeaderStrategies)(address)      = (size_t  (__thiscall*)(address))     0x403680;
 
-			const address leaderStrategies    = GetLeaderStrategies(supportAttributes, 0);
-			const size_t  numLeaderStrategies = GetNumLeaderStrategies(supportAttributes);
+			const address leaderStrategies    = GetLeaderStrategies(supportNode, 0);
+			const size_t  numLeaderStrategies = GetNumLeaderStrategies(supportNode);
 
 			if (leaderStrategies and (numLeaderStrategies > 0))
 			{
@@ -224,6 +224,7 @@ namespace CopFleeOverrides
 			while (iterator != this->waitingToFlee.end())
 			{
 				if (simulationTime < iterator->first) break;
+
 				Assessment& assessment = this->copVehicleToAssessment.at((iterator++)->second);
 
 				assessment.status = Status::FLEEING;
@@ -234,7 +235,8 @@ namespace CopFleeOverrides
 					Globals::logger.Log(this->pursuit, "[FLE]", assessment.copVehicle, "now fleeing");
 			}
 
-			std::for_each(this->fleeingCopVehicles.begin(), this->fleeingCopVehicles.end(), this->MakeFlee);
+			for (const address copVehicle : this->fleeingCopVehicles) 
+				this->MakeFlee(copVehicle);
 		}
 
 
@@ -272,7 +274,16 @@ namespace CopFleeOverrides
 		{
 			if (not this->IsTrackable(copLabel)) return;
 
-			this->Review(this->copVehicleToAssessment.insert({copVehicle, {copVehicle, copType, copLabel, Status::MEMBER}}).first->second);
+			const auto addedVehicle = this->copVehicleToAssessment.insert
+			(
+				{copVehicle, {copVehicle, copType, copLabel, Status::MEMBER}}
+			);
+
+			if (addedVehicle.second)
+				this->Review(addedVehicle.first->second);
+
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [FLE] Already tracked vehicle", copVehicle, "in", this->pursuit);
 		}
 
 
@@ -358,8 +369,8 @@ namespace CopFleeOverrides
 
 			if (fleeingEnableds.current)
 			{
-				Globals::logger.LogLongIndent("minFleeDelay           :", minFleeDelays.current);
-				Globals::logger.LogLongIndent("maxFleeDelay           :", maxFleeDelays.current);
+				Globals::logger.LogLongIndent("minFleeDelay            ", minFleeDelays.current);
+				Globals::logger.LogLongIndent("maxFleeDelay            ", maxFleeDelays.current);
 			}
 		}
 	}

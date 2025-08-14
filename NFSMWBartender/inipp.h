@@ -110,7 +110,7 @@ namespace inipp {
 		return get_value(sec, std::basic_string<CharT>(key), dst);
 	}
 
-	// Not part of the original fine; added by my sorry ass in order to extract keys from sections
+	// Not part of the original file; added by my sorry ass in order to extract keys from sections
 	template <typename CharT, typename T>
 	inline size_t get_value(const std::map<std::basic_string<CharT>, std::basic_string<CharT>>& sec, std::vector<std::string>& keys, std::vector<T>& dst) {
 		size_t reads = 0;

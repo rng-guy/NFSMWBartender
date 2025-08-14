@@ -24,9 +24,9 @@ static void Initialise()
     bool basicSetEnabled = false;
 
     basicSetEnabled |= DestructionStrings::Initialise(parser);
-    basicSetEnabled |=      GroundSupport::Initialise(parser);
-    basicSetEnabled |=      Miscellaneous::Initialise(parser);
-    basicSetEnabled |=         PursuitBar::Initialise(parser);
+    basicSetEnabled |= GroundSupport     ::Initialise(parser);
+    basicSetEnabled |= Miscellaneous     ::Initialise(parser);
+    basicSetEnabled |= PursuitBar        ::Initialise(parser);
 
     if (basicSetEnabled) 
     {

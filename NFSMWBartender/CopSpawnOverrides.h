@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Globals.h"
-#include "PursuitFeatures.h"
 #include "CopSpawnTables.h"
+#include "PursuitFeatures.h"
+#include "HelicopterOverrides.h"
 #include "HeatParameters.h"
 #include "MemoryEditor.h"
 
@@ -78,10 +79,11 @@ namespace CopSpawnOverrides
 
 		void NotifyOfSpawn(const address copVehicle)
 		{
-			const vault copType = Globals::GetCopType(copVehicle);
+			const vault copType   = Globals::GetVehicleType(copVehicle);
+			const auto  addedType = this->copTypeToCurrentCount.insert({copType, 1});
 
-			const auto addedType = this->copTypeToCurrentCount.insert({ copType, 1 });
-			if (not addedType.second) (addedType.first->second)++;
+			if (not addedType.second) 
+				(addedType.first->second)++;
 
 			this->table.UpdateCapacity(copType, -1);
 		}
@@ -151,7 +153,15 @@ namespace CopSpawnOverrides
 			for (const auto& pair : this->copTypeToCurrentCount)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[SPA] Copying", pair.second, 'x', pair.first);
+				{
+					const char* const copName = this->table.TypeToName(pair.first);
+
+					if (copName)
+						Globals::logger.Log(this->pursuit, "[SPA] Copying", pair.second, copName);
+
+					else
+						Globals::logger.Log(this->pursuit, "[SPA] Copying", pair.second, pair.first);
+				}
 
 				this->table.UpdateCapacity(pair.first, -(pair.second));
 
@@ -169,15 +179,34 @@ namespace CopSpawnOverrides
 
 		void UpdateNumPatrolCars()
 		{
-			// Cannot be called in the constructor or immediately after a Heat transition, as Vault values update slightly later
-			static address (__thiscall* const GetPursuitAttributes)(address)     = (address (__thiscall*)(address))0x418E90;
-			static address (__thiscall* const GetAttribute)(address, vault, int) = (address (__thiscall*)(address, vault, int))0x454810;
+			this->numPatrolCarsToSpawn = 0;
 
-			const address numPatrolCars = GetAttribute(GetPursuitAttributes(this->pursuit), 0x24F7A1BC, 0); // searches for "NumPatrolCars" value
-			this->numPatrolCarsToSpawn = (numPatrolCars) ? *((int*)numPatrolCars) : 0;
+			// PursuitAttributes node
+			static address (__thiscall* const GetPursuitNode)     (address)             = (address (__thiscall*)(address))            0x418E90;
+			static address (__thiscall* const GetPursuitParameter)(address, vault, int) = (address (__thiscall*)(address, vault, int))0x454810;
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[SPA] Patrol cars:", this->numPatrolCarsToSpawn);
+			const address pursuitNode = GetPursuitNode(this->pursuit);
+			
+			if (not pursuitNode)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log("WARNING: [SPA] Invalid pursuitNode pointer in", this->pursuit);
+
+				return;
+			}
+
+			// Number of patrol cars
+			const address numPatrolCars = GetPursuitParameter(pursuitNode, 0x24F7A1BC, 0); // fetches "NumPatrolCars"
+
+			if (numPatrolCars)
+			{
+				this->numPatrolCarsToSpawn = *((int*)numPatrolCars);
+
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log(this->pursuit, "[SPA] Max. patrol cars:", this->numPatrolCarsToSpawn);
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [SPA] Invalid numPatrolCars pointer in", this->pursuit);
 		}
 
 
@@ -284,7 +313,7 @@ namespace CopSpawnOverrides
 				else
 					Globals::logger.Log(this->pursuit, "[SPA] Type capacity undefined");
 
-				Globals::logger.Log(this->pursuit, "[SPA] Contingent ratio:", addedType.first->second, '/', this->numCopsInContingent);
+				Globals::logger.Log(this->pursuit, "[SPA] Type ratio:", addedType.first->second, '/', this->numCopsInContingent);
 			}
 		}
 
@@ -317,7 +346,7 @@ namespace CopSpawnOverrides
 					else
 						Globals::logger.Log(this->pursuit, "[SPA] Type capacity undefined");
 
-					Globals::logger.Log(this->pursuit, "[SPA] Contingent ratio:", foundType->second, '/', this->numCopsInContingent);
+					Globals::logger.Log(this->pursuit, "[SPA] Type ratio:", foundType->second, '/', this->numCopsInContingent);
 				}
 
 				if (foundType->second < 1)
@@ -375,7 +404,7 @@ namespace CopSpawnOverrides
 			switch (spawnReturn)
 			{
 			case 0x4269E6: // helicopter
-				return CopSpawnTables::helicopterVehicles.current;
+				return HelicopterOverrides::helicopterVehicles.current;
 
 			case 0x42EAAD: // first cop of milestone / bounty pursuit
 				[[fallthrough]];
@@ -691,15 +720,15 @@ namespace CopSpawnOverrides
 
 		if (isRacing) skipEventSpawns = false;
 
-		eventManager.ReloadSpawnTable();
+		eventManager    .ReloadSpawnTable();
 		roadblockManager.ReloadSpawnTable();
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Log("    HEAT [SPA] CopSpawnOverrides");
 
-			Globals::logger.LogLongIndent("minActiveCount         :", minActiveCounts.current);
-			Globals::logger.LogLongIndent("maxActiveCount         :", maxActiveCounts.current);
+			Globals::logger.LogLongIndent("minActiveCount          ", minActiveCounts.current);
+			Globals::logger.LogLongIndent("maxActiveCount          ", maxActiveCounts.current);
 		}
 	}
 
@@ -711,7 +740,7 @@ namespace CopSpawnOverrides
 
 		skipEventSpawns = true;
 
-		eventManager.ResetSpawnTable();
+		eventManager    .ResetSpawnTable();
 		roadblockManager.ResetSpawnTable();
 	}
 }

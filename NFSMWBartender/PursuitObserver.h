@@ -164,7 +164,7 @@ namespace PursuitObserver
 				if (isNew)
 				{
 					Globals::logger.LogIndent("[REG] +", copVehicle, PursuitObserver::GetCopName(copVehicle));
-					Globals::logger.LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
+					Globals::logger.LogIndent("[REG] Vehicles loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
 			}
 		}
@@ -179,7 +179,7 @@ namespace PursuitObserver
 				if (wasRegistered)
 				{
 					Globals::logger.LogIndent("[REG] -", copVehicle, PursuitObserver::GetCopName(copVehicle));
-					Globals::logger.LogIndent("[REG] Cops loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
+					Globals::logger.LogIndent("[REG] Vehicles loaded:", (int)(PursuitObserver::GetNumCopsLoaded()));
 				}
 			}
 		}
@@ -188,7 +188,7 @@ namespace PursuitObserver
 		static void ClearRegistrations()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogIndent("[REG] Clearing all cops loaded");
+				Globals::logger.LogIndent("[REG] Clearing all vehicles loaded");
 
 			PursuitObserver::copVehiclesLoaded.clear();
 		}
@@ -216,7 +216,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
-			const vault copType = Globals::GetCopType(copVehicle);
+			const vault copType = Globals::GetVehicleType(copVehicle);
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
@@ -238,7 +238,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), this->GetCopName(copVehicle));
 
-			const vault copType = Globals::GetCopType(copVehicle);
+			const vault copType = Globals::GetVehicleType(copVehicle);
 
 			for (const auto& reaction : this->copVehicleReactions)
 				reaction.get()->ProcessRemoval(copVehicle, copType, foundVehicle->second);
@@ -520,8 +520,8 @@ namespace PursuitObserver
 	{
 		if (not CopSpawnTables::Initialise(parser)) return false;
 
-		CopSpawnOverrides::Initialise  (parser);
-		CopFleeOverrides::Initialise   (parser);
+		CopSpawnOverrides  ::Initialise(parser);
+		CopFleeOverrides   ::Initialise(parser);
 		HelicopterOverrides::Initialise(parser);
 
 		MemoryEditor::DigCodeCave(EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
@@ -545,9 +545,10 @@ namespace PursuitObserver
 	{
 		if (not featureEnabled) return;
 
-		CopSpawnTables::Validate();
+		CopSpawnTables     ::Validate();
+		HelicopterOverrides::Validate();
 
-		CopSpawnOverrides::eventManager.ReloadSpawnTable();
+		CopSpawnOverrides::eventManager    .ReloadSpawnTable();
 		CopSpawnOverrides::roadblockManager.ReloadSpawnTable();
 	}
 
@@ -560,10 +561,10 @@ namespace PursuitObserver
 	) {
 		if (not featureEnabled) return;
 
-		CopSpawnTables::SetToHeat     (isRacing, heatLevel);
-		PursuitFeatures::SetToHeat    (isRacing, heatLevel);
-		CopSpawnOverrides::SetToHeat  (isRacing, heatLevel);
-		CopFleeOverrides::SetToHeat   (isRacing, heatLevel);
+		CopSpawnTables     ::SetToHeat(isRacing, heatLevel);
+		PursuitFeatures    ::SetToHeat(isRacing, heatLevel);
+		CopSpawnOverrides  ::SetToHeat(isRacing, heatLevel);
+		CopFleeOverrides   ::SetToHeat(isRacing, heatLevel);
 		HelicopterOverrides::SetToHeat(isRacing, heatLevel);
 
 		for (auto& pair : pursuitToObserver) 
@@ -586,7 +587,7 @@ namespace PursuitObserver
 	{
 		if (not featureEnabled) return;
 
-		PursuitFeatures::ResetState();
+		PursuitFeatures  ::ResetState();
 		CopSpawnOverrides::ResetState();
 	}
 

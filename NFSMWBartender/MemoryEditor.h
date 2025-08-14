@@ -17,17 +17,17 @@ namespace MemoryEditor
 	) {
 		constexpr size_t size = sizeof(T);
 
-		void* memory          = nullptr;
+		void* memoryLocation  = nullptr;
 		DWORD previousSetting = 0x0;
 
 		(
 			[&]
 			{
-				memory = (void*)locations;
+				memoryLocation = (void*)locations;
 
-				VirtualProtect(memory, size, PAGE_READWRITE, &previousSetting);
-				memcpy(memory, &data, size);
-				VirtualProtect(memory, size, previousSetting, &previousSetting);
+				VirtualProtect(memoryLocation, size,  PAGE_READWRITE,  &previousSetting);
+				memcpy        (memoryLocation, &data, size);
+				VirtualProtect(memoryLocation, size,  previousSetting, &previousSetting);
 			}
 		(), ...);
 	}
@@ -40,13 +40,12 @@ namespace MemoryEditor
 		const address start,
 		const size_t  byteRange
 	) {
-		void* memory = (void*)start;
+		void* memoryLocation  = (void*)start;
+		DWORD previousSetting = 0x0;
 
-		DWORD previousSetting;
-
-		VirtualProtect(memory, byteRange, PAGE_READWRITE, &previousSetting);
-		memset(memory, value, byteRange);
-		VirtualProtect(memory, byteRange, previousSetting, &previousSetting);
+		VirtualProtect(memoryLocation, byteRange, PAGE_READWRITE,  &previousSetting);
+		memset        (memoryLocation, value,     byteRange);
+		VirtualProtect(memoryLocation, byteRange, previousSetting, &previousSetting);
 	}
 
 
@@ -64,12 +63,14 @@ namespace MemoryEditor
 
 	void DigCodeCave
 	(
-		const void*   code,
+		const void*   function,
 		const address entrance,
 		const address exit
 	) {
-		WriteToAddressRange(0x90, entrance, exit);                    // NOP
-		Write<byte>(0xE9, entrance);                                  // JMP rel16
-		Write<address>((address)code - (entrance + 5), entrance + 1); // accounting for instruction length
+		WriteToAddressRange(0x90, entrance, exit); // NOP
+		Write<byte>        (0xE9, entrance);       // JMP rel16
+
+		// It is necessary to account for the instruction length and offset
+		Write<address>((address)function - (entrance + 5), entrance + 1);
 	}
 }

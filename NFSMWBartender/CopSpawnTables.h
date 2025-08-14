@@ -32,7 +32,6 @@ namespace CopSpawnTables
 
 		Globals::VaultMap<Entry> copTypeToEntry;
 
-		inline static Globals::VaultSet              helicopterTypes;
 		inline static Globals::VaultMap<std::string> copTypeToName;
 		
 
@@ -54,12 +53,6 @@ namespace CopSpawnTables
 		}
 
 
-		static void RegisterHelicopter(const std::string& helicopterName)
-		{
-			SpawnTable::helicopterTypes.insert(SpawnTable::NameToType(helicopterName));
-		}
-
-
 		bool Contains(const vault copType) const
 		{
 			return this->copTypeToEntry.contains(copType);
@@ -75,32 +68,49 @@ namespace CopSpawnTables
 			if (copCount < 1)  return false;
 			if (copChance < 1) return false;
 			
-			const vault copType = this->NameToType(copName);
-			if (this->helicopterTypes.contains(copType)) return false;
+			const vault copType   = this->NameToType(copName);
+			const auto  addedType = this->copTypeToEntry.insert({copType, {copCount, copChance}});
 
-			if (this->copTypeToEntry.insert({copType, {copCount, copChance}}).second)
-			{
-				this->maxTotalCopCapacity   += copCount;
-				this->maxTotalCopChance     += copChance;
-				this->currentTotalCopChance += copChance;
+			if (not addedType.second) return false;
 
-				return true;
-			}
-			
-			return false;
+			this->maxTotalCopCapacity   += copCount;
+			this->maxTotalCopChance     += copChance;
+			this->currentTotalCopChance += copChance;
+
+			return true;
 		}
 
 
-		void RemoveInvalidVehicles()
-		{
-			auto iterator = this->copTypeToEntry.begin();
+		bool IsEmpty() const {return (this->maxTotalCopCapacity < 1);}
+
+
+		size_t RemoveInvalidTypes
+		(
+			const char* const tableName, 
+			const bool        forRaces, 
+			const size_t      heatLevel
+		) {
+			auto   iterator   = this->copTypeToEntry.begin();
+			size_t numRemoved = 0;
 
 			while (iterator != this->copTypeToEntry.end())
 			{
-				if (not HeatParameters::IsValidVehicle(iterator->first))
+				if (not HeatParameters::VehicleClassMatches(iterator->first, false))
 				{
+					// With logging disabled, the compiler optimises all parameters away
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.LogLongIndent("Table: Removing", this->TypeToName(iterator->first));
+					{
+						if (numRemoved == 0)
+							Globals::logger.LogLongIndent(tableName, (int)heatLevel, (forRaces) ? "(race)" : "(free-roam)");
+						
+						Globals::logger.LogLongIndent
+						(
+							"  -", 
+							this->TypeToName(iterator->first), 
+							iterator->second.capacity, 
+							iterator->second.chance
+						);
+					}
 
 					this->maxTotalCopCapacity -= iterator->second.capacity;
 					this->maxTotalCopChance   -= iterator->second.chance;
@@ -109,17 +119,29 @@ namespace CopSpawnTables
 						this->currentTotalCopChance -= iterator->second.chance;
 
 					this->copTypeToEntry.erase(iterator++);
+
+					numRemoved++;
 				}
 				else iterator++;
 			}
 
+			static const std::string fillerVehicle = "copmidsize";
+
 			if (this->IsEmpty())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("Table: Now empty");
+					Globals::logger.LogLongIndent("  +", fillerVehicle, 1, 100);
 
-				this->AddType("copmidsize", 1, 1);
+				this->AddType(fillerVehicle, 1, 100);
 			}
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (numRemoved > 0) 
+					Globals::logger.LogLongIndent("  types left:", (int)(this->copTypeToEntry.size()));
+			}
+
+			return numRemoved;
 		}
 
 
@@ -155,9 +177,6 @@ namespace CopSpawnTables
 		}
 
 
-		bool IsEmpty() const {return (this->maxTotalCopCapacity < 1);}
-
-
 		const char* GetRandomCopName() const
 		{
 			if (this->currentTotalCopChance < 1) return nullptr;
@@ -183,6 +202,18 @@ namespace CopSpawnTables
 		}
 
 
+		void LogContents(const char* const tableName) const
+		{
+			Globals::logger.LogLongIndent(tableName, this->maxTotalCopCapacity);
+
+			for (const auto& pair : this->copTypeToEntry)
+			{
+				const std::string copName = std::format("  {:22}", this->copTypeToName.at(pair.first));
+				Globals::logger.LogLongIndent(copName, pair.second.capacity, pair.second.chance);
+			}
+		}
+
+
 		int GetMaxTotalCopCapacity() const {return this->maxTotalCopCapacity;}
 	};
 
@@ -195,11 +226,10 @@ namespace CopSpawnTables
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<std::string> helicopterVehicles("copheli");
-	HeatParameters::Pair<SpawnTable>  eventSpawnTables;
-	HeatParameters::Pair<SpawnTable>  patrolSpawnTables;
-	HeatParameters::Pair<SpawnTable>  pursuitSpawnTables;
-	HeatParameters::Pair<SpawnTable>  roadblockSpawnTables;
+	HeatParameters::Pair<SpawnTable> eventSpawnTables;
+	HeatParameters::Pair<SpawnTable> patrolSpawnTables;
+	HeatParameters::Pair<SpawnTable> pursuitSpawnTables;
+	HeatParameters::Pair<SpawnTable> roadblockSpawnTables;
 
 	// Code caves
 	int currentMaxCopCapacity = 0;
@@ -213,34 +243,33 @@ namespace CopSpawnTables
 	void ParseTables
 	(
 		HeatParameters::Parser&             parser,
-		const std::string&                  name,
+		const std::string&                  tableName,
 		const std::string&                  format,
 		HeatParameters::Values<SpawnTable>& spawnTables,
 		const bool                          hasCounts
 	) {
-		std::string section;
-
 		std::vector<std::string> copNames;
 		std::vector<int>         copCounts;
 		std::vector<int>         copChances;
 
-		size_t numberOfEntries;
+		std::string section;
+		size_t      numberOfEntries;
 
 		for (size_t heatLevel = 1; heatLevel <= HeatParameters::maxHeatLevel; heatLevel++)
 		{
-			section = std::vformat(format + name, std::make_format_args(heatLevel));
+			section = std::vformat(format + tableName, std::make_format_args(heatLevel));
 
-			if (hasCounts) 
+			if (hasCounts)
+			{
 				numberOfEntries = parser.ParseParameterTable
 				(
 					section,
-					copNames, 
-					ConfigParser::UserParameter<int>(copCounts,  0), 
-					ConfigParser::UserParameter<int>(copChances, 0)
+					copNames,
+					ConfigParser::UserParameter<int>(copCounts,  1),
+					ConfigParser::UserParameter<int>(copChances, 1)
 				);
-
-			else 
-				numberOfEntries = parser.ParseUserParameter<int>(section, copNames, copChances, 0);
+			}
+			else numberOfEntries = parser.ParseUserParameter<int>(section, copNames, copChances, 1);
 
 			for (size_t entryID = 0; entryID < numberOfEntries; entryID++)
 				spawnTables[heatLevel - 1].AddType(copNames[entryID], (hasCounts) ? copCounts[entryID] : 1, copChances[entryID]);
@@ -266,36 +295,29 @@ namespace CopSpawnTables
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini");
-
-		// Pursuit parameters
-		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
-		std::for_each(helicopterVehicles.roam.begin(), helicopterVehicles.roam.end(), SpawnTable::RegisterHelicopter);
-		std::for_each(helicopterVehicles.race.begin(), helicopterVehicles.race.end(), SpawnTable::RegisterHelicopter);
-
-		// Spawn tables
+		// Heat parameters
 		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini")) return false;
 
 		for (const bool forRaces : {false, true})
 		{
 			const std::string format = (forRaces) ? "Race{:02}:" : "Heat{:02}:";
 
-			ParseTables(parser, "Chasers",    format, pursuitSpawnTables.Get  (forRaces), true);
-			ParseTables(parser, "Events",     format, eventSpawnTables.Get    (forRaces), true);
-			ParseTables(parser, "Patrols",    format, patrolSpawnTables.Get   (forRaces), false);
+			ParseTables(parser, "Events",     format, eventSpawnTables    .Get(forRaces), true);
+			ParseTables(parser, "Patrols",    format, patrolSpawnTables   .Get(forRaces), false);
+			ParseTables(parser, "Chasers",    format, pursuitSpawnTables  .Get(forRaces), true);
 			ParseTables(parser, "Roadblocks", format, roadblockSpawnTables.Get(forRaces), true);
 		}
 
-		// Validation
+		// Check for and deal with empty tables
 		for (const SpawnTable& table : pursuitSpawnTables.roam) if (table.IsEmpty()) return false;
 
 		ReplaceEmptyTables(eventSpawnTables.roam,     pursuitSpawnTables.roam);
 		ReplaceEmptyTables(patrolSpawnTables.roam,    pursuitSpawnTables.roam);
 		ReplaceEmptyTables(roadblockSpawnTables.roam, pursuitSpawnTables.roam);
 
-		ReplaceEmptyTables(pursuitSpawnTables.race,   pursuitSpawnTables.roam);
 		ReplaceEmptyTables(eventSpawnTables.race,     eventSpawnTables.roam);
 		ReplaceEmptyTables(patrolSpawnTables.race,    patrolSpawnTables.roam);
+		ReplaceEmptyTables(pursuitSpawnTables.race,   pursuitSpawnTables.roam);
 		ReplaceEmptyTables(roadblockSpawnTables.race, roadblockSpawnTables.roam);
 
 		return (featureEnabled = true);
@@ -310,14 +332,16 @@ namespace CopSpawnTables
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [TAB] CopSpawnTables");
 
-		HeatParameters::ReplaceInvalidVehicles(helicopterVehicles);
-
 		for (const bool forRaces : {false, true})
 		{
-			for (SpawnTable& table : eventSpawnTables.Get    (forRaces)) table.RemoveInvalidVehicles();
-			for (SpawnTable& table : patrolSpawnTables.Get   (forRaces)) table.RemoveInvalidVehicles();
-			for (SpawnTable& table : pursuitSpawnTables.Get  (forRaces)) table.RemoveInvalidVehicles();
-			for (SpawnTable& table : roadblockSpawnTables.Get(forRaces)) table.RemoveInvalidVehicles();
+			for (size_t heatLevel = 1; heatLevel <= HeatParameters::maxHeatLevel; heatLevel++)
+			{
+				// With logging disabled, the compiler optimises all arguments away
+				(eventSpawnTables    .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Events",     forRaces, heatLevel);
+				(patrolSpawnTables   .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Patrols",    forRaces, heatLevel);
+				(pursuitSpawnTables  .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Chasers",    forRaces, heatLevel);
+				(roadblockSpawnTables.Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Roadblocks", forRaces, heatLevel);
+			}
 		}
 	}
 
@@ -330,10 +354,9 @@ namespace CopSpawnTables
 	) {
 		if (not featureEnabled) return;
 
-		helicopterVehicles.SetToHeat  (isRacing, heatLevel);
-		eventSpawnTables.SetToHeat    (isRacing, heatLevel);
-		patrolSpawnTables.SetToHeat   (isRacing, heatLevel);
-		pursuitSpawnTables.SetToHeat  (isRacing, heatLevel);
+		eventSpawnTables    .SetToHeat(isRacing, heatLevel);
+		patrolSpawnTables   .SetToHeat(isRacing, heatLevel);
+		pursuitSpawnTables  .SetToHeat(isRacing, heatLevel);
 		roadblockSpawnTables.SetToHeat(isRacing, heatLevel);
 
 		currentMaxCopCapacity = pursuitSpawnTables.current->GetMaxTotalCopCapacity();
@@ -342,7 +365,10 @@ namespace CopSpawnTables
 		{
 			Globals::logger.Log("    HEAT [TAB] CopSpawnTables");
 
-			Globals::logger.LogLongIndent("helicopterVehicle      :", helicopterVehicles.current);
+			eventSpawnTables    .current->LogContents("Events                  ");
+			patrolSpawnTables   .current->LogContents("Patrols                 ");
+			pursuitSpawnTables  .current->LogContents("Chasers                 ");
+			roadblockSpawnTables.current->LogContents("Roadblocks              ");
 		}
 	}
 }

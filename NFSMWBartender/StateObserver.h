@@ -35,11 +35,11 @@ namespace StateObserver
 		if ((currentHeatLevel >= 1) and (currentHeatLevel <= HeatParameters::maxHeatLevel))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("    HEAT [STA] Heat level now", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
+				Globals::logger.Log("    HEAT [STA] Heat level is now", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
 
-			GroundSupport::SetToHeat  (playerIsRacing, currentHeatLevel);
-			Miscellaneous::SetToHeat  (playerIsRacing, currentHeatLevel);
-			PursuitBar::SetToHeat     (playerIsRacing, currentHeatLevel);
+			GroundSupport  ::SetToHeat(playerIsRacing, currentHeatLevel);
+			Miscellaneous  ::SetToHeat(playerIsRacing, currentHeatLevel);
+			PursuitBar     ::SetToHeat(playerIsRacing, currentHeatLevel);
 			PursuitObserver::SetToHeat(playerIsRacing, currentHeatLevel);
 		}
 	}
@@ -51,12 +51,12 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log ("\n-------- [LOG] New play session");
+			Globals::logger.Log("\n SESSION [LOG] Bartender v1.13.01");
 		}
 
 		DestructionStrings::Validate();
-		GroundSupport::Validate     ();
-		PursuitObserver::Validate   ();
+		GroundSupport     ::Validate();
+		PursuitObserver   ::Validate();
 	}
 
 

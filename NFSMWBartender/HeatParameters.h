@@ -27,6 +27,9 @@ namespace HeatParameters
 	const std::string configPathBasic    = configPathMain + "Basic/";
 	const std::string configPathAdvanced = configPathMain + "Advanced/";
 
+	// Vehicle validation
+	constexpr vault pvehicle = 0x4A97EC8F;
+
 
 
 
@@ -255,36 +258,63 @@ namespace HeatParameters
 
 
 
-	bool IsValidVehicle(const vault vehicleType)
-	{
-		static address* (__cdecl* const FindCollection)(vault, vault) = (address* (__cdecl*)(vault, vault))0x455FD0;
+	bool VehicleClassMatches
+	(
+		const vault vehicleType,
+		const bool  forHelicopter
+	) {
+		const address pointer = Globals::GetVaultParameter(0x4A97EC8F, vehicleType, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
 
-		return FindCollection(0x4A97EC8F, vehicleType); // searches "pvehicle" tree
+		if (pointer)
+		{
+			const vault vehicleClass = *((vault*)(pointer + 0x8));
+			const bool  isHelicopter = (vehicleClass == 0xB80933AA); // checks if "CHOPPER"
+
+			return (isHelicopter == forHelicopter);
+		}
+
+		return false;
 	}
 
 
 
-	bool IsValidVehicle(const std::string& vehicleName)
-	{
-		return IsValidVehicle(Globals::GetVaultKey(vehicleName.c_str()));
-	}
+	size_t ReplaceInvalidVehicles
+	(
+		const char* const  pairName,
+		Pair<std::string>& vehicles,
+		const bool         forHelicopters
+	) {
+		size_t numTotalReplaced = 0;
 
-
-
-	void ReplaceInvalidVehicles(Pair<std::string>& vehicles)
-	{
 		for (const bool forRaces : {false, true})
 		{
-			for (std::string& vehicleName : vehicles.Get(forRaces))
-			{
-				if (not IsValidVehicle(vehicleName))
-				{
-					if constexpr (Globals::loggingEnabled)
-						Globals::logger.LogLongIndent("Replacing", vehicleName, "with", vehicles.current);
+			size_t numReplaced = 0;
 
-					vehicleName = vehicles.current;
+			for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
+			{
+				std::string& vehicle = vehicles.Get(forRaces)[heatLevel - 1];
+				const vault  copType = Globals::GetVaultKey(vehicle.c_str());
+
+				if (not VehicleClassMatches(copType, forHelicopters))
+				{
+					// With logging disabled, the compiler optimises "pairName" away
+					if constexpr (Globals::loggingEnabled)
+					{
+						if (numReplaced == 0)
+							Globals::logger.LogLongIndent(pairName, (forRaces) ? "(race)" : "(free-roam)");
+
+						Globals::logger.LogLongIndent(' ', (int)heatLevel, vehicle, "->", vehicles.current);
+					}
+
+					vehicle = vehicles.current;
+
+					numReplaced++;
 				}
 			}
+
+			numTotalReplaced += numReplaced;
 		}
+
+		return numTotalReplaced;
 	}
 }
