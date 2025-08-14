@@ -113,7 +113,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Deleting this file also disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
 
-* Very short cooldowns for regular roadblocks or Heavy / LeaderStrategy spawns can result in spam.
+* Very short cooldowns for regular roadblocks or Heavy / LeaderStrategy spawns can result in spam. Excessive support spam can cause game instability, as these spawns ignore most spawn limits. You can also reduce this risk by setting their `Duration` VltEd parameters to low values.
 
 * The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before regular roadblocks and Heavy / LeaderStrategy spawns can first appear in a given pursuit.
 
