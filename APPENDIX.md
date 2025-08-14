@@ -11,11 +11,11 @@ This document also mentions any **incompatible features** of other .asi mods whe
 
 You **only need to read this document** if you either
 * have persistent issues with your game after installing Bartender, or
-* are curious about the limitations and inner workings of Bartender.
+* are curious about the limitations and inner workings of Bartender (or the game itself).
 
 &nbsp;
 
-There are mostly **three potential causes** for any persistent issues you might have with Bartender:
+There are mostly **three potential causes** for any issues you might encounter with Bartender:
 * features of other .asi mods that make changes to the same parts of the game as Bartender,
 * quirks in how Bartender reads and processes parameter values in its configuration files, and
 * the actual parameter values themselves that you provide in Bartender's configuration files.
@@ -41,7 +41,7 @@ For a detailed **version history** of Bartender, see the plain-text version of t
 
 # 1 - What is there to know about Bartender's file parsing?
 
-Some **parameter groups** (indicated by `[GroupName]`) in Bartender's configuration files allow you to provide a `default` value. For each parameter group, a comment in the relevant file states whether the group allows this. Bartender parses groups that allow `default` values in three steps:
+Some **parameter groups** (indicated by `[GroupName]`) in Bartender's configuration files allow you to define a `default` value. For each parameter group, a comment in the relevant file states whether the group allows this. Bartender parses groups that allow `default` values in three steps:
 1. If you omitted it, the `default` value is set to the game's vanilla (i.e. unmodded) value.
 2. All free-roam Heat levels (format: `heatXY`) you omitted are set to the `default` value.
 3. All race Heat levels (format: `raceXY`) you omitted are set to their free-roam values.
@@ -95,13 +95,23 @@ Regarding **cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
 
 * Bartender ignores all vehicles and (Binary) string labels that don't actually exist in the game.
 
+* If you do not define a valid `default` value, vehicles you omit will not cause notifications.
+
 &nbsp;
 
 Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Deleting this file also disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
 
-* You should not use the vehicles you provide as replacements for Cross in LeaderStrategy spawns anywhere else in the game, as they will block LeaderStrategy spawns whenever they are present.
+* Very short cooldowns for regular roadblocks or Heavy / LeaderStrategy spawns can result in spam.
+
+* The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before regular roadblocks and Heavy / LeaderSupport spawns can first appear in a given pursuit.
+
+* LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
+
+* You should not use the replacement vehicles for Cross elsewhere in the game. Otherwise, these vehicles will block all LeaderStrategy spawns whenever they are present in a given pursuit.
+
+* Only the original `copcross` vehicle triggers Cross' unique radio chatter and callouts.
 
 * Bartender replaces all vehicles that don't exist in the game with their vanilla counterparts.
 
@@ -111,7 +121,23 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
-* Deleting this file also disables the fix for getting busted while the "EVADE" bar fills.
+* Deleting this file also disables the fix for getting busted while the green "EVADE" bar fills.
+
+* The "BUSTED" bar fills when you drive slowly enough and are near a cop who can see you. Once the bar is full, the cops apprehend you and end the pursuit (not in your favour).
+
+* The `BustSpeed` VltEd parameter defines the speed threshold for busting.
+   
+* The "EVADE" bar fills when you are not within line of sight of any cops. Once the bar is full, you enter "COOLDOWN" mode and need to stay hidden for a while to escape (and end) the pursuit.
+
+* The `evadetimeout` VltEd parameter defines how long you need to stay hidden in "COOLDOWN" mode.
+
+* The time you spend filling the green "EVADE" bar also counts towards how long you need to stay hidden in "COOLDOWN" mode. If the "EVADE" bar takes longer to fill, you will escape instantly.
+
+* The `frontLOSdistance` and `rearLOSdistance` VltEd parameters define the cops' visual range.
+
+* The `0x1e2a1051` VltEd parameter defines how much passive bounty you gain at each interval.
+
+* Bartender sets all cop-combo limits that are < 1 to 1.
 
 &nbsp;
 
@@ -143,6 +169,14 @@ Regarding the "Advanced" feature set **in general**:
 
 Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopter.ini`):
 
+* The helicopter only spawns at Heat levels for which you provide valid time-interval values.
+
+* The helicopter will also spawn in "COOLDOWN" mode by default.
+
+* The helicopter uses whatever AirSupportStrategy you set in VltEd.
+
+* Only one helicopter will ever be active at any given time. This is a game limitation; you could technically spawn more, but they would count as cars and behave very oddly.
+
 * Bartender replaces all vehicles that don't exist in the game with `copheli`.
 
 * Bartender replaces all vehicles that aren't helicopters with `copheli`.
@@ -151,9 +185,17 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
-* Until HeavyStrategy 3 and LeaderStrategy spawns have left the pursuit, they can block new "Chasers" from spawning (but not the other way around). This is vanilla behaviour: These spawns also count towards the total number of cops loaded by the game, which the game compares against the global cop-spawn limit to make spawn decisions for "Chasers". Cops spawned in NPC pursuits can also affect how many "Chasers" the game may spawn in yours, as the total number of cops loaded by the game includes all non-roadblock cars of every active pursuit at once.
+* A minimum engagement count > 0 allows that many "Chasers" to (re)spawn without backup. This minimum count does not spawn cops beyond their `count` values or the global cop-spawn limit.
 
-* You must install and configure the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351 if you want to use global cop-spawn limits > 8. This is necessary because the game's vanilla cop loader cannot handle managing > 8 vehicles for very long. To configure LA to work with Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file and disable everything in its `[Options]` parameter group. Even with this, LA itself might still crash sometimes.
+* In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overwrites the min. engagement count.
+
+* The global cop-spawn limit determines whether the game may spawn new "Chasers" at any point. The game can spawn additional "Chasers" as long as the total amount of non-roadblock and non-helicopter cops that currently exist across all pursuits is less than this global limit. This also means that any active Heavy / LeaderSupport spawns or NPC pursuits can affect how many more "Chasers" can still spawn in your pursuit (this is vanilla behaviour).
+
+* The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
+
+* If you want to use global cop spawn limits > 8, you must also install and configure the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351. This is necessary because the game cannot handle managing > 8 "Chasers" for very long. To configure LA to work with Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file and disable everything in its `[Options]` parameter group. Even with this, LA itself might still crash sometimes.
+
+* "Chasers" will only flee at Heat levels for which you provide valid delay values.
 
 * Bartender sets all `count` and `chance` values that are < 1 to 1.
 
@@ -173,7 +215,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Rarely, vehicles that are not in a "Roadblocks" spawn table will still show up in roadblocks. This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it is processing a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
-* All "Events" and "Patrols" spawns that end up joining a pursuit will then also count towards the spawn limits (i.e. `count` values) of the pursuit's current "Chasers" spawn table.
+* Once they join a pursuit, "Events" and "Patrol" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
 
 * The "Events" spawn tables also apply to the scripted patrols in prologue (DDay) race events.
 
