@@ -19,7 +19,7 @@ namespace StateObserver
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	size_t  currentHeatLevel  = 0;
-	address playerPerpVehicle = 0x0;
+	address playerVehicle     = 0x0;   // AIPerpVehicle
 	bool    playerIsRacing    = false;
 	bool    gameStartHandled  = false;
 
@@ -65,10 +65,13 @@ namespace StateObserver
 	{
 		static bool (__thiscall* const IsRacing)(address) = (bool (__thiscall*)(address))0x409500;
 
-		if (playerPerpVehicle and (playerIsRacing xor IsRacing(playerPerpVehicle)))
+		if (playerVehicle)
 		{
-			playerIsRacing = (not playerIsRacing);
-			OnHeatLevelUpdates();
+			const bool playerWasRacing = playerIsRacing;
+			playerIsRacing             = IsRacing(playerVehicle);
+
+			if (playerWasRacing != playerIsRacing)
+				OnHeatLevelUpdates();
 		}
 	
 		PursuitObserver::UpdateState();
@@ -78,9 +81,9 @@ namespace StateObserver
 
 	void OnWorldLoadUpdates()
 	{
-		currentHeatLevel  = 0;
-		playerPerpVehicle = 0x0;
-		playerIsRacing    = false;
+		currentHeatLevel = 0;
+		playerVehicle    = 0x0;
+		playerIsRacing   = false;
 
 		PursuitObserver::HardResetState();
 	}
@@ -259,7 +262,7 @@ namespace StateObserver
 	{
 		__asm
 		{
-			mov ebx, dword ptr playerPerpVehicle
+			mov ebx, dword ptr playerVehicle
 
 			test ebx, ebx
 			je conclusion // player vehicle unknown
@@ -294,7 +297,7 @@ namespace StateObserver
 			jne conclusion                  // not player vehicle
 
 			lea ebx, dword ptr [esi + 0x758]
-			mov dword ptr playerPerpVehicle, ebx
+			mov dword ptr playerVehicle, ebx
 
 			conclusion:
 			// Execute original code and resume

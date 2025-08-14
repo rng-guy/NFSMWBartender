@@ -160,11 +160,11 @@ namespace CopSpawnTables
 			const auto foundType = this->copTypeToEntry.find(copType);
 			if (foundType == this->copTypeToEntry.end()) return false;
 
-			const bool wasAvailable = (foundType->second.capacity > 0);
-
+			const bool wasAvailable     = (foundType->second.capacity > 0);
 			foundType->second.capacity += change;
+			const bool isAvailable      = (foundType->second.capacity > 0);
 
-			if (wasAvailable xor (foundType->second.capacity > 0))
+			if (wasAvailable != isAvailable)
 			{
 				if (wasAvailable)
 					this->currentTotalCopChance -= foundType->second.chance;
