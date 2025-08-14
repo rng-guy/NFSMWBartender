@@ -372,4 +372,4 @@ v1.00.00: Initial release
 
    13.00: Improved performance by rewriting and streamlining the internal file-parsing logic
       01: Added checks for whether vehicles in configuration files exist and are of the right class
-      02: Improved and overhauled the documentation for (hopefully) the final god-damn time
+      02: Improved and overhauled the documentation for (hopefully) the last god-damn time
