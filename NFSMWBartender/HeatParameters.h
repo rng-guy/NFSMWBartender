@@ -98,6 +98,26 @@ namespace HeatParameters
 		{
 			return (forRaces) ? this->race : this->roam;
 		}
+
+
+		T& Get
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			return (this->Get(forRaces))[heatLevel - 1];
+		}
+
+
+		const T& Get
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) 
+			const
+		{
+			return (this->Get(forRaces))[heatLevel - 1];
+		}
 	};
 
 
@@ -107,7 +127,7 @@ namespace HeatParameters
 	{
 	public:
 
-		const T* current = &(this->roam[0]);
+		const T* current = &(this->Get(false, 0));
 
 
 		void SetToHeat
@@ -115,7 +135,7 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->current = &(((forRaces) ? this->race : this->roam)[heatLevel - 1]);
+			this->current = &(this->Get(forRaces, heatLevel));
 		}
 	};
 
@@ -138,7 +158,7 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->current = ((forRaces) ? this->race : this->roam)[heatLevel - 1];
+			this->current = this->Get(forRaces, heatLevel);
 		}
 	};
 
@@ -160,7 +180,7 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->current = (((forRaces) ? this->race : this->roam)[heatLevel - 1]).c_str();
+			this->current = (this->Get(forRaces, heatLevel)).c_str();
 		}
 	};
 
@@ -315,7 +335,7 @@ namespace HeatParameters
 
 			for (size_t heatLevel : heatLevels)
 			{
-				std::string& vehicle = vehicles.Get(forRaces)[heatLevel - 1];
+				std::string& vehicle = vehicles.Get(forRaces, heatLevel);
 				const vault  copType = Globals::GetVaultKey(vehicle.c_str());
 
 				if (not VehicleClassMatches(copType, forHelicopters))

@@ -337,10 +337,10 @@ namespace CopSpawnTables
 			for (size_t heatLevel : HeatParameters::heatLevels)
 			{
 				// With logging disabled, the compiler optimises all arguments away
-				(eventSpawnTables    .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Events",     forRaces, heatLevel);
-				(patrolSpawnTables   .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Patrols",    forRaces, heatLevel);
-				(pursuitSpawnTables  .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Chasers",    forRaces, heatLevel);
-				(roadblockSpawnTables.Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Roadblocks", forRaces, heatLevel);
+				(eventSpawnTables    .Get(forRaces, heatLevel)).RemoveInvalidTypes("Events",     forRaces, heatLevel);
+				(patrolSpawnTables   .Get(forRaces, heatLevel)).RemoveInvalidTypes("Patrols",    forRaces, heatLevel);
+				(pursuitSpawnTables  .Get(forRaces, heatLevel)).RemoveInvalidTypes("Chasers",    forRaces, heatLevel);
+				(roadblockSpawnTables.Get(forRaces, heatLevel)).RemoveInvalidTypes("Roadblocks", forRaces, heatLevel);
 			}
 		}
 	}
