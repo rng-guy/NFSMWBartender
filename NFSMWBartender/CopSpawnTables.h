@@ -255,7 +255,7 @@ namespace CopSpawnTables
 		std::string section;
 		size_t      numberOfEntries;
 
-		for (size_t heatLevel = 1; heatLevel <= HeatParameters::maxHeatLevel; heatLevel++)
+		for (size_t heatLevel : HeatParameters::heatLevels)
 		{
 			section = std::vformat(format + tableName, std::make_format_args(heatLevel));
 
@@ -283,7 +283,7 @@ namespace CopSpawnTables
 		HeatParameters::Values<SpawnTable>&       tables,
 		const HeatParameters::Values<SpawnTable>& replacements
 	) {
-		for (size_t heatLevel = 1; heatLevel <= HeatParameters::maxHeatLevel; heatLevel++)
+		for (size_t heatLevel : HeatParameters::heatLevels)
 			if (tables[heatLevel - 1].IsEmpty()) tables[heatLevel - 1] = replacements[heatLevel - 1];
 	}
 
@@ -334,7 +334,7 @@ namespace CopSpawnTables
 
 		for (const bool forRaces : {false, true})
 		{
-			for (size_t heatLevel = 1; heatLevel <= HeatParameters::maxHeatLevel; heatLevel++)
+			for (size_t heatLevel : HeatParameters::heatLevels)
 			{
 				// With logging disabled, the compiler optimises all arguments away
 				(eventSpawnTables    .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Events",     forRaces, heatLevel);

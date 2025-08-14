@@ -48,6 +48,29 @@ namespace HeatParameters
 
 
 
+	// Heat-level indices ---------------------------------------------------------------------------------------------------------------------------
+
+	constexpr Values<size_t> GenerateHeatLevels()
+	{
+		Values<size_t> heatLevels   = {};
+		size_t         currentLevel = 1;
+
+		for (size_t& heatLevel : heatLevels)
+		{
+			heatLevel = currentLevel;
+
+			currentLevel++;
+		}
+
+		return heatLevels;
+	}
+
+	constexpr Values<size_t> heatLevels = GenerateHeatLevels();
+
+
+
+
+
 	// HeatParameter classes ------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
@@ -225,7 +248,7 @@ namespace HeatParameters
 		(
 			[&]
 			{
-				for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
+				for (size_t heatLevel : heatLevels)
 				{
 					if (not isValids[heatLevel - 1])
 						columns.pair.race[heatLevel - 1] = columns.pair.roam[heatLevel - 1];
@@ -251,7 +274,7 @@ namespace HeatParameters
 			Values<T>&       lowers = minValues.Get(forRaces);
 			const Values<T>& uppers = maxValues.Get(forRaces);
 
-			for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
+			for (size_t heatLevel : heatLevels)
 				lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
 		}
 	}
@@ -290,7 +313,7 @@ namespace HeatParameters
 		{
 			size_t numReplaced = 0;
 
-			for (size_t heatLevel = 1; heatLevel <= maxHeatLevel; heatLevel++)
+			for (size_t heatLevel : heatLevels)
 			{
 				std::string& vehicle = vehicles.Get(forRaces)[heatLevel - 1];
 				const vault  copType = Globals::GetVaultKey(vehicle.c_str());
