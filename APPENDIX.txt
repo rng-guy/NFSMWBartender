@@ -55,7 +55,7 @@ The sections below mention how on a case-by-case basis, but a vehicle is general
  • it doesn't exist in the game's database (i.e. lacks a VltEd node under "pvehicle"), or
  • it is of the wrong class (e.g. is a helicopter when Bartender expects a regular car).
 
-The CLASS OF A VEHICLE depends on its "CLASS" VltEd parameter in its "pvehicle" node. Bartender
+The CLASS OF A VEHICLE depends on the "CLASS" VltEd parameter in its "pvehicle" node. Bartender
 considers a "CLASS" value of "CHOPPER" to represent a helicopter, and every other value a car.
 Most vanilla vehicles lack an explicit "CLASS" parameter in their "pvehicle" nodes because they
 inherit one from parent nodes instead, but you can add one manually to overwrite it if you wish.

@@ -69,7 +69,7 @@ Bartender can handle any **invalid vehicles** you might provide in its configura
 
 &nbsp;
 
-The **class of a vehicle** depends on its `CLASS` VltEd parameter in its `pvehicle` node. Bartender considers a `CLASS` value of `CHOPPER` to represent a helicopter, and every other value a car. Most vanilla vehicles lack an explicit `CLASS` parameter in their `pvehicle` nodes because they inherit one from parent nodes instead, but you can add one manually to overwrite it if you wish.
+The **class of a vehicle** depends on the `CLASS` VltEd parameter in its `pvehicle` node. Bartender considers a `CLASS` value of `CHOPPER` to represent a helicopter, and every other value a car. Most vanilla vehicles lack an explicit `CLASS` parameter in their `pvehicle` nodes because they inherit one from parent nodes instead, but you can add one manually to overwrite it if you wish.
 
 &nbsp;
 
