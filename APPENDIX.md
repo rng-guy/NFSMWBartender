@@ -119,7 +119,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * When the game requests a HeavyStrategy, it (re)sets the roadblock cooldown to a fixed value.
 
-* Bartender fixes the slowdown of regular roadblock and Heavy / LeaderStrategy spawns by clearing the request queue whenever a certain amount of time has passed without any new support requests. This maximum-overdue delay guarantees that requests cannot stall and block each other for long.
+* Bartender fixes the slowdown of regular roadblock and Heavy / LeaderStrategy spawns by clearing the request queue. Bartender clears this queue whenever a certain amount of time has passed without any new strategy requests, despite them being off cooldown. This maximum-overdue delay guarantees that requests cannot stall and block each other for long.
 
 * Sometimes, regular roadblocks and Heavy / LeaderStrategy spawns may appear more frequently than their cooldowns would suggest. This happens because their cooldowns only stop the game from requesting more of them, which is unrelated to actually spawning any pending requests.
 
