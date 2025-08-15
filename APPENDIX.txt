@@ -270,8 +270,8 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • Bartender enforces the "count" values for "Chasers" for each active pursuit separately.
    For "Roadblocks" / "Events", Bartender enforces "count" values for each roadblock / event.
 
- • Once they join a pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as
-   membership (i.e. fleeing decisions) and the "count" values of "Chasers" are concerned.
+ • Once they join a pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far
+   as membership (i.e. fleeing decisions) and the "count" values of "Chasers" are concerned.
 
  • Each roadblock / event in the game requests a hard-coded number of vehicles. No roadblock
    formation in the game requests more than 5 vehicles, and no scripted event more than 8.
@@ -297,7 +297,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    spawns in a given free-roam event (e.g. a Challenge Series pursuit). Instead, this first cop
    is always of the type defined by the event's "CopSpawnType" VltEd parameter. This is because
    the game requests this vehicle before it loads any pursuit or Heat-level information, making
-   it impossible for Bartender to know which spawn table to use for this single vehicle.
+   it impossible for Bartender to know which spawn table to use for just this single vehicle.
 
  • You should not use fast Heat transitions ("0x80deb840" VltEd parameter(s) set to < 5 seconds),
    else you might see a mix of cops from more than one "Events" spawn table appear in events with

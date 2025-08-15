@@ -247,7 +247,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * The "Events" spawn tables also apply to the scripted patrols in prologue (DDay) race events.
 
-* The "Events" spawn tables don't apply to the very first scripted, pre-generated cop that spawns in a given free-roam event (e.g. a Challenge Series pursuit). Instead, this first cop is always of the type defined by the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible for Bartender to know which spawn table to use for this single vehicle.
+* The "Events" spawn tables don't apply to the very first scripted, pre-generated cop that spawns in a given free-roam event (e.g. a Challenge Series pursuit). Instead, this first cop is always of the type defined by the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible for Bartender to know which spawn table to use for just this single vehicle.
 
 * You should not use fast Heat transitions (`0x80deb840` VltEd parameter(s) set to < 5 seconds), else you might see a mix of cops from more than one "Events" spawn table appear in events with scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
 
