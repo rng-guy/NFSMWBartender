@@ -103,7 +103,7 @@ Some popular .asi mods **require (re)configuration** to be compatible with Barte
 # 4 - How do I install Bartender for my game?
 
 **Before installing** Bartender:
-1. make sure you have read and understood the [section on mod (in)compatibility](#3---what-mods-are-(in)compatible-with-bartender) above,
+1. make sure you have read and understood the [section about mod (in)compatibility](#3---what-mods-are-(in)compatible-with-bartender) above,
 2. make sure your game's `speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
 3. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
 

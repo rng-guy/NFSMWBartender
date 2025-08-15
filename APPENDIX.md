@@ -103,9 +103,9 @@ Regarding **cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
 
 * This feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Either delete Bartender's `Labels.ini` configuration file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` file.
 
-* Bartender ignores all vehicles and (Binary) string labels that don't actually exist in the game.
+* Bartender ignores vehicles and (Binary) string labels that don't exist in the game.
 
-* If you do not define a valid `default` value, vehicles you omit will not cause notifications.
+* If you don't define a valid `default` label, vehicles without labels won't cause notifications.
 
 &nbsp;
 
@@ -113,9 +113,19 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Deleting this file also disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
 
-* Very short cooldowns for regular roadblocks or Heavy / LeaderStrategy spawns can result in spam. Excessive support spam can cause game instability, as these spawns ignore most spawn limits. You can also reduce this risk by setting their `Duration` VltEd parameters to low values.
+* When the game requests a roadblock, a random roadblock cooldown between two values begins. While this cooldown is active, the game cannot make more requests for regular roadblocks.
 
-* The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before regular roadblocks and Heavy / LeaderStrategy spawns can first appear in a given pursuit.
+* When the game requests a Heavy / LeaderStrategy, a fixed-length strategy cooldown begins. While this cooldown is active, the game cannot make more Heavy / LeaderStrategy requests.
+
+* When the game requests a HeavyStrategy, it (re)sets the roadblock cooldown to a fixed value.
+
+* Bartender fixes the slowdown of regular roadblock and Heavy / LeaderStrategy spawns by clearing the request queue whenever a certain amount of time has passed without any new support requests. This maximum-overdue delay guarantees that requests cannot stall and block each other for long.
+
+* Sometimes, regular roadblocks and Heavy / LeaderStrategy spawns may appear more frequently than their cooldowns would suggest. This happens because their cooldowns only stop the game from requesting more of them, which is unrelated to actually spawning any pending requests.
+
+* Very short cooldowns for regular roadblock or Heavy / LeaderStrategy requests may cause spam. Excessive support spam can lead to game instability, as these spawns ignore most spawn limits. You can also reduce this risk by setting their `Duration` VltEd parameters to low values.
+
+* The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before the game can start requesting regular roadblocks and Heavy / LeaderStrategy spawns in a given pursuit.
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
@@ -123,9 +133,9 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Only the original `copcross` vehicle triggers Cross' unique radio chatter and callouts.
 
-* Bartender replaces all vehicles that don't exist in the game with their vanilla counterparts.
+* Bartender replaces vehicles that don't exist in the game with whatever the vanilla game uses.
 
-* Bartender replaces all vehicles that are helicopters with their vanilla counterparts.
+* Bartender replaces vehicles that are helicopters with with whatever the vanilla game uses.
 
 &nbsp;
 
@@ -181,17 +191,19 @@ Regarding the "Advanced" feature set **in general**:
 
 Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopter.ini`):
 
-* The helicopter only spawns at Heat levels for which you provide valid time-interval values.
+* The helicopter uses random timers for spawning, despawning, and respawning. Each of these actions has a separate interval of possible timer values. Here, "spawning" refers to the very first appearance of a helicopter in a given pursuit, while "respawning" refers to any further appearances after the first. Heat transitions don't reset these timers.
 
-* The helicopter will also spawn in "COOLDOWN" mode by default.
+* The helicopter only spawns at Heat levels for which you provide valid timer-interval values.
+
+* The helicopter also (de / re)spawns in "COOLDOWN" mode according to its timers.
 
 * The helicopter uses whatever HeliStrategy you set in VltEd.
 
 * Only one helicopter will ever be active at any given time. This is a game limitation; you could technically spawn more, but they would count as cars and behave very oddly.
 
-* Bartender replaces all vehicles that don't exist in the game with `copheli`.
+* Bartender replaces vehicles that don't exist in the game with `copheli`.
 
-* Bartender replaces all vehicles that aren't helicopters with `copheli`.
+* Bartender replaces vehicles that aren't helicopters with `copheli`.
 
 &nbsp;
 
@@ -217,9 +229,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
 
-* Bartender ignores all vehicles that don't exist in the game.
-
-* Bartender ignores all vehicles that are helicopters.
+* Bartender ignores vehicles that are helicopters or don't exist in the game.
 
 * Bartender adds a `copmidsize` to each non-empty table that contains only ignored vehicles.
 

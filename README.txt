@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.13.02) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.13.03) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -90,7 +90,7 @@ Some popular .asi mods REQUIRE (RE)CONFIGURATION to be compatible with Bartender
 ── ■ │ 4 - HOW DO I INSTALL BARTENDER FOR MY GAME? │ ■ ────────────────────────────────────────────
 
 BEFORE INSTALLING Bartender:
- 1) • make sure you have read and understood the section on mod (in)compatibility above,
+ 1) • make sure you have read and understood the section about mod (in)compatibility above,
  2) • make sure your game's "speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
  3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 

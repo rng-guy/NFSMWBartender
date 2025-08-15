@@ -51,7 +51,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log("\n SESSION [LOG] Bartender v1.13.02");
+			Globals::logger.Log("\n SESSION [LOG] Bartender v1.13.03");
 		}
 
 		DestructionStrings::Validate();
