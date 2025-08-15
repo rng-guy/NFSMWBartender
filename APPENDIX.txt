@@ -394,4 +394,4 @@ v1.00.00: Initial release
    13.00: Improved performance by rewriting and streamlining the internal file-parsing logic
       01: Added checks for whether vehicles in configuration files exist and are of the right class
       02: Improved and overhauled the documentation for (hopefully) the last god-damn time
-      03: Turns out I had forgotten to add some notes about support and helicopter spawns (RIP)
+      03: Improved consistency of the fix for less frequent support spawns in longer pursuits
