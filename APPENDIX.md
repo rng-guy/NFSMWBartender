@@ -1,17 +1,13 @@
 
 ![POV: You hit the RESET button by accident, and it did not fix your game's issues.](Thumbnail.jpg "I'm far too lazy to make another thumbnail for this.")
 
-This document contains the full **technical details and limitations** of Bartender and its features. In most cases, the usage comments in Bartender's configuration files should provide you with enough background information to help you avoid most (potential) configuration issues.
-
-&nbsp;
-
-This document also mentions any **incompatible features** of other .asi mods where they are relevant. For an overview of what you need to disable for Bartender to work, see the [main README](README.md/#3---what-mods-are-incompatible-with-bartender) instead.
+This document contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](README.md/#3---what-mods-are-incompatible-with-bartender).
 
 &nbsp;
 
 You really **only need to read this document** if
 * you have persistent issues with your game after installing / configuring Bartender, or
-* you are curious about the limitations and technicalities of Bartender's features.
+* you are curious about the technicalities and limitations of Bartender or its features.
 
 &nbsp;
 
@@ -41,10 +37,7 @@ For a detailed **version history** of Bartender, see the plain-text version of t
 
 # 1 - What is there to know about Bartender's file parsing?
 
-Some **parameter groups** (indicated by `[GroupName]`) in Bartender's configuration files allow you to define a `default` value. For each parameter group, a comment in the relevant file states whether the group allows this. Bartender parses groups that allow `default` values in three steps:
-1. If you omitted it, the `default` value is set to the game's vanilla (i.e. unmodded) value.
-2. All free-roam Heat levels (format: `heatXY`) you omitted are set to the `default` value.
-3. All race Heat levels (format: `raceXY`) you omitted are set to their free-roam values.
+Bartender parses its configuration (.ini) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure in the configuration files. Each group allows you to provide values, either in relation to Heat levels or vehicles.
 
 &nbsp;
 
@@ -54,7 +47,7 @@ Bartender can handle any **invalid / missing parameter groups** in its configura
 
 &nbsp;
 
-Bartender can handle any **invalid values** you might provide in its configuration files:
+Bartender can handle any **invalid values** you might provide in its parameter groups:
 * duplicates (e.g. another `heat02` value) within parameter groups are ignored,
 * values of incorrect type (e.g. a string instead of a decimal) count as omitted,
 * negative values that should be positive are set to 0 instead of counting as omitted,
@@ -63,7 +56,14 @@ Bartender can handle any **invalid values** you might provide in its configurati
 
 &nbsp;
 
-Bartender can handle any **invalid vehicles** you might provide in its configuration files. The sections below mention how on a case-by-case basis, but a vehicle is generally invalid if
+Some parameter groups allow you to define **default values**, indicated by `default` in place of a Heat level or vehicle. These default values then apply to all Heat levels or vehicles for which you do not provide explicit values. Bartender parses such parameter groups in three steps:
+1. If you omit it, the `default` value is set to the game's vanilla (i.e. unmodded) value.
+2. All free-roam Heat levels (format: `heatXY`) you omit are set to the `default` value.
+3. All race Heat levels (format: `raceXY`) you omit are set to their free-roam values.
+
+&nbsp;
+
+Bartender can handle any **invalid vehicles** you might provide in its configuration files, both as values themselves and as something for which you provide other values. The sections below mention how Bartender does this on a case-by-case basis, but a vehicle is invalid if
 * it doesn't exist in the game's database (i.e. lacks a VltEd node under `pvehicle`), or
 * it is of the wrong class (e.g. is a helicopter when Bartender expects a regular car).
 
@@ -221,10 +221,6 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * "Chasers" will only flee at Heat levels for which you provide valid delay values.
 
-* Bartender sets all `count` and `chance` values that are < 1 to 1 instead.
-
-* The `chance` values are weights (like in VltEd), not percentages. The actual spawn chance of a vehicle is its `chance` value divided by the sum of the `chance` values of all vehicles from the same spawn table. Whenever a vehicle reaches its `count` value (i.e. spawn cap), Bartender treats its `chance` value as 0 until there is room for further spawns of that vehicle again.
-
 * Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
 
 * Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
@@ -233,17 +229,25 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Bartender adds a `copmidsize` to each non-empty table that contains only ignored vehicles.
 
+* The `chance` values are weights (like in VltEd), not percentages. The actual spawn chance of a vehicle is its `chance` value divided by the sum of the `chance` values of all vehicles from the same spawn table. Whenever a vehicle reaches its `count` value (i.e. spawn cap), Bartender treats its `chance` value as 0 until there is room for further spawns of that vehicle again.
+
+* Bartender sets all `count` and `chance` values that are < 1 to 1 instead.
+
+* Bartender enforces the `count` values for "Chasers" for each active pursuit separately. For "Roadblocks" / "Events", Bartender enforces `count` values for each roadblock / event.
+
+* Once they join a pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
+
+* Each roadblock / event in the game requests a hard-coded number of vehicles. No roadblock formation in the game requests more than 5 vehicles, and no scripted event more than 8.
+ 
+* Bartender temporarily ignores the `count` values in a "Roadblocks" / "Events" spawn table whenever a roadblock / event requests more vehicles in total than they would otherwise allow. This ensures the game cannot get stuck trying to spawn a roadblock or start a scripted event.
+
 * Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock spawns in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This does not apply to vehicles with `count` values of at least 5, as no roadblock consists of more than 5 cars.
 
 * Rarely, vehicles that are not in a "Roadblocks" spawn table will still show up in roadblocks. This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it is processing a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
-* Once they join a pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
-
 * The "Events" spawn tables also apply to the scripted patrols in prologue (DDay) race events.
 
 * The "Events" spawn tables don't apply to the very first scripted, pre-generated cop that spawns in a given free-roam event (e.g. a Challenge Series pursuit). Instead, this first cop is always of the type defined by the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible for Bartender to know which spawn table to use for this single vehicle.
-
-* Bartender temporarily ignores the `count` values in a "Roadblocks" / "Events" spawn table whenever a roadblock / event requests more vehicles in total than they would otherwise allow. You can avoid this by ensuring that the totals of all `count` values amount to at least 5 / 8 for each "Roadblocks" / "Events" spawn table, as no roadblock / event in the vanilla game consists of more than 5 / 8 vehicles in total.
 
 * You should not use fast Heat transitions (`0x80deb840` VltEd parameter(s) set to < 5 seconds), else you might see a mix of cops from more than one "Events" spawn table appear in events with scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
 
