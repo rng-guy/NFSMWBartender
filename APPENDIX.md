@@ -13,7 +13,7 @@ You really **only need to read this document** if
 
 There are mostly **three potential causes** for any issues you might encounter with Bartender:
 * features of other .asi mods that make changes to the same parts of the game as Bartender,
-* the quirks of how Bartender reads and processes parameter values in its configuration files, or
+* the quirks of how Bartender reads and processes parameters in its configuration files, or
 * the actual parameter values themselves that you provide in Bartender's configuration files.
 
 &nbsp;
