@@ -185,6 +185,8 @@ Regarding the "Advanced" feature set **in general**:
 
 * You should ensure that every HeavyStrategy you enable in a given Heat level's `pursuitsupport` VltEd node is only listed there once (e.g. there isn't a second HeavyStrategy 3), and that there is also no more than one LeaderStrategy listed. Otherwise, such duplicates can cause the game (and Bartender) to misread their `Duration` VltEd parameters.
 
+* If this feature set is enabled, you might see some HeavyStrategy 3 spawns stop short of trying to ram you head-on properly, and behave more like regular cops instead. This is the result of a vanilla bug: Sometimes, HeavyStrategy 3 spawns attempt to flee the pursuit right upon joining, skipping the ramming entirely. While Bartender prevents this instant fleeing, it cannot restore the ramming behaviour for any HeavyStrategy 3 spawns affected by this bug.
+
 * If this feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because this feature set fulfils their intended purposes with extended customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
 &nbsp;
