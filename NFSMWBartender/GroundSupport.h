@@ -20,7 +20,7 @@ namespace GroundSupport
 	HeatParameters::Pair<float> maxRoadblockCooldowns  (12.f);
 	HeatParameters::Pair<float> roadblockHeavyCooldowns(15.f);
 	HeatParameters::Pair<float> strategyCooldowns      (10.f);
-	HeatParameters::Pair<float> maxStrategyDelays      (20.f);
+	HeatParameters::Pair<float> maxOverdueDelays       (20.f);
 	
 	HeatParameters::Pair<std::string> lightRammingVehicles  ("copsuvl");
 	HeatParameters::Pair<std::string> heavyRammingVehicles  ("copsuv");
@@ -97,12 +97,24 @@ namespace GroundSupport
 			cmp byte ptr [ecx + 0x20C], 0x2
 			jne conclusion // is not the dreaded 2 flag
 
-			fld dword ptr maxStrategyDelays.current
+			fld dword ptr maxOverdueDelays.current
 			fchs
-			fcomp dword ptr [ecx + 0x210]
+
+			fcom dword ptr [ecx + 0x210]
 			fnstsw ax
 			test ah, 0x1
-			jne conclusion // request delay is below threshold
+			je clear // strategy cooldown is over threshold
+
+			fcom dword ptr [ecx + 0xC8]
+			fnstsw ax
+			test ah, 0x1
+			je clear // roadblock cooldown is over threshold
+
+			fstp st(0)
+			jmp conclusion
+
+			clear:
+			fstp st(0)
 
 			push ecx
 			call dword ptr clearSupportRequest
@@ -245,7 +257,7 @@ namespace GroundSupport
 		HeatParameters::CheckIntervals<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
 
 		// Other pursuit parameters
-		HeatParameters::Parse<float, float>            (parser, "Strategies:Timers", {strategyCooldowns, 0.f}, {maxStrategyDelays, 0.f});
+		HeatParameters::Parse<float, float>            (parser, "Strategies:Timers", {strategyCooldowns, 0.f}, {maxOverdueDelays, 0.f});
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy:Ramming",     {lightRammingVehicles},   {heavyRammingVehicles});
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy:Roadblock",   {lightRoadblockVehicles}, {heavyRoadblockVehicles});
 		HeatParameters::Parse<std::string, std::string>(parser, "Leader:General",    {leaderVehicles},         {henchmenVehicles});
@@ -297,7 +309,7 @@ namespace GroundSupport
 		maxRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
 		strategyCooldowns      .SetToHeat(isRacing, heatLevel);
-		maxStrategyDelays      .SetToHeat(isRacing, heatLevel);
+		maxOverdueDelays       .SetToHeat(isRacing, heatLevel);
 
 		lightRammingVehicles  .SetToHeat(isRacing, heatLevel);
 		heavyRammingVehicles  .SetToHeat(isRacing, heatLevel);
@@ -316,7 +328,7 @@ namespace GroundSupport
 			Globals::logger.LogLongIndent("maxRoadblockCooldown    ", maxRoadblockCooldowns.current);
 			Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
 			Globals::logger.LogLongIndent("strategyCooldown        ", strategyCooldowns.current);
-			Globals::logger.LogLongIndent("maxStrategyDelay        ", maxStrategyDelays.current);
+			Globals::logger.LogLongIndent("maxOverdueDelay         ", maxOverdueDelays.current);
 
 			Globals::logger.LogLongIndent("lightRammingVehicle     ", lightRammingVehicles.current);
 			Globals::logger.LogLongIndent("heavyRammingVehicle     ", heavyRammingVehicles.current);
