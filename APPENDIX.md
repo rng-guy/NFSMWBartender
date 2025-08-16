@@ -89,7 +89,7 @@ Regarding the "Basic" feature set **in general**:
 
 * You can disable this entire feature set by deleting all of its configuration files.
 
-* You can disable any feature of this set by deleting the file containing its parameters. Bug fixes, however, don't have parameters and are tied to specific files implicitly instead.
+* You can disable any feature of this set by deleting the file containing its parameter group. Bug fixes, however, don't have parameters and are tied to specific files implicitly instead.
 
 * To disable the shadow and Heat-level fixes, delete all configuration files of this feature set.
 
@@ -104,6 +104,8 @@ Regarding **cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
 * This feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Either delete Bartender's `Labels.ini` configuration file or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` file.
 
 * Bartender ignores vehicles and (Binary) string labels that don't exist in the game.
+
+* You can use the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy to edit the game's strings or add new ones.
 
 * If you don't define a valid `default` label, vehicles without labels won't cause notifications.
 
@@ -179,13 +181,13 @@ Regarding the "Advanced" feature set **in general**:
 
 * You can disable this entire feature set by deleting all of its configuration files.
 
-* You can disable any feature of this set by deleting the file containing its parameters. This does not apply to the engagement-count fix, which is tied to this entire feature set instead.
+* You can disable any feature of this set by deleting the file containing its parameter group. This does not apply to the two bug fixes, which are each tied to this entire feature set.
 
 * Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
 
-* You should ensure that every HeavyStrategy you enable in a given Heat level's `pursuitsupport` VltEd node is only listed there once (e.g. there isn't a second HeavyStrategy 3), and that there is also no more than one LeaderStrategy listed. Otherwise, such duplicates can cause the game (and Bartender) to misread their `Duration` VltEd parameters.
+* Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That is because Bartender's fix makes the engagement count track "Chasers" only, while disregarding any vehicles that join the pursuit through Heavy / LeaderStrategy spawns, from roadblocks, or as helicopters.
 
-* If this feature set is enabled, you might see some HeavyStrategy 3 spawns stop short of trying to ram you head-on properly, and behave more like regular cops instead. This is the result of a vanilla bug: Sometimes, HeavyStrategy 3 spawns attempt to flee the pursuit right upon joining, skipping the ramming entirely. While Bartender prevents this instant fleeing, it cannot restore the ramming behaviour for any HeavyStrategy 3 spawns affected by this bug.
+* You should ensure that every HeavyStrategy you enable in a given Heat level's `pursuitsupport` VltEd node is only listed there once (e.g. there isn't a second HeavyStrategy 3), and that there is also no more than one LeaderStrategy listed. Otherwise, such duplicates can cause the game (and Bartender) to misread their `Duration` VltEd parameters.
 
 * If this feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because this feature set fulfils their intended purposes with extended customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
@@ -219,7 +221,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
-* If you want to use global cop spawn limits > 8, you must also install and configure the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351. This is necessary because the game cannot handle managing > 8 "Chasers" for very long. To configure LA to work with Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file and disable everything in its `[Options]` parameter group. Even with this, LA itself might still crash sometimes.
+* If you want to use global cop spawn limits > 8, you must also install and configure the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351. This is necessary because the game cannot handle managing > 8 "Chasers" for very long. To configure LA to work with Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file; there, set the `PursuitCops` value to 255 and disable every single cop-related feature under `[Options]`.
 
 * "Chasers" will only flee at Heat levels for which you provide valid delay values.
 

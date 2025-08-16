@@ -466,6 +466,48 @@ namespace CopSpawnOverrides
 
 	// Code caves --------------------------------------------------------------------------------------------------------------------------------------
 
+	constexpr address copRefillEntrance = 0x4442AE;
+	constexpr address copRefillExit     = 0x4442B6;
+
+	__declspec(naked) void CopRefill()
+	{
+		__asm
+		{
+			cmp dword ptr minActiveCounts.current, 0x0
+			je conclusion // zero is valid engagement count
+
+			inc edx
+			mov dword ptr [esi + 0x184], edx
+			inc eax
+
+			conclusion:
+			jmp dword ptr copRefillExit
+		}
+	}
+
+
+
+	constexpr address rammingGoalEntrance = 0x409850;
+	constexpr address rammingGoalExit     = 0x409857;
+
+	__declspec(naked) void RammingGoal()
+	{
+		__asm
+		{
+			mov eax, dword ptr [ecx + 0x48]
+			cmp eax, 0x73B87374
+			je conclusion // current goal is AIGoalHeadOnRam
+
+			mov eax, dword ptr [esp + 0x4]
+			mov dword ptr [ecx + 0x48], eax
+
+			conclusion:
+			jmp dword ptr rammingGoalExit
+		}
+	}
+
+
+
 	constexpr address roadblockSpawnEntrance = 0x43E04F;
 	constexpr address roadblockSpawnExit     = 0x43E06C;
 
@@ -594,27 +636,6 @@ namespace CopSpawnOverrides
 
 
 
-	constexpr address copRefillEntrance = 0x4442AE;
-	constexpr address copRefillExit     = 0x4442B6;
-
-	__declspec(naked) void CopRefill()
-	{
-		__asm
-		{
-			cmp dword ptr minActiveCounts.current, 0x0
-			je conclusion // zero is valid engagement count
-
-			inc edx
-			mov dword ptr [esi + 0x184], edx
-			inc eax
-
-			conclusion:
-			jmp dword ptr copRefillExit
-		}
-	}
-
-
-
 	constexpr address firstCopTableEntrance = 0x424205;
 	constexpr address firstCopTableExit     = 0x424213;
 
@@ -691,14 +712,15 @@ namespace CopSpawnOverrides
 
 		MemoryEditor::Write<byte>(0x00, 0x433CB2);           // min. displayed count
 		MemoryEditor::Write<byte>(0x90, 0x57B188, 0x4443E4); // helicopter / roadblock increment
-		MemoryEditor::Write<byte>(0xEB, 0x42B9AA, 0x44389E); // foreign / HeavyStrategy cops fleeing
+		MemoryEditor::Write<byte>(0xEB, 0x42B9AA, 0x44389E); // non-member / HeavyStrategy cops fleeing
 
+		MemoryEditor::DigCodeCave(CopRefill,          copRefillEntrance,          copRefillExit);
+		MemoryEditor::DigCodeCave(RammingGoal,        rammingGoalEntrance,        rammingGoalExit);
 		MemoryEditor::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
 		MemoryEditor::DigCodeCave(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
 		MemoryEditor::DigCodeCave(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
 		MemoryEditor::DigCodeCave(ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 
-		MemoryEditor::DigCodeCave(CopRefill,      copRefillEntrance,      copRefillExit);
 		MemoryEditor::DigCodeCave(FirstCopTable,  firstCopTableEntrance,  firstCopTableExit);
 		MemoryEditor::DigCodeCave(SecondCopTable, secondCopTableEntrance, secondCopTableExit);
 		MemoryEditor::DigCodeCave(ThirdCopTable,  thirdCopTableEntrance,  thirdCopTableExit);

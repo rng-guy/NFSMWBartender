@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.13.03) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.14.00) │ ■ ────────────────────────────────────────────────
 
 This document is also on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -77,7 +77,7 @@ Regarding the "BASIC" feature set IN GENERAL:
 
  • You can disable this entire feature set by deleting all of its configuration files.
 
- • You can disable any feature of this set by deleting the file containing its parameters.
+ • You can disable any feature of this set by deleting the file containing its parameter group.
    Bug fixes, however, don't have parameters and are tied to specific files implicitly instead.
 
  • To disable the shadow and Heat-level fixes, delete all configuration files of this feature set.
@@ -101,6 +101,8 @@ Regarding COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
    or disable Unlimiter's version of the feature by editing its "NFSMWUnlimiterSettings.ini" file.
 
  • Bartender ignores vehicles and (Binary) string labels that don't exist in the game.
+
+ • You can use the "Binary" tool by MaxHwoy to edit the game's strings or add new ones.
 
  • If you don't define a valid "default" label, vehicles without labels won't cause notifications.
 
@@ -189,21 +191,20 @@ Regarding the "Advanced" feature set IN GENERAL:
 
  • You can disable this entire feature set by deleting all of its configuration files.
 
- • You can disable any feature of this set by deleting the file containing its parameters. This
-   does not apply to the engagement-count fix, which is tied to this entire feature set instead.
+ • You can disable any feature of this set by deleting the file containing its parameter group.
+   This does not apply to the two bug fixes, which are each tied to this entire feature set.
 
  • Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
+
+ • Rarely, the engagement count above the pursuit board may appear to be inaccurate compared
+   to how many cops are actually around you at a given moment. That is because Bartender's fix 
+   makes the engagement count track "Chasers" only, while disregarding any vehicles that join
+   the pursuit through Heavy / LeaderStrategy spawns, from roadblocks, or as helicopters.
 
  • You should ensure that every HeavyStrategy you enable in a given Heat level's "pursuitsupport"
    VltEd node is only listed there once (e.g. there isn't a second HeavyStrategy 3), and that
    there is also no more than one LeaderStrategy listed. Otherwise, such duplicates can cause
    the game (and Bartender) to misread their "Duration" VltEd parameters.
-
- • If this feature set is enabled, you might see some HeavyStrategy 3 spawns stop short of
-   trying to ram you head-on properly, and behave more like regular cops instead. This is the
-   result of a vanilla bug: Sometimes, HeavyStrategy 3 spawns attempt to flee the pursuit right
-   upon joining, skipping the ramming entirely. While Bartender prevents this instant fleeing,
-   it cannot restore the ramming behaviour for any HeavyStrategy 3 spawns affected by this bug.
 
  • If this feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
    because this feature set fulfils their intended purposes with extended customisation:
@@ -252,8 +253,8 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • If you want to use global cop spawn limits > 8, you must also install and configure the
    "NFSMW LimitAdjuster" mod (LA) by Zolika1351. This is necessary because the game cannot
    handle managing > 8 "Chasers" for very long. To configure LA to work with Bartender,
-   open LA's "NFSMWLimitAdjuster.ini" configuration file and disable everything in its 
-   "[Options]" parameter group. Even with this, LA itself might still crash sometimes.
+   open LA's "NFSMWLimitAdjuster.ini" configuration file; there, set the "PursuitCops"
+   value to 255 and disable every single cop-related feature under "[Options]".
 
  • "Chasers" will only flee at Heat levels for which you provide valid delay values.
    
@@ -408,3 +409,5 @@ v1.00.00: Initial release
       01: Added checks for whether vehicles in configuration files exist and are of the right class
       02: Improved and overhauled the documentation for (hopefully) the last god-damn time
       03: Improved consistency of the fix for less frequent support spawns in longer pursuits
+
+   14.00: Added fix for the vanilla bug of HeavyStrategy 3 spawns aborting their ramming attempts

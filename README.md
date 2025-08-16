@@ -46,7 +46,7 @@ The "Basic" feature set **fixes five bugs**:
 
 &nbsp;
 
-You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause `FENG: Default string error` pop-ups, as it checks every string you provide against the game's (potentially modified) language files whenever you launch it.
+You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause `FENG: Default string error` pop-ups, as it checks every string label you provide against the game's (potentially modified) language files whenever you launch it.
 
 &nbsp;
 
@@ -71,7 +71,9 @@ The "Advanced" feature set **lets you change** (per Heat level)
 
 &nbsp;
 
-The "Advanced" feature set **also fixes** the engagement count displayed above the pursuit board: The count now accurately reflects how many chasing cop spawns remain in the current wave by disregarding vehicles that spawn through any Heavy / LeaderStrategy, vehicles that join the pursuit by detaching themselves from roadblocks, and the helicopter.
+The "Advanced" feature set **fixes two bugs**:
+ • HeavyStrategy 3 spawns no longer have a chance to abort their ramming attempts instantly, and
+ • the engagement count displayed above the pursuit board now accurately counts regular cops only.
 
 &nbsp;
 
@@ -90,7 +92,7 @@ Bartender should be **fully compatible** with all [VltEd](https://nfs-tools.blog
 Some popular .asi mods **require (re)configuration** to be compatible with Bartender:
 * In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable the `HeatLevelOverride` feature.
 * In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable the `EnableCopDestroyedStringHook` feature.
-* In [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, disable everything in the `[Options]` group.
+* In [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, disable every cop-related feature under `[Options]`.
 
 &nbsp;
 

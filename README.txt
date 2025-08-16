@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.13.03) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.14.00) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -40,9 +40,9 @@ The "Basic" feature set FIXES FIVE BUGS:
  • regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
 
 You can also ASSIGN NEW (BINARY) STRINGS for the game to display when cop vehicles are destroyed,
-similar to the "NFSMW Unlimiter" mod by nlgxzef. Bartender's version of this feature is easier to
-configure and will never cause "FENG: Default string error" pop-ups, as it checks every string you
-provide against the game's (potentially modified) language files whenever you launch it.
+similar to the "NFSMW Unlimiter" mod by nlgxzef. Bartender's version of this feature is easier
+to configure and will never cause "FENG: Default string error" pop-ups, as it checks every string
+label you provide against the game's (potentially modified) language files whenever you launch it.
 
 
 
@@ -62,10 +62,9 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • what vehicle spawns in place of the regular helicopter, and
  • when exactly (if at all) the helicopter can (de / re)spawn.
 
-The "Advanced" feature set ALSO FIXES the engagement count displayed above the pursuit board:
-The count now accurately reflects how many chasing cop spawns remain in the current wave by 
-disregarding vehicles that spawn through any Heavy / LeaderStrategy, vehicles that join
-the pursuit by detaching themselves from roadblocks, and the helicopter.
+The "Advanced" feature set FIXES TWO BUGS:
+ • HeavyStrategy 3 spawns no longer have a chance to abort their ramming attempts instantly, and
+ • the engagement count displayed above the pursuit board now accurately counts regular cops only.
 
 
 
@@ -80,7 +79,7 @@ without pursuit features should also be compatible unless they are listed below.
 Some popular .asi mods REQUIRE (RE)CONFIGURATION to be compatible with Bartender:
  • In "NFSMW ExtraOptions" by ExOptsTeam, disable the "HeatLevelOverride" feature.
  • In "NFSMW Unlimiter" by nlgxzef, disable the "EnableCopDestroyedStringHook" feature.
- • In "NFSMW LimitAdjuster" by Zolika1351, disable everything in the "[Options]" group.
+ • In "NFSMW LimitAdjuster" by Zolika1351, disable every cop-related feature under "[Options]".
 
 
 
