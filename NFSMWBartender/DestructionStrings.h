@@ -147,7 +147,7 @@ namespace DestructionStrings
 					Globals::logger.LogLongIndent("  -", iterator->first, iterator->second, (int)(pairID + 1));
 				}
 					
-				copTypeToDestructionKey.erase(iterator++);
+				iterator = copTypeToDestructionKey.erase(iterator);
 
 				numRemoved++;
 			}

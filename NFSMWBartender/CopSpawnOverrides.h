@@ -290,7 +290,6 @@ namespace CopSpawnOverrides
 		void ProcessAddition
 		(
 			const address  copVehicle,
-			const vault    copType,
 			const CopLabel copLabel
 		) 
 			override
@@ -299,7 +298,8 @@ namespace CopSpawnOverrides
 
 			if (copLabel != CopLabel::CHASER) return;
 
-			const auto addedType = this->copTypeToCurrentCount.insert({copType, 1});
+			const vault copType   = Globals::GetVehicleType(copVehicle);
+			const auto  addedType = this->copTypeToCurrentCount.insert({copType, 1});
 			if (not addedType.second) (addedType.first->second)++;
 
 			this->table.UpdateCapacity(copType, -1);
@@ -321,14 +321,14 @@ namespace CopSpawnOverrides
 		void ProcessRemoval
 		(
 			const address  copVehicle,
-			const vault    copType,
 			const CopLabel copLabel
 		) 
 			override
 		{
 			if (copLabel != CopLabel::CHASER) return;
 
-			const auto foundType = this->copTypeToCurrentCount.find(copType);
+			const vault copType   = Globals::GetVehicleType(copVehicle);
+			const auto  foundType = this->copTypeToCurrentCount.find(copType);
 
 			if (foundType != this->copTypeToCurrentCount.end())
 			{

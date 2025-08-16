@@ -174,7 +174,6 @@ namespace HelicopterOverrides
 		void ProcessAddition
 		(
 			const address  copVehicle,
-			const vault    copType,
 			const CopLabel copLabel
 		) 
 			override
@@ -187,7 +186,6 @@ namespace HelicopterOverrides
 		void ProcessRemoval
 		(
 			const address  copVehicle,
-			const vault    copType,
 			const CopLabel copLabel
 		) 
 			override

@@ -216,10 +216,8 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
-			const vault copType = Globals::GetVehicleType(copVehicle);
-
 			for (const auto& reaction : this->copVehicleReactions)
-				reaction.get()->ProcessAddition(copVehicle, copType, copLabel);
+				reaction->ProcessAddition(copVehicle, copLabel);
 		}
 
 
@@ -238,10 +236,8 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), this->GetCopName(copVehicle));
 
-			const vault copType = Globals::GetVehicleType(copVehicle);
-
 			for (const auto& reaction : this->copVehicleReactions)
-				reaction.get()->ProcessRemoval(copVehicle, copType, foundVehicle->second);
+				reaction->ProcessRemoval(copVehicle, foundVehicle->second);
 
 			this->copVehicleToLabel.erase(foundVehicle);
 		}

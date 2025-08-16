@@ -118,7 +118,7 @@ namespace CopSpawnTables
 					if (iterator->second.capacity > 0)
 						this->currentTotalCopChance -= iterator->second.chance;
 
-					this->copTypeToEntry.erase(iterator++);
+					iterator = this->copTypeToEntry.erase(iterator);
 
 					numRemoved++;
 				}
