@@ -369,34 +369,6 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
 
-	void __fastcall NotifyEventManager(const address copVehicle)
-	{
-		eventManager.NotifyOfSpawn(copVehicle);
-	}
-
-
-
-	void ResetEventManager()
-	{
-		eventManager.ResetSpawnTable();
-	}
-
-
-
-	void __fastcall NotifyRoadblockManager(const address copVehicle)
-	{
-		roadblockManager.NotifyOfSpawn(copVehicle);
-	}
-
-
-
-	void ResetRoadblockManager()
-	{
-		roadblockManager.ResetSpawnTable();
-	}
-
-
-
 	const char* __fastcall GetByClassReplacement(const address spawnReturn)
 	{
 		if (ContingentManager::IsHeatLevelKnown())
@@ -498,6 +470,7 @@ namespace CopSpawnOverrides
 			cmp eax, 0x73B87374
 			je conclusion // current goal is AIGoalHeadOnRam
 
+			// Execute original code and resume
 			mov eax, dword ptr [esp + 0x4]
 			mov dword ptr [ecx + 0x48], eax
 
@@ -520,10 +493,10 @@ namespace CopSpawnOverrides
 		{
 			je conclusion // spawn intended to fail
 
-			mov ecx, eax
-
-			push ecx
-			call NotifyRoadblockManager // ecx: PVehicle
+			push eax
+			push eax
+			lea ecx, dword ptr [roadblockManager]
+			call GlobalSpawnManager::NotifyOfSpawn // stack: copVehicle
 			pop ecx
 
 			mov edx, dword ptr [ecx]
@@ -538,7 +511,8 @@ namespace CopSpawnOverrides
 			dec edi
 			jne skip // car(s) left to generate
 
-			call ResetRoadblockManager
+			lea ecx, dword ptr [roadblockManager]
+			call GlobalSpawnManager::ResetSpawnTable
 
 			jmp dword ptr roadblockSpawnExit
 
@@ -559,7 +533,8 @@ namespace CopSpawnOverrides
 			add esp, 0x4
 
 			push eax
-			call ResetEventManager
+			lea ecx, dword ptr [eventManager]
+			call GlobalSpawnManager::ResetSpawnTable
 			pop eax
 
 			mov dword ptr [esp], eax
@@ -711,6 +686,7 @@ namespace CopSpawnOverrides
 		MemoryEditor::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
 
 		MemoryEditor::Write<byte>(0x00, 0x433CB2);           // min. displayed count
+		MemoryEditor::Write<byte>(0xEB, 0x42BB2D);           // helicopter spawns in "COOLDOWN" mode 
 		MemoryEditor::Write<byte>(0x90, 0x57B188, 0x4443E4); // helicopter / roadblock increment
 		MemoryEditor::Write<byte>(0xEB, 0x42B9AA, 0x44389E); // non-member / HeavyStrategy cops fleeing
 

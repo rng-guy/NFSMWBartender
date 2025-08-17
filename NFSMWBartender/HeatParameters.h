@@ -286,17 +286,14 @@ namespace HeatParameters
 		const vault vehicleType,
 		const bool  forHelicopter
 	) {
-		const address pointer = Globals::GetVaultParameter(0x4A97EC8F, vehicleType, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
+		const address attribute = Globals::GetFromVault(0x4A97EC8F, vehicleType, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
 
-		if (pointer)
-		{
-			const vault vehicleClass = *((vault*)(pointer + 0x8));
-			const bool  isHelicopter = (vehicleClass == 0xB80933AA); // checks if "CHOPPER"
+		if (not attribute) return false;
+		
+		const vault vehicleClass = *((vault*)(attribute + 0x8));
+		const bool  isHelicopter = (vehicleClass == 0xB80933AA); // checks if "CHOPPER"
 
-			return (isHelicopter == forHelicopter);
-		}
-
-		return false;
+		return (isHelicopter == forHelicopter);
 	}
 
 

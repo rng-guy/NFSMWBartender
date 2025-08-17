@@ -37,7 +37,7 @@ namespace DestructionStrings
 
 	bool VehicleExists(const vault vehicleType)
 	{
-		return Globals::GetVaultParameter(0x4A97EC8F, vehicleType, 0x9CA1C8F9); // fetches "CollectionName" from "pvehicle"
+		return Globals::GetFromVault(0x4A97EC8F, vehicleType); // fetches vehicle node from "pvehicle"
 	}
 
 
@@ -128,12 +128,11 @@ namespace DestructionStrings
 		defaultDestructionKey = (isValid) ? pair.mapped() : 0x0;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent((isValid) ? "Valid" : "No valid", "default key");
+			Globals::logger.LogLongIndent((isValid) ? "Valid" : "No valid", "default label");
 
 		// Remove any invalid pairs
 		auto   iterator   = copTypeToDestructionKey.begin();
 		size_t numRemoved = 0;
-		size_t pairID     = 0;
 
 		while (iterator != copTypeToDestructionKey.end())
 		{
@@ -142,9 +141,9 @@ namespace DestructionStrings
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (numRemoved == 0) 
-						Globals::logger.LogLongIndent("Cop-to-label map");
+						Globals::logger.LogLongIndent("Vehicle-to-label map");
 
-					Globals::logger.LogLongIndent("  -", iterator->first, iterator->second, (int)(pairID + 1));
+					Globals::logger.LogLongIndent("  -", iterator->first, iterator->second);
 				}
 					
 				iterator = copTypeToDestructionKey.erase(iterator);
@@ -152,14 +151,9 @@ namespace DestructionStrings
 				numRemoved++;
 			}
 			else iterator++;
-
-			pairID++;
 		}
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			if (numRemoved > 0) 
-				Globals::logger.LogLongIndent("  pairs left:", (int)copTypeToDestructionKey.size());
-		}
+			Globals::logger.LogLongIndent((numRemoved > 0) ? "  pairs left:" : "Vehicle-to-label pairs:", (int)copTypeToDestructionKey.size());
 	}
 }

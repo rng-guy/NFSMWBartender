@@ -44,14 +44,15 @@ namespace ConfigParser
 	private:
 
 		inipp::Ini<char> parser;
+		std::string      iniFile;
 
 
 		template <typename T>
 		static void EnforceBounds
 		(
 			T&                      parameterValue,
-			const std::optional<T>& lowerBound = {},
-			const std::optional<T>& upperBound = {}
+			const std::optional<T>& lowerBound      = {},
+			const std::optional<T>& upperBound      = {}
 		) {
 			if (lowerBound and (parameterValue < lowerBound.value())) parameterValue = lowerBound.value();
 			if (upperBound and (parameterValue > upperBound.value())) parameterValue = upperBound.value();
@@ -84,13 +85,15 @@ namespace ConfigParser
 
 		bool LoadFile(const std::string& iniFile)
 		{
+			if (this->iniFile == iniFile) return true;
+
 			std::ifstream fileStream(iniFile);
-			if (not fileStream) return false;
+			if (not fileStream.is_open()) return false;
 
 			this->parser.clear();
+			this->iniFile = iniFile;
 			this->parser.parse(fileStream);
 			this->parser.strip_trailing_comments();
-			fileStream.close();
 
 			return true;
 		}

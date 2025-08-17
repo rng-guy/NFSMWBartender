@@ -55,7 +55,6 @@ namespace CopFleeOverrides
 
 		Globals::AddressMap<Assessment> copVehicleToAssessment;
 		Globals::AddressMap<float>      copVehicleToFleeTimestamp;
-		Globals::AddressSet             fleeingCopVehicles;
 		
 
 		void UpdateStrategyDurations()
@@ -223,31 +222,27 @@ namespace CopFleeOverrides
 		}
 
 
-		void CheckSchedule()
+		void CheckTimestamps()
 		{
-			if (this->copVehicleToFleeTimestamp.size() > 0)
+			if (this->copVehicleToFleeTimestamp.empty()) return;
+			
+			const float simulationTime = *(this->simulationTime);
+			auto        iterator       = this->copVehicleToFleeTimestamp.begin();
+
+			while (iterator != this->copVehicleToFleeTimestamp.end())
 			{
-				const float simulationTime = *(this->simulationTime);
-				auto        iterator       = this->copVehicleToFleeTimestamp.begin();
-
-				while (iterator != this->copVehicleToFleeTimestamp.end())
+				if (simulationTime >= iterator->second)
 				{
-					if (simulationTime >= iterator->second)
-					{
-						this->copVehicleToAssessment.at(iterator->first).status = Status::FLEEING;
-						this->fleeingCopVehicles.insert(iterator->first);
+					this->copVehicleToAssessment.at(iterator->first).status = Status::FLEEING;
+					this->MakeFlee(iterator->first);
 
-						if constexpr (Globals::loggingEnabled)
-							Globals::logger.Log(this->pursuit, "[FLE]", iterator->first, "now fleeing");
+					if constexpr (Globals::loggingEnabled)
+						Globals::logger.Log(this->pursuit, "[FLE]", iterator->first, "now fleeing");
 
-						iterator = this->copVehicleToFleeTimestamp.erase(iterator);
-					}
-					else iterator++;
+					iterator = this->copVehicleToFleeTimestamp.erase(iterator);
 				}
+				else iterator++;
 			}
-
-			for (const address copVehicle : this->fleeingCopVehicles) 
-				this->MakeFlee(copVehicle);
 		}
 
 
@@ -259,7 +254,7 @@ namespace CopFleeOverrides
 
 		void UpdateOnGameplay() override 
 		{
-			this->CheckSchedule();
+			this->CheckTimestamps();
 		}
 
 
@@ -307,15 +302,8 @@ namespace CopFleeOverrides
 
 			if (foundVehicle != this->copVehicleToAssessment.end())
 			{
-				switch (foundVehicle->second.status)
-				{
-				case Status::FLAGGED:
+				if (foundVehicle->second.status == Status::FLAGGED)
 					this->copVehicleToFleeTimestamp.erase(copVehicle);
-					break;
-
-				case Status::FLEEING:
-					this->fleeingCopVehicles.erase(copVehicle);
-				}
 
 				this->copVehicleToAssessment.erase(foundVehicle);
 			}
@@ -323,6 +311,31 @@ namespace CopFleeOverrides
 				Globals::logger.Log("WARNING: [FLE] Unknown vehicle", copVehicle, "in", this->pursuit);
 		}
 	};
+
+
+
+
+
+	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+
+	constexpr address updateFormationEntrance = 0x443917;
+	constexpr address updateFormationExit     = 0x44391C;
+
+	__declspec(naked) void UpdateFormation()
+	{
+		__asm
+		{
+			mov edi, [ebp]
+			test edi, edi
+			je conclusion // invalid AIVehiclePursuit
+
+			mov eax, dword ptr [edi - 0x758 + 0xC4]
+			cmp eax, 0x88C018A9 // AIGoalFleePursuit
+
+			conclusion:
+			jmp dword ptr updateFormationExit
+		}
+	}
 
 
 
@@ -347,6 +360,9 @@ namespace CopFleeOverrides
 		}
 
 		HeatParameters::CheckIntervals<float>(minFleeDelays, maxFleeDelays);
+
+		// Code caves
+		MemoryEditor::DigCodeCave(UpdateFormation, updateFormationEntrance, updateFormationExit);
 
 		return (featureEnabled = true);
 	}

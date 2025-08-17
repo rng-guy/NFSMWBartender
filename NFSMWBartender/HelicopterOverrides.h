@@ -225,8 +225,6 @@ namespace HelicopterOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		MemoryEditor::Write<byte>(0xEB, 0x42BB2D); // prevents spawns in Cooldown mode through VltEd
-
 		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini")) return false;
 
 		// Heat parameters

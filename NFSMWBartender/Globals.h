@@ -42,17 +42,17 @@ namespace Globals
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	address GetVaultParameter
+	address GetFromVault
 	(
 		const vault rootKey,
 		const vault nodeKey,
-		const vault parameterKey
+		const vault attributeKey = 0x0
 	) {
-		static address (__cdecl*    const GetNode)     (vault, vault)        = (address (__cdecl*)   (vault, vault))       0x455FD0;
-		static address (__thiscall* const GetParameter)(address, vault, int) = (address (__thiscall*)(address, vault, int))0x454190;
+		static address (__cdecl*    const GetVaultNode)     (vault, vault)        = (address (__cdecl*)   (vault, vault))       0x455FD0;
+		static address (__thiscall* const GetVaultAttribute)(address, vault, int) = (address (__thiscall*)(address, vault, int))0x454190;
 
-		const address node = GetNode(rootKey, nodeKey);
-		return (node) ? GetParameter(node, parameterKey, 0) : 0x0;
+		const address node = GetVaultNode(rootKey, nodeKey);
+		return (node and attributeKey) ? GetVaultAttribute(node, attributeKey, 0) : node;
 	}
 
 
