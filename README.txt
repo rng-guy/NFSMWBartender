@@ -64,7 +64,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
 
 The "Advanced" feature set FIXES TWO BUGS:
  • HeavyStrategy 3 spawns no longer have a chance to abort their ramming attempts instantly, and
- • the engagement count displayed above the pursuit board now accurately counts chasing cops only.
+ • the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 
 
 
