@@ -42,7 +42,8 @@ static void Initialise()
     const bool advancedSetEnabled = PursuitObserver::Initialise(parser);
 
     // General Heat and state observer
-    if (basicSetEnabled or advancedSetEnabled) StateObserver::Initialise(parser);
+    if (basicSetEnabled or advancedSetEnabled) 
+        StateObserver::Initialise(parser);
 }
 
 
