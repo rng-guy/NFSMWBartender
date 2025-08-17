@@ -95,6 +95,8 @@ namespace ConfigParser
 			this->parser.parse(fileStream);
 			this->parser.strip_trailing_comments();
 
+			fileStream.close(); // omitting this triggers Windows Defender
+
 			return true;
 		}
 

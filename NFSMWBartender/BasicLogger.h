@@ -46,6 +46,13 @@ namespace BasicLogger
 		std::string longIndent = "              ";
 
 
+		~Logger()
+		{
+			if (this->file.is_open())
+				this->file.close(); // omitting this triggers Windows Defender
+		}
+
+
 		bool Open(const std::string& fileName)
 		{
 			if (this->file.is_open()) return false;
