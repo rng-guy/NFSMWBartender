@@ -259,7 +259,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    handle managing > 8 "Chasers" for very long. To configure LA to work with Bartender,
    open LA's "NFSMWLimitAdjuster.ini" configuration file; there, set the "PursuitCops"
    value to 255 and disable every single cop-related feature under "[Options]". After 
-   configuring LA like this, use only Bartender to set the global cop-spawn limits!
+   configuring LA like this, use only Bartender to set any global cop-spawn limits!
 
  • "Chasers" will only flee at Heat levels for which you provide valid delay values.
    
