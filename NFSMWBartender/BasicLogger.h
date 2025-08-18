@@ -49,7 +49,7 @@ namespace BasicLogger
 		~Logger()
 		{
 			if (this->file.is_open())
-				this->file.close(); // omitting this triggers Windows Defender
+				this->file.close(); // omitting this can trigger Windows Defender
 		}
 
 
