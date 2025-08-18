@@ -11,18 +11,18 @@ You really **only need to read this document** if
 
 &nbsp;
 
-You might need to whitelist Bartender's .asi file in your **antivirus software** if it gets (falsely) flagged as a virus. If the flagging happens as you attempt to launch your game with Bartender installed, the .asi loader will display a pop-up window with an error message ("Error code: 225") before your antivirus likely (re)moves the .asi file.
+First, if Bartender's .asi file gets **falsely flagged as a virus** by your antivirus software, you will need to whitelist the file. If the flagging happens as you attempt to launch your game with Bartender installed, the .asi loader will display a pop-up window with an error message ("Error code: 225") before your antivirus likely (re)moves the .asi file.
 
 &nbsp;
 
-There are **three potential causes** for any in-game issues you might encounter with Bartender:
+Last, there are three **possible causes for in-game issues** you might encounter with Bartender:
 * features of other .asi mods that make changes to the same parts of the game as Bartender,
 * the quirks of how Bartender reads and processes parameters in its configuration files, or
 * the actual parameter values themselves that you provide in Bartender's configuration files.
 
 &nbsp;
 
-To **help you troubleshoot issues** with Bartender, the sections below address these questions:
+To help you **solve in-game issues** with Bartender, the sections below address these questions:
 1. [What is there to know about Bartender's file parsing?](#2---what-is-there-to-know-about-bartenders-file-parsing)
 2. [What is there to know about the "Basic" feature set?](#3---what-is-there-to-know-about-the-basic-feature-set)
 3. [What is there to know about the "Advanced" feature set?](#4---what-is-there-to-know-about-the-advanced-feature-set)
