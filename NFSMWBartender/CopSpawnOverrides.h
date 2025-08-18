@@ -369,34 +369,6 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
 
-	void __fastcall NotifyEventManager(const address copVehicle)
-	{
-		eventManager.NotifyOfSpawn(copVehicle);
-	}
-
-
-
-	void ResetEventManager()
-	{
-		eventManager.ResetSpawnTable();
-	}
-
-
-
-	void __fastcall NotifyRoadblockManager(const address copVehicle)
-	{
-		roadblockManager.NotifyOfSpawn(copVehicle);
-	}
-
-
-
-	void ResetRoadblockManager()
-	{
-		roadblockManager.ResetSpawnTable();
-	}
-
-
-
 	const char* __fastcall GetByClassReplacement(const address spawnReturn)
 	{
 		if (ContingentManager::IsHeatLevelKnown())
@@ -522,8 +494,9 @@ namespace CopSpawnOverrides
 			je conclusion // spawn intended to fail
 
 			push eax
-			mov ecx, eax
-			call NotifyRoadblockManager // ecx: copVehicle
+			push eax
+			lea ecx, dword ptr [roadblockManager]
+			call GlobalSpawnManager::NotifyOfSpawn // stack: copVehicle
 			pop ecx
 
 			mov edx, dword ptr [ecx]
@@ -538,7 +511,8 @@ namespace CopSpawnOverrides
 			dec edi
 			jne skip // car(s) left to generate
 
-			call ResetRoadblockManager
+			lea ecx, dword ptr [roadblockManager]
+			call GlobalSpawnManager::ResetSpawnTable
 
 			jmp dword ptr roadblockSpawnExit
 
@@ -559,7 +533,8 @@ namespace CopSpawnOverrides
 			add esp, 0x4
 
 			push eax
-			call ResetEventManager
+			lea ecx, dword ptr [eventManager]
+			call GlobalSpawnManager::ResetSpawnTable
 			pop eax
 
 			mov dword ptr [esp], eax
