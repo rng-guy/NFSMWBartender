@@ -321,9 +321,8 @@ namespace PursuitObserver
 			test al, al
 			je conclusion // spawn failed
 
-			push esi
-			lea ecx, dword ptr [CopSpawnOverrides::eventManager]
-			call CopSpawnOverrides::GlobalSpawnManager::NotifyOfSpawn // stack: copVehicle
+			mov ecx, esi
+			call CopSpawnOverrides::NotifyEventManager // ecx: copVehicle
 
 			mov ecx, esi
 			call PursuitObserver::Register // ecx: PVehicle

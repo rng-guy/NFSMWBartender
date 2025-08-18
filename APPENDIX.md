@@ -11,7 +11,11 @@ You really **only need to read this document** if
 
 &nbsp;
 
-There are mostly **three potential causes** for any issues you might encounter with Bartender:
+You might need to whitelist Bartender's .asi file in your **antivirus software** if it gets (falsely) flagged as a virus. If the flagging happens as you attempt to launch your game with Bartender installed, the .asi loader will display a pop-up window with an error message ("Error code: 225") before your antivirus likely (re)moves the .asi file.
+
+&nbsp;
+
+There are **three potential causes** for any in-game issues you might encounter with Bartender:
 * features of other .asi mods that make changes to the same parts of the game as Bartender,
 * the quirks of how Bartender reads and processes parameters in its configuration files, or
 * the actual parameter values themselves that you provide in Bartender's configuration files.

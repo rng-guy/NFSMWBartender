@@ -113,8 +113,9 @@ Some popular .asi mods **require (re)configuration** to be compatible with Barte
 
 To **install** Bartender:
 1. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
-2. copy the `BartenderSettings` folder and .asi file into the game's `scripts` folder; and
-3. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.
+2. copy the `BartenderSettings` folder and .asi file into your game's `scripts` folder;
+3. if Bartender's .asi file gets flagged by your antivirus software, whitelist the file; and
+4. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.
 
 &nbsp;
 
