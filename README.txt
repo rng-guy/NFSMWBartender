@@ -63,7 +63,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the helicopter can (de / re)spawn.
 
 The "Advanced" feature set FIXES TWO BUGS:
- • HeavyStrategy 3 spawns no longer end their ramming attempts too early to flee instead, and
+ • HeavyStrategy 3 spawns no longer end their ramming attempts prematurely to flee instead, and
  • the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 
 
