@@ -543,9 +543,6 @@ namespace PursuitObserver
 
 		CopSpawnTables     ::Validate();
 		HelicopterOverrides::Validate();
-
-		CopSpawnOverrides::eventManager    .ReloadSpawnTable();
-		CopSpawnOverrides::roadblockManager.ReloadSpawnTable();
 	}
 
 
