@@ -191,9 +191,11 @@ Regarding the "Advanced" feature set **in general**:
 
 * Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That is because Bartender's fix makes the engagement count track "Chasers" only, while disregarding any vehicles that join the pursuit through Heavy / LeaderStrategy spawns, from roadblocks, or as helicopters.
 
-* You should ensure that every HeavyStrategy you enable in a given Heat level's `pursuitsupport` VltEd node is only listed there once (e.g. there isn't a second HeavyStrategy 3), and that there is also no more than one LeaderStrategy listed. Otherwise, such duplicates can cause the game (and Bartender) to misread their `Duration` VltEd parameters.
+* For each Heat level, you should use a `FullEngagementCopCount` VltEd parameter > 0. Otherwise, Bartender may fail to update the displayed engagement count accurately.
 
-* If this feature set is enabled, all HeavyStrategy 3 spawns will attempt to ram you until they leave the pursuit. They will leave on their own once their `Duration` VltEd parameter expires.
+* For each Heat level, you should (at most) only include each HeavyStrategy (3 and 4) once, and only a single overall LeaderStrategy (5 or 7). Otherwise, any duplicates may cause the game (and Bartender) to misread their `Duration` VltEd parameters.
+
+* If this feature set is enabled, all HeavyStrategy 3 spawns will always attempt to ram you until their `Duration` VltEd parameters expire and they are forced to flee the pursuit.
 
 * If this feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because this feature set fulfils their intended purposes with extended customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
