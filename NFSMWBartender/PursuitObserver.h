@@ -98,8 +98,7 @@ namespace PursuitObserver
 
 	public:
 
-		explicit PursuitObserver(const address pursuit) 
-			: pursuit(pursuit) 
+		explicit PursuitObserver(const address pursuit) : pursuit(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     NEW [OBS] Pursuit", this->pursuit);

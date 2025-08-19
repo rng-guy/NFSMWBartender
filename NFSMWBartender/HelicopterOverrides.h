@@ -146,8 +146,7 @@ namespace HelicopterOverrides
 
 	public:
 
-		explicit HelicopterManager(const address pursuit) 
-			: pursuit(pursuit) 
+		explicit HelicopterManager(const address pursuit) : pursuit(pursuit) 
 		{
 			this->UpdateNextSpawnTimestamp();
 		}

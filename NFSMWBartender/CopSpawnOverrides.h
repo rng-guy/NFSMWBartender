@@ -18,29 +18,24 @@ namespace CopSpawnOverrides
 	{
 	private:
 
-		Globals::VaultMap<int> copTypeToCurrentCount;
+		const HeatParameters::Pair<CopSpawnTables::SpawnTable>* const source;
 
-		CopSpawnTables::SpawnTable               table;
-		const CopSpawnTables::SpawnTable** const source;
-
+		CopSpawnTables::SpawnTable table;
+		Globals::VaultMap<int>     copTypeToCurrentCount;
+		
 
 
 	public:
 
-		explicit GlobalSpawnManager(const CopSpawnTables::SpawnTable** const source) : source(source) {}
+		explicit GlobalSpawnManager(const HeatParameters::Pair<CopSpawnTables::SpawnTable>* const source) : source(source) {}
 
 
 		void ReloadSpawnTable()
 		{
-			if (*(this->source))
-			{
-				this->table = *(*(this->source));
+			this->table = *(this->source->current);
 
-				for (const auto& pair : this->copTypeToCurrentCount)
-					this->table.UpdateCapacity(pair.first, -(pair.second));
-			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [GLO] Failed to reload table");
+			for (const auto& pair : this->copTypeToCurrentCount)
+				this->table.UpdateCapacity(pair.first, -(pair.second));
 		}
 
 
@@ -57,20 +52,15 @@ namespace CopSpawnOverrides
 		{
 			const char* copName = this->table.GetRandomCopName();
 
-			if ((not copName) and *(this->source))
+			if (not copName)
 			{
-				copName = (*(*(this->source))).GetRandomCopName();
+				copName = this->source->current->GetRandomCopName();
 
 				if constexpr (Globals::loggingEnabled)
 				{
-					if (not copName)
+					if (not copName) 
 						Globals::logger.Log("WARNING: [GLO] Failed to select vehicle");
 				}
-			}
-			else if constexpr (Globals::loggingEnabled)
-			{
-				if (not copName)
-					Globals::logger.Log("WARNING: [GLO] Invalid source-table pointer");
 			}
 
 			return copName;
@@ -104,8 +94,8 @@ namespace CopSpawnOverrides
 	// Code caves
 	bool skipEventSpawns = true;
 
-	GlobalSpawnManager eventManager    (&(CopSpawnTables::eventSpawnTables.current));
-	GlobalSpawnManager roadblockManager(&(CopSpawnTables::roadblockSpawnTables.current));
+	GlobalSpawnManager eventManager    (&(CopSpawnTables::eventSpawnTables));
+	GlobalSpawnManager roadblockManager(&(CopSpawnTables::roadblockSpawnTables));
 
 
 
@@ -163,11 +153,11 @@ namespace CopSpawnOverrides
 						Globals::logger.Log(this->pursuit, "[SPA] Copying", pair.second, pair.first);
 				}
 
-				this->table.UpdateCapacity(pair.first, -(pair.second));
+				const bool isInTable = this->table.UpdateCapacity(pair.first, -(pair.second));
 
 				if constexpr (Globals::loggingEnabled)
 				{
-					if (this->table.Contains(pair.first))
+					if (isInTable)
 						Globals::logger.Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(pair.first));
 
 					else
@@ -182,8 +172,7 @@ namespace CopSpawnOverrides
 			this->numPatrolCarsToSpawn = 0;
 
 			// PursuitAttributes node
-			static address (__thiscall* const GetPursuitNode)     (address)             = (address (__thiscall*)(address))            0x418E90;
-			static address (__thiscall* const GetPursuitParameter)(address, vault, int) = (address (__thiscall*)(address, vault, int))0x454810;
+			static address (__thiscall* const GetPursuitNode)(address) = (address (__thiscall*)(address))0x418E90;
 
 			const address pursuitNode = GetPursuitNode(this->pursuit);
 			
@@ -196,11 +185,13 @@ namespace CopSpawnOverrides
 			}
 
 			// Number of patrol cars
-			const address numPatrolCars = GetPursuitParameter(pursuitNode, 0x24F7A1BC, 0); // fetches "NumPatrolCars"
+			static address (__thiscall* const GetPursuitAttribute)(address, vault, int) = (address (__thiscall*)(address, vault, int))0x454810;
 
-			if (numPatrolCars)
+			const address attribute = GetPursuitAttribute(pursuitNode, 0x24F7A1BC, 0); // fetches "NumPatrolCars"
+
+			if (attribute)
 			{
-				this->numPatrolCarsToSpawn = *((int*)numPatrolCars);
+				this->numPatrolCarsToSpawn = *((int*)attribute);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[SPA] Max. patrol cars:", this->numPatrolCarsToSpawn);
@@ -255,8 +246,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		explicit ContingentManager(const address pursuit)
-			: pursuit(pursuit)
+		explicit ContingentManager(const address pursuit) : pursuit(pursuit)
 		{
 			this->pursuitToManager.insert({this->pursuit, this});
 			this->UpdateSpawnTable();

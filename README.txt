@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.14.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.14.01) │ ■ ────────────────────────────────────────────────────
 
 You can view this document with web formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -54,7 +54,7 @@ label you provide against the game's (potentially modified) language files whene
 The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • how many cops can (re)spawn without backup once a wave is exhausted,
  • the global cop-spawn limit for how many cops in total may chase you at any given time,
- • how quickly (if at all) cops flee the pursuit if they don't belong,
+ • how quickly (if at all) cops flee a pursuit if they don't belong to the Heat level,
  • what vehicles (any amount, with counts and chances) may spawn to chase and search for you,
  • what vehicles (same liberties as above) may spawn in regular roadblocks,
  • what vehicles (ditto) may spawn as pre-generated cops in scripted events,
@@ -63,7 +63,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the helicopter can (de / re)spawn.
 
 The "Advanced" feature set FIXES TWO BUGS:
- • HeavyStrategy 3 spawns no longer have a chance to abort their ramming attempts instantly, and
+ • HeavyStrategy 3 spawns will no longer cancel their ramming attempts early to flee, and
  • the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 
 

@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.14.00) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.14.01) │ ■ ────────────────────────────────────────────────
 
 This document is also on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -420,4 +420,5 @@ v1.00.00: Initial release
       02: Improved and overhauled the documentation for (hopefully) the last god-damn time
       03: Improved consistency of the fix for less frequent support spawns in longer pursuits
 
-   14.00: Added fix for the vanilla bug of HeavyStrategy 3 spawns aborting their ramming attempts
+   14.00: Added fix for the vanilla bug of HeavyStrategy 3 spawns fleeing pursuits too early
+      01: Improved performance some more thanks to my newfound disregard for antivirus evasion

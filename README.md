@@ -61,7 +61,7 @@ You can also **assign new (Binary) strings** for the game to display when cop ve
 The "Advanced" feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave is exhausted,
 * the global cop-spawn limit for how many cops in total may chase you at any given time,
-* how quickly (if at all) cops flee the pursuit if they don't belong,
+* how quickly (if at all) cops flee a pursuit if they don't belong to the Heat level,
 * what vehicles (any amount, with counts and chances) may spawn to chase and search for you,
 * what vehicles (same liberties as above) may spawn in regular roadblocks,
 * what vehicles (ditto) may spawn as pre-generated cops in scripted events,
@@ -72,7 +72,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Advanced" feature set **fixes two bugs**:
-* HeavyStrategy 3 spawns no longer have a chance to abort their ramming attempts instantly, and
+* HeavyStrategy 3 spawns will no longer cancel their ramming attempts early to flee, and
 * the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 
 &nbsp;
