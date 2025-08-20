@@ -29,8 +29,8 @@ The "Basic" feature set **lets you change** (per Heat level)
 * how quickly the green "EVADE" bar fills once all cops have lost sight of you,
 * at what time interval you gain passive bounty,
 * the maximum combo-bounty multiplier for destroying cops quickly,
-* the internal cooldown for regular roadblock spawns,
-* the internal cooldown for Heavy / LeaderStrategy spawns,
+* the internal cooldown for non-Strategy roadblock requests,
+* the internal cooldown for Heavy / LeaderStrategy requests,
 * what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
 * what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
 * what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
@@ -42,7 +42,7 @@ The "Basic" feature set **fixes five bugs**:
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures),
 * you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
-* regular roadblock and Heavy / LeaderStrategy spawns no longer slow down in longer pursuits.
+* non-Strategy roadblock and Heavy / LeaderStrategy requests no longer slow down over time.
 
 &nbsp;
 
@@ -63,7 +63,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * the global cop-spawn limit for how many cops in total may chase you at any given time,
 * how quickly (if at all) cops flee a pursuit if they don't belong to the Heat level,
 * what vehicles (any amount, with counts and chances) may spawn to chase and search for you,
-* what vehicles (same liberties as above) may spawn in regular roadblocks,
+* what vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
 * what vehicles (ditto) may spawn as pre-generated cops in scripted events,
 * what vehicles (without counts) may spawn as free patrols when there is no active pursuit,
 * what vehicle spawns in place of the regular helicopter, and

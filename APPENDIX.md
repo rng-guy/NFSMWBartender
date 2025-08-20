@@ -117,21 +117,21 @@ Regarding **cop (Binary) strings** (`BartenderSettings\Basic\Labels.ini`):
 
 Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
-* Deleting this file also disables the fix for slower roadblock and Heavy / LeaderStrategy spawns.
+* Deleting this file disables the fix for slower roadblock and Heavy / LeaderStrategy requests.
 
-* When the game requests a roadblock, a random roadblock cooldown between two values begins. While this cooldown is active, the game cannot make more requests for regular roadblocks.
+* When the game requests a non-Strategy roadblock, a random roadblock cooldown begins. While this cooldown is active, the game cannot make more non-Strategy roadblock requests.
 
 * When the game requests a Heavy / LeaderStrategy, a fixed-length strategy cooldown begins. While this cooldown is active, the game cannot make more Heavy / LeaderStrategy requests.
 
 * When the game requests a HeavyStrategy, it (re)sets the roadblock cooldown to a fixed value.
 
-* Bartender fixes the slowdown of regular roadblock and Heavy / LeaderStrategy spawns by clearing the request queue from time to time. Bartender does this whenever a certain amount of time has passed without any new roadblock or strategy requests, despite them being off cooldown. This maximum-overdue delay guarantees that requests cannot block each other for too long. The most common cause of such blockages are HeavyStrategy requests, especially for HeavyStrategy 3.
+* Bartender fixes the slowdown of non-Strategy roadblock and Heavy / LeaderStrategy requests by clearing the request queue. Bartender clears this queue whenever a certain amount of time has passed without any new requests, despite either being off cooldown. This maximum-overdue delay guarantees that requests cannot block each other for too long. The most common causes of such blockages tend to be long-overdue HeavyStrategy 3 requests.
 
-* Sometimes, regular roadblock or Heavy / LeaderStrategy spawns may appear more or less frequently than their cooldowns would suggest. This happens because their cooldowns only affect requests, not spawns. While every spawn is the result of a request, not every request results in a spawn. The game remains free to spawn or cancel any support request at any time.
+* Sometimes, non-Strategy roadblock or Heavy / LeaderStrategy spawns may appear more or less frequently than their cooldowns would suggest. This happens because these cooldowns only affect requests, not actual spawns: While every spawn is the result of a request, not every request results in a spawn. The game remains free to spawn or cancel any pending support request.
 
-* Very short cooldowns for regular roadblock or Heavy / LeaderStrategy requests may cause spam. Excessive support spam can lead to game instability, as these spawns ignore most spawn limits. You can also reduce this risk by setting their `Duration` VltEd parameters to low values.
+* Very short cooldowns for non-Strategy roadblock or Heavy / LeaderStrategy requests may cause excessive spam. Such spam might lead to game instability, as Heavy / LeaderStrategy spawns ignore spawn limits. You can reduce this risk by using low(er) `Duration` VltEd parameters.
 
-* The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before the game can start requesting regular roadblocks and Heavy / LeaderStrategy spawns in a given pursuit.
+* The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before the game can make non-Strategy roadblock and Heavy / LeaderStrategy requests in a given pursuit.
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
@@ -147,7 +147,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 Regarding **uncategorised features** (`BartenderSettings\Basic\Others.ini`):
 
-* Deleting this file also disables the fix for getting busted while the green "EVADE" bar fills.
+* Deleting this file disables the fix for getting busted while the green "EVADE" bar fills.
 
 * The red "BUSTED" bar fills when you drive slowly enough and are near a cop who can see you. Once the bar is full, the cops apprehend you and end the pursuit in their favour.
  
@@ -248,6 +248,8 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 * Bartender enforces the `count` values for "Chasers" for each active pursuit separately. For "Roadblocks" / "Events", Bartender enforces `count` values for each roadblock / event. "Patrols" lack `count` values because they technically don't belong to anything trackable.
 
 * Once they join a pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
+
+* The "Roadblocks" spawn tables do not affect HeavyStrategy 4 roadblocks.
 
 * Each roadblock / event in the game requests a hard-coded number of vehicles. No roadblock formation in the game requests more than 5 vehicles, and no scripted event more than 8.
  
