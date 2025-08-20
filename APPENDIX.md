@@ -249,7 +249,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Once they join a pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
 
-* The "Roadblocks" spawn tables do not affect HeavyStrategy 4 roadblocks.
+* The "Roadblocks" spawn tables do not apply to HeavyStrategy 4 roadblocks.
 
 * Each roadblock / event in the game requests a hard-coded number of vehicles. No roadblock formation in the game requests more than 5 vehicles, and no scripted event more than 8.
  
