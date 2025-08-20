@@ -61,10 +61,10 @@ namespace Globals
 
 	// Custom hash function and (scoped) aliases ----------------------------------------------------------------------------------------------------
 
-	template <typename T>
+	template <typename K>
 	struct IdentityHash 
 	{
-		size_t operator()(const T value) const
+		size_t operator()(const K value) const
 		{
 			return value;
 		}
@@ -72,12 +72,20 @@ namespace Globals
 
 	
 
-	using AddressSet = std::unordered_set<address, IdentityHash<address>>;
-	using VaultSet   = std::unordered_set<vault,   IdentityHash<vault>>;
+	template <typename K>
+	using IdentitySet = std::unordered_set<K, IdentityHash<K>>;
 
-	template <typename T>
-	using AddressMap = std::unordered_map<address, T, IdentityHash<address>>;
+	using AddressSet = IdentitySet<address>;
+	using VaultSet   = IdentitySet<vault>;
 
-	template <typename T>
-	using VaultMap = std::unordered_map<vault, T, IdentityHash<vault>>;
+
+
+	template <typename K, typename V>
+	using IdentityMap = std::unordered_map<K, V, IdentityHash<K>>;
+
+	template <typename V>
+	using AddressMap = IdentityMap<address, V>;
+
+	template <typename V>
+	using VaultMap = IdentityMap<vault, V>;
 }
