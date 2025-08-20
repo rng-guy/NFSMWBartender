@@ -426,4 +426,4 @@ v1.00.00: Initial release
 
    14.00: Added fix for the vanilla bug of HeavyStrategy 3 spawns fleeing pursuits too early
       01: Improved performance some more thanks to my newfound disregard for antivirus evasion
-      02: Fixed a few minor inconsistencies in the README and some usage comments
+      02: Fixed a few minor inconsistencies in README and some usage comments
