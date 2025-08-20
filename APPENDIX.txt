@@ -49,9 +49,9 @@ Bartender can handle any INVALID VALUES you might provide in its parameter group
  • mismatched interval values (i.e. where "max" < "min") are each set to the lower value, and
  • comma-separated value pairs / tuples with too many or too few (valid) values count as omitted.
 
-Some parameter groups allow you to define DEFAULT VALUES, indicated by "default" in place of a
-Heat level or vehicle. These default values then apply to all Heat levels or vehicles for which
-you do not provide explicit values. Bartender parses such parameter groups in three steps:
+Some parameter groups allow you to define DEFAULT VALUES, indicated by "default" in place of
+a Heat level or vehicle. These default values then apply to all Heat levels or vehicles for
+which you don't provide explicit values. Bartender parses such parameter groups in three steps:
  1) • If you omit it, the "default" value is set to the game's vanilla (i.e. unmodded) value.
  2) • All free-roam Heat levels (format: "heatXY") you omit are set to the "default" value.
  3) • All race Heat levels (format: "raceXY") you omit are set to their free-roam values.
@@ -60,7 +60,7 @@ Bartender can handle any INVALID VEHICLES you might provide in its configuration
 both as values themselves and as something for which you provide other values. The sections
 below mention how Bartender does this on a case-by-case basis, but a vehicle is invalid if
  • it doesn't exist in the game's database (i.e. lacks a VltEd node under "pvehicle"), or
- • it is of the wrong class (e.g. is a helicopter when Bartender expects a regular car).
+ • it's of the wrong class (e.g. is a helicopter when Bartender expects a regular car).
 
 The CLASS OF A VEHICLE depends on the "CLASS" VltEd parameter in its "pvehicle" node. Bartender
 considers a "CLASS" value of "CHOPPER" to represent a helicopter, and every other value a car.
@@ -293,7 +293,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • Once they join a pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far
    as membership (i.e. fleeing decisions) and the "count" values of "Chasers" are concerned.
 
- • The "Roadblocks" spawn tables do not apply to HeavyStrategy 4 roadblocks.
+ • The "Roadblocks" spawn tables don't apply to HeavyStrategy 4 roadblocks.
 
  • Each roadblock / event in the game requests a hard-coded number of vehicles. No roadblock
    formation in the game requests more than 5 vehicles, and no scripted event more than 8.
@@ -309,7 +309,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
    to vehicles with "count" values of at least 5, as no roadblock consists of more than 5 cars.
 
  • Rarely, vehicles that are not in a "Roadblocks" spawn table will still show up in roadblocks.
-   This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it is
+   This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it's
    processing a roadblock request, causing it to place the wrong car in the requested roadblock.
    Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
