@@ -103,18 +103,15 @@ namespace GroundSupport
 			fcom dword ptr [ecx + 0x210]
 			fnstsw ax
 			test ah, 0x1
-			je clear // strategy cooldown is over threshold
+			je clear // strategy cooldown above threshold
 
-			fcom dword ptr [ecx + 0xC8]
+			fcom dword ptr [ecx + 0xC8] // roadblock cooldown
 			fnstsw ax
 			test ah, 0x1
-			je clear // roadblock cooldown is over threshold
-
-			fstp st(0)
-			jmp conclusion
 
 			clear:
 			fstp st(0)
+			jne conclusion // neither cooldown above threshold
 
 			push ecx
 			call dword ptr clearSupportRequest
