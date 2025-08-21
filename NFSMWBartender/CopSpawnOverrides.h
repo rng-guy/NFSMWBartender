@@ -449,28 +449,6 @@ namespace CopSpawnOverrides
 
 
 
-	constexpr address rammingGoalEntrance = 0x409850;
-	constexpr address rammingGoalExit     = 0x409857;
-
-	__declspec(naked) void RammingGoal()
-	{
-		__asm
-		{
-			mov eax, dword ptr [ecx + 0x48]
-			cmp eax, 0x73B87374
-			je conclusion // current goal is AIGoalHeadOnRam
-
-			// Execute original code and resume
-			mov eax, dword ptr [esp + 0x4]
-			mov dword ptr [ecx + 0x48], eax
-
-			conclusion:
-			jmp dword ptr rammingGoalExit
-		}
-	}
-
-
-
 	constexpr address roadblockSpawnEntrance = 0x43E04F;
 	constexpr address roadblockSpawnExit     = 0x43E06C;
 
@@ -674,6 +652,8 @@ namespace CopSpawnOverrides
 		// Code caves
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
 		MemoryEditor::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
+		
+		MemoryEditor::WriteToAddressRange(0x90, 0x4438B9, 0x4438C0); // HeavyStrategy 3 ramming cancellation
 
 		MemoryEditor::Write<byte>(0x00, 0x433CB2);           // min. displayed count
 		MemoryEditor::Write<byte>(0xEB, 0x42BB2D);           // helicopter spawns in "COOLDOWN" mode 
@@ -681,7 +661,6 @@ namespace CopSpawnOverrides
 		MemoryEditor::Write<byte>(0xEB, 0x42B9AA, 0x44389E); // non-member / HeavyStrategy cops fleeing
 
 		MemoryEditor::DigCodeCave(CopRefill,          copRefillEntrance,          copRefillExit);
-		MemoryEditor::DigCodeCave(RammingGoal,        rammingGoalEntrance,        rammingGoalExit);
 		MemoryEditor::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
 		MemoryEditor::DigCodeCave(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
 		MemoryEditor::DigCodeCave(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
