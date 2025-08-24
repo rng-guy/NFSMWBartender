@@ -20,7 +20,8 @@ namespace GroundSupport
 	HeatParameters::Pair<float> maxRoadblockCooldowns  (12.f);
 	HeatParameters::Pair<float> roadblockHeavyCooldowns(15.f);
 	HeatParameters::Pair<float> strategyCooldowns      (10.f);
-	HeatParameters::Pair<float> maxOverdueDelays       (20.f);
+	HeatParameters::Pair<float> strategyResetTimers    (20.f);
+	HeatParameters::Pair<float> playerSpeedThresholds  (15.f); // kph
 	
 	HeatParameters::Pair<std::string> lightRammingVehicles  ("copsuvl");
 	HeatParameters::Pair<std::string> heavyRammingVehicles  ("copsuv");
@@ -30,28 +31,16 @@ namespace GroundSupport
 	HeatParameters::Pair<std::string> henchmenVehicles      ("copsporthench");
 
 	// Conversions
-	float roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;
+	float roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current; // seconds
+	float strategyResetThreshold = strategyCooldowns.current     - strategyResetTimers.current;
+	float baseSpeedThreshold     = playerSpeedThresholds.current / 3.6f;                          // metres / second
+	float jerkSpeedThreshold     = baseSpeedThreshold * .625f;
 
 
 
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
-
-	constexpr address roadblockCooldownEntrance = 0x419535;
-	constexpr address roadblockCooldownExit     = 0x41953A;
-
-	__declspec(naked) void RoadblockCooldown()
-	{
-		__asm
-		{
-			push dword ptr roadblockCooldownRange
-
-			jmp dword ptr roadblockCooldownExit
-		}
-	}
-
-
 
 	constexpr address roadblockHeavyEntrance = 0x4197EC;
 	constexpr address roadblockHeavyExit     = 0x4197F6;
@@ -64,6 +53,21 @@ namespace GroundSupport
 			mov dword ptr [esi + 0xC8], eax
 
 			jmp dword ptr roadblockHeavyExit
+		}
+	}
+
+
+
+	constexpr address roadblockCooldownEntrance = 0x419535;
+	constexpr address roadblockCooldownExit     = 0x41953A;
+
+	__declspec(naked) void RoadblockCooldown()
+	{
+		__asm
+		{
+			push dword ptr roadblockCooldownRange
+
+			jmp dword ptr roadblockCooldownExit
 		}
 	}
 
@@ -85,6 +89,93 @@ namespace GroundSupport
 
 
 
+	constexpr address collapseCheckEntrance = 0x4437CD;
+	constexpr address collapseCheckExit     = 0x4437D6;
+
+	__declspec(naked) void CollapseCheck()
+	{
+		__asm
+		{
+			// Execute original code first
+			fcom dword ptr [esp + 0x1C] // CollapseSpeed
+			fnstsw ax
+			test ah, 0x5
+
+			fstp dword ptr [esp + 0x1C] // player speed
+
+			jmp dword ptr collapseCheckExit
+		}
+	}
+
+
+
+	constexpr address rammingCheckEntrance = 0x44385D;
+	constexpr address rammingCheckExit     = 0x443865;
+
+	__declspec(naked) void RammingCheck()
+	{
+		__asm
+		{
+			// Execute original code first
+			mov eax, dword ptr [esi + 0x1DC]
+			test eax, eax
+			je conclusion // no active HeavyStrategy 3
+
+			fld dword ptr [esp + 0x1C] // player speed
+
+			mov al, byte ptr [esi + 0x280]
+			test al, al
+			jne jerk // AIPursuit::GetIsAJerk
+
+			fcomp dword ptr baseSpeedThreshold
+			jmp evaluation
+
+			jerk:
+			fcomp dword ptr jerkSpeedThreshold
+
+			evaluation:
+			fnstsw ax
+			test ah, 0x1
+			mov eax, dword ptr [esi + 0x1DC]
+
+			conclusion:
+			jmp dword ptr rammingCheckExit
+		}
+	}
+
+
+
+	constexpr address heavyChanceEntrance = 0x4197BB;
+	constexpr address heavyChanceExit     = 0x4197C3;
+
+	__declspec(naked) void HeavyChance()
+	{
+		static constexpr address getHeavyStrategy = 0x4035E0;
+
+		__asm
+		{
+			call dword ptr getHeavyStrategy
+
+			cmp byte ptr [eax], 0x3
+			je included // is HeavyStrategy 3
+
+			mov edx, dword ptr [esi + 0x84]
+			test edx, edx
+			je included // no active roadblock
+
+			sub edi, 0x0
+			jmp conclusion
+
+			included:
+			sub edi, dword ptr [eax + 0x4]
+
+			conclusion:
+			jmp dword ptr heavyChanceExit
+		}
+	}
+
+
+
 	constexpr address requestDelayEntrance = 0x419680;
 	constexpr address requestDelayExit     = 0x419689;
 
@@ -97,21 +188,11 @@ namespace GroundSupport
 			cmp byte ptr [ecx + 0x20C], 0x2
 			jne conclusion // is not the dreaded 2 flag
 
-			fld dword ptr maxOverdueDelays.current
-			fchs
-
-			fcom dword ptr [ecx + 0x210]
+			fld dword ptr strategyResetThreshold
+			fcomp dword ptr [ecx + 0x210]
 			fnstsw ax
 			test ah, 0x1
-			je clear // strategy cooldown above threshold
-
-			fcom dword ptr [ecx + 0xC8] // roadblock cooldown
-			fnstsw ax
-			test ah, 0x1
-
-			clear:
-			fstp st(0)
-			jne conclusion // neither cooldown above threshold
+			jne conclusion // Strategy cooldown below threshold
 
 			push ecx
 			call dword ptr clearSupportRequest
@@ -254,18 +335,24 @@ namespace GroundSupport
 		HeatParameters::CheckIntervals<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
 
 		// Other pursuit parameters
-		HeatParameters::Parse<float, float>            (parser, "Strategies:Timers", {strategyCooldowns, 0.f}, {maxOverdueDelays, 0.f});
-		HeatParameters::Parse<std::string, std::string>(parser, "Heavy:Ramming",     {lightRammingVehicles},   {heavyRammingVehicles});
-		HeatParameters::Parse<std::string, std::string>(parser, "Heavy:Roadblock",   {lightRoadblockVehicles}, {heavyRoadblockVehicles});
-		HeatParameters::Parse<std::string, std::string>(parser, "Leader:General",    {leaderVehicles},         {henchmenVehicles});
+		HeatParameters::Parse<float>       (parser, "Heavy:Behaviour",   {playerSpeedThresholds, 0.f});
+		HeatParameters::Parse<float, float>(parser, "Strategies:Timers", {strategyCooldowns,     0.f}, {strategyResetTimers, 0.f});
+
+		HeatParameters::Parse<std::string, std::string>(parser, "Heavy:Ramming",   {lightRammingVehicles},   {heavyRammingVehicles});
+		HeatParameters::Parse<std::string, std::string>(parser, "Heavy:Roadblock", {lightRoadblockVehicles}, {heavyRoadblockVehicles});
+		HeatParameters::Parse<std::string, std::string>(parser, "Leader:General",  {leaderVehicles},         {henchmenVehicles});
 
 		// Code caves
-		MemoryEditor::Write<float*>(&(minRoadblockCooldowns.current), 0x419548);
+		MemoryEditor::Write<float*>(&(minRoadblockCooldowns.current), {0x419548});
+		MemoryEditor::WriteToAddressRange(0x90, 0x4197A9, 0x4197AB); // roadblocks blocking HeavyStrategy 3
 
 		MemoryEditor::DigCodeCave(RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);
-		MemoryEditor::DigCodeCave(RoadblockHeavy,    roadblockHeavyEntrance,    roadblockHeavyExit);
         MemoryEditor::DigCodeCave(RequestCooldown,   requestCooldownEntrance,   requestCooldownExit);
+		MemoryEditor::DigCodeCave(RoadblockHeavy,    roadblockHeavyEntrance,    roadblockHeavyExit);
+		MemoryEditor::DigCodeCave(CollapseCheck,     collapseCheckEntrance,     collapseCheckExit);
+		MemoryEditor::DigCodeCave(RammingCheck,      rammingCheckEntrance,      rammingCheckExit);
         MemoryEditor::DigCodeCave(RequestDelay,      requestDelayEntrance,      requestDelayExit);
+		MemoryEditor::DigCodeCave(HeavyChance,       heavyChanceEntrance,       heavyChanceExit);
 		MemoryEditor::DigCodeCave(OnAttached,        onAttachedEntrance,        onAttachedExit);
 		MemoryEditor::DigCodeCave(OnDetached,        onDetachedEntrance,        onDetachedExit);
         MemoryEditor::DigCodeCave(LeaderSub,         leaderSubEntrance,         leaderSubExit);
@@ -306,7 +393,8 @@ namespace GroundSupport
 		maxRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
 		strategyCooldowns      .SetToHeat(isRacing, heatLevel);
-		maxOverdueDelays       .SetToHeat(isRacing, heatLevel);
+		strategyResetTimers    .SetToHeat(isRacing, heatLevel);
+		playerSpeedThresholds  .SetToHeat(isRacing, heatLevel);
 
 		lightRammingVehicles  .SetToHeat(isRacing, heatLevel);
 		heavyRammingVehicles  .SetToHeat(isRacing, heatLevel);
@@ -316,6 +404,9 @@ namespace GroundSupport
 		henchmenVehicles      .SetToHeat(isRacing, heatLevel);
 
 		roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;
+		strategyResetThreshold = strategyCooldowns.current     - strategyResetTimers.current;
+		baseSpeedThreshold     = playerSpeedThresholds.current / 3.6f;
+		jerkSpeedThreshold     = baseSpeedThreshold * .625f;
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -325,7 +416,8 @@ namespace GroundSupport
 			Globals::logger.LogLongIndent("maxRoadblockCooldown    ", maxRoadblockCooldowns.current);
 			Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
 			Globals::logger.LogLongIndent("strategyCooldown        ", strategyCooldowns.current);
-			Globals::logger.LogLongIndent("maxOverdueDelay         ", maxOverdueDelays.current);
+			Globals::logger.LogLongIndent("strategyResetTimer      ", strategyResetTimers.current);
+			Globals::logger.LogLongIndent("playerSpeedThreshold    ", playerSpeedThresholds.current);
 
 			Globals::logger.LogLongIndent("lightRammingVehicle     ", lightRammingVehicles.current);
 			Globals::logger.LogLongIndent("heavyRammingVehicle     ", heavyRammingVehicles.current);

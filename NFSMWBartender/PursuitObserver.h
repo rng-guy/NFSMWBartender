@@ -22,8 +22,8 @@ namespace PursuitObserver
 
 	class PursuitObserver
 	{
-		using CopLabel           = PursuitFeatures::CopLabel;
-		using CopVehicleReaction = PursuitFeatures::CopVehicleReaction;
+		using CopLabel        = PursuitFeatures::CopLabel;
+		using PursuitReaction = PursuitFeatures::PursuitReaction;
 
 
 
@@ -34,16 +34,16 @@ namespace PursuitObserver
 		bool inPursuitUpdatePending    = true;
 		bool perHeatLevelUpdatePending = true;
 
-		Globals::AddressMap<CopLabel>                    copVehicleToLabel;
-		std::vector<std::unique_ptr<CopVehicleReaction>> copVehicleReactions;
+		Globals::AddressMap<CopLabel>                 copVehicleToLabel;
+		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
 
 		inline static Globals::AddressSet copVehiclesLoaded;
 
 
-		template <std::derived_from<CopVehicleReaction> F, typename ...T>
-		void AddFeature(T&& ...args)
+		template <std::derived_from<PursuitReaction> R>
+		void AddPursuitFeature()
 		{
-			this->copVehicleReactions.push_back(std::make_unique<F>(std::forward<T>(args)...));
+			this->pursuitReactions.push_back(std::make_unique<R>(this->pursuit));
 		}
 
 
@@ -104,13 +104,13 @@ namespace PursuitObserver
 				Globals::logger.Log("     NEW [OBS] Pursuit", this->pursuit);
 
 			if (CopSpawnOverrides::featureEnabled)
-				this->AddFeature<CopSpawnOverrides::ContingentManager>(this->pursuit);
+				this->AddPursuitFeature<CopSpawnOverrides::ContingentManager>();
 
 			if (CopFleeOverrides::featureEnabled)    
-				this->AddFeature<CopFleeOverrides::MembershipManager>(this->pursuit);
+				this->AddPursuitFeature<CopFleeOverrides::MembershipManager>();
 
 			if (HelicopterOverrides::featureEnabled) 
-				this->AddFeature<HelicopterOverrides::HelicopterManager>(this->pursuit);
+				this->AddPursuitFeature<HelicopterOverrides::HelicopterManager>();
 		}
 
 
@@ -123,7 +123,7 @@ namespace PursuitObserver
 
 		void UpdateOnHeatChange()
 		{
-			for (const auto& reaction : this->copVehicleReactions)
+			for (const auto& reaction : this->pursuitReactions)
 				reaction.get()->UpdateOnHeatChange();
 
 			this->perHeatLevelUpdatePending = true;
@@ -132,7 +132,7 @@ namespace PursuitObserver
 
 		void UpdateOnGameplay()
 		{
-			for (const auto& reaction : this->copVehicleReactions)
+			for (const auto& reaction : this->pursuitReactions)
 			{
 				if (this->inPursuitUpdatePending)
 					reaction.get()->UpdateOnceInPursuit();
@@ -210,12 +210,13 @@ namespace PursuitObserver
 				return;
 			}
 			
-			if (copLabel != CopLabel::HELICOPTER) this->Register(copVehicle);
+			if (copLabel != CopLabel::HELICOPTER)
+				this->Register(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[OBS] +", copVehicle, (int)copLabel, this->GetCopName(copVehicle));
 
-			for (const auto& reaction : this->copVehicleReactions)
+			for (const auto& reaction : this->pursuitReactions)
 				reaction->ProcessAddition(copVehicle, copLabel);
 		}
 
@@ -235,7 +236,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), this->GetCopName(copVehicle));
 
-			for (const auto& reaction : this->copVehicleReactions)
+			for (const auto& reaction : this->pursuitReactions)
 				reaction->ProcessRemoval(copVehicle, foundVehicle->second);
 
 			this->copVehicleToLabel.erase(foundVehicle);
@@ -519,7 +520,7 @@ namespace PursuitObserver
 		CopSpawnOverrides  ::Initialise(parser);
 		CopFleeOverrides   ::Initialise(parser);
 		HelicopterOverrides::Initialise(parser);
-
+		
 		MemoryEditor::DigCodeCave(EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
 		MemoryEditor::DigCodeCave(PatrolSpawn, patrolSpawnEntrance, patrolSpawnExit);
 

@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.14.03) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.15.00) │ ■ ────────────────────────────────────────────────
 
 This document is also on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -115,33 +115,49 @@ Regarding COP (BINARY) STRINGS ("BartenderSettings\Basic\Labels.ini"):
 
 Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
- • Deleting this file disables the fix for slower roadblock and Heavy / LeaderStrategy requests.
+ • Deleting this file disables the fix for active roadblocks blocking new HeavyStrategy 3 requests,
+   and also the fix for the slowdown of non-Strategy roadblock and Heavy / LeaderStrategy requests.
 
  • When the game requests a non-Strategy roadblock, a random roadblock cooldown begins.
    While this cooldown is active, the game cannot make more non-Strategy roadblock requests.
 
- • When the game requests a Heavy / LeaderStrategy, a fixed-length strategy cooldown begins.
+ • When the game requests a Heavy / LeaderStrategy, a fixed-length Strategy cooldown begins.
    While this cooldown is active, the game cannot make more Heavy / LeaderStrategy requests.
 
  • When the game requests a HeavyStrategy, it (re)sets the roadblock cooldown to a fixed value.
- 
+
  • Bartender fixes the slowdown of non-Strategy roadblock and Heavy / LeaderStrategy requests
-   by clearing the request queue. Bartender clears this queue whenever a certain amount of time
-   has passed without any new requests, despite either being off cooldown. This maximum-overdue
-   delay guarantees that requests cannot block each other for too long. The most common
-   causes of such blockages tend to be long-overdue HeavyStrategy 3 requests.
+   by clearing the current Strategy request. Bartender does this whenever the game has been stuck
+   trying to spawn a requested Strategy for longer than the Strategy reset timer. Until Bartender
+   clears the stuck Strategy, the game will not request another Strategy. The game will also stop
+   requesting new non-Strategy roadblocks if it happens to be stuck on a HeavyStrategy 4 request.
+
+ • Short Strategy reset timers can lead to HeavyStrategy 3 spam. Such spam can be a risk to game
+   stability, as HeavyStrategy 3 spawns ignore all spawn limits. To avoid this risk, make sure each
+   Strategy reset timer is a little longer than all "Duration" HeavyStrategy 3 VltEd parameters.
+
+ • Bartender fixes the blocking of new HeavyStrategy 3 requests by skipping the roadblock check
+   the game performs before it decides whether to make a new HeavyStrategy request. Bartender only
+   skips this check for HeavyStrategy 3, as HeavyStrategy 4 (a roadblock) is the reason it exists.
+
+ • Because they are roadblocks, HeavyStrategy 4 spawns remain rare at Heat levels with high values
+   for their "roadblockprobability" VltEd parameters. You can increase the odds of HeavyStrategy 4
+   spawns by placing HeavyStrategy 4 before HeavyStrategy 3 in "pursuitsupport" VltEd nodes. This
+   will prioritise HeavyStrategy 4 if there is no active roadblock, and skip it if there is one.
 
  • Sometimes, non-Strategy roadblock or Heavy / LeaderStrategy spawns may appear more or less
    frequently than their cooldowns would suggest. This happens because these cooldowns only affect
    requests, not actual spawns: While every spawn is the result of a request, not every request
    results in a spawn. The game remains free to spawn or cancel any pending support request.
 
- • Very short cooldowns for non-Strategy roadblock or Heavy / LeaderStrategy requests may cause
-   excessive spam. Such spam might lead to game instability, as Heavy / LeaderStrategy spawns
-   ignore spawn limits. You can reduce this risk by using low(er) "Duration" VltEd parameters.
-
  • The "MinimumSupportDelay" VltEd parameter defines how much time needs to pass before the
    game can make non-Strategy roadblock and Heavy / LeaderStrategy requests in a given pursuit.
+
+ • Setting low player speed thresholds for HeavyStrategy 3 spawns fixes the vanilla issue of
+   them attempting to flee the pursuit instantly without trying to ram you. This is because the
+   vanilla game forces HeavyStrategy 3 spawns to flee if your speed drops below the value of the
+   "CollapseSpeed" VltEd parameter at any point. At higher Heat levels, this often happens before
+   they can even reach you because of higher "CollapseSpeed" values and far more aggressive cops.
 
  • LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
@@ -198,7 +214,7 @@ Regarding the "Advanced" feature set IN GENERAL:
  • You can disable this entire feature set by deleting all of its configuration files.
 
  • You can disable any feature of this set by deleting the file containing its parameter group.
-   This does not apply to the two bug fixes, which are each tied to this entire feature set.
+   This does not apply to the engagement-count fix, which is tied to this entire feature set.
 
  • Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
 
@@ -264,9 +280,11 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • If you want to use global cop spawn limits > 8, you must also install and configure the
    "NFSMW LimitAdjuster" mod (LA) by Zolika1351. This is necessary because the game cannot
    handle managing > 8 "Chasers" for very long. To configure LA to work with Bartender,
-   open LA's "NFSMWLimitAdjuster.ini" configuration file; there, set the "PursuitCops"
-   value to 255 and disable every single cop-related feature under "[Options]". After 
-   configuring LA like this, use only Bartender to set any global cop-spawn limits!
+   open LA's "NFSMWLimitAdjuster.ini" configuration file; there, set the "PursuitCops" value
+   to 255 and disable every single cop-related feature under "[Options]". After configuring 
+   LA like this, use only Bartender to set any global cop-spawn limits! You can then also
+   use Strategy reset timers (see "Basic" section above) shorter than the HeavyStrategy 3
+   "Duration" VltEd parameters to allow multiple active HeavyStrategy 3 spawns at once.
 
  • "Chasers" will only flee at Heat levels for which you provide valid delay values.
    
@@ -428,3 +446,5 @@ v1.00.00: Initial release
       01: Improved performance some more thanks to my newfound disregard for antivirus evasion
       02: Fixed a few minor inconsistencies in README and some usage comments
       03: Fixed HeavyStrategy 3 fix slowing cop spawns in longer pursuits
+
+   15.00: Added fix for vanilla bug of active roadblocks blocking new HeavyStrategy 3 requests

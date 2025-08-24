@@ -103,15 +103,13 @@ namespace CopSpawnOverrides
 
 	// ContingentManager class ----------------------------------------------------------------------------------------------------------------------
 
-	class ContingentManager : public PursuitFeatures::CopVehicleReaction
+	class ContingentManager : public PursuitFeatures::PursuitReaction
 	{
 		using CopLabel = PursuitFeatures::CopLabel;
 
 
 
 	private:
-
-		const address pursuit;
 
 		int numPatrolCarsToSpawn = 0;
 		int numCopsInContingent  = 0;
@@ -246,7 +244,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		explicit ContingentManager(const address pursuit) : pursuit(pursuit)
+		explicit ContingentManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
 			this->pursuitToManager.insert({this->pursuit, this});
 			this->UpdateSpawnTable();
@@ -652,13 +650,10 @@ namespace CopSpawnOverrides
 		// Code caves
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
 		MemoryEditor::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
-		
-		MemoryEditor::WriteToAddressRange(0x90, 0x4438B9, 0x4438C0); // HeavyStrategy 3 ramming cancellation
 
-		MemoryEditor::Write<byte>(0x00, 0x433CB2);           // min. displayed count
-		MemoryEditor::Write<byte>(0xEB, 0x42BB2D);           // helicopter spawns in "COOLDOWN" mode 
-		MemoryEditor::Write<byte>(0x90, 0x57B188, 0x4443E4); // helicopter / roadblock increment
-		MemoryEditor::Write<byte>(0xEB, 0x42B9AA, 0x44389E); // non-member / HeavyStrategy cops fleeing
+		MemoryEditor::Write<byte>(0x00, {0x433CB2});           // min. displayed count
+		MemoryEditor::Write<byte>(0xEB, {0x42BB2D, 0x42B9AA}); // "COOLDOWN" mode helicopter / non-member cops fleeing
+		MemoryEditor::Write<byte>(0x90, {0x57B188, 0x4443E4}); // helicopter / roadblock increment
 
 		MemoryEditor::DigCodeCave(CopRefill,          copRefillEntrance,          copRefillExit);
 		MemoryEditor::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);

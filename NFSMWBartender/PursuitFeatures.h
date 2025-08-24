@@ -21,9 +21,9 @@ namespace PursuitFeatures
 
 
 
-	// CopVehicleReaction class ---------------------------------------------------------------------------------------------------------------------
+	// PursuitReaction class ------------------------------------------------------------------------------------------------------------------------
 
-	class CopVehicleReaction
+	class PursuitReaction
 	{
 	private:
 
@@ -35,16 +35,18 @@ namespace PursuitFeatures
 
 		static constexpr const float* simulationTime = (float*)0x9885D8;
 
+		const address pursuit;
+
 		friend void SetToHeat(const bool, const size_t);
 		friend void ResetState();
 		
-		explicit CopVehicleReaction() = default;
+		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {};
 
 
 
 	public:
 
-		virtual ~CopVehicleReaction() = default;
+		virtual ~PursuitReaction() = default;
 
 
 		virtual void UpdateOnGameplay()       {}
@@ -57,14 +59,14 @@ namespace PursuitFeatures
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
-		) = 0;
+		) {};
 
 
 		virtual void ProcessRemoval
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
-		) = 0;
+		) {};
 
 
 		static bool IsHeatLevelKnown() {return isHeatLevelKnown;}
@@ -81,13 +83,13 @@ namespace PursuitFeatures
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		CopVehicleReaction::isHeatLevelKnown = true;
+		PursuitReaction::isHeatLevelKnown = true;
 	}
 
 
 
 	void ResetState() 
 	{
-		CopVehicleReaction::isHeatLevelKnown = false;
+		PursuitReaction::isHeatLevelKnown = false;
 	}
 }

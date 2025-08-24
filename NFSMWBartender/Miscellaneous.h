@@ -92,7 +92,7 @@ namespace Miscellaneous
 		HeatParameters::Parse<int>  (parser, "CopComboLimit",  {copComboLimits,  1});
 
 		// Code caves
-		MemoryEditor::Write<float*>(&bountyFrequency, 0x444513, 0x444524);
+		MemoryEditor::Write<float*>(&bountyFrequency, {0x444513, 0x444524});
 
         MemoryEditor::DigCodeCave(PassiveBounty, passiveBountyEntrance, passiveBountyExit);
         MemoryEditor::DigCodeCave(CopCombo,      copComboEntrance,      copComboExit);

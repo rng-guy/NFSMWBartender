@@ -281,6 +281,19 @@ namespace HeatParameters
 
 
 
+	bool AreAny(const Pair<bool>& pair)
+	{
+		for (const bool forRaces : {false, true})
+		{
+			for (const bool isEnabled : pair.Get(forRaces))
+				if (isEnabled) return true;
+		}
+
+		return false;
+	}
+
+
+
 	bool VehicleClassMatches
 	(
 		const vault vehicleType,

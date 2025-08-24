@@ -1,5 +1,7 @@
 #pragma once
 
+#include <initializer_list>
+
 #include "Globals.h"
 #include "PursuitFeatures.h"
 #include "CopSpawnTables.h"
@@ -26,7 +28,7 @@ namespace CopFleeOverrides
 
 	// MembershipManager class ----------------------------------------------------------------------------------------------------------------------
 
-	class MembershipManager : public PursuitFeatures::CopVehicleReaction
+	class MembershipManager : public PursuitFeatures::PursuitReaction
 	{
 		using CopLabel = PursuitFeatures::CopLabel;
 
@@ -48,21 +50,41 @@ namespace CopFleeOverrides
 			Status         status;
 		};
 
-		const address pursuit;
-
 		float heavyStrategyDuration  = 0.f;
 		float leaderStrategyDuration = 0.f;
 
 		Globals::AddressMap<Assessment> copVehicleToAssessment;
 		Globals::AddressMap<float>      copVehicleToFleeTimestamp;
 		
+		
+		static float GetStrategyDuration
+		(
+			const address                     supportNode,
+			const address                     getStrategy,
+			const address                     getNumStrategies,
+			const std::initializer_list<int>& validStrategyTypes
+		) {
+			size_t  (__thiscall* const GetNumStrategies)(address)         = (size_t  (__thiscall*)(address))        getNumStrategies;
+			address (__thiscall* const GetStrategy)     (address, size_t) = (address (__thiscall*)(address, size_t))getStrategy;
+
+			const size_t numStrategies = GetNumStrategies(supportNode);
+
+			for (size_t strategyID = 0; strategyID < numStrategies; strategyID++)
+			{
+				const address strategy     = GetStrategy(supportNode, strategyID);
+				const int     strategyType = *((int*)strategy);
+
+				for (const int validStrategyType : validStrategyTypes)
+					if (strategyType == validStrategyType) return *((float*)(strategy + 0x8));
+			}
+
+			return 0.f;
+		}
+
 
 		void UpdateStrategyDurations()
 		{
-			this->heavyStrategyDuration  = 0.f;
-			this->leaderStrategyDuration = 0.f;
-
-			// PursuitSupportAttributes node
+			// PursuitSupport node
 			static address (__thiscall* const GetSupportNode)(address) = (address (__thiscall*)(address))0x418EE0;
 
 			const address supportNode = GetSupportNode(this->pursuit - 0x48);
@@ -72,48 +94,27 @@ namespace CopFleeOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [FLE] Invalid SupportNode pointer in", this->pursuit);
 
+				this->heavyStrategyDuration  = 0.f;
+				this->leaderStrategyDuration = 0.f;
+
 				return;
 			}
 
 			// HeavyStrategy 3
-			static address (__thiscall* const GetHeavyStrategies)   (address, int) = (address (__thiscall*)(address, int))0x4035E0;
-			static size_t  (__thiscall* const GetNumHeavyStrategies)(address)      = (size_t  (__thiscall*)(address))     0x403600;
+			this->heavyStrategyDuration = this->GetStrategyDuration(supportNode, 0x4035E0, 0x403600, {3});
 
-			const address heavyStrategies    = GetHeavyStrategies(supportNode, 0);
-			const size_t  numHeavyStrategies = GetNumHeavyStrategies(supportNode);
-
-			if (heavyStrategies)
+			if constexpr (Globals::loggingEnabled)
 			{
-				address heavyStrategy = heavyStrategies;
-
-				for (size_t strategyID = 0; strategyID < numHeavyStrategies; strategyID++)
-				{
-					if (*((int*)heavyStrategy) == 3) // is ramming strategy
-					{
-						this->heavyStrategyDuration = *((float*)(heavyStrategy + 0x8));
-
-						if constexpr (Globals::loggingEnabled)
-							Globals::logger.Log(this->pursuit, "[FLE] HeavyStrategy 3 duration:", this->heavyStrategyDuration);
-
-						break;
-					}
-
-					heavyStrategy += 0x10;
-				}
+				if (this->heavyStrategyDuration > 0.f)
+					Globals::logger.Log(this->pursuit, "[FLE] HeavyStrategy 3 duration:", this->heavyStrategyDuration);
 			}
 
 			// LeaderStrategies
-			static address (__thiscall* const GetLeaderStrategies)   (address, int) = (address (__thiscall*)(address, int))0x403660;
-			static size_t  (__thiscall* const GetNumLeaderStrategies)(address)      = (size_t  (__thiscall*)(address))     0x403680;
-
-			const address leaderStrategies    = GetLeaderStrategies(supportNode, 0);
-			const size_t  numLeaderStrategies = GetNumLeaderStrategies(supportNode);
-
-			if (leaderStrategies and (numLeaderStrategies > 0))
+			this->leaderStrategyDuration = this->GetStrategyDuration(supportNode, 0x403660, 0x403680, {5, 7});
+			
+			if constexpr (Globals::loggingEnabled)
 			{
-				this->leaderStrategyDuration = *((float*)(leaderStrategies + 0x8));
-
-				if constexpr (Globals::loggingEnabled)
+				if (this->leaderStrategyDuration > 0.f)
 					Globals::logger.Log(this->pursuit, "[FLE] LeaderStrategy duration:", this->leaderStrategyDuration);
 			}
 		}
@@ -249,7 +250,7 @@ namespace CopFleeOverrides
 
 	public:
 
-		explicit MembershipManager(const address pursuit) : pursuit(pursuit) {}
+		explicit MembershipManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) {}
 
 
 		void UpdateOnGameplay() override 

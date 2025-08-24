@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <initializer_list>
 
 #include "Globals.h"
 
@@ -9,27 +10,25 @@
 namespace MemoryEditor
 {
 
-	template <typename T, typename ...address>
+	template <typename T>
 	void Write
 	(
-		const T          data,
-		const address ...locations
+		const T&                              data,
+		const std::initializer_list<address>& locations
 	) {
 		constexpr size_t size = sizeof(T);
 
-		void* memoryLocation  = nullptr;
-		DWORD previousSetting = 0x0;
+		void* memoryLocation;
+		DWORD previousSetting;
 
-		(
-			[&]
-			{
-				memoryLocation = (void*)locations;
+		for (const address location : locations)
+		{
+			memoryLocation = (void*)location;
 
-				VirtualProtect(memoryLocation, size,  PAGE_READWRITE,  &previousSetting);
-				memcpy        (memoryLocation, &data, size);
-				VirtualProtect(memoryLocation, size,  previousSetting, &previousSetting);
-			}
-		(), ...);
+			VirtualProtect(memoryLocation, size,  PAGE_READWRITE,  &previousSetting);
+			memcpy        (memoryLocation, &data, size);
+			VirtualProtect(memoryLocation, size,  previousSetting, &previousSetting);
+		}
 	}
 
 
@@ -68,9 +67,9 @@ namespace MemoryEditor
 		const address exit
 	) {
 		WriteToAddressRange(0x90, entrance, exit); // NOP
-		Write<byte>        (0xE9, entrance);       // JMP rel16
+		Write<byte>        (0xE9, {entrance});     // JMP rel16
 
 		// It is necessary to account for the instruction length and offset
-		Write<address>((address)function - (entrance + 5), entrance + 1);
+		Write<address>((address)function - (entrance + 5), {entrance + 1});
 	}
 }

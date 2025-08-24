@@ -73,10 +73,10 @@ namespace PursuitBar
 		HeatParameters::Parse<float>       (parser, "Evading:Timer",   {evadeTimers, .001f});
 
 		// Code caves
-		MemoryEditor::Write<float*>(&bustRate,              0x40AEDB);
-		MemoryEditor::Write<float*>(&halfEvadeRate,         0x444A3A);
-		MemoryEditor::Write<float*>(&(bustTimers.current),  0x4445CE);
-        MemoryEditor::Write<float*>(&(evadeTimers.current), 0x4448E6, 0x444802, 0x4338F8);
+		MemoryEditor::Write<float*>(&bustRate,              {0x40AEDB});
+		MemoryEditor::Write<float*>(&halfEvadeRate,         {0x444A3A});
+		MemoryEditor::Write<float*>(&(bustTimers.current),  {0x4445CE});
+		MemoryEditor::Write<float*>(&(evadeTimers.current), {0x4448E6, 0x444802, 0x4338F8});
 
         MemoryEditor::DigCodeCave(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 

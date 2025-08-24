@@ -32,13 +32,15 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the internal cooldown for non-Strategy roadblock requests,
 * the internal cooldown for Heavy / LeaderStrategy requests,
 * what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
-* what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
-* what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
+* what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs),
+* what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen), and
+* below what player speed HeavyStrategy 3 spawns stop their ramming attempts and flee.
 
 &nbsp;
 
-The "Basic" feature set **fixes five bugs**:
+The "Basic" feature set **fixes six bugs**:
 * helicopters no longer cast static shadows (like cars do) with incorrect placements,
+* active roadblocks in pursuits no longer prevent new HeavyStrategy 3 requests and spawns,
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures),
 * you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
@@ -71,9 +73,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 
 &nbsp;
 
-The "Advanced" feature set **fixes two bugs**:
-* HeavyStrategy 3 spawns no longer end their ramming attempts prematurely to flee instead, and
-* the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
+The "Advanced" feature set **also fixes** the engagement count displayed above the pursuit board: The count now accurately reflects how many chasing cop spawns remain in the current wave by disregarding vehicles that spawn through any Heavy / LeaderStrategy, vehicles that join the pursuit by detaching themselves from roadblocks, and the helicopter.
 
 &nbsp;
 

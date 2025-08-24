@@ -31,7 +31,7 @@ namespace HelicopterOverrides
 
 	// HelicopterManager class ----------------------------------------------------------------------------------------------------------------------
 
-	class HelicopterManager : public PursuitFeatures::CopVehicleReaction
+	class HelicopterManager : public PursuitFeatures::PursuitReaction
 	{
 		using CopLabel = PursuitFeatures::CopLabel;
 
@@ -39,8 +39,6 @@ namespace HelicopterOverrides
 
 	private:
 		
-		const address pursuit;
-
 		bool isPlayerPursuit  = false;
 		bool hasSpawnedBefore = false;
 
@@ -146,7 +144,7 @@ namespace HelicopterOverrides
 
 	public:
 
-		explicit HelicopterManager(const address pursuit) : pursuit(pursuit) 
+		explicit HelicopterManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
 			this->UpdateNextSpawnTimestamp();
 		}
@@ -227,8 +225,6 @@ namespace HelicopterOverrides
 		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini")) return false;
 
 		// Heat parameters
-		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
-
 		for (const bool forRaces : {false, true})
 		{
 			helicopterEnableds.Get(forRaces) = parser.ParseParameterTable<float, float, float, float, float, float>
@@ -244,9 +240,13 @@ namespace HelicopterOverrides
 			);
 		}
 
+		if (not HeatParameters::AreAny(helicopterEnableds)) return false;
+
 		HeatParameters::CheckIntervals<float>(minSpawnDelays,   maxSpawnDelays);
 		HeatParameters::CheckIntervals<float>(minDespawnDelays, maxDespawnDelays);
 		HeatParameters::CheckIntervals<float>(minRespawnDelays, maxRespawnDelays);
+
+		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
 
 		// Code caves
 		MemoryEditor::DigCodeCave(FuelTime, fuelTimeEntrance, fuelTimeExit);

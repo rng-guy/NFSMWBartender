@@ -44,15 +44,16 @@ namespace Globals
 
 	address GetFromVault
 	(
-		const vault rootKey,
-		const vault nodeKey,
-		const vault attributeKey = 0x0
+		const vault  rootKey,
+		const vault  nodeKey,
+		const vault  attributeKey   = 0x0,
+		const size_t attributeIndex = 0
 	) {
-		static address (__cdecl*    const GetVaultNode)     (vault, vault)        = (address (__cdecl*)   (vault, vault))       0x455FD0;
-		static address (__thiscall* const GetVaultAttribute)(address, vault, int) = (address (__thiscall*)(address, vault, int))0x454190;
+		static address (__cdecl*    const GetVaultNode)     (vault, vault)           = (address (__cdecl*)   (vault, vault))          0x455FD0;
+		static address (__thiscall* const GetVaultAttribute)(address, vault, size_t) = (address (__thiscall*)(address, vault, size_t))0x454190;
 
 		const address node = GetVaultNode(rootKey, nodeKey);
-		return (node and attributeKey) ? GetVaultAttribute(node, attributeKey, 0) : node;
+		return (node and attributeKey) ? GetVaultAttribute(node, attributeKey, attributeIndex) : node;
 	}
 
 
