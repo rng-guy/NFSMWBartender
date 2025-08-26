@@ -131,7 +131,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Bartender fixes the blocking of new HeavyStrategy 3 requests by skipping the roadblock check the game performs before it decides whether to make a new HeavyStrategy request. Bartender only skips this check for HeavyStrategy 3, as HeavyStrategy 4 (a roadblock) is the reason it exists.
 
-* Because they are roadblocks, HeavyStrategy 4 spawns remain rare at Heat levels with high values for their `roadblockprobability` VltEd parameters. You can increase the odds of HeavyStrategy 4 spawns by placing HeavyStrategy 4 before HeavyStrategy 3 in `pursuitsupport` VltEd nodes. This will prioritise HeavyStrategy 4 if there is no active roadblock, and skip it if there is one.
+* Because they are roadblocks, HeavyStrategy 4 spawns remain rare at Heat levels with high values for their `roadblockprobability` VltEd parameters.
 
 * Sometimes, non-Strategy roadblock or Heavy / LeaderStrategy spawns may appear more or less frequently than their cooldowns would suggest. This happens because these cooldowns only affect requests, not actual spawns: While every spawn is the result of a request, not every request results in a spawn. The game remains free to spawn or cancel any pending support request.
 
@@ -198,8 +198,6 @@ Regarding the "Advanced" feature set **in general**:
 * Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That is because Bartender's fix makes the engagement count track "Chasers" only, while disregarding any vehicles that join the pursuit through Heavy / LeaderStrategy spawns, from roadblocks, or as helicopters.
 
 * For each Heat level, you should use a `FullEngagementCopCount` VltEd parameter > 0. Otherwise, Bartender may fail to update the displayed engagement count accurately.
-
-* For each Heat level, you should (at most) only include each HeavyStrategy (3 and 4) once, and only a single overall LeaderStrategy (5 or 7). Otherwise, any duplicates may cause the game (and Bartender) to misread their `Duration` VltEd parameters.
 
 * If this feature set is enabled, all HeavyStrategy 3 spawns will always attempt to ram you until their `Duration` VltEd parameters expire and they are forced to flee the pursuit.
 

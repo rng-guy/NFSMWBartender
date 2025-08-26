@@ -24,6 +24,10 @@ namespace Globals
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
+	// Feature flags
+	bool basicSetEnabled    = false;
+	bool advancedSetEnabled = false;
+
 	// Pseudorandom number generator
 	RandomNumbers::Generator prng;
 

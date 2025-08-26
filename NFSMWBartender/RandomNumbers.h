@@ -1,7 +1,11 @@
 #pragma once
 
 #include <random>
+#include <limits>
 #include <array>
+
+#undef min
+#undef max
 
 
 
@@ -61,6 +65,24 @@ namespace RandomNumbers
 
 			for (size_t i = 0; i < 4; i++)
 				this->state[i] = this->Join(rng(), rng());
+		}
+
+
+		static constexpr uint64_t min()
+		{
+			return std::numeric_limits<uint64_t>::min();
+		}
+
+
+		static constexpr uint64_t max()
+		{
+			return std::numeric_limits<uint64_t>::max();
+		}
+
+
+		uint64_t operator()()
+		{
+			return this->Advance();
 		}
 
 

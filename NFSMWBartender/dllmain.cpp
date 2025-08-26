@@ -21,14 +21,12 @@ static void Initialise()
     HeatParameters::Parser parser;
 
     // "Basic" feature set
-    bool basicSetEnabled = false;
+    Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
+    Globals::basicSetEnabled |= GroundSupport     ::Initialise(parser);
+    Globals::basicSetEnabled |= Miscellaneous     ::Initialise(parser);
+    Globals::basicSetEnabled |= PursuitBar        ::Initialise(parser);
 
-    basicSetEnabled |= DestructionStrings::Initialise(parser);
-    basicSetEnabled |= GroundSupport     ::Initialise(parser);
-    basicSetEnabled |= Miscellaneous     ::Initialise(parser);
-    basicSetEnabled |= PursuitBar        ::Initialise(parser);
-
-    if (basicSetEnabled) 
+    if (Globals::basicSetEnabled)
     {
         // Helicopter shadow fix
         MemoryEditor::Write<float>(0.f, {0x903660});
@@ -39,10 +37,10 @@ static void Initialise()
     }
 
     // "Advanced" feature set
-    const bool advancedSetEnabled = PursuitObserver::Initialise(parser);
+    Globals::advancedSetEnabled = PursuitObserver::Initialise(parser);
 
     // General Heat and state observer
-    if (basicSetEnabled or advancedSetEnabled) 
+    if (Globals::basicSetEnabled or Globals::advancedSetEnabled)
         StateObserver::Initialise(parser);
 }
 

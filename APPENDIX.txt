@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.15.00) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.15.01) │ ■ ────────────────────────────────────────────────
 
 This document is also on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -140,10 +140,8 @@ Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
    the game performs before it decides whether to make a new HeavyStrategy request. Bartender only
    skips this check for HeavyStrategy 3, as HeavyStrategy 4 (a roadblock) is the reason it exists.
 
- • Because they are roadblocks, HeavyStrategy 4 spawns remain rare at Heat levels with high values
-   for their "roadblockprobability" VltEd parameters. You can increase the odds of HeavyStrategy 4
-   spawns by placing HeavyStrategy 4 before HeavyStrategy 3 in "pursuitsupport" VltEd nodes. This
-   will prioritise HeavyStrategy 4 if there is no active roadblock, and skip it if there is one.
+ • Because they are roadblocks, HeavyStrategy 4 spawns remain rare at Heat levels
+   with high values for their "roadblockprobability" VltEd parameters.
 
  • Sometimes, non-Strategy roadblock or Heavy / LeaderStrategy spawns may appear more or less
    frequently than their cooldowns would suggest. This happens because these cooldowns only affect
@@ -225,10 +223,6 @@ Regarding the "Advanced" feature set IN GENERAL:
 
  • For each Heat level, you should use a "FullEngagementCopCount" VltEd parameter > 0.
    Otherwise, Bartender may fail to update the displayed engagement count accurately.
-
- • For each Heat level, you should (at most) only include each HeavyStrategy (3 and 4) once, 
-   and only a single overall LeaderStrategy (5 or 7). Otherwise, any duplicates may cause
-   the game (and Bartender) to misread their "Duration" VltEd parameters.
 
  • If this feature set is enabled, all HeavyStrategy 3 spawns will always attempt to ram
    you until their "Duration" VltEd parameters expire and they are forced to flee the pursuit.
@@ -448,3 +442,4 @@ v1.00.00: Initial release
       03: Fixed HeavyStrategy 3 fix slowing cop spawns in longer pursuits
 
    15.00: Added fix for vanilla bug of active roadblocks blocking new HeavyStrategy 3 requests
+      01: 

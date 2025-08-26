@@ -50,73 +50,14 @@ namespace CopFleeOverrides
 			Status         status;
 		};
 
-		float heavyStrategyDuration  = 0.f;
-		float leaderStrategyDuration = 0.f;
-
 		Globals::AddressMap<Assessment> copVehicleToAssessment;
 		Globals::AddressMap<float>      copVehicleToFleeTimestamp;
 		
 		
-		static float GetStrategyDuration
-		(
-			const address                     supportNode,
-			const address                     getStrategy,
-			const address                     getNumStrategies,
-			const std::initializer_list<int>& validStrategyTypes
-		) {
-			size_t  (__thiscall* const GetNumStrategies)(address)         = (size_t  (__thiscall*)(address))        getNumStrategies;
-			address (__thiscall* const GetStrategy)     (address, size_t) = (address (__thiscall*)(address, size_t))getStrategy;
-
-			const size_t numStrategies = GetNumStrategies(supportNode);
-
-			for (size_t strategyID = 0; strategyID < numStrategies; strategyID++)
-			{
-				const address strategy     = GetStrategy(supportNode, strategyID);
-				const int     strategyType = *((int*)strategy);
-
-				for (const int validStrategyType : validStrategyTypes)
-					if (strategyType == validStrategyType) return *((float*)(strategy + 0x8));
-			}
-
-			return 0.f;
-		}
-
-
-		void UpdateStrategyDurations()
+		static float GetStrategyDuration(const address source)
 		{
-			// PursuitSupport node
-			static address (__thiscall* const GetSupportNode)(address) = (address (__thiscall*)(address))0x418EE0;
-
-			const address supportNode = GetSupportNode(this->pursuit - 0x48);
-
-			if (not supportNode)
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [FLE] Invalid SupportNode pointer in", this->pursuit);
-
-				this->heavyStrategyDuration  = 0.f;
-				this->leaderStrategyDuration = 0.f;
-
-				return;
-			}
-
-			// HeavyStrategy 3
-			this->heavyStrategyDuration = this->GetStrategyDuration(supportNode, 0x4035E0, 0x403600, {3});
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (this->heavyStrategyDuration > 0.f)
-					Globals::logger.Log(this->pursuit, "[FLE] HeavyStrategy 3 duration:", this->heavyStrategyDuration);
-			}
-
-			// LeaderStrategies
-			this->leaderStrategyDuration = this->GetStrategyDuration(supportNode, 0x403660, 0x403680, {5, 7});
-			
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (this->leaderStrategyDuration > 0.f)
-					Globals::logger.Log(this->pursuit, "[FLE] LeaderStrategy duration:", this->leaderStrategyDuration);
-			}
+			const address strategy = *((address*)source);
+			return (strategy) ? *((float*)(strategy + 0x8)) : 0.f;
 		}
 
 
@@ -157,12 +98,12 @@ namespace CopFleeOverrides
 			{
 			case CopLabel::HEAVY:
 				flagVehicle   = true;
-				timeUntilFlee = this->heavyStrategyDuration;
+				timeUntilFlee = this->GetStrategyDuration(this->pursuit + 0x194);
 				break;
 
 			case CopLabel::LEADER:
 				flagVehicle   = true;
-				timeUntilFlee = this->leaderStrategyDuration;
+				timeUntilFlee = this->GetStrategyDuration(this->pursuit + 0x198);
 				break;
 
 			case CopLabel::CHASER:
@@ -262,12 +203,6 @@ namespace CopFleeOverrides
 		void UpdateOnHeatChange() override 
 		{
 			this->ReviewAll();
-		}
-
-
-		void UpdateOncePerHeatLevel() override
-		{
-			this->UpdateStrategyDurations();
 		}
 
 

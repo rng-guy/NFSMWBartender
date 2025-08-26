@@ -40,6 +40,60 @@ namespace GroundSupport
 
 
 
+	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
+
+	address __fastcall SelectHeavyStrategy(const address pursuit)
+	{
+		static address (__thiscall* const GetSupportNode)(address) = (address (__thiscall*)(address))0x418EE0;
+
+		const address supportNode = GetSupportNode(pursuit - 0x48);
+		if (not supportNode) return 0x0;
+
+		static size_t  (__thiscall* const GetNumHeavyStrategies)(address)         = (size_t  (__thiscall*)(address))        0x403600;
+		static address (__thiscall* const GetHeavyStrategy)     (address, size_t) = (address (__thiscall*)(address, size_t))0x4035E0;
+
+		static std::vector<address> candidateStrategies;
+
+		const bool   roadblockActive    = *((address*)(pursuit + 0x84));
+		const size_t numHeavyStrategies = GetNumHeavyStrategies(supportNode);
+
+		for (size_t strategyID = 0; strategyID < numHeavyStrategies; strategyID++)
+		{
+			const address strategy = GetHeavyStrategy(supportNode, strategyID);
+
+			const int type = *((int*)strategy);
+			if (roadblockActive and (type == 4)) continue;
+
+			const int chance = *((int*)(strategy + 0x4));
+			const int roll   = Globals::prng.Generate<int>(0, 100);
+
+			if (roll < chance)
+				candidateStrategies.push_back(strategy);
+		}
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log(pursuit, "[SUP]", (int)candidateStrategies.size(), "HeavyStrategy choices");
+
+		if (not candidateStrategies.empty())
+		{
+			const size_t  index    = (candidateStrategies.size() > 1) ? Globals::prng.Generate<size_t>(0, candidateStrategies.size()) : 0;
+			const address strategy = candidateStrategies[index];
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(pursuit, "[SUP] Index", (int)index, "-> HeavyStrategy", *((int*)strategy));
+
+			candidateStrategies.clear();
+
+			return strategy;
+		}
+
+		return 0x0;
+	}
+
+
+
+
+
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address roadblockHeavyEntrance = 0x4197EC;
@@ -145,36 +199,33 @@ namespace GroundSupport
 
 
 
-	constexpr address heavyChanceEntrance = 0x4197BB;
-	constexpr address heavyChanceExit     = 0x4197C3;
+	constexpr address heavyChanceEntrance = 0x41979B;
+	constexpr address heavyChanceExit     = 0x4197D3;
 
 	__declspec(naked) void HeavyChance()
 	{
-		static constexpr address getHeavyStrategy = 0x4035E0;
+		static constexpr address heavyChanceSkip = 0x4197F6;
 
 		__asm
 		{
-			call dword ptr getHeavyStrategy
+			mov ecx, esi
+			call SelectHeavyStrategy // ecx: pursuit
+			test eax, eax
+			je skip
 
-			cmp byte ptr [eax], 0x3
-			je included // is HeavyStrategy 3
+			mov edi, -0x1
 
-			mov edx, dword ptr [esi + 0x84]
-			test edx, edx
-			je included // no active roadblock
-
-			sub edi, 0x0
-			jmp conclusion
-
-			included:
-			sub edi, dword ptr [eax + 0x4]
-
-			conclusion:
 			jmp dword ptr heavyChanceExit
+
+			skip:
+			imul edi, 0x64
+			sar edi, 0x10
+
+			jmp dword ptr heavyChanceSkip
 		}
 	}
 
-
+	
 
 	constexpr address requestDelayEntrance = 0x419680;
 	constexpr address requestDelayExit     = 0x419689;
@@ -186,7 +237,19 @@ namespace GroundSupport
 		__asm
 		{
 			cmp byte ptr [ecx + 0x20C], 0x2
-			jne conclusion // is not the dreaded 2 flag
+			jne conclusion // no spawned Strategy
+
+			mov eax, dword ptr [ecx + 0x194]
+			test eax, eax
+			jne heavy // is HeavyStrategy
+
+			cmp byte ptr Globals::advancedSetEnabled, 0x1
+			je clear       // is LeaderStrategy with "Advanced" set
+			jmp conclusion // is ... without ...
+
+			heavy:
+			cmp byte ptr [eax], 0x4
+			je clear // is HeavyStrategy 4
 
 			fld dword ptr strategyResetThreshold
 			fcomp dword ptr [ecx + 0x210]
@@ -194,6 +257,7 @@ namespace GroundSupport
 			test ah, 0x1
 			jne conclusion // Strategy cooldown below threshold
 
+			clear:
 			push ecx
 			call dword ptr clearSupportRequest
 			pop ecx
