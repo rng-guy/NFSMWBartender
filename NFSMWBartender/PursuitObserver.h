@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "Globals.h"
+#include "HashContainers.h"
 #include "HeatParameters.h"
 #include "CopSpawnTables.h"
 #include "PursuitFeatures.h"
@@ -36,10 +37,10 @@ namespace PursuitObserver
 		bool inPursuitUpdatePending    = true;
 		bool perHeatLevelUpdatePending = true;
 
-		Globals::AddressMap<CopLabel>                 copVehicleToLabel;
+		HashContainers::AddressMap<CopLabel>          copVehicleToLabel;
 		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
 
-		inline static Globals::AddressSet copVehiclesLoaded;
+		inline static HashContainers::AddressSet copVehiclesLoaded;
 
 
 		template <std::derived_from<PursuitReaction> R>
@@ -254,7 +255,7 @@ namespace PursuitObserver
 	bool featureEnabled = false;
 
 	// Code caves
-	Globals::AddressMap<PursuitObserver> pursuitToObserver;
+	HashContainers::AddressMap<PursuitObserver> pursuitToObserver;
 
 
 

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Globals.h"
+#include "HashContainers.h"
 #include "MemoryEditor.h"
 #include "HeatParameters.h"
 
@@ -30,9 +31,9 @@ namespace CopSpawnTables
 		int maxTotalCopChance     = 0;
 		int currentTotalCopChance = 0;
 
-		Globals::VaultMap<Entry> copTypeToEntry;
+		HashContainers::VaultMap<Entry> copTypeToEntry;
 
-		inline static Globals::VaultMap<std::string> copTypeToName;
+		inline static HashContainers::VaultMap<std::string> copTypeToName;
 		
 
 

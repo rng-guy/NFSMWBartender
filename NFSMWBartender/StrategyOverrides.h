@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Globals.h"
+#include "HashContainers.h"
 #include "PursuitFeatures.h"
 #include "HeatParameters.h"
 #include "MemoryEditor.h"
@@ -55,7 +56,7 @@ namespace StrategyOverrides
 		float spawnTimestamp    = *(this->simulationTime);
 		float unblockTimestamp  = this->spawnTimestamp;
 
-		inline static Globals::AddressMap<StrategyManager*> pursuitToManager;
+		inline static HashContainers::AddressMap<StrategyManager*> pursuitToManager;
 
 
 		void Reset()

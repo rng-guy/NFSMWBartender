@@ -3,6 +3,7 @@
 #include <initializer_list>
 
 #include "Globals.h"
+#include "HashContainers.h"
 #include "PursuitFeatures.h"
 #include "CopSpawnTables.h"
 #include "HeatParameters.h"
@@ -50,8 +51,8 @@ namespace CopFleeOverrides
 			Status         status;
 		};
 
-		Globals::AddressMap<Assessment> copVehicleToAssessment;
-		Globals::AddressMap<float>      copVehicleToFleeTimestamp;
+		HashContainers::AddressMap<Assessment> copVehicleToAssessment;
+		HashContainers::AddressMap<float>      copVehicleToFleeTimestamp;
 		
 		
 		static float GetStrategyDuration(const address pointer)

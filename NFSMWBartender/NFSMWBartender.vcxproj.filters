@@ -112,6 +112,9 @@
     <ClInclude Include="RadioCallsigns.h">
       <Filter>Header Files\Modifications\Basic</Filter>
     </ClInclude>
+    <ClInclude Include="HashContainers.h">
+      <Filter>Header Files\General</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Basic\General.ini">

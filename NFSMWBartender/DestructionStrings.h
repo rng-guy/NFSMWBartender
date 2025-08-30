@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "Globals.h"
+#include "HashContainers.h"
 #include "MemoryEditor.h"
 #include "HeatParameters.h"
 
@@ -20,7 +21,7 @@ namespace DestructionStrings
 	// Code caves
 	binary defaultDestructionKey = 0x0;
 
-	Globals::VaultMap<binary> copTypeToDestructionKey;
+	HashContainers::VaultMap<binary> copTypeToDestructionKey;
 
 
 	
@@ -113,7 +114,7 @@ namespace DestructionStrings
 
 		static const char* (__fastcall* const GetBinaryString)(int, binary) = (const char* (__fastcall*)(int, binary))0x56BB80;
 
-		Globals::ValidateVaultMap<binary>
+		HashContainers::ValidateVaultMap<binary>
 		(
 			"Vehicle-to-label",
 			copTypeToDestructionKey,

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "Globals.h"
+#include "HashContainers.h"
 #include "HeatParameters.h"
 #include "MemoryEditor.h"
 
@@ -28,7 +29,7 @@ namespace RadioCallsigns
 
 	Callsign defaultCallsign = PATROL;
 
-	Globals::VaultMap<Callsign> copTypeToCallsign;
+	HashContainers::VaultMap<Callsign> copTypeToCallsign;
 
 	
 	
@@ -192,7 +193,7 @@ namespace RadioCallsigns
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [RAD] RadioCallsigns");
 
-		Globals::ValidateVaultMap<Callsign>
+		HashContainers::ValidateVaultMap<Callsign>
 		(
 			"Vehicle-to-callsign",
 			copTypeToCallsign, 

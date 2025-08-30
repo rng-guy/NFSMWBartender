@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Globals.h"
+#include "HashContainers.h"
 #include "CopSpawnTables.h"
 #include "PursuitFeatures.h"
 #include "HelicopterOverrides.h"
@@ -20,8 +21,8 @@ namespace CopSpawnOverrides
 
 		const HeatParameters::Pair<CopSpawnTables::SpawnTable>* const source;
 
-		CopSpawnTables::SpawnTable table;
-		Globals::VaultMap<int>     copTypeToCurrentCount;
+		CopSpawnTables::SpawnTable    table;
+		HashContainers::VaultMap<int> copTypeToCurrentCount;
 		
 
 
@@ -117,10 +118,10 @@ namespace CopSpawnOverrides
 		int* const fullWaveCapacity  = (int*)(this->pursuit + 0x144);
 		int* const numCopsLostInWave = (int*)(this->pursuit + 0x14C);
 
-		CopSpawnTables::SpawnTable table;
-		Globals::VaultMap<int>     copTypeToCurrentCount;
+		CopSpawnTables::SpawnTable    table;
+		HashContainers::VaultMap<int> copTypeToCurrentCount;
 
-		inline static Globals::AddressMap<ContingentManager*> pursuitToManager;
+		inline static HashContainers::AddressMap<ContingentManager*> pursuitToManager;
 
 
 		void UpdateSpawnTable()
