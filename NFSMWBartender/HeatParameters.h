@@ -168,6 +168,83 @@ namespace HeatParameters
 
 
 
+	// Validation functions -------------------------------------------------------------------------------------------------------------------------
+
+	template <typename T>
+	void CheckIntervals
+	(
+		Pair<T>&       minValues,
+		const Pair<T>& maxValues
+	) {
+		for (const bool forRaces : {false, true})
+		{
+			Values<T>&       lowers = minValues.Get(forRaces);
+			const Values<T>& uppers = maxValues.Get(forRaces);
+
+			for (size_t heatLevel : heatLevels)
+				lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
+		}
+	}
+
+
+
+	bool AreAny(const Pair<bool>& pair)
+	{
+		for (const bool forRaces : {false, true})
+		{
+			for (const bool isEnabled : pair.Get(forRaces))
+				if (isEnabled) return true;
+		}
+
+		return false;
+	}
+
+
+
+	size_t ReplaceInvalidVehicles
+	(
+		const char* const  pairName,
+		Pair<std::string>& vehicles,
+		const bool         forHelicopters
+	) {
+		size_t numTotalReplaced = 0;
+
+		for (const bool forRaces : {false, true})
+		{
+			size_t numReplaced = 0;
+
+			for (size_t heatLevel : heatLevels)
+			{
+				std::string& vehicle = vehicles.Get(forRaces)[heatLevel - 1];
+				const vault  copType = Globals::GetVaultKey(vehicle.c_str());
+
+				if (not Globals::VehicleClassMatches(copType, forHelicopters))
+				{
+					// With logging disabled, the compiler optimises "pairName" away
+					if constexpr (Globals::loggingEnabled)
+					{
+						if (numReplaced == 0)
+							Globals::logger.LogLongIndent(pairName, (forRaces) ? "(race)" : "(free-roam)");
+
+						Globals::logger.LogLongIndent(' ', (int)heatLevel, vehicle, "->", vehicles.current);
+					}
+
+					vehicle = vehicles.current;
+
+					numReplaced++;
+				}
+			}
+
+			numTotalReplaced += numReplaced;
+		}
+
+		return numTotalReplaced;
+	}
+
+
+
+
+
 	// Parsing types and functions ------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
@@ -259,95 +336,48 @@ namespace HeatParameters
 
 
 
-
-
-	// Validation functions -------------------------------------------------------------------------------------------------------------------------
-
-	template <typename T>
-	void CheckIntervals
+	template <typename ...T>
+	void ParseOptional
 	(
-		Pair<T>&       minValues,
-		const Pair<T>& maxValues
+		Parser&                parser,
+		const std::string&     section,
+		Pair<bool>&            isEnableds,
+		ParsingSetup<T>&&   ...columns
 	) {
+
 		for (const bool forRaces : {false, true})
 		{
-			Values<T>&       lowers = minValues.Get(forRaces);
-			const Values<T>& uppers = maxValues.Get(forRaces);
-
-			for (size_t heatLevel : heatLevels)
-				lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
+			isEnableds.Get(forRaces) = parser.ParseParameterTable<T...>
+			(
+				section,
+				(forRaces) ? configFormatRace : configFormatRoam,
+				Format<T>
+				(
+					columns.pair.Get(forRaces),
+					{},
+					columns.lowerBound,
+					columns.upperBound
+				)...
+			);
 		}
 	}
 
 
 
-	bool AreAny(const Pair<bool>& pair)
-	{
-		for (const bool forRaces : {false, true})
-		{
-			for (const bool isEnabled : pair.Get(forRaces))
-				if (isEnabled) return true;
-		}
-
-		return false;
-	}
-
-
-
-	bool VehicleClassMatches
+	bool ParseOptionalInterval
 	(
-		const vault vehicleType,
-		const bool  forHelicopter
+		Parser&            parser,
+		const std::string& section,
+		Pair<bool>&        isEnableds,
+		Pair<float>&       minValues,
+		Pair<float>&       maxValues
 	) {
-		const address attribute = Globals::GetFromVault(0x4A97EC8F, vehicleType, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
+		ParseOptional<float, float>(parser, section, isEnableds, {minValues, 1.f}, {maxValues, 1.f});
 
-		if (not attribute) return false;
-		
-		const vault vehicleClass = *((vault*)(attribute + 0x8));
-		const bool  isHelicopter = (vehicleClass == 0xB80933AA); // checks if "CHOPPER"
+		if (not AreAny(isEnableds)) return false;
 
-		return (isHelicopter == forHelicopter);
-	}
+		CheckIntervals<float>(minValues, maxValues);
 
-
-
-	size_t ReplaceInvalidVehicles
-	(
-		const char* const  pairName,
-		Pair<std::string>& vehicles,
-		const bool         forHelicopters
-	) {
-		size_t numTotalReplaced = 0;
-
-		for (const bool forRaces : {false, true})
-		{
-			size_t numReplaced = 0;
-
-			for (size_t heatLevel : heatLevels)
-			{
-				std::string& vehicle = vehicles.Get(forRaces)[heatLevel - 1];
-				const vault  copType = Globals::GetVaultKey(vehicle.c_str());
-
-				if (not VehicleClassMatches(copType, forHelicopters))
-				{
-					// With logging disabled, the compiler optimises "pairName" away
-					if constexpr (Globals::loggingEnabled)
-					{
-						if (numReplaced == 0)
-							Globals::logger.LogLongIndent(pairName, (forRaces) ? "(race)" : "(free-roam)");
-
-						Globals::logger.LogLongIndent(' ', (int)heatLevel, vehicle, "->", vehicles.current);
-					}
-
-					vehicle = vehicles.current;
-
-					numReplaced++;
-				}
-			}
-
-			numTotalReplaced += numReplaced;
-		}
-
-		return numTotalReplaced;
+		return true;
 	}
 }

@@ -18,7 +18,8 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves
-	binary                    defaultDestructionKey;
+	binary defaultDestructionKey = 0x0;
+
 	Globals::VaultMap<binary> copTypeToDestructionKey;
 
 
@@ -31,22 +32,6 @@ namespace DestructionStrings
 	{
 		const auto foundType = copTypeToDestructionKey.find(copType);
 		return (foundType != copTypeToDestructionKey.end()) ? foundType->second : defaultDestructionKey;
-	}
-
-
-
-	bool VehicleExists(const vault vehicleType)
-	{
-		return Globals::GetFromVault(0x4A97EC8F, vehicleType); // fetches vehicle node from "pvehicle"
-	}
-
-
-
-	bool BinaryStringExists(const binary stringKey)
-	{
-		static const char* (__fastcall* const GetBinaryString)(int, binary) = (const char* (__fastcall*)(int, binary))0x56BB80;
-
-		return GetBinaryString(0, stringKey);
 	}
 
 
@@ -87,13 +72,16 @@ namespace DestructionStrings
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		if (not parser.LoadFile(HeatParameters::configPathBasic + "Labels.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
 
+		// Binary labels
 		std::vector<std::string> copVehicles;
 		std::vector<std::string> binaryLabels;
 
-		const size_t numCopVehicles = parser.ParseUserParameter("Cops:BinaryStrings", copVehicles, binaryLabels);
-		if (not (featureEnabled = (numCopVehicles > 0))) return false;
+		const size_t numCopVehicles = parser.ParseUserParameter("Vehicles:DestructionStrings", copVehicles, binaryLabels);
+
+		featureEnabled = (numCopVehicles > 0);
+		if (not featureEnabled) return false;
 
 		static binary (__cdecl* const GetBinaryKey)(const char*) = (binary (__cdecl*)(const char*))0x460BF0;
 
@@ -108,6 +96,7 @@ namespace DestructionStrings
 			);
 		}
 	
+		// Code caves
 		MemoryEditor::DigCodeCave(CopDestruction, copDestructionEntrance, copDestructionExit);
 
 		return true;
@@ -122,38 +111,15 @@ namespace DestructionStrings
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [DST] DestructionStrings");
 
-		// Extract "default" key if provided (and valid)
-		const auto pair       = copTypeToDestructionKey.extract(Globals::GetVaultKey("default"));
-		const bool isValid    = (not pair.empty()) and BinaryStringExists(pair.mapped());
-		defaultDestructionKey = (isValid) ? pair.mapped() : 0x0;
+		static const char* (__fastcall* const GetBinaryString)(int, binary) = (const char* (__fastcall*)(int, binary))0x56BB80;
 
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent((isValid) ? "Valid" : "No valid", "default label");
-
-		// Remove any invalid pairs
-		auto   iterator   = copTypeToDestructionKey.begin();
-		size_t numRemoved = 0;
-
-		while (iterator != copTypeToDestructionKey.end())
-		{
-			if (not (VehicleExists(iterator->first) and BinaryStringExists(iterator->second)))
-			{
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (numRemoved == 0) 
-						Globals::logger.LogLongIndent("Vehicle-to-label map");
-
-					Globals::logger.LogLongIndent("  -", iterator->first, iterator->second);
-				}
-					
-				iterator = copTypeToDestructionKey.erase(iterator);
-
-				numRemoved++;
-			}
-			else iterator++;
-		}
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent((numRemoved > 0) ? "  pairs left:" : "Vehicle-to-label pairs:", (int)copTypeToDestructionKey.size());
+		Globals::ValidateVaultMap<binary>
+		(
+			"Vehicle-to-label",
+			copTypeToDestructionKey,
+			defaultDestructionKey,
+			Globals::VehicleExists,
+			[=](const binary value){return GetBinaryString(0, value);}
+		);
 	}
 }

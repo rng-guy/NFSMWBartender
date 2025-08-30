@@ -30,7 +30,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * at what time interval you gain passive bounty,
 * the maximum combo-bounty multiplier for destroying cops quickly,
 * the internal cooldown for non-Strategy roadblock requests,
-* the internal cooldown for Heavy / LeaderStrategy requests,
+* the internal cooldown for Strategy requests,
 * what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
 * what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs),
 * what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen), and
@@ -38,17 +38,22 @@ The "Basic" feature set **lets you change** (per Heat level)
 
 &nbsp;
 
-The "Basic" feature set **fixes six bugs**:
+The "Basic" feature set **fixes seven bugs**:
+* helicopter icons on the mini-map no longer flicker on and off randomly,
 * helicopters no longer cast static shadows (like cars do) with incorrect placements,
-* active roadblocks in pursuits no longer prevent new HeavyStrategy 3 requests and spawns,
+* active roadblocks in pursuits no longer prevent new HeavyStrategy 3 requests,
+* the game is no longer biased in how it chooses to make Strategy requests
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
-* Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures),
-* you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills, and
-* non-Strategy roadblock and Heavy / LeaderStrategy requests no longer slow down over time.
+* Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures), and
+* you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills.
 
 &nbsp;
 
-You can also **assign new (Binary) strings** for the game to display when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause `FENG: Default string error` pop-ups, as it checks every string label you provide against the game's (potentially modified) language files whenever you launch it.
+You can also (re-)assign which **cop-destruction strings** the game displays when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause `FENG: Default string error` pop-ups, as it verifies all vehicle-to-string pairs against the game's database on launch.
+
+&nbsp;
+
+Last, you can (re-)assign **radio callsigns** to vehicles. This includes Cross' unique chatter!
 
 &nbsp;
 
@@ -68,12 +73,16 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * what vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
 * what vehicles (ditto) may spawn as pre-generated cops in scripted events,
 * what vehicles (without counts) may spawn as free patrols when there is no active pursuit,
-* what vehicle spawns in place of the regular helicopter, and
-* when exactly (if at all) the helicopter can (de / re)spawn.
+* what vehicle spawns in place of the regular helicopter
+* when exactly (if at all) the helicopter can (de / re)spawn,
+* how quickly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
+* how quickly (if at all) the game can request a new Strategy while another one is still active.
 
 &nbsp;
 
-The "Advanced" feature set **also fixes** the engagement count displayed above the pursuit board: The count now accurately reflects how many chasing cop spawns remain in the current wave by disregarding vehicles that spawn through any Heavy / LeaderStrategy, vehicles that join the pursuit by detaching themselves from roadblocks, and the helicopter.
+The "Advanced" feature set **fixes two bugs**:
+* early Strategy despawns or cancellations no longer stall the game from making new requests,
+* the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 
 &nbsp;
 

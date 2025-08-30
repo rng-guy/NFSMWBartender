@@ -20,19 +20,17 @@ namespace GroundSupport
 	HeatParameters::Pair<float> maxRoadblockCooldowns  (12.f);
 	HeatParameters::Pair<float> roadblockHeavyCooldowns(15.f);
 	HeatParameters::Pair<float> strategyCooldowns      (10.f);
-	HeatParameters::Pair<float> strategyResetTimers    (20.f);
 	HeatParameters::Pair<float> playerSpeedThresholds  (15.f); // kph
 	
-	HeatParameters::Pair<std::string> lightRammingVehicles  ("copsuvl");
-	HeatParameters::Pair<std::string> heavyRammingVehicles  ("copsuv");
-	HeatParameters::Pair<std::string> lightRoadblockVehicles("copsuvl");
-	HeatParameters::Pair<std::string> heavyRoadblockVehicles("copsuv");
-	HeatParameters::Pair<std::string> leaderVehicles        ("copcross");
-	HeatParameters::Pair<std::string> henchmenVehicles      ("copsporthench");
+	HeatParameters::Pair<std::string> heavy3LightVehicles   ("copsuvl");
+	HeatParameters::Pair<std::string> heavy3HeavyVehicles   ("copsuv");
+	HeatParameters::Pair<std::string> heavy4LightVehicles   ("copsuvl");
+	HeatParameters::Pair<std::string> heavy4HeavyVehicles   ("copsuv");
+	HeatParameters::Pair<std::string> leaderCrossVehicles   ("copcross");
+	HeatParameters::Pair<std::string> leaderHenchmenVehicles("copsporthench");
 
 	// Conversions
 	float roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current; // seconds
-	float strategyResetThreshold = strategyCooldowns.current     - strategyResetTimers.current;
 	float baseSpeedThreshold     = playerSpeedThresholds.current / 3.6f;                          // metres / second
 	float jerkSpeedThreshold     = baseSpeedThreshold * .625f;
 
@@ -42,50 +40,107 @@ namespace GroundSupport
 
 	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
 
-	address __fastcall SelectHeavyStrategy(const address pursuit)
-	{
+	bool __fastcall IsValidHeavyStrategy
+	(
+		const address pursuit,
+		const address strategy
+	) {
+		const int strategyType = *((int*)strategy);
+
+		switch (strategyType)
+		{
+		case 3:
+			return true;
+
+		case 4:
+			return (not *((address*)(pursuit + 0x84))); // active roadblock
+		}
+
+		return false;
+	}
+
+
+
+	bool __fastcall IsValidLeaderStrategy
+	(
+		const address pursuit,
+		const address strategy
+	) {
+		if (*((int*)(pursuit + 0x164)) != 0) return false;
+
+		const int strategyType = *((int*)strategy);
+
+		switch (strategyType)
+		{
+		case 5:
+			[[fallthrough]];
+
+		case 7:
+			return true;
+		}
+
+		return false;
+	}
+
+
+
+	template <typename T>
+	void FindValidStrategies
+	(
+		const address         pursuit,
+		const address         getNumStrategies,
+		const address         getStrategies,
+		const T&              validityPredicate,
+		std::vector<address>& validStrategies
+	) {
 		static address (__thiscall* const GetSupportNode)(address) = (address (__thiscall*)(address))0x418EE0;
 
 		const address supportNode = GetSupportNode(pursuit - 0x48);
-		if (not supportNode) return 0x0;
+		if (not supportNode) return;
 
-		static size_t  (__thiscall* const GetNumHeavyStrategies)(address)         = (size_t  (__thiscall*)(address))        0x403600;
-		static address (__thiscall* const GetHeavyStrategy)     (address, size_t) = (address (__thiscall*)(address, size_t))0x4035E0;
+		size_t  (__thiscall* const GetNumStrategies)(address)         = (size_t(__thiscall*)(address))         getNumStrategies;
+		address (__thiscall* const GetStrategy)     (address, size_t) = (address(__thiscall*)(address, size_t))getStrategies;
 
-		static std::vector<address> candidateStrategies;
+		const size_t numStrategies = GetNumStrategies(supportNode);
 
-		const bool   roadblockActive    = *((address*)(pursuit + 0x84));
-		const size_t numHeavyStrategies = GetNumHeavyStrategies(supportNode);
-
-		for (size_t strategyID = 0; strategyID < numHeavyStrategies; strategyID++)
+		for (size_t strategyID = 0; strategyID < numStrategies; strategyID++)
 		{
-			const address strategy = GetHeavyStrategy(supportNode, strategyID);
-
-			const int type = *((int*)strategy);
-			if (roadblockActive and (type == 4)) continue;
+			const address strategy = GetStrategy(supportNode, strategyID);
+			if (not validityPredicate(pursuit, strategy)) continue;
 
 			const int chance = *((int*)(strategy + 0x4));
-			const int roll   = Globals::prng.Generate<int>(0, 100);
 
-			if (roll < chance)
-				candidateStrategies.push_back(strategy);
+			if (Globals::prng.Generate<int>(0, 100) < chance)
+				validStrategies.push_back(strategy);
 		}
+	}
 
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log(pursuit, "[SUP]", (int)candidateStrategies.size(), "HeavyStrategy choices");
 
-		if (not candidateStrategies.empty())
+
+	address __fastcall GetRandomStrategy(const address pursuit) 
+	{
+		static std::vector<address> validStrategies;
+
+		FindValidStrategies(pursuit, 0x403600, 0x4035E0, IsValidHeavyStrategy,  validStrategies);
+		FindValidStrategies(pursuit, 0x403680, 0x403660, IsValidLeaderStrategy, validStrategies);
+
+		if (not validStrategies.empty())
 		{
-			const size_t  index    = (candidateStrategies.size() > 1) ? Globals::prng.Generate<size_t>(0, candidateStrategies.size()) : 0;
-			const address strategy = candidateStrategies[index];
+			const size_t  index    = (validStrategies.size() > 1) ? Globals::prng.Generate<size_t>(0, validStrategies.size()) : 0;
+			const address strategy = validStrategies[index];
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[SUP] Index", (int)index, "-> HeavyStrategy", *((int*)strategy));
+			{
+				const char* const strategyType = (IsValidHeavyStrategy(pursuit, strategy)) ? "HeavyStrategy" : "LeaderStrategy";
+				Globals::logger.Log(pursuit, "[SUP] Requesting", strategyType, *((int*)strategy));
+			}
 
-			candidateStrategies.clear();
+			validStrategies.clear();
 
 			return strategy;
 		}
+		else if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log(pursuit, "[SUP] Skipping Strategy request");
 
 		return 0x0;
 	}
@@ -96,17 +151,41 @@ namespace GroundSupport
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address roadblockHeavyEntrance = 0x4197EC;
-	constexpr address roadblockHeavyExit     = 0x4197F6;
+	constexpr address strategySelectionEntrance = 0x41978D;
+	constexpr address strategySelectionExit     = 0x41984E;
 
-	__declspec(naked) void RoadblockHeavy()
+	__declspec(naked) void StrategySelection()
 	{
 		__asm
 		{
+			mov ecx, esi
+			call GetRandomStrategy // ecx: pursuit
+			test eax, eax
+			je conclusion          // no Strategy selected
+
+			mov ebx, eax
+			mov edi, -0x1
+
+			mov ecx, dword ptr [ebx + 0x8]
+			mov dword ptr [esi + 0x208], ecx
+			mov dword ptr [esi + 0x20C], 0x1
+
+			mov ecx, esi
+			mov edx, ebx
+			call IsValidHeavyStrategy
+			test al, al
+			je leader // is LeaderStrategy
+
+			mov dword ptr [esi + 0x194], ebx
 			mov eax, dword ptr roadblockHeavyCooldowns.current
 			mov dword ptr [esi + 0xC8], eax
+			jmp conclusion // was HeavyStrategy
 
-			jmp dword ptr roadblockHeavyExit
+			leader:
+			mov dword ptr [esi + 0x198], ebx
+
+			conclusion:
+			jmp dword ptr strategySelectionExit
 		}
 	}
 
@@ -190,85 +269,11 @@ namespace GroundSupport
 			evaluation:
 			fnstsw ax
 			test ah, 0x1
+
 			mov eax, dword ptr [esi + 0x1DC]
 
 			conclusion:
 			jmp dword ptr rammingCheckExit
-		}
-	}
-
-
-
-	constexpr address heavyChanceEntrance = 0x41979B;
-	constexpr address heavyChanceExit     = 0x4197D3;
-
-	__declspec(naked) void HeavyChance()
-	{
-		static constexpr address heavyChanceSkip = 0x4197F6;
-
-		__asm
-		{
-			mov ecx, esi
-			call SelectHeavyStrategy // ecx: pursuit
-			test eax, eax
-			je skip
-
-			mov edi, -0x1
-
-			jmp dword ptr heavyChanceExit
-
-			skip:
-			imul edi, 0x64
-			sar edi, 0x10
-
-			jmp dword ptr heavyChanceSkip
-		}
-	}
-
-	
-
-	constexpr address requestDelayEntrance = 0x419680;
-	constexpr address requestDelayExit     = 0x419689;
-
-	__declspec(naked) void RequestDelay()
-	{
-		static constexpr address clearSupportRequest = 0x42BCF0;
-
-		__asm
-		{
-			cmp byte ptr [ecx + 0x20C], 0x2
-			jne conclusion // no spawned Strategy
-
-			mov eax, dword ptr [ecx + 0x194]
-			test eax, eax
-			jne heavy // is HeavyStrategy
-
-			cmp byte ptr Globals::advancedSetEnabled, 0x1
-			je clear       // is LeaderStrategy with "Advanced" set
-			jmp conclusion // is ... without ...
-
-			heavy:
-			cmp byte ptr [eax], 0x4
-			je clear // is HeavyStrategy 4
-
-			fld dword ptr strategyResetThreshold
-			fcomp dword ptr [ecx + 0x210]
-			fnstsw ax
-			test ah, 0x1
-			jne conclusion // Strategy cooldown below threshold
-
-			clear:
-			push ecx
-			call dword ptr clearSupportRequest
-			pop ecx
-
-			conclusion:
-			// Execute original code and resume
-			push esi
-			mov esi, ecx
-			mov al, byte ptr [esi + 0xE8]
-
-			jmp dword ptr requestDelayExit
 		}
 	}
 
@@ -281,19 +286,19 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			push dword ptr leaderVehicles.current
+			push dword ptr leaderCrossVehicles.current
 			mov dword ptr [esi + 0x148], ebx
 			call Globals::GetVaultKey
 
-			push dword ptr heavyRammingVehicles.current
+			push dword ptr heavy3HeavyVehicles.current
 			mov ebx, eax
 			call Globals::GetVaultKey
 
-			push dword ptr lightRammingVehicles.current
+			push dword ptr heavy3LightVehicles.current
 			mov ebp, eax
 			call Globals::GetVaultKey
 
-			push dword ptr henchmenVehicles.current
+			push dword ptr leaderHenchmenVehicles.current
 			mov dword ptr [esp + 0x30], eax
 			call Globals::GetVaultKey
 
@@ -310,7 +315,7 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			push dword ptr leaderVehicles.current
+			push dword ptr leaderCrossVehicles.current
 
 			jmp dword ptr onDetachedExit
 		}
@@ -325,7 +330,7 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			mov ecx, dword ptr leaderVehicles.current
+			mov ecx, dword ptr leaderCrossVehicles.current
 			mov dword ptr [esp + 0x24], ecx
 
 			jmp dword ptr leaderSubExit
@@ -341,7 +346,7 @@ namespace GroundSupport
 	{
 		__asm
 		{
-			mov eax, dword ptr henchmenVehicles.current
+			mov eax, dword ptr leaderHenchmenVehicles.current
 
 			jmp dword ptr henchmenSubExit
 		}
@@ -360,16 +365,16 @@ namespace GroundSupport
 			jl heavy // is "heavy" Rhino variant
 
 			cmp byte ptr [eax], 0x3
-			mov eax, dword ptr lightRammingVehicles.current
-			je conclusion  // is ramming strategy (3)
-			mov eax, dword ptr lightRoadblockVehicles.current
-			jmp conclusion // is roadblock strategy (4)
+			mov eax, dword ptr heavy3LightVehicles.current
+			je conclusion  // is HeavyStrategy 3
+			mov eax, dword ptr heavy4LightVehicles.current
+			jmp conclusion // is HeavyStrategy 4
 
 			heavy:
 			cmp byte ptr [eax], 0x3
-			mov eax, dword ptr heavyRammingVehicles.current
+			mov eax, dword ptr heavy3HeavyVehicles.current
 			je conclusion
-			mov eax, dword ptr heavyRoadblockVehicles.current
+			mov eax, dword ptr heavy4HeavyVehicles.current
 
 			conclusion:
 			jmp dword ptr rhinoSelectorExit
@@ -390,40 +395,40 @@ namespace GroundSupport
 		HeatParameters::Parse<float, float, float>
 		(
 			parser,
-			"Roadblocks:Timers",
-			{minRoadblockCooldowns,   0.f},
-			{maxRoadblockCooldowns,   0.f},
-			{roadblockHeavyCooldowns, 0.f}
+			"Roadblocks:Cooldown",
+			{minRoadblockCooldowns,   1.f},
+			{maxRoadblockCooldowns,   1.f},
+			{roadblockHeavyCooldowns, 1.f}
 		);
 
 		HeatParameters::CheckIntervals<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
 
-		// Other pursuit parameters
-		HeatParameters::Parse<float>       (parser, "Heavy:Behaviour",   {playerSpeedThresholds, 0.f});
-		HeatParameters::Parse<float, float>(parser, "Strategies:Timers", {strategyCooldowns,     0.f}, {strategyResetTimers, 0.f});
+		// Other Heat parameters
+		HeatParameters::Parse<float>(parser, "Heavy3:Behaviour",    {playerSpeedThresholds, 0.f});
+		HeatParameters::Parse<float>(parser, "Strategies:Cooldown", {strategyCooldowns,     1.f});
 
-		HeatParameters::Parse<std::string, std::string>(parser, "Heavy:Ramming",   {lightRammingVehicles},   {heavyRammingVehicles});
-		HeatParameters::Parse<std::string, std::string>(parser, "Heavy:Roadblock", {lightRoadblockVehicles}, {heavyRoadblockVehicles});
-		HeatParameters::Parse<std::string, std::string>(parser, "Leader:General",  {leaderVehicles},         {henchmenVehicles});
+		HeatParameters::Parse<std::string, std::string>(parser, "Heavy3:Vehicles", {heavy3LightVehicles}, {heavy3HeavyVehicles});
+		HeatParameters::Parse<std::string, std::string>(parser, "Heavy4:Vehicles", {heavy4LightVehicles}, {heavy4HeavyVehicles});
+		HeatParameters::Parse<std::string, std::string>(parser, "Leader:Vehicles", {leaderCrossVehicles}, {leaderHenchmenVehicles});
 
 		// Code caves
 		MemoryEditor::Write<float*>(&(minRoadblockCooldowns.current), {0x419548});
-		MemoryEditor::WriteToAddressRange(0x90, 0x4197A9, 0x4197AB); // roadblocks blocking HeavyStrategy 3
 
+		MemoryEditor::DigCodeCave(StrategySelection, strategySelectionEntrance, strategySelectionExit);
 		MemoryEditor::DigCodeCave(RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);
         MemoryEditor::DigCodeCave(RequestCooldown,   requestCooldownEntrance,   requestCooldownExit);
-		MemoryEditor::DigCodeCave(RoadblockHeavy,    roadblockHeavyEntrance,    roadblockHeavyExit);
 		MemoryEditor::DigCodeCave(CollapseCheck,     collapseCheckEntrance,     collapseCheckExit);
 		MemoryEditor::DigCodeCave(RammingCheck,      rammingCheckEntrance,      rammingCheckExit);
-        MemoryEditor::DigCodeCave(RequestDelay,      requestDelayEntrance,      requestDelayExit);
-		MemoryEditor::DigCodeCave(HeavyChance,       heavyChanceEntrance,       heavyChanceExit);
 		MemoryEditor::DigCodeCave(OnAttached,        onAttachedEntrance,        onAttachedExit);
 		MemoryEditor::DigCodeCave(OnDetached,        onDetachedEntrance,        onDetachedExit);
         MemoryEditor::DigCodeCave(LeaderSub,         leaderSubEntrance,         leaderSubExit);
 		MemoryEditor::DigCodeCave(HenchmenSub,       henchmenSubEntrance,       henchmenSubExit);
         MemoryEditor::DigCodeCave(RhinoSelector,     rhinoSelectorEntrance,     rhinoSelectorExit);
 
-		return (featureEnabled = true);
+		// Status flag
+		featureEnabled = true;
+
+		return true;
     }
 
 
@@ -436,12 +441,12 @@ namespace GroundSupport
 			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
 
 		// With logging disabled, the compiler optimises the string literals away
-		HeatParameters::ReplaceInvalidVehicles("Light ram. SUVs", lightRammingVehicles,   false);
-		HeatParameters::ReplaceInvalidVehicles("Heavy ram. SUVs", heavyRammingVehicles,   false);
-		HeatParameters::ReplaceInvalidVehicles("Light rdb. SUVs", lightRoadblockVehicles, false);
-		HeatParameters::ReplaceInvalidVehicles("Heavy rdb. SUVs", heavyRoadblockVehicles, false);
-		HeatParameters::ReplaceInvalidVehicles("Leader",          leaderVehicles,         false);
-		HeatParameters::ReplaceInvalidVehicles("Henchmen",        henchmenVehicles,       false);
+		HeatParameters::ReplaceInvalidVehicles("HeavyStrategy 3, light",   heavy3LightVehicles,    false);
+		HeatParameters::ReplaceInvalidVehicles("HeavyStrategy 3, heavy",   heavy3HeavyVehicles,    false);
+		HeatParameters::ReplaceInvalidVehicles("HeavyStrategy 4, light",   heavy4LightVehicles,    false);
+		HeatParameters::ReplaceInvalidVehicles("HeavyStrategy 4, heavy",   heavy4HeavyVehicles,    false);
+		HeatParameters::ReplaceInvalidVehicles("LeaderStrategy, Cross",    leaderCrossVehicles,    false);
+		HeatParameters::ReplaceInvalidVehicles("LeaderStrategy, henchmen", leaderHenchmenVehicles, false);
 	}
 
 
@@ -457,20 +462,19 @@ namespace GroundSupport
 		maxRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
 		strategyCooldowns      .SetToHeat(isRacing, heatLevel);
-		strategyResetTimers    .SetToHeat(isRacing, heatLevel);
 		playerSpeedThresholds  .SetToHeat(isRacing, heatLevel);
 
-		lightRammingVehicles  .SetToHeat(isRacing, heatLevel);
-		heavyRammingVehicles  .SetToHeat(isRacing, heatLevel);
-		lightRoadblockVehicles.SetToHeat(isRacing, heatLevel);
-		heavyRoadblockVehicles.SetToHeat(isRacing, heatLevel);
-		leaderVehicles        .SetToHeat(isRacing, heatLevel);
-		henchmenVehicles      .SetToHeat(isRacing, heatLevel);
+		heavy3LightVehicles   .SetToHeat(isRacing, heatLevel);
+		heavy3HeavyVehicles   .SetToHeat(isRacing, heatLevel);
+		heavy4LightVehicles   .SetToHeat(isRacing, heatLevel);
+		heavy4HeavyVehicles   .SetToHeat(isRacing, heatLevel);
+		leaderCrossVehicles   .SetToHeat(isRacing, heatLevel);
+		leaderHenchmenVehicles.SetToHeat(isRacing, heatLevel);
 
 		roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;
-		strategyResetThreshold = strategyCooldowns.current     - strategyResetTimers.current;
-		baseSpeedThreshold     = playerSpeedThresholds.current / 3.6f;
-		jerkSpeedThreshold     = baseSpeedThreshold * .625f;
+
+		baseSpeedThreshold = playerSpeedThresholds.current / 3.6f;
+		jerkSpeedThreshold = baseSpeedThreshold * .625f;
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -480,15 +484,14 @@ namespace GroundSupport
 			Globals::logger.LogLongIndent("maxRoadblockCooldown    ", maxRoadblockCooldowns.current);
 			Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
 			Globals::logger.LogLongIndent("strategyCooldown        ", strategyCooldowns.current);
-			Globals::logger.LogLongIndent("strategyResetTimer      ", strategyResetTimers.current);
 			Globals::logger.LogLongIndent("playerSpeedThreshold    ", playerSpeedThresholds.current);
 
-			Globals::logger.LogLongIndent("lightRammingVehicle     ", lightRammingVehicles.current);
-			Globals::logger.LogLongIndent("heavyRammingVehicle     ", heavyRammingVehicles.current);
-			Globals::logger.LogLongIndent("lightRoadblockVehicle   ", lightRoadblockVehicles.current);
-			Globals::logger.LogLongIndent("heavyRoadblockVehicle   ", heavyRoadblockVehicles.current);
-			Globals::logger.LogLongIndent("leaderVehicle           ", leaderVehicles.current);
-			Globals::logger.LogLongIndent("henchmenVehicle         ", henchmenVehicles.current);
+			Globals::logger.LogLongIndent("heavy3LightVehicle      ", heavy3LightVehicles.current);
+			Globals::logger.LogLongIndent("heavy3HeavyVehicle      ", heavy3HeavyVehicles.current);
+			Globals::logger.LogLongIndent("heavy4LightVehicle      ", heavy4LightVehicles.current);
+			Globals::logger.LogLongIndent("heavy4HeavyVehicle      ", heavy4HeavyVehicles.current);
+			Globals::logger.LogLongIndent("leaderCrossVehicle      ", leaderCrossVehicles.current);
+			Globals::logger.LogLongIndent("leaderHenchmenVehicle   ", leaderHenchmenVehicles.current);
 		}
     }
 }

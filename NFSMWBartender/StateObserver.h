@@ -5,9 +5,9 @@
 #include "HeatParameters.h"
 
 #include "DestructionStrings.h"
+#include "RadioCallsigns.h"
 #include "GroundSupport.h"
-#include "Miscellaneous.h"
-#include "PursuitBar.h"
+#include "GeneralSettings.h"
 
 #include "PursuitObserver.h"
 
@@ -38,8 +38,7 @@ namespace StateObserver
 				Globals::logger.Log("    HEAT [STA] Heat level is now", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
 
 			GroundSupport  ::SetToHeat(playerIsRacing, currentHeatLevel);
-			Miscellaneous  ::SetToHeat(playerIsRacing, currentHeatLevel);
-			PursuitBar     ::SetToHeat(playerIsRacing, currentHeatLevel);
+			GeneralSettings::SetToHeat(playerIsRacing, currentHeatLevel);
 			PursuitObserver::SetToHeat(playerIsRacing, currentHeatLevel);
 		}
 	}
@@ -51,13 +50,14 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log("\n SESSION [VER] Bartender v1.15.01");
+			Globals::logger.Log("\n SESSION [VER] Bartender v1.16.00");
 
 			Globals::logger.LogLongIndent("Basic feature set",    (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
 		}
 
 		DestructionStrings::Validate();
+		RadioCallsigns    ::Validate();
 		GroundSupport     ::Validate();
 		PursuitObserver   ::Validate();
 	}

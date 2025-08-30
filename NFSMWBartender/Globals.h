@@ -32,8 +32,9 @@ namespace Globals
 	RandomNumbers::Generator prng;
 
 	// Common function pointers
-	vault (__cdecl*    const GetVaultKey)   (const char*) = (vault  (__cdecl*)   (const char*))0x5CC240;
-	vault (__thiscall* const GetVehicleType)(address)     = (vault  (__thiscall*)(address))    0x6880A0;
+	vault       (__cdecl*    const GetVaultKey)   (const char*) = (vault  (__cdecl*)        (const char*))0x5CC240;
+	vault       (__thiscall* const GetVehicleType)(address)     = (vault  (__thiscall*)     (address))    0x6880A0;
+	const char* (__thiscall* const GetVehicleName)(address)     = (const char* (__thiscall*)(address))    0x688090;
 
 	// Logging
 	constexpr bool loggingEnabled = false;
@@ -93,4 +94,86 @@ namespace Globals
 
 	template <typename V>
 	using VaultMap = IdentityMap<vault, V>;
+
+
+
+
+
+	// Parsing and validation functions -------------------------------------------------------------------------------------------------------------
+
+	bool VehicleExists(const vault vehicleType)
+	{
+		return GetFromVault(0x4A97EC8F, vehicleType); // fetches vehicle node from "pvehicle"
+	}
+
+
+
+	bool VehicleClassMatches
+	(
+		const vault vehicleType,
+		const bool  forHelicopter
+	) {
+		const address attribute = GetFromVault(0x4A97EC8F, vehicleType, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
+
+		if (not attribute) return false;
+
+		const vault vehicleClass = *((vault*)(attribute + 0x8));
+		const bool  isHelicopter = (vehicleClass == 0xB80933AA); // checks if "CHOPPER"
+
+		return (isHelicopter == forHelicopter);
+	}
+
+
+
+	template <typename T, typename K, typename V>
+	void ValidateVaultMap
+	(
+		const char* const mapName,
+		VaultMap<T>&      map,
+		T&                defaultValue,
+		const K&          keyPredicate,
+		const V&          valuePredicate
+	) {
+		// Extract "default" key if provided (and valid)
+		const auto pair    = map.extract(GetVaultKey("default"));
+		const bool isValid = ((not pair.empty()) and valuePredicate(pair.mapped()));
+
+		if (isValid)
+			defaultValue = pair.mapped();
+
+		if constexpr (loggingEnabled)
+			logger.LogLongIndent((isValid) ? "Valid default value:" : "No valid default value, using", defaultValue);
+		
+		// Remove any invalid pairs
+		auto   iterator   = map.begin();
+		size_t numRemoved = 0;
+
+		while (iterator != map.end())
+		{
+			if (not (keyPredicate(iterator->first) and valuePredicate(iterator->second)))
+			{
+				if constexpr (loggingEnabled)
+				{
+					if (numRemoved == 0)
+						logger.LogLongIndent(mapName, "map");
+
+					logger.LogLongIndent("  -", iterator->first, iterator->second);
+				}
+
+				iterator = map.erase(iterator);
+
+				numRemoved++;
+			}
+			else iterator++;
+		}
+
+		if constexpr (loggingEnabled)
+		{
+			if (numRemoved > 0)
+				logger.LogLongIndent("  pairs left:", (int)map.size());
+
+			else
+				logger.LogLongIndent(mapName, "pairs:", (int)map.size());
+		}
+	}
 }

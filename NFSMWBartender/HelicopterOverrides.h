@@ -18,12 +18,12 @@ namespace HelicopterOverrides
 	HeatParameters::Pair<std::string> helicopterVehicles("copheli");
 
 	HeatParameters::Pair<bool>  helicopterEnableds(false);
-	HeatParameters::Pair<float> minSpawnDelays    (0.f);   // seconds
-	HeatParameters::Pair<float> maxSpawnDelays    (0.f);
-	HeatParameters::Pair<float> minDespawnDelays  (0.f);
-	HeatParameters::Pair<float> maxDespawnDelays  (0.f);
-	HeatParameters::Pair<float> minRespawnDelays  (0.f);
-	HeatParameters::Pair<float> maxRespawnDelays  (0.f);
+	HeatParameters::Pair<float> minSpawnDelays    (1.f);   // seconds
+	HeatParameters::Pair<float> maxSpawnDelays    (1.f);
+	HeatParameters::Pair<float> minDespawnDelays  (1.f);
+	HeatParameters::Pair<float> maxDespawnDelays  (1.f);
+	HeatParameters::Pair<float> minRespawnDelays  (1.f);
+	HeatParameters::Pair<float> maxRespawnDelays  (1.f);
 
 
 
@@ -60,7 +60,7 @@ namespace HelicopterOverrides
 
 		void MakeSpawnAttempt() const
 		{
-			static char (__thiscall* const SpawnHelicopter)(address, address) = (char (__thiscall*)(address, address))0x4269A0;
+			static bool (__thiscall* const SpawnHelicopter)(address, address) = (bool (__thiscall*)(address, address))0x4269A0;
 
 			if (not helicopterEnableds.current) return;
 			if (not this->isPlayerPursuit)      return;
@@ -126,8 +126,8 @@ namespace HelicopterOverrides
 
 		void ChangeStatus()
 		{
-			this->helicopterActive      = (not this->helicopterActive);
 			this->statusChangeTimestamp = *(this->simulationTime);
+			this->helicopterActive      = (not this->helicopterActive);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[HEL] Helicopter now", (this->helicopterActive) ? "active" : "inactive");
@@ -156,7 +156,7 @@ namespace HelicopterOverrides
 		}
 
 
-		void UpdateOnHeatChange()  override 
+		void UpdateOnHeatChange() override 
 		{
 			this->UpdateNextSpawnTimestamp();
 		}
@@ -225,20 +225,18 @@ namespace HelicopterOverrides
 		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini")) return false;
 
 		// Heat parameters
-		for (const bool forRaces : {false, true})
-		{
-			helicopterEnableds.Get(forRaces) = parser.ParseParameterTable<float, float, float, float, float, float>
-			(
-				"Helicopter:Timers",
-				(forRaces) ? HeatParameters::configFormatRace : HeatParameters::configFormatRoam,
-				HeatParameters::Format<float>(minSpawnDelays  .Get(forRaces), {}, 0.f),
-				HeatParameters::Format<float>(maxSpawnDelays  .Get(forRaces), {}, 0.f),
-				HeatParameters::Format<float>(minDespawnDelays.Get(forRaces), {}, 0.f),
-				HeatParameters::Format<float>(maxDespawnDelays.Get(forRaces), {}, 0.f),
-				HeatParameters::Format<float>(minRespawnDelays.Get(forRaces), {}, 0.f),
-				HeatParameters::Format<float>(maxRespawnDelays.Get(forRaces), {}, 0.f)
-			);
-		}
+		HeatParameters::ParseOptional<float, float, float, float, float, float>
+		(
+			parser, 
+			"Helicopter:Timers", 
+			helicopterEnableds,
+			{minSpawnDelays,   1.f},
+			{maxSpawnDelays,   1.f},
+			{minDespawnDelays, 1.f},
+			{maxDespawnDelays, 1.f},
+			{minRespawnDelays, 1.f},
+			{maxRespawnDelays, 1.f}
+		);
 
 		if (not HeatParameters::AreAny(helicopterEnableds)) return false;
 
@@ -251,7 +249,10 @@ namespace HelicopterOverrides
 		// Code caves
 		MemoryEditor::DigCodeCave(FuelTime, fuelTimeEntrance, fuelTimeExit);
 
-		return (featureEnabled = true);
+		// Status flag
+		featureEnabled = true;
+
+		return true;
 	}
 
 
@@ -277,18 +278,14 @@ namespace HelicopterOverrides
 		if (not featureEnabled) return;
 
 		helicopterEnableds.SetToHeat(isRacing, heatLevel);
+		helicopterVehicles.SetToHeat(isRacing, heatLevel);
 
-		if (helicopterEnableds.current)
-		{
-			helicopterVehicles.SetToHeat(isRacing, heatLevel);
-
-			minSpawnDelays  .SetToHeat(isRacing, heatLevel);
-			maxSpawnDelays  .SetToHeat(isRacing, heatLevel);
-			minDespawnDelays.SetToHeat(isRacing, heatLevel);
-			maxDespawnDelays.SetToHeat(isRacing, heatLevel);
-			minRespawnDelays.SetToHeat(isRacing, heatLevel);
-			maxRespawnDelays.SetToHeat(isRacing, heatLevel);
-		}
+		minSpawnDelays  .SetToHeat(isRacing, heatLevel);
+		maxSpawnDelays  .SetToHeat(isRacing, heatLevel);
+		minDespawnDelays.SetToHeat(isRacing, heatLevel);
+		maxDespawnDelays.SetToHeat(isRacing, heatLevel);
+		minRespawnDelays.SetToHeat(isRacing, heatLevel);
+		maxRespawnDelays.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 		{

@@ -19,8 +19,8 @@ namespace CopFleeOverrides
 
 	// Heat levels
 	HeatParameters::Pair<bool>  fleeingEnableds(false);
-	HeatParameters::Pair<float> minFleeDelays  (0.f);   // seconds
-	HeatParameters::Pair<float> maxFleeDelays  (0.f);
+	HeatParameters::Pair<float> minFleeDelays  (1.f);   // seconds
+	HeatParameters::Pair<float> maxFleeDelays  (1.f);
 
 
 
@@ -54,10 +54,10 @@ namespace CopFleeOverrides
 		Globals::AddressMap<float>      copVehicleToFleeTimestamp;
 		
 		
-		static float GetStrategyDuration(const address source)
+		static float GetStrategyDuration(const address pointer)
 		{
-			const address strategy = *((address*)source);
-			return (strategy) ? *((float*)(strategy + 0x8)) : 0.f;
+			const address strategy = *((address*)pointer);
+			return (strategy) ? *((float*)(strategy + 0x8)) : 1.f;
 		}
 
 
@@ -79,10 +79,10 @@ namespace CopFleeOverrides
 		}
 
 
-		static bool IsInPursuitTable(const address copVehicle)
+		static bool IsInChasersTable(const address copVehicle)
 		{
 			const vault copType = Globals::GetVehicleType(copVehicle);
-			return CopSpawnTables::pursuitSpawnTables.current->Contains(copType);
+			return CopSpawnTables::chaserSpawnTables.current->Contains(copType);
 		}
 
 
@@ -107,7 +107,7 @@ namespace CopFleeOverrides
 				break;
 
 			case CopLabel::CHASER:
-				flagVehicle = (fleeingEnableds.current and (not this->IsInPursuitTable(assessment.copVehicle)));
+				flagVehicle = (fleeingEnableds.current and (not this->IsInChasersTable(assessment.copVehicle)));
 				if (flagVehicle) timeUntilFlee = Globals::prng.Generate<float>(minFleeDelays.current, maxFleeDelays.current);
 				break;
 
@@ -284,23 +284,16 @@ namespace CopFleeOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
 		// Heat parameters
-		for (const bool forRaces : {false, true})
-		{
-			fleeingEnableds.Get(forRaces) = parser.ParseParameterTable<float, float>
-			(
-				"Fleeing:Timers",
-				(forRaces) ? HeatParameters::configFormatRace : HeatParameters::configFormatRoam,
-				HeatParameters::Format<float>(minFleeDelays.Get(forRaces), {}, 0.f),
-				HeatParameters::Format<float>(maxFleeDelays.Get(forRaces), {}, 0.f)
-			);
-		}
-
-		HeatParameters::CheckIntervals<float>(minFleeDelays, maxFleeDelays);
+		HeatParameters::ParseOptional <float, float>(parser, "Fleeing:Timers", fleeingEnableds, {minFleeDelays, 1.f}, {maxFleeDelays, 1.f});
+		HeatParameters::CheckIntervals<float>       (minFleeDelays, maxFleeDelays);
 
 		// Code caves
 		MemoryEditor::DigCodeCave(UpdateFormation, updateFormationEntrance, updateFormationExit);
 
-		return (featureEnabled = true);
+		// Status flag
+		featureEnabled = true;
+
+		return true;
 	}
 
 
@@ -313,12 +306,8 @@ namespace CopFleeOverrides
 		if (not featureEnabled) return;
 
 		fleeingEnableds.SetToHeat(isRacing, heatLevel);
-
-		if (fleeingEnableds.current)
-		{
-			minFleeDelays.SetToHeat(isRacing, heatLevel);
-			maxFleeDelays.SetToHeat(isRacing, heatLevel);
-		}
+		minFleeDelays  .SetToHeat(isRacing, heatLevel);
+		maxFleeDelays  .SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 		{

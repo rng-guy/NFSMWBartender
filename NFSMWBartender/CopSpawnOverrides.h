@@ -114,8 +114,8 @@ namespace CopSpawnOverrides
 		int numPatrolCarsToSpawn = 0;
 		int numCopsInContingent  = 0;
 
-		int* const fullWaveCapacity  = (int*)(pursuit + 0x144);
-		int* const numCopsLostInWave = (int*)(pursuit + 0x14C);
+		int* const fullWaveCapacity  = (int*)(this->pursuit + 0x144);
+		int* const numCopsLostInWave = (int*)(this->pursuit + 0x14C);
 
 		CopSpawnTables::SpawnTable table;
 		Globals::VaultMap<int>     copTypeToCurrentCount;
@@ -136,7 +136,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[SPA] Updating table");
 
-			this->table = *(CopSpawnTables::pursuitSpawnTables.current);
+			this->table = *(CopSpawnTables::chaserSpawnTables.current);
 
 			for (const auto& pair : this->copTypeToCurrentCount)
 			{
@@ -392,7 +392,7 @@ namespace CopSpawnOverrides
 		case 0x42E72E: // scripted event spawn
 			return ((not skipEventSpawns) and ContingentManager::IsHeatLevelKnown());
 				
-		case 0x43EBD0: // chaser / "Cooldown" patrol
+		case 0x43EBD0: // chaser / "COOLDOWN" patrol
 			return true;
 		}
 
@@ -411,7 +411,7 @@ namespace CopSpawnOverrides
 		case 0x42E72E: // scripted event spawn
 			return eventManager.GetRandomCopName();
 
-		case 0x43EBD0: // chaser / "Cooldown" patrol
+		case 0x43EBD0: // chaser / "COOLDOWN" patrol
 			if (not ContingentManager::IsHeatLevelKnown()) break;
 			const ContingentManager* const manager = ContingentManager::GetInstance(pursuit);
 			if (manager) return manager->GetRandomCopName();
@@ -644,8 +644,8 @@ namespace CopSpawnOverrides
 	{
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
-		// Pursuit parameters
-		HeatParameters::Parse<int, int>(parser, "Spawning:Limits", {minActiveCounts, 0}, {maxActiveCounts, 0});
+		// Heat parameters
+		HeatParameters::Parse<int, int>(parser, "Spawning:Limits", {minActiveCounts, 0}, {maxActiveCounts, 1});
 
 		// Code caves
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
@@ -665,7 +665,10 @@ namespace CopSpawnOverrides
 		MemoryEditor::DigCodeCave(SecondCopTable, secondCopTableEntrance, secondCopTableExit);
 		MemoryEditor::DigCodeCave(ThirdCopTable,  thirdCopTableEntrance,  thirdCopTableExit);
 
-		return (featureEnabled = true);
+		// Status flag
+		featureEnabled = true;
+
+		return true;
 	}
 
 

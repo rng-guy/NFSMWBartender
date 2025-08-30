@@ -18,7 +18,7 @@ namespace RandomNumbers
 	{
 	private:
 
-		std::array<uint64_t, 4> state;
+		std::array<uint64_t, 4> state = {};
 
 
 		static uint64_t Join
@@ -63,7 +63,7 @@ namespace RandomNumbers
 		{
 			std::random_device rng;
 
-			for (size_t i = 0; i < 4; i++)
+			for (size_t i = 0; i < this->state.size(); i++)
 				this->state[i] = this->Join(rng(), rng());
 		}
 

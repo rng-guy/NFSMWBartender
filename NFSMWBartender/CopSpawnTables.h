@@ -95,7 +95,7 @@ namespace CopSpawnTables
 
 			while (iterator != this->copTypeToEntry.end())
 			{
-				if (not HeatParameters::VehicleClassMatches(iterator->first, false))
+				if (not Globals::VehicleClassMatches(iterator->first, false))
 				{
 					// With logging disabled, the compiler optimises all parameters away
 					if constexpr (Globals::loggingEnabled)
@@ -228,7 +228,7 @@ namespace CopSpawnTables
 	// Heat levels
 	HeatParameters::Pair<SpawnTable> eventSpawnTables;
 	HeatParameters::Pair<SpawnTable> patrolSpawnTables;
-	HeatParameters::Pair<SpawnTable> pursuitSpawnTables;
+	HeatParameters::Pair<SpawnTable> chaserSpawnTables;
 	HeatParameters::Pair<SpawnTable> roadblockSpawnTables;
 
 	// Code caves
@@ -304,23 +304,27 @@ namespace CopSpawnTables
 
 			ParseTables(parser, "Events",     format, eventSpawnTables    .Get(forRaces), true);
 			ParseTables(parser, "Patrols",    format, patrolSpawnTables   .Get(forRaces), false);
-			ParseTables(parser, "Chasers",    format, pursuitSpawnTables  .Get(forRaces), true);
+			ParseTables(parser, "Chasers",    format, chaserSpawnTables   .Get(forRaces), true);
 			ParseTables(parser, "Roadblocks", format, roadblockSpawnTables.Get(forRaces), true);
 		}
 
 		// Check for and deal with empty tables
-		for (const SpawnTable& table : pursuitSpawnTables.roam) if (table.IsEmpty()) return false;
+		for (const SpawnTable& table : chaserSpawnTables.roam) 
+			if (table.IsEmpty()) return false;
 
-		ReplaceEmptyTables(eventSpawnTables.roam,     pursuitSpawnTables.roam);
-		ReplaceEmptyTables(patrolSpawnTables.roam,    pursuitSpawnTables.roam);
-		ReplaceEmptyTables(roadblockSpawnTables.roam, pursuitSpawnTables.roam);
+		ReplaceEmptyTables(eventSpawnTables.roam,     chaserSpawnTables.roam);
+		ReplaceEmptyTables(patrolSpawnTables.roam,    chaserSpawnTables.roam);
+		ReplaceEmptyTables(roadblockSpawnTables.roam, chaserSpawnTables.roam);
 
 		ReplaceEmptyTables(eventSpawnTables.race,     eventSpawnTables.roam);
 		ReplaceEmptyTables(patrolSpawnTables.race,    patrolSpawnTables.roam);
-		ReplaceEmptyTables(pursuitSpawnTables.race,   pursuitSpawnTables.roam);
+		ReplaceEmptyTables(chaserSpawnTables.race,    chaserSpawnTables.roam);
 		ReplaceEmptyTables(roadblockSpawnTables.race, roadblockSpawnTables.roam);
 
-		return (featureEnabled = true);
+		// Status flag
+		featureEnabled = true;
+
+		return true;
 	}
 
 
@@ -339,7 +343,7 @@ namespace CopSpawnTables
 				// With logging disabled, the compiler optimises all arguments away
 				(eventSpawnTables    .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Events",     forRaces, heatLevel);
 				(patrolSpawnTables   .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Patrols",    forRaces, heatLevel);
-				(pursuitSpawnTables  .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Chasers",    forRaces, heatLevel);
+				(chaserSpawnTables   .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Chasers",    forRaces, heatLevel);
 				(roadblockSpawnTables.Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Roadblocks", forRaces, heatLevel);
 			}
 		}
@@ -356,10 +360,10 @@ namespace CopSpawnTables
 
 		eventSpawnTables    .SetToHeat(isRacing, heatLevel);
 		patrolSpawnTables   .SetToHeat(isRacing, heatLevel);
-		pursuitSpawnTables  .SetToHeat(isRacing, heatLevel);
+		chaserSpawnTables   .SetToHeat(isRacing, heatLevel);
 		roadblockSpawnTables.SetToHeat(isRacing, heatLevel);
 
-		currentMaxCopCapacity = pursuitSpawnTables.current->GetMaxTotalCopCapacity();
+		currentMaxCopCapacity = chaserSpawnTables.current->GetMaxTotalCopCapacity();
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -367,7 +371,7 @@ namespace CopSpawnTables
 
 			eventSpawnTables    .current->LogContents("Events                  ");
 			patrolSpawnTables   .current->LogContents("Patrols                 ");
-			pursuitSpawnTables  .current->LogContents("Chasers                 ");
+			chaserSpawnTables   .current->LogContents("Chasers                 ");
 			roadblockSpawnTables.current->LogContents("Roadblocks              ");
 		}
 	}
