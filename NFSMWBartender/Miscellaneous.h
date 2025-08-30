@@ -83,13 +83,12 @@ namespace Miscellaneous
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
 
-    bool Initialise(HeatParameters::Parser& parser)
-    {
+	bool Initialise(HeatParameters::Parser& parser)
+	{
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Others.ini")) return false;
 
-		// Pursuit parameters
-		HeatParameters::Parse<float>(parser, "BountyInterval", {bountyIntervals, .001f});
-		HeatParameters::Parse<int>  (parser, "CopComboLimit",  {copComboLimits,  1});
+		// Heat parameters
+		HeatParameters::Parse<float, int>(parser, "Bounty:General", {bountyIntervals, .001f}, {copComboLimits,  1});
 
 		// Code caves
 		MemoryEditor::Write<float*>(&bountyFrequency, {0x444513, 0x444524});
