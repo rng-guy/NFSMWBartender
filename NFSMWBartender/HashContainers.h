@@ -15,9 +15,9 @@ namespace HashContainers
 	template <typename K>
 	struct IdentityHash
 	{
-		size_t operator()(const K value) const
+		size_t operator()(const K key) const
 		{
-			return value;
+			return key;
 		}
 	};
 
@@ -50,10 +50,10 @@ namespace HashContainers
 	void ValidateVaultMap
 	(
 		const char* const mapName,
-		VaultMap<T>& map,
-		T& defaultValue,
-		const K& keyPredicate,
-		const V& valuePredicate
+		VaultMap<T>&      map,
+		T&                defaultValue,
+		const K&          keyPredicate,
+		const V&          valuePredicate
 	) {
 		// Extract "default" key if provided (and valid)
 		const auto pair    = map.extract(Globals::GetVaultKey("default"));
@@ -73,6 +73,7 @@ namespace HashContainers
 		{
 			if (not (keyPredicate(iterator->first) and valuePredicate(iterator->second)))
 			{
+				// With logging disabled, the compiler optimises the string away
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (numRemoved == 0)

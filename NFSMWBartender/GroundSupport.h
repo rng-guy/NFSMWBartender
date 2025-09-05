@@ -20,7 +20,6 @@ namespace GroundSupport
 	HeatParameters::Pair<float> maxRoadblockCooldowns  (12.f);
 	HeatParameters::Pair<float> roadblockHeavyCooldowns(15.f);
 	HeatParameters::Pair<float> strategyCooldowns      (10.f);
-	HeatParameters::Pair<float> playerSpeedThresholds  (15.f); // kph
 	
 	HeatParameters::Pair<std::string> heavy3LightVehicles   ("copsuvl");
 	HeatParameters::Pair<std::string> heavy3HeavyVehicles   ("copsuv");
@@ -31,8 +30,6 @@ namespace GroundSupport
 
 	// Conversions
 	float roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current; // seconds
-	float baseSpeedThreshold     = playerSpeedThresholds.current / 3.6f;                          // metres / second
-	float jerkSpeedThreshold     = baseSpeedThreshold * .625f;
 
 
 
@@ -133,6 +130,7 @@ namespace GroundSupport
 			{
 				const char* const strategyType = (IsValidHeavyStrategy(pursuit, strategy)) ? "HeavyStrategy" : "LeaderStrategy";
 				Globals::logger.Log(pursuit, "[SUP] Requesting", strategyType, *((int*)strategy));
+				Globals::logger.Log(pursuit, "[SUP] Index", (int)(index + 1), '/', (int)validStrategies.size());
 			}
 
 			validStrategies.clear();
@@ -140,7 +138,7 @@ namespace GroundSupport
 			return strategy;
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log(pursuit, "[SUP] Skipping Strategy request");
+			Globals::logger.Log(pursuit, "[SUP] Strategy request failed");
 
 		return 0x0;
 	}
@@ -217,63 +215,6 @@ namespace GroundSupport
 			mov dword ptr [esi + 0x210], eax
 
 			jmp dword ptr requestCooldownExit
-		}
-	}
-
-
-
-	constexpr address collapseCheckEntrance = 0x4437CD;
-	constexpr address collapseCheckExit     = 0x4437D6;
-
-	__declspec(naked) void CollapseCheck()
-	{
-		__asm
-		{
-			// Execute original code first
-			fcom dword ptr [esp + 0x1C] // CollapseSpeed
-			fnstsw ax
-			test ah, 0x5
-
-			fstp dword ptr [esp + 0x1C] // player speed
-
-			jmp dword ptr collapseCheckExit
-		}
-	}
-
-
-
-	constexpr address rammingCheckEntrance = 0x44385D;
-	constexpr address rammingCheckExit     = 0x443865;
-
-	__declspec(naked) void RammingCheck()
-	{
-		__asm
-		{
-			// Execute original code first
-			mov eax, dword ptr [esi + 0x1DC]
-			test eax, eax
-			je conclusion // no active HeavyStrategy 3
-
-			fld dword ptr [esp + 0x1C] // player speed
-
-			mov al, byte ptr [esi + 0x280]
-			test al, al
-			jne jerk // AIPursuit::GetIsAJerk
-
-			fcomp dword ptr baseSpeedThreshold
-			jmp evaluation
-
-			jerk:
-			fcomp dword ptr jerkSpeedThreshold
-
-			evaluation:
-			fnstsw ax
-			test ah, 0x1
-
-			mov eax, dword ptr [esi + 0x1DC]
-
-			conclusion:
-			jmp dword ptr rammingCheckExit
 		}
 	}
 
@@ -404,8 +345,7 @@ namespace GroundSupport
 		HeatParameters::CheckIntervals<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
 
 		// Other Heat parameters
-		HeatParameters::Parse<float>(parser, "Heavy3:Behaviour",    {playerSpeedThresholds, 0.f});
-		HeatParameters::Parse<float>(parser, "Strategies:Cooldown", {strategyCooldowns,     1.f});
+		HeatParameters::Parse<float>(parser, "Strategies:Cooldown", {strategyCooldowns, 1.f});
 
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy3:Vehicles", {heavy3LightVehicles}, {heavy3HeavyVehicles});
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy4:Vehicles", {heavy4LightVehicles}, {heavy4HeavyVehicles});
@@ -417,8 +357,6 @@ namespace GroundSupport
 		MemoryEditor::DigCodeCave(StrategySelection, strategySelectionEntrance, strategySelectionExit);
 		MemoryEditor::DigCodeCave(RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);
         MemoryEditor::DigCodeCave(RequestCooldown,   requestCooldownEntrance,   requestCooldownExit);
-		MemoryEditor::DigCodeCave(CollapseCheck,     collapseCheckEntrance,     collapseCheckExit);
-		MemoryEditor::DigCodeCave(RammingCheck,      rammingCheckEntrance,      rammingCheckExit);
 		MemoryEditor::DigCodeCave(OnAttached,        onAttachedEntrance,        onAttachedExit);
 		MemoryEditor::DigCodeCave(OnDetached,        onDetachedEntrance,        onDetachedExit);
         MemoryEditor::DigCodeCave(LeaderSub,         leaderSubEntrance,         leaderSubExit);
@@ -441,12 +379,12 @@ namespace GroundSupport
 			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
 
 		// With logging disabled, the compiler optimises the string literals away
-		HeatParameters::ReplaceInvalidVehicles("HeavyStrategy 3, light",   heavy3LightVehicles,    false);
-		HeatParameters::ReplaceInvalidVehicles("HeavyStrategy 3, heavy",   heavy3HeavyVehicles,    false);
-		HeatParameters::ReplaceInvalidVehicles("HeavyStrategy 4, light",   heavy4LightVehicles,    false);
-		HeatParameters::ReplaceInvalidVehicles("HeavyStrategy 4, heavy",   heavy4HeavyVehicles,    false);
-		HeatParameters::ReplaceInvalidVehicles("LeaderStrategy, Cross",    leaderCrossVehicles,    false);
-		HeatParameters::ReplaceInvalidVehicles("LeaderStrategy, henchmen", leaderHenchmenVehicles, false);
+		heavy3LightVehicles   .Validate(Globals::VehicleClass::CAR, "HeavyStrategy 3, light");
+		heavy3HeavyVehicles   .Validate(Globals::VehicleClass::CAR, "HeavyStrategy 3, heavy");
+		heavy4LightVehicles   .Validate(Globals::VehicleClass::CAR, "HeavyStrategy 4, light");
+		heavy4HeavyVehicles   .Validate(Globals::VehicleClass::CAR, "HeavyStrategy 4, heavy");
+		leaderCrossVehicles   .Validate(Globals::VehicleClass::CAR, "LeaderStrategy, Cross");
+		leaderHenchmenVehicles.Validate(Globals::VehicleClass::CAR, "LeaderStrategy, henchmen");
 	}
 
 
@@ -462,7 +400,6 @@ namespace GroundSupport
 		maxRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
 		strategyCooldowns      .SetToHeat(isRacing, heatLevel);
-		playerSpeedThresholds  .SetToHeat(isRacing, heatLevel);
 
 		heavy3LightVehicles   .SetToHeat(isRacing, heatLevel);
 		heavy3HeavyVehicles   .SetToHeat(isRacing, heatLevel);
@@ -473,18 +410,13 @@ namespace GroundSupport
 
 		roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;
 
-		baseSpeedThreshold = playerSpeedThresholds.current / 3.6f;
-		jerkSpeedThreshold = baseSpeedThreshold * .625f;
-
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Log("    HEAT [SUP] GroundSupport");
 
-			Globals::logger.LogLongIndent("minRoadblockCooldown    ", minRoadblockCooldowns.current);
-			Globals::logger.LogLongIndent("maxRoadblockCooldown    ", maxRoadblockCooldowns.current);
+			Globals::logger.LogLongIndent("roadblockCooldown       ", minRoadblockCooldowns.current, "to", maxRoadblockCooldowns.current);
 			Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
 			Globals::logger.LogLongIndent("strategyCooldown        ", strategyCooldowns.current);
-			Globals::logger.LogLongIndent("playerSpeedThreshold    ", playerSpeedThresholds.current);
 
 			Globals::logger.LogLongIndent("heavy3LightVehicle      ", heavy3LightVehicles.current);
 			Globals::logger.LogLongIndent("heavy3HeavyVehicle      ", heavy3HeavyVehicles.current);

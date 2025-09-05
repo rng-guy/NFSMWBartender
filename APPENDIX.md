@@ -41,6 +41,10 @@ For a detailed **version history** of Bartender, see the plain-text version of t
 
 # 1 - What is there to know about Bartender's file parsing?
 
+Bartender only recognises **Heat levels** from 1 to 10. If you want to use Bartender to customise Heat levels above 10, you need to recompile it with the appropriate `maxHeatLevel` value yourself.
+
+&nbsp;
+
 Bartender parses its configuration (.ini) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure in the configuration files. Each group allows you to provide values, either in relation to Heat levels or vehicles.
 
 &nbsp;
@@ -67,7 +71,7 @@ Some parameter groups allow you to define **default values**, indicated by `defa
 
 &nbsp;
 
-Bartender can handle any **invalid vehicles** you might provide in its configuration files, both as values themselves and as something for which you provide other values. The sections below mention how Bartender does this on a case-by-case basis, but a vehicle is invalid if
+Bartender can handle any **invalid vehicles** you might provide in its configuration files, both as values themselves and as something for which you define other values. The sections below mention how Bartender does this on a case-by-case basis, but a vehicle is invalid if
 * it doesn't exist in the game's database (i.e. lacks a VltEd node under `pvehicle`), or
 * it's of the wrong class (e.g. is a helicopter when Bartender expects a regular car).
 
@@ -93,7 +97,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 * You can disable this entire feature set by deleting all of its configuration files.
 
-* You can disable any feature of this set by deleting the file containing its parameter group. Bug fixes, however, don't have parameters and are tied to specific files implicitly instead.
+* You can disable any feature of this set by deleting the file containing its parameter group. Fixes, however, don't have parameters and are tied to specific files implicitly instead.
 
 * To disable the shadow and Heat-level fixes, delete all configuration files of this feature set.
 
@@ -109,7 +113,7 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * You (re-)assign string labels (i.e. string names) to vehicles, not the strings themselves.
 
-* You can use the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy to edit the game's strings or add new ones.
+* You can use the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy to edit the game's strings and add new ones.
 
 * For destruction strings, Bartender ignores vehicles and strings that don't exist in the game.
 
@@ -171,8 +175,6 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before the game can make non-Strategy roadblock and Strategy requests in a given pursuit.
 
-* Setting low player speed thresholds for HeavyStrategy 3 spawns fixes the vanilla issue of them attempting to flee the pursuit instantly without trying to ram you. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if your speed drops below the value of the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this often happens before they can even reach you because of higher `CollapseSpeed` values and far more aggressive cops.
-
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
 * You shouldn't use the replacement vehicles for Cross elsewhere in the game. Otherwise, these vehicles will block all LeaderStrategy spawns whenever they are present in a given pursuit.
@@ -217,7 +219,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * A minimum engagement count > 0 allows that many "Chasers" to (re)spawn without backup. This minimum count does not spawn cops beyond their `count` values or the global cop-spawn limit.
 
-* In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overwrites the min. engagement count.
+* In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the min. engagement count.
 
 * The global cop-spawn limit determines whether the game may spawn new "Chasers" at any point. The game can spawn additional "Chasers" as long as the total amount of non-roadblock and non-helicopter cops that currently exist across all pursuits is less than this global limit. This also means that any active Strategy spawns or NPC pursuits can affect how many more "Chasers" can still spawn in your pursuit (this is vanilla behaviour).
 
@@ -225,7 +227,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * If you want to use global cop spawn limits > 8, you must also install and configure the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351. This is necessary because the game cannot handle managing > 8 "Chasers" for very long. To configure LA to work with Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file; there, set the `PursuitCops` value to 255 and disable every single cop-related feature under `[Options]`. After configuring LA like this, use only Bartender to set any global cop-spawn limits!
 
-* "Chasers" will only flee at Heat levels for which you provide valid delay values.
+* "Chasers" will only flee at Heat levels for which you define valid flee-delay values.
 
 * Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
 
@@ -267,17 +269,23 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * Bartender uses random timers for spawning, despawning, and respawning the helicopter. Each of these actions has a separate interval of possible timer values. Here, "spawning" refers to the very first appearance of a helicopter in a given pursuit, while "respawning" refers to any further appearances after the first. Heat transitions don't reset these timers.
 
-* The helicopter only spawns at Heat levels for which you provide valid delay values.
+* The helicopter only spawns at Heat levels for which you define valid (re)spawn-delay values.
 
 * The helicopter also (de / re)spawns in "COOLDOWN" mode according to its timers.
 
 * The helicopter uses whatever HeliStrategy you set in VltEd.
 
-* Only one helicopter will ever be active at any given time. This is a game limitation; you could technically spawn more, but they would count as cars and behave very oddly.
+* Only one helicopter can ever be active at any given time. This is a game limitation; you could technically spawn more, but they would count as cars and behave very oddly.
 
 * Bartender replaces vehicles that don't exist in the game with `copheli`.
 
 * Bartender replaces vehicles that aren't helicopters with `copheli`.
+
+* The helicopter can only rejoin pursuits early at Heat levels for which you define valid rejoin-delay values. The helicopter doesn't rejoin if it gets wrecked or runs out of fuel.
+
+* The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay. If the helicopter wouldn't have any fuel left after rejoining, it respawns normally instead.
+
+* Rejoining helicopters don't count towards the total number of helicopters deployed.
 
 &nbsp;
 
@@ -285,18 +293,26 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * Deleting this file disables the fix for the game missing early Strategy cancellations.
 
-* LeaderStrategy spawn-flag resets only happen at Heat levels for which you provide valid delay values. This feature set disables the vanilla game's spawn-flag behaviour by default.
+* Setting low player-speed thresholds for HeavyStrategy 3 spawns fixes the vanilla issue of them attempting to flee the pursuit instantly without trying to ram you. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if your speed drops below the value of the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this often happens before they can even reach you because of higher "CollapseSpeed" values and far more aggressive cops.
+
+* LeaderStrategy Cross and / or his henchmen only become aggressive at Heat levels for which you define valid aggro-delay values. Henchmen, however, always become aggressive when Cross leaves.
+
+* Once aggressive, Cross and / or his henchmen act like regular cops and can join formations.
+
+* Aggro delays longer than the LeaderStrategy `Duration` VltEd parameter effectively do nothing.
+
+* LeaderStrategy spawn-flag resets only happen at Heat levels for which you define valid reset-delay values. This feature set always disables the vanilla spawn-flag behaviour.
 
 * For LeaderStrategy 7, the henchmen must also despawn first before the game can request another Strategy. You can circumvent this with Bartender's unblocking feature (see below).
 
-* Bartender only unblocks the Strategy-request queue at Heat levels for which you provide valid delay values. Otherwise, an active Strategy request prevents the game from making a new request until either its `Duration` VltEd parameter expires or all of its vehicles have despawned.
+* Bartender can unblock the Strategy-request queue while there is still an active Strategy. Without unblocking, an active Strategy request prevents the game from making a new request. Unblocking allows multiple Strategy requests to spawn at the same time, and they each continue until either their `Duration` VltEd parameters expire or all their vehicles have despawned.
 
-* Unblocking the Strategy-request queue allows the vehicles of the currently active Strategy to stay until its `Duration` VltEd parameter expires. For anything but HeavyStrategy 4, however, these vehicles also start behaving like regular cops: LeaderStrategy vehicles become much more aggressive, and HeavyStrategy 3 vehicles stop their scripted ramming attempts.
+* Bartender only unblocks requests at Heat levels for which you define valid unblock-delay values.
 
-* Delays longer than the `Duration` VltEd parameter of a given Strategy effectively do nothing.
+* Unblock delays longer than a given Strategy's `Duration` VltEd parameter effectively do nothing.
 
 * Even with unblocking, no new LeaderStrategy can spawn while a LeaderStrategy Cross is present.
 
-* It is generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7, as request cancellation doesn't affect their behaviours that much (if at all). This allows for more frequent and diverse Strategy spawns in pursuits without risking instability.
+* It is generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
 
-* You shouldn't use short unblock delays for HeavyStrategy 3. Too many overlapping HeavyStrategy 3 spawns can cause game instability since they ignore any spawn limits. Further, HeavyStrategy 3 vehicles are useless without their scripted ramming behaviour.
+* You shouldn't use short unblock delays for HeavyStrategy 3, as too many overlapping HeavyStrategy 3 spawns can lead to game instability since they ignore all spawn limits. It's often better to just use lower (~20 seconds) `Duration` VltEd parameters instead.

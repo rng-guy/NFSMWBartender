@@ -27,9 +27,6 @@ namespace HeatParameters
 	const std::string configPathBasic    = configPathMain + "Basic/";
 	const std::string configPathAdvanced = configPathMain + "Advanced/";
 
-	// Vehicle validation
-	constexpr vault pvehicle = 0x4A97EC8F;
-
 
 
 
@@ -130,7 +127,7 @@ namespace HeatParameters
 		T current;
 
 
-		explicit Pair(const T initial) : current(initial) {}
+		explicit Pair(const T original) : current(original) {}
 
 
 		void SetToHeat
@@ -139,6 +136,18 @@ namespace HeatParameters
 			const size_t heatLevel
 		) {
 			this->current = ((forRaces) ? this->race : this->roam)[heatLevel - 1];
+		}
+
+
+		bool AnyNonzero() const
+		{
+			for (const bool forRaces : {false, true})
+			{
+				for (const T value : this->Get(forRaces))
+					if (value) return true;
+			}
+
+			return false;
 		}
 	};
 
@@ -152,7 +161,7 @@ namespace HeatParameters
 		const char* current;
 
 
-		explicit Pair(const char* const initial) : current(initial) {}
+		explicit Pair(const char* const original) : current(original) {}
 
 
 		void SetToHeat
@@ -161,6 +170,46 @@ namespace HeatParameters
 			const size_t heatLevel
 		) {
 			this->current = (((forRaces) ? this->race : this->roam)[heatLevel - 1]).c_str();
+		}
+
+
+		size_t Validate
+		(
+			const Globals::VehicleClass vehicleClass, 
+			const char* const           pairName
+		) {
+			size_t numTotalReplaced = 0;
+
+			for (const bool forRaces : {false, true})
+			{
+				size_t numReplaced = 0;
+
+				for (size_t heatLevel : heatLevels)
+				{
+					std::string& vehicle = this->Get(forRaces)[heatLevel - 1];
+					const vault  copType = Globals::GetVaultKey(vehicle.c_str());
+
+					if (not Globals::VehicleClassMatches(copType, vehicleClass))
+					{
+						// With logging disabled, the compiler optimises "pairName" away
+						if constexpr (Globals::loggingEnabled)
+						{
+							if (numReplaced == 0)
+								Globals::logger.LogLongIndent(pairName, (forRaces) ? "(race)" : "(free-roam)");
+
+							Globals::logger.LogLongIndent(' ', (int)heatLevel, vehicle, "->", this->current);
+						}
+
+						vehicle = this->current;
+
+						numReplaced++;
+					}
+				}
+
+				numTotalReplaced += numReplaced;
+			}
+
+			return numTotalReplaced;
 		}
 	};
 
@@ -184,61 +233,6 @@ namespace HeatParameters
 			for (size_t heatLevel : heatLevels)
 				lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
 		}
-	}
-
-
-
-	bool AreAny(const Pair<bool>& pair)
-	{
-		for (const bool forRaces : {false, true})
-		{
-			for (const bool isEnabled : pair.Get(forRaces))
-				if (isEnabled) return true;
-		}
-
-		return false;
-	}
-
-
-
-	size_t ReplaceInvalidVehicles
-	(
-		const char* const  pairName,
-		Pair<std::string>& vehicles,
-		const bool         forHelicopters
-	) {
-		size_t numTotalReplaced = 0;
-
-		for (const bool forRaces : {false, true})
-		{
-			size_t numReplaced = 0;
-
-			for (size_t heatLevel : heatLevels)
-			{
-				std::string& vehicle = vehicles.Get(forRaces)[heatLevel - 1];
-				const vault  copType = Globals::GetVaultKey(vehicle.c_str());
-
-				if (not Globals::VehicleClassMatches(copType, forHelicopters))
-				{
-					// With logging disabled, the compiler optimises "pairName" away
-					if constexpr (Globals::loggingEnabled)
-					{
-						if (numReplaced == 0)
-							Globals::logger.LogLongIndent(pairName, (forRaces) ? "(race)" : "(free-roam)");
-
-						Globals::logger.LogLongIndent(' ', (int)heatLevel, vehicle, "->", vehicles.current);
-					}
-
-					vehicle = vehicles.current;
-
-					numReplaced++;
-				}
-			}
-
-			numTotalReplaced += numReplaced;
-		}
-
-		return numTotalReplaced;
 	}
 
 
@@ -344,7 +338,6 @@ namespace HeatParameters
 		Pair<bool>&            isEnableds,
 		ParsingSetup<T>&&   ...columns
 	) {
-
 		for (const bool forRaces : {false, true})
 		{
 			isEnableds.Get(forRaces) = parser.ParseParameterTable<T...>
@@ -374,7 +367,7 @@ namespace HeatParameters
 	) {
 		ParseOptional<float, float>(parser, section, isEnableds, {minValues, 1.f}, {maxValues, 1.f});
 
-		if (not AreAny(isEnableds)) return false;
+		if (not isEnableds.AnyNonzero()) return false;
 
 		CheckIntervals<float>(minValues, maxValues);
 

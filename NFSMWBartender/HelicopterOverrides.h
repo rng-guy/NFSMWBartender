@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "Globals.h"
 #include "PursuitFeatures.h"
 #include "HeatParameters.h"
@@ -25,6 +27,13 @@ namespace HelicopterOverrides
 	HeatParameters::Pair<float> minRespawnDelays  (1.f);
 	HeatParameters::Pair<float> maxRespawnDelays  (1.f);
 
+	HeatParameters::Pair<bool>  rejoiningEnableds(false);
+	HeatParameters::Pair<float> minRejoinDelays  (1.f);   // seconds
+	HeatParameters::Pair<float> maxRejoinDelays  (1.f);
+
+	// Conversions
+	float maxFuelTime = std::max<float>(maxDespawnDelays.current, maxRejoinDelays.current);
+
 
 
 
@@ -33,18 +42,25 @@ namespace HelicopterOverrides
 
 	class HelicopterManager : public PursuitFeatures::PursuitReaction
 	{
-		using CopLabel = PursuitFeatures::CopLabel;
+		using IntervalTimer = PursuitFeatures::IntervalTimer;
 
 
 
 	private:
 		
-		bool isPlayerPursuit  = false;
-		bool hasSpawnedBefore = false;
+		bool  isPlayerPursuit   = false;
+		bool  hasSpawnedBefore  = false;
+		float fuelAtLastDespawn = 0.f;
 
-		bool  helicopterActive      = false;
-		float statusChangeTimestamp = *(this->simulationTime);
-		float nextSpawnTimestamp    = 0.f;
+		int* const numHelicoptersDeployed = (int*)(this->pursuit + 0x150);
+
+		IntervalTimer firstSpawnTimer = IntervalTimer(helicopterEnableds, minSpawnDelays,   maxSpawnDelays);
+		IntervalTimer respawnTimer    = IntervalTimer(helicopterEnableds, minRespawnDelays, maxRespawnDelays);
+		IntervalTimer rejoinTimer     = IntervalTimer(rejoiningEnableds,  minRejoinDelays,  maxRejoinDelays);
+
+		IntervalTimer* spawnTimer = &(this->firstSpawnTimer);
+
+		inline static const address* const helicopterObject = (address*)0x90D61C;
 
 
 		void VerifyPursuit()
@@ -60,14 +76,11 @@ namespace HelicopterOverrides
 
 		void MakeSpawnAttempt() const
 		{
+			if (not this->spawnTimer)               return;
+			if (not this->isPlayerPursuit)          return;
+			if (not this->spawnTimer->HasExpired()) return;
+
 			static bool (__thiscall* const SpawnHelicopter)(address, address) = (bool (__thiscall*)(address, address))0x4269A0;
-
-			if (not helicopterEnableds.current) return;
-			if (not this->isPlayerPursuit)      return;
-			if (not this->IsHeatLevelKnown())   return;
-
-			if (this->helicopterActive)                             return;
-			if (*(this->simulationTime) < this->nextSpawnTimestamp) return;
 
 			static const address* const copManager = (address*)0x989098;
 
@@ -83,61 +96,95 @@ namespace HelicopterOverrides
 		}
 
 
-		void SetHelicopterFuel(const float fuel) const
-		{
-			static const address* const helicopterObject = (address*)0x90D61C;
+		float* GetHelicopterFuel() const
+		{ 
+			const address helicopter = *(this->helicopterObject);
+			return (helicopter) ? (float*)(helicopter + 0x7D8) : nullptr;
+		}
 
-			if (*helicopterObject)
+
+		void SetHelicopterFuel() 
+		{
+			if (this->spawnTimer) return;
+
+			float* const fuel = this->GetHelicopterFuel();
+
+			if (fuel)
 			{ 
-				*((float*)(*helicopterObject + 0x7D8)) = fuel;
+				if (this->fuelAtLastDespawn > 0.f)
+				{
+					*fuel = this->fuelAtLastDespawn - this->rejoinTimer.GetLength();
+
+					(*(this->numHelicoptersDeployed))--;
+					this->fuelAtLastDespawn = 0.f;
+				}
+				else *fuel = Globals::prng.Generate<float>(minDespawnDelays.current, maxDespawnDelays.current);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[HEL] Despawning in", fuel);
+					Globals::logger.Log(this->pursuit, "[HEL] Despawning in", *fuel);
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [HEL] Invalid helicopter pointer");
 		}
 
 
-		void UpdateNextSpawnTimestamp()
+		void UpdateSpawnTimer(const IntervalTimer::Setting setting)
 		{
-			if (not helicopterEnableds.current) return;
-			if (not this->IsHeatLevelKnown())   return;
-			if (this->helicopterActive)         return;
+			if (not this->spawnTimer) return;
 
-			this->nextSpawnTimestamp = this->statusChangeTimestamp;
+			this->spawnTimer->Update(setting);
 
-			if (this->hasSpawnedBefore)
+			if (this->fuelAtLastDespawn > 0.f)
 			{
-				this->nextSpawnTimestamp += Globals::prng.Generate<float>(minRespawnDelays.current, maxRespawnDelays.current);
+				if (setting == IntervalTimer::Setting::ALL)
+					this->respawnTimer.Update(IntervalTimer::Setting::START);
 
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[HEL] Respawning in", this->nextSpawnTimestamp - *(this->simulationTime));
+				if (not (this->rejoinTimer.IsEnabled()) or (this->rejoinTimer.GetLength() >= this->fuelAtLastDespawn))
+				{
+					this->respawnTimer.Update(IntervalTimer::Setting::LENGTH);
+
+					this->spawnTimer        = &(this->respawnTimer);
+					this->fuelAtLastDespawn = 0.f;
+
+					if constexpr (Globals::loggingEnabled)
+					{
+						if (not (this->rejoinTimer.IsEnabled()))
+							Globals::logger.Log(this->pursuit, "[HEL] Rejoining not enabled");
+
+						else
+							Globals::logger.Log(this->pursuit, "[HEL] Insufficient fuel to rejoin");
+					}
+				}
 			}
-			else
-			{
-				this->nextSpawnTimestamp += Globals::prng.Generate<float>(minSpawnDelays.current, maxSpawnDelays.current);
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[HEL] Spawning in", this->nextSpawnTimestamp - *(this->simulationTime));
-			}
-		}
-
-
-		void ChangeStatus()
-		{
-			this->statusChangeTimestamp = *(this->simulationTime);
-			this->helicopterActive      = (not this->helicopterActive);
-
+			
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[HEL] Helicopter now", (this->helicopterActive) ? "active" : "inactive");
-
-			if (this->helicopterActive)
 			{
-				this->hasSpawnedBefore = true;
-				this->SetHelicopterFuel(Globals::prng.Generate<float>(minDespawnDelays.current, maxDespawnDelays.current));
+				if (this->spawnTimer->IsEnabled())
+				{
+					if (this->fuelAtLastDespawn > 0.f)
+					{
+						Globals::logger.Log
+						(
+							this->pursuit, 
+							"[HEL] Rejoining in", 
+							this->spawnTimer->TimeLeft(), 
+							"for", 
+							this->fuelAtLastDespawn - this->rejoinTimer.GetLength()
+						);
+					}
+					else
+					{
+						Globals::logger.Log
+						(
+							this->pursuit, 
+							"[HEL]", 
+							(this->hasSpawnedBefore) ? "Respawning" : "Spawning", 
+							"in", 
+							this->spawnTimer->TimeLeft()
+						);
+					}
+				}
 			}
-			else this->UpdateNextSpawnTimestamp();
 		}
 
 
@@ -146,7 +193,7 @@ namespace HelicopterOverrides
 
 		explicit HelicopterManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
-			this->UpdateNextSpawnTimestamp();
+			this->UpdateSpawnTimer(IntervalTimer::Setting::ALL);
 		}
 
 
@@ -158,7 +205,7 @@ namespace HelicopterOverrides
 
 		void UpdateOnHeatChange() override 
 		{
-			this->UpdateNextSpawnTimestamp();
+			this->UpdateSpawnTimer(IntervalTimer::Setting::LENGTH);
 		}
 
 
@@ -168,27 +215,57 @@ namespace HelicopterOverrides
 		}
 
 
-		void ProcessAddition
+		void ReactToAddedVehicle
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
 		) 
 			override
 		{
-			if (copLabel == CopLabel::HELICOPTER) 
-				this->ChangeStatus();
+			if (copLabel != CopLabel::HELICOPTER) return;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[HEL] Helicopter now active");
+
+			this->spawnTimer       = nullptr;
+			this->hasSpawnedBefore = true;
+			this->SetHelicopterFuel();
 		}
 
 
-		void ProcessRemoval
+		void ReactToRemovedVehicle
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
 		) 
 			override
 		{
-			if (copLabel == CopLabel::HELICOPTER) 
-				this->ChangeStatus();
+			if (copLabel != CopLabel::HELICOPTER) return;
+
+			const bool         isWrecked = PursuitFeatures::IsVehicleDestroyed(copVehicle);
+			const float* const fuel      = this->GetHelicopterFuel();
+
+			if (isWrecked or (not fuel) or (not (*fuel > 0.f)))
+			{
+				this->spawnTimer        = &(this->respawnTimer);
+				this->fuelAtLastDespawn = 0.f;
+
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log(this->pursuit, "[HEL] Helicopter", (isWrecked) ? "wrecked" : "out of fuel");
+			}
+			else 
+			{
+				this->spawnTimer        = &(this->rejoinTimer);
+				this->fuelAtLastDespawn = *fuel;
+
+				if constexpr (Globals::loggingEnabled)
+				{
+					Globals::logger.Log(this->pursuit, "[HEL] Helicopter lost");
+					Globals::logger.Log(this->pursuit, "[HEL] Fuel remaining:", this->fuelAtLastDespawn);
+				}
+			}
+
+			this->UpdateSpawnTimer(IntervalTimer::Setting::ALL);
 		}
 	};
 
@@ -205,7 +282,7 @@ namespace HelicopterOverrides
 	{
 		__asm
 		{
-			mov ecx, dword ptr maxDespawnDelays.current
+			mov ecx, dword ptr maxFuelTime
 
 			// Execute original code and resume
 			mov dword ptr [esi + 0x34], ecx
@@ -228,7 +305,7 @@ namespace HelicopterOverrides
 		HeatParameters::ParseOptional<float, float, float, float, float, float>
 		(
 			parser, 
-			"Helicopter:Timers", 
+			"Helicopter:Spawning", 
 			helicopterEnableds,
 			{minSpawnDelays,   1.f},
 			{maxSpawnDelays,   1.f},
@@ -238,13 +315,24 @@ namespace HelicopterOverrides
 			{maxRespawnDelays, 1.f}
 		);
 
-		if (not HeatParameters::AreAny(helicopterEnableds)) return false;
+		if (not helicopterEnableds.AnyNonzero()) return false;
 
 		HeatParameters::CheckIntervals<float>(minSpawnDelays,   maxSpawnDelays);
 		HeatParameters::CheckIntervals<float>(minDespawnDelays, maxDespawnDelays);
 		HeatParameters::CheckIntervals<float>(minRespawnDelays, maxRespawnDelays);
 
 		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
+
+		HeatParameters::ParseOptional<float, float>
+		(
+			parser, 
+			"Helicopter:Rejoining", 
+			rejoiningEnableds, 
+			{minRejoinDelays, 1.f}, 
+			{maxRejoinDelays, 1.f}
+		);
+
+		HeatParameters::CheckIntervals<float>(minRejoinDelays,  maxRejoinDelays);
 
 		// Code caves
 		MemoryEditor::DigCodeCave(FuelTime, fuelTimeEntrance, fuelTimeExit);
@@ -265,7 +353,7 @@ namespace HelicopterOverrides
 			Globals::logger.Log("  CONFIG [HEL] HelicopterOverrides");
 
 		// With logging disabled, the compiler optimises the string literal away
-		HeatParameters::ReplaceInvalidVehicles("Helicopters", helicopterVehicles, true);
+		helicopterVehicles.Validate(Globals::VehicleClass::CHOPPER, "Helicopters");
 	}
 
 
@@ -277,32 +365,39 @@ namespace HelicopterOverrides
 	) {
 		if (not featureEnabled) return;
 
-		helicopterEnableds.SetToHeat(isRacing, heatLevel);
 		helicopterVehicles.SetToHeat(isRacing, heatLevel);
 
-		minSpawnDelays  .SetToHeat(isRacing, heatLevel);
-		maxSpawnDelays  .SetToHeat(isRacing, heatLevel);
-		minDespawnDelays.SetToHeat(isRacing, heatLevel);
-		maxDespawnDelays.SetToHeat(isRacing, heatLevel);
-		minRespawnDelays.SetToHeat(isRacing, heatLevel);
-		maxRespawnDelays.SetToHeat(isRacing, heatLevel);
+		helicopterEnableds.SetToHeat(isRacing, heatLevel);
+		minSpawnDelays    .SetToHeat(isRacing, heatLevel);
+		maxSpawnDelays    .SetToHeat(isRacing, heatLevel);
+		minDespawnDelays  .SetToHeat(isRacing, heatLevel);
+		maxDespawnDelays  .SetToHeat(isRacing, heatLevel);
+		minRespawnDelays  .SetToHeat(isRacing, heatLevel);
+		maxRespawnDelays  .SetToHeat(isRacing, heatLevel);
+
+		rejoiningEnableds.SetToHeat(isRacing, heatLevel);
+		minRejoinDelays  .SetToHeat(isRacing, heatLevel);
+		maxRejoinDelays  .SetToHeat(isRacing, heatLevel);
+
+		maxFuelTime = std::max<float>(maxDespawnDelays.current, maxRejoinDelays.current);
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log("    HEAT [HEL] HelicopterOverrides");
-			Globals::logger.LogLongIndent("Helicopter", (helicopterEnableds.current) ? "enabled" : "disabled");
+			if (helicopterEnableds.current or rejoiningEnableds.current)
+			{
+				Globals::logger.Log("    HEAT [HEL] HelicopterOverrides");
+				Globals::logger.LogLongIndent("helicopterVehicle       ", helicopterVehicles.current);
+			}
 
 			if (helicopterEnableds.current)
 			{
-				Globals::logger.LogLongIndent("helicopterVehicle       ", helicopterVehicles.current);
-
-				Globals::logger.LogLongIndent("minSpawnDelay           ", minSpawnDelays.current);
-				Globals::logger.LogLongIndent("maxSpawnDelay           ", maxSpawnDelays.current);
-				Globals::logger.LogLongIndent("minDespawnDelay         ", minDespawnDelays.current);
-				Globals::logger.LogLongIndent("maxDespawnDelay         ", maxDespawnDelays.current);
-				Globals::logger.LogLongIndent("minRespawnDelay         ", minRespawnDelays.current);
-				Globals::logger.LogLongIndent("maxRespawnDelay         ", maxRespawnDelays.current);
+				Globals::logger.LogLongIndent("spawnDelay              ", minSpawnDelays.current,   "to", maxSpawnDelays.current);
+				Globals::logger.LogLongIndent("despawnDelay            ", minDespawnDelays.current, "to", maxDespawnDelays.current);
+				Globals::logger.LogLongIndent("respawnDelay            ", minRespawnDelays.current, "to", maxRespawnDelays.current);
 			}
+
+			if (rejoiningEnableds.current)
+				Globals::logger.LogLongIndent("rejoinDelay             ", minRejoinDelays.current, "to", maxRejoinDelays.current);
 		}
 	}
 }

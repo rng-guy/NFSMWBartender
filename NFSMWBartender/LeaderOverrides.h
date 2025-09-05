@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Globals.h"
+#include "HashContainers.h"
 #include "PursuitFeatures.h"
 #include "HeatParameters.h"
 #include "MemoryEditor.h"
@@ -15,11 +16,19 @@ namespace LeaderOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<bool>  escapeResetEnableds (false);
-	HeatParameters::Pair<float> minEscapeResetDelays(1.f);
-	HeatParameters::Pair<float> maxEscapeResetDelays(1.f);
+	HeatParameters::Pair<bool>  leaderAggroEnableds (false);
+	HeatParameters::Pair<float> minLeaderAggroDelays(1.f);
+	HeatParameters::Pair<float> maxLeaderAggroDelays(1.f);
 
-	HeatParameters::Pair<bool>  wreckResetEnableds(false);
+	HeatParameters::Pair<bool>  henchmenAggroEnableds (false);
+	HeatParameters::Pair<float> minHenchmenAggroDelays(1.f);
+	HeatParameters::Pair<float> maxHenchmenAggroDelays(1.f);
+
+	HeatParameters::Pair<bool>  lossResetEnableds (false);
+	HeatParameters::Pair<float> minLossResetDelays(1.f);
+	HeatParameters::Pair<float> maxLossResetDelays(1.f);
+
+	HeatParameters::Pair<bool>  wreckResetEnableds (false);
 	HeatParameters::Pair<float> minWreckResetDelays(1.f);
 	HeatParameters::Pair<float> maxWreckResetDelays(1.f);
 
@@ -31,101 +40,121 @@ namespace LeaderOverrides
 
 	class LeaderManager : public PursuitFeatures::PursuitReaction
 	{
-		using CopLabel = PursuitFeatures::CopLabel;
+		using IntervalTimer = PursuitFeatures::IntervalTimer;
 
 
 
 	private:
 
-		enum class Status
-		{
-			INACTIVE,
-			ACTIVE,
-			ESCAPED,
-			WRECKED
-		};
-
 		int* const leaderFlag = (int*)(this->pursuit + 0x164);
 
 		address leaderVehicle = 0x0;
-		Status  leaderStatus  = Status::INACTIVE;
+		bool    leaderIsAggro = false;
 
-		float lastChangeTimestamp = *(this->simulationTime);
-		float nextResetTimestamp  = this->lastChangeTimestamp;
+		HashContainers::AddressSet passiveHenchmenVehicles;
 
+		IntervalTimer lossResetTimer     = IntervalTimer(lossResetEnableds,     minLossResetDelays,     maxLossResetDelays);
+		IntervalTimer wreckResetTimer    = IntervalTimer(wreckResetEnableds,    minWreckResetDelays,    maxWreckResetDelays);
+		IntervalTimer leaderAggroTimer   = IntervalTimer(leaderAggroEnableds,   minLeaderAggroDelays,   maxLeaderAggroDelays);
+		IntervalTimer henchmenAggroTimer = IntervalTimer(henchmenAggroEnableds, minHenchmenAggroDelays, maxHenchmenAggroDelays);
 
-		bool HasTimerExpired() const
-		{
-			if (not this->IsHeatLevelKnown()) return false;
-			return (*(this->simulationTime) >= this->nextResetTimestamp);
-		}
+		IntervalTimer* resetTimer = nullptr;
 
 
 		bool LeaderCanSpawn() const
 		{
-			switch (this->leaderStatus)
-			{
-			case Status::INACTIVE:
-				return true;
-
-			case Status::WRECKED:
-				return (wreckResetEnableds.current) ? this->HasTimerExpired() : false;
-
-			case Status::ESCAPED:
-				return (escapeResetEnableds.current) ? this->HasTimerExpired() : false;
-			}
-
-			return false;
-		}
-
-
-		void GenerateResetTimestamp
-		(
-			const bool        enabled,
-			const float       minDelay,
-			const float       maxDelay,
-			const char* const timerName
-		) {
-			if (not enabled) return;
-
-			this->nextResetTimestamp = this->lastChangeTimestamp + Globals::prng.Generate<float>(minDelay, maxDelay);
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[LEA] Reset in", this->nextResetTimestamp - *(this->simulationTime), timerName);
-		}
-
-
-		void UpdateResetTimestamp()
-		{
-			if (not this->IsHeatLevelKnown()) return;
-
-			switch (this->leaderStatus)
-			{
-			case Status::WRECKED:
-				this->GenerateResetTimestamp
-				(
-					wreckResetEnableds.current, 
-					minWreckResetDelays.current, 
-					maxWreckResetDelays.current, 
-					"(wreck)"
-				);
-				break;
-
-			case Status::ESCAPED:
-				this->GenerateResetTimestamp
-				(
-					escapeResetEnableds.current, 
-					minEscapeResetDelays.current, 
-					maxEscapeResetDelays.current, 
-					"(escape)"
-				);
-			}
+			return (this->resetTimer) ? this->resetTimer->HasExpired() : true;
 		}
 
 
 		void UpdateLeaderFlag() const
 		{
-			*(this->leaderFlag) = (this->leaderStatus == Status::ACTIVE) ? 1 : ((this->LeaderCanSpawn()) ? 0 : 2);
+			*(this->leaderFlag) = (this->leaderVehicle) ? 1 : ((this->LeaderCanSpawn()) ? 0 : 2);
+		}
+
+
+		void UpdateResetTimer(const IntervalTimer::Setting setting)
+		{
+			if (not this->resetTimer) return;
+
+			this->resetTimer->Update(setting);
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->resetTimer->IsEnabled())
+					Globals::logger.Log(this->pursuit, "[LDR] Flag reset in", this->resetTimer->TimeLeft());
+			}
+		}
+
+
+		void MakeVehicleAggressive(const address copVehicle) const
+		{
+			static void (__thiscall* const SetSupportGoal)(address, vault) = (void (__thiscall*)(address, vault))0x409850;
+			
+			const address copAIVehicle = *((address*)(copVehicle + 0x54));
+
+			if (copAIVehicle)
+				SetSupportGoal(copAIVehicle + 0x70C, 0x0);
+		}
+
+
+		void UpdateAggroTimers(const IntervalTimer::Setting setting)
+		{
+			if (this->leaderVehicle and (not leaderIsAggro))
+			{
+				this->leaderAggroTimer.Update(setting);
+	
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (this->leaderAggroTimer.IsEnabled())
+						Globals::logger.Log(this->pursuit, "[LDR] Leader aggro in", this->leaderAggroTimer.TimeLeft());
+				}
+			}
+
+			if (this->leaderVehicle or (not this->passiveHenchmenVehicles.empty()))
+			{
+				this->henchmenAggroTimer.Update(setting);
+
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (this->henchmenAggroTimer.IsEnabled())
+						Globals::logger.Log(this->pursuit, "[LDR] Henchmen aggro in", this->henchmenAggroTimer.TimeLeft());
+				}
+			}
+		}
+
+
+		void MakeHenchmenAggressive()
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[LDR] Henchmen now aggressive");
+
+			for (const address henchmenVehicle : this->passiveHenchmenVehicles)
+				this->MakeVehicleAggressive(henchmenVehicle);
+
+			this->passiveHenchmenVehicles.clear();
+		}
+
+
+		void CheckAggroTimers()
+		{
+			if (this->leaderVehicle and (not leaderIsAggro))
+			{
+				if (this->leaderAggroTimer.HasExpired())
+				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::logger.Log(this->pursuit, "[LDR] Leader now aggressive");
+
+					this->MakeVehicleAggressive(this->leaderVehicle);
+					this->leaderIsAggro = true;
+				}
+			}
+			
+			if (not this->passiveHenchmenVehicles.empty())
+			{
+				if (this->henchmenAggroTimer.HasExpired())
+					this->MakeHenchmenAggressive();
+			}
 		}
 
 
@@ -137,18 +166,20 @@ namespace LeaderOverrides
 
 		void UpdateOnGameplay() override
 		{
+			this->CheckAggroTimers();
 			this->UpdateLeaderFlag();
 		}
 
 
 		void UpdateOnHeatChange() override
 		{
-			this->UpdateResetTimestamp();
+			this->UpdateResetTimer(IntervalTimer::Setting::LENGTH);
+			this->UpdateAggroTimers(IntervalTimer::Setting::LENGTH);
 			this->UpdateLeaderFlag();
 		}
 
 
-		void ProcessAddition
+		void ReactToAddedVehicle
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
@@ -157,18 +188,20 @@ namespace LeaderOverrides
 		{
 			if (copLabel != CopLabel::LEADER) return;
 
-			if (this->leaderStatus != Status::ACTIVE)
+			if (not this->leaderVehicle)
 			{
-				this->leaderVehicle        = copVehicle;
-				this->leaderStatus         = Status::ACTIVE;
-				this->lastChangeTimestamp = *(this->simulationTime);
+				this->leaderVehicle = copVehicle;
+				this->leaderIsAggro = false;
+				this->resetTimer    = nullptr;
+
+				this->UpdateAggroTimers(IntervalTimer::Setting::ALL);
+				this->UpdateLeaderFlag();
 			}
-			
-			this->UpdateLeaderFlag();
+			else this->passiveHenchmenVehicles.insert(copVehicle);
 		}
 
 
-		void ProcessRemoval
+		void ReactToRemovedVehicle
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
@@ -177,18 +210,23 @@ namespace LeaderOverrides
 		{
 			if (copLabel != CopLabel::LEADER) return;
 
-			static bool (__thiscall* const IsDestroyed)(address) = (bool (__thiscall*)(address))0x688170;
-
-			if ((this->leaderStatus == Status::ACTIVE) and (this->leaderVehicle == copVehicle))
+			if (this->leaderVehicle == copVehicle)
 			{
-				this->leaderVehicle        = 0x0;
-				this->leaderStatus         = (IsDestroyed(copVehicle)) ? Status::WRECKED : Status::ESCAPED;
-				this->lastChangeTimestamp = *(this->simulationTime);
+				const bool isWrecked = PursuitFeatures::IsVehicleDestroyed(copVehicle);
+				
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log(this->pursuit, "[LDR] Leader", (isWrecked) ? "wrecked" : "lost");
 
-				this->UpdateResetTimestamp();
+				this->leaderVehicle = 0x0;
+				this->resetTimer    = &((isWrecked) ? this->wreckResetTimer : this->lossResetTimer);
+
+				if (not this->passiveHenchmenVehicles.empty())
+					this->MakeHenchmenAggressive();
+
+				this->UpdateResetTimer(IntervalTimer::Setting::ALL);
+				this->UpdateLeaderFlag();
 			}
-			
-			this->UpdateLeaderFlag();
+			else this->passiveHenchmenVehicles.erase(copVehicle);
 		}
 	};
 
@@ -205,11 +243,29 @@ namespace LeaderOverrides
 		// Heat parameters
 		HeatParameters::ParseOptionalInterval
 		(
+			parser,
+			"Leader:CrossAggro",
+			leaderAggroEnableds,
+			minLeaderAggroDelays,
+			maxLeaderAggroDelays
+		);
+
+		HeatParameters::ParseOptionalInterval
+		(
+			parser,
+			"Leader:HenchmenAggro",
+			henchmenAggroEnableds,
+			minHenchmenAggroDelays,
+			maxHenchmenAggroDelays
+		);
+
+		HeatParameters::ParseOptionalInterval
+		(
 			parser, 
-			"Leader:EscapeReset", 
-			escapeResetEnableds, 
-			minEscapeResetDelays, 
-			maxEscapeResetDelays
+			"Leader:LossReset", 
+			lossResetEnableds, 
+			minLossResetDelays, 
+			maxLossResetDelays
 		);
 
 		HeatParameters::ParseOptionalInterval
@@ -241,33 +297,46 @@ namespace LeaderOverrides
 	) {
 		if (not featureEnabled) return;
 
-		escapeResetEnableds .SetToHeat(isRacing, heatLevel);
-		minEscapeResetDelays.SetToHeat(isRacing, heatLevel);
-		maxEscapeResetDelays.SetToHeat(isRacing, heatLevel);
-		
+		leaderAggroEnableds .SetToHeat(isRacing, heatLevel);
+		minLeaderAggroDelays.SetToHeat(isRacing, heatLevel);
+		maxLeaderAggroDelays.SetToHeat(isRacing, heatLevel);
+
+		henchmenAggroEnableds .SetToHeat(isRacing, heatLevel);
+		minHenchmenAggroDelays.SetToHeat(isRacing, heatLevel);
+		maxHenchmenAggroDelays.SetToHeat(isRacing, heatLevel);
+
+		lossResetEnableds .SetToHeat(isRacing, heatLevel);
+		minLossResetDelays.SetToHeat(isRacing, heatLevel);
+		maxLossResetDelays.SetToHeat(isRacing, heatLevel);
+
 		wreckResetEnableds .SetToHeat(isRacing, heatLevel);
 		minWreckResetDelays.SetToHeat(isRacing, heatLevel);
 		maxWreckResetDelays.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log("    HEAT [LEA] LeaderOverrides");
+			const bool anyEnabled = 
+			(
+				   leaderAggroEnableds.current 
+				or henchmenAggroEnableds.current 
+				or lossResetEnableds.current 
+				or wreckResetEnableds.current
+			);
 
-			Globals::logger.LogLongIndent("Escape", (escapeResetEnableds.current) ? "resets" : "blocks");
+			if (anyEnabled)
+				Globals::logger.Log("    HEAT [LDR] LeaderOverrides");
 			
-			if (escapeResetEnableds.current)
-			{
-				Globals::logger.LogLongIndent("minEscapeResetDelay     ", minEscapeResetDelays.current);
-				Globals::logger.LogLongIndent("maxEscapeResetDelay     ", maxEscapeResetDelays.current);
-			}
+			if (leaderAggroEnableds.current)
+				Globals::logger.LogLongIndent("leaderAggroDelay        ", minLeaderAggroDelays.current, "to", maxLeaderAggroDelays.current);
 
-			Globals::logger.LogLongIndent("Wreck", (wreckResetEnableds.current) ? "resets" : "blocks");
+			if (henchmenAggroEnableds.current)
+				Globals::logger.LogLongIndent("henchmenAggroDelay      ", minHenchmenAggroDelays.current, "to", maxHenchmenAggroDelays.current);
+
+			if (lossResetEnableds.current)
+				Globals::logger.LogLongIndent("escapeResetDelay        ", minLossResetDelays.current, "to", maxLossResetDelays.current);
 
 			if (wreckResetEnableds.current)
-			{
-				Globals::logger.LogLongIndent("minWreckResetDelay      ", minWreckResetDelays.current);
-				Globals::logger.LogLongIndent("maxWreckResetDelay      ", maxWreckResetDelays.current);
-			}
+				Globals::logger.LogLongIndent("wreckResetDelay         ", minWreckResetDelays.current, "to", maxWreckResetDelays.current);
 		}
 	}
 }

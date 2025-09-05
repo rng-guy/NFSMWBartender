@@ -82,7 +82,10 @@ namespace CopSpawnTables
 		}
 
 
-		bool IsEmpty() const {return (this->maxTotalCopCapacity < 1);}
+		bool IsEmpty() const 
+		{
+			return (this->maxTotalCopCapacity < 1);
+		}
 
 
 		size_t RemoveInvalidTypes
@@ -96,7 +99,7 @@ namespace CopSpawnTables
 
 			while (iterator != this->copTypeToEntry.end())
 			{
-				if (not Globals::VehicleClassMatches(iterator->first, false))
+				if (not Globals::VehicleClassMatches(iterator->first, Globals::VehicleClass::CAR))
 				{
 					// With logging disabled, the compiler optimises all parameters away
 					if constexpr (Globals::loggingEnabled)
@@ -215,7 +218,10 @@ namespace CopSpawnTables
 		}
 
 
-		int GetMaxTotalCopCapacity() const {return this->maxTotalCopCapacity;}
+		int GetMaxTotalCopCapacity() const 
+		{
+			return this->maxTotalCopCapacity;
+		}
 	};
 
 

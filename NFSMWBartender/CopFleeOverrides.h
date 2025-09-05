@@ -31,10 +31,6 @@ namespace CopFleeOverrides
 
 	class MembershipManager : public PursuitFeatures::PursuitReaction
 	{
-		using CopLabel = PursuitFeatures::CopLabel;
-
-
-
 	private:
 
 		enum class Status
@@ -120,7 +116,7 @@ namespace CopFleeOverrides
 			if (flagVehicle)
 			{
 				assessment.status = Status::FLAGGED;
-				this->copVehicleToFleeTimestamp.insert({assessment.copVehicle, *(this->simulationTime) + timeUntilFlee});
+				this->copVehicleToFleeTimestamp.insert({assessment.copVehicle, *(PursuitFeatures::simulationTime) + timeUntilFlee});
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[FLE]", assessment.copVehicle, "fleeing in", timeUntilFlee);
@@ -151,25 +147,11 @@ namespace CopFleeOverrides
 		}
 
 
-		void MakeFlee(const address copVehicle) const
-		{
-			static void (__thiscall* const StartFlee)(address) = (void (__thiscall*)(address))0x423370;
-
-			const address copAIVehicle = *((address*)(copVehicle + 0x54));
-
-			if (copAIVehicle)
-				StartFlee(copAIVehicle + 0x70C);
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [FLE] Invalid AIVehicle for", copVehicle, "in", this->pursuit);
-		}
-
-
 		void CheckTimestamps()
 		{
 			if (this->copVehicleToFleeTimestamp.empty()) return;
 			
-			const float simulationTime = *(this->simulationTime);
+			const float simulationTime = *(PursuitFeatures::simulationTime);
 			auto        iterator       = this->copVehicleToFleeTimestamp.begin();
 
 			while (iterator != this->copVehicleToFleeTimestamp.end())
@@ -177,7 +159,7 @@ namespace CopFleeOverrides
 				if (simulationTime >= iterator->second)
 				{
 					this->copVehicleToAssessment.at(iterator->first).status = Status::FLEEING;
-					this->MakeFlee(iterator->first);
+					PursuitFeatures::MakeVehicleFlee(iterator->first);
 
 					if constexpr (Globals::loggingEnabled)
 						Globals::logger.Log(this->pursuit, "[FLE]", iterator->first, "now fleeing");
@@ -207,7 +189,7 @@ namespace CopFleeOverrides
 		}
 
 
-		void ProcessAddition
+		void ReactToAddedVehicle
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
@@ -226,7 +208,7 @@ namespace CopFleeOverrides
 		}
 
 
-		void ProcessRemoval
+		void ReactToRemovedVehicle
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
@@ -285,7 +267,7 @@ namespace CopFleeOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
 		// Heat parameters
-		HeatParameters::ParseOptional <float, float>(parser, "Fleeing:Timers", fleeingEnableds, {minFleeDelays, 1.f}, {maxFleeDelays, 1.f});
+		HeatParameters::ParseOptional <float, float>(parser, "Chasers:Fleeing", fleeingEnableds, {minFleeDelays, 1.f}, {maxFleeDelays, 1.f});
 		HeatParameters::CheckIntervals<float>       (minFleeDelays, maxFleeDelays);
 
 		// Code caves
@@ -312,13 +294,10 @@ namespace CopFleeOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
-			Globals::logger.LogLongIndent("Fleeing", (fleeingEnableds.current) ? "enabled" : "disabled");
-
 			if (fleeingEnableds.current)
 			{
-				Globals::logger.LogLongIndent("minFleeDelay            ", minFleeDelays.current);
-				Globals::logger.LogLongIndent("maxFleeDelay            ", maxFleeDelays.current);
+				Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
+				Globals::logger.LogLongIndent("fleeDelay               ", minFleeDelays.current, "to", maxFleeDelays.current);
 			}
 		}
 	}

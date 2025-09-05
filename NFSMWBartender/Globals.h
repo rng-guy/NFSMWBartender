@@ -29,9 +29,8 @@ namespace Globals
 	RandomNumbers::Generator prng;
 
 	// Common function pointers
-	vault       (__cdecl*    const GetVaultKey)   (const char*) = (vault  (__cdecl*)        (const char*))0x5CC240;
-	vault       (__thiscall* const GetVehicleType)(address)     = (vault  (__thiscall*)     (address))    0x6880A0;
-	const char* (__thiscall* const GetVehicleName)(address)     = (const char* (__thiscall*)(address))    0x688090;
+	vault (__cdecl*    const GetVaultKey)   (const char*) = (vault (__cdecl*)   (const char*))0x5CC240;
+	vault (__thiscall* const GetVehicleType)(address)     = (vault (__thiscall*)(address))    0x6880A0;
 
 	// Logging
 	constexpr bool loggingEnabled = false;
@@ -60,25 +59,24 @@ namespace Globals
 
 
 
-	bool VehicleExists(const vault vehicleType)
+	enum class VehicleClass
 	{
-		return GetFromVault(0x4A97EC8F, vehicleType); // fetches vehicle node from "pvehicle"
-	}
-
-
+		ANY,
+		CAR,
+		CHOPPER
+	};
 
 	bool VehicleClassMatches
 	(
-		const vault vehicleType,
-		const bool  forHelicopter
+		const vault        vehicleType,
+		const VehicleClass targetClass
 	) {
 		const address attribute = GetFromVault(0x4A97EC8F, vehicleType, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
-
-		if (not attribute) return false;
+		if ((not attribute) or (targetClass == VehicleClass::ANY)) return attribute;
 
 		const vault vehicleClass = *((vault*)(attribute + 0x8));
 		const bool  isHelicopter = (vehicleClass == 0xB80933AA); // checks if "CHOPPER"
 
-		return (isHelicopter == forHelicopter);
+		return (isHelicopter == (targetClass == VehicleClass::CHOPPER));
 	}
 }

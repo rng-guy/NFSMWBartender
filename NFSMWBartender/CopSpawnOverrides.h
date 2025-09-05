@@ -13,70 +13,168 @@
 namespace CopSpawnOverrides
 {
 
-	// GlobalSpawnManager class ---------------------------------------------------------------------------------------------------------------------
+	// Contingent class -----------------------------------------------------------------------------------------------------------------------------
 
-	class GlobalSpawnManager
+	class Contingent
 	{
+		using SpawnTablePair = HeatParameters::Pair<CopSpawnTables::SpawnTable>;
+
+
+
 	private:
 
-		const HeatParameters::Pair<CopSpawnTables::SpawnTable>* const source;
+		const address               pursuit;
+		const SpawnTablePair* const source;
 
-		CopSpawnTables::SpawnTable    table;
+		int numActiveCops = 0;
+
+		CopSpawnTables::SpawnTable table = *(this->source->current);
+
 		HashContainers::VaultMap<int> copTypeToCurrentCount;
-		
+
+
+		void UpdateSpawnTableCapacity
+		(
+			const vault copType, 
+			const int   amount
+		) {
+			const bool copTypeInSpawnTable = this->table.UpdateCapacity(copType, amount);
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->pursuit)
+				{
+					if (copTypeInSpawnTable)
+						Globals::logger.Log(this->pursuit, "[CON] Type capacity:", this->table.GetCapacity(copType));
+
+					else
+						Globals::logger.Log(this->pursuit, "[CON] Type capacity undefined");
+				}
+			}
+		}
+
 
 
 	public:
 
-		explicit GlobalSpawnManager(const HeatParameters::Pair<CopSpawnTables::SpawnTable>* const source) : source(source) {}
+		explicit Contingent
+		(
+			const SpawnTablePair* const source,
+			const address               pursuit = 0x0
+		) 
+			: source(source), pursuit(pursuit) 
+		{
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->pursuit)
+					Globals::logger.Log(this->pursuit, "[CON] New contingent");
+			}
+		}
 
 
-		void ReloadSpawnTable()
+		void UpdateSpawnTable()
 		{
 			this->table = *(this->source->current);
 
 			for (const auto& pair : this->copTypeToCurrentCount)
-				this->table.UpdateCapacity(pair.first, -(pair.second));
+			{
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (this->pursuit)
+					{
+						const char* const copName = this->table.TypeToName(pair.first);
+
+						if (copName)
+							Globals::logger.Log(this->pursuit, "[CON] Copying", pair.second, copName);
+
+						else
+							Globals::logger.Log(this->pursuit, "[CON] Copying", pair.second, pair.first);
+					}
+				}
+
+				this->UpdateSpawnTableCapacity(pair.first, -(pair.second));
+			}
 		}
 
 
-		void ResetSpawnTable()
+		void ClearVehicles()
 		{
 			for (const auto& pair : this->copTypeToCurrentCount)
 				this->table.UpdateCapacity(pair.first, pair.second);
 
 			this->copTypeToCurrentCount.clear();
+			this->numActiveCops = 0;
 		}
 
 
-		const char* GetRandomCopName()
-		{
-			const char* copName = this->table.GetRandomCopName();
-
-			if (not copName)
-			{
-				copName = this->source->current->GetRandomCopName();
-
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (not copName) 
-						Globals::logger.Log("WARNING: [GLO] Failed to select vehicle");
-				}
-			}
-
-			return copName;
-		}
-
-
-		void NotifyOfSpawn(const address copVehicle)
+		void AddVehicle(const address copVehicle)
 		{
 			const vault copType   = Globals::GetVehicleType(copVehicle);
 			const auto  addedType = this->copTypeToCurrentCount.insert({copType, 1});
 
-			if (not addedType.second) 
+			if (not addedType.second)
 				(addedType.first->second)++;
 
-			this->table.UpdateCapacity(copType, -1);
+			this->UpdateSpawnTableCapacity(copType, -1);
+			(this->numActiveCops)++;
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->pursuit)
+					Globals::logger.Log(this->pursuit, "[CON] Type ratio:", addedType.first->second, '/', this->numActiveCops);
+			}
+		}
+
+
+		bool RemoveVehicle(const address copVehicle)
+		{
+			const vault copType   = Globals::GetVehicleType(copVehicle);
+			const auto  foundType = this->copTypeToCurrentCount.find(copType);
+
+			if (foundType != this->copTypeToCurrentCount.end())
+			{
+				(foundType->second)--;
+				
+				this->UpdateSpawnTableCapacity(copType, +1);
+				(this->numActiveCops)--;
+
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (this->pursuit)
+						Globals::logger.Log(this->pursuit, "[CON] Type ratio:", foundType->second, '/', this->numActiveCops);
+				}
+
+				if (foundType->second < 1)
+					this->copTypeToCurrentCount.erase(foundType);
+
+				return true;
+			}
+			else if constexpr (Globals::loggingEnabled)
+			{
+				if (this->pursuit)
+					Globals::logger.Log("WARNING: [CON] Unknown type", copType, "in", this->pursuit);
+			}
+
+			return false;
+		}
+
+
+		int GetNumActiveCops() const
+		{
+			return this->numActiveCops;
+		}
+
+
+		const char* GetNameOfAvailableCop() const
+		{
+			return this->table.GetRandomCopName();
+		}
+
+
+		const char* GetNameOfSpawnableCop() const
+		{
+			const char* const copName = this->GetNameOfAvailableCop();
+			return (copName) ? copName : this->source->current->GetRandomCopName();
 		}
 	};
 
@@ -95,74 +193,42 @@ namespace CopSpawnOverrides
 	// Code caves
 	bool skipEventSpawns = true;
 
-	GlobalSpawnManager eventManager    (&(CopSpawnTables::eventSpawnTables));
-	GlobalSpawnManager roadblockManager(&(CopSpawnTables::roadblockSpawnTables));
+	Contingent events    (&(CopSpawnTables::eventSpawnTables));
+	Contingent roadblocks(&(CopSpawnTables::roadblockSpawnTables));
 
 
 
 
 
-	// ContingentManager class ----------------------------------------------------------------------------------------------------------------------
+	// ChaserManager class --------------------------------------------------------------------------------------------------------------------------
 
-	class ContingentManager : public PursuitFeatures::PursuitReaction
+	class ChasersManager : public PursuitFeatures::PursuitReaction
 	{
-		using CopLabel = PursuitFeatures::CopLabel;
-
-
-
 	private:
 
 		int numPatrolCarsToSpawn = 0;
-		int numCopsInContingent  = 0;
 
 		int* const fullWaveCapacity  = (int*)(this->pursuit + 0x144);
 		int* const numCopsLostInWave = (int*)(this->pursuit + 0x14C);
 
-		CopSpawnTables::SpawnTable    table;
-		HashContainers::VaultMap<int> copTypeToCurrentCount;
+		const int* const pursuitStatus = (int*)(this->pursuit + 0x218);
 
-		inline static HashContainers::AddressMap<ContingentManager*> pursuitToManager;
+		Contingent chasers = Contingent(&(CopSpawnTables::chaserSpawnTables), this->pursuit);
+
+		inline static HashContainers::AddressMap<ChasersManager*> pursuitToManager;
 
 
 		void UpdateSpawnTable()
 		{
-			if (not this->IsHeatLevelKnown())
+			if (this->IsHeatLevelKnown())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[SPA] Skipping updating spawn table");
+					Globals::logger.Log(this->pursuit, "[SPA] Updating table");
 
-				return;
+				this->chasers.UpdateSpawnTable();
 			}
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[SPA] Updating table");
-
-			this->table = *(CopSpawnTables::chaserSpawnTables.current);
-
-			for (const auto& pair : this->copTypeToCurrentCount)
-			{
-				if constexpr (Globals::loggingEnabled)
-				{
-					const char* const copName = this->table.TypeToName(pair.first);
-
-					if (copName)
-						Globals::logger.Log(this->pursuit, "[SPA] Copying", pair.second, copName);
-
-					else
-						Globals::logger.Log(this->pursuit, "[SPA] Copying", pair.second, pair.first);
-				}
-
-				const bool isInTable = this->table.UpdateCapacity(pair.first, -(pair.second));
-
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (isInTable)
-						Globals::logger.Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(pair.first));
-
-					else
-						Globals::logger.Log(this->pursuit, "[SPA] Type capacity undefined");
-				}
-			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[SPA] Skipping updating spawn table");
 		}
 
 
@@ -202,13 +268,13 @@ namespace CopSpawnOverrides
 
 		bool IsSearchModeActive() const 
 		{
-			return (*((int*)(this->pursuit + 0x218)) == 2);
+			return (*(this->pursuitStatus) == 2);
 		}
 
 
 		int GetWaveCapacity() const
 		{
-			return *(this->fullWaveCapacity) - (*(this->numCopsLostInWave) + this->numCopsInContingent);
+			return *(this->fullWaveCapacity) - (*(this->numCopsLostInWave) + this->chasers.GetNumActiveCops());
 		}
 
 
@@ -231,28 +297,20 @@ namespace CopSpawnOverrides
 		bool IsWaveExhausted() const
 		{
 			const int minCount = (this->IsSearchModeActive()) ? this->numPatrolCarsToSpawn : minActiveCounts.current;
-			return (not ((this->GetWaveCapacity() > 0) or (this->numCopsInContingent < minCount)));
+			return (not ((this->GetWaveCapacity() > 0) or (this->chasers.GetNumActiveCops() < minCount)));
 		}
 
 
 
 	public:
 
-		static const ContingentManager* GetInstance(const address pursuit)
-		{
-			const auto foundPursuit = ContingentManager::pursuitToManager.find(pursuit);
-			return (foundPursuit != ContingentManager::pursuitToManager.end()) ? foundPursuit->second : nullptr;
-		}
-
-
-		explicit ContingentManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
+		explicit ChasersManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
 			this->pursuitToManager.insert({this->pursuit, this});
-			this->UpdateSpawnTable();
 		}
 
 
-		~ContingentManager() override 
+		~ChasersManager() override
 		{
 			this->pursuitToManager.erase(this->pursuit);
 		}
@@ -276,7 +334,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		void ProcessAddition
+		void ReactToAddedVehicle
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
@@ -285,70 +343,41 @@ namespace CopSpawnOverrides
 		{
 			skipEventSpawns = false;
 
-			if (copLabel != CopLabel::CHASER) return;
-
-			const vault copType   = Globals::GetVehicleType(copVehicle);
-			const auto  addedType = this->copTypeToCurrentCount.insert({copType, 1});
-			if (not addedType.second) (addedType.first->second)++;
-
-			this->table.UpdateCapacity(copType, -1);
-			(this->numCopsInContingent)++;
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (this->table.Contains(copType))
-					Globals::logger.Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(copType));
-
-				else
-					Globals::logger.Log(this->pursuit, "[SPA] Type capacity undefined");
-
-				Globals::logger.Log(this->pursuit, "[SPA] Type ratio:", addedType.first->second, '/', this->numCopsInContingent);
-			}
+			if (copLabel == CopLabel::CHASER)
+				this->chasers.AddVehicle(copVehicle);
 		}
 
 
-		void ProcessRemoval
+		void ReactToRemovedVehicle
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
 		) 
 			override
 		{
-			if (copLabel != CopLabel::CHASER) return;
-
-			const vault copType   = Globals::GetVehicleType(copVehicle);
-			const auto  foundType = this->copTypeToCurrentCount.find(copType);
-
-			if (foundType != this->copTypeToCurrentCount.end())
+			if (copLabel == CopLabel::CHASER)
 			{
-				(foundType->second)--;
-				(this->numCopsInContingent)--;
-				(*(this->numCopsLostInWave))++;
-
-				this->table.UpdateCapacity(copType, +1);
-
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (this->table.Contains(copType))
-						Globals::logger.Log(this->pursuit, "[SPA] Type capacity:", this->table.GetCapacity(copType));
-
-					else
-						Globals::logger.Log(this->pursuit, "[SPA] Type capacity undefined");
-
-					Globals::logger.Log(this->pursuit, "[SPA] Type ratio:", foundType->second, '/', this->numCopsInContingent);
-				}
-
-				if (foundType->second < 1)
-					this->copTypeToCurrentCount.erase(foundType);
+				if (this->chasers.RemoveVehicle(copVehicle))
+					(*(this->numCopsLostInWave))++;
 			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] Unknown type", copType, "in", this->pursuit);
 		}
 
 
-		const char* GetRandomCopName() const
-		{		
-			return (this->IsWaveExhausted()) ? nullptr : this->table.GetRandomCopName();
+		static const char* GetNameOfAvailableChaser(const address pursuit)
+		{
+			if (not ChasersManager::IsHeatLevelKnown()) return nullptr;
+
+			const auto foundPursuit = ChasersManager::pursuitToManager.find(pursuit);
+
+			if (foundPursuit != ChasersManager::pursuitToManager.end())
+			{
+				if (not foundPursuit->second->IsWaveExhausted())
+					return foundPursuit->second->chasers.GetNameOfAvailableCop();
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [SPA] Chaser request for unknown pursuit", pursuit);
+			
+			return nullptr;
 		}
 	};
 
@@ -360,7 +389,7 @@ namespace CopSpawnOverrides
 
 	const char* __fastcall GetByClassReplacement(const address spawnReturn)
 	{
-		if (ContingentManager::IsHeatLevelKnown())
+		if (ChasersManager::IsHeatLevelKnown())
 		{
 			switch (spawnReturn)
 			{
@@ -374,7 +403,7 @@ namespace CopSpawnOverrides
 				return CopSpawnTables::patrolSpawnTables.current->GetRandomCopName();
 				
 			case 0x43E049: // roadblock
-				return roadblockManager.GetRandomCopName();
+				return roadblocks.GetNameOfSpawnableCop();
 			}
 
 			if constexpr (Globals::loggingEnabled)
@@ -391,7 +420,7 @@ namespace CopSpawnOverrides
 		switch (spawnReturn)
 		{
 		case 0x42E72E: // scripted event spawn
-			return ((not skipEventSpawns) and ContingentManager::IsHeatLevelKnown());
+			return ((not skipEventSpawns) and ChasersManager::IsHeatLevelKnown());
 				
 		case 0x43EBD0: // chaser / "COOLDOWN" patrol
 			return true;
@@ -410,12 +439,10 @@ namespace CopSpawnOverrides
 		switch (spawnReturn)
 		{
 		case 0x42E72E: // scripted event spawn
-			return eventManager.GetRandomCopName();
+			return events.GetNameOfSpawnableCop();
 
 		case 0x43EBD0: // chaser / "COOLDOWN" patrol
-			if (not ContingentManager::IsHeatLevelKnown()) break;
-			const ContingentManager* const manager = ContingentManager::GetInstance(pursuit);
-			if (manager) return manager->GetRandomCopName();
+			return ChasersManager::GetNameOfAvailableChaser(pursuit);
 		}
 
 		return nullptr;
@@ -462,8 +489,8 @@ namespace CopSpawnOverrides
 
 			push eax
 			push eax
-			lea ecx, dword ptr [roadblockManager]
-			call GlobalSpawnManager::NotifyOfSpawn // stack: copVehicle
+			lea ecx, dword ptr [roadblocks]
+			call Contingent::AddVehicle // stack: copVehicle
 			pop ecx
 
 			mov edx, dword ptr [ecx]
@@ -478,8 +505,8 @@ namespace CopSpawnOverrides
 			dec edi
 			jne skip // car(s) left to generate
 
-			lea ecx, dword ptr [roadblockManager]
-			call GlobalSpawnManager::ResetSpawnTable
+			lea ecx, dword ptr [roadblocks]
+			call Contingent::ClearVehicles
 
 			jmp dword ptr roadblockSpawnExit
 
@@ -500,8 +527,8 @@ namespace CopSpawnOverrides
 			add esp, 0x4
 
 			push eax
-			lea ecx, dword ptr [eventManager]
-			call GlobalSpawnManager::ResetSpawnTable
+			lea ecx, dword ptr [events]
+			call Contingent::ClearVehicles
 			pop eax
 
 			mov dword ptr [esp], eax
@@ -646,7 +673,7 @@ namespace CopSpawnOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
 		// Heat parameters
-		HeatParameters::Parse<int, int>(parser, "Spawning:Limits", {minActiveCounts, 0}, {maxActiveCounts, 1});
+		HeatParameters::Parse<int, int>(parser, "Chasers:SpawnLimits", {minActiveCounts, 0}, {maxActiveCounts, 1});
 
 		// Code caves
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
@@ -684,17 +711,16 @@ namespace CopSpawnOverrides
 		minActiveCounts.SetToHeat(isRacing, heatLevel);
 		maxActiveCounts.SetToHeat(isRacing, heatLevel);
 
-		if (isRacing) skipEventSpawns = false;
+		if (isRacing) 
+			skipEventSpawns = false;
 
-		eventManager    .ReloadSpawnTable();
-		roadblockManager.ReloadSpawnTable();
+		events    .UpdateSpawnTable();
+		roadblocks.UpdateSpawnTable();
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Log("    HEAT [SPA] CopSpawnOverrides");
-
-			Globals::logger.LogLongIndent("minActiveCount          ", minActiveCounts.current);
-			Globals::logger.LogLongIndent("maxActiveCount          ", maxActiveCounts.current);
+			Globals::logger.LogLongIndent("activeCount             ", minActiveCounts.current, "to", maxActiveCounts.current);
 		}
 	}
 
@@ -706,7 +732,7 @@ namespace CopSpawnOverrides
 
 		skipEventSpawns = true;
 
-		eventManager    .ResetSpawnTable();
-		roadblockManager.ResetSpawnTable();
+		events    .ClearVehicles();
+		roadblocks.ClearVehicles();
 	}
 }

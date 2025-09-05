@@ -119,7 +119,7 @@ namespace DestructionStrings
 			"Vehicle-to-label",
 			copTypeToDestructionKey,
 			defaultDestructionKey,
-			Globals::VehicleExists,
+			[=](const vault  key)  {return Globals::VehicleClassMatches(key, Globals::VehicleClass::ANY);},
 			[=](const binary value){return GetBinaryString(0, value);}
 		);
 	}

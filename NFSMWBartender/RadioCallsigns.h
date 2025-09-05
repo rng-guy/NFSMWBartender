@@ -18,7 +18,7 @@ namespace RadioCallsigns
 	bool featureEnabled = false;
 
 	// Code caves
-	enum Callsign // C-style for inline ASM
+	enum CallsignGroup // C-style for inline ASM support
 	{
 		UNKNOWN,
 		PATROL,
@@ -27,9 +27,9 @@ namespace RadioCallsigns
 		CROSS
 	};
 
-	Callsign defaultCallsign = PATROL;
+	CallsignGroup defaultCallsignGroup = CallsignGroup::PATROL;
 
-	HashContainers::VaultMap<Callsign> copTypeToCallsign;
+	HashContainers::VaultMap<CallsignGroup> copTypeToCallsignGroup;
 
 	
 	
@@ -37,10 +37,10 @@ namespace RadioCallsigns
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	Callsign __fastcall GetCallsign(const vault copType)
+	CallsignGroup __fastcall GetCallsignGroup(const vault copType)
 	{
-		const auto foundType = copTypeToCallsign.find(copType);
-		return (foundType != copTypeToCallsign.end()) ? foundType->second : defaultCallsign;
+		const auto foundType = copTypeToCallsignGroup.find(copType);
+		return (foundType != copTypeToCallsignGroup.end()) ? foundType->second : defaultCallsignGroup;
 	}
 
 
@@ -57,7 +57,7 @@ namespace RadioCallsigns
 		__asm
 		{
 			mov ecx, eax
-			call GetCallsign // ecx: copType
+			call GetCallsignGroup // ecx: copType
 			cmp eax, CROSS
 
 			jmp dword ptr crossCallsignExit
@@ -76,9 +76,9 @@ namespace RadioCallsigns
 		__asm
 		{
 			mov ecx, eax
-			call GetCallsign // ecx: copType
+			call GetCallsignGroup // ecx: copType
 			cmp eax, PATROL
-			je conclusion    // is "patrol"
+			je conclusion        // is "patrol"
 
 			cmp eax, RHINO
 			mov eax, 0x20
@@ -104,7 +104,7 @@ namespace RadioCallsigns
 		__asm
 		{
 			mov ecx, dword ptr [esp + 0x4]
-			call GetCallsign // ecx: copType
+			call GetCallsignGroup // ecx: copType
 			mov ecx, eax
 
 			mov eax, -0x1
@@ -132,7 +132,7 @@ namespace RadioCallsigns
 		__asm
 		{
 			mov ecx, eax
-			call GetCallsign // ecx: copType
+			call GetCallsignGroup // ecx: copType
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B]
 
@@ -151,12 +151,12 @@ namespace RadioCallsigns
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
 
 		// Callsigns
-		const std::unordered_map<std::string, Callsign> nameToCallsign = 
+		const std::unordered_map<std::string, CallsignGroup> nameToCallsign =
 		{ 
-			{"patrol", PATROL}, 
-			{"elite",  ELITE}, 
-			{"rhino",  RHINO}, 
-			{"cross",  CROSS} 
+			{"patrol", CallsignGroup::PATROL},
+			{"elite",  CallsignGroup::ELITE},
+			{"rhino",  CallsignGroup::RHINO},
+			{"cross",  CallsignGroup::CROSS}
 		};
 
 		std::vector<std::string> copVehicles;
@@ -169,10 +169,10 @@ namespace RadioCallsigns
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
 		{
-			const auto     foundName = nameToCallsign.find(callsignNames[vehicleID]);
-			const Callsign callsign  = (foundName != nameToCallsign.end()) ? foundName->second : UNKNOWN;
+			const auto          foundName = nameToCallsign.find(callsignNames[vehicleID]);
+			const CallsignGroup group     = (foundName != nameToCallsign.end()) ? foundName->second : CallsignGroup::UNKNOWN;
 
-			copTypeToCallsign.insert({Globals::GetVaultKey(copVehicles[vehicleID].c_str()), callsign});
+			copTypeToCallsignGroup.insert({Globals::GetVaultKey(copVehicles[vehicleID].c_str()), group});
 		}
 
 		// Code caves
@@ -193,13 +193,13 @@ namespace RadioCallsigns
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [RAD] RadioCallsigns");
 
-		HashContainers::ValidateVaultMap<Callsign>
+		HashContainers::ValidateVaultMap<CallsignGroup>
 		(
 			"Vehicle-to-callsign",
-			copTypeToCallsign, 
-			defaultCallsign,
-			[=](const vault    key)  {return Globals::VehicleClassMatches(key, false);},
-			[=](const Callsign value){return (value != UNKNOWN);}
+			copTypeToCallsignGroup, 
+			defaultCallsignGroup,
+			[=](const vault         key)  {return Globals::VehicleClassMatches(key, Globals::VehicleClass::CAR);},
+			[=](const CallsignGroup value){return (value != CallsignGroup::UNKNOWN);}
 		);
 	}
 }

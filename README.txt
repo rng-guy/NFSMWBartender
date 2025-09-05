@@ -29,11 +29,10 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • the internal cooldown for non-Strategy roadblock requests,
  • the internal cooldown for Strategy requests,
  • what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
- • what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs),
- • what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen), and
- • below what player speed HeavyStrategy 3 spawns stop their ramming attempts and flee.
+ • what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
+ • what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
-The "Basic" feature set FIXES SEVEN BUGS:
+The "Basic" feature set FIXES SEVEN BUGS / ISSUES:
  • helicopter icons on the mini-map no longer flicker on and off randomly,
  • helicopters no longer cast static shadows (like cars do) with incorrect placements,
  • active roadblocks in pursuits no longer prevent new HeavyStrategy 3 requests,
@@ -47,7 +46,7 @@ are destroyed, similar to the "NFSMW Unlimiter" mod by nlgxzef. Bartender's vers
 feature is easier to configure and will never cause "FENG: Default string error" pop-ups,
 as it verifies all vehicle-to-string pairs against the game's database on launch.
 
-Last, you can (re-)assign RADIO CALLSIGNS to vehicles. This includes Cross' unique chatter!
+Last but not least, you can (re-)assign RADIO CALLSIGNS to vehicles. This includes Cross' lines.
 
 
 
@@ -66,10 +65,13 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • what vehicles (without counts) may spawn as free patrols when there is no active pursuit,
  • what vehicle spawns in place of the regular helicopter,
  • when exactly (if at all) the helicopter can (de / re)spawn,
+ • how much earlier (if at all) the helicopter rejoins the pursuit when it loses you,
+ • below what player speed HeavyStrategy 3 spawns stop their ramming attempts and flee,
+ • when exactly (if at all) LeaderStrategy Cross and / or his henchmen become aggressive,
  • how quickly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
  • how quickly (if at all) the game can request a new Strategy while another one is still active.
 
-The "Advanced" feature set FIXES TWO BUGS:
+The "Advanced" feature set FIXES TWO BUGS / ISSUES:
  • early Strategy despawns or cancellations no longer stall the game from making new requests,
  • the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 

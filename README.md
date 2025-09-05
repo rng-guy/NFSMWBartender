@@ -32,13 +32,12 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the internal cooldown for non-Strategy roadblock requests,
 * the internal cooldown for Strategy requests,
 * what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
-* what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs),
-* what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen), and
-* below what player speed HeavyStrategy 3 spawns stop their ramming attempts and flee.
+* what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
+* what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
 
 &nbsp;
 
-The "Basic" feature set **fixes seven bugs**:
+The "Basic" feature set **fixes seven bugs / issues**:
 * helicopter icons on the mini-map no longer flicker on and off randomly,
 * helicopters no longer cast static shadows (like cars do) with incorrect placements,
 * active roadblocks in pursuits no longer prevent new HeavyStrategy 3 requests,
@@ -53,7 +52,7 @@ You can also (re-)assign which **cop-destruction strings** the game displays whe
 
 &nbsp;
 
-Last, you can (re-)assign **radio callsigns** to vehicles. This includes Cross' unique chatter!
+Last but not least, you can (re-)assign **radio callsigns** to vehicles. This includes Cross' lines.
 
 &nbsp;
 
@@ -75,12 +74,15 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * what vehicles (without counts) may spawn as free patrols when there is no active pursuit,
 * what vehicle spawns in place of the regular helicopter
 * when exactly (if at all) the helicopter can (de / re)spawn,
+* how much earlier (if at all) the helicopter rejoins the pursuit when it loses you,
+* below what player speed HeavyStrategy 3 spawns stop their ramming attempts and flee,
+* when exactly (if at all) LeaderStrategy Cross and / or his henchmen become aggressive,
 * how quickly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
 * how quickly (if at all) the game can request a new Strategy while another one is still active.
 
 &nbsp;
 
-The "Advanced" feature set **fixes two bugs**:
+The "Advanced" feature set **fixes two bugs / issues**:
 * early Strategy despawns or cancellations no longer stall the game from making new requests,
 * the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 

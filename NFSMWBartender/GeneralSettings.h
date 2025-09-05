@@ -91,22 +91,19 @@ namespace GeneralSettings
 
 	__declspec(naked) void MaxBustDistance()
 	{
-		static constexpr float evadeStateThreshold    = 0.f;
-		static constexpr float obstructedBustDistance = 0.f;
-
 		__asm
 		{
-			fld dword ptr [esi + 0x168] // EVADE progress
-			fcomp dword ptr evadeStateThreshold
+			fldz
+			fcomp dword ptr [esi + 0x168] // EVADE progress
 			fnstsw ax
-			test ah, ah
-			je obstructed               // in EVADE state
+			test ah, 0x1
+			jne obstructed                // in EVADE state
 
 			fld dword ptr maxBustDistances.current
 			jmp conclusion
 
 			obstructed:
-			fld dword ptr obstructedBustDistance
+			fldz
 
 			conclusion:
 			// Execute original code and resume

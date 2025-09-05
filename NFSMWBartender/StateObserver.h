@@ -41,6 +41,8 @@ namespace StateObserver
 			GeneralSettings::SetToHeat(playerIsRacing, currentHeatLevel);
 			PursuitObserver::SetToHeat(playerIsRacing, currentHeatLevel);
 		}
+		else if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("WARNING: [STA] Invalid Heat level", (int)currentHeatLevel);
 	}
 
 

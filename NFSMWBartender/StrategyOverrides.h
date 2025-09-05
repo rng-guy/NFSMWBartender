@@ -16,8 +16,10 @@ namespace StrategyOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
+	HeatParameters::Pair<float> playerSpeedThresholds(15.f); // kph
+	
 	HeatParameters::Pair<bool>  heavy3UnblockEnableds (false);
-	HeatParameters::Pair<float> minHeavy3UnblockDelays(1.f);
+	HeatParameters::Pair<float> minHeavy3UnblockDelays(1.f);   // seconds
 	HeatParameters::Pair<float> maxHeavy3UnblockDelays(1.f);
 
 	HeatParameters::Pair<bool>  heavy4UnblockEnableds (false);
@@ -32,6 +34,10 @@ namespace StrategyOverrides
 	HeatParameters::Pair<float> minLeader7UnblockDelays(1.f);
 	HeatParameters::Pair<float> maxLeader7UnblockDelays(1.f);
 
+	// Conversions
+	float baseSpeedThreshold = playerSpeedThresholds.current / 3.6f; // metres / second
+	float jerkSpeedThreshold = baseSpeedThreshold * .625f;
+
 
 
 
@@ -40,226 +46,217 @@ namespace StrategyOverrides
 
 	class StrategyManager : public PursuitFeatures::PursuitReaction
 	{
-		using CopLabel = PursuitFeatures::CopLabel;
+		using IntervalTimer = PursuitFeatures::IntervalTimer;
 
 
 
 	private:
 
+		int* const numStrategyVehicles = (int*)(this->pursuit + 0x18C);
+
+		const bool* const    isJerk         = (bool*)(this->pursuit + 0x238);
 		const address* const heavyStrategy  = (address*)(this->pursuit + 0x194);
 		const address* const leaderStrategy = (address*)(this->pursuit + 0x198);
 
-		bool watchingHeavyStrategy  = false;
-		bool watchingLeaderStrategy = false;
+		bool watchingHeavyStrategy3 = false;
 
-		bool  unblockingEnabled = false;
-		float spawnTimestamp    = *(this->simulationTime);
-		float unblockTimestamp  = this->spawnTimestamp;
+		HashContainers::AddressSet vehiclesOfCurrentStrategy;
+		HashContainers::AddressSet vehiclesOfUnblockedHeavy3;
+
+		IntervalTimer heavy3UnblockTimer  = IntervalTimer(heavy3UnblockEnableds,  minHeavy3UnblockDelays,  maxHeavy3UnblockDelays);
+		IntervalTimer heavy4UnblockTimer  = IntervalTimer(heavy4UnblockEnableds,  minHeavy4UnblockDelays,  maxHeavy4UnblockDelays);
+		IntervalTimer leader5UnblockTimer = IntervalTimer(leader5UnblockEnableds, minLeader5UnblockDelays, maxLeader5UnblockDelays);
+		IntervalTimer leader7UnblockTimer = IntervalTimer(leader7UnblockEnableds, minLeader7UnblockDelays, maxLeader7UnblockDelays);
+
+		IntervalTimer* unblockTimer = nullptr;
 
 		inline static HashContainers::AddressMap<StrategyManager*> pursuitToManager;
+
+		inline static void (__thiscall* const ClearSupportRequest)(address) = (void (__thiscall*)(address))0x42BCF0;
+
+
+		void UpdateNumStrategyVehicles() const
+		{
+			*(this->numStrategyVehicles) = this->vehiclesOfCurrentStrategy.size();
+		}
 
 
 		void Reset()
 		{
-			this->watchingHeavyStrategy  = false;
-			this->watchingLeaderStrategy = false;
+			if (not this->unblockTimer) return;
+
+			if (this->watchingHeavyStrategy3)
+			{
+				this->watchingHeavyStrategy3 = false;
+				this->vehiclesOfUnblockedHeavy3.merge(this->vehiclesOfCurrentStrategy);
+			}
+			else this->vehiclesOfCurrentStrategy.clear();
+
+			this->unblockTimer = nullptr;
+			this->UpdateNumStrategyVehicles();
 		}
 
 
-		void GenerateUnblockTimestamp
-		(
-			const bool  enabled,
-			const float minDelay,
-			const float maxDelay
-		) {
-			this->unblockingEnabled = enabled;
-
-			if (enabled)
-				this->unblockTimestamp = this->spawnTimestamp + Globals::prng.Generate<float>(minDelay, maxDelay);
-		}
-
-
-		void UpdateHeavyTimestamp()
+		void UpdateUnblockTimer(const IntervalTimer::Setting setting)
 		{
-			if (not this->IsHeatLevelKnown())    return;
-			if (not this->watchingHeavyStrategy) return;
+			if (not this->unblockTimer) return;
 
-			const address strategy = *(this->heavyStrategy);
-
-			if (not strategy)
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] Invalid HeavyStrategy pointer in", this->pursuit);
-
-				this->Reset();
-
-				return;
-			}
-
-			const int strategyType = *((int*)strategy);
-
-			switch (strategyType)
-			{
-			case 3:
-				this->GenerateUnblockTimestamp
-				(
-					heavy3UnblockEnableds.current,
-					minHeavy3UnblockDelays.current,
-					maxHeavy3UnblockDelays.current
-				);
-				break;
-
-			case 4:
-				this->GenerateUnblockTimestamp
-				(
-					heavy4UnblockEnableds.current,
-					minHeavy4UnblockDelays.current,
-					maxHeavy4UnblockDelays.current
-				);
-				break;
-
-			default:
-				this->Reset();
-			}
+			this->unblockTimer->Update(setting);
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->watchingHeavyStrategy)
-				{
-					if (this->unblockingEnabled)
-					{
-						Globals::logger.Log
-						(
-							this->pursuit,
-							"[STR] HeavyStrategy",
-							strategyType,
-							"blocking for",
-							this->unblockTimestamp - *(this->simulationTime)
-						);
-					}
-					else Globals::logger.Log(this->pursuit, "[STR] HeavyStrategy", strategyType, "blocking");
-				}
-				else Globals::logger.Log("WARNING: [STR] Invalid HeavyStrategy", strategyType, "in", this->pursuit);
+				if (this->unblockTimer->IsEnabled())
+					Globals::logger.Log(this->pursuit, "[SGY] Unblocking in", this->unblockTimer->TimeLeft());
+
+				else
+					Globals::logger.Log(this->pursuit, "[SGY] Strategy blocking fully");
 			}
 		}
 
 
 		void WatchHeavyStrategy()
 		{
-			this->watchingHeavyStrategy  = *(this->heavyStrategy);
-			this->watchingLeaderStrategy = false;
+			this->Reset();
 
-			if constexpr (Globals::loggingEnabled)
+			const address strategy = *(this->heavyStrategy);
+
+			if (not strategy)
 			{
-				if (this->watchingHeavyStrategy)
-					Globals::logger.Log(this->pursuit, "[STR] Watching HeavyStrategy", *((int*)(*(this->heavyStrategy))));
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log("WARNING: [SGY] Invalid HeavyStrategy pointer in", this->pursuit);
 
-				else
-					Globals::logger.Log("WARNING: [STR] Invalid HeavyStrategy pointer in", this->pursuit);
+				return;
 			}
 
-			this->spawnTimestamp = *(this->simulationTime);
-			this->UpdateHeavyTimestamp();
+			const int strategyID = *((int*)strategy);
+
+			switch (strategyID)
+			{
+			case 3:
+				this->watchingHeavyStrategy3 = true;
+				this->unblockTimer           = &(this->heavy3UnblockTimer);
+				break;
+
+			case 4:
+				this->unblockTimer = &(this->heavy4UnblockTimer);
+				break;
+
+			default:
+				return;
+			}
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[SGY] Watching HeavyStrategy", strategyID);
+
+			this->UpdateUnblockTimer(IntervalTimer::Setting::ALL);
 		}
 
 
-		void UpdateLeaderTimestamp()
+		void WatchLeaderStrategy()
 		{
-			if (not this->IsHeatLevelKnown())     return;
-			if (not this->watchingLeaderStrategy) return;
+			this->Reset();
 
 			const address strategy = *(this->leaderStrategy);
 
 			if (not strategy)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] Invalid LeaderStrategy pointer in", this->pursuit);
-
-				this->Reset();
+					Globals::logger.Log("WARNING: [SGY] Invalid LeaderStrategy pointer in", this->pursuit);
 
 				return;
 			}
 
-			const int strategyType = *((int*)strategy);
+			const int strategyID = *((int*)strategy);
 
-			switch (strategyType)
+			switch (strategyID)
 			{
 			case 5:
-				this->GenerateUnblockTimestamp
-				(
-					leader5UnblockEnableds.current,
-					minLeader5UnblockDelays.current,
-					maxLeader5UnblockDelays.current
-				);
+				this->unblockTimer = &(this->leader5UnblockTimer);
 				break;
 
 			case 7:
-				this->GenerateUnblockTimestamp
-				(
-					leader7UnblockEnableds.current,
-					minLeader7UnblockDelays.current,
-					maxLeader7UnblockDelays.current
-				);
+				this->unblockTimer = &(this->leader7UnblockTimer);
 				break;
 
 			default:
-				this->Reset();
+				return;
 			}
 
 			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[SGY] Watching LeaderStrategy", strategyID);
+
+			this->UpdateUnblockTimer(IntervalTimer::Setting::ALL);
+		}
+
+
+		void CheckUnblockTimer() const
+		{
+			if (not this->unblockTimer)               return;
+			if (not this->unblockTimer->HasExpired()) return;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[SGY] Unblocking request");
+
+			this->ClearSupportRequest(this->pursuit);
+		}
+
+
+		static float __fastcall GetSpeedOfTarget(const address pursuit)
+		{
+			__asm
 			{
-				if (this->watchingLeaderStrategy)
+				mov eax, dword ptr [ecx + 0x74] // AIPursuit::GetTarget
+				mov ecx, dword ptr [eax + 0x1C] // Target::GetPhysicsObject
+
+				test ecx, ecx
+				je zero // no valid physics object
+
+				mov edx, dword ptr [ecx]
+				call dword ptr [edx + 0x54] // PhysicsObject::GetRigidBody
+				mov edx, dword ptr [eax]
+
+				mov ecx, eax
+				call dword ptr [edx + 0x30] // RigidBody::GetSpeedXY
+
+				jmp conclusion
+
+				zero:
+				fldz
+
+				conclusion:
+				// Nothing!
+			}
+		}
+
+
+		static void MakeVehiclesFlee(HashContainers::AddressSet& copVehicles)
+		{
+			for (const address copVehicle : copVehicles)
+				PursuitFeatures::MakeVehicleFlee(copVehicle);
+
+			copVehicles.clear();
+		}
+
+
+		void CheckHeavyCollapseSpeed()
+		{
+			if ((not this->watchingHeavyStrategy3) and this->vehiclesOfUnblockedHeavy3.empty()) return;
+
+			const float speedThreshold = (*(this->isJerk)) ? jerkSpeedThreshold : baseSpeedThreshold;
+
+			if (this->GetSpeedOfTarget(this->pursuit) < speedThreshold)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log(this->pursuit, "[SGY] Clearing HeavyStrategy 3 vehicles");
+
+				this->MakeVehiclesFlee(this->vehiclesOfUnblockedHeavy3);
+
+				if (this->watchingHeavyStrategy3)
 				{
-					if (this->unblockingEnabled)
-					{
-						Globals::logger.Log
-						(
-							this->pursuit, 
-							"[STR] LeaderStrategy", 
-							strategyType,
-							"blocking for", 
-							this->unblockTimestamp - *(this->simulationTime)
-						);
-					}
-					else Globals::logger.Log(this->pursuit, "[STR] LeaderStrategy", strategyType, "blocking");
+					this->MakeVehiclesFlee(this->vehiclesOfCurrentStrategy);
+					this->ClearSupportRequest(this->pursuit);
 				}
-				else Globals::logger.Log("WARNING: [STR] Invalid LeaderStrategy", strategyType, "in", this->pursuit);
 			}
-		}
-
-
-		void WatchLeaderStrategy()
-		{
-			this->watchingHeavyStrategy  = false;
-			this->watchingLeaderStrategy = *(this->leaderStrategy);
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (this->watchingLeaderStrategy)
-					Globals::logger.Log(this->pursuit, "[STR] Watching LeaderStrategy", *((int*)(*(this->leaderStrategy))));
-
-				else
-					Globals::logger.Log("WARNING: [STR] Invalid LeaderStrategy pointer in", this->pursuit);
-			}
-
-			this->spawnTimestamp = *(this->simulationTime);
-			this->UpdateLeaderTimestamp();
-		}
-
-
-		void CheckUnblockTimestamp() const
-		{
-			if (not this->IsHeatLevelKnown())                                      return;
-			if (not this->unblockingEnabled)                                       return;
-			if (not (this->watchingHeavyStrategy or this->watchingLeaderStrategy)) return;
-			if (not (*(this->simulationTime) >= this->unblockTimestamp))           return;
-
-			static void (__thiscall* const ClearSupportRequest)(address) = (void (__thiscall*)(address))0x42BCF0;
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[STR] Unblocking requests");
-
-			ClearSupportRequest(this->pursuit);
 		}
 
 
@@ -272,7 +269,7 @@ namespace StrategyOverrides
 		}
 
 
-		~StrategyManager()
+		~StrategyManager() override
 		{
 			this->pursuitToManager.erase(this->pursuit);
 		}
@@ -280,15 +277,60 @@ namespace StrategyOverrides
 
 		void UpdateOnGameplay() override
 		{
-			this->CheckUnblockTimestamp();
+			this->CheckHeavyCollapseSpeed();
+			this->CheckUnblockTimer();
 		}
 
 
 		void UpdateOnHeatChange() override
 		{
-			this->UpdateHeavyTimestamp();
-			this->UpdateLeaderTimestamp();
-			this->CheckUnblockTimestamp();
+			this->UpdateUnblockTimer(IntervalTimer::Setting::LENGTH);
+			this->CheckUnblockTimer();
+		}
+
+
+		void ReactToAddedVehicle
+		(
+			const address  copVehicle,
+			const CopLabel copLabel
+		)
+			override
+		{
+			switch (copLabel)
+			{
+			case CopLabel::HEAVY:
+				[[fallthrough]];
+
+			case CopLabel::LEADER:
+				this->vehiclesOfCurrentStrategy.insert(copVehicle);
+				this->UpdateNumStrategyVehicles();
+			}
+		}
+
+
+		void ReactToRemovedVehicle
+		(
+			const address  copVehicle,
+			const CopLabel copLabel
+		)
+			override
+		{
+			switch (copLabel)
+			{
+			case CopLabel::HEAVY:
+				if (this->vehiclesOfUnblockedHeavy3.erase(copVehicle) > 0) break;
+				[[fallthrough]];
+
+			case CopLabel::LEADER:
+				if (this->vehiclesOfCurrentStrategy.erase(copVehicle) > 0)
+				{
+					if (this->vehiclesOfCurrentStrategy.empty())
+						this->ClearSupportRequest(this->pursuit);
+
+					else 
+						this->UpdateNumStrategyVehicles();
+				}
+			}
 		}
 
 
@@ -300,7 +342,7 @@ namespace StrategyOverrides
 				foundManager->second->WatchHeavyStrategy();
 
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [STR] HeavyStrategy of unknown pursuit", pursuit);
+				Globals::logger.Log("WARNING: [SGY] HeavyStrategy of unknown pursuit", pursuit);
 		}
 
 
@@ -312,7 +354,7 @@ namespace StrategyOverrides
 				foundManager->second->WatchLeaderStrategy();
 
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [STR] LeaderStrategy of unknown pursuit", pursuit);
+				Globals::logger.Log("WARNING: [SGY] LeaderStrategy of unknown pursuit", pursuit);
 		}
 
 
@@ -325,7 +367,7 @@ namespace StrategyOverrides
 				foundManager->second->Reset();
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(pursuit, "[STR] Request cleared");
+					Globals::logger.Log(pursuit, "[SGY] Active request cleared");
 			}
 		}
 	};
@@ -335,6 +377,63 @@ namespace StrategyOverrides
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+
+	constexpr address goalResetEntrance = 0x42B475;
+	constexpr address goalResetExit     = 0x42B47A;
+
+	__declspec(naked) void GoalReset()
+	{
+		static constexpr address goalResetSkip = 0x42B48E;
+
+		__asm
+		{
+			mov ebx, dword ptr [esp + 0x14]
+
+			cmp ebx, 0x443EDA // duration expired
+			je reset
+
+			cmp ebx, 0x42BA42 // "COOLDOWN" mode
+			je reset
+
+			cmp ebx, 0x4431F4 // pursuit constructor
+			je reset
+
+			cmp ebx, 0x43311B // pursuit destructor
+			je reset
+
+			jmp dword ptr goalResetSkip
+
+			reset:
+			push ecx
+			mov ebx, esp
+			push 0x0
+
+			jmp dword ptr goalResetExit
+		}
+	}
+
+
+
+	constexpr address collapseFleeEntrance = 0x4438A4;
+	constexpr address collapseFleeExit     = 0x4438A9;
+
+	__declspec(naked) void CollapseFlee()
+	{
+		__asm
+		{
+			mov edx, dword ptr [ecx + 0x48]
+			cmp edx, 0x73B87374
+			jne conclusion
+
+			mov edx, dword ptr [ecx]
+			call dword ptr [edx + 0xC]
+
+			conclusion:
+			jmp collapseFleeExit
+		}
+	}
+
+
 
 	constexpr address clearRequestEntrance = 0x42B431;
 	constexpr address clearRequestExit     = 0x42B436;
@@ -347,7 +446,6 @@ namespace StrategyOverrides
 
 			push ecx
 			lea ecx, dword ptr [ebp - 0x194]
-			mov dword ptr [ecx + 0x18C], 0x0             // number of active supports
 			call StrategyManager::NotifyOfClearedRequest // ecx: pursuit
 			pop ecx
 
@@ -359,22 +457,18 @@ namespace StrategyOverrides
 
 
 
-	constexpr address leaderStrategyEntrance = 0x41F824;
-	constexpr address leaderStrategyExit     = 0x41F82F;
+	constexpr address leaderStrategyEntrance = 0x41F706;
+	constexpr address leaderStrategyExit     = 0x41F70D;
 
 	__declspec(naked) void LeaderStrategy()
 	{
 		__asm
 		{
-			mov dword ptr [eax + 0x78], 0x2
+			mov ecx, dword ptr [esp + 0x90]
+			call StrategyManager::NotifyOfLeaderStrategy // ecx: pursuit
 
-			push eax
-			lea ecx, dword ptr [eax - 0x194]
-			call StrategyManager::NotifyOfLeaderStrategy
-			pop eax
-
-			mov ecx, dword ptr [eax + 0x4]
-			pop edi
+			// Execute original code and resume
+			mov eax, dword ptr [esp + 0x94]
 
 			jmp dword ptr leaderStrategyExit
 		}
@@ -382,22 +476,18 @@ namespace StrategyOverrides
 
 
 
-	constexpr address heavyStrategy3Entrance = 0x41F455;
-	constexpr address heavyStrategy3Exit     = 0x41F45F;
+	constexpr address heavyStrategy3Entrance = 0x41F38F;
+	constexpr address heavyStrategy3Exit     = 0x41F396;
 
 	__declspec(naked) void HeavyStrategy3()
 	{
 		__asm
 		{
-			mov dword ptr [eax + 0x78], 0x2
+			mov ecx, dword ptr [esp + 0xC4]
+			call StrategyManager::NotifyOfHeavyStrategy // ecx: pursuit
 
-			push eax
-			lea ecx, dword ptr [eax - 0x194]
-			call StrategyManager::NotifyOfHeavyStrategy
-			pop eax
-
-			mov ecx, dword ptr [eax]
-			pop edi
+			// Execute original code and resume
+			mov eax, dword ptr [esp + 0xC8]
 
 			jmp dword ptr heavyStrategy3Exit
 		}
@@ -412,12 +502,12 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov dword ptr [esi + 0x78], 0x2
+			mov ecx, ebx
+			call StrategyManager::NotifyOfHeavyStrategy // ecx: pursuit
 
-			lea ecx, dword ptr [esi - 0x194]
-			call StrategyManager::NotifyOfHeavyStrategy
-
+			// Execute original code and resume
 			mov ecx, dword ptr [esi]
+			mov dword ptr [esi + 0x78], 0x2
 
 			jmp dword ptr heavyStrategy4Exit
 		}
@@ -431,52 +521,62 @@ namespace StrategyOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini")) return false;
+		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
 		// Heat parameters
-		featureEnabled |= HeatParameters::ParseOptionalInterval
+		HeatParameters::Parse<float>(parser, "Heavy3:Fleeing", {playerSpeedThresholds, 0.f});
+
+		HeatParameters::ParseOptionalInterval
 		(
 			parser,
-			"Heavy3:Unblock",
+			"Heavy3:Unblocking",
 			heavy3UnblockEnableds,
 			minHeavy3UnblockDelays,
 			maxHeavy3UnblockDelays
 		);
 
-		featureEnabled |= HeatParameters::ParseOptionalInterval
+		HeatParameters::ParseOptionalInterval
 		(
 			parser,
-			"Heavy4:Unblock",
+			"Heavy4:Unblocking",
 			heavy4UnblockEnableds,
 			minHeavy4UnblockDelays,
 			maxHeavy4UnblockDelays
 		);
 
-		featureEnabled |= HeatParameters::ParseOptionalInterval
+		HeatParameters::ParseOptionalInterval
 		(
 			parser,
-			"Leader5:Unblock",
+			"Leader5:Unblocking",
 			leader5UnblockEnableds,
 			minLeader5UnblockDelays,
 			maxLeader5UnblockDelays
 		);
 
-		featureEnabled |= HeatParameters::ParseOptionalInterval
+		HeatParameters::ParseOptionalInterval
 		(
 			parser,
-			"Leader7:Unblock",
+			"Leader7:Unblocking",
 			leader7UnblockEnableds,
 			minLeader7UnblockDelays,
 			maxLeader7UnblockDelays
 		);
 
-		if (not featureEnabled) return false;
-
 		// Code caves
+		MemoryEditor::Write<byte>   (0xE9,   {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
+		MemoryEditor::Write<address>(0x02A3, {0x44384B});
+		
+		MemoryEditor::WriteToAddressRange(0x90, 0x4240BD, 0x4240C3); // OnAttached increment
+		MemoryEditor::WriteToAddressRange(0x90, 0x42B71B, 0x42B72E); // OnDetached decrement
+
+		MemoryEditor::DigCodeCave(GoalReset,      goalResetEntrance,      goalResetExit);
 		MemoryEditor::DigCodeCave(ClearRequest,   clearRequestEntrance,   clearRequestExit);
 		MemoryEditor::DigCodeCave(LeaderStrategy, leaderStrategyEntrance, leaderStrategyExit);
 		MemoryEditor::DigCodeCave(HeavyStrategy3, heavyStrategy3Entrance, heavyStrategy3Exit);
 		MemoryEditor::DigCodeCave(HeavyStrategy4, heavyStrategy4Entrance, heavyStrategy4Exit);
+
+		// Status flag
+		featureEnabled = true;
 
 		return true;
 	}
@@ -490,10 +590,15 @@ namespace StrategyOverrides
 	) {
 		if (not featureEnabled) return;
 
+		playerSpeedThresholds.SetToHeat(isRacing, heatLevel);
+
+		baseSpeedThreshold = playerSpeedThresholds.current / 3.6f;
+		jerkSpeedThreshold = baseSpeedThreshold * .625f;
+
 		heavy3UnblockEnableds .SetToHeat(isRacing, heatLevel);
 		minHeavy3UnblockDelays.SetToHeat(isRacing, heatLevel);
 		maxHeavy3UnblockDelays.SetToHeat(isRacing, heatLevel);
-		
+
 		heavy4UnblockEnableds .SetToHeat(isRacing, heatLevel);
 		minHeavy4UnblockDelays.SetToHeat(isRacing, heatLevel);
 		maxHeavy4UnblockDelays.SetToHeat(isRacing, heatLevel);
@@ -508,39 +613,20 @@ namespace StrategyOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log("    HEAT [STR] StrategyOverrides");
-
-			Globals::logger.LogLongIndent("HeavyStrategy 3", (heavy3UnblockEnableds.current) ? "unblocked" : "blocks");
+			Globals::logger.Log("    HEAT [SGY] StrategyOverrides");
+			Globals::logger.LogLongIndent("playerSpeedThreshold    ", playerSpeedThresholds.current);
 
 			if (heavy3UnblockEnableds.current)
-			{
-				Globals::logger.LogLongIndent("minHeavy3UnblockDelay   ", minHeavy3UnblockDelays.current);
-				Globals::logger.LogLongIndent("maxHeavy3UnblockDelay   ", maxHeavy3UnblockDelays.current);
-			}
-
-			Globals::logger.LogLongIndent("HeavyStrategy 4", (heavy4UnblockEnableds.current) ? "unblocked" : "blocks");
+				Globals::logger.LogLongIndent("heavy3UnblockDelay      ", minHeavy3UnblockDelays.current, "to", maxHeavy3UnblockDelays.current);
 
 			if (heavy4UnblockEnableds.current)
-			{
-				Globals::logger.LogLongIndent("minHeavy4UnblockDelay   ", minHeavy4UnblockDelays.current);
-				Globals::logger.LogLongIndent("maxHeavy4UnblockDelay   ", maxHeavy4UnblockDelays.current);
-			}
-
-			Globals::logger.LogLongIndent("LeaderStrategy 5", (leader5UnblockEnableds.current) ? "unblocked" : "blocks");
+				Globals::logger.LogLongIndent("heavy4UnblockDelay      ", minHeavy4UnblockDelays.current, "to", maxHeavy4UnblockDelays.current);
 
 			if (leader5UnblockEnableds.current)
-			{
-				Globals::logger.LogLongIndent("minLeader5UnblockDelay  ", minLeader5UnblockDelays.current);
-				Globals::logger.LogLongIndent("maxLeader5UnblockDelay  ", maxLeader5UnblockDelays.current);
-			}
-
-			Globals::logger.LogLongIndent("LeaderStrategy 7", (leader7UnblockEnableds.current) ? "unblocked" : "blocks");
+				Globals::logger.LogLongIndent("leader5UnblockDelay     ", minLeader5UnblockDelays.current, "to", maxLeader5UnblockDelays.current);
 
 			if (leader7UnblockEnableds.current)
-			{
-				Globals::logger.LogLongIndent("minLeader7UnblockDelay  ", minLeader7UnblockDelays.current);
-				Globals::logger.LogLongIndent("maxLeader7UnblockDelay  ", maxLeader7UnblockDelays.current);
-			}
+				Globals::logger.LogLongIndent("leader7UnblockDelay     ", minLeader7UnblockDelays.current, "to", maxLeader7UnblockDelays.current);
 		}
 	}
 }
