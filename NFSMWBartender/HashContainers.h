@@ -52,12 +52,12 @@ namespace HashContainers
 		const char* const mapName,
 		VaultMap<T>&      map,
 		T&                defaultValue,
-		const K&          keyPredicate,
-		const V&          valuePredicate
+		const K&          IsValidKey,
+		const V&          IsValidValue
 	) {
 		// Extract "default" key if provided (and valid)
 		const auto pair    = map.extract(Globals::GetVaultKey("default"));
-		const bool isValid = ((not pair.empty()) and valuePredicate(pair.mapped()));
+		const bool isValid = ((not pair.empty()) and IsValidValue(pair.mapped()));
 
 		if (isValid)
 			defaultValue = pair.mapped();
@@ -71,7 +71,7 @@ namespace HashContainers
 
 		while (iterator != map.end())
 		{
-			if (not (keyPredicate(iterator->first) and valuePredicate(iterator->second)))
+			if (not (IsValidKey(iterator->first) and IsValidValue(iterator->second)))
 			{
 				// With logging disabled, the compiler optimises the string away
 				if constexpr (Globals::loggingEnabled)

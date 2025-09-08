@@ -16,6 +16,9 @@ namespace GroundSupport
 	bool featureEnabled = false;
 
 	// Heat levels
+	HeatParameters::Pair<bool> rivalStrategiesEnableds(true);
+	HeatParameters::Pair<bool> rivalRoadblocksEnableds(true);
+
 	HeatParameters::Pair<float> minRoadblockCooldowns  (8.f);  // seconds
 	HeatParameters::Pair<float> maxRoadblockCooldowns  (12.f);
 	HeatParameters::Pair<float> roadblockHeavyCooldowns(15.f);
@@ -37,7 +40,7 @@ namespace GroundSupport
 
 	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
 
-	bool __fastcall IsValidHeavyStrategy
+	bool IsHeavyStrategyAvailable
 	(
 		const address pursuit,
 		const address strategy
@@ -58,12 +61,12 @@ namespace GroundSupport
 
 
 
-	bool __fastcall IsValidLeaderStrategy
+	bool IsLeaderStrategyAvailable
 	(
 		const address pursuit,
 		const address strategy
 	) {
-		if (*((int*)(pursuit + 0x164)) != 0) return false;
+		if (*((int*)(pursuit + 0x164)) != 0) return false; // leader spawn-flag
 
 		const int strategyType = *((int*)strategy);
 
@@ -81,66 +84,86 @@ namespace GroundSupport
 
 
 
-	template <typename T>
-	void FindValidStrategies
+	template <address getNumStrategies, address getStrategy, auto IsStrategyAvailable>
+	void MarshalStrategies
 	(
 		const address         pursuit,
-		const address         getNumStrategies,
-		const address         getStrategies,
-		const T&              validityPredicate,
-		std::vector<address>& validStrategies
+		std::vector<address>& candidateStrategies
 	) {
-		static address (__thiscall* const GetSupportNode)(address) = (address (__thiscall*)(address))0x418EE0;
+		static const auto GetSupportNode = (address (__thiscall*)(address))0x418EE0;
+		const address     supportNode    = GetSupportNode(pursuit - 0x48);
 
-		const address supportNode = GetSupportNode(pursuit - 0x48);
 		if (not supportNode) return;
 
-		size_t  (__thiscall* const GetNumStrategies)(address)         = (size_t(__thiscall*)(address))         getNumStrategies;
-		address (__thiscall* const GetStrategy)     (address, size_t) = (address(__thiscall*)(address, size_t))getStrategies;
+		static const auto GetNumStrategies = (size_t  (__thiscall*)(address))        getNumStrategies;
+		static const auto GetStrategy      = (address (__thiscall*)(address, size_t))getStrategy;
 
 		const size_t numStrategies = GetNumStrategies(supportNode);
 
 		for (size_t strategyID = 0; strategyID < numStrategies; strategyID++)
 		{
 			const address strategy = GetStrategy(supportNode, strategyID);
-			if (not validityPredicate(pursuit, strategy)) continue;
+			if (not IsStrategyAvailable(pursuit, strategy)) continue;
 
 			const int chance = *((int*)(strategy + 0x4));
 
 			if (Globals::prng.Generate<int>(0, 100) < chance)
-				validStrategies.push_back(strategy);
+				candidateStrategies.push_back(strategy);
 		}
 	}
 
 
 
-	address __fastcall GetRandomStrategy(const address pursuit) 
-	{
-		static std::vector<address> validStrategies;
+	void SetStrategy
+	(
+		const address pursuit,
+		const address strategy,
+		const bool    isHeavyStrategy
+	) {
+		*((float*)(pursuit + 0x208)) = *((float*)(strategy + 0x8)); // duration
+		*((int*)(pursuit + 0x20C))   = 1;                           // request flag
 
-		FindValidStrategies(pursuit, 0x403600, 0x4035E0, IsValidHeavyStrategy,  validStrategies);
-		FindValidStrategies(pursuit, 0x403680, 0x403660, IsValidLeaderStrategy, validStrategies);
-
-		if (not validStrategies.empty())
+		if (isHeavyStrategy)
 		{
-			const size_t  index    = (validStrategies.size() > 1) ? Globals::prng.Generate<size_t>(0, validStrategies.size()) : 0;
-			const address strategy = validStrategies[index];
+			*((address*)(pursuit + 0x194)) = strategy;                        // HeavyStrategy
+			*((float*)(pursuit + 0xC8))    = roadblockHeavyCooldowns.current; // roadblock CD
+		}
+		else *((address*)(pursuit + 0x198)) = strategy; // LeaderStrategy
+	}
+
+
+
+	bool __fastcall SetRandomStrategy(const address pursuit) 
+	{
+		static std::vector<address> candidateStrategies;
+
+		MarshalStrategies<0x403600, 0x4035E0, IsHeavyStrategyAvailable>(pursuit, candidateStrategies);
+		const size_t numHeavyStrategies = candidateStrategies.size();
+		MarshalStrategies<0x403680, 0x403660, IsLeaderStrategyAvailable>(pursuit, candidateStrategies);
+
+		if (not candidateStrategies.empty())
+		{
+			const size_t index = (candidateStrategies.size() > 1) ? Globals::prng.Generate<size_t>(0, candidateStrategies.size()) : 0;
+
+			const address randomStrategy  = candidateStrategies[index];
+			const bool    isHeavyStrategy = (index < numHeavyStrategies);
+
+			SetStrategy(pursuit, randomStrategy, isHeavyStrategy);
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				const char* const strategyType = (IsValidHeavyStrategy(pursuit, strategy)) ? "HeavyStrategy" : "LeaderStrategy";
-				Globals::logger.Log(pursuit, "[SUP] Requesting", strategyType, *((int*)strategy));
-				Globals::logger.Log(pursuit, "[SUP] Index", (int)(index + 1), '/', (int)validStrategies.size());
+				Globals::logger.Log(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", *((int*)randomStrategy));
+				Globals::logger.Log(pursuit, "[SUP] Candidate", (int)(index + 1), "out of", (int)candidateStrategies.size());
 			}
 
-			validStrategies.clear();
+			candidateStrategies.clear();
 
-			return strategy;
+			return true;
 		}
 		else if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log(pursuit, "[SUP] Strategy request failed");
 
-		return 0x0;
+		return false;
 	}
 
 
@@ -157,30 +180,11 @@ namespace GroundSupport
 		__asm
 		{
 			mov ecx, esi
-			call GetRandomStrategy // ecx: pursuit
-			test eax, eax
-			je conclusion          // no Strategy selected
-
-			mov ebx, eax
-			mov edi, -0x1
-
-			mov ecx, dword ptr [ebx + 0x8]
-			mov dword ptr [esi + 0x208], ecx
-			mov dword ptr [esi + 0x20C], 0x1
-
-			mov ecx, esi
-			mov edx, ebx
-			call IsValidHeavyStrategy
+			call SetRandomStrategy // ecx: pursuit
 			test al, al
-			je leader // is LeaderStrategy
+			je conclusion          // no Strategy set
 
-			mov dword ptr [esi + 0x194], ebx
-			mov eax, dword ptr roadblockHeavyCooldowns.current
-			mov dword ptr [esi + 0xC8], eax
-			jmp conclusion // was HeavyStrategy
-
-			leader:
-			mov dword ptr [esi + 0x198], ebx
+			mov edi, -0x1
 
 			conclusion:
 			jmp dword ptr strategySelectionExit
@@ -204,17 +208,71 @@ namespace GroundSupport
 
 
 
-	constexpr address requestCooldownEntrance = 0x4196DA;
+	constexpr address requestCooldownEntrance = 0x4196D6;
 	constexpr address requestCooldownExit     = 0x4196E4;
 
 	__declspec(naked) void RequestCooldown()
 	{
+		static constexpr address requestCooldownSkip = 0x41988A;
+
 		__asm
 		{
 			mov eax, dword ptr strategyCooldowns.current
 			mov dword ptr [esi + 0x210], eax
 
+			cmp byte ptr rivalStrategiesEnableds.current, 0x1
+			je conclusion // no rival discrimination
+
+			mov ecx, esi
+			mov eax, dword ptr [esi]
+			call dword ptr [eax + 0x8C]
+			test eax, eax
+			jne conclusion // is player pursuit
+
+			jmp dword ptr requestCooldownSkip // was rival pursuit
+
+			conclusion:
+			// Execute original code and resume
+			push ebp
+			lea ecx, dword ptr [esi - 0x48]
+
 			jmp dword ptr requestCooldownExit
+		}
+	}
+
+
+
+	constexpr address rivalRoadblockEntrance = 0x419563;
+	constexpr address rivalRoadblockExit     = 0x419568;
+
+	__declspec(naked) void RivalRoadblock()
+	{
+		static constexpr address rivalRoadblockSkip = 0x4195E9;
+
+		__asm
+		{
+			cmp byte ptr rivalRoadblocksEnableds.current, 0x1
+			je conclusion // no rival discrimination
+
+			call dword ptr [edx + 0x8C]
+			test eax, eax
+			jne restore // is player pursuit
+
+			pop ebx
+			pop edi
+
+			jmp dword ptr rivalRoadblockSkip // was rival pursuit
+
+			restore:
+			mov ecx, esi
+			mov edx, dword ptr [esi]
+
+			conclusion:
+			// Execute original code and resume
+			call dword ptr [edx + 0x28]
+			cmp al, 0x1
+
+			jmp dword ptr rivalRoadblockExit
 		}
 	}
 
@@ -345,7 +403,8 @@ namespace GroundSupport
 		HeatParameters::CheckIntervals<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
 
 		// Other Heat parameters
-		HeatParameters::Parse<float>(parser, "Strategies:Cooldown", {strategyCooldowns, 1.f});
+		HeatParameters::Parse<bool, bool>(parser, "Supports:Rivals",     {rivalRoadblocksEnableds}, {rivalStrategiesEnableds});
+		HeatParameters::Parse<float>     (parser, "Strategies:Cooldown", {strategyCooldowns, 1.f});
 
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy3:Vehicles", {heavy3LightVehicles}, {heavy3HeavyVehicles});
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy4:Vehicles", {heavy4LightVehicles}, {heavy4HeavyVehicles});
@@ -356,6 +415,7 @@ namespace GroundSupport
 
 		MemoryEditor::DigCodeCave(StrategySelection, strategySelectionEntrance, strategySelectionExit);
 		MemoryEditor::DigCodeCave(RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);
+		MemoryEditor::DigCodeCave(RivalRoadblock,    rivalRoadblockEntrance,    rivalRoadblockExit);
         MemoryEditor::DigCodeCave(RequestCooldown,   requestCooldownEntrance,   requestCooldownExit);
 		MemoryEditor::DigCodeCave(OnAttached,        onAttachedEntrance,        onAttachedExit);
 		MemoryEditor::DigCodeCave(OnDetached,        onDetachedEntrance,        onDetachedExit);
@@ -396,6 +456,9 @@ namespace GroundSupport
 	) {
         if (not featureEnabled) return;
 
+		rivalStrategiesEnableds.SetToHeat(isRacing, heatLevel);
+		rivalRoadblocksEnableds.SetToHeat(isRacing, heatLevel);
+
 		minRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		maxRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
@@ -413,6 +476,9 @@ namespace GroundSupport
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Log("    HEAT [SUP] GroundSupport");
+
+			Globals::logger.LogLongIndent("rivalStrategiesEnabled  ", (rivalStrategiesEnableds.current) ? "true" : "false");
+			Globals::logger.LogLongIndent("rivalRoadblocksEnabled  ", (rivalRoadblocksEnableds.current) ? "true" : "false");
 
 			Globals::logger.LogLongIndent("roadblockCooldown       ", minRoadblockCooldowns.current, "to", maxRoadblockCooldowns.current);
 			Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);

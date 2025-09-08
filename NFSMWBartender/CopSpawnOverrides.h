@@ -207,11 +207,10 @@ namespace CopSpawnOverrides
 	private:
 
 		int numPatrolCarsToSpawn = 0;
-
-		int* const fullWaveCapacity  = (int*)(this->pursuit + 0x144);
-		int* const numCopsLostInWave = (int*)(this->pursuit + 0x14C);
-
-		const int* const pursuitStatus = (int*)(this->pursuit + 0x218);
+		
+		int* const       fullWaveCapacity  = (int*)(this->pursuit + 0x144);
+		int* const       numCopsLostInWave = (int*)(this->pursuit + 0x14C);
+		const int* const pursuitStatus     = (int*)(this->pursuit + 0x218);
 
 		Contingent chasers = Contingent(&(CopSpawnTables::chaserSpawnTables), this->pursuit);
 
@@ -237,9 +236,8 @@ namespace CopSpawnOverrides
 			this->numPatrolCarsToSpawn = 0;
 
 			// PursuitAttributes node
-			static address (__thiscall* const GetPursuitNode)(address) = (address (__thiscall*)(address))0x418E90;
-
-			const address pursuitNode = GetPursuitNode(this->pursuit);
+			static const auto GetPursuitNode = (address (__thiscall*)(address))0x418E90;
+			const address     pursuitNode    = GetPursuitNode(this->pursuit);
 			
 			if (not pursuitNode)
 			{
@@ -250,9 +248,8 @@ namespace CopSpawnOverrides
 			}
 
 			// Number of patrol cars
-			static address (__thiscall* const GetPursuitAttribute)(address, vault, int) = (address (__thiscall*)(address, vault, int))0x454810;
-
-			const address attribute = GetPursuitAttribute(pursuitNode, 0x24F7A1BC, 0); // fetches "NumPatrolCars"
+			static const auto GetPursuitAttribute = (address (__thiscall*)(address, vault, int))0x454810;
+			const address     attribute           = GetPursuitAttribute(pursuitNode, 0x24F7A1BC, 0);      // fetches "NumPatrolCars"
 
 			if (attribute)
 			{

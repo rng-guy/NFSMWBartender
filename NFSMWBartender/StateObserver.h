@@ -68,7 +68,7 @@ namespace StateObserver
 
 	void OnGameplayUpdates()
 	{
-		static bool (__thiscall* const IsRacing)(address) = (bool (__thiscall*)(address))0x409500;
+		static const auto IsRacing = (bool (__thiscall*)(address))0x409500;
 
 		if (playerVehicle)
 		{

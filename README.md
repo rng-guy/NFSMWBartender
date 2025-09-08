@@ -29,6 +29,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * how quickly the green "EVADE" bar fills once all cops have lost sight of you,
 * at what time interval you gain passive bounty,
 * the maximum combo-bounty multiplier for destroying cops quickly,
+* whether cops in non-player pursuits can request ground supports,
 * the internal cooldown for non-Strategy roadblock requests,
 * the internal cooldown for Strategy requests,
 * what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
@@ -75,14 +76,16 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * what vehicle spawns in place of the regular helicopter
 * when exactly (if at all) the helicopter can (de / re)spawn,
 * how much earlier (if at all) the helicopter rejoins the pursuit when it loses you,
-* below what player speed HeavyStrategy 3 spawns stop their ramming attempts and flee,
+* the internal cooldown for the helicopter's ramming attempts through HeliStrategy 2,
+* the player-speed threshold for HeavyStrategy 3 spawns to stop their ramming attempts and flee,
 * when exactly (if at all) LeaderStrategy Cross and / or his henchmen become aggressive,
 * how quickly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
 * how quickly (if at all) the game can request a new Strategy while another one is still active.
 
 &nbsp;
 
-The "Advanced" feature set **fixes two bugs / issues**:
+The "Advanced" feature set **fixes three bugs / issues**:
+* non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer blocked in races,
 * early Strategy despawns or cancellations no longer stall the game from making new requests,
 * the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <Windows.h>
 #include <initializer_list>
 
@@ -26,7 +27,7 @@ namespace MemoryEditor
 			memoryLocation = (void*)location;
 
 			VirtualProtect(memoryLocation, size,  PAGE_READWRITE,  &previousSetting);
-			memcpy        (memoryLocation, &data, size);
+			std::memcpy   (memoryLocation, &data, size);
 			VirtualProtect(memoryLocation, size,  previousSetting, &previousSetting);
 		}
 	}
@@ -43,7 +44,7 @@ namespace MemoryEditor
 		DWORD previousSetting = 0x0;
 
 		VirtualProtect(memoryLocation, byteRange, PAGE_READWRITE,  &previousSetting);
-		memset        (memoryLocation, value,     byteRange);
+		std::memset   (memoryLocation, value,     byteRange);
 		VirtualProtect(memoryLocation, byteRange, previousSetting, &previousSetting);
 	}
 

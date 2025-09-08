@@ -34,7 +34,7 @@ namespace PursuitObserver
 
 		const address pursuit;
 
-		bool inPursuitUpdatePending    = true;
+		bool perPursuitUpdatePending   = true;
 		bool perHeatLevelUpdatePending = true;
 
 		HashContainers::AddressMap<CopLabel>          copVehicleToLabel;
@@ -43,7 +43,7 @@ namespace PursuitObserver
 		inline static HashContainers::AddressSet                  copVehiclesLoaded;
 		inline static HashContainers::AddressMap<PursuitObserver> pursuitToObserver;
 
-		inline static const char* (__thiscall* const GetVehicleName)(address) = (const char* (__thiscall*)(address))0x688090;
+		inline static const auto GetVehicleName = (const char* (__thiscall*)(address))0x688090;
 
 
 		template <std::derived_from<PursuitReaction> R>
@@ -108,7 +108,7 @@ namespace PursuitObserver
 		{
 			for (const auto& reaction : this->pursuitReactions)
 			{
-				if (this->inPursuitUpdatePending)
+				if (this->perPursuitUpdatePending)
 					reaction.get()->UpdateOnceInPursuit();
 
 				if (this->perHeatLevelUpdatePending)
@@ -117,7 +117,7 @@ namespace PursuitObserver
 				reaction.get()->UpdateOnGameplay();
 			}
 
-			this->inPursuitUpdatePending = false;
+			this->perPursuitUpdatePending   = false;
 			this->perHeatLevelUpdatePending = false;
 		}
 
@@ -125,10 +125,10 @@ namespace PursuitObserver
 		void ProcessAddedVehicle
 		(
 			const address copVehicle,
-			const address returnAddress
+			const address caller
 		) {
-			const CopLabel copLabel     = this->LabelAddVehicleCall(returnAddress);
-			const auto     addedVehicle = this->copVehicleToLabel.insert({ copVehicle, copLabel });
+			const CopLabel copLabel     = this->LabelAddVehicleCall(caller);
+			const auto     addedVehicle = this->copVehicleToLabel.insert({copVehicle, copLabel});
 
 			if (not addedVehicle.second)
 			{
@@ -361,7 +361,7 @@ namespace PursuitObserver
 			call CopSpawnOverrides::Contingent::AddVehicle // stack: copVehicle
 
 			mov ecx, esi
-			call PursuitObserver::RegisterVehicle // ecx: PVehicle
+			call PursuitObserver::RegisterVehicle // ecx: copVehicle
 
 			mov al, 0x1
 
@@ -389,6 +389,42 @@ namespace PursuitObserver
 			inc dword ptr [ebp + 0x94]
 
 			jmp dword ptr patrolSpawnExit
+		}
+	}
+
+
+
+	constexpr address strategyDelayEntrance = 0x4196F4;
+	constexpr address strategyDelayExit     = 0x4196FA;
+
+	__declspec(naked) void StrategyDelay()
+	{
+		__asm
+		{
+			fld dword ptr [esi + 0xD0]
+			fchs
+			fxch
+			fcompp
+
+			jmp dword ptr strategyDelayExit
+		}
+	}
+
+
+
+	constexpr address roadblockDelayEntrance = 0x41950E;
+	constexpr address roadblockDelayExit     = 0x419514;
+
+	__declspec(naked) void RoadblockDelay()
+	{
+		__asm
+		{
+			fld dword ptr [esi + 0xD0]
+			fchs
+			fxch
+			fcompp
+
+			jmp dword ptr roadblockDelayExit
 		}
 	}
 
@@ -556,9 +592,14 @@ namespace PursuitObserver
 		LeaderOverrides    ::Initialise(parser);
 		
 		// Code caves
-		MemoryEditor::DigCodeCave(EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
-		MemoryEditor::DigCodeCave(PatrolSpawn, patrolSpawnEntrance, patrolSpawnExit);
+		MemoryEditor::Write<byte>(0x9E, {0x44319C});                 // helicopter respawn-timer initialisation
+		MemoryEditor::WriteToAddressRange(0x90, 0x42B6B4, 0x42B6DF); // helicopter respawn-timer reset
 
+		MemoryEditor::DigCodeCave(EventSpawn,     eventSpawnEntrance,     eventSpawnExit);
+		MemoryEditor::DigCodeCave(PatrolSpawn,    patrolSpawnEntrance,    patrolSpawnExit);
+		MemoryEditor::DigCodeCave(StrategyDelay,  strategyDelayEntrance,  strategyDelayExit);
+		MemoryEditor::DigCodeCave(RoadblockDelay, roadblockDelayEntrance, roadblockDelayExit);
+		
 		MemoryEditor::DigCodeCave(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryEditor::DigCodeCave(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
 		MemoryEditor::DigCodeCave(VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);

@@ -89,9 +89,8 @@ namespace LeaderOverrides
 
 		void MakeVehicleAggressive(const address copVehicle) const
 		{
-			static void (__thiscall* const SetSupportGoal)(address, vault) = (void (__thiscall*)(address, vault))0x409850;
-			
-			const address copAIVehicle = *((address*)(copVehicle + 0x54));
+			static const auto SetSupportGoal = (void (__thiscall*)(address, vault))0x409850;
+			const address     copAIVehicle   = *((address*)(copVehicle + 0x54));
 
 			if (copAIVehicle)
 				SetSupportGoal(copAIVehicle + 0x70C, 0x0);

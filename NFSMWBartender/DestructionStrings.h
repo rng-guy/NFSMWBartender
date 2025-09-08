@@ -84,7 +84,7 @@ namespace DestructionStrings
 		featureEnabled = (numCopVehicles > 0);
 		if (not featureEnabled) return false;
 
-		static binary (__cdecl* const GetBinaryKey)(const char*) = (binary (__cdecl*)(const char*))0x460BF0;
+		static const auto GetBinaryKey = (binary (__cdecl*)(const char*))0x460BF0;
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
 		{
@@ -112,7 +112,7 @@ namespace DestructionStrings
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [DST] DestructionStrings");
 
-		static const char* (__fastcall* const GetBinaryString)(int, binary) = (const char* (__fastcall*)(int, binary))0x56BB80;
+		static const auto GetBinaryString = (const char* (__fastcall*)(int, binary))0x56BB80;
 
 		HashContainers::ValidateVaultMap<binary>
 		(

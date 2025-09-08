@@ -42,7 +42,6 @@ namespace CopFleeOverrides
 
 		struct Assessment
 		{
-			const address  copVehicle;
 			const CopLabel copLabel;
 			Status         status;
 		};
@@ -83,15 +82,15 @@ namespace CopFleeOverrides
 		}
 
 
-		void Review(Assessment& assessment) 
+		void Review(std::pair<const address, Assessment>& pair) 
 		{
-			if (not this->IsHeatLevelKnown())        return;
-			if (assessment.status != Status::MEMBER) return;
+			if (not this->IsHeatLevelKnown())         return;
+			if (pair.second.status != Status::MEMBER) return;
 
 			bool  flagVehicle   = false;
 			float timeUntilFlee = 0.f;
 
-			switch (assessment.copLabel)
+			switch (pair.second.copLabel)
 			{
 			case CopLabel::HEAVY:
 				flagVehicle   = true;
@@ -104,22 +103,22 @@ namespace CopFleeOverrides
 				break;
 
 			case CopLabel::CHASER:
-				flagVehicle = (fleeingEnableds.current and (not this->IsInChasersTable(assessment.copVehicle)));
+				flagVehicle = (fleeingEnableds.current and (not this->IsInChasersTable(pair.first)));
 				if (flagVehicle) timeUntilFlee = Globals::prng.Generate<float>(minFleeDelays.current, maxFleeDelays.current);
 				break;
 
 			default:
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [FLE] Unknown label", (int)(assessment.copLabel), "in", this->pursuit);
+					Globals::logger.Log("WARNING: [FLE] Unknown label", (int)(pair.second.copLabel), "in", this->pursuit);
 			}
 
 			if (flagVehicle)
 			{
-				assessment.status = Status::FLAGGED;
-				this->copVehicleToFleeTimestamp.insert({assessment.copVehicle, *(PursuitFeatures::simulationTime) + timeUntilFlee});
+				pair.second.status = Status::FLAGGED;
+				this->copVehicleToFleeTimestamp.insert({pair.first, *(PursuitFeatures::simulationTime) + timeUntilFlee});
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[FLE]", assessment.copVehicle, "fleeing in", timeUntilFlee);
+					Globals::logger.Log(this->pursuit, "[FLE]", pair.first, "fleeing in", timeUntilFlee);
 			}
 		}
 
@@ -135,13 +134,13 @@ namespace CopFleeOverrides
 
 				switch (pair.second.status)
 				{
-				case (Status::FLAGGED):
+				case Status::FLAGGED:
 					this->copVehicleToFleeTimestamp.erase(pair.first);
 					pair.second.status = Status::MEMBER;
 					[[fallthrough]];
 
-				case (Status::MEMBER):
-					this->Review(pair.second);
+				case Status::MEMBER:
+					this->Review(pair);
 				}
 			}
 		}
@@ -198,10 +197,10 @@ namespace CopFleeOverrides
 		{
 			if (not this->IsTrackable(copLabel)) return;
 
-			const auto addedVehicle = this->copVehicleToAssessment.insert({copVehicle, {copVehicle, copLabel, Status::MEMBER}});
+			const auto addedVehicle = this->copVehicleToAssessment.insert({copVehicle, {copLabel, Status::MEMBER}});
 
 			if (addedVehicle.second)
-				this->Review(addedVehicle.first->second);
+				this->Review(*(addedVehicle.first));
 
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [FLE] Already-tracked vehicle", copVehicle, "in", this->pursuit);

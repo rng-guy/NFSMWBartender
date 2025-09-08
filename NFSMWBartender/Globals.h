@@ -29,8 +29,8 @@ namespace Globals
 	RandomNumbers::Generator prng;
 
 	// Common function pointers
-	vault (__cdecl*    const GetVaultKey)   (const char*) = (vault (__cdecl*)   (const char*))0x5CC240;
-	vault (__thiscall* const GetVehicleType)(address)     = (vault (__thiscall*)(address))    0x6880A0;
+	const auto GetVaultKey    = (vault (__cdecl*)   (const char*))0x5CC240;
+	const auto GetVehicleType = (vault (__thiscall*)(address))    0x6880A0;
 
 	// Logging
 	constexpr bool loggingEnabled = false;
@@ -50,8 +50,8 @@ namespace Globals
 		const vault  attributeKey   = 0x0,
 		const size_t attributeIndex = 0
 	) {
-		static address (__cdecl*    const GetVaultNode)     (vault, vault)           = (address (__cdecl*)   (vault, vault))          0x455FD0;
-		static address (__thiscall* const GetVaultAttribute)(address, vault, size_t) = (address (__thiscall*)(address, vault, size_t))0x454190;
+		static const auto GetVaultNode      = (address (__cdecl*)   (vault, vault))          0x455FD0;
+		static const auto GetVaultAttribute = (address (__thiscall*)(address, vault, size_t))0x454190;
 
 		const address node = GetVaultNode(rootKey, nodeKey);
 		return (node and attributeKey) ? GetVaultAttribute(node, attributeKey, attributeIndex) : node;

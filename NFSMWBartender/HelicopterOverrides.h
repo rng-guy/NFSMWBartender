@@ -18,6 +18,7 @@ namespace HelicopterOverrides
 
 	// Heat levels
 	HeatParameters::Pair<std::string> helicopterVehicles("copheli");
+	HeatParameters::Pair<float>       rammingCooldowns  (8.f);       // seconds
 
 	HeatParameters::Pair<bool>  helicopterEnableds(false);
 	HeatParameters::Pair<float> minSpawnDelays    (1.f);   // seconds
@@ -65,7 +66,7 @@ namespace HelicopterOverrides
 
 		void VerifyPursuit()
 		{
-			static bool (__thiscall* const IsPlayerPursuit)(address) = (bool (__thiscall*)(address))0x40AD80;
+			static const auto IsPlayerPursuit = (bool (__thiscall*)(address))0x40AD80;
 
 			this->isPlayerPursuit = IsPlayerPursuit(this->pursuit);
 
@@ -80,9 +81,8 @@ namespace HelicopterOverrides
 			if (not this->isPlayerPursuit)          return;
 			if (not this->spawnTimer->HasExpired()) return;
 
-			static bool (__thiscall* const SpawnHelicopter)(address, address) = (bool (__thiscall*)(address, address))0x4269A0;
-
-			static const address* const copManager = (address*)0x989098;
+			static const auto           SpawnHelicopter = (bool (__thiscall*)(address, address))0x4269A0;
+			static const address* const copManager      = (address*)0x989098;
 
 			if (*copManager) 
 			{ 
@@ -293,6 +293,24 @@ namespace HelicopterOverrides
 
 
 
+	constexpr address rammingCooldownEntrance = 0x4128B2;
+	constexpr address rammingCooldownExit     = 0x4128B9;
+
+	__declspec(naked) void RammingCooldown()
+	{
+		__asm
+		{
+			mov ecx, dword ptr rammingCooldowns.current
+
+			// Execute original code and resume
+			mov dword ptr [esi + 0x64], ecx
+
+			jmp dword ptr rammingCooldownExit
+		}
+	}
+
+
+
 
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
@@ -322,6 +340,7 @@ namespace HelicopterOverrides
 		HeatParameters::CheckIntervals<float>(minRespawnDelays, maxRespawnDelays);
 
 		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
+		HeatParameters::Parse<float>      (parser, "Helicopter:Ramming", {rammingCooldowns, 1.f});
 
 		HeatParameters::ParseOptional<float, float>
 		(
@@ -335,7 +354,8 @@ namespace HelicopterOverrides
 		HeatParameters::CheckIntervals<float>(minRejoinDelays,  maxRejoinDelays);
 
 		// Code caves
-		MemoryEditor::DigCodeCave(FuelTime, fuelTimeEntrance, fuelTimeExit);
+		MemoryEditor::DigCodeCave(FuelTime,        fuelTimeEntrance,        fuelTimeExit);
+		MemoryEditor::DigCodeCave(RammingCooldown, rammingCooldownEntrance, rammingCooldownExit);
 
 		// Status flag
 		featureEnabled = true;
@@ -366,6 +386,7 @@ namespace HelicopterOverrides
 		if (not featureEnabled) return;
 
 		helicopterVehicles.SetToHeat(isRacing, heatLevel);
+		rammingCooldowns  .SetToHeat(isRacing, heatLevel);
 
 		helicopterEnableds.SetToHeat(isRacing, heatLevel);
 		minSpawnDelays    .SetToHeat(isRacing, heatLevel);
@@ -387,6 +408,7 @@ namespace HelicopterOverrides
 			{
 				Globals::logger.Log("    HEAT [HEL] HelicopterOverrides");
 				Globals::logger.LogLongIndent("helicopterVehicle       ", helicopterVehicles.current);
+				Globals::logger.LogLongIndent("rammingCooldown         ", rammingCooldowns.current);
 			}
 
 			if (helicopterEnableds.current)

@@ -418,7 +418,8 @@ namespace ConfigParser
 								parameters.upperBound
 							);
 
-							if (columnID > 0) defaultRow.append(this->tableColumnSeparator);
+							if (columnID > 0) 
+								defaultRow.append(this->tableColumnSeparator);
 
 							if constexpr (std::is_convertible_v<T, std::string>)
 								defaultRow.append(parameters.defaultValue.value());

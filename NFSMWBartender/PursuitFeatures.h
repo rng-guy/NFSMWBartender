@@ -10,9 +10,8 @@ namespace PursuitFeatures
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool (__thiscall* const IsVehicleDestroyed)(address) = (bool (__thiscall*)(address))0x688170;
-
-	const float* const simulationTime = (float*)0x9885D8;
+	const auto         IsVehicleDestroyed = (bool (__thiscall*)(address))0x688170;
+	const float* const simulationTime     = (float*)0x9885D8;
 
 
 
@@ -189,9 +188,8 @@ namespace PursuitFeatures
 
 	bool MakeVehicleFlee(const address copVehicle)
 	{
-		static void (__thiscall* const StartFlee)(address) = (void (__thiscall*)(address))0x423370;
-
-		const address copAIVehicle = *((address*)(copVehicle + 0x54));
+		static const auto StartFlee    = (void (__thiscall*)(address))0x423370;
+		const address     copAIVehicle = *((address*)(copVehicle + 0x54));
 
 		if (copAIVehicle)
 			StartFlee(copAIVehicle + 0x70C);

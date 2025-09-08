@@ -9,6 +9,7 @@
 #include "RadioCallsigns.h"
 #include "GroundSupport.h"
 #include "GeneralSettings.h"
+#include "GameAdjustments.h"
 
 #include "PursuitObserver.h"
 
@@ -27,17 +28,7 @@ static void Initialise()
     Globals::basicSetEnabled |= GeneralSettings   ::Initialise(parser);
 
     if (Globals::basicSetEnabled)
-    {
-        // Helicopter shadow fix
-        MemoryEditor::Write<float>(0.f, {0x903660});
-
-        // Disappearing helicopter mini-map icon fix
-        MemoryEditor::WriteToAddressRange(0x90, 0x579EA2, 0x579EAB); 
-
-        // Heat-level fixes (credit: ExOptsTeam)
-        MemoryEditor::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
-        MemoryEditor::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
-    }
+        GameAdjustments::Initialise(parser);
     
     // "Advanced" feature set
     Globals::advancedSetEnabled = PursuitObserver::Initialise(parser);

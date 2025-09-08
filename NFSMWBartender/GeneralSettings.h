@@ -14,8 +14,8 @@ namespace GeneralSettings
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<float> bountyIntervals(10.f); // seconds
-	HeatParameters::Pair<int>   copComboLimits (3);    // kills
+	HeatParameters::Pair<float> bountyIntervals     (10.f); // seconds
+	HeatParameters::Pair<int>   maxBountyMultipliers(3);    // kills
 
 	HeatParameters::Pair<float> maxBustDistances(15.f); // metres
 	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
@@ -40,7 +40,7 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov eax, dword ptr copComboLimits.current
+			mov eax, dword ptr maxBountyMultipliers.current
 
 			cmp dword ptr [esi + 0xF0], eax
 			je conclusion // at current limit
@@ -112,7 +112,7 @@ namespace GeneralSettings
 			jmp dword ptr maxBustDistanceExit
 		}
 	}
-
+	
 
 
 
@@ -124,9 +124,11 @@ namespace GeneralSettings
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "General.ini")) return false;
 
 		// Heat parameters
-		HeatParameters::Parse<float, int>  (parser, "Bounty:Gains",  {bountyIntervals, .001f}, {copComboLimits,   1});
-		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,      .001f}, {maxBustDistances, 0.f});
-		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers,     .001f});
+		HeatParameters::Parse<float>(parser, "Bounty:Interval", {bountyIntervals,      .001f});
+		HeatParameters::Parse<int>  (parser, "Bounty:Combo",    {maxBountyMultipliers,     1});
+		
+		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,  .001f}, {maxBustDistances, 0.f});
+		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers, .001f});
 		
 		// Code caves
 		MemoryEditor::Write<float*>(&bustRate,              {0x40AEDB});
@@ -154,8 +156,8 @@ namespace GeneralSettings
 	) {
         if (not featureEnabled) return;
 
-		bountyIntervals.SetToHeat(isRacing, heatLevel);
-		copComboLimits .SetToHeat(isRacing, heatLevel);
+		bountyIntervals     .SetToHeat(isRacing, heatLevel);
+		maxBountyMultipliers.SetToHeat(isRacing, heatLevel);
 
 		bountyFrequency = 1.f / bountyIntervals.current;
 
@@ -171,7 +173,7 @@ namespace GeneralSettings
 			Globals::logger.Log("    HEAT [GEN] GeneralSettings");
 
 			Globals::logger.LogLongIndent("bountyInterval          ", bountyIntervals.current);
-			Globals::logger.LogLongIndent("copComboLimit           ", copComboLimits.current);
+			Globals::logger.LogLongIndent("maxBountyMultiplier     ", maxBountyMultipliers.current);
 			Globals::logger.LogLongIndent("bustTimer               ", bustTimers.current);
 			Globals::logger.LogLongIndent("maxBustDistance         ", maxBustDistances.current);
 			Globals::logger.LogLongIndent("evadeTimer              ", evadeTimers.current);

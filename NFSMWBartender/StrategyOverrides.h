@@ -72,7 +72,7 @@ namespace StrategyOverrides
 
 		inline static HashContainers::AddressMap<StrategyManager*> pursuitToManager;
 
-		inline static void (__thiscall* const ClearSupportRequest)(address) = (void (__thiscall*)(address))0x42BCF0;
+		inline static const auto ClearSupportRequest = (void (__thiscall*)(address))0x42BCF0;
 
 
 		void UpdateNumStrategyVehicles() const

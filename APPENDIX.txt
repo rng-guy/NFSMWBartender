@@ -98,7 +98,7 @@ Regarding the "Basic" feature set AS A WHOLE:
 
  • If you don't install the optional missing textures ("FixMissingTextures.end"), then the
    game won't display a number next to Heat gauges in menus for cars with Heat levels > 5.
-   Whether you install these textures does not affect the Heat-level reset fix in any way.
+   Whether you install these textures doesn't affect the Heat-level reset fix in any way.
 
 
 
@@ -216,7 +216,7 @@ Regarding the "Advanced" feature set AS A WHOLE:
  • You can disable this entire feature set by deleting all of its configuration files.
 
  • You can disable any feature of this set by deleting the file containing its parameter group.
-   This does not apply to the engagement-count and request fixes, which are tied to the whole set.
+   This doesn't apply to the three fixes, which are tied to the whole feature set instead.
 
  • Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
 
@@ -240,7 +240,7 @@ Regarding the "Advanced" feature set AS A WHOLE:
 Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
  • A minimum engagement count > 0 allows that many "Chasers" to (re)spawn without backup. This
-   minimum count does not spawn cops beyond their "count" values or the global cop-spawn limit.
+   minimum count doesn't spawn cops beyond their "count" values or the global cop-spawn limit.
 
  • In "COOLDOWN" mode, the "NumPatrolCars" VltEd parameter overrides the min. engagement count.
 
@@ -297,7 +297,7 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
  • Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position 
    of a given roadblock formation. This is because the game processes roadblock spawns in a fixed,
    formation-dependent order, making it (e.g.) more likely for vehicles with low "count" and high
-   "chance" values to spawn in any position that happens to be processed first. This does not apply
+   "chance" values to spawn in any position that happens to be processed first. This doesn't apply
    to vehicles with "count" values of at least 5, as no roadblock consists of more than 5 cars.
 
  • Rarely, vehicles that are not in a "Roadblocks" spawn table will still show up in roadblocks.
@@ -339,10 +339,12 @@ Regarding HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.i
 
  • The helicopter also (de / re)spawns in "COOLDOWN" mode according to its timers.
 
+ • The helicopter only ever spawns in player pursuits.
+
  • The helicopter uses whatever HeliStrategy you set in VltEd.
 
  • Only one helicopter can ever be active at any given time. This is a game limitation;
-   you could technically spawn more, but they would count as cars and behave very oddly.
+   we could technically spawn more, but they would count as cars and behave very oddly.
 
  • Bartender replaces vehicles that don't exist in the game with "copheli".
 
@@ -352,7 +354,7 @@ Regarding HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.i
    rejoin-delay values. The helicopter doesn't rejoin if it gets wrecked or runs out of fuel.
 
  • The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay.
-   If the helicopter wouldn't have any fuel left after rejoining, it respawns normally instead.
+   The helicopter doesn't rejoin, however, if it wouldn't have any fuel left after rejoining.
 
  • Rejoining helicopters don't count towards the total number of helicopters deployed.
 

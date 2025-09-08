@@ -103,7 +103,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 * The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions mod](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd node determines the maximum Heat level (1-10) at Blacklist rival #XY.
 
-* If you don't install the optional missing textures (`FixMissingTextures.end`), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures does not affect the Heat-level reset fix in any way.
+* If you don't install the optional missing textures (`FixMissingTextures.end`), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures doesn't affect the Heat-level reset fix in any way.
 
 &nbsp;
 
@@ -201,7 +201,7 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * You can disable this entire feature set by deleting all of its configuration files.
 
-* You can disable any feature of this set by deleting the file containing its parameter group. This does not apply to the engagement-count and request fixes, which are tied to the whole set.
+* You can disable any feature of this set by deleting the file containing its parameter group. This doesn't apply to the three fixes, which are tied to the whole feature set instead.
 
 * Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
 
@@ -217,7 +217,7 @@ Regarding the "Advanced" feature set **as a whole**:
 
 Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
-* A minimum engagement count > 0 allows that many "Chasers" to (re)spawn without backup. This minimum count does not spawn cops beyond their `count` values or the global cop-spawn limit.
+* A minimum engagement count > 0 allows that many "Chasers" to (re)spawn without backup. This minimum count doesn't spawn cops beyond their `count` values or the global cop-spawn limit.
 
 * In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the min. engagement count.
 
@@ -251,7 +251,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
  
 * Bartender temporarily ignores the `count` values in a "Roadblocks" / "Events" spawn table whenever a roadblock / event requests more vehicles in total than they would otherwise allow. This ensures the game cannot get stuck trying to spawn a roadblock or start a scripted event.
 
-* Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock spawns in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This does not apply to vehicles with `count` values of at least 5, as no roadblock consists of more than 5 cars.
+* Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock spawns in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This doesn't apply to vehicles with `count` values of at least 5, as no roadblock consists of more than 5 cars.
 
 * Rarely, vehicles that are not in a "Roadblocks" spawn table will still show up in roadblocks. This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it's processing a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
@@ -273,9 +273,11 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * The helicopter also (de / re)spawns in "COOLDOWN" mode according to its timers.
 
+* The helicopter only ever spawns in player pursuits.
+
 * The helicopter uses whatever HeliStrategy you set in VltEd.
 
-* Only one helicopter can ever be active at any given time. This is a game limitation; you could technically spawn more, but they would count as cars and behave very oddly.
+* Only one helicopter can ever be active at any given time. This is a game limitation; we could technically spawn more, but they would count as cars and behave very oddly.
 
 * Bartender replaces vehicles that don't exist in the game with `copheli`.
 
@@ -283,7 +285,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * The helicopter can only rejoin pursuits early at Heat levels for which you define valid rejoin-delay values. The helicopter doesn't rejoin if it gets wrecked or runs out of fuel.
 
-* The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay. If the helicopter wouldn't have any fuel left after rejoining, it respawns normally instead.
+* The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay. The helicopter doesn't rejoin, however, if it wouldn't have any fuel left after rejoining.
 
 * Rejoining helicopters don't count towards the total number of helicopters deployed.
 
