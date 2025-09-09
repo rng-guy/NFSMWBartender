@@ -247,7 +247,7 @@ namespace GroundSupport
 
 	__declspec(naked) void RivalRoadblock()
 	{
-		static constexpr address rivalRoadblockSkip = 0x4195E9;
+		static constexpr address rivalRoadblockSkip = 0x4195CD;
 
 		__asm
 		{
@@ -257,9 +257,6 @@ namespace GroundSupport
 			call dword ptr [edx + 0x8C]
 			test eax, eax
 			jne restore // is player pursuit
-
-			pop ebx
-			pop edi
 
 			jmp dword ptr rivalRoadblockSkip // was rival pursuit
 
