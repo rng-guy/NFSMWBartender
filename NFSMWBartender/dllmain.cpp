@@ -6,6 +6,7 @@
 #include "StateObserver.h"
 
 #include "DestructionStrings.h"
+#include "InteractiveMusic.h"
 #include "RadioCallsigns.h"
 #include "GroundSupport.h"
 #include "GeneralSettings.h"
@@ -25,6 +26,7 @@ static void Initialise()
 
     // "Basic" feature set
     Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
+    Globals::basicSetEnabled |= InteractiveMusic  ::Initialise(parser);
     Globals::basicSetEnabled |= RadioCallsigns    ::Initialise(parser);
     Globals::basicSetEnabled |= GroundSupport     ::Initialise(parser);
     Globals::basicSetEnabled |= GeneralSettings   ::Initialise(parser);

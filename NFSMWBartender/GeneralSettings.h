@@ -129,7 +129,7 @@ namespace GeneralSettings
 		
 		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,  .001f}, {maxBustDistances, 0.f});
 		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers, .001f});
-		
+
 		// Code caves
 		MemoryEditor::Write<float*>(&bustRate,              {0x40AEDB});
 		MemoryEditor::Write<float*>(&halfEvadeRate,         {0x444A3A});

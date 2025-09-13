@@ -17,14 +17,14 @@ namespace CopSpawnOverrides
 
 	class Contingent
 	{
-		using SpawnTablePair = HeatParameters::Pair<CopSpawnTables::SpawnTable>;
+		using TablePair = HeatParameters::Pair<CopSpawnTables::SpawnTable>;
 
 
 
 	private:
 
-		const address               pursuit;
-		const SpawnTablePair* const source;
+		const address          pursuit;
+		const TablePair* const source;
 
 		int numActiveCops = 0;
 
@@ -59,10 +59,10 @@ namespace CopSpawnOverrides
 
 		explicit Contingent
 		(
-			const SpawnTablePair* const source,
-			const address               pursuit = 0x0
+			const TablePair& source,
+			const address    pursuit = 0x0
 		) 
-			: source(source), pursuit(pursuit) 
+			: source(&source), pursuit(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -191,10 +191,12 @@ namespace CopSpawnOverrides
 	HeatParameters::Pair<int> maxActiveCounts(8);
 
 	// Code caves
+	const char* const placeholderVehicle = "copmidsize";
+
 	bool skipEventSpawns = true;
 
-	Contingent events    (&(CopSpawnTables::eventSpawnTables));
-	Contingent roadblocks(&(CopSpawnTables::roadblockSpawnTables));
+	Contingent events    (CopSpawnTables::eventSpawnTables);
+	Contingent roadblocks(CopSpawnTables::roadblockSpawnTables);
 
 
 
@@ -212,7 +214,7 @@ namespace CopSpawnOverrides
 		int* const       numCopsLostInWave = (int*)(this->pursuit + 0x14C);
 		const int* const pursuitStatus     = (int*)(this->pursuit + 0x218);
 
-		Contingent chasers = Contingent(&(CopSpawnTables::chaserSpawnTables), this->pursuit);
+		Contingent chasers = Contingent(CopSpawnTables::chaserSpawnTables, this->pursuit);
 
 		inline static HashContainers::AddressMap<ChasersManager*> pursuitToManager;
 
@@ -293,8 +295,11 @@ namespace CopSpawnOverrides
 
 		bool IsWaveExhausted() const
 		{
-			const int minCount = (this->IsSearchModeActive()) ? this->numPatrolCarsToSpawn : minActiveCounts.current;
-			return (not ((this->GetWaveCapacity() > 0) or (this->chasers.GetNumActiveCops() < minCount)));
+			if (this->IsSearchModeActive())
+				return (not (this->chasers.GetNumActiveCops() < this->numPatrolCarsToSpawn));
+
+			else
+				return (not ((this->GetWaveCapacity() > 0) or (this->chasers.GetNumActiveCops() < minActiveCounts.current)));
 		}
 
 
@@ -472,6 +477,40 @@ namespace CopSpawnOverrides
 
 
 
+	constexpr address copRequestEntrance = 0x42BA50;
+	constexpr address copRequestExit     = 0x42BCED;
+
+	__declspec(naked) void CopRequest()
+	{
+		__asm
+		{
+			mov al, byte ptr [ecx + 0xE8]
+			test al, al
+			jne deny // perp busted
+
+			fldz
+			fcomp dword ptr [ecx + 0xCC]
+			fnstsw ax
+			test ah, 0x1
+			jne deny // spawn cooldown > 0
+
+			mov al, byte ptr [ecx + 0xE9]
+			test al, al
+			jne deny
+
+			mov eax, dword ptr placeholderVehicle
+			jmp conclusion // was valid request
+
+			deny:
+			xor eax, eax
+
+			conclusion:
+			jmp dword ptr copRequestExit
+		}
+	}
+
+
+
 	constexpr address roadblockSpawnEntrance = 0x43E04F;
 	constexpr address roadblockSpawnExit     = 0x43E06C;
 
@@ -602,65 +641,6 @@ namespace CopSpawnOverrides
 
 
 
-	constexpr address firstCopTableEntrance = 0x424205;
-	constexpr address firstCopTableExit     = 0x424213;
-
-	__declspec(naked) void FirstCopTable()
-	{
-		__asm
-		{
-			mov edx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
-
-			jmp dword ptr firstCopTableExit
-		}
-	}
-
-
-
-	constexpr address secondCopTableEntrance = 0x424298;
-	constexpr address secondCopTableExit     = 0x4242D5;
-
-	__declspec(naked) void SecondCopTable()
-	{
-		__asm
-		{
-			mov ebx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
-
-			jmp dword ptr secondCopTableExit
-		}
-	}
-
-
-
-	constexpr address thirdCopTableEntrance = 0x4242F9;
-	constexpr address thirdCopTableExit     = 0x424323;
-
-	__declspec(naked) void ThirdCopTable()
-	{
-		__asm
-		{
-			xor edx, edx
-
-			lea ecx, dword ptr [ecx + ecx * 0x2]
-			mov dword ptr [ebp + ecx * 0x8 + 0xC], edx // DWORD 4
-
-			lea ecx, dword ptr [ebp + ecx * 0x8 + 0x0]
-			mov dword ptr [ecx], edx       // DWORD 1
-			mov dword ptr [ecx + 0x4], edx // DWORD 2
-			mov dword ptr [ecx + 0x8], edx // DWORD 3
-
-			mov edx, dword ptr CopSpawnTables::currentMaxCopCapacity // COUNT
-			mov dword ptr [ecx + 0x10], edx
-
-			mov edx, 0x1 // CHANCE
-			mov dword ptr [ecx + 0x14], edx
-
-			jmp dword ptr thirdCopTableExit
-		}
-	}
-
-
-
 
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
@@ -670,26 +650,24 @@ namespace CopSpawnOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
 		// Heat parameters
-		HeatParameters::Parse<int, int>(parser, "Chasers:SpawnLimits", {minActiveCounts, 0}, {maxActiveCounts, 1});
+		HeatParameters::Parse<int, int>(parser, "Chasers:Limits", {minActiveCounts, 0}, {maxActiveCounts, 1});
 
 		// Code caves
 		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
 		MemoryEditor::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
 
+		MemoryEditor::WriteToAddressRange(0x90, 0x4440D7, 0x4440DF); // membership check
+
 		MemoryEditor::Write<byte>(0x00, {0x433CB2});           // min. displayed count
-		MemoryEditor::Write<byte>(0xEB, {0x42BB2D, 0x42B9AA}); // "COOLDOWN" mode helicopter / non-member cops fleeing
 		MemoryEditor::Write<byte>(0x90, {0x57B188, 0x4443E4}); // helicopter / roadblock increment
 
 		MemoryEditor::DigCodeCave(CopRefill,          copRefillEntrance,          copRefillExit);
+		MemoryEditor::DigCodeCave(CopRequest,         copRequestEntrance,         copRequestExit);
 		MemoryEditor::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
 		MemoryEditor::DigCodeCave(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
 		MemoryEditor::DigCodeCave(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
 		MemoryEditor::DigCodeCave(ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
-
-		MemoryEditor::DigCodeCave(FirstCopTable,  firstCopTableEntrance,  firstCopTableExit);
-		MemoryEditor::DigCodeCave(SecondCopTable, secondCopTableEntrance, secondCopTableExit);
-		MemoryEditor::DigCodeCave(ThirdCopTable,  thirdCopTableEntrance,  thirdCopTableExit);
-
+		
 		// Status flag
 		featureEnabled = true;
 

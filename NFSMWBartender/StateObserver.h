@@ -5,6 +5,7 @@
 #include "HeatParameters.h"
 
 #include "DestructionStrings.h"
+#include "InteractiveMusic.h"
 #include "RadioCallsigns.h"
 #include "GroundSupport.h"
 #include "GeneralSettings.h"
@@ -18,10 +19,13 @@ namespace StateObserver
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	size_t  currentHeatLevel  = 0;
-	address playerVehicle     = 0x0;   // AIPerpVehicle
-	bool    playerIsRacing    = false;
-	bool    gameStartHandled  = false;
+	bool featureEnabled = false;
+
+	// Code caves
+	address playerVehicle  = 0x0;
+	bool    playerIsRacing = false;
+
+	size_t currentHeatLevel = 0;
 
 
 
@@ -37,9 +41,10 @@ namespace StateObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("    HEAT [STA] Heat level is now", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
 
-			GroundSupport  ::SetToHeat(playerIsRacing, currentHeatLevel);
-			GeneralSettings::SetToHeat(playerIsRacing, currentHeatLevel);
-			PursuitObserver::SetToHeat(playerIsRacing, currentHeatLevel);
+			GroundSupport   ::SetToHeat(playerIsRacing, currentHeatLevel);
+			GeneralSettings ::SetToHeat(playerIsRacing, currentHeatLevel);
+			InteractiveMusic::SetToHeat(playerIsRacing, currentHeatLevel);
+			PursuitObserver ::SetToHeat(playerIsRacing, currentHeatLevel);
 		}
 		else if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("WARNING: [STA] Invalid Heat level", (int)currentHeatLevel);
@@ -59,6 +64,7 @@ namespace StateObserver
 		}
 
 		DestructionStrings::Validate();
+		InteractiveMusic  ::Validate();
 		RadioCallsigns    ::Validate();
 		GroundSupport     ::Validate();
 		PursuitObserver   ::Validate();
@@ -70,15 +76,13 @@ namespace StateObserver
 	{
 		static const auto IsRacing = (bool (__thiscall*)(address))0x409500;
 
-		if (playerVehicle)
+		if (playerVehicle and (playerIsRacing != IsRacing(playerVehicle)))
 		{
-			const bool playerWasRacing = playerIsRacing;
-			playerIsRacing             = IsRacing(playerVehicle);
+			playerIsRacing = (not playerIsRacing);
 
-			if (playerWasRacing != playerIsRacing)
-				OnHeatLevelUpdates();
+			OnHeatLevelUpdates();
 		}
-	
+		
 		PursuitObserver::UpdateState();
 	}
 
@@ -86,9 +90,10 @@ namespace StateObserver
 
 	void OnWorldLoadUpdates()
 	{
+		playerVehicle  = 0x0;
+		playerIsRacing = false;
+
 		currentHeatLevel = 0;
-		playerVehicle    = 0x0;
-		playerIsRacing   = false;
 
 		PursuitObserver::HardResetState();
 	}
@@ -108,49 +113,50 @@ namespace StateObserver
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address heatLevelObserverEntrance = 0x409091;
-	constexpr address heatLevelObserverExit     = 0x409096;
+	constexpr address heatLevelObserverEntrance = 0x4090BE;
+	constexpr address heatLevelObserverExit     = 0x4090C6;
 
 	// Active when loading into areas or during pursuits
 	__declspec(naked) void HeatLevelObserver()
 	{
 		__asm
 		{
-			test ebx, ebx // from HeatEqualiser
+			cmp ebp, dword ptr currentHeatLevel
+			je conclusion // Heat is unchanged
+
+			mov eax, dword ptr playerVehicle
+
+			test eax, eax
 			je conclusion // player vehicle unknown
 
-			cmp esi, ebx
+			cmp eax, esi
 			jne conclusion // not player vehicle
 
-			mov ebx, dword ptr [esp + 0x20] // return address
+			mov eax, dword ptr [esp + 0x20]
 
-			cmp ebx, 0x443DEA // pursuit update
+			cmp eax, 0x443DEA // pursuit update
 			je update
 
-			cmp ebx, 0x423EC9 // pursuit initialisation
+			cmp eax, 0x423EC9 // pursuit initialisation
 			je update
 
-			cmp ebx, 0x60DE53 // race initialisation
+			cmp eax, 0x60DE53 // race initialisation
 			je update
 
-			cmp ebx, 0x6F4BE5 // vehicle initialisation
+			cmp eax, 0x6F4BE5 // vehicle initialisation
 			je update
 
 			jmp conclusion // argument is not true Heat
 
 			update:
-			cmp eax, dword ptr currentHeatLevel
-			je conclusion // Heat is unchanged
-
-			push ecx
-			mov dword ptr currentHeatLevel, eax
+			mov dword ptr currentHeatLevel, ebp
 			call OnHeatLevelUpdates
-			pop ecx
 
 			conclusion:
 			// Execute original code and resume
-			mov eax, 0x91E000
-			mov eax, dword ptr [eax]
+			cmp bl, byte ptr [esi + 0x2E]
+			setne al
+			cmp ebp, edi
 
 			jmp dword ptr heatLevelObserverExit
 		}
@@ -164,14 +170,16 @@ namespace StateObserver
 	// Active when entering the main menu screen
 	__declspec(naked) void GameStartObserver()
 	{
+		static bool gameStartHandled = false;
+
 		__asm
 		{
 			cmp byte ptr gameStartHandled, 0x1
 			je conclusion // already handled
 
 			push eax
-			call OnGameStartUpdates
 			mov byte ptr gameStartHandled, 0x1
+			call OnGameStartUpdates
 			pop eax
 
 			conclusion:
@@ -208,25 +216,20 @@ namespace StateObserver
 
 
 
-	constexpr address gameplayObserverEntrance = 0x71D085;
-	constexpr address gameplayObserverExit     = 0x71D08A;
+	constexpr address gameplayObserverEntrance = 0x71D09D;
+	constexpr address gameplayObserverExit     = 0x71D0A5;
 
 	// Constantly active during gameplay, but not excessively so
 	__declspec(naked) void GameplayObserver()
 	{
 		__asm
 		{
-			push eax
-			push ecx
-
 			call OnGameplayUpdates
 
-			pop ecx
-			pop eax
-
 			// Execute original and resume
-			sub esp, 0x18
-			test eax, eax
+			mov edx, dword ptr [ebx]
+			mov ecx, ebx
+			mov dword ptr [esp + 0x14], ebx
 
 			jmp dword ptr gameplayObserverExit
 		}
@@ -297,9 +300,10 @@ namespace StateObserver
 	{
 		__asm
 		{
-			mov ebx, dword ptr [esp + 0x3C] // return address
+			mov ebx, dword ptr [esp + 0x3C]
+
 			cmp ebx, 0x43EF99
-			jne conclusion                  // not player vehicle
+			jne conclusion // not player vehicle
 
 			lea ebx, dword ptr [esi + 0x758]
 			mov dword ptr playerVehicle, ebx
@@ -323,6 +327,7 @@ namespace StateObserver
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
+		// Code caves
 		MemoryEditor::DigCodeCave(HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
 		MemoryEditor::DigCodeCave(GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
 		MemoryEditor::DigCodeCave(WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);
@@ -330,6 +335,9 @@ namespace StateObserver
 		MemoryEditor::DigCodeCave(RetryObserver,     retryObserverEntrance,     retryObserverExit);
 		MemoryEditor::DigCodeCave(HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
 		MemoryEditor::DigCodeCave(PerpVehicle,       perpVehicleEntrance,       perpVehicleExit);
+
+		// Status flag
+		featureEnabled = true;
 
 		return true;
 	}

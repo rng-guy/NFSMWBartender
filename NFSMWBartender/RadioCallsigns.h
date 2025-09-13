@@ -58,6 +58,7 @@ namespace RadioCallsigns
 		{
 			mov ecx, eax
 			call GetCallsignGroup // ecx: copType
+			mov dword ptr [esp + 0x28], eax
 			cmp eax, CROSS
 
 			jmp dword ptr crossCallsignExit
@@ -66,7 +67,7 @@ namespace RadioCallsigns
 
 
 
-	constexpr address firstCallsignEntrance = 0x71FB2F;
+	constexpr address firstCallsignEntrance = 0x71FB27;
 	constexpr address firstCallsignExit     = 0x71FB76;
 
 	__declspec(naked) void FirstCallsign()
@@ -75,13 +76,11 @@ namespace RadioCallsigns
 
 		__asm
 		{
-			mov ecx, eax
-			call GetCallsignGroup // ecx: copType
-			cmp eax, PATROL
-			je conclusion        // is "patrol"
+			cmp dword ptr [esp + 0x28], PATROL
+			je conclusion // is "patrol"
 
-			cmp eax, RHINO
 			mov eax, 0x20
+			cmp dword ptr [esp + 0x28], RHINO
 			je skip // is "rhino"
 
 			mov eax, 0x10
@@ -96,23 +95,19 @@ namespace RadioCallsigns
 
 
 
-	constexpr address secondCallsignEntrance = 0x701190;
-	constexpr address secondCallsignExit     = 0x7011C8;
+	constexpr address secondCallsignEntrance = 0x71FCCD;
+	constexpr address secondCallsignExit     = 0x71FCDD;
 
 	__declspec(naked) void SecondCallsign()
 	{
 		__asm
 		{
-			mov ecx, dword ptr [esp + 0x4]
-			call GetCallsignGroup // ecx: copType
-			mov ecx, eax
-
 			mov eax, -0x1
-			cmp ecx, PATROL
+			cmp dword ptr [esp + 0x28], PATROL
 			je conclusion // is "patrol"
 
 			mov eax, 0x20
-			cmp ecx, RHINO
+			cmp dword ptr [esp + 0x28], RHINO
 			je conclusion // is "rhino"
 
 			mov eax, 0x10
@@ -150,7 +145,7 @@ namespace RadioCallsigns
 	{
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
 
-		// Callsigns
+		// Callsign groups
 		const std::unordered_map<std::string, CallsignGroup> nameToCallsign =
 		{ 
 			{"patrol", CallsignGroup::PATROL},
@@ -176,6 +171,8 @@ namespace RadioCallsigns
 		}
 
 		// Code caves
+		MemoryEditor::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up superfluous stack variable
+
 		MemoryEditor::DigCodeCave(CrossCallsign,    crossCallsignEntrance,    crossCallsignExit);
 		MemoryEditor::DigCodeCave(FirstCallsign,    firstCallsignEntrance,    firstCallsignExit);
 		MemoryEditor::DigCodeCave(SecondCallsign,   secondCallsignEntrance,   secondCallsignExit);

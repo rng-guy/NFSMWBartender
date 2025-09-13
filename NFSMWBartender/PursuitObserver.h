@@ -209,6 +209,8 @@ namespace PursuitObserver
 			{
 				PursuitObserver& newObserver = addedPursuit.first->second;
 
+				newObserver.pursuitReactions.reserve(5);
+
 				if (CopSpawnOverrides::featureEnabled)
 					newObserver.AddPursuitFeature<CopSpawnOverrides::ChasersManager>();
 

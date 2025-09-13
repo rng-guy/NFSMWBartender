@@ -118,6 +118,9 @@
     <ClInclude Include="GameAdjustments.h">
       <Filter>Header Files\Modifications\Basic</Filter>
     </ClInclude>
+    <ClInclude Include="InteractiveMusic.h">
+      <Filter>Header Files\Modifications\Basic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Basic\General.ini">

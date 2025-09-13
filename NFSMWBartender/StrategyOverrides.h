@@ -55,6 +55,7 @@ namespace StrategyOverrides
 		int* const numStrategyVehicles = (int*)(this->pursuit + 0x18C);
 
 		const bool* const    isJerk         = (bool*)(this->pursuit + 0x238);
+		const int* const     pursuitStatus  = (int*)(this->pursuit + 0x218);
 		const address* const heavyStrategy  = (address*)(this->pursuit + 0x194);
 		const address* const leaderStrategy = (address*)(this->pursuit + 0x198);
 
@@ -238,16 +239,22 @@ namespace StrategyOverrides
 		}
 
 
-		void CheckHeavyCollapseSpeed()
+		bool IsSearchModeActive() const
 		{
-			if ((not this->watchingHeavyStrategy3) and this->vehiclesOfUnblockedHeavy3.empty()) return;
+			return (*(this->pursuitStatus) == 2);
+		}
+
+
+		void CheckHeavyVehicleStatus()
+		{
+			if ((not this->watchingHeavyStrategy3) and (this->vehiclesOfUnblockedHeavy3.empty())) return;
 
 			const float speedThreshold = (*(this->isJerk)) ? jerkSpeedThreshold : baseSpeedThreshold;
 
-			if (this->GetSpeedOfTarget(this->pursuit) < speedThreshold)
+			if ((this->GetSpeedOfTarget(this->pursuit) < speedThreshold) or (this->IsSearchModeActive()))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[SGY] Clearing HeavyStrategy 3 vehicles");
+					Globals::logger.Log(this->pursuit, "[SGY] Making HeavyStrategy 3 vehicles flee");
 
 				this->MakeVehiclesFlee(this->vehiclesOfUnblockedHeavy3);
 
@@ -258,7 +265,7 @@ namespace StrategyOverrides
 				}
 			}
 		}
-
+		
 
 
 	public:
@@ -277,7 +284,7 @@ namespace StrategyOverrides
 
 		void UpdateOnGameplay() override
 		{
-			this->CheckHeavyCollapseSpeed();
+			this->CheckHeavyVehicleStatus();
 			this->CheckUnblockTimer();
 		}
 
@@ -392,13 +399,10 @@ namespace StrategyOverrides
 			cmp ebx, 0x443EDA // duration expired
 			je reset
 
-			cmp ebx, 0x42BA42 // "COOLDOWN" mode
+			cmp ebx, 0x43311B // pursuit destructor
 			je reset
 
 			cmp ebx, 0x4431F4 // pursuit constructor
-			je reset
-
-			cmp ebx, 0x43311B // pursuit destructor
 			je reset
 
 			jmp dword ptr goalResetSkip

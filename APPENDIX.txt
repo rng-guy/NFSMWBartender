@@ -109,17 +109,16 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
    either delete Bartender's "[Vehicles:DestructionStrings]" parameter group or disable
    Unlimiter's version of the feature through its "NFSMWUnlimiterSettings.ini" file.
 
- • You (re-)assign string labels (i.e. string names) to vehicles, not the strings themselves.
-
  • You can use the "Binary" tool by MaxHwoy to edit the game's strings and add new ones.
 
  • For destruction strings, Bartender ignores vehicles and strings that don't exist in the game.
 
- • If you don't define a valid "default" label, label-less vehicles won't trigger notifications.
+ • If you don't define a valid "default" string, string-less vehicles won't trigger notifications.
 
  • You might hear cops use callsigns you didn't assign to them. This is vanilla behaviour:
    The game maintains a pool of "actors" that it constantly shuffles between all active vehicles.
-   This is also the reason why you may still hear Cross or helicopter lines once they are gone.
+   This is also the reason why you may still hear Cross or helicopter lines even if they are gone,
+   and why dispatch may sometimes refer to Cross by the callsign of another unrelated vehicle.
 
  • The game automatically assigns the helicopter-exclusive callsign to all helicopters.
 
@@ -127,6 +126,21 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
    Bartender also ignores all callsigns other than "patrol", "elite", "rhino", and "cross".
 
  • If you don't define a valid "default" callsign, Bartender uses "patrol" instead.
+
+ • You can define up to 20 interactive music tracks, with duplicates. In each pursuit, 
+   the interactive music tracks play from top to bottom and loop back around afterwards.
+
+ • Bartender can shuffle the first interactive music track in each pursuit instead of starting
+   with the top one, and / or shuffle the follow-up tracks instead of playing them in sequence.
+
+ • If you don't define any tracks, Bartender uses the vanilla setup (i.e. 0 -> 1 -> 2 -> 3).
+
+ • If you don't define any shuffling values, Bartender shuffles the first track in each pursuit.
+
+ • For interactive music, Bartender ignores track types that don't exist in the game.
+
+ • Track transitions happen only at Heat levels for which you define a valid timer value.
+   Transitions may take a few minutes (at worst) due to quirks of the audio scheduler.
 
 
 

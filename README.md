@@ -25,10 +25,11 @@ The sections below **address these questions** in detail:
 # 1 - What does the "Basic" feature set do?
 
 The "Basic" feature set **lets you change** (per Heat level)
-* how quickly and at what distances from cops the red "BUSTED" bar fills,
-* how quickly the green "EVADE" bar fills once all cops have lost sight of you,
 * at what time interval you gain passive bounty,
 * the maximum combo-bounty multiplier for destroying cops quickly,
+* how quickly and at what distances from cops the red "BUSTED" bar fills,
+* how quickly the green "EVADE" bar fills once all cops have lost sight of you,
+* when exactly (if at all) the interactive music can transition to another track,
 * whether cops in non-player pursuits can request ground supports,
 * the internal cooldown for non-Strategy roadblock requests,
 * the internal cooldown for Strategy requests,
@@ -38,22 +39,21 @@ The "Basic" feature set **lets you change** (per Heat level)
 
 &nbsp;
 
+The "Basic" feature set **also lets you change** (in general)
+* which strings the game shows whenever cop vehicles are destroyed,
+* which radio callsigns and chatter cop vehicles can trigger, and
+* the selection (and order) of interactive music tracks in pursuits.
+
+&nbsp;
+
 The "Basic" feature set **fixes seven bugs / issues**:
-* helicopter icons on the mini-map no longer flicker on and off randomly,
+* helicopter mini-map icons are now always visible whenever a helicopter is active,
 * helicopters no longer cast static shadows (like cars do) with incorrect placements,
 * active roadblocks in pursuits no longer prevent new HeavyStrategy 3 requests,
 * the game is no longer biased in how it chooses to make Strategy requests
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures), and
 * you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills.
-
-&nbsp;
-
-You can also (re-)assign which **cop-destruction strings** the game displays when cop vehicles are destroyed, similar to the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. Bartender's version of this feature is easier to configure and will never cause `FENG: Default string error` pop-ups, as it verifies all vehicle-to-string pairs against the game's database on launch.
-
-&nbsp;
-
-Last but not least, you can (re-)assign **radio callsigns** to vehicles. This includes Cross' lines.
 
 &nbsp;
 
@@ -66,21 +66,21 @@ Last but not least, you can (re-)assign **radio callsigns** to vehicles. This in
 # 2 - What does the "Advanced" feature set do?
 
 The "Advanced" feature set **lets you change** (per Heat level)
-* how many cops can (re)spawn without backup once a wave is exhausted,
+* how many cops can (re)spawn without backup once a wave of reinforcements is exhausted,
 * the global cop-spawn limit for how many cops in total may chase you at any given time,
 * how quickly (if at all) cops flee a pursuit if they don't belong to the Heat level,
 * what vehicles (any amount, with counts and chances) may spawn to chase and search for you,
 * what vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
 * what vehicles (ditto) may spawn as pre-generated cops in scripted events,
-* what vehicles (without counts) may spawn as free patrols when there is no active pursuit,
-* what vehicle spawns in place of the regular helicopter
+* what vehicles (without counts) may spawn as free patrols outside pursuits,
+* what vehicle spawns in place of the regular helicopter,
 * when exactly (if at all) the helicopter can (de / re)spawn,
 * how much earlier (if at all) the helicopter rejoins the pursuit when it loses you,
 * the internal cooldown for the helicopter's ramming attempts through HeliStrategy 2,
-* the player-speed threshold for HeavyStrategy 3 spawns to stop their ramming attempts and flee,
+* the player-speed threshold for HeavyStrategy 3 spawns to stop their ramming attempts,
 * when exactly (if at all) LeaderStrategy Cross and / or his henchmen become aggressive,
 * how quickly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
-* how quickly (if at all) the game can request a new Strategy while another one is still active.
+* how quickly (if at all) the game can request a new Strategy while another is still active.
 
 &nbsp;
 

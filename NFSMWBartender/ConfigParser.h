@@ -116,7 +116,7 @@ namespace ConfigParser
 
 		// For single values from parsed file
 		template <typename T>
-		bool ParseParameterFromFile
+		bool ParseParameter
 		(
 			const std::string&     section,
 			const std::string&     parameterKey,
@@ -159,7 +159,7 @@ namespace ConfigParser
 			size_t numTotalReads = 0;
 
 			if (defaultValue)
-				this->ParseParameterFromFile<T>
+				this->ParseParameter<T>
 				(
 					section,
 					this->defaultFormatValueKey,
@@ -173,7 +173,7 @@ namespace ConfigParser
 				if (defaultValue) parameterValue = defaultValue.value();
 				parameterKey = std::vformat(format, std::make_format_args(formatIndex));
 
-				numTotalReads += this->ParseParameterFromFile<T>
+				numTotalReads += this->ParseParameter<T>
 				(
 					section,
 					parameterKey,
@@ -353,7 +353,7 @@ namespace ConfigParser
 			if (numDefaultValues == numColumns)
 			{
 				// Attempt to read new defaults from file
-				bool isValidDefaultRow = this->ParseParameterFromFile<std::string>
+				bool isValidDefaultRow = this->ParseParameter<std::string>
 				(
 					section,
 					this->defaultFormatValueKey,
