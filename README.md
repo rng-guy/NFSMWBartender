@@ -88,7 +88,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 
 The "Advanced" feature set **fixes three bugs / issues**:
 * non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer blocked in races,
-* early Strategy despawns or cancellations no longer stall the game from making new requests,
+* early Strategy despawns or cancellations no longer stall the game from making new requests, and
 * the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 
 &nbsp;
