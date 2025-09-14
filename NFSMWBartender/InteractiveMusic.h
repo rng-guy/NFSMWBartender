@@ -146,7 +146,7 @@ namespace InteractiveMusic
 		{
 			mov dword ptr [esi + 0xC], eax
 
-			cmp dword ptr transitionEnableds.current, 0x1
+			cmp byte ptr transitionEnableds.current, 0x1
 			jne conclusion // track-changing disabled
 
 			fld dword ptr [esi + 0x48]
@@ -170,7 +170,7 @@ namespace InteractiveMusic
 		{
 			mov dword ptr [esi + 0xC], eax
 
-			cmp dword ptr transitionEnableds.current, 0x1
+			cmp byte ptr transitionEnableds.current, 0x1
 			jne conclusion // track-changing disabled
 
 			fld dword ptr [esi + 0x48]

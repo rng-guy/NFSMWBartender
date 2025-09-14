@@ -21,6 +21,10 @@ namespace GeneralSettings
 	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
 	HeatParameters::Pair<float> bustTimers      (5.f);
 
+	HeatParameters::Pair<bool>  destroyAfterDelays(false);
+	HeatParameters::Pair<bool>  destroyIfDamageds (false);
+	HeatParameters::Pair<float> flippingDelays    (6.f);   // seconds
+
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current; // seconds
 
@@ -57,6 +61,42 @@ namespace GeneralSettings
 			mov ecx, dword ptr [esi + 0xF0]
 
 			jmp dword ptr copComboExit
+		}
+	}
+
+
+
+	constexpr address copFlippingEntrance = 0x6B19AE;
+	constexpr address copFlippingExit     = 0x6B19CA;
+
+	__declspec(naked) void CopFlipping()
+	{
+		constexpr static address copFlippingSkip = 0x6B1A0D;
+
+		__asm
+		{
+			cmp byte ptr destroyAfterDelays.current, 0x1
+			jne damaged // delay-based flipping disabled
+
+			fld dword ptr [esi + 0xB8]
+			fcomp dword ptr flippingDelays.current
+			fnstsw ax
+			test ah, 0x41
+			jne damaged // delay has yet to expire
+
+			mov eax, dword ptr [esi + 0x4C]
+			lea ecx, dword ptr [esi + 0x4C]
+			call dword ptr [eax + 0x1C]
+			jmp conclusion // was destroyed
+
+			damaged:
+			cmp byte ptr destroyIfDamageds.current, 0x1
+			je conclusion // player-based flipping enabled
+
+			jmp dword ptr copFlippingSkip // no flipping enabled
+
+			conclusion:
+			jmp dword ptr copFlippingExit
 		}
 	}
 
@@ -130,6 +170,9 @@ namespace GeneralSettings
 		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,  .001f}, {maxBustDistances, 0.f});
 		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers, .001f});
 
+		HeatParameters::Parse<bool, bool>(parser, "Flipping:Checks", {destroyAfterDelays}, {destroyIfDamageds});
+		HeatParameters::Parse<float>     (parser, "Flipping:Delay",  {flippingDelays, .001f});
+
 		// Code caves
 		MemoryEditor::Write<float*>(&bustRate,              {0x40AEDB});
 		MemoryEditor::Write<float*>(&halfEvadeRate,         {0x444A3A});
@@ -138,6 +181,7 @@ namespace GeneralSettings
 		MemoryEditor::Write<float*>(&(evadeTimers.current), {0x4448E6, 0x444802, 0x4338F8});
 
 		MemoryEditor::DigCodeCave(CopCombo,        copComboEntrance,        copComboExit);
+		MemoryEditor::DigCodeCave(CopFlipping,     copFlippingEntrance,     copFlippingExit);
 		MemoryEditor::DigCodeCave(PassiveBounty,   passiveBountyEntrance,   passiveBountyExit);
         MemoryEditor::DigCodeCave(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 
@@ -168,15 +212,24 @@ namespace GeneralSettings
 		halfEvadeRate = .5f / evadeTimers.current;
 		bustRate      = 1.f / bustTimers.current;
 
+		destroyAfterDelays.SetToHeat(isRacing, heatLevel);
+		destroyIfDamageds .SetToHeat(isRacing, heatLevel);
+		flippingDelays    .SetToHeat(isRacing, heatLevel);
+
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Log("    HEAT [GEN] GeneralSettings");
 
 			Globals::logger.LogLongIndent("bountyInterval          ", bountyIntervals.current);
 			Globals::logger.LogLongIndent("maxBountyMultiplier     ", maxBountyMultipliers.current);
+
 			Globals::logger.LogLongIndent("bustTimer               ", bustTimers.current);
 			Globals::logger.LogLongIndent("maxBustDistance         ", maxBustDistances.current);
 			Globals::logger.LogLongIndent("evadeTimer              ", evadeTimers.current);
+
+			Globals::logger.LogLongIndent("destroyAfterDelay       ", (destroyAfterDelays.current) ? "true" : "false");
+			Globals::logger.LogLongIndent("destroyIfDamaged        ", (destroyIfDamageds.current) ? "true" : "false");
+			Globals::logger.LogLongIndent("flippingDelay           ", flippingDelays.current);
 		}
     }
 }

@@ -22,8 +22,16 @@ namespace GroundSupport
 	HeatParameters::Pair<float> minRoadblockCooldowns  (8.f);  // seconds
 	HeatParameters::Pair<float> maxRoadblockCooldowns  (12.f);
 	HeatParameters::Pair<float> roadblockHeavyCooldowns(15.f);
-	HeatParameters::Pair<float> strategyCooldowns      (10.f);
+
+	HeatParameters::Pair<float> strategyCooldowns(10.f); // seconds
+
+	HeatParameters::Pair<bool>  roadblockJoinEnableds    (false);
+	HeatParameters::Pair<float> roadblockJoinTimers      (20.f);  // seconds
+	HeatParameters::Pair<float> maxRoadblockJoinDistances(200.f); // metres
 	
+	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
+	HeatParameters::Pair<bool> heavy3AreBlockables   (true);
+
 	HeatParameters::Pair<std::string> heavy3LightVehicles   ("copsuvl");
 	HeatParameters::Pair<std::string> heavy3HeavyVehicles   ("copsuv");
 	HeatParameters::Pair<std::string> heavy4LightVehicles   ("copsuvl");
@@ -50,7 +58,8 @@ namespace GroundSupport
 		switch (strategyType)
 		{
 		case 3:
-			return true;
+			if (not heavy3AreBlockables.current) return true;
+			[[fallthrough]];
 
 		case 4:
 			return (not *((address*)(pursuit + 0x84))); // active roadblock
@@ -120,13 +129,17 @@ namespace GroundSupport
 		const address strategy,
 		const bool    isHeavyStrategy
 	) {
+		if (not strategy) return;
+
 		*((float*)(pursuit + 0x208)) = *((float*)(strategy + 0x8)); // duration
 		*((int*)(pursuit + 0x20C))   = 1;                           // request flag
 
 		if (isHeavyStrategy)
 		{
-			*((address*)(pursuit + 0x194)) = strategy;                        // HeavyStrategy
-			*((float*)(pursuit + 0xC8))    = roadblockHeavyCooldowns.current; // roadblock CD
+			*((address*)(pursuit + 0x194)) = strategy; // HeavyStrategy
+
+			if (heavy3TriggerCooldowns.current or (*((int*)strategy) != 3))
+				*((float*)(pursuit + 0xC8)) = roadblockHeavyCooldowns.current; // roadblock CD
 		}
 		else *((address*)(pursuit + 0x198)) = strategy; // LeaderStrategy
 	}
@@ -237,6 +250,38 @@ namespace GroundSupport
 			lea ecx, dword ptr [esi - 0x48]
 
 			jmp dword ptr requestCooldownExit
+		}
+	}
+
+
+
+	constexpr address roadblockJoinEntrance = 0x42BF09;
+	constexpr address roadblockJoinExit     = 0x42BF14;
+
+	__declspec(naked) void RoadblockJoin()
+	{
+		__asm
+		{
+			cmp byte ptr roadblockJoinEnableds.current, 0x1
+			jne skip // vehicles may not join
+
+			fcomp dword ptr roadblockJoinTimers.current
+			fnstsw ax
+			test ah, 0x41
+			jne conclusion // timer has yet to expire
+
+			fld dword ptr maxRoadblockJoinDistances.current
+			fcomp dword ptr [esp + 0x14]
+			fnstsw ax
+			test ah, 0x1
+
+			jmp conclusion // vehicle may join if close enough
+
+			skip:
+			fstp st(0)
+
+			conclusion:
+			jmp dword ptr roadblockJoinExit
 		}
 	}
 
@@ -399,8 +444,19 @@ namespace GroundSupport
 
 		HeatParameters::CheckIntervals<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
 
+		// Roadblock join parameters
+		HeatParameters::ParseOptional<float, float>
+		(
+			parser,
+			"Roadblocks:Joining",
+			roadblockJoinEnableds,
+			{roadblockJoinTimers,       1.f},
+			{maxRoadblockJoinDistances, 0.f}
+		);
+
 		// Other Heat parameters
 		HeatParameters::Parse<bool, bool>(parser, "Supports:Rivals",     {rivalRoadblocksEnableds}, {rivalStrategiesEnableds});
+		HeatParameters::Parse<bool, bool>(parser, "Heavy3:Roadblocks",   {heavy3TriggerCooldowns},  {heavy3AreBlockables});
 		HeatParameters::Parse<float>     (parser, "Strategies:Cooldown", {strategyCooldowns, 1.f});
 
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy3:Vehicles", {heavy3LightVehicles}, {heavy3HeavyVehicles});
@@ -414,6 +470,7 @@ namespace GroundSupport
 		MemoryEditor::DigCodeCave(RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);
 		MemoryEditor::DigCodeCave(RivalRoadblock,    rivalRoadblockEntrance,    rivalRoadblockExit);
         MemoryEditor::DigCodeCave(RequestCooldown,   requestCooldownEntrance,   requestCooldownExit);
+		MemoryEditor::DigCodeCave(RoadblockJoin,     roadblockJoinEntrance,     roadblockJoinExit);
 		MemoryEditor::DigCodeCave(OnAttached,        onAttachedEntrance,        onAttachedExit);
 		MemoryEditor::DigCodeCave(OnDetached,        onDetachedEntrance,        onDetachedExit);
         MemoryEditor::DigCodeCave(LeaderSub,         leaderSubEntrance,         leaderSubExit);
@@ -459,7 +516,15 @@ namespace GroundSupport
 		minRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		maxRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
-		strategyCooldowns      .SetToHeat(isRacing, heatLevel);
+
+		strategyCooldowns.SetToHeat(isRacing, heatLevel);
+
+		roadblockJoinEnableds    .SetToHeat(isRacing, heatLevel);
+		roadblockJoinTimers      .SetToHeat(isRacing, heatLevel);
+		maxRoadblockJoinDistances.SetToHeat(isRacing, heatLevel);
+
+		heavy3TriggerCooldowns.SetToHeat(isRacing, heatLevel);
+		heavy3AreBlockables   .SetToHeat(isRacing, heatLevel);
 
 		heavy3LightVehicles   .SetToHeat(isRacing, heatLevel);
 		heavy3HeavyVehicles   .SetToHeat(isRacing, heatLevel);
@@ -479,7 +544,17 @@ namespace GroundSupport
 
 			Globals::logger.LogLongIndent("roadblockCooldown       ", minRoadblockCooldowns.current, "to", maxRoadblockCooldowns.current);
 			Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
+
 			Globals::logger.LogLongIndent("strategyCooldown        ", strategyCooldowns.current);
+
+			if (roadblockJoinEnableds.current)
+			{
+				Globals::logger.LogLongIndent("roadblockJoinTimer      ", roadblockJoinTimers.current);
+				Globals::logger.LogLongIndent("maxRoadblockJoinDistance", maxRoadblockJoinDistances.current);
+			}
+
+			Globals::logger.LogLongIndent("heavy3TriggerCooldown   ", (heavy3TriggerCooldowns.current) ? "true" : "false");
+			Globals::logger.LogLongIndent("heavy3AreBlockable      ", (heavy3AreBlockables.current) ? "true" : "false");
 
 			Globals::logger.LogLongIndent("heavy3LightVehicle      ", heavy3LightVehicles.current);
 			Globals::logger.LogLongIndent("heavy3HeavyVehicle      ", heavy3HeavyVehicles.current);

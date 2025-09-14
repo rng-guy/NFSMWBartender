@@ -161,11 +161,15 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 * The time you spend filling the green "EVADE" bar also counts towards how long you need to stay hidden in "COOLDOWN" mode. If the "EVADE" bar takes longer to fill, you escape instantly.
 
+* There are two independent checks for whether a flipped vehicle should be destroyed: Either some delay after being flipped, or instantly if the vehicle in question has been damaged by the player at any point. Bartender can toggle these checks separately.
+
+* The flipping delay has no effect if the delay-based flipping check is disabled.
+
 &nbsp;
 
 Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
-* Deleting this file disables the fix for active roadblocks blocking new HeavyStrategy 3 requests, and the fix for the implicit biases in the game's Strategy-selection process.
+* Deleting this file disables the fix for the biases in the game's Strategy-selection process.
 
 * When the game requests a non-Strategy roadblock, a random roadblock cooldown begins. While this cooldown is active, the game cannot make more non-Strategy roadblock requests.
 
@@ -173,17 +177,23 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * When the game requests a HeavyStrategy, it (re)sets the roadblock cooldown to a fixed value.
 
+* Bartender can prevent HeavyStrategy 3 requests from resetting the roadblock cooldown. This avoids the potential issue of roadblocks becoming much rarer than expected.
+
 * Strategy requests block each other: Whenever there is an active Strategy request, the game will not attempt to make more. You can change this with Bartender's "Advanced" feature set.
 
+* Roadblock requests of any kind block all HeavyStrategy requests. Bartender can prevent this block for HeavyStrategy 3 requests, which often become exceedingly rare otherwise.
+
 * Strategy requests end when their "Duration" VltEd parameters expire or their vehicles are gone.
-
-* Bartender fixes the blocking of new HeavyStrategy 3 requests by skipping the roadblock check the game performs before it decides whether to make a new HeavyStrategy request. Bartender only skips this check for HeavyStrategy 3, as HeavyStrategy 4 (a roadblock) is the reason it exists.
-
-* HeavyStrategy 4 spawns remain rare at Heat levels with high values for their `roadblockprobability` VltEd parameters, since they are roadblocks themselves.
 
 * Bartender fixes the game's implicit biases in its Strategy-selection process by forcing it to check every available Strategy before making a new request. The vanilla game instead goes through them in the same order as they are defined in VltEd, making the game much more likely to request whatever Strategy happens to come first there.
 
 * The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before the game can make non-Strategy roadblock and Strategy requests in a given pursuit.
+
+* Vehicles joining a pursuit from roadblocks is vanilla behaviour, but the roadblock-age threshold usually makes it a rare event. It's rare because, assuming you actually drive around Rockport to deal with the cops chasing you, most roadblocks don't stay long enough. If you hit a spike strip, however, all roadblock cops immediately join the pursuit.
+
+* You shouldn't use low roadblock-age thresholds (< 20 seconds) for roadblock vehicles to join a pursuit: Too many vehicles joining can cause game instability, as they ignore spawn limits.
+
+* Joining from roadblocks only happens at Heat levels for which you define valid roadblock-age and distance values. This does not apply to the hard-coded joining after spike-strip hits.
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 

@@ -29,10 +29,13 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the maximum combo-bounty multiplier for destroying cops quickly,
 * how quickly and at what distances from cops the red "BUSTED" bar fills,
 * how quickly the green "EVADE" bar fills once all cops have lost sight of you,
-* when exactly (if at all) the interactive music can transition to another track,
+* how quickly (if at all) cops are destroyed if flipped over,
+* when exactly (if at all) interactive music can transition to another track,
 * whether cops in non-player pursuits can request ground supports,
 * the internal cooldown for non-Strategy roadblock requests,
 * the internal cooldown for Strategy requests,
+* how quickly and at what distances (if at all) roadblock cops can join the pursuit,
+* how HeavyStrategy 3 requests interact with non-Strategy roadblock requests,
 * what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
 * what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
 * what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
@@ -46,10 +49,9 @@ The "Basic" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Basic" feature set **fixes seven bugs / issues**:
+The "Basic" feature set **fixes six bugs / issues**:
 * helicopter mini-map icons are now always visible whenever a helicopter is active,
 * helicopters no longer cast static shadows (like cars do) with incorrect placements,
-* active roadblocks in pursuits no longer prevent new HeavyStrategy 3 requests,
 * the game is no longer biased in how it chooses to make Strategy requests
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures), and

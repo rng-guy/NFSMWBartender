@@ -24,9 +24,9 @@ namespace LeaderOverrides
 	HeatParameters::Pair<float> minHenchmenAggroDelays(1.f);
 	HeatParameters::Pair<float> maxHenchmenAggroDelays(1.f);
 
-	HeatParameters::Pair<bool>  lossResetEnableds (false);
-	HeatParameters::Pair<float> minLossResetDelays(1.f);
-	HeatParameters::Pair<float> maxLossResetDelays(1.f);
+	HeatParameters::Pair<bool>  lostResetEnableds (false);
+	HeatParameters::Pair<float> minLostResetDelays(1.f);
+	HeatParameters::Pair<float> maxLostResetDelays(1.f);
 
 	HeatParameters::Pair<bool>  wreckResetEnableds (false);
 	HeatParameters::Pair<float> minWreckResetDelays(1.f);
@@ -53,7 +53,7 @@ namespace LeaderOverrides
 
 		HashContainers::AddressSet passiveHenchmenVehicles;
 
-		IntervalTimer lossResetTimer     = IntervalTimer(lossResetEnableds,     minLossResetDelays,     maxLossResetDelays);
+		IntervalTimer lostResetTimer     = IntervalTimer(lostResetEnableds,     minLostResetDelays,     maxLostResetDelays);
 		IntervalTimer wreckResetTimer    = IntervalTimer(wreckResetEnableds,    minWreckResetDelays,    maxWreckResetDelays);
 		IntervalTimer leaderAggroTimer   = IntervalTimer(leaderAggroEnableds,   minLeaderAggroDelays,   maxLeaderAggroDelays);
 		IntervalTimer henchmenAggroTimer = IntervalTimer(henchmenAggroEnableds, minHenchmenAggroDelays, maxHenchmenAggroDelays);
@@ -217,7 +217,7 @@ namespace LeaderOverrides
 					Globals::logger.Log(this->pursuit, "[LDR] Leader", (isWrecked) ? "wrecked" : "lost");
 
 				this->leaderVehicle = 0x0;
-				this->resetTimer    = &((isWrecked) ? this->wreckResetTimer : this->lossResetTimer);
+				this->resetTimer    = &((isWrecked) ? this->wreckResetTimer : this->lostResetTimer);
 
 				if (not this->passiveHenchmenVehicles.empty())
 					this->MakeHenchmenAggressive();
@@ -261,10 +261,10 @@ namespace LeaderOverrides
 		HeatParameters::ParseOptionalInterval
 		(
 			parser, 
-			"Leader:LossReset", 
-			lossResetEnableds, 
-			minLossResetDelays, 
-			maxLossResetDelays
+			"Leader:LostReset", 
+			lostResetEnableds, 
+			minLostResetDelays, 
+			maxLostResetDelays
 		);
 
 		HeatParameters::ParseOptionalInterval
@@ -304,9 +304,9 @@ namespace LeaderOverrides
 		minHenchmenAggroDelays.SetToHeat(isRacing, heatLevel);
 		maxHenchmenAggroDelays.SetToHeat(isRacing, heatLevel);
 
-		lossResetEnableds .SetToHeat(isRacing, heatLevel);
-		minLossResetDelays.SetToHeat(isRacing, heatLevel);
-		maxLossResetDelays.SetToHeat(isRacing, heatLevel);
+		lostResetEnableds .SetToHeat(isRacing, heatLevel);
+		minLostResetDelays.SetToHeat(isRacing, heatLevel);
+		maxLostResetDelays.SetToHeat(isRacing, heatLevel);
 
 		wreckResetEnableds .SetToHeat(isRacing, heatLevel);
 		minWreckResetDelays.SetToHeat(isRacing, heatLevel);
@@ -318,7 +318,7 @@ namespace LeaderOverrides
 			(
 				   leaderAggroEnableds.current 
 				or henchmenAggroEnableds.current 
-				or lossResetEnableds.current 
+				or lostResetEnableds.current 
 				or wreckResetEnableds.current
 			);
 
@@ -331,8 +331,8 @@ namespace LeaderOverrides
 			if (henchmenAggroEnableds.current)
 				Globals::logger.LogLongIndent("henchmenAggroDelay      ", minHenchmenAggroDelays.current, "to", maxHenchmenAggroDelays.current);
 
-			if (lossResetEnableds.current)
-				Globals::logger.LogLongIndent("escapeResetDelay        ", minLossResetDelays.current, "to", maxLossResetDelays.current);
+			if (lostResetEnableds.current)
+				Globals::logger.LogLongIndent("escapeResetDelay        ", minLostResetDelays.current, "to", maxLostResetDelays.current);
 
 			if (wreckResetEnableds.current)
 				Globals::logger.LogLongIndent("wreckResetDelay         ", minWreckResetDelays.current, "to", maxWreckResetDelays.current);
