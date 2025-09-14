@@ -396,60 +396,6 @@ namespace PursuitObserver
 
 
 
-	constexpr address crossPriorityEntrance = 0x419740;
-	constexpr address crossPriorityExit     = 0x419746;
-
-	__declspec(naked) void CrossPriority()
-	{
-		__asm
-		{
-			fld dword ptr [esi + 0xD0]
-			fchs
-			fxch
-			fcompp
-
-			jmp dword ptr crossPriorityExit
-		}
-	}
-
-
-
-	constexpr address strategyDelayEntrance = 0x4196F4;
-	constexpr address strategyDelayExit     = 0x4196FA;
-
-	__declspec(naked) void StrategyDelay()
-	{
-		__asm
-		{
-			fld dword ptr [esi + 0xD0]
-			fchs
-			fxch
-			fcompp
-
-			jmp dword ptr strategyDelayExit
-		}
-	}
-
-
-
-	constexpr address roadblockDelayEntrance = 0x41950E;
-	constexpr address roadblockDelayExit     = 0x419514;
-
-	__declspec(naked) void RoadblockDelay()
-	{
-		__asm
-		{
-			fld dword ptr [esi + 0xD0]
-			fchs
-			fxch
-			fcompp
-
-			jmp dword ptr roadblockDelayExit
-		}
-	}
-
-
-
 	constexpr address pursuitConstructorEntrance = 0x4432D0;
 	constexpr address pursuitConstructorExit     = 0x4432D7;
 
@@ -612,14 +558,13 @@ namespace PursuitObserver
 		LeaderOverrides    ::Initialise(parser);
 		
 		// Code caves
-		MemoryEditor::Write<byte>(0x9E, {0x44319C});                 // helicopter respawn-timer initialisation
-		MemoryEditor::WriteToAddressRange(0x90, 0x42B6B4, 0x42B6DF); // helicopter respawn-timer reset
+		MemoryEditor::Write<byte>(0x9E, {0x44319C});                     // helicopter respawn-timer initialisation
+		MemoryEditor::Write<byte>(0x44, {0x443E7E});                     // update
+		MemoryEditor::Write<byte>(0xD0, {0x419742, 0x4196F6, 0x419510}); // comparisons
+		MemoryEditor::WriteToAddressRange(0x90, 0x42B6B4, 0x42B6DF);     // reset
 
-		MemoryEditor::DigCodeCave(EventSpawn,     eventSpawnEntrance,     eventSpawnExit);
-		MemoryEditor::DigCodeCave(PatrolSpawn,    patrolSpawnEntrance,    patrolSpawnExit);
-		MemoryEditor::DigCodeCave(CrossPriority,  crossPriorityEntrance,  crossPriorityExit);
-		MemoryEditor::DigCodeCave(StrategyDelay,  strategyDelayEntrance,  strategyDelayExit);
-		MemoryEditor::DigCodeCave(RoadblockDelay, roadblockDelayEntrance, roadblockDelayExit);
+		MemoryEditor::DigCodeCave(EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
+		MemoryEditor::DigCodeCave(PatrolSpawn, patrolSpawnEntrance, patrolSpawnExit);
 
 		MemoryEditor::DigCodeCave(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryEditor::DigCodeCave(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
