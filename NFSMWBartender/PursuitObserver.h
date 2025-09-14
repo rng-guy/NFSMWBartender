@@ -396,6 +396,24 @@ namespace PursuitObserver
 
 
 
+	constexpr address crossPriorityEntrance = 0x419740;
+	constexpr address crossPriorityExit     = 0x419746;
+
+	__declspec(naked) void CrossPriority()
+	{
+		__asm
+		{
+			fld dword ptr [esi + 0xD0]
+			fchs
+			fxch
+			fcompp
+
+			jmp dword ptr crossPriorityExit
+		}
+	}
+
+
+
 	constexpr address strategyDelayEntrance = 0x4196F4;
 	constexpr address strategyDelayExit     = 0x4196FA;
 
@@ -599,9 +617,10 @@ namespace PursuitObserver
 
 		MemoryEditor::DigCodeCave(EventSpawn,     eventSpawnEntrance,     eventSpawnExit);
 		MemoryEditor::DigCodeCave(PatrolSpawn,    patrolSpawnEntrance,    patrolSpawnExit);
+		MemoryEditor::DigCodeCave(CrossPriority,  crossPriorityEntrance,  crossPriorityExit);
 		MemoryEditor::DigCodeCave(StrategyDelay,  strategyDelayEntrance,  strategyDelayExit);
 		MemoryEditor::DigCodeCave(RoadblockDelay, roadblockDelayEntrance, roadblockDelayExit);
-		
+
 		MemoryEditor::DigCodeCave(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryEditor::DigCodeCave(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
 		MemoryEditor::DigCodeCave(VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);

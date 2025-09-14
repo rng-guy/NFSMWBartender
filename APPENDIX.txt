@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.16.00) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.16.01) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -527,3 +527,4 @@ v1.00.00: Initial release
    15.00: Added fix for vanilla bug of active roadblocks blocking new HeavyStrategy 3 requests
    
    16.00: Added many more features and basically overhauled most of the mod's existing ones
+      01: Added missing fix for Cross' priority-mode check in race pursuits
