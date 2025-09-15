@@ -378,7 +378,7 @@ namespace CopSpawnOverrides
 			const auto foundPursuit = ChasersManager::pursuitToManager.find(pursuit);
 
 			if (foundPursuit != ChasersManager::pursuitToManager.end())
-				return foundPursuit->second->chasers.HasAvailableCop();
+				return (foundPursuit->second->chasers.HasAvailableCop() and (not foundPursuit->second->IsWaveExhausted()));
 			
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [SPA] Availability request for unknown pursuit", pursuit);
