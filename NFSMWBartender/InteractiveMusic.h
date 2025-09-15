@@ -211,6 +211,8 @@ namespace InteractiveMusic
 				tracks.push_back(allTracks[trackID]);
 		}
 
+		if (tracks.empty()) return false;
+
 		parser.ParseParameter<bool>("Music:Tracks", "shuffleFirstTrack", shuffleFirstTrack);
 		parser.ParseParameter<bool>("Music:Tracks", "shuffleAfterFirst", shuffleAfterFirst);
 
@@ -262,7 +264,16 @@ namespace InteractiveMusic
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogLongIndent((numRemoved > 0) ? "  tracks left:" : "Tracks:", (int)tracks.size());
+			if (numRemoved > 0)
+			{
+				if (tracks.empty())
+					Globals::logger.LogLongIndent("  using vanilla tracks");
+
+				else
+					Globals::logger.LogLongIndent("  tracks left:", (int)tracks.size());
+			}
+			else Globals::logger.LogLongIndent("Tracks:", (int)tracks.size());
+
 			Globals::logger.LogLongIndent((shuffleFirstTrack) ? "Shuffled" : "Fixed", "first track");
 			Globals::logger.LogLongIndent((shuffleAfterFirst) ? "Shuffled" : "Fixed", "next track(s)");
 		}

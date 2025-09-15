@@ -159,8 +159,7 @@ namespace RadioCallsigns
 
 		const size_t numCopVehicles = parser.ParseUserParameter("Vehicles:Callsigns", copVehicles, callsignNames);
 
-		featureEnabled = (numCopVehicles > 0);
-		if (not featureEnabled) return false;
+		if (numCopVehicles == 0) return false;
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
 		{
@@ -177,6 +176,9 @@ namespace RadioCallsigns
 		MemoryEditor::DigCodeCave(FirstCallsign,    firstCallsignEntrance,    firstCallsignExit);
 		MemoryEditor::DigCodeCave(SecondCallsign,   secondCallsignEntrance,   secondCallsignExit);
 		MemoryEditor::DigCodeCave(CollisionCallout, collisionCalloutEntrance, collisionCalloutExit);
+
+		// Status flag
+		featureEnabled = true;
 
 		return true;
 	}

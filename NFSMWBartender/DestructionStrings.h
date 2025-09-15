@@ -81,8 +81,7 @@ namespace DestructionStrings
 
 		const size_t numCopVehicles = parser.ParseUserParameter("Vehicles:Destruction", copVehicles, binaryLabels);
 
-		featureEnabled = (numCopVehicles > 0);
-		if (not featureEnabled) return false;
+		if (numCopVehicles == 0) return false;
 
 		static const auto GetBinaryKey = (binary (__cdecl*)(const char*))0x460BF0;
 
@@ -99,6 +98,9 @@ namespace DestructionStrings
 	
 		// Code caves
 		MemoryEditor::DigCodeCave(CopDestruction, copDestructionEntrance, copDestructionExit);
+
+		// Status flag
+		featureEnabled = true;
 
 		return true;
 	}

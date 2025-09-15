@@ -109,13 +109,15 @@ Regarding the "Basic" feature set **as a whole**:
 
 Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
-* The cop-destruction string feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. To resolve this compatibility conflict, either delete Bartender's `[Vehicles:DestructionStrings]` parameter group or disable Unlimiter's version of the feature through its `NFSMWUnlimiterSettings.ini` file.
+* The cop-destruction string feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Destruction]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
 
 * You can use the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy to edit the game's strings and add new ones.
 
 * For destruction strings, Bartender ignores vehicles and strings that don't exist in the game.
 
 * If you don't define a valid `default` string, string-less vehicles won't trigger notifications.
+
+* If you define no vehicle strings and no `default`, Bartender disables its string feature.
 
 * You might hear cops use callsigns you didn't assign to them. This is vanilla behaviour: The game maintains a pool of "actors" that it constantly shuffles between all active vehicles. This is also the reason why you may still hear Cross or helicopter lines even if they are gone, and why dispatch may sometimes refer to Cross by the callsign of another unrelated vehicle.
 
@@ -125,15 +127,19 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * If you don't define a valid `default` callsign, Bartender uses `patrol` instead.
 
+* If you define no vehicle callsigns and no `default`, Bartender disables its callsign feature.
+
 * You can define up to 20 interactive music tracks, with duplicates. In each pursuit, the interactive music tracks play from top to bottom and loop back around afterwards.
 
 * Bartender can shuffle the first interactive music track in each pursuit instead of starting with the top one, and / or shuffle the follow-up tracks instead of playing them in sequence.
 
-* If you don't define any tracks, Bartender uses the vanilla setup (i.e. 0 -> 1 -> 2 -> 3).
+* For interactive music, Bartender ignores track types that don't exist in the game.
 
 * If you don't define any shuffling values, Bartender shuffles the first track in each pursuit.
 
-* For interactive music, Bartender ignores track types that don't exist in the game.
+* If you only define invalid tracks, Bartender uses the vanilla setup (i.e. 0 -> 1 -> 2 -> 3).
+
+* If you define no interactive music tracks, Bartender disables all its music features.
 
 * Track transitions happen only at Heat levels for which you define a valid timer value. Transitions may take a few minutes (at worst) due to quirks of the audio scheduler.
 
@@ -220,8 +226,6 @@ Regarding the "Advanced" feature set **as a whole**:
 * The unedited configuration files for this feature set approximate the game's vanilla values.
 
 * You can disable this entire feature set by deleting all of its configuration files.
-
-* You can disable any feature of this set by deleting the file containing its parameter group. This doesn't apply to the three fixes, which are tied to the whole feature set instead.
 
 * Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
 
