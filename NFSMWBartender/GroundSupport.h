@@ -554,7 +554,7 @@ namespace GroundSupport
 			}
 
 			Globals::logger.LogLongIndent("heavy3TriggerCooldown   ", (heavy3TriggerCooldowns.current) ? "true" : "false");
-			Globals::logger.LogLongIndent("heavy3AreBlockable      ", (heavy3AreBlockables.current) ? "true" : "false");
+			Globals::logger.LogLongIndent("heavy3AreBlockable      ", (heavy3AreBlockables.current)    ? "true" : "false");
 
 			Globals::logger.LogLongIndent("heavy3LightVehicle      ", heavy3LightVehicles.current);
 			Globals::logger.LogLongIndent("heavy3HeavyVehicle      ", heavy3HeavyVehicles.current);
