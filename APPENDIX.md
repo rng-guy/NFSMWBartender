@@ -50,7 +50,7 @@ Bartender parses its configuration (.ini) files in **parameter groups**, indicat
 &nbsp;
 
 Bartender can handle any **invalid / missing parameter groups** in its configuration files:
-* duplicate (e.g. another `[Busting:General]`) and unknown groups are ignored, and
+* duplicate (e.g. another `[State:Busting]`) and unknown groups are ignored, and
 * missing groups make Bartender count each of their would-be values as omitted.
 
 &nbsp;

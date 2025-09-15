@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.16.04) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.16.05) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -42,7 +42,7 @@ These groups each contain related parameters and give a logical structure in the
 files. Each group allows you to provide values, either in relation to Heat levels or vehicles.
 
 Bartender can handle any INVALID / MISSING PARAMETER GROUPS in its configuration files:
- • duplicate (e.g. another "[Busting:General]") and unknown groups are ignored, and
+ • duplicate (e.g. another "[State:Busting]") and unknown groups are ignored, and
  • missing groups make Bartender count each of their would-be values as omitted.
 
 Bartender can handle any INVALID VALUES you might provide in its parameter groups:
@@ -534,3 +534,4 @@ v1.00.00: Initial release
       02: Simplified and optimised a few common assembly functions
       03: Fixed rare issue of fewer traffic cars than usual spawning in pursuits
       04: Improved mod compatibility by making features in "Cosmetic.ini" separately disableable
+      05: Corrected some outdated references in usage comments to now-renamed parameter groups
