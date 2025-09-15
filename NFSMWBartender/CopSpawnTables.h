@@ -88,6 +88,12 @@ namespace CopSpawnTables
 		}
 
 
+		bool HasCapacity() const
+		{
+			return (this->currentTotalCopChance > 0);
+		}
+
+
 		size_t RemoveInvalidTypes
 		(
 			const char* const tableName, 
@@ -183,7 +189,7 @@ namespace CopSpawnTables
 
 		const char* GetRandomCopName() const
 		{
-			if (this->currentTotalCopChance < 1) return nullptr;
+			if (not this->HasCapacity()) return nullptr;
 
 			const int randomNumber     = Globals::prng.Generate<int>(0, this->currentTotalCopChance);
 			int       cumulativeChance = 0;

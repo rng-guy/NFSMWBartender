@@ -165,6 +165,12 @@ namespace CopSpawnOverrides
 		}
 
 
+		bool HasAvailableCop() const
+		{
+			return this->table.HasCapacity();
+		}
+
+
 		const char* GetNameOfAvailableCop() const
 		{
 			return this->table.GetRandomCopName();
@@ -365,7 +371,23 @@ namespace CopSpawnOverrides
 		}
 
 
-		static const char* GetNameOfAvailableChaser(const address pursuit)
+		static bool __fastcall HasAvailableChaser(const address pursuit)
+		{
+			if (not ChasersManager::IsHeatLevelKnown()) return false;
+
+			const auto foundPursuit = ChasersManager::pursuitToManager.find(pursuit);
+
+			if (foundPursuit != ChasersManager::pursuitToManager.end())
+				return foundPursuit->second->chasers.HasAvailableCop();
+			
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [SPA] Availability request for unknown pursuit", pursuit);
+
+			return false;
+		}
+
+
+		static const char* __fastcall GetNameOfAvailableChaser(const address pursuit)
 		{
 			if (not ChasersManager::IsHeatLevelKnown()) return nullptr;
 
@@ -410,41 +432,6 @@ namespace CopSpawnOverrides
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [SPA] Unknown ByClass return address:", spawnReturn);
-		}
-
-		return nullptr;
-	}
-
-
-
-	bool __fastcall IsByNameInterceptable(const address spawnReturn)
-	{
-		switch (spawnReturn)
-		{
-		case 0x42E72E: // scripted event spawn
-			return ((not skipEventSpawns) and ChasersManager::IsHeatLevelKnown());
-				
-		case 0x43EBD0: // chaser / "COOLDOWN" patrol
-			return true;
-		}
-
-		return false;
-	}
-
-
-
-	const char* __fastcall GetByNameReplacement
-	(
-		const address spawnReturn,
-		const address pursuit
-	) {
-		switch (spawnReturn)
-		{
-		case 0x42E72E: // scripted event spawn
-			return events.GetNameOfSpawnableCop();
-
-		case 0x43EBD0: // chaser / "COOLDOWN" patrol
-			return ChasersManager::GetNameOfAvailableChaser(pursuit);
 		}
 
 		return nullptr;
@@ -498,14 +485,51 @@ namespace CopSpawnOverrides
 			test al, al
 			jne deny
 
-			mov eax, dword ptr placeholderVehicle
-			jmp conclusion // was valid request
+			call ChasersManager::GetNameOfAvailableChaser // ecx: pursuit
+			jmp conclusion                                // was valid request
 
 			deny:
 			xor eax, eax
 
 			conclusion:
 			jmp dword ptr copRequestExit
+		}
+	}
+
+
+
+	constexpr address requestCheckEntrance = 0x426C56;
+	constexpr address requestCheckExit     = 0x426C5F;
+
+	__declspec(naked) void RequestCheck()
+	{
+		__asm
+		{
+			mov al, byte ptr [edi + 0xE8]
+			test al, al
+			jne failed // perp busted
+
+			fldz
+			fcomp dword ptr [edi + 0xCC]
+			fnstsw ax
+			test ah, 0x1
+			jne failed // spawn cooldown > 0
+
+			mov al, byte ptr [edi + 0xE9]
+			test al, al
+			jne failed
+
+			mov ecx, edi
+			call ChasersManager::HasAvailableChaser // ecx: pursuit
+			jmp conclusion                          // was valid check
+
+			failed:
+			xor al, al
+
+			conclusion:
+			test al, al
+
+			jmp dword ptr requestCheckExit
 		}
 	}
 
@@ -587,14 +611,18 @@ namespace CopSpawnOverrides
 			test ebp, ebp
 			je failure // spawn intended to fail
 
-			mov ecx, dword ptr [esp + 0x70]
-			call IsByNameInterceptable // ecx: return address
-			test al, al
-			je conclusion              // do not intercept
+			cmp dword ptr [esp + 0x70], 0x42E72E
+			jne conclusion // not "Events" spawn
 
-			mov ecx, dword ptr [esp + 0x70]
-			mov edx, esi
-			call GetByNameReplacement // ecx: return address; edx: AIPursuit
+			cmp byte ptr skipEventSpawns, 0x1
+			je conclusion
+
+			call ChasersManager::IsHeatLevelKnown
+			test al, al
+			je conclusion // Heat level unknown
+
+			lea ecx, dword ptr [events]
+			call Contingent::GetNameOfSpawnableCop
 			mov ebp, eax
 
 			conclusion:
@@ -663,6 +691,7 @@ namespace CopSpawnOverrides
 
 		MemoryEditor::DigCodeCave(CopRefill,          copRefillEntrance,          copRefillExit);
 		MemoryEditor::DigCodeCave(CopRequest,         copRequestEntrance,         copRequestExit);
+		MemoryEditor::DigCodeCave(RequestCheck,       requestCheckEntrance,       requestCheckExit);
 		MemoryEditor::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
 		MemoryEditor::DigCodeCave(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
 		MemoryEditor::DigCodeCave(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
