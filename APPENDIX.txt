@@ -534,4 +534,4 @@ v1.00.00: Initial release
       02: Simplified and optimised a few common assembly functions
       03: Fixed rare issue of fewer traffic cars than usual spawning in pursuits
       04: Improved mod compatibility by making features in "Cosmetic.ini" separately disableable
-      05: Corrected some outdated references in usage comments to now-renamed parameter groups
+      05: Corrected outdated references to now-renamed parameter groups in some usage comments 
