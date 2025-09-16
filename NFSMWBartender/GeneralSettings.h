@@ -21,8 +21,8 @@ namespace GeneralSettings
 	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
 	HeatParameters::Pair<float> bustTimers      (5.f);
 
-	HeatParameters::Pair<bool>  destroyCopAfterDelays(false);
-	HeatParameters::Pair<bool>  destroyCopIfDamageds (false);
+	HeatParameters::Pair<bool>  destroyCopAfterDelays(true);
+	HeatParameters::Pair<bool>  destroyCopIfDamageds (true);
 	HeatParameters::Pair<float> copDestructionDelays(6.f);   // seconds
 
 	HeatParameters::Pair<bool>  racerResetEnableds(false);

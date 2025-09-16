@@ -16,7 +16,7 @@ namespace StrategyOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<float> playerSpeedThresholds(15.f); // kph
+	HeatParameters::Pair<float> playerSpeedThresholds(25.f); // kph
 	
 	HeatParameters::Pair<bool>  heavy3UnblockEnableds (false);
 	HeatParameters::Pair<float> minHeavy3UnblockDelays(1.f);   // seconds
