@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.17.00) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.17.01) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -539,3 +539,4 @@ v1.00.00: Initial release
       05: Corrected outdated references to now-renamed parameter groups in some usage comments
 
    17.00: Added feature to customise car-resetting behaviour for flipped racers
+      01: Corrected some internal default values for various parameter groups
