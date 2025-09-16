@@ -29,12 +29,13 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the maximum combo-bounty multiplier for destroying cops quickly,
 * how quickly and at what distances from cops the red "BUSTED" bar fills,
 * how quickly the green "EVADE" bar fills once all cops have lost sight of you,
-* how quickly (if at all) cops are destroyed if flipped over,
+* when exactly (if at all) cop vehicles are destroyed if flipped over,
+* when exactly (if at all) racer vehicles are reset if flipped over,
 * when exactly (if at all) interactive music can transition to another track,
 * whether cops in non-player pursuits can request ground supports,
 * the internal cooldown for non-Strategy roadblock requests,
 * the internal cooldown for Strategy requests,
-* how quickly and at what distances (if at all) roadblock cops can join the pursuit,
+* when exactly and at what distances (if at all) roadblock cops can join the pursuit,
 * how HeavyStrategy 3 requests interact with non-Strategy roadblock requests,
 * what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
 * what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
@@ -81,8 +82,8 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * the internal cooldown for the helicopter's ramming attempts through HeliStrategy 2,
 * the player-speed threshold for HeavyStrategy 3 spawns to stop their ramming attempts,
 * when exactly (if at all) LeaderStrategy Cross and / or his henchmen become aggressive,
-* how quickly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
-* how quickly (if at all) the game can request a new Strategy while another is still active.
+* when exactly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
+* when exactly (if at all) the game can request a new Strategy while another is still active.
 
 &nbsp;
 

@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.16.05) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.17.00) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -176,11 +176,13 @@ Regarding GENERAL FEATURES ("BartenderSettings\Basic\General.ini"):
  • The time you spend filling the green "EVADE" bar also counts towards how long you need to stay
    hidden in "COOLDOWN" mode. If the "EVADE" bar takes longer to fill, you escape instantly.
 
- • There are two independent checks for whether a flipped vehicle should be destroyed: Either
-   some delay after being flipped, or instantly if the vehicle in question has been damaged by
-   the player at any point. Bartender can toggle these checks separately.
+ • There are two separate checks for whether a flipped cop vehicle should be destroyed: 
+   Either some delay after being flipped, or instantly if the vehicle in question has been
+   damaged by the player at any point. Bartender can toggle these two checks individually.
 
- • The flipping delay has no effect if the delay-based flipping check is disabled.
+ • The destruction delay for flipped cops has no effect if you disable the delay-based check.
+
+ • Automatic racer resets only happen at Heat levels for which you define a valid delay value.
 
 
 
@@ -535,3 +537,5 @@ v1.00.00: Initial release
       03: Fixed rare issue of fewer traffic cars than usual spawning in pursuits
       04: Improved mod compatibility by making features in "Cosmetic.ini" separately disableable
       05: Corrected outdated references to now-renamed parameter groups in some usage comments
+
+   17.00: Added feature to customise car-resetting behaviour for flipped racers

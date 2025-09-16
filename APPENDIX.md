@@ -167,9 +167,11 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 * The time you spend filling the green "EVADE" bar also counts towards how long you need to stay hidden in "COOLDOWN" mode. If the "EVADE" bar takes longer to fill, you escape instantly.
 
-* There are two independent checks for whether a flipped vehicle should be destroyed: Either some delay after being flipped, or instantly if the vehicle in question has been damaged by the player at any point. Bartender can toggle these checks separately.
+* There are two separate checks for whether a flipped cop vehicle should be destroyed: Either some delay after being flipped, or instantly if the vehicle in question has been damaged by the player at any point. Bartender can toggle these two checks individually.
 
-* The flipping delay has no effect if the delay-based flipping check is disabled.
+* The destruction delay for flipped cops has no effect if you disable the delay-based check.
+
+* Automatic racer resets only happen at Heat levels for which you define a valid delay value.
 
 &nbsp;
 

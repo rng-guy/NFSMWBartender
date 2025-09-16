@@ -21,9 +21,12 @@ namespace GeneralSettings
 	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
 	HeatParameters::Pair<float> bustTimers      (5.f);
 
-	HeatParameters::Pair<bool>  destroyAfterDelays(false);
-	HeatParameters::Pair<bool>  destroyIfDamageds (false);
-	HeatParameters::Pair<float> flippingDelays    (6.f);   // seconds
+	HeatParameters::Pair<bool>  destroyCopAfterDelays(false);
+	HeatParameters::Pair<bool>  destroyCopIfDamageds (false);
+	HeatParameters::Pair<float> copDestructionDelays(6.f);   // seconds
+
+	HeatParameters::Pair<bool>  racerResetEnableds(false);
+	HeatParameters::Pair<float> racerResetDelays  (4.f);   // seconds
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current; // seconds
@@ -75,11 +78,11 @@ namespace GeneralSettings
 
 		__asm
 		{
-			cmp byte ptr destroyAfterDelays.current, 0x1
+			cmp byte ptr destroyCopAfterDelays.current, 0x1
 			jne damaged // delay-based flipping disabled
 
 			fld dword ptr [esi + 0xB8]
-			fcomp dword ptr flippingDelays.current
+			fcomp dword ptr copDestructionDelays.current
 			fnstsw ax
 			test ah, 0x41
 			jne damaged // delay has yet to expire
@@ -90,13 +93,35 @@ namespace GeneralSettings
 			jmp conclusion // was destroyed
 
 			damaged:
-			cmp byte ptr destroyIfDamageds.current, 0x1
+			cmp byte ptr destroyCopIfDamageds.current, 0x1
 			je conclusion // player-based flipping enabled
 
 			jmp dword ptr copFlippingSkip // no flipping enabled
 
 			conclusion:
 			jmp dword ptr copFlippingExit
+		}
+	}
+
+
+
+	constexpr address racerFlippingEntrance = 0x6A45A3;
+	constexpr address racerFlippingExit     = 0x6A45B1;
+
+	__declspec(naked) void RacerFlipping()
+	{
+		__asm
+		{
+			cmp byte ptr racerResetEnableds.current, 0x1
+			jne conclusion // flipping resets disabled
+
+			fld dword ptr [esi + 0x54]
+			fcomp dword ptr racerResetDelays.current
+			fnstsw ax
+			test ah, 0x41
+
+			conclusion:
+			jmp dword ptr racerFlippingExit
 		}
 	}
 
@@ -170,8 +195,10 @@ namespace GeneralSettings
 		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,  .001f}, {maxBustDistances, 0.f});
 		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers, .001f});
 
-		HeatParameters::Parse<bool, bool>(parser, "Flipping:Checks", {destroyAfterDelays}, {destroyIfDamageds});
-		HeatParameters::Parse<float>     (parser, "Flipping:Delay",  {flippingDelays, .001f});
+		HeatParameters::Parse<bool, bool>(parser, "Flipping:Checks", {destroyCopAfterDelays}, {destroyCopIfDamageds});
+		HeatParameters::Parse<float>     (parser, "Flipping:Delay",  {copDestructionDelays, .001f});
+
+		HeatParameters::ParseOptional<float>(parser, "Flipping:Reset", racerResetEnableds, {racerResetDelays, .001f});
 
 		// Code caves
 		MemoryEditor::Write<float*>(&bustRate,              {0x40AEDB});
@@ -182,6 +209,7 @@ namespace GeneralSettings
 
 		MemoryEditor::DigCodeCave(CopCombo,        copComboEntrance,        copComboExit);
 		MemoryEditor::DigCodeCave(CopFlipping,     copFlippingEntrance,     copFlippingExit);
+		MemoryEditor::DigCodeCave(RacerFlipping,   racerFlippingEntrance,   racerFlippingExit);
 		MemoryEditor::DigCodeCave(PassiveBounty,   passiveBountyEntrance,   passiveBountyExit);
         MemoryEditor::DigCodeCave(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 
@@ -212,9 +240,12 @@ namespace GeneralSettings
 		halfEvadeRate = .5f / evadeTimers.current;
 		bustRate      = 1.f / bustTimers.current;
 
-		destroyAfterDelays.SetToHeat(isRacing, heatLevel);
-		destroyIfDamageds .SetToHeat(isRacing, heatLevel);
-		flippingDelays    .SetToHeat(isRacing, heatLevel);
+		destroyCopAfterDelays.SetToHeat(isRacing, heatLevel);
+		destroyCopIfDamageds .SetToHeat(isRacing, heatLevel);
+		copDestructionDelays .SetToHeat(isRacing, heatLevel);
+
+		racerResetEnableds.SetToHeat(isRacing, heatLevel);
+		racerResetDelays  .SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -227,9 +258,12 @@ namespace GeneralSettings
 			Globals::logger.LogLongIndent("maxBustDistance         ", maxBustDistances.current);
 			Globals::logger.LogLongIndent("evadeTimer              ", evadeTimers.current);
 
-			Globals::logger.LogLongIndent("destroyAfterDelay       ", (destroyAfterDelays.current) ? "true" : "false");
-			Globals::logger.LogLongIndent("destroyIfDamaged        ", (destroyIfDamageds.current) ? "true" : "false");
-			Globals::logger.LogLongIndent("flippingDelay           ", flippingDelays.current);
+			Globals::logger.LogLongIndent("destroyCopAfterDelay    ", (destroyCopAfterDelays.current) ? "true" : "false");
+			Globals::logger.LogLongIndent("destroyCopIfDamaged     ", (destroyCopIfDamageds.current)  ? "true" : "false");
+			Globals::logger.LogLongIndent("copDestructionDelay     ", copDestructionDelays.current);
+
+			if (racerResetEnableds.current)
+				Globals::logger.LogLongIndent("racerResetDelay         ", racerResetDelays.current);
 		}
     }
 }
