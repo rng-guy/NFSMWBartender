@@ -296,7 +296,7 @@ namespace CopSpawnTables
 		HeatParameters::Values<SpawnTable>&       tables,
 		const HeatParameters::Values<SpawnTable>& replacements
 	) {
-		for (size_t heatLevel : HeatParameters::heatLevels)
+		for (const size_t heatLevel : HeatParameters::heatLevels)
 			if (tables[heatLevel - 1].IsEmpty()) tables[heatLevel - 1] = replacements[heatLevel - 1];
 	}
 

@@ -36,6 +36,9 @@ namespace HelicopterOverrides
 	// Conversions
 	float maxFuelTime = std::max<float>(maxDespawnDelays.current, maxRejoinDelays.current);
 
+	// Code caves
+	bool skipBailoutSpeech = false;
+
 
 
 
@@ -229,6 +232,8 @@ namespace HelicopterOverrides
 			this->spawnTimer       = nullptr;
 			this->hasSpawnedBefore = true;
 			this->SetHelicopterFuel();
+
+			skipBailoutSpeech = false;
 		}
 
 
@@ -256,6 +261,7 @@ namespace HelicopterOverrides
 			{
 				this->spawnTimer        = &(this->rejoinTimer);
 				this->fuelAtLastDespawn = *fuel;
+				skipBailoutSpeech       = true;
 
 				if constexpr (Globals::loggingEnabled)
 				{
@@ -273,6 +279,30 @@ namespace HelicopterOverrides
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+
+	constexpr address bailoutEntrance = 0x717C00;
+	constexpr address bailoutExit     = 0x717C06;
+
+	__declspec(naked) void Bailout()
+	{
+		__asm
+		{
+			cmp byte ptr skipBailoutSpeech, 0x1
+			jne conclusion
+
+			retn
+
+			conclusion:
+			// Execute original code and resume
+			sub esp, 0x8
+			push esi
+			mov esi, ecx
+
+			jmp dword ptr bailoutExit
+		}
+	}
+
+
 
 	constexpr address fuelTimeEntrance = 0x42AD9B;
 	constexpr address fuelTimeExit     = 0x42ADA1;
@@ -353,6 +383,7 @@ namespace HelicopterOverrides
 		HeatParameters::CheckIntervals<float>(minRejoinDelays,  maxRejoinDelays);
 
 		// Code caves
+		MemoryEditor::DigCodeCave(Bailout,         bailoutEntrance,         bailoutExit);
 		MemoryEditor::DigCodeCave(FuelTime,        fuelTimeEntrance,        fuelTimeExit);
 		MemoryEditor::DigCodeCave(RammingCooldown, rammingCooldownEntrance, rammingCooldownExit);
 
