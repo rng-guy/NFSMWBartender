@@ -205,7 +205,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
-* You shouldn't use the replacement vehicles for Cross elsewhere in the game. Otherwise, these vehicles will block all LeaderStrategy spawns whenever they are present in a given pursuit.
+* You shouldn't use the replacement vehicles for Cross for any other cop in the game unless you also use Bartender's "Advanced" feature set. Otherwise, these vehicles interfere with LeaderStrategy spawns whenever they are present in a pursuit.
 
 * Bartender replaces vehicles that don't exist in the game with whatever the vanilla game uses.
 
@@ -327,9 +327,11 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * Once aggressive, Cross and / or his henchmen act like regular cops and can join formations.
 
-* Aggro delays longer than the LeaderStrategy `Duration` VltEd parameter effectively do nothing.
+* Aggro delays longer than a given LeaderStrategy's `Duration` VltEd parameter have no effect.
 
-* LeaderStrategy spawn-flag resets only happen at Heat levels for which you define valid reset-delay values. This feature set always disables the vanilla spawn-flag behaviour.
+* Resets of Cross' spawn flag only happen at Heat levels for which you define valid reset-delay values. The vanilla game never resets this flag if Cross gets wrecked.
+
+* Once Cross' spawn flag is reset, the game can attempt LeaderStrategy requests again.
 
 * For LeaderStrategy 7, the henchmen must also despawn first before the game can request another Strategy. You can circumvent this with Bartender's unblocking feature (see below).
 
@@ -337,7 +339,7 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * Bartender only unblocks requests at Heat levels for which you define valid unblock-delay values.
 
-* Unblock delays longer than a given Strategy's `Duration` VltEd parameter effectively do nothing.
+* Unblock delays longer than a given Strategy's `Duration` VltEd parameter have no effect.
 
 * Even with unblocking, no new LeaderStrategy can spawn while a LeaderStrategy Cross is present.
 

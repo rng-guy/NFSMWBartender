@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <algorithm>
 
 #include "Globals.h"
@@ -53,15 +54,13 @@ namespace HelicopterOverrides
 		bool  hasSpawnedBefore  = false;
 		float fuelAtLastDespawn = 0.f;
 
-		int* const numHelicoptersDeployed = (int*)(this->pursuit + 0x150);
+		int& numHelicoptersDeployed = *((int*)(this->pursuit + 0x150));
 
 		IntervalTimer firstSpawnTimer = IntervalTimer(helicopterEnableds, minSpawnDelays,   maxSpawnDelays);
 		IntervalTimer respawnTimer    = IntervalTimer(helicopterEnableds, minRespawnDelays, maxRespawnDelays);
 		IntervalTimer rejoinTimer     = IntervalTimer(rejoiningEnableds,  minRejoinDelays,  maxRejoinDelays);
 
 		IntervalTimer* spawnTimer = &(this->firstSpawnTimer);
-
-		inline static const address* const helicopterObject = (address*)0x90D61C;
 
 
 		void VerifyPursuit()
@@ -81,25 +80,25 @@ namespace HelicopterOverrides
 			if (not this->isPlayerPursuit)          return;
 			if (not this->spawnTimer->HasExpired()) return;
 
-			static const auto           SpawnHelicopter = (bool (__thiscall*)(address, address))0x4269A0;
-			static const address* const copManager      = (address*)0x989098;
+			static const address& copManager      = *((address*)0x989098);
+			static const auto     SpawnHelicopter = (bool (__thiscall*)(address, address))0x4269A0;
 
-			if (*copManager) 
+			if (copManager)
 			{ 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[HEL] Requesting helicopter");
 
-				SpawnHelicopter(*copManager, this->pursuit);
+				SpawnHelicopter(copManager, this->pursuit);
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [HEL] Invalid AICopManager pointer");
 		}
 
 
-		float* GetHelicopterFuel() const
+		static float* GetHelicopterFuel()
 		{ 
-			const address helicopter = *(this->helicopterObject);
-			return (helicopter) ? (float*)(helicopter + 0x7D8) : nullptr;
+			static const address& helicopterObject = *((address*)0x90D61C);
+			return (helicopterObject) ? (float*)(helicopterObject + 0x7D8) : nullptr;
 		}
 
 
@@ -115,16 +114,16 @@ namespace HelicopterOverrides
 				{
 					*fuel = this->fuelAtLastDespawn - this->rejoinTimer.GetLength();
 
-					(*(this->numHelicoptersDeployed))--;
+					--(this->numHelicoptersDeployed);
 					this->fuelAtLastDespawn = 0.f;
 				}
-				else *fuel = Globals::prng.Generate<float>(minDespawnDelays.current, maxDespawnDelays.current);
+				else *fuel = Globals::prng.GenerateNumber<float>(minDespawnDelays.current, maxDespawnDelays.current);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[HEL] Despawning in", *fuel);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [HEL] Invalid helicopter pointer");
+				Globals::logger.Log("WARNING: [HEL] Invalid fuel pointer");
 		}
 
 
@@ -139,7 +138,7 @@ namespace HelicopterOverrides
 				if (setting == IntervalTimer::Setting::ALL)
 					this->respawnTimer.Update(IntervalTimer::Setting::START);
 
-				if (not (this->rejoinTimer.IsEnabled()) or (this->rejoinTimer.GetLength() >= this->fuelAtLastDespawn))
+				if ((not this->rejoinTimer.IsEnabled()) or (this->rejoinTimer.GetLength() >= this->fuelAtLastDespawn))
 				{
 					this->respawnTimer.Update(IntervalTimer::Setting::LENGTH);
 
@@ -148,7 +147,7 @@ namespace HelicopterOverrides
 
 					if constexpr (Globals::loggingEnabled)
 					{
-						if (not (this->rejoinTimer.IsEnabled()))
+						if (not this->rejoinTimer.IsEnabled())
 							Globals::logger.Log(this->pursuit, "[HEL] Rejoining not enabled");
 
 						else
@@ -209,7 +208,7 @@ namespace HelicopterOverrides
 		}
 
 
-		void UpdateOnceInPursuit() override 
+		void UpdateOncePerPursuit() override
 		{
 			this->VerifyPursuit();
 		}

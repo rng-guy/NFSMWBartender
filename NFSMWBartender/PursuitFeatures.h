@@ -10,8 +10,8 @@ namespace PursuitFeatures
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	const auto         IsVehicleDestroyed = (bool (__thiscall*)(address))0x688170;
-	const float* const simulationTime     = (float*)0x9885D8;
+	const auto   IsVehicleDestroyed = (bool (__thiscall*)(address))0x688170;
+	const float& simulationTime     = *((float*)0x9885D8);
 
 
 
@@ -45,7 +45,7 @@ namespace PursuitFeatures
 
 		virtual void UpdateOnGameplay()       {}
 		virtual void UpdateOnHeatChange()     {}
-		virtual void UpdateOnceInPursuit()    {}
+		virtual void UpdateOncePerPursuit()   {}
 		virtual void UpdateOncePerHeatLevel() {}
 
 
@@ -86,26 +86,26 @@ namespace PursuitFeatures
 
 	class IntervalTimer
 	{
-	protected:
+	private:
 
 		float length         = 0.f;
 		float startTimestamp = 0.f;
 		float endTimestamp   = 0.f;
 
-		const bool*  const isEnabled;
-		const float* const minDelay;
-		const float* const maxDelay;
+		const bool&  isEnabled;
+		const float& minDelay;
+		const float& maxDelay;
 
 
 		void UpdateStart()
 		{
-			this->startTimestamp = *simulationTime;
+			this->startTimestamp = simulationTime;
 		}
 
 
 		void UpdateLength()
 		{
-			this->length = Globals::prng.Generate<float>(*(this->minDelay), *(this->maxDelay));
+			this->length = Globals::prng.GenerateNumber<float>(this->minDelay, this->maxDelay);
 		}
 
 
@@ -124,13 +124,13 @@ namespace PursuitFeatures
 			const HeatParameters::Pair<float>& minDelays,
 			const HeatParameters::Pair<float>& maxDelays
 		) 
-			: isEnabled(&(isEnableds.current)), minDelay(&(minDelays.current)), maxDelay(&(maxDelays.current))
+			: isEnabled(isEnableds.current), minDelay(minDelays.current), maxDelay(maxDelays.current)
 		{}
 
 
 		bool IsEnabled() const
 		{
-			return (PursuitReaction::IsHeatLevelKnown() and *(this->isEnabled));
+			return (PursuitReaction::IsHeatLevelKnown() and this->isEnabled);
 		}
 
 
@@ -164,7 +164,7 @@ namespace PursuitFeatures
 
 		bool HasExpired() const
 		{
-			return (this->IsEnabled()) ? (*simulationTime >= this->endTimestamp) : false;
+			return (this->IsEnabled()) ? (simulationTime >= this->endTimestamp) : false;
 		}
 
 
@@ -176,7 +176,7 @@ namespace PursuitFeatures
 
 		float TimeLeft() const
 		{
-			return (this->IsEnabled()) ? this->endTimestamp - *simulationTime : 0.f;
+			return (this->IsEnabled()) ? this->endTimestamp - simulationTime : 0.f;
 		}
 	};
 
@@ -193,6 +193,9 @@ namespace PursuitFeatures
 
 		if (copAIVehicle)
 			StartFlee(copAIVehicle + 0x70C);
+
+		else if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
 
 		return copAIVehicle;
 	}

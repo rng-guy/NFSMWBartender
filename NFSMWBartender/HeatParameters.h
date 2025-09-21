@@ -53,11 +53,7 @@ namespace HeatParameters
 		size_t         currentLevel = 1;
 
 		for (size_t& heatLevel : heatLevels)
-		{
-			heatLevel = currentLevel;
-
-			currentLevel++;
-		}
+			heatLevel = currentLevel++;
 
 		return heatLevels;
 	}
@@ -71,7 +67,7 @@ namespace HeatParameters
 	// HeatParameter classes ------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
-	class BasePair
+	struct BasePair
 	{
 	protected:
 
@@ -85,13 +81,13 @@ namespace HeatParameters
 		Values<T> race = {};
 
 
-		Values<T>& Get(const bool forRaces)
+		Values<T>& GetValues(const bool forRaces)
 		{
 			return (forRaces) ? this->race : this->roam;
 		}
 
 
-		const Values<T>& Get(const bool forRaces) const
+		const Values<T>& GetValues(const bool forRaces) const
 		{
 			return (forRaces) ? this->race : this->roam;
 		}
@@ -100,10 +96,8 @@ namespace HeatParameters
 
 
 	template <typename T>
-	class Pair : public BasePair<T>
+	struct Pair : public BasePair<T>
 	{
-	public:
-
 		const T* current = &(this->roam[0]);
 
 
@@ -112,7 +106,7 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->current = &(((forRaces) ? this->race : this->roam)[heatLevel - 1]);
+			this->current = &(this->GetValues(forRaces)[heatLevel - 1]);
 		}
 	};
 
@@ -120,10 +114,8 @@ namespace HeatParameters
 
 	template <typename T>
 	requires std::is_arithmetic_v<T>
-	class Pair<T> : public BasePair<T>
+	struct Pair<T> : public BasePair<T>
 	{
-	public:
-
 		T current;
 
 
@@ -135,7 +127,7 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->current = ((forRaces) ? this->race : this->roam)[heatLevel - 1];
+			this->current = this->GetValues(forRaces)[heatLevel - 1];
 		}
 
 
@@ -143,7 +135,7 @@ namespace HeatParameters
 		{
 			for (const bool forRaces : {false, true})
 			{
-				for (const T value : this->Get(forRaces))
+				for (const T value : this->GetValues(forRaces))
 					if (value) return true;
 			}
 
@@ -154,10 +146,8 @@ namespace HeatParameters
 
 
 	template <>
-	class Pair<std::string> : public BasePair<std::string>
+	struct Pair<std::string> : public BasePair<std::string>
 	{
-	public:
-
 		const char* current;
 
 
@@ -169,7 +159,7 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->current = (((forRaces) ? this->race : this->roam)[heatLevel - 1]).c_str();
+			this->current = (this->GetValues(forRaces)[heatLevel - 1]).c_str();
 		}
 
 
@@ -184,9 +174,9 @@ namespace HeatParameters
 			{
 				size_t numReplaced = 0;
 
-				for (size_t heatLevel : heatLevels)
+				for (const size_t heatLevel : heatLevels)
 				{
-					std::string& vehicle = this->Get(forRaces)[heatLevel - 1];
+					std::string& vehicle = this->GetValues(forRaces)[heatLevel - 1];
 					const vault  copType = Globals::GetVaultKey(vehicle.c_str());
 
 					if (not Globals::VehicleClassMatches(copType, vehicleClass))
@@ -202,7 +192,7 @@ namespace HeatParameters
 
 						vehicle = this->current;
 
-						numReplaced++;
+						++numReplaced;
 					}
 				}
 
@@ -227,10 +217,10 @@ namespace HeatParameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
-			Values<T>&       lowers = minValues.Get(forRaces);
-			const Values<T>& uppers = maxValues.Get(forRaces);
+			Values<T>&       lowers = minValues.GetValues(forRaces);
+			const Values<T>& uppers = maxValues.GetValues(forRaces);
 
-			for (size_t heatLevel : heatLevels)
+			for (const size_t heatLevel : heatLevels)
 				lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
 		}
 	}
@@ -319,7 +309,7 @@ namespace HeatParameters
 		(
 			[&]
 			{
-				for (size_t heatLevel : heatLevels)
+				for (const size_t heatLevel : heatLevels)
 				{
 					if (not isValids[heatLevel - 1])
 						columns.pair.race[heatLevel - 1] = columns.pair.roam[heatLevel - 1];
@@ -340,13 +330,13 @@ namespace HeatParameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
-			isEnableds.Get(forRaces) = parser.ParseParameterTable<T...>
+			isEnableds.GetValues(forRaces) = parser.ParseParameterTable<T...>
 			(
 				section,
 				(forRaces) ? configFormatRace : configFormatRoam,
 				Format<T>
 				(
-					columns.pair.Get(forRaces),
+					columns.pair.GetValues(forRaces),
 					{},
 					columns.lowerBound,
 					columns.upperBound

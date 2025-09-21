@@ -161,7 +161,7 @@ namespace RadioCallsigns
 
 		if (numCopVehicles == 0) return false;
 
-		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
+		for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
 		{
 			const auto          foundName = nameToCallsign.find(callsignNames[vehicleID]);
 			const CallsignGroup group     = (foundName != nameToCallsign.end()) ? foundName->second : CallsignGroup::UNKNOWN;

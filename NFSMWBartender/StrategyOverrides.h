@@ -52,14 +52,15 @@ namespace StrategyOverrides
 
 	private:
 
-		int* const numStrategyVehicles = (int*)(this->pursuit + 0x18C);
+		int& numStrategyVehicles = *((int*)(this->pursuit + 0x18C));
 
-		const bool* const    isJerk         = (bool*)(this->pursuit + 0x238);
-		const int* const     pursuitStatus  = (int*)(this->pursuit + 0x218);
-		const address* const heavyStrategy  = (address*)(this->pursuit + 0x194);
-		const address* const leaderStrategy = (address*)(this->pursuit + 0x198);
+		const int&     pursuitStatus  = *((int*)(this->pursuit + 0x218));
+		const bool&    isJerk         = *((bool*)(this->pursuit + 0x238));
+		const address& heavyStrategy  = *((address*)(this->pursuit + 0x194));
+		const address& leaderStrategy = *((address*)(this->pursuit + 0x198));
 
-		bool watchingHeavyStrategy3 = false;
+		address rigidBodyOfTarget      = 0x0;
+		bool    watchingHeavyStrategy3 = false;
 
 		HashContainers::AddressSet vehiclesOfCurrentStrategy;
 		HashContainers::AddressSet vehiclesOfUnblockedHeavy3;
@@ -78,7 +79,7 @@ namespace StrategyOverrides
 
 		void UpdateNumStrategyVehicles() const
 		{
-			*(this->numStrategyVehicles) = this->vehiclesOfCurrentStrategy.size();
+			this->numStrategyVehicles = (int)(this->vehiclesOfCurrentStrategy.size());
 		}
 
 
@@ -119,9 +120,7 @@ namespace StrategyOverrides
 		{
 			this->Reset();
 
-			const address strategy = *(this->heavyStrategy);
-
-			if (not strategy)
+			if (not this->heavyStrategy)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [SGY] Invalid HeavyStrategy pointer in", this->pursuit);
@@ -129,7 +128,7 @@ namespace StrategyOverrides
 				return;
 			}
 
-			const int strategyID = *((int*)strategy);
+			const int strategyID = *((int*)(this->heavyStrategy));
 
 			switch (strategyID)
 			{
@@ -157,9 +156,7 @@ namespace StrategyOverrides
 		{
 			this->Reset();
 
-			const address strategy = *(this->leaderStrategy);
-
-			if (not strategy)
+			if (not this->leaderStrategy)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [SGY] Invalid LeaderStrategy pointer in", this->pursuit);
@@ -167,7 +164,7 @@ namespace StrategyOverrides
 				return;
 			}
 
-			const int strategyID = *((int*)strategy);
+			const int strategyID = *((int*)(this->leaderStrategy));
 
 			switch (strategyID)
 			{
@@ -202,34 +199,6 @@ namespace StrategyOverrides
 		}
 
 
-		static float __fastcall GetSpeedOfTarget(const address pursuit)
-		{
-			__asm
-			{
-				mov eax, dword ptr [ecx + 0x74] // AIPursuit::GetTarget
-				mov ecx, dword ptr [eax + 0x1C] // Target::GetPhysicsObject
-
-				test ecx, ecx
-				je zero // no valid physics object
-
-				mov edx, dword ptr [ecx]
-				call dword ptr [edx + 0x54] // PhysicsObject::GetRigidBody
-				mov edx, dword ptr [eax]
-
-				mov ecx, eax
-				call dword ptr [edx + 0x30] // RigidBody::GetSpeedXY
-
-				jmp conclusion
-
-				zero:
-				fldz
-
-				conclusion:
-				// Nothing!
-			}
-		}
-
-
 		static void MakeVehiclesFlee(HashContainers::AddressSet& copVehicles)
 		{
 			for (const address copVehicle : copVehicles)
@@ -239,9 +208,35 @@ namespace StrategyOverrides
 		}
 
 
+		void GetRigidBodyOfTarget()
+		{
+			const address pursuitTarget = *((address*)(this->pursuit + 0x74));
+			const address physicsObject = *((address*)(pursuitTarget + 0x1C));
+
+			this->rigidBodyOfTarget = (physicsObject) ? *((address*)(physicsObject + 0x4C)) : 0x0;
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (not this->rigidBodyOfTarget)
+					Globals::logger.Log("WARNING: [SGY] Invalid PhysicsObject in", this->pursuit);
+			}
+		}
+
+
+		bool IsSpeedOfTargetBelowThreshold() const
+		{
+			if (not this->rigidBodyOfTarget) return false;
+
+			static const auto GetSpeedXZ = (float (__thiscall*)(address))0x6711F0;
+
+			const float speedThreshold = (this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold;
+			return (GetSpeedXZ(this->rigidBodyOfTarget) < speedThreshold);
+		}
+
+
 		bool IsSearchModeActive() const
 		{
-			return (*(this->pursuitStatus) == 2);
+			return (this->pursuitStatus == 2);
 		}
 
 
@@ -249,9 +244,7 @@ namespace StrategyOverrides
 		{
 			if ((not this->watchingHeavyStrategy3) and (this->vehiclesOfUnblockedHeavy3.empty())) return;
 
-			const float speedThreshold = (*(this->isJerk)) ? jerkSpeedThreshold : baseSpeedThreshold;
-
-			if ((this->GetSpeedOfTarget(this->pursuit) < speedThreshold) or (this->IsSearchModeActive()))
+			if (this->IsSpeedOfTargetBelowThreshold() or this->IsSearchModeActive())
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[SGY] Making HeavyStrategy 3 vehicles flee");
@@ -293,6 +286,12 @@ namespace StrategyOverrides
 		{
 			this->UpdateUnblockTimer(IntervalTimer::Setting::LENGTH);
 			this->CheckUnblockTimer();
+		}
+
+
+		void UpdateOncePerPursuit() override
+		{
+			this->GetRigidBodyOfTarget();
 		}
 
 

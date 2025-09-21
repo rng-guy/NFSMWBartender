@@ -130,9 +130,9 @@ namespace CopSpawnTables
 
 					iterator = this->copTypeToEntry.erase(iterator);
 
-					numRemoved++;
+					++numRemoved;
 				}
-				else iterator++;
+				else ++iterator;
 			}
 
 			static const std::string fillerVehicle = "copmidsize";
@@ -191,7 +191,7 @@ namespace CopSpawnTables
 		{
 			if (not this->HasCapacity()) return nullptr;
 
-			const int randomNumber     = Globals::prng.Generate<int>(0, this->currentTotalCopChance);
+			const int randomNumber     = Globals::prng.GenerateNumber<int>(1, this->currentTotalCopChance);
 			int       cumulativeChance = 0;
 
 			for (const auto& pair : this->copTypeToEntry)
@@ -200,7 +200,7 @@ namespace CopSpawnTables
 				{
 					cumulativeChance += pair.second.chance;
 
-					if (cumulativeChance > randomNumber) 
+					if (randomNumber <= cumulativeChance) 
 						return this->TypeToName(pair.first);
 				}
 			}
@@ -266,15 +266,15 @@ namespace CopSpawnTables
 		std::vector<int>         copChances;
 
 		std::string section;
-		size_t      numberOfEntries;
+		size_t      numEntries;
 
-		for (size_t heatLevel : HeatParameters::heatLevels)
+		for (const size_t heatLevel : HeatParameters::heatLevels)
 		{
 			section = std::vformat(format + tableName, std::make_format_args(heatLevel));
 
 			if (hasCounts)
 			{
-				numberOfEntries = parser.ParseParameterTable
+				numEntries = parser.ParseParameterTable
 				(
 					section,
 					copNames,
@@ -282,9 +282,9 @@ namespace CopSpawnTables
 					ConfigParser::UserParameter<int>(copChances, 1)
 				);
 			}
-			else numberOfEntries = parser.ParseUserParameter<int>(section, copNames, copChances, 1);
+			else numEntries = parser.ParseUserParameter<int>(section, copNames, copChances, 1);
 
-			for (size_t entryID = 0; entryID < numberOfEntries; entryID++)
+			for (size_t entryID = 0; entryID < numEntries; ++entryID)
 				spawnTables[heatLevel - 1].AddType(copNames[entryID], (hasCounts) ? copCounts[entryID] : 1, copChances[entryID]);
 		}
 	}
@@ -315,10 +315,10 @@ namespace CopSpawnTables
 		{
 			const std::string format = (forRaces) ? "Race{:02}:" : "Heat{:02}:";
 
-			ParseTables(parser, "Events",     format, eventSpawnTables    .Get(forRaces), true);
-			ParseTables(parser, "Patrols",    format, patrolSpawnTables   .Get(forRaces), false);
-			ParseTables(parser, "Chasers",    format, chaserSpawnTables   .Get(forRaces), true);
-			ParseTables(parser, "Roadblocks", format, roadblockSpawnTables.Get(forRaces), true);
+			ParseTables(parser, "Events",     format, eventSpawnTables    .GetValues(forRaces), true);
+			ParseTables(parser, "Patrols",    format, patrolSpawnTables   .GetValues(forRaces), false);
+			ParseTables(parser, "Chasers",    format, chaserSpawnTables   .GetValues(forRaces), true);
+			ParseTables(parser, "Roadblocks", format, roadblockSpawnTables.GetValues(forRaces), true);
 		}
 
 		// Check for and deal with empty tables
@@ -351,13 +351,13 @@ namespace CopSpawnTables
 
 		for (const bool forRaces : {false, true})
 		{
-			for (size_t heatLevel : HeatParameters::heatLevels)
+			for (const size_t heatLevel : HeatParameters::heatLevels)
 			{
 				// With logging disabled, the compiler optimises all arguments away
-				(eventSpawnTables    .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Events",     forRaces, heatLevel);
-				(patrolSpawnTables   .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Patrols",    forRaces, heatLevel);
-				(chaserSpawnTables   .Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Chasers",    forRaces, heatLevel);
-				(roadblockSpawnTables.Get(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Roadblocks", forRaces, heatLevel);
+				(eventSpawnTables    .GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Events",     forRaces, heatLevel);
+				(patrolSpawnTables   .GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Patrols",    forRaces, heatLevel);
+				(chaserSpawnTables   .GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Chasers",    forRaces, heatLevel);
+				(roadblockSpawnTables.GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Roadblocks", forRaces, heatLevel);
 			}
 		}
 	}

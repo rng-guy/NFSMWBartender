@@ -85,7 +85,7 @@ namespace DestructionStrings
 
 		static const auto GetBinaryKey = (binary (__cdecl*)(const char*))0x460BF0;
 
-		for (size_t vehicleID = 0; vehicleID < numCopVehicles; vehicleID++)
+		for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
 		{
 			copTypeToDestructionKey.insert
 			(

@@ -104,7 +104,7 @@ namespace CopFleeOverrides
 
 			case CopLabel::CHASER:
 				flagVehicle = (fleeingEnableds.current and (not this->IsInChasersTable(pair.first)));
-				if (flagVehicle) timeUntilFlee = Globals::prng.Generate<float>(minFleeDelays.current, maxFleeDelays.current);
+				if (flagVehicle) timeUntilFlee = Globals::prng.GenerateNumber<float>(minFleeDelays.current, maxFleeDelays.current);
 				break;
 
 			default:
@@ -115,7 +115,7 @@ namespace CopFleeOverrides
 			if (flagVehicle)
 			{
 				pair.second.status = Status::FLAGGED;
-				this->copVehicleToFleeTimestamp.insert({pair.first, *(PursuitFeatures::simulationTime) + timeUntilFlee});
+				this->copVehicleToFleeTimestamp.insert({pair.first, PursuitFeatures::simulationTime + timeUntilFlee});
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[FLE]", pair.first, "fleeing in", timeUntilFlee);
@@ -150,12 +150,11 @@ namespace CopFleeOverrides
 		{
 			if (this->copVehicleToFleeTimestamp.empty()) return;
 			
-			const float simulationTime = *(PursuitFeatures::simulationTime);
-			auto        iterator       = this->copVehicleToFleeTimestamp.begin();
+			auto iterator = this->copVehicleToFleeTimestamp.begin();
 
 			while (iterator != this->copVehicleToFleeTimestamp.end())
 			{
-				if (simulationTime >= iterator->second)
+				if (PursuitFeatures::simulationTime >= iterator->second)
 				{
 					this->copVehicleToAssessment.at(iterator->first).status = Status::FLEEING;
 					PursuitFeatures::MakeVehicleFlee(iterator->first);
@@ -165,7 +164,7 @@ namespace CopFleeOverrides
 
 					iterator = this->copVehicleToFleeTimestamp.erase(iterator);
 				}
-				else iterator++;
+				else ++iterator;
 			}
 		}
 
@@ -266,8 +265,7 @@ namespace CopFleeOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
 		// Heat parameters
-		HeatParameters::ParseOptional <float, float>(parser, "Chasers:Fleeing", fleeingEnableds, {minFleeDelays, 1.f}, {maxFleeDelays, 1.f});
-		HeatParameters::CheckIntervals<float>       (minFleeDelays, maxFleeDelays);
+		HeatParameters::ParseOptionalInterval(parser, "Chasers:Fleeing", fleeingEnableds, minFleeDelays, maxFleeDelays);
 
 		// Code caves
 		MemoryEditor::DigCodeCave(UpdateFormation, updateFormationEntrance, updateFormationExit);

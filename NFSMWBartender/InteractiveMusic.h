@@ -35,66 +35,27 @@ namespace InteractiveMusic
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	int GetFirstTrack()
+	int GetFirstTrackType()
 	{
-		if (shuffleFirstTrack)
-		{
-			switch (tracks.size())
-			{
-			case 0:
-				currentTrackID = Globals::prng.Generate<size_t>(0, 4);
-				break;
-
-			case 1:
-				currentTrackID = 0;
-				break;
-
-			default:
-				currentTrackID = Globals::prng.Generate<size_t>(0, tracks.size());
-			}
-		}
-		else currentTrackID = 0;
-
-		const int firstTrack = (tracks.empty()) ? (int)currentTrackID : tracks[currentTrackID];
+		currentTrackID = (shuffleFirstTrack) ? Globals::prng.GenerateIndex(tracks.size()) : 0;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogIndent("[MUS] First track:", firstTrack, (int)currentTrackID);
+			Globals::logger.LogIndent("[MUS] First track type:", tracks[currentTrackID]);
 
-		return firstTrack;
+		return tracks[currentTrackID];
 	}
 
 
 
-	int GetNextTrack()
+	int GetNextTrackType()
 	{
-		if (shuffleAfterFirst)
-		{
-			switch (tracks.size())
-			{
-			case 0:
-				currentTrackID += Globals::prng.Generate<size_t>(1, 3);
-				break;
-
-			case 1:
-				currentTrackID = 0;
-				break;
-
-			case 2:
-				currentTrackID++;
-				break;
-
-			default:
-				currentTrackID += Globals::prng.Generate<size_t>(1, tracks.size() - 1);
-			}
-		}
-		else currentTrackID++;
-
-		const int nextTrack = (tracks.empty()) ? (int)(currentTrackID %= 4) : tracks[currentTrackID %= tracks.size()];
+		currentTrackID += (shuffleAfterFirst and (tracks.size() > 2)) ? Globals::prng.GenerateNumber<size_t>(1, tracks.size() - 1) : 1;
+		currentTrackID %= tracks.size();
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogIndent("[MUS] Next track:", nextTrack, (int)currentTrackID);
+			Globals::logger.LogIndent("[MUS] Next track type:", tracks[currentTrackID]);
 
-		return nextTrack;
+		return tracks[currentTrackID];
 	}
 
 
@@ -110,7 +71,7 @@ namespace InteractiveMusic
 	{
 		__asm
 		{
-			call GetFirstTrack
+			call GetFirstTrackType
 
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x2C]
@@ -129,7 +90,7 @@ namespace InteractiveMusic
 	{
 		__asm
 		{
-			call GetNextTrack
+			call GetNextTrackType
 
 			jmp dword ptr nextTrackExit
 		}
@@ -205,7 +166,7 @@ namespace InteractiveMusic
 
 		tracks.reserve(maxNumTracks);
 
-		for (size_t trackID = 0; trackID < maxNumTracks; trackID++)
+		for (size_t trackID = 0; trackID < maxNumTracks; ++trackID)
 		{
 			if (isValids[trackID])
 				tracks.push_back(allTracks[trackID]);
@@ -257,9 +218,9 @@ namespace InteractiveMusic
 
 				iterator = tracks.erase(iterator);
 
-				numRemoved++;
+				++numRemoved;
 			}
-			else iterator++;
+			else ++iterator;
 		}
 
 		if constexpr (Globals::loggingEnabled)
@@ -277,6 +238,9 @@ namespace InteractiveMusic
 			Globals::logger.LogLongIndent((shuffleFirstTrack) ? "Shuffled" : "Fixed", "first track");
 			Globals::logger.LogLongIndent((shuffleAfterFirst) ? "Shuffled" : "Fixed", "next track(s)");
 		}
+
+		if (tracks.empty())
+			tracks = {0, 1, 2, 3};
 	}
 
 

@@ -182,7 +182,7 @@ namespace ConfigParser
 					upperBound
 				);
 
-				formatIndex++;
+				++formatIndex;
 			}
 
 			return numTotalReads;
@@ -275,7 +275,7 @@ namespace ConfigParser
 
 			([&]{parameters.values.clear();}(), ...);
 
-			for (size_t rowID = 0; rowID < tableRows.size(); rowID++)
+			for (size_t rowID = 0; rowID < tableRows.size(); ++rowID)
 			{
 				columnStrings = this->SplitTableRow(tableRows[rowID]);
 				if (columnStrings.size() != numColumns) continue;
@@ -292,32 +292,40 @@ namespace ConfigParser
 						if ((not wasValidRow) and pushedValue[columnID]) 
 							parameters.values.pop_back();
 
-						if (isValidRow) 
+						if (isValidRow)
+						{
 							isValidRow &= this->ParseParameterFromString<T>
 							(
-								columnStrings[columnID], 
+								columnStrings[columnID],
 								parameterValue,
-								parameters.lowerBound, 
+								parameters.lowerBound,
 								parameters.upperBound
 							);
+						}
 
-						if (isValidRow) parameters.values.push_back(parameterValue);
+						if (isValidRow) 
+							parameters.values.push_back(parameterValue);
+
 						pushedValue[columnID++] = isValidRow;
 					}
 				(), ...);
 
-				if (isValidRow) parameterKeys.push_back(unverifiedKeys[rowID]);
+				if (isValidRow) 
+					parameterKeys.push_back(unverifiedKeys[rowID]);
 			}
 
-			columnID = 0;
+			if (not isValidRow)
+			{
+				columnID = 0;
 
-			(
-				[&]
-				{
-					if ((not isValidRow) and (pushedValue[columnID++])) 
-						parameters.values.erase(parameters.values.end());
-				}
-			(), ...);
+				(
+					[&]
+					{
+						if (pushedValue[columnID++])
+							parameters.values.erase(parameters.values.end());
+					}
+				(), ...);
+			}
 
 			return parameterKeys.size();
 		}
@@ -346,7 +354,7 @@ namespace ConfigParser
 				[&]
 				{
 					if (parameters.defaultValue)
-						numDefaultValues++;
+						++numDefaultValues;
 				}
 			(), ...);
 
@@ -379,7 +387,7 @@ namespace ConfigParser
 									defaultValue
 								);
 
-							columnID++;
+							++columnID;
 						}
 					(), ...);
 				}
@@ -400,7 +408,7 @@ namespace ConfigParser
 								parameters.upperBound
 							);
 
-							columnID++;
+							++columnID;
 						}
 					(), ...);
 				}
@@ -427,7 +435,7 @@ namespace ConfigParser
 							else
 								defaultRow.append(std::to_string(parameters.defaultValue.value()));
 
-							columnID++;
+							++columnID;
 						}
 					(), ...);
 				}
@@ -438,7 +446,7 @@ namespace ConfigParser
 			else
 				this->ParseFormatParameter<std::string>(section, format, tableRows);
 
-			for (size_t rowID = 0; rowID < size; rowID++)
+			for (size_t rowID = 0; rowID < size; ++rowID)
 			{
 				columnStrings     = this->SplitTableRow(tableRows[rowID]);
 				isValidRow[rowID] = (columnStrings.size() == numColumns);
@@ -458,14 +466,14 @@ namespace ConfigParser
 								parameters.upperBound
 							);
 
-						columnID++;
+						++columnID;
 					}
 				(), ...);
 			}
 
 			if (numDefaultValues == numColumns)
 			{
-				for (size_t rowID = 0; rowID < size; rowID++)
+				for (size_t rowID = 0; rowID < size; ++rowID)
 				{
 					if (isValidRow[rowID]) continue;
 					([&]{parameters.values[rowID] = parameters.defaultValue.value();}(), ...);

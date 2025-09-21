@@ -109,14 +109,14 @@ namespace GroundSupport
 
 		const size_t numStrategies = GetNumStrategies(supportNode);
 
-		for (size_t strategyID = 0; strategyID < numStrategies; strategyID++)
+		for (size_t strategyID = 0; strategyID < numStrategies; ++strategyID)
 		{
 			const address strategy = GetStrategy(supportNode, strategyID);
 			if (not IsStrategyAvailable(pursuit, strategy)) continue;
 
 			const int chance = *((int*)(strategy + 0x4));
 
-			if (Globals::prng.Generate<int>(0, 100) < chance)
+			if (Globals::prng.GenerateNumber<int>(1, 100) <= chance)
 				candidateStrategies.push_back(strategy);
 		}
 	}
@@ -156,8 +156,7 @@ namespace GroundSupport
 
 		if (not candidateStrategies.empty())
 		{
-			const size_t index = (candidateStrategies.size() > 1) ? Globals::prng.Generate<size_t>(0, candidateStrategies.size()) : 0;
-
+			const size_t  index           = Globals::prng.GenerateIndex(candidateStrategies.size());
 			const address randomStrategy  = candidateStrategies[index];
 			const bool    isHeavyStrategy = (index < numHeavyStrategies);
 
@@ -321,27 +320,13 @@ namespace GroundSupport
 
 
 	constexpr address onAttachedEntrance = 0x423F92;
-	constexpr address onAttachedExit     = 0x423FC8;
+	constexpr address onAttachedExit     = 0x423F97;
 
 	__declspec(naked) void OnAttached()
 	{
 		__asm
 		{
 			push dword ptr leaderCrossVehicles.current
-			mov dword ptr [esi + 0x148], ebx
-			call Globals::GetVaultKey
-
-			push dword ptr heavy3HeavyVehicles.current
-			mov ebx, eax
-			call Globals::GetVaultKey
-
-			push dword ptr heavy3LightVehicles.current
-			mov ebp, eax
-			call Globals::GetVaultKey
-
-			push dword ptr leaderHenchmenVehicles.current
-			mov dword ptr [esp + 0x30], eax
-			call Globals::GetVaultKey
 
 			jmp dword ptr onAttachedExit
 		}

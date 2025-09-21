@@ -46,10 +46,12 @@ namespace LeaderOverrides
 
 	private:
 
-		int* const leaderFlag = (int*)(this->pursuit + 0x164);
+		int&  leaderFlag   = *((int*)(this->pursuit + 0x164));
+		bool& skipPriority = *((bool*)(this->pursuit + 0x214));
 
-		address leaderVehicle = 0x0;
-		bool    leaderIsAggro = false;
+		address leaderVehicle   = 0x0;
+		bool    leaderIsAggro   = false;
+		bool    henchmenPending = true;
 
 		HashContainers::AddressSet passiveHenchmenVehicles;
 
@@ -58,78 +60,85 @@ namespace LeaderOverrides
 		IntervalTimer leaderAggroTimer   = IntervalTimer(leaderAggroEnableds,   minLeaderAggroDelays,   maxLeaderAggroDelays);
 		IntervalTimer henchmenAggroTimer = IntervalTimer(henchmenAggroEnableds, minHenchmenAggroDelays, maxHenchmenAggroDelays);
 
-		IntervalTimer* resetTimer = nullptr;
+		IntervalTimer* flagResetTimer = nullptr;
 
 
 		bool LeaderCanSpawn() const
 		{
-			return (this->resetTimer) ? this->resetTimer->HasExpired() : true;
+			return (this->flagResetTimer) ? this->flagResetTimer->HasExpired() : true;
 		}
 
 
 		void UpdateLeaderFlag() const
 		{
-			*(this->leaderFlag) = (this->leaderVehicle) ? 1 : ((this->LeaderCanSpawn()) ? 0 : 2);
+			this->leaderFlag = (this->leaderVehicle) ? 1 : ((this->LeaderCanSpawn()) ? 0 : 2);
 		}
 
 
-		void UpdateResetTimer(const IntervalTimer::Setting setting)
+		void UpdateFlagResetTimer(const IntervalTimer::Setting setting)
 		{
-			if (not this->resetTimer) return;
+			if (not this->flagResetTimer) return;
 
-			this->resetTimer->Update(setting);
+			this->flagResetTimer->Update(setting);
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->resetTimer->IsEnabled())
-					Globals::logger.Log(this->pursuit, "[LDR] Flag reset in", this->resetTimer->TimeLeft());
+				if (this->flagResetTimer->IsEnabled())
+					Globals::logger.Log(this->pursuit, "[LDR] Flag reset in", this->flagResetTimer->TimeLeft());
 			}
 		}
 
 
-		void MakeVehicleAggressive(const address copVehicle) const
+		void UpdateLeaderAggroTimer(const IntervalTimer::Setting setting)
 		{
-			static const auto SetSupportGoal = (void (__thiscall*)(address, vault))0x409850;
+			if (not this->leaderVehicle) return;
+
+			this->leaderAggroTimer.Update(setting);
+	
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->leaderAggroTimer.IsEnabled())
+					Globals::logger.Log(this->pursuit, "[LDR] Leader aggro in", this->leaderAggroTimer.TimeLeft());
+			}
+		}
+
+
+		void UpdateHenchmenAggroTimer(const IntervalTimer::Setting setting)
+		{
+			if (this->passiveHenchmenVehicles.empty()) return;
+
+			this->henchmenAggroTimer.Update(setting);
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->henchmenAggroTimer.IsEnabled())
+					Globals::logger.Log(this->pursuit, "[LDR] Henchmen aggro in", this->henchmenAggroTimer.TimeLeft());
+			}
+		}
+
+
+		static bool MakeVehicleAggro(const address copVehicle)
+		{
+			static const auto SetSupportGoal = (void(__thiscall*)(address, vault))0x409850;
 			const address     copAIVehicle   = *((address*)(copVehicle + 0x54));
 
 			if (copAIVehicle)
 				SetSupportGoal(copAIVehicle + 0x70C, 0x0);
+
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [LDR] Invalid AIVehicle pointer for", copVehicle);
+
+			return copAIVehicle;
 		}
 
 
-		void UpdateAggroTimers(const IntervalTimer::Setting setting)
-		{
-			if (this->leaderVehicle and (not leaderIsAggro))
-			{
-				this->leaderAggroTimer.Update(setting);
-	
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (this->leaderAggroTimer.IsEnabled())
-						Globals::logger.Log(this->pursuit, "[LDR] Leader aggro in", this->leaderAggroTimer.TimeLeft());
-				}
-			}
-
-			if (this->leaderVehicle or (not this->passiveHenchmenVehicles.empty()))
-			{
-				this->henchmenAggroTimer.Update(setting);
-
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (this->henchmenAggroTimer.IsEnabled())
-						Globals::logger.Log(this->pursuit, "[LDR] Henchmen aggro in", this->henchmenAggroTimer.TimeLeft());
-				}
-			}
-		}
-
-
-		void MakeHenchmenAggressive()
+		void MakeHenchmenAggro()
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[LDR] Henchmen now aggressive");
 
 			for (const address henchmenVehicle : this->passiveHenchmenVehicles)
-				this->MakeVehicleAggressive(henchmenVehicle);
+				this->MakeVehicleAggro(henchmenVehicle);
 
 			this->passiveHenchmenVehicles.clear();
 		}
@@ -144,7 +153,7 @@ namespace LeaderOverrides
 					if constexpr (Globals::loggingEnabled)
 						Globals::logger.Log(this->pursuit, "[LDR] Leader now aggressive");
 
-					this->MakeVehicleAggressive(this->leaderVehicle);
+					this->MakeVehicleAggro(this->leaderVehicle);
 					this->leaderIsAggro = true;
 				}
 			}
@@ -152,7 +161,7 @@ namespace LeaderOverrides
 			if (not this->passiveHenchmenVehicles.empty())
 			{
 				if (this->henchmenAggroTimer.HasExpired())
-					this->MakeHenchmenAggressive();
+					this->MakeHenchmenAggro();
 			}
 		}
 
@@ -172,8 +181,10 @@ namespace LeaderOverrides
 
 		void UpdateOnHeatChange() override
 		{
-			this->UpdateResetTimer(IntervalTimer::Setting::LENGTH);
-			this->UpdateAggroTimers(IntervalTimer::Setting::LENGTH);
+			this->UpdateFlagResetTimer    (IntervalTimer::Setting::LENGTH);
+			this->UpdateLeaderAggroTimer  (IntervalTimer::Setting::LENGTH);
+			this->UpdateHenchmenAggroTimer(IntervalTimer::Setting::LENGTH);
+
 			this->UpdateLeaderFlag();
 		}
 
@@ -189,14 +200,25 @@ namespace LeaderOverrides
 
 			if (not this->leaderVehicle)
 			{
-				this->leaderVehicle = copVehicle;
-				this->leaderIsAggro = false;
-				this->resetTimer    = nullptr;
+				this->leaderVehicle   = copVehicle;
+				this->skipPriority    = true;
+				this->leaderIsAggro   = false;
+				this->henchmenPending = true;
+				this->flagResetTimer  = nullptr;
 
-				this->UpdateAggroTimers(IntervalTimer::Setting::ALL);
+				this->UpdateLeaderAggroTimer(IntervalTimer::Setting::ALL);
 				this->UpdateLeaderFlag();
 			}
-			else this->passiveHenchmenVehicles.insert(copVehicle);
+			else
+			{
+				this->passiveHenchmenVehicles.insert(copVehicle);
+
+				if (this->henchmenPending)
+				{
+					this->UpdateHenchmenAggroTimer(IntervalTimer::Setting::ALL);
+					this->henchmenPending = false;
+				}
+			}
 		}
 
 
@@ -216,13 +238,13 @@ namespace LeaderOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[LDR] Leader", (isWrecked) ? "wrecked" : "lost");
 
-				this->leaderVehicle = 0x0;
-				this->resetTimer    = &((isWrecked) ? this->wreckResetTimer : this->lostResetTimer);
+				this->leaderVehicle  = 0x0;
+				this->flagResetTimer = &((isWrecked) ? this->wreckResetTimer : this->lostResetTimer);
 
 				if (not this->passiveHenchmenVehicles.empty())
-					this->MakeHenchmenAggressive();
+					this->MakeHenchmenAggro();
 
-				this->UpdateResetTimer(IntervalTimer::Setting::ALL);
+				this->UpdateFlagResetTimer(IntervalTimer::Setting::ALL);
 				this->UpdateLeaderFlag();
 			}
 			else this->passiveHenchmenVehicles.erase(copVehicle);
@@ -277,9 +299,9 @@ namespace LeaderOverrides
 		);
 
 		// Code caves
-		MemoryEditor::WriteToAddressRange(0x90, 0x42B6AA, 0x42B6B4); // Cross flag to 0
-		MemoryEditor::WriteToAddressRange(0x90, 0x42402C, 0x424036); // Cross flag to 1
-		MemoryEditor::WriteToAddressRange(0x90, 0x42B631, 0x42B643); // Cross flag to 2
+		MemoryEditor::WriteToAddressRange(0x90, 0x42B6A2, 0x42B6B4); // Cross flag = 0
+		MemoryEditor::WriteToAddressRange(0x90, 0x42402A, 0x424036); // Cross flag = 1
+		MemoryEditor::WriteToAddressRange(0x90, 0x42B631, 0x42B643); // Cross flag = 2
 
 		// Status flag
 		featureEnabled = true;

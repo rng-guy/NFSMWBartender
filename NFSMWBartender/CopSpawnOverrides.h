@@ -17,18 +17,14 @@ namespace CopSpawnOverrides
 
 	class Contingent
 	{
-		using TablePair = HeatParameters::Pair<CopSpawnTables::SpawnTable>;
-
-
-
 	private:
 
-		const address          pursuit;
-		const TablePair* const source;
+		const CopSpawnTables::SpawnTable* const& source;
+		const address                            pursuit;
 
 		int numActiveCops = 0;
 
-		CopSpawnTables::SpawnTable table = *(this->source->current);
+		CopSpawnTables::SpawnTable table = *(this->source);
 
 		HashContainers::VaultMap<int> copTypeToCurrentCount;
 
@@ -59,10 +55,10 @@ namespace CopSpawnOverrides
 
 		explicit Contingent
 		(
-			const TablePair& source,
-			const address    pursuit = 0x0
+			const HeatParameters::Pair<CopSpawnTables::SpawnTable>& tables,
+			const address                                           pursuit = 0x0
 		) 
-			: source(&source), pursuit(pursuit) 
+			: source(tables.current), pursuit(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -74,7 +70,7 @@ namespace CopSpawnOverrides
 
 		void UpdateSpawnTable()
 		{
-			this->table = *(this->source->current);
+			this->table = *(this->source);
 
 			for (const auto& pair : this->copTypeToCurrentCount)
 			{
@@ -113,10 +109,10 @@ namespace CopSpawnOverrides
 			const auto  addedType = this->copTypeToCurrentCount.insert({copType, 1});
 
 			if (not addedType.second)
-				(addedType.first->second)++;
+				++(addedType.first->second);
 
 			this->UpdateSpawnTableCapacity(copType, -1);
-			(this->numActiveCops)++;
+			++(this->numActiveCops);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -133,10 +129,10 @@ namespace CopSpawnOverrides
 
 			if (foundType != this->copTypeToCurrentCount.end())
 			{
-				(foundType->second)--;
+				--(foundType->second);
 				
 				this->UpdateSpawnTableCapacity(copType, +1);
-				(this->numActiveCops)--;
+				--(this->numActiveCops);
 
 				if constexpr (Globals::loggingEnabled)
 				{
@@ -180,7 +176,7 @@ namespace CopSpawnOverrides
 		const char* GetNameOfSpawnableCop() const
 		{
 			const char* const copName = this->GetNameOfAvailableCop();
-			return (copName) ? copName : this->source->current->GetRandomCopName();
+			return (copName) ? copName : this->source->GetRandomCopName();
 		}
 	};
 
@@ -197,8 +193,6 @@ namespace CopSpawnOverrides
 	HeatParameters::Pair<int> maxActiveCounts(8);
 
 	// Code caves
-	const char* const placeholderVehicle = "copmidsize";
-
 	bool skipEventSpawns = true;
 
 	Contingent events    (CopSpawnTables::eventSpawnTables);
@@ -214,11 +208,11 @@ namespace CopSpawnOverrides
 	{
 	private:
 
-		int numPatrolCarsToSpawn = 0;
+		int maxNumPatrolCars = 0;
 		
-		int* const       fullWaveCapacity  = (int*)(this->pursuit + 0x144);
-		int* const       numCopsLostInWave = (int*)(this->pursuit + 0x14C);
-		const int* const pursuitStatus     = (int*)(this->pursuit + 0x218);
+		int&       fullWaveCapacity  = *((int*)(this->pursuit + 0x144));
+		int&       numCopsLostInWave = *((int*)(this->pursuit + 0x14C));
+		const int& pursuitStatus     = *((int*)(this->pursuit + 0x218));
 
 		Contingent chasers = Contingent(CopSpawnTables::chaserSpawnTables, this->pursuit);
 
@@ -239,59 +233,59 @@ namespace CopSpawnOverrides
 		}
 
 
+		address GetFromPursuitNode
+		(
+			const vault  attributeKey,
+			const size_t attributeIndex = 0
+		) 
+			const
+		{
+			static const auto GetPursuitNode      = (address (__thiscall*)(address))               0x418E90;
+			static const auto GetPursuitAttribute = (address (__thiscall*)(address, vault, size_t))0x454810;
+
+			const address node = GetPursuitNode(this->pursuit);
+			return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : node;
+		}
+
+
 		void UpdateNumPatrolCars()
 		{
-			this->numPatrolCarsToSpawn = 0;
+			const address attribute = this->GetFromPursuitNode(0x24F7A1BC); // fetches "NumPatrolCars"
 
-			// PursuitAttributes node
-			static const auto GetPursuitNode = (address (__thiscall*)(address))0x418E90;
-			const address     pursuitNode    = GetPursuitNode(this->pursuit);
-			
-			if (not pursuitNode)
+			this->maxNumPatrolCars = (attribute) ? *((int*)attribute) : 0;
+
+			if constexpr (Globals::loggingEnabled)
 			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [SPA] Invalid pursuitNode pointer in", this->pursuit);
+				if (attribute)
+					Globals::logger.Log(this->pursuit, "[SPA] Max. patrol cars:", this->maxNumPatrolCars);
 
-				return;
+				else
+					Globals::logger.Log("WARNING: [SPA] Invalid numPatrolCars pointer in", this->pursuit);
 			}
-
-			// Number of patrol cars
-			static const auto GetPursuitAttribute = (address (__thiscall*)(address, vault, int))0x454810;
-			const address     attribute           = GetPursuitAttribute(pursuitNode, 0x24F7A1BC, 0);      // fetches "NumPatrolCars"
-
-			if (attribute)
-			{
-				this->numPatrolCarsToSpawn = *((int*)attribute);
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[SPA] Max. patrol cars:", this->numPatrolCarsToSpawn);
-			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] Invalid numPatrolCars pointer in", this->pursuit);
 		}
 
 
 		bool IsSearchModeActive() const 
 		{
-			return (*(this->pursuitStatus) == 2);
+			return (this->pursuitStatus == 2);
 		}
 
 
 		int GetWaveCapacity() const
 		{
-			return *(this->fullWaveCapacity) - (*(this->numCopsLostInWave) + this->chasers.GetNumActiveCops());
+			return this->fullWaveCapacity - (this->numCopsLostInWave + this->chasers.GetNumActiveCops());
 		}
 
 
 		void CorrectWaveCapacity() const
 		{
-			if (*(this->fullWaveCapacity) == 0) return;
+			if (this->fullWaveCapacity == 0) return;
 
 			const int waveCapacity = this->GetWaveCapacity();
 
 			if (waveCapacity < 0)
 			{
-				*(this->fullWaveCapacity) -= waveCapacity;
+				this->fullWaveCapacity -= waveCapacity;
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[SPA] Wave correction:", -waveCapacity);
@@ -302,7 +296,7 @@ namespace CopSpawnOverrides
 		bool IsWaveExhausted() const
 		{
 			if (this->IsSearchModeActive())
-				return (not (this->chasers.GetNumActiveCops() < this->numPatrolCarsToSpawn));
+				return (not (this->chasers.GetNumActiveCops() < this->maxNumPatrolCars));
 
 			else
 				return (not ((this->GetWaveCapacity() > 0) or (this->chasers.GetNumActiveCops() < minActiveCounts.current)));
@@ -366,7 +360,7 @@ namespace CopSpawnOverrides
 			if (copLabel == CopLabel::CHASER)
 			{
 				if (this->chasers.RemoveVehicle(copVehicle))
-					(*(this->numCopsLostInWave))++;
+					++(this->numCopsLostInWave);
 			}
 		}
 

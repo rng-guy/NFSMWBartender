@@ -84,9 +84,9 @@ namespace HashContainers
 
 				iterator = map.erase(iterator);
 
-				numRemoved++;
+				++numRemoved;
 			}
-			else iterator++;
+			else ++iterator;
 		}
 
 		if constexpr (Globals::loggingEnabled)

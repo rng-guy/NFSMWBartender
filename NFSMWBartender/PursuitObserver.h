@@ -109,7 +109,7 @@ namespace PursuitObserver
 			for (const auto& reaction : this->pursuitReactions)
 			{
 				if (this->perPursuitUpdatePending)
-					reaction.get()->UpdateOnceInPursuit();
+					reaction.get()->UpdateOncePerPursuit();
 
 				if (this->perHeatLevelUpdatePending)
 					reaction.get()->UpdateOncePerHeatLevel();
@@ -227,7 +227,7 @@ namespace PursuitObserver
 					newObserver.AddPursuitFeature<LeaderOverrides::LeaderManager>();
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [OBS] Duplicate pursuit addition", pursuit);
+				Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
 		}
 
 
