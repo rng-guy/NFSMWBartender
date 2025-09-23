@@ -34,7 +34,8 @@ namespace HelicopterOverrides
 	HeatParameters::Pair<float> maxRejoinDelays  (1.f);
 
 	// Conversions
-	float maxFuelTime = std::max<float>(maxDespawnDelays.current, maxRejoinDelays.current);
+	float maxFuelTime      = (helicopterEnableds.current) ? maxDespawnDelays.current : 10.f;                     // seconds
+	float bailoutThreshold = (rejoiningEnableds.current)  ? std::min<float>(minRejoinDelays.current, 8.f) : 8.f;
 
 	// Code caves
 	bool skipBailoutSpeech = false;
@@ -280,15 +281,33 @@ namespace HelicopterOverrides
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address bailoutEntrance = 0x717C00;
-	constexpr address bailoutExit     = 0x717C06;
+	constexpr address maxFuelTimeEntrance = 0x42AD9B;
+	constexpr address maxFuelTimeExit     = 0x42ADA1;
 
-	__declspec(naked) void Bailout()
+	__declspec(naked) void MaxFuelTime()
+	{
+		__asm
+		{
+			mov ecx, dword ptr maxFuelTime
+
+			// Execute original code and resume
+			mov dword ptr [esi + 0x34], ecx
+
+			jmp dword ptr maxFuelTimeExit
+		}
+	}
+
+
+
+	constexpr address earlyBailoutEntrance = 0x717C00;
+	constexpr address earlyBailoutExit     = 0x717C06;
+
+	__declspec(naked) void EarlyBailout()
 	{
 		__asm
 		{
 			cmp byte ptr skipBailoutSpeech, 0x1
-			jne conclusion
+			jne conclusion // speech enabled
 
 			retn
 
@@ -298,25 +317,7 @@ namespace HelicopterOverrides
 			push esi
 			mov esi, ecx
 
-			jmp dword ptr bailoutExit
-		}
-	}
-
-
-
-	constexpr address fuelTimeEntrance = 0x42AD9B;
-	constexpr address fuelTimeExit     = 0x42ADA1;
-
-	__declspec(naked) void FuelTime()
-	{
-		__asm
-		{
-			mov ecx, dword ptr maxFuelTime
-
-			// Execute original code and resume
-			mov dword ptr [esi + 0x34], ecx
-
-			jmp dword ptr fuelTimeExit
+			jmp dword ptr earlyBailoutExit
 		}
 	}
 
@@ -371,20 +372,13 @@ namespace HelicopterOverrides
 		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
 		HeatParameters::Parse<float>      (parser, "Helicopter:Ramming", {rammingCooldowns, 1.f});
 
-		HeatParameters::ParseOptional<float, float>
-		(
-			parser, 
-			"Helicopter:Rejoining", 
-			rejoiningEnableds, 
-			{minRejoinDelays, 1.f}, 
-			{maxRejoinDelays, 1.f}
-		);
-
-		HeatParameters::CheckIntervals<float>(minRejoinDelays,  maxRejoinDelays);
+		HeatParameters::ParseOptionalInterval(parser, "Helicopter:Rejoining", rejoiningEnableds, minRejoinDelays, maxRejoinDelays);
 
 		// Code caves
-		MemoryEditor::DigCodeCave(Bailout,         bailoutEntrance,         bailoutExit);
-		MemoryEditor::DigCodeCave(FuelTime,        fuelTimeEntrance,        fuelTimeExit);
+		MemoryEditor::Write<float*>(&bailoutThreshold, {0x709F9F, 0x7078B0});
+
+		MemoryEditor::DigCodeCave(MaxFuelTime,     maxFuelTimeEntrance,     maxFuelTimeExit);
+		MemoryEditor::DigCodeCave(EarlyBailout,    earlyBailoutEntrance,    earlyBailoutExit);
 		MemoryEditor::DigCodeCave(RammingCooldown, rammingCooldownEntrance, rammingCooldownExit);
 
 		// Status flag
@@ -430,7 +424,8 @@ namespace HelicopterOverrides
 		minRejoinDelays  .SetToHeat(isRacing, heatLevel);
 		maxRejoinDelays  .SetToHeat(isRacing, heatLevel);
 
-		maxFuelTime = std::max<float>(maxDespawnDelays.current, maxRejoinDelays.current);
+		maxFuelTime      = (helicopterEnableds.current) ? maxDespawnDelays.current : 10.f;
+		bailoutThreshold = (rejoiningEnableds.current)  ? std::min<float>(minRejoinDelays.current, 8.f) : 8.f;
 
 		if constexpr (Globals::loggingEnabled)
 		{

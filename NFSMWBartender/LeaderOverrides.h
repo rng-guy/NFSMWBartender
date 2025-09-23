@@ -49,9 +49,9 @@ namespace LeaderOverrides
 		int&  leaderFlag   = *((int*)(this->pursuit + 0x164));
 		bool& skipPriority = *((bool*)(this->pursuit + 0x214));
 
-		address leaderVehicle   = 0x0;
-		bool    leaderIsAggro   = false;
-		bool    henchmenPending = true;
+		address leaderVehicle  = 0x0;
+		bool    leaderIsAggro  = false;
+		bool    hasNewHenchmen = false;
 
 		HashContainers::AddressSet passiveHenchmenVehicles;
 
@@ -91,7 +91,7 @@ namespace LeaderOverrides
 
 		void UpdateLeaderAggroTimer(const IntervalTimer::Setting setting)
 		{
-			if (not this->leaderVehicle) return;
+			if ((not this->leaderVehicle) or (this->leaderIsAggro)) return;
 
 			this->leaderAggroTimer.Update(setting);
 	
@@ -134,11 +134,14 @@ namespace LeaderOverrides
 
 		void MakeHenchmenAggro()
 		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[LDR] Henchmen now aggressive");
-
 			for (const address henchmenVehicle : this->passiveHenchmenVehicles)
 				this->MakeVehicleAggro(henchmenVehicle);
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (not this->passiveHenchmenVehicles.empty())
+					Globals::logger.Log(this->pursuit, "[LDR] Henchmen now aggressive");
+			}
 
 			this->passiveHenchmenVehicles.clear();
 		}
@@ -146,23 +149,17 @@ namespace LeaderOverrides
 
 		void CheckAggroTimers()
 		{
-			if (this->leaderVehicle and (not leaderIsAggro))
+			if (this->leaderVehicle and (not this->leaderIsAggro) and this->leaderAggroTimer.HasExpired())
 			{
-				if (this->leaderAggroTimer.HasExpired())
-				{
-					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[LDR] Leader now aggressive");
+				this->MakeVehicleAggro(this->leaderVehicle);
+				this->leaderIsAggro = true;
 
-					this->MakeVehicleAggro(this->leaderVehicle);
-					this->leaderIsAggro = true;
-				}
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log(this->pursuit, "[LDR] Leader now aggressive");
 			}
 			
-			if (not this->passiveHenchmenVehicles.empty())
-			{
-				if (this->henchmenAggroTimer.HasExpired())
-					this->MakeHenchmenAggro();
-			}
+			if ((not this->passiveHenchmenVehicles.empty()) and this->henchmenAggroTimer.HasExpired())
+				this->MakeHenchmenAggro();
 		}
 
 
@@ -200,11 +197,11 @@ namespace LeaderOverrides
 
 			if (not this->leaderVehicle)
 			{
-				this->leaderVehicle   = copVehicle;
-				this->skipPriority    = true;
-				this->leaderIsAggro   = false;
-				this->henchmenPending = true;
-				this->flagResetTimer  = nullptr;
+				this->leaderVehicle  = copVehicle;
+				this->skipPriority   = true;
+				this->leaderIsAggro  = false;
+				this->hasNewHenchmen = false;
+				this->flagResetTimer = nullptr;
 
 				this->UpdateLeaderAggroTimer(IntervalTimer::Setting::ALL);
 				this->UpdateLeaderFlag();
@@ -213,10 +210,10 @@ namespace LeaderOverrides
 			{
 				this->passiveHenchmenVehicles.insert(copVehicle);
 
-				if (this->henchmenPending)
+				if (not this->hasNewHenchmen)
 				{
 					this->UpdateHenchmenAggroTimer(IntervalTimer::Setting::ALL);
-					this->henchmenPending = false;
+					this->hasNewHenchmen = true;
 				}
 			}
 		}
@@ -241,11 +238,10 @@ namespace LeaderOverrides
 				this->leaderVehicle  = 0x0;
 				this->flagResetTimer = &((isWrecked) ? this->wreckResetTimer : this->lostResetTimer);
 
-				if (not this->passiveHenchmenVehicles.empty())
-					this->MakeHenchmenAggro();
-
 				this->UpdateFlagResetTimer(IntervalTimer::Setting::ALL);
 				this->UpdateLeaderFlag();
+
+				this->MakeHenchmenAggro();
 			}
 			else this->passiveHenchmenVehicles.erase(copVehicle);
 		}
