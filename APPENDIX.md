@@ -325,7 +325,7 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * LeaderStrategy Cross and / or his henchmen only become aggressive at Heat levels for which you define valid aggro-delay values. Henchmen, however, always become aggressive when Cross leaves.
 
-* Once aggressive, Cross and / or his henchmen act like regular cops and can join formations.
+* Once aggressive, Cross and / or his henchmen act like regular cops and can join formations. Also, neither Cross nor his henchmen can return to being passive again until they despawn.
 
 * Aggro delays longer than a given LeaderStrategy's `Duration` VltEd parameter have no effect.
 
