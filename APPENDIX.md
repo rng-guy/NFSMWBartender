@@ -18,7 +18,7 @@ First, if Bartender's .asi file gets **falsely flagged as a virus** by your anti
 Last, there are three **possible causes for in-game issues** you might encounter with Bartender:
 * features of other .asi mods that make changes to the same parts of the game as Bartender,
 * the quirks of how Bartender reads and processes parameters in its configuration files, or
-* the actual parameter values themselves that you provide in Bartender's configuration files.
+* the actual parameter values themselves that you define in Bartender's configuration files.
 
 &nbsp;
 
@@ -45,7 +45,7 @@ Bartender only recognises **Heat levels** from 1 to 10. If you want to use Barte
 
 &nbsp;
 
-Bartender parses its configuration (.ini) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure in the configuration files. Each group allows you to provide values, either in relation to Heat levels or vehicles.
+Bartender parses its configuration (.ini) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure in the configuration files. Each group allows you to define values, either in relation to Heat levels or vehicles.
 
 &nbsp;
 
@@ -55,7 +55,7 @@ Bartender can handle any **invalid / missing parameter groups** in its configura
 
 &nbsp;
 
-Bartender can handle any **invalid values** you might provide in its parameter groups:
+Bartender can handle any **invalid values** you might define in its parameter groups:
 * duplicates (e.g. another `heat02` value) within parameter groups are ignored,
 * values of incorrect type (e.g. a string instead of a decimal) count as omitted,
 * negative values that should be positive are set to 0 instead of counting as omitted,
@@ -64,14 +64,14 @@ Bartender can handle any **invalid values** you might provide in its parameter g
 
 &nbsp;
 
-Some parameter groups allow you to define **default values**, indicated by `default` in place of a Heat level or vehicle. These default values then apply to all Heat levels or vehicles for which you don't provide explicit values. Bartender parses such parameter groups in three steps:
+Some parameter groups allow you to define **default values**, indicated by `default` in place of a Heat level or vehicle. These default values then apply to all Heat levels or vehicles for which you don't define explicit values. Bartender parses such parameter groups in three steps:
 1. If you omit it, the `default` value is set to the game's vanilla (i.e. unmodded) value.
 2. All free-roam Heat levels (format: `heatXY`) you omit are set to the `default` value.
 3. All race Heat levels (format: `raceXY`) you omit are set to their free-roam values.
 
 &nbsp;
 
-Bartender can handle any **invalid vehicles** you might provide in its configuration files, both as values themselves and as something for which you define other values. The sections below mention how Bartender does this on a case-by-case basis, but a vehicle is invalid if
+Bartender can handle any **invalid vehicles** you might define in its configuration files, both as values themselves and as something for which you define other values. The sections below mention how Bartender does this on a case-by-case basis, but a vehicle is invalid if
 * it doesn't exist in the game's database (i.e. lacks a VltEd node under `pvehicle`), or
 * it's of the wrong class (e.g. is a helicopter when Bartender expects a regular car).
 
@@ -197,15 +197,17 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before the game can make non-Strategy roadblock and Strategy requests in a given pursuit.
 
-* Vehicles joining a pursuit from roadblocks is vanilla behaviour, but the roadblock-age threshold usually makes it a rare event. It's rare because, assuming you actually drive around Rockport to deal with the cops chasing you, most roadblocks don't stay long enough. If you hit a spike strip, however, all roadblock cops immediately join the pursuit.
+* Vehicles joining pursuits from roadblocks after some time is vanilla behaviour, but the age threshold usually makes it a rare event because most roadblocks despawn too early.
 
-* You shouldn't use low roadblock-age thresholds (< 20 seconds) for roadblock vehicles to join a pursuit: Too many vehicles joining can cause game instability, as they ignore spawn limits.
+* You shouldn't use low roadblock-age thresholds (< 20 seconds) for roadblock vehicles to join the pursuit: Too many vehicles joining can cause game instability, as they ignore spawn limits.
 
-* Joining from roadblocks only happens at Heat levels for which you define valid roadblock-age and distance values. This does not apply to the hard-coded joining after spike-strip hits.
+* Age-based joining from roadblocks only happens at Heat levels for which you define valid age and distance values, and has no bearing on other means by which roadblock vehicles may join.
+
+* Roadblock vehicles can react to the pursuit entering "COOLDOWN" mode and / or spike-strip hits. For the former, one vehicle joins the pursuit; for the latter, all of them join the pursuit.
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
-* You shouldn't use the replacement vehicles for Cross for any other cop in the game unless you also use Bartender's "Advanced" feature set. Otherwise, these vehicles interfere with LeaderStrategy spawns whenever they are present in a pursuit.
+* You shouldn't use the replacement vehicles for Cross for any other cop in the game unless you also use Bartender's "Advanced" feature set. Otherwise, these vehicles interfere with LeaderStrategy spawns whenever they are present in the pursuit.
 
 * Bartender replaces vehicles that don't exist in the game with whatever the vanilla game uses.
 
@@ -235,7 +237,7 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * For each Heat level, you should use a `FullEngagementCopCount` VltEd parameter > 0. Otherwise, Bartender may fail to update the displayed engagement count accurately.
 
-* If this feature set is enabled, LeaderStrategy respawns don't happen if Cross loses you unless you provide valid delay values in Bartender's `Strategies.ini` configuration file.
+* If this feature set is enabled, LeaderStrategy respawns don't happen if Cross loses you unless you define valid delay values in Bartender's `Strategies.ini` configuration file.
 
 * If this feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because this feature set fulfils their intended purposes with extended customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
@@ -269,7 +271,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Bartender enforces the `count` values for "Chasers" for each active pursuit separately. For "Roadblocks" / "Events", Bartender enforces `count` values for each roadblock / event. "Patrols" lack `count` values because they technically don't belong to anything trackable.
 
-* Once they join a pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
+* Once they join the pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
 
 * The "Roadblocks" spawn tables don't apply to HeavyStrategy 4 roadblocks.
 

@@ -25,17 +25,24 @@ namespace BasicLogger
 		}
 
 		
-		template<>
+		template <>
 		void Print<uint32_t>(const uint32_t value) 
 		{
 			this->file << std::format("{:08x}", value);
 		}
 
 
-		template<>
+		template <>
 		void Print<float>(const float value) 
 		{
 			this->file << std::format("{:.3f}", value);
+		}
+
+
+		template <>
+		void Print<bool>(const bool value)
+		{
+			this->file << ((value) ? "true" : "false");
 		}
 
 

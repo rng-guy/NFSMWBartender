@@ -258,8 +258,8 @@ namespace GeneralSettings
 			Globals::logger.LogLongIndent("maxBustDistance         ", maxBustDistances.current);
 			Globals::logger.LogLongIndent("evadeTimer              ", evadeTimers.current);
 
-			Globals::logger.LogLongIndent("destroyCopAfterDelay    ", (destroyCopAfterDelays.current) ? "true" : "false");
-			Globals::logger.LogLongIndent("destroyCopIfDamaged     ", (destroyCopIfDamageds.current)  ? "true" : "false");
+			Globals::logger.LogLongIndent("destroyCopAfterDelay    ", destroyCopAfterDelays.current);
+			Globals::logger.LogLongIndent("destroyCopIfDamaged     ", destroyCopIfDamageds.current);
 			Globals::logger.LogLongIndent("copDestructionDelay     ", copDestructionDelays.current);
 
 			if (racerResetEnableds.current)

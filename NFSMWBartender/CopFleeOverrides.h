@@ -33,6 +33,9 @@ namespace CopFleeOverrides
 	{
 	private:
 
+		const address& heavyStrategy  = *((address*)(this->pursuit + 0x194));
+		const address& leaderStrategy = *((address*)(this->pursuit + 0x198));
+
 		enum class Status
 		{
 			MEMBER,
@@ -50,13 +53,6 @@ namespace CopFleeOverrides
 		HashContainers::AddressMap<float>      copVehicleToFleeTimestamp;
 		
 		
-		static float GetStrategyDuration(const address pointer)
-		{
-			const address strategy = *((address*)pointer);
-			return (strategy) ? *((float*)(strategy + 0x8)) : 1.f;
-		}
-
-
 		static bool IsTrackable(const CopLabel copLabel)
 		{
 			switch (copLabel)
@@ -72,6 +68,12 @@ namespace CopFleeOverrides
 			}
 
 			return false;
+		}
+
+
+		static float GetStrategyDuration(const address strategy)
+		{
+			return (strategy) ? *((float*)(strategy + 0x8)) : 1.f;
 		}
 
 
@@ -94,12 +96,12 @@ namespace CopFleeOverrides
 			{
 			case CopLabel::HEAVY:
 				flagVehicle   = true;
-				timeUntilFlee = this->GetStrategyDuration(this->pursuit + 0x194);
+				timeUntilFlee = GetStrategyDuration(this->heavyStrategy);
 				break;
 
 			case CopLabel::LEADER:
 				flagVehicle   = true;
-				timeUntilFlee = this->GetStrategyDuration(this->pursuit + 0x198);
+				timeUntilFlee = GetStrategyDuration(this->leaderStrategy);
 				break;
 
 			case CopLabel::CHASER:

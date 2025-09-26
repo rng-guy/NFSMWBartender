@@ -334,7 +334,7 @@ namespace LeaderOverrides
 		{
 			const bool anyEnabled = 
 			(
-				   leaderAggroEnableds.current 
+				leaderAggroEnableds.current 
 				or henchmenAggroEnableds.current 
 				or lostResetEnableds.current 
 				or wreckResetEnableds.current

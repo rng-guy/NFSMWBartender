@@ -27,7 +27,10 @@ namespace GroundSupport
 
 	HeatParameters::Pair<bool>  roadblockJoinEnableds    (false);
 	HeatParameters::Pair<float> roadblockJoinTimers      (20.f);  // seconds
-	HeatParameters::Pair<float> maxRoadblockJoinDistances(200.f); // metres
+	HeatParameters::Pair<float> maxRoadblockJoinDistances(100.f); // metres
+
+	HeatParameters::Pair<bool> reactToCooldownModes(true);
+	HeatParameters::Pair<bool> reactToSpikesHits   (true);
 	
 	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
 	HeatParameters::Pair<bool> heavy3AreBlockables   (true);
@@ -183,6 +186,55 @@ namespace GroundSupport
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+
+	constexpr address cooldownModeReactionEntrance = 0x42BF16;
+	constexpr address cooldownModeReactionExit     = 0x42BF2B;
+
+	__declspec(naked) void CooldownModeReaction()
+	{
+		__asm
+		{
+			cmp byte ptr reactToCooldownModes.current, 0x1
+			jne conclusion // no "COOLDOWN"-mode reaction
+
+			// Execute original code and resume
+			mov edx, dword ptr [ebp]
+			mov ecx, ebp
+			call dword ptr [edx + 0x1C]
+
+			mov edx, dword ptr [eax]
+			mov ecx, eax
+			call dword ptr [edx + 0x114]
+
+			cmp eax, 0x2
+
+			conclusion:
+			jmp dword ptr cooldownModeReactionExit
+		}
+	}
+
+
+
+	constexpr address spikesHitReactionEntrance = 0x63BB92;
+	constexpr address spikesHitReactionExit     = 0x63BB98;
+
+	__declspec(naked) void SpikesHitReaction()
+	{
+		__asm
+		{
+			// Execute original code first
+			test eax, eax
+			mov dword ptr [esp + 0x10], eax
+			je conclusion // no pursuit or roadblock
+
+			cmp byte ptr reactToSpikesHits.current, 0x0
+
+			conclusion:
+			jmp dword ptr spikesHitReactionExit
+		}
+	}
+
+
 
 	constexpr address strategySelectionEntrance = 0x41978D;
 	constexpr address strategySelectionExit     = 0x41984E;
@@ -440,9 +492,10 @@ namespace GroundSupport
 		);
 
 		// Other Heat parameters
-		HeatParameters::Parse<bool, bool>(parser, "Supports:Rivals",     {rivalRoadblocksEnableds}, {rivalStrategiesEnableds});
-		HeatParameters::Parse<bool, bool>(parser, "Heavy3:Roadblocks",   {heavy3TriggerCooldowns},  {heavy3AreBlockables});
-		HeatParameters::Parse<float>     (parser, "Strategies:Cooldown", {strategyCooldowns, 1.f});
+		HeatParameters::Parse<bool, bool>(parser, "Supports:Rivals",      {rivalRoadblocksEnableds}, {rivalStrategiesEnableds});
+		HeatParameters::Parse<bool, bool>(parser, "Roadblocks:Reactions", {reactToCooldownModes},    {reactToSpikesHits});
+		HeatParameters::Parse<bool, bool>(parser, "Heavy3:Roadblocks",    {heavy3TriggerCooldowns},  {heavy3AreBlockables});
+		HeatParameters::Parse<float>     (parser, "Strategies:Cooldown",  {strategyCooldowns, 1.f});
 
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy3:Vehicles", {heavy3LightVehicles}, {heavy3HeavyVehicles});
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy4:Vehicles", {heavy4LightVehicles}, {heavy4HeavyVehicles});
@@ -451,16 +504,18 @@ namespace GroundSupport
 		// Code caves
 		MemoryEditor::Write<float*>(&(minRoadblockCooldowns.current), {0x419548});
 
-		MemoryEditor::DigCodeCave(StrategySelection, strategySelectionEntrance, strategySelectionExit);
-		MemoryEditor::DigCodeCave(RoadblockCooldown, roadblockCooldownEntrance, roadblockCooldownExit);
-		MemoryEditor::DigCodeCave(RivalRoadblock,    rivalRoadblockEntrance,    rivalRoadblockExit);
-        MemoryEditor::DigCodeCave(RequestCooldown,   requestCooldownEntrance,   requestCooldownExit);
-		MemoryEditor::DigCodeCave(RoadblockJoin,     roadblockJoinEntrance,     roadblockJoinExit);
-		MemoryEditor::DigCodeCave(OnAttached,        onAttachedEntrance,        onAttachedExit);
-		MemoryEditor::DigCodeCave(OnDetached,        onDetachedEntrance,        onDetachedExit);
-        MemoryEditor::DigCodeCave(LeaderSub,         leaderSubEntrance,         leaderSubExit);
-		MemoryEditor::DigCodeCave(HenchmenSub,       henchmenSubEntrance,       henchmenSubExit);
-        MemoryEditor::DigCodeCave(RhinoSelector,     rhinoSelectorEntrance,     rhinoSelectorExit);
+		MemoryEditor::DigCodeCave(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
+		MemoryEditor::DigCodeCave(SpikesHitReaction,    spikesHitReactionEntrance,    spikesHitReactionExit);
+		MemoryEditor::DigCodeCave(StrategySelection,    strategySelectionEntrance,    strategySelectionExit);
+		MemoryEditor::DigCodeCave(RoadblockCooldown,    roadblockCooldownEntrance,    roadblockCooldownExit);
+		MemoryEditor::DigCodeCave(RivalRoadblock,       rivalRoadblockEntrance,       rivalRoadblockExit);
+        MemoryEditor::DigCodeCave(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
+		MemoryEditor::DigCodeCave(RoadblockJoin,        roadblockJoinEntrance,        roadblockJoinExit);
+		MemoryEditor::DigCodeCave(OnAttached,           onAttachedEntrance,           onAttachedExit);
+		MemoryEditor::DigCodeCave(OnDetached,           onDetachedEntrance,           onDetachedExit);
+        MemoryEditor::DigCodeCave(LeaderSub,            leaderSubEntrance,            leaderSubExit);
+		MemoryEditor::DigCodeCave(HenchmenSub,          henchmenSubEntrance,          henchmenSubExit);
+        MemoryEditor::DigCodeCave(RhinoSelector,        rhinoSelectorEntrance,        rhinoSelectorExit);
 
 		// Status flag
 		featureEnabled = true;
@@ -508,6 +563,9 @@ namespace GroundSupport
 		roadblockJoinTimers      .SetToHeat(isRacing, heatLevel);
 		maxRoadblockJoinDistances.SetToHeat(isRacing, heatLevel);
 
+		reactToCooldownModes.SetToHeat(isRacing, heatLevel);
+		reactToSpikesHits   .SetToHeat(isRacing, heatLevel);
+
 		heavy3TriggerCooldowns.SetToHeat(isRacing, heatLevel);
 		heavy3AreBlockables   .SetToHeat(isRacing, heatLevel);
 
@@ -524,8 +582,8 @@ namespace GroundSupport
 		{
 			Globals::logger.Log("    HEAT [SUP] GroundSupport");
 
-			Globals::logger.LogLongIndent("rivalStrategiesEnabled  ", (rivalStrategiesEnableds.current) ? "true" : "false");
-			Globals::logger.LogLongIndent("rivalRoadblocksEnabled  ", (rivalRoadblocksEnableds.current) ? "true" : "false");
+			Globals::logger.LogLongIndent("rivalStrategiesEnabled  ", rivalStrategiesEnableds.current);
+			Globals::logger.LogLongIndent("rivalRoadblocksEnabled  ", rivalRoadblocksEnableds.current);
 
 			Globals::logger.LogLongIndent("roadblockCooldown       ", minRoadblockCooldowns.current, "to", maxRoadblockCooldowns.current);
 			Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
@@ -538,8 +596,11 @@ namespace GroundSupport
 				Globals::logger.LogLongIndent("maxRoadblockJoinDistance", maxRoadblockJoinDistances.current);
 			}
 
-			Globals::logger.LogLongIndent("heavy3TriggerCooldown   ", (heavy3TriggerCooldowns.current) ? "true" : "false");
-			Globals::logger.LogLongIndent("heavy3AreBlockable      ", (heavy3AreBlockables.current)    ? "true" : "false");
+			Globals::logger.LogLongIndent("reactToCooldownMode     ", reactToCooldownModes.current);
+			Globals::logger.LogLongIndent("reactToSpikesHit        ", reactToSpikesHits.current);
+
+			Globals::logger.LogLongIndent("heavy3TriggerCooldown   ", heavy3TriggerCooldowns.current);
+			Globals::logger.LogLongIndent("heavy3AreBlockable      ", heavy3AreBlockables.current);
 
 			Globals::logger.LogLongIndent("heavy3LightVehicle      ", heavy3LightVehicles.current);
 			Globals::logger.LogLongIndent("heavy3HeavyVehicle      ", heavy3HeavyVehicles.current);

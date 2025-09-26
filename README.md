@@ -36,6 +36,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the internal cooldown for non-Strategy roadblock requests,
 * the internal cooldown for Strategy requests,
 * when exactly and at what distances (if at all) roadblock cops can join the pursuit,
+* whether roadblock vehicles react to racers entering "COOLDOWN" mode and / or hitting spikes,
 * how HeavyStrategy 3 requests interact with non-Strategy roadblock requests,
 * what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
 * what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
@@ -71,7 +72,7 @@ The "Basic" feature set **fixes six bugs / issues**:
 The "Advanced" feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave of reinforcements is exhausted,
 * the global cop-spawn limit for how many cops in total may chase you at any given time,
-* how quickly (if at all) cops flee a pursuit if they don't belong to the Heat level,
+* how quickly (if at all) cops flee the pursuit if they don't belong to the Heat level,
 * what vehicles (any amount, with counts and chances) may spawn to chase and search for you,
 * what vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
 * what vehicles (ditto) may spawn as pre-generated cops in scripted events,
