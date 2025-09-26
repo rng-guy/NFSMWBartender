@@ -78,7 +78,7 @@ namespace CopSpawnOverrides
 				{
 					if (this->pursuit)
 					{
-						const char* const copName = this->table.TypeToName(pair.first);
+						const char* const copName = this->table.ConvertTypeToName(pair.first);
 
 						if (copName)
 							Globals::logger.Log(this->pursuit, "[CON] Copying", pair.second, copName);

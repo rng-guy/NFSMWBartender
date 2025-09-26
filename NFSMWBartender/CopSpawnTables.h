@@ -39,7 +39,7 @@ namespace CopSpawnTables
 
 	public:
 
-		static vault NameToType(const std::string& copName)
+		static vault ConvertNameToType(const std::string& copName)
 		{
 			const vault copType = Globals::GetVaultKey(copName.c_str());
 			SpawnTable::copTypeToName.insert({copType, copName});
@@ -47,7 +47,7 @@ namespace CopSpawnTables
 		}
 
 
-		static const char* TypeToName(const vault copType)
+		static const char* ConvertTypeToName(const vault copType)
 		{
 			const auto foundType = SpawnTable::copTypeToName.find(copType);
 			return (foundType != SpawnTable::copTypeToName.end()) ? (foundType->second).c_str() : nullptr;
@@ -69,7 +69,7 @@ namespace CopSpawnTables
 			if (copCount < 1)  return false;
 			if (copChance < 1) return false;
 			
-			const vault copType   = this->NameToType(copName);
+			const vault copType   = this->ConvertNameToType(copName);
 			const auto  addedType = this->copTypeToEntry.insert({copType, {copCount, copChance}});
 
 			if (not addedType.second) return false;
@@ -116,7 +116,7 @@ namespace CopSpawnTables
 						Globals::logger.LogLongIndent
 						(
 							"  -", 
-							this->TypeToName(iterator->first), 
+							this->ConvertTypeToName(iterator->first), 
 							iterator->second.capacity, 
 							iterator->second.chance
 						);
@@ -201,7 +201,7 @@ namespace CopSpawnTables
 					cumulativeChance += pair.second.chance;
 
 					if (randomNumber <= cumulativeChance) 
-						return this->TypeToName(pair.first);
+						return this->ConvertTypeToName(pair.first);
 				}
 			}
 

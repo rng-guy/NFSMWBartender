@@ -36,15 +36,15 @@ namespace CopFleeOverrides
 		const address& heavyStrategy  = *((address*)(this->pursuit + 0x194));
 		const address& leaderStrategy = *((address*)(this->pursuit + 0x198));
 
-		enum class Status
-		{
-			MEMBER,
-			FLAGGED,
-			FLEEING
-		};
-
 		struct Assessment
 		{
+			enum class Status
+			{
+				MEMBER,
+				FLAGGED,
+				FLEEING
+			};
+
 			const CopLabel copLabel;
 			Status         status;
 		};
@@ -86,8 +86,8 @@ namespace CopFleeOverrides
 
 		void Review(std::pair<const address, Assessment>& pair) 
 		{
-			if (not this->IsHeatLevelKnown())         return;
-			if (pair.second.status != Status::MEMBER) return;
+			if (not this->IsHeatLevelKnown())                     return;
+			if (pair.second.status != Assessment::Status::MEMBER) return;
 
 			bool  flagVehicle   = false;
 			float timeUntilFlee = 0.f;
@@ -116,7 +116,7 @@ namespace CopFleeOverrides
 
 			if (flagVehicle)
 			{
-				pair.second.status = Status::FLAGGED;
+				pair.second.status = Assessment::Status::FLAGGED;
 				this->copVehicleToFleeTimestamp.insert({pair.first, PursuitFeatures::simulationTime + timeUntilFlee});
 
 				if constexpr (Globals::loggingEnabled)
@@ -136,12 +136,12 @@ namespace CopFleeOverrides
 
 				switch (pair.second.status)
 				{
-				case Status::FLAGGED:
+				case Assessment::Status::FLAGGED:
 					this->copVehicleToFleeTimestamp.erase(pair.first);
-					pair.second.status = Status::MEMBER;
+					pair.second.status = Assessment::Status::MEMBER;
 					[[fallthrough]];
 
-				case Status::MEMBER:
+				case Assessment::Status::MEMBER:
 					this->Review(pair);
 				}
 			}
@@ -158,7 +158,7 @@ namespace CopFleeOverrides
 			{
 				if (PursuitFeatures::simulationTime >= iterator->second)
 				{
-					this->copVehicleToAssessment.at(iterator->first).status = Status::FLEEING;
+					this->copVehicleToAssessment.at(iterator->first).status = Assessment::Status::FLEEING;
 					PursuitFeatures::MakeVehicleFlee(iterator->first);
 
 					if constexpr (Globals::loggingEnabled)
@@ -198,7 +198,7 @@ namespace CopFleeOverrides
 		{
 			if (not this->IsTrackable(copLabel)) return;
 
-			const auto addedVehicle = this->copVehicleToAssessment.insert({copVehicle, {copLabel, Status::MEMBER}});
+			const auto addedVehicle = this->copVehicleToAssessment.insert({copVehicle, {copLabel, Assessment::Status::MEMBER}});
 
 			if (addedVehicle.second)
 				this->Review(*(addedVehicle.first));
@@ -221,7 +221,7 @@ namespace CopFleeOverrides
 
 			if (foundVehicle != this->copVehicleToAssessment.end())
 			{
-				if (foundVehicle->second.status == Status::FLAGGED)
+				if (foundVehicle->second.status == Assessment::Status::FLAGGED)
 					this->copVehicleToFleeTimestamp.erase(copVehicle);
 
 				this->copVehicleToAssessment.erase(foundVehicle);

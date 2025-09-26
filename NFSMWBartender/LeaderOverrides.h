@@ -332,15 +332,7 @@ namespace LeaderOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			const bool anyEnabled = 
-			(
-				leaderAggroEnableds.current 
-				or henchmenAggroEnableds.current 
-				or lostResetEnableds.current 
-				or wreckResetEnableds.current
-			);
-
-			if (anyEnabled)
+			if (leaderAggroEnableds.current or henchmenAggroEnableds.current or lostResetEnableds.current or wreckResetEnableds.current)
 				Globals::logger.Log("    HEAT [LDR] LeaderOverrides");
 			
 			if (leaderAggroEnableds.current)

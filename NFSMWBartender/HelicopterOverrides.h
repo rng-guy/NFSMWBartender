@@ -397,7 +397,7 @@ namespace HelicopterOverrides
 			Globals::logger.Log("  CONFIG [HEL] HelicopterOverrides");
 
 		// With logging disabled, the compiler optimises the string literal away
-		helicopterVehicles.Validate(Globals::VehicleClass::CHOPPER, "Helicopters");
+		helicopterVehicles.Validate("Helicopters", Globals::VehicleClass::CHOPPER);
 	}
 
 

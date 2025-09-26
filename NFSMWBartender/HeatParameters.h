@@ -165,8 +165,8 @@ namespace HeatParameters
 
 		size_t Validate
 		(
-			const Globals::VehicleClass vehicleClass, 
-			const char* const           pairName
+			const char* const           pairName,
+			const Globals::VehicleClass vehicleClass
 		) {
 			size_t numTotalReplaced = 0;
 

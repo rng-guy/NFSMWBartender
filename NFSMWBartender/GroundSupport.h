@@ -533,12 +533,12 @@ namespace GroundSupport
 			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
 
 		// With logging disabled, the compiler optimises the string literals away
-		heavy3LightVehicles   .Validate(Globals::VehicleClass::CAR, "HeavyStrategy 3, light");
-		heavy3HeavyVehicles   .Validate(Globals::VehicleClass::CAR, "HeavyStrategy 3, heavy");
-		heavy4LightVehicles   .Validate(Globals::VehicleClass::CAR, "HeavyStrategy 4, light");
-		heavy4HeavyVehicles   .Validate(Globals::VehicleClass::CAR, "HeavyStrategy 4, heavy");
-		leaderCrossVehicles   .Validate(Globals::VehicleClass::CAR, "LeaderStrategy, Cross");
-		leaderHenchmenVehicles.Validate(Globals::VehicleClass::CAR, "LeaderStrategy, henchmen");
+		heavy3LightVehicles   .Validate("HeavyStrategy 3, light",   Globals::VehicleClass::CAR);
+		heavy3HeavyVehicles   .Validate("HeavyStrategy 3, heavy",   Globals::VehicleClass::CAR);
+		heavy4LightVehicles   .Validate("HeavyStrategy 4, light",   Globals::VehicleClass::CAR);
+		heavy4HeavyVehicles   .Validate("HeavyStrategy 4, heavy",   Globals::VehicleClass::CAR);
+		leaderCrossVehicles   .Validate("LeaderStrategy, Cross",    Globals::VehicleClass::CAR);
+		leaderHenchmenVehicles.Validate("LeaderStrategy, henchmen", Globals::VehicleClass::CAR);
 	}
 
 
