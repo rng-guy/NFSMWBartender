@@ -131,17 +131,19 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * You can define up to 20 interactive music tracks, with duplicates. In each pursuit, the interactive music tracks play from top to bottom and loop back around afterwards.
 
-* Bartender can shuffle the first interactive music track in each pursuit instead of starting with the top one, and / or shuffle the follow-up tracks instead of playing them in sequence.
+* Bartender can shuffle the first interactive music track in each pursuit instead of starting with the top one, and / or shuffle the follow-up tracks instead of playing them in order.
 
 * For interactive music, Bartender ignores track types that don't exist in the game.
 
-* If you don't define any shuffling values, Bartender shuffles the first track in each pursuit.
+* If you don't define any shuffle settings, Bartender shuffles the first track in each pursuit.
+
+* If you don't define a track length, Bartender disables all interactive track transitions.
 
 * If you only define invalid tracks, Bartender uses the vanilla setup (i.e. 0 -> 1 -> 2 -> 3).
 
-* If you define no interactive music tracks, Bartender disables all its music features.
+* If you don't define any interactive music tracks, Bartender disables all its music features.
 
-* Track transitions happen only at Heat levels for which you define a valid timer value. Transitions may take a few minutes (at worst) due to quirks of the audio scheduler.
+* Track transitions may take a few minutes (at worst) due to quirks of the audio scheduler.
 
 &nbsp;
 
@@ -253,7 +255,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
-* If you want to use global cop spawn limits > 8, you must also install and configure the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351. This is necessary because the game cannot handle managing > 8 "Chasers" for very long. To configure LA to work with Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file; there, set the `PursuitCops` value to 255 and disable every single cop-related feature under `[Options]`. After configuring LA like this, use only Bartender to set any global cop-spawn limits!
+* If you want to use global cop-spawn limits > 8 and / or make "Chasers" spawns independent of other vehicles, you must also install and configure the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351. This is necessary because the vanilla game becomes unstable if there are too many vehicles present. To configure LA to work with Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file; there, set `PursuitCops` to 255 and disable every single cop-related feature under `[Options]`. After configuring LA like this, use Bartender to set global cop-spawn limits.
 
 * "Chasers" will only flee at Heat levels for which you define valid flee-delay values.
 

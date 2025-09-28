@@ -43,7 +43,6 @@ namespace StateObserver
 
 			GroundSupport   ::SetToHeat(playerIsRacing, currentHeatLevel);
 			GeneralSettings ::SetToHeat(playerIsRacing, currentHeatLevel);
-			InteractiveMusic::SetToHeat(playerIsRacing, currentHeatLevel);
 			PursuitObserver ::SetToHeat(playerIsRacing, currentHeatLevel);
 		}
 		else if constexpr (Globals::loggingEnabled)
@@ -57,7 +56,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log("\n SESSION [VER] Bartender v1.17.03");
+			Globals::logger.Log("\n SESSION [VER] Bartender v1.17.04");
 
 			Globals::logger.LogLongIndent("Basic feature set",    (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");

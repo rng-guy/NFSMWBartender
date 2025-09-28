@@ -17,17 +17,19 @@ namespace InteractiveMusic
 
 	bool featureEnabled = false;
 
-	HeatParameters::Pair<bool>  transitionEnableds(false);
-	HeatParameters::Pair<float> transitionTimers  (600.f); // seconds
-
-	// Code caves
+	// General
 	constexpr size_t maxNumTracks = 20;
 
 	std::vector<int> tracks;
 
-	size_t currentTrackID    = 0;
-	bool   shuffleFirstTrack = true;
-	bool   shuffleAfterFirst = false;
+	bool  transitionsEnabled = true;
+	float lengthPerTrack     = 600.f; // seconds
+
+	bool shuffleFirstTrack = true;
+	bool shuffleAfterFirst = false;
+
+	// Code caves
+	size_t currentTrackID = 0;
 
 
 
@@ -107,11 +109,11 @@ namespace InteractiveMusic
 		{
 			mov dword ptr [esi + 0xC], eax
 
-			cmp byte ptr transitionEnableds.current, 0x1
+			cmp byte ptr transitionsEnabled, 0x1
 			jne conclusion // track-changing disabled
 
 			fld dword ptr [esi + 0x48]
-			fcomp dword ptr transitionTimers.current
+			fcomp dword ptr lengthPerTrack
 			fnstsw ax
 			test ah, 0x41
 
@@ -131,11 +133,11 @@ namespace InteractiveMusic
 		{
 			mov dword ptr [esi + 0xC], eax
 
-			cmp byte ptr transitionEnableds.current, 0x1
+			cmp byte ptr transitionsEnabled, 0x1
 			jne conclusion // track-changing disabled
 
 			fld dword ptr [esi + 0x48]
-			fcomp dword ptr transitionTimers.current
+			fcomp dword ptr lengthPerTrack
 			fnstsw ax
 			test ah, 0x41
 
@@ -174,11 +176,10 @@ namespace InteractiveMusic
 
 		if (tracks.empty()) return false;
 
+		transitionsEnabled = parser.ParseParameter<float>("Music:Tracks", "lengthPerTrack", lengthPerTrack);
+
 		parser.ParseParameter<bool>("Music:Tracks", "shuffleFirstTrack", shuffleFirstTrack);
 		parser.ParseParameter<bool>("Music:Tracks", "shuffleAfterFirst", shuffleAfterFirst);
-
-		// Heat parameters
-		HeatParameters::ParseOptional<float>(parser, "Music:Transition", transitionEnableds, {transitionTimers, 1.f});
 
 		// Code caves
 		MemoryEditor::DigCodeCave(FirstTrack,      firstTrackEntrance,      firstTrackExit);
@@ -235,33 +236,17 @@ namespace InteractiveMusic
 			}
 			else Globals::logger.LogLongIndent("Tracks:", (int)tracks.size());
 
+			if (transitionsEnabled)
+				Globals::logger.LogLongIndent("Length per track:", lengthPerTrack);
+
+			else
+				Globals::logger.LogLongIndent("Transitions disabled");
+
 			Globals::logger.LogLongIndent((shuffleFirstTrack) ? "Shuffled" : "Fixed", "first track");
-			Globals::logger.LogLongIndent((shuffleAfterFirst) ? "Shuffled" : "Fixed", "next track(s)");
+			Globals::logger.LogLongIndent((shuffleAfterFirst) ? "Shuffled" : "Fixed", "follow-up track(s)");
 		}
 
 		if (tracks.empty())
 			tracks = {0, 1, 2, 3};
-	}
-
-
-
-	void SetToHeat
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
-		if (not featureEnabled) return;
-
-		transitionEnableds.SetToHeat(isRacing, heatLevel);
-		transitionTimers  .SetToHeat(isRacing, heatLevel);
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (transitionEnableds.current)
-			{
-				Globals::logger.Log("    HEAT [MUS] InteractiveMusic");
-				Globals::logger.LogLongIndent("transitionTimer         ", transitionTimers.current);
-			}
-		}
 	}
 }

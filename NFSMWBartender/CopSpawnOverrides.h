@@ -210,9 +210,13 @@ namespace CopSpawnOverrides
 
 		int maxNumPatrolCars = 0;
 		
-		int&       fullWaveCapacity  = *((int*)(this->pursuit + 0x144));
-		int&       numCopsLostInWave = *((int*)(this->pursuit + 0x14C));
-		const int& pursuitStatus     = *((int*)(this->pursuit + 0x218));
+		int& fullWaveCapacity  = *((int*)(this->pursuit + 0x144));
+		int& numCopsLostInWave = *((int*)(this->pursuit + 0x14C));
+
+		const int&   pursuitStatus  = *((int*)(this->pursuit + 0x218));
+		const bool&  isPerpBusted   = *((bool*)(this->pursuit + 0xE8));
+		const bool&  bailingPursuit = *((bool*)(this->pursuit + 0xE9));
+		const float& spawnCooldown  = *((float*)(this->pursuit + 0xCC));
 
 		Contingent chasers = Contingent(CopSpawnTables::chaserSpawnTables, this->pursuit);
 
@@ -293,13 +297,22 @@ namespace CopSpawnOverrides
 		}
 
 
-		bool IsWaveExhausted() const
+		bool CanNewChaserSpawn() const
 		{
-			if (this->IsSearchModeActive())
-				return (not (this->chasers.GetNumActiveCops() < this->maxNumPatrolCars));
+			if (not this->IsHeatLevelKnown()) 
+				return false;
+
+			else if (this->isPerpBusted or this->bailingPursuit or (this->spawnCooldown > 0.f))
+				return false;
+
+			else if ((not this->chasers.HasAvailableCop()) or (this->chasers.GetNumActiveCops() >= maxActiveCounts.current))
+				return false;
+
+			else if (this->IsSearchModeActive())
+				return (this->chasers.GetNumActiveCops() < this->maxNumPatrolCars);
 
 			else
-				return (not ((this->GetWaveCapacity() > 0) or (this->chasers.GetNumActiveCops() < minActiveCounts.current)));
+				return ((this->GetWaveCapacity() > 0) or (this->chasers.GetNumActiveCops() < minActiveCounts.current));
 		}
 
 
@@ -365,14 +378,12 @@ namespace CopSpawnOverrides
 		}
 
 
-		static bool __fastcall HasAvailableChaser(const address pursuit)
+		static bool __fastcall HasChaserAvailable(const address pursuit)
 		{
-			if (not ChasersManager::IsHeatLevelKnown()) return false;
-
 			const auto foundPursuit = ChasersManager::pursuitToManager.find(pursuit);
 
 			if (foundPursuit != ChasersManager::pursuitToManager.end())
-				return (foundPursuit->second->chasers.HasAvailableCop() and (not foundPursuit->second->IsWaveExhausted()));
+				return foundPursuit->second->CanNewChaserSpawn();
 			
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [SPA] Availability request for unknown pursuit", pursuit);
@@ -383,13 +394,11 @@ namespace CopSpawnOverrides
 
 		static const char* __fastcall GetNameOfAvailableChaser(const address pursuit)
 		{
-			if (not ChasersManager::IsHeatLevelKnown()) return nullptr;
-
 			const auto foundPursuit = ChasersManager::pursuitToManager.find(pursuit);
 
 			if (foundPursuit != ChasersManager::pursuitToManager.end())
 			{
-				if (not foundPursuit->second->IsWaveExhausted())
+				if (foundPursuit->second->CanNewChaserSpawn())
 					return foundPursuit->second->chasers.GetNameOfAvailableCop();
 			}
 			else if constexpr (Globals::loggingEnabled)
@@ -465,27 +474,8 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			mov al, byte ptr [ecx + 0xE8]
-			test al, al
-			jne deny // perp busted
-
-			fldz
-			fcomp dword ptr [ecx + 0xCC]
-			fnstsw ax
-			test ah, 0x1
-			jne deny // spawn cooldown > 0
-
-			mov al, byte ptr [ecx + 0xE9]
-			test al, al
-			jne deny
-
 			call ChasersManager::GetNameOfAvailableChaser // ecx: pursuit
-			jmp conclusion                                // was valid request
 
-			deny:
-			xor eax, eax
-
-			conclusion:
 			jmp dword ptr copRequestExit
 		}
 	}
@@ -499,28 +489,8 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			mov al, byte ptr [edi + 0xE8]
-			test al, al
-			jne failed // perp busted
-
-			fldz
-			fcomp dword ptr [edi + 0xCC]
-			fnstsw ax
-			test ah, 0x1
-			jne failed // spawn cooldown > 0
-
-			mov al, byte ptr [edi + 0xE9]
-			test al, al
-			jne failed
-
 			mov ecx, edi
-			call ChasersManager::HasAvailableChaser // ecx: pursuit
-			jmp conclusion                          // was valid check
-
-			failed:
-			xor al, al
-
-			conclusion:
+			call ChasersManager::HasChaserAvailable // ecx: pursuit
 			test al, al
 
 			jmp dword ptr requestCheckExit
@@ -603,26 +573,24 @@ namespace CopSpawnOverrides
 			// Execute original code first
 			mov ebp, dword ptr [esp + 0x74]
 			test ebp, ebp
-			je failure // spawn intended to fail
+			je conclusion // spawn intended to fail
 
 			cmp dword ptr [esp + 0x70], 0x42E72E
 			jne conclusion // not "Events" spawn
 
-			cmp byte ptr skipEventSpawns, 0x1
-			je conclusion
+			cmp byte ptr skipEventSpawns, 0x0
+			jne conclusion // skip "Events" spawn
 
 			call ChasersManager::IsHeatLevelKnown
-			test al, al
-			je conclusion // Heat level unknown
+			cmp al, 0x1
+			jne conclusion // Heat level unknown
 
 			lea ecx, dword ptr [events]
 			call Contingent::GetNameOfSpawnableCop
 			mov ebp, eax
+			test eax, eax
 
 			conclusion:
-			test ebp, ebp
-
-			failure:
 			jmp dword ptr byNameInterceptorExit
 		}
 	}
@@ -641,7 +609,7 @@ namespace CopSpawnOverrides
 			je failure // spawn intended to fail
 
 			mov ecx, dword ptr [esp + 0x8]
-			call GetByClassReplacement // ecx: return address
+			call GetByClassReplacement // ecx: spawnReturn
 			test eax, eax
 			je conclusion              // skip this spawn
 
@@ -657,6 +625,7 @@ namespace CopSpawnOverrides
 			// Execute original code and resume
 			pop ebp
 			pop ecx
+
 			jmp dword ptr byClassInterceptorExit
 		}
 	}

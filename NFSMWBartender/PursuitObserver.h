@@ -336,15 +336,29 @@ namespace PursuitObserver
 
 
 
-
+	
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool featureEnabled = false;
 
+	// Heat levels
+	HeatParameters::Pair<bool> spawnsAreIndependents(false);
 
 
-	
+
+
+
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	size_t GetAdjustedNumRegisteredVehicles()
+	{
+		return (spawnsAreIndependents.current) ? 0: PursuitObserver::GetNumRegisteredVehicles();
+	}
+
+
+
+
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -517,7 +531,7 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			call PursuitObserver::GetNumRegisteredVehicles
+			call GetAdjustedNumRegisteredVehicles
 			cmp eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
 
 			jmp dword ptr mainSpawnLimitExit
@@ -533,7 +547,7 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			call PursuitObserver::GetNumRegisteredVehicles
+			call GetAdjustedNumRegisteredVehicles
 			cmp eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
 
 			jmp dword ptr otherSpawnLimitExit
@@ -549,6 +563,11 @@ namespace PursuitObserver
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		if (not CopSpawnTables::Initialise(parser)) return false;
+
+		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
+
+		// Heat parameters
+		HeatParameters::Parse<bool>(parser, "Chasers:Independence", {spawnsAreIndependents});
 
 		// Subheaders
 		CopSpawnOverrides  ::Initialise(parser);
@@ -599,6 +618,14 @@ namespace PursuitObserver
 		const size_t heatLevel
 	) {
 		if (not featureEnabled) return;
+
+		spawnsAreIndependents.SetToHeat(isRacing, heatLevel);
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::logger.Log("    HEAT [OBS] PursuitObserver");
+			Globals::logger.LogLongIndent("spawnsAreIndependent    ", spawnsAreIndependents.current);
+		}
 
 		CopSpawnTables     ::SetToHeat(isRacing, heatLevel);
 		PursuitFeatures    ::SetToHeat(isRacing, heatLevel);
