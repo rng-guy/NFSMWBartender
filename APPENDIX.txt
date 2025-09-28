@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.17.04) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.18.00) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -548,4 +548,5 @@ v1.00.00: Initial release
       01: Corrected some internal default values for various parameter groups
       02: Fixed minor issues with the mod's PRNG and some CTS calculations
       03: Extended customisation options for cops joining from roadblocks
-      04: Simplified interactive-music feature and added support for independent "Chasers" spawns
+
+   18.00: Simplified interactive-music feature and added support for independent "Chasers" spawns
