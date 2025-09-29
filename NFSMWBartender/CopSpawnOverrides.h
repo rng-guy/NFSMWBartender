@@ -8,6 +8,8 @@
 #include "HeatParameters.h"
 #include "MemoryEditor.h"
 
+#define OFFSET 0x28 // constexpr would be incompatible with inline ASM
+
 
 
 namespace CopSpawnOverrides
@@ -208,6 +210,8 @@ namespace CopSpawnOverrides
 	{
 	private:
 
+		address& thisInPursuit = *((address*)(this->pursuit + OFFSET));
+
 		int maxNumPatrolCars = 0;
 		
 		int& fullWaveCapacity  = *((int*)(this->pursuit + 0x144));
@@ -219,8 +223,6 @@ namespace CopSpawnOverrides
 		const float& spawnCooldown  = *((float*)(this->pursuit + 0xCC));
 
 		Contingent chasers = Contingent(CopSpawnTables::chaserSpawnTables, this->pursuit);
-
-		inline static HashContainers::AddressMap<ChasersManager*> pursuitToManager;
 
 
 		void UpdateSpawnTable()
@@ -297,37 +299,18 @@ namespace CopSpawnOverrides
 		}
 
 
-		bool CanNewChaserSpawn() const
-		{
-			if (not this->IsHeatLevelKnown()) 
-				return false;
-
-			else if (this->isPerpBusted or this->bailingPursuit or (this->spawnCooldown > 0.f))
-				return false;
-
-			else if ((not this->chasers.HasAvailableCop()) or (this->chasers.GetNumActiveCops() >= maxActiveCounts.current))
-				return false;
-
-			else if (this->IsSearchModeActive())
-				return (this->chasers.GetNumActiveCops() < this->maxNumPatrolCars);
-
-			else
-				return ((this->GetWaveCapacity() > 0) or (this->chasers.GetNumActiveCops() < minActiveCounts.current));
-		}
-
-
 
 	public:
 
 		explicit ChasersManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
-			this->pursuitToManager.insert({this->pursuit, this});
+			this->thisInPursuit = (address)this;
 		}
 
 
 		~ChasersManager() override
 		{
-			this->pursuitToManager.erase(this->pursuit);
+			this->thisInPursuit = 0x0;
 		}
 
 
@@ -378,33 +361,28 @@ namespace CopSpawnOverrides
 		}
 
 
-		static bool __fastcall HasChaserAvailable(const address pursuit)
+		bool CanNewChaserSpawn() const
 		{
-			const auto foundPursuit = ChasersManager::pursuitToManager.find(pursuit);
+			if (not this->IsHeatLevelKnown())
+				return false;
 
-			if (foundPursuit != ChasersManager::pursuitToManager.end())
-				return foundPursuit->second->CanNewChaserSpawn();
-			
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] Availability request for unknown pursuit", pursuit);
+			else if (this->isPerpBusted or this->bailingPursuit or (this->spawnCooldown > 0.f))
+				return false;
 
-			return false;
+			else if ((not this->chasers.HasAvailableCop()) or (this->chasers.GetNumActiveCops() >= maxActiveCounts.current))
+				return false;
+
+			else if (this->IsSearchModeActive())
+				return (this->chasers.GetNumActiveCops() < this->maxNumPatrolCars);
+
+			else
+				return ((this->GetWaveCapacity() > 0) or (this->chasers.GetNumActiveCops() < minActiveCounts.current));
 		}
 
 
-		static const char* __fastcall GetNameOfAvailableChaser(const address pursuit)
+		const char* GetNameOfNewChaser() const
 		{
-			const auto foundPursuit = ChasersManager::pursuitToManager.find(pursuit);
-
-			if (foundPursuit != ChasersManager::pursuitToManager.end())
-			{
-				if (foundPursuit->second->CanNewChaserSpawn())
-					return foundPursuit->second->chasers.GetNameOfAvailableCop();
-			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] Chaser request for unknown pursuit", pursuit);
-			
-			return nullptr;
+			return (this->CanNewChaserSpawn()) ? this->chasers.GetNameOfAvailableCop() : nullptr;
 		}
 	};
 
@@ -474,8 +452,15 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			call ChasersManager::GetNameOfAvailableChaser // ecx: pursuit
+			xor eax, eax
 
+			mov ecx, dword ptr [ecx + OFFSET]
+			test ecx, ecx
+			je conclusion // invalid ChasersManager
+
+			call ChasersManager::GetNameOfNewChaser
+
+			conclusion:
 			jmp dword ptr copRequestExit
 		}
 	}
@@ -489,10 +474,14 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			mov ecx, edi
-			call ChasersManager::HasChaserAvailable // ecx: pursuit
+			mov ecx, dword ptr [edi + OFFSET]
+			test ecx, ecx
+			je conclusion // invalid ChasersManager
+
+			call ChasersManager::CanNewChaserSpawn
 			test al, al
 
+			conclusion:
 			jmp dword ptr requestCheckExit
 		}
 	}
@@ -703,3 +692,5 @@ namespace CopSpawnOverrides
 		roadblocks.ClearVehicles();
 	}
 }
+
+#undef OFFSET

@@ -151,11 +151,14 @@ namespace HelicopterOverrides
 
 					if constexpr (Globals::loggingEnabled)
 					{
-						if (not this->rejoinTimer.IsEnabled())
-							Globals::logger.Log(this->pursuit, "[HEL] Rejoining not enabled");
+						if (this->IsHeatLevelKnown())
+						{
+							if (not this->rejoinTimer.IsEnabled())
+								Globals::logger.Log(this->pursuit, "[HEL] Rejoining not enabled");
 
-						else
-							Globals::logger.Log(this->pursuit, "[HEL] Insufficient fuel to rejoin");
+							else
+								Globals::logger.Log(this->pursuit, "[HEL] Insufficient fuel to rejoin");
+						}
 					}
 				}
 			}

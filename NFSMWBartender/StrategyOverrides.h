@@ -6,6 +6,8 @@
 #include "HeatParameters.h"
 #include "MemoryEditor.h"
 
+#define OFFSET 0x2C // constexpr would be incompatible with inline ASM
+
 
 
 namespace StrategyOverrides
@@ -52,6 +54,8 @@ namespace StrategyOverrides
 
 	private:
 
+		address& thisInPursuit = *((address*)(this->pursuit + OFFSET));
+
 		int& numStrategyVehicles = *((int*)(this->pursuit + 0x18C));
 
 		const int&     pursuitStatus  = *((int*)(this->pursuit + 0x218));
@@ -71,8 +75,6 @@ namespace StrategyOverrides
 		IntervalTimer leader7UnblockTimer = IntervalTimer(leader7UnblockEnableds, minLeader7UnblockDelays, maxLeader7UnblockDelays);
 
 		IntervalTimer* unblockTimer = nullptr;
-
-		inline static HashContainers::AddressMap<StrategyManager*> pursuitToManager;
 
 		inline static const auto ClearSupportRequest = (void (__thiscall*)(address))0x42BCF0;
 
@@ -113,77 +115,6 @@ namespace StrategyOverrides
 				else
 					Globals::logger.Log(this->pursuit, "[SGY] Strategy blocking fully");
 			}
-		}
-
-
-		void WatchHeavyStrategy()
-		{
-			this->Reset();
-
-			if (not this->heavyStrategy)
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [SGY] Invalid HeavyStrategy pointer in", this->pursuit);
-
-				return;
-			}
-
-			const int strategyID = *((int*)(this->heavyStrategy));
-
-			switch (strategyID)
-			{
-			case 3:
-				this->watchingHeavyStrategy3 = true;
-				this->unblockTimer           = &(this->heavy3UnblockTimer);
-				break;
-
-			case 4:
-				this->unblockTimer = &(this->heavy4UnblockTimer);
-				break;
-
-			default:
-				return;
-			}
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[SGY] Watching HeavyStrategy", strategyID);
-
-			this->UpdateUnblockTimer(IntervalTimer::Setting::ALL);
-		}
-
-
-		void WatchLeaderStrategy()
-		{
-			this->Reset();
-
-			if (not this->leaderStrategy)
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [SGY] Invalid LeaderStrategy pointer in", this->pursuit);
-
-				return;
-			}
-
-			const int strategyID = *((int*)(this->leaderStrategy));
-
-			switch (strategyID)
-			{
-			case 5:
-				this->unblockTimer = &(this->leader5UnblockTimer);
-				break;
-
-			case 7:
-				this->unblockTimer = &(this->leader7UnblockTimer);
-				break;
-
-			default:
-				return;
-			}
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[SGY] Watching LeaderStrategy", strategyID);
-
-			this->UpdateUnblockTimer(IntervalTimer::Setting::ALL);
 		}
 
 
@@ -259,19 +190,19 @@ namespace StrategyOverrides
 			}
 		}
 		
-
+		
 
 	public:
 
 		explicit StrategyManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
 		{
-			this->pursuitToManager.insert({this->pursuit, this});
+			this->thisInPursuit = (address)this;
 		}
 
 
 		~StrategyManager() override
 		{
-			this->pursuitToManager.erase(this->pursuit);
+			this->thisInPursuit = 0x0;
 		}
 
 
@@ -340,41 +271,83 @@ namespace StrategyOverrides
 		}
 
 
-		static void __fastcall NotifyOfHeavyStrategy(const address pursuit)
+		void WatchHeavyStrategy()
 		{
-			const auto foundManager = StrategyManager::pursuitToManager.find(pursuit);
+			this->Reset();
 
-			if (foundManager != StrategyManager::pursuitToManager.end())
-				foundManager->second->WatchHeavyStrategy();
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SGY] HeavyStrategy of unknown pursuit", pursuit);
-		}
-
-
-		static void __fastcall NotifyOfLeaderStrategy(const address pursuit)
-		{
-			const auto foundManager = StrategyManager::pursuitToManager.find(pursuit);
-
-			if (foundManager != StrategyManager::pursuitToManager.end())
-				foundManager->second->WatchLeaderStrategy();
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SGY] LeaderStrategy of unknown pursuit", pursuit);
-		}
-
-
-		static void __fastcall NotifyOfClearedRequest(const address pursuit)
-		{
-			const auto foundManager = StrategyManager::pursuitToManager.find(pursuit);
-
-			if (foundManager != StrategyManager::pursuitToManager.end())
+			if (not this->heavyStrategy)
 			{
-				foundManager->second->Reset();
-
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(pursuit, "[SGY] Active request cleared");
+					Globals::logger.Log("WARNING: [SGY] Invalid HeavyStrategy pointer in", this->pursuit);
+
+				return;
 			}
+
+			const int strategyID = *((int*)(this->heavyStrategy));
+
+			switch (strategyID)
+			{
+			case 3:
+				this->watchingHeavyStrategy3 = true;
+				this->unblockTimer           = &(this->heavy3UnblockTimer);
+				break;
+
+			case 4:
+				this->unblockTimer = &(this->heavy4UnblockTimer);
+				break;
+
+			default:
+				return;
+			}
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[SGY] Watching HeavyStrategy", strategyID);
+
+			this->UpdateUnblockTimer(IntervalTimer::Setting::ALL);
+		}
+
+
+		void WatchLeaderStrategy()
+		{
+			this->Reset();
+
+			if (not this->leaderStrategy)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log("WARNING: [SGY] Invalid LeaderStrategy pointer in", this->pursuit);
+
+				return;
+			}
+
+			const int strategyID = *((int*)(this->leaderStrategy));
+
+			switch (strategyID)
+			{
+			case 5:
+				this->unblockTimer = &(this->leader5UnblockTimer);
+				break;
+
+			case 7:
+				this->unblockTimer = &(this->leader7UnblockTimer);
+				break;
+
+			default:
+				return;
+			}
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[SGY] Watching LeaderStrategy", strategyID);
+
+			this->UpdateUnblockTimer(IntervalTimer::Setting::ALL);
+		}
+
+
+		void ClearWatchedStrategy()
+		{
+			this->Reset();
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(pursuit, "[SGY] Active request cleared");
 		}
 	};
 
@@ -417,27 +390,6 @@ namespace StrategyOverrides
 
 
 
-	constexpr address collapseFleeEntrance = 0x4438A4;
-	constexpr address collapseFleeExit     = 0x4438A9;
-
-	__declspec(naked) void CollapseFlee()
-	{
-		__asm
-		{
-			mov edx, dword ptr [ecx + 0x48]
-			cmp edx, 0x73B87374
-			jne conclusion
-
-			mov edx, dword ptr [ecx]
-			call dword ptr [edx + 0xC]
-
-			conclusion:
-			jmp collapseFleeExit
-		}
-	}
-
-
-
 	constexpr address clearRequestEntrance = 0x42B431;
 	constexpr address clearRequestExit     = 0x42B436;
 
@@ -448,10 +400,14 @@ namespace StrategyOverrides
 			mov dword ptr [ebp + 0x78], edi
 
 			push ecx
-			lea ecx, dword ptr [ebp - 0x194]
-			call StrategyManager::NotifyOfClearedRequest // ecx: pursuit
-			pop ecx
+			mov ecx, dword ptr [ebp - 0x194 + OFFSET]
+			test ecx, ecx
+			je conclusion // invalid StrategyManager
 
+			call StrategyManager::ClearWatchedStrategy
+			
+			conclusion:
+			pop ecx
 			test cl, cl
 
 			jmp dword ptr clearRequestExit
@@ -468,8 +424,13 @@ namespace StrategyOverrides
 		__asm
 		{
 			mov ecx, dword ptr [esp + 0x90]
-			call StrategyManager::NotifyOfLeaderStrategy // ecx: pursuit
+			mov ecx, dword ptr [ecx + OFFSET]
+			test ecx, ecx
+			je conclusion // invalid StrategyManager
 
+			call StrategyManager::WatchLeaderStrategy
+
+			conclusion:
 			// Execute original code and resume
 			mov eax, dword ptr [esp + 0x94]
 
@@ -487,8 +448,13 @@ namespace StrategyOverrides
 		__asm
 		{
 			mov ecx, dword ptr [esp + 0xC4]
-			call StrategyManager::NotifyOfHeavyStrategy // ecx: pursuit
+			mov ecx, dword ptr [ecx + OFFSET]
+			test ecx, ecx
+			je conclusion // invalid StrategyManager
 
+			call StrategyManager::WatchHeavyStrategy
+
+			conclusion:
 			// Execute original code and resume
 			mov eax, dword ptr [esp + 0xC8]
 
@@ -505,9 +471,13 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov ecx, ebx
-			call StrategyManager::NotifyOfHeavyStrategy // ecx: pursuit
+			mov ecx, dword ptr [ebx + OFFSET]
+			test ecx, ecx
+			je conclusion // invalid StrategyManager
 
+			call StrategyManager::WatchHeavyStrategy
+
+			conclusion:
 			// Execute original code and resume
 			mov ecx, dword ptr [esi]
 			mov dword ptr [esi + 0x78], 0x2
@@ -633,3 +603,5 @@ namespace StrategyOverrides
 		}
 	}
 }
+
+#undef OFFSET
