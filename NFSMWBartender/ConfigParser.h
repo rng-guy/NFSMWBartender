@@ -17,10 +17,11 @@ namespace ConfigParser
 	template <typename T, size_t size>
 	struct FormatParameter
 	{
-		std::array<T, size>&   values;
-		std::optional<T>       defaultValue;
-		const std::optional<T> lowerBound;
-		const std::optional<T> upperBound;
+		std::array<T, size>& values;
+
+		std::optional<T> defaultValue;
+		std::optional<T> lowerBound;
+		std::optional<T> upperBound;
 	};
 
 
@@ -28,9 +29,10 @@ namespace ConfigParser
 	template <typename T>
 	struct UserParameter
 	{
-		std::vector<T>&        values;
-		const std::optional<T> lowerBound;
-		const std::optional<T> upperBound;
+		std::vector<T>& values;
+
+		std::optional<T> lowerBound;
+		std::optional<T> upperBound;
 	};
 
 

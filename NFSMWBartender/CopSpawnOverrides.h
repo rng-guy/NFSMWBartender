@@ -227,7 +227,7 @@ namespace CopSpawnOverrides
 
 		void UpdateSpawnTable()
 		{
-			if (this->IsHeatLevelKnown())
+			if (PursuitFeatures::heatLevelKnown)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[SPA] Updating table");
@@ -363,7 +363,7 @@ namespace CopSpawnOverrides
 
 		bool CanNewChaserSpawn() const
 		{
-			if (not this->IsHeatLevelKnown())
+			if (not PursuitFeatures::heatLevelKnown)
 				return false;
 
 			else if (this->isPerpBusted or this->bailingPursuit or (this->spawnCooldown > 0.f))
@@ -394,7 +394,7 @@ namespace CopSpawnOverrides
 
 	const char* __fastcall GetByClassReplacement(const address spawnReturn)
 	{
-		if (ChasersManager::IsHeatLevelKnown())
+		if (PursuitFeatures::heatLevelKnown)
 		{
 			switch (spawnReturn)
 			{
@@ -452,13 +452,15 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			xor eax, eax
-
 			mov ecx, dword ptr [ecx + OFFSET]
 			test ecx, ecx
-			je conclusion // invalid ChasersManager
+			je invalid // invalid ChasersManager
 
 			call ChasersManager::GetNameOfNewChaser
+			jmp conclusion // was valid ChasersManager
+
+			invalid:
+			xor eax, eax
 
 			conclusion:
 			jmp dword ptr copRequestExit
@@ -570,8 +572,7 @@ namespace CopSpawnOverrides
 			cmp byte ptr skipEventSpawns, 0x0
 			jne conclusion // skip "Events" spawn
 
-			call ChasersManager::IsHeatLevelKnown
-			cmp al, 0x1
+			cmp byte ptr PursuitFeatures::heatLevelKnown, 0x1
 			jne conclusion // Heat level unknown
 
 			lea ecx, dword ptr [events]

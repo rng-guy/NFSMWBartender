@@ -151,7 +151,7 @@ namespace HelicopterOverrides
 
 					if constexpr (Globals::loggingEnabled)
 					{
-						if (this->IsHeatLevelKnown())
+						if (PursuitFeatures::heatLevelKnown)
 						{
 							if (not this->rejoinTimer.IsEnabled())
 								Globals::logger.Log(this->pursuit, "[HEL] Rejoining not enabled");

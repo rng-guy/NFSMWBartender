@@ -616,8 +616,9 @@ namespace PursuitObserver
 			Globals::logger.LogLongIndent("spawnsAreIndependent    ", spawnsAreIndependents.current);
 		}
 
+		PursuitFeatures::heatLevelKnown = true;
+
 		CopSpawnTables     ::SetToHeat(isRacing, heatLevel);
-		PursuitFeatures    ::SetToHeat(isRacing, heatLevel);
 		CopSpawnOverrides  ::SetToHeat(isRacing, heatLevel);
 		CopFleeOverrides   ::SetToHeat(isRacing, heatLevel);
 		HelicopterOverrides::SetToHeat(isRacing, heatLevel);
@@ -642,7 +643,7 @@ namespace PursuitObserver
 	{
 		if (not featureEnabled) return;
 
-		PursuitFeatures  ::ResetState();
+		PursuitFeatures::heatLevelKnown = false;
 		CopSpawnOverrides::ResetState();
 	}
 

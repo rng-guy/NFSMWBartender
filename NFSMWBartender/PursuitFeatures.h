@@ -13,6 +13,8 @@ namespace PursuitFeatures
 	const auto   IsVehicleDestroyed = (bool (__thiscall*)(address))0x688170;
 	const float& simulationTime     = *((float*)0x9885D8);
 
+	bool heatLevelKnown = false;
+
 
 
 
@@ -21,20 +23,11 @@ namespace PursuitFeatures
 
 	class PursuitReaction
 	{
-	private:
-
-		inline static bool isHeatLevelKnown = false;
-
-
-
 	protected:
 
 		const address pursuit;
 		
 		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {};
-
-		friend void SetToHeat(const bool, const size_t);
-		friend void ResetState();
 
 
 
@@ -70,12 +63,6 @@ namespace PursuitFeatures
 			const address  copVehicle,
 			const CopLabel copLabel
 		) = 0;
-
-
-		static bool IsHeatLevelKnown() 
-		{
-			return PursuitReaction::isHeatLevelKnown;
-		}
 	};
 
 
@@ -130,7 +117,7 @@ namespace PursuitFeatures
 
 		bool IsEnabled() const
 		{
-			return (PursuitReaction::IsHeatLevelKnown() and this->isEnabled);
+			return (heatLevelKnown and this->isEnabled);
 		}
 
 
@@ -198,26 +185,5 @@ namespace PursuitFeatures
 			Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
 
 		return copAIVehicle;
-	}
-
-
-
-
-
-	// State management -----------------------------------------------------------------------------------------------------------------------------
-
-	void SetToHeat
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
-		PursuitReaction::isHeatLevelKnown = true;
-	}
-
-
-
-	void ResetState() 
-	{
-		PursuitReaction::isHeatLevelKnown = false;
 	}
 }
