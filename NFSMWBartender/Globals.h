@@ -28,6 +28,9 @@ namespace Globals
 	// Pseudorandom number generator
 	RandomNumbers::Generator prng;
 
+	// Common data pointers
+	const float& simulationTime = *((float*)0x9885D8);
+
 	// Common function pointers
 	const auto GetVaultKey    = (vault (__cdecl*)   (const char*))0x5CC240;
 	const auto GetVehicleType = (vault (__thiscall*)(address))    0x6880A0;

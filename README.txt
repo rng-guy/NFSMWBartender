@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v1.18.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v1.18.01) │ ■ ────────────────────────────────────────────────────
 
 View this document with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -69,8 +69,9 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • what vehicles (ditto) may spawn as pre-generated cops in scripted events,
  • what vehicles (without counts) may spawn as free patrols outside pursuits,
  • what vehicle spawns in place of the regular helicopter,
- • when exactly (if at all) the helicopter can (de / re)spawn,
- • how much earlier (if at all) the helicopter rejoins the pursuit when it loses you,
+ • when exactly (if at all) the helicopter can (re)spawn,
+ • when exactly (if at all) the helicopter can run out of fuel,
+ • when exactly (if at all) the helicopter rejoins the pursuit early when it loses you,
  • the internal cooldown for the helicopter's ramming attempts through HeliStrategy 2,
  • the player-speed threshold for HeavyStrategy 3 spawns to stop their ramming attempts,
  • when exactly (if at all) LeaderStrategy Cross and / or his henchmen become aggressive,

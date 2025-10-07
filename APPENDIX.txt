@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.18.00) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v1.18.01) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -365,16 +365,21 @@ Regarding COP (DE / RE)SPAWNING ("BartenderSettings\Advanced\Cars.ini"):
 
 
 
-Regarding HELICOPTER (DE / RE)SPAWNING ("BartenderSettings\Advanced\Helicopter.ini"):
+Regarding HELICOPTER (RE)SPAWNING AND FUEL ("BartenderSettings\Advanced\Helicopter.ini"):
 
- • Bartender uses random timers for spawning, despawning, and respawning the helicopter. 
-   Each of these actions has a separate interval of possible timer values. Here, "spawning"
-   refers to the very first appearance of a helicopter in a given pursuit, while "respawning"
-   refers to any further appearances after the first. Heat transitions don't reset these timers.
+// TBD: UPDATE ALL OF THIS
 
- • The helicopter only spawns at Heat levels for which you define valid (re)spawn-delay values.
+ • Bartender uses random, separate timers for (de)spawning the helicopter and its fuel. 
 
- • The helicopter also (de / re)spawns in "COOLDOWN" mode according to its timers.
+ • Bartender uses "spawning" delay values for the helicopter's initial spawn in a given pursuit.
+   Once the first helicopter's gone, Bartender switches to "respawn" delay values instead.
+
+ • The helicopter only (re)spawns at Heat levels for which you define valid (re)spawn-delay values.
+
+ • The helicopter only spawns with limited fuel at Heat levels for which you define valid
+   fuel-limit values. A helicopter with unlimited fuel only despawns if it loses you or gets wrecked.
+
+ • The helicopter also (re)spawns in "COOLDOWN" mode according to its timers.
 
  • The helicopter only ever spawns in player pursuits.
 
@@ -550,3 +555,4 @@ v1.00.00: Initial release
       03: Extended customisation options for cops joining from roadblocks
 
    18.00: Simplified interactive-music feature and added support for independent "Chasers" spawns
+      01: 

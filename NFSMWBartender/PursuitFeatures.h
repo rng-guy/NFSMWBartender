@@ -10,10 +10,48 @@ namespace PursuitFeatures
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	const auto   IsVehicleDestroyed = (bool (__thiscall*)(address))0x688170;
-	const float& simulationTime     = *((float*)0x9885D8);
-
 	bool heatLevelKnown = false;
+
+
+
+
+
+	// Cache class ----------------------------------------------------------------------------------------------------------------------------------
+
+	class Cache
+	{
+	private:
+
+		inline static constexpr address storageOffset = 0xD0;
+
+		address& storage;
+
+
+
+	public:
+
+		address pursuitObserver = 0x0;
+		address chasersManager  = 0x0;
+		address strategyManager = 0x0;
+
+
+		explicit Cache(const address pursuit) : storage(*((address*)(pursuit + this->storageOffset)))
+		{
+			this->storage = (address)this;
+		}
+
+
+		~Cache()
+		{
+			this->storage = 0x0;
+		}
+
+
+		static Cache* GetPointer(const address pursuit)
+		{
+			return (Cache*)(*((address*)(pursuit + Cache::storageOffset)));
+		}
+	};
 
 
 
@@ -26,7 +64,25 @@ namespace PursuitFeatures
 	protected:
 
 		const address pursuit;
-		
+
+		inline static const auto IsVehicleDestroyed = (bool (__thiscall*)(address))0x688170;
+
+
+		static bool MakeVehicleBail(const address copVehicle)
+		{
+			static const auto StartFlee    = (void(__thiscall*)(address))0x423370;
+			const address     copAIVehicle = *((address*)(copVehicle + 0x54));
+
+			if (copAIVehicle)
+				StartFlee(copAIVehicle + 0x70C);
+
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
+
+			return copAIVehicle;
+		}
+
+
 		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {};
 
 
@@ -34,7 +90,6 @@ namespace PursuitFeatures
 	public:
 
 		virtual ~PursuitReaction() = default;
-
 
 		virtual void UpdateOnGameplay()       {}
 		virtual void UpdateOnHeatChange()     {}
@@ -79,20 +134,19 @@ namespace PursuitFeatures
 		float startTimestamp = 0.f;
 		float endTimestamp   = 0.f;
 
-		const bool&  isEnabled;
-		const float& minDelay;
-		const float& maxDelay;
+		const HeatParameters::OptionalInterval& interval;
 
 
 		void UpdateStart()
 		{
-			this->startTimestamp = simulationTime;
+			this->startTimestamp = Globals::simulationTime;
 		}
 
 
 		void UpdateLength()
 		{
-			this->length = Globals::prng.GenerateNumber<float>(this->minDelay, this->maxDelay);
+			if (this->IsEnabled())
+				this->length = this->interval.GetRandomValue();
 		}
 
 
@@ -105,27 +159,20 @@ namespace PursuitFeatures
 
 	public:
 
-		explicit IntervalTimer
-		(
-			const HeatParameters::Pair<bool>&  isEnableds,
-			const HeatParameters::Pair<float>& minDelays,
-			const HeatParameters::Pair<float>& maxDelays
-		) 
-			: isEnabled(isEnableds.current), minDelay(minDelays.current), maxDelay(maxDelays.current)
-		{}
+		explicit IntervalTimer (const HeatParameters::OptionalInterval& interval) : interval(interval) {}
 
 
 		bool IsEnabled() const
 		{
-			return (heatLevelKnown and this->isEnabled);
+			return (heatLevelKnown and this->interval.isEnableds.current);
 		}
 
 
 		enum class Setting
 		{
+			ALL,
 			START,
-			LENGTH,
-			ALL
+			LENGTH
 		};
 
 		void Update(const Setting value)
@@ -136,12 +183,11 @@ namespace PursuitFeatures
 				this->UpdateStart();
 				break;
 
-			case Setting::LENGTH:
-				this->UpdateLength();
-				break;
-
 			case Setting::ALL:
 				this->UpdateStart();
+				[[fallthrough]];
+
+			case Setting::LENGTH:
 				this->UpdateLength();
 			}
 
@@ -149,41 +195,21 @@ namespace PursuitFeatures
 		}
 
 
-		bool HasExpired() const
-		{
-			return (this->IsEnabled()) ? (simulationTime >= this->endTimestamp) : false;
-		}
-
-
 		float GetLength() const
 		{
-			return (this->IsEnabled()) ? this->length : 0.f;
+			return this->length;
 		}
 
 
 		float TimeLeft() const
 		{
-			return (this->IsEnabled()) ? this->endTimestamp - simulationTime : 0.f;
+			return (this->endTimestamp - Globals::simulationTime);
+		}
+
+
+		bool HasExpired() const
+		{
+			return (this->IsEnabled() and (this->TimeLeft() <= 0.f));
 		}
 	};
-
-
-
-
-
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	bool MakeVehicleFlee(const address copVehicle)
-	{
-		static const auto StartFlee    = (void (__thiscall*)(address))0x423370;
-		const address     copAIVehicle = *((address*)(copVehicle + 0x54));
-
-		if (copAIVehicle)
-			StartFlee(copAIVehicle + 0x70C);
-
-		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
-
-		return copAIVehicle;
-	}
 }

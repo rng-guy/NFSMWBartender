@@ -205,6 +205,40 @@ namespace HeatParameters
 
 
 
+	struct OptionalInterval
+	{
+		Pair<bool>  isEnableds = Pair<bool>(false);
+		Pair<float> minValues  = Pair<float>(1.f);
+		Pair<float> maxValues  = Pair<float>(1.f);
+
+
+		void SetToHeat
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->isEnableds.SetToHeat(forRaces, heatLevel);
+
+			this->minValues.SetToHeat(forRaces, heatLevel);
+			this->maxValues.SetToHeat(forRaces, heatLevel);
+		}
+
+
+		float GetRandomValue() const
+		{
+			return Globals::prng.GenerateNumber<float>(this->minValues.current, this->maxValues.current);
+		}
+
+
+		void Log(const char* const intervalName) const
+		{
+			if (this->isEnableds.current)
+				Globals::logger.LogLongIndent(intervalName, this->minValues.current, "to", this->maxValues.current);
+		}
+	};
+
+
+
 
 
 	// Validation functions -------------------------------------------------------------------------------------------------------------------------
@@ -323,10 +357,10 @@ namespace HeatParameters
 	template <typename ...T>
 	void ParseOptional
 	(
-		Parser&                parser,
-		const std::string&     section,
-		Pair<bool>&            isEnableds,
-		ParsingSetup<T>&&   ...columns
+		Parser&               parser,
+		const std::string&    section,
+		Pair<bool>&           isEnableds,
+		ParsingSetup<T>&&  ...columns
 	) {
 		for (const bool forRaces : {false, true})
 		{
@@ -347,19 +381,17 @@ namespace HeatParameters
 
 
 
-	bool ParseOptionalInterval
+	bool Parse
 	(
 		Parser&            parser,
 		const std::string& section,
-		Pair<bool>&        isEnableds,
-		Pair<float>&       minValues,
-		Pair<float>&       maxValues
+		OptionalInterval&  interval
 	) {
-		ParseOptional<float, float>(parser, section, isEnableds, {minValues, 1.f}, {maxValues, 1.f});
+		ParseOptional<float, float>(parser, section, interval.isEnableds, {interval.minValues, 1.f}, {interval.maxValues, 1.f});
 
-		if (not isEnableds.AnyNonzero()) return false;
-
-		CheckIntervals<float>(minValues, maxValues);
+		if (not interval.isEnableds.AnyNonzero()) return false;
+		
+		CheckIntervals<float>(interval.minValues, interval.maxValues);
 
 		return true;
 	}

@@ -56,7 +56,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log("\n SESSION [VER] Bartender v1.18.00");
+			Globals::logger.Log("\n SESSION [VER] Bartender v1.18.01");
 
 			Globals::logger.LogLongIndent("Basic feature set",    (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
@@ -177,8 +177,10 @@ namespace StateObserver
 			je conclusion // already handled
 
 			push eax
+
 			mov byte ptr gameStartHandled, 0x1
 			call OnGameStartUpdates
+
 			pop eax
 
 			conclusion:
@@ -201,7 +203,9 @@ namespace StateObserver
 		__asm
 		{
 			push eax
+
 			call OnWorldLoadUpdates
+
 			pop eax
 
 			// Execute original code and resume
@@ -244,15 +248,13 @@ namespace StateObserver
 	{
 		__asm
 		{
-			// Execute original code first
 			push edi
 			mov edi, ecx
-
 			push eax
-			call OnRetryUpdates
-			pop eax
 
-			// Execute original code and resume
+			call OnRetryUpdates
+
+			pop eax
 			cmp eax, ebx
 
 			jmp dword ptr retryObserverExit
