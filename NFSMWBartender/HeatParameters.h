@@ -207,7 +207,7 @@ namespace HeatParameters
 
 	struct OptionalInterval
 	{
-		Pair<bool>  isEnableds = Pair<bool>(false);
+		Pair<bool>  isEnableds = Pair<bool> (false);
 		Pair<float> minValues  = Pair<float>(1.f);
 		Pair<float> maxValues  = Pair<float>(1.f);
 
@@ -381,18 +381,24 @@ namespace HeatParameters
 
 
 
-	bool Parse
+	template <typename ...T>
+	void Parse
 	(
-		Parser&            parser,
-		const std::string& section,
-		OptionalInterval&  interval
+		Parser&               parser,
+		const std::string&    section,
+		OptionalInterval&     interval,
+		ParsingSetup<T>&&  ...columns
 	) {
-		ParseOptional<float, float>(parser, section, interval.isEnableds, {interval.minValues, 1.f}, {interval.maxValues, 1.f});
+		ParseOptional<float, float, T...>
+		(
+			parser, 
+			section, 
+			interval.isEnableds, 
+			{interval.minValues, 1.f}, 
+			{interval.maxValues, 1.f}, 
+			std::forward<ParsingSetup<T>>(columns)...
+		);
 
-		if (not interval.isEnableds.AnyNonzero()) return false;
-		
 		CheckIntervals<float>(interval.minValues, interval.maxValues);
-
-		return true;
 	}
 }

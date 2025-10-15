@@ -29,7 +29,8 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the maximum combo-bounty multiplier for destroying cops quickly,
 * how quickly and at what distances from cops the red "BUSTED" bar fills,
 * how quickly the green "EVADE" bar fills once all cops have lost sight of you,
-* when exactly (if at all) cop vehicles are destroyed if flipped over,
+* whether player-damaged cop vehicles are destroyed instantly if flipped over,
+* when exactly (if at all) cop vehicles in general are destroyed if flipped over,
 * when exactly (if at all) racer vehicles are reset if flipped over,
 * when exactly (if at all) interactive music can transition to another track,
 * whether cops in non-player pursuits can request ground supports,
@@ -54,7 +55,7 @@ The "Basic" feature set **also lets you change** (in general)
 The "Basic" feature set **fixes six bugs / issues**:
 * helicopter mini-map icons are now always visible whenever a helicopter is active,
 * helicopters no longer cast static shadows (like cars do) with incorrect placements,
-* the game is no longer biased in how it chooses to make Strategy requests
+* the game is no longer biased in how it chooses to make Strategy requests,
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures), and
 * you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills.
@@ -72,18 +73,20 @@ The "Basic" feature set **fixes six bugs / issues**:
 The "Advanced" feature set **lets you change** (per Heat level)
 * how many cops can (re)spawn without backup once a wave of reinforcements is exhausted,
 * the global cop-spawn limit for how many cops in total may chase you at any given time,
-* whether spawning decisions for chasing cops are independent of other pursuit vehicles,
-* how quickly (if at all) cops flee the pursuit if they don't belong to the Heat level,
+* whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
+* when exactly (if at all) and how many chasing cops from other Heat levels can flee the pursuit,
 * what vehicles (any amount, with counts and chances) may spawn to chase and search for you,
 * what vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
 * what vehicles (ditto) may spawn as pre-generated cops in scripted events,
 * what vehicles (without counts) may spawn as free patrols outside pursuits,
 * what vehicle spawns in place of the regular helicopter,
-* when exactly (if at all) the helicopter can (re)spawn,
-* when exactly (if at all) the helicopter can run out of fuel,
-* when exactly (if at all) the helicopter rejoins the pursuit early when it loses you,
+* when exactly (if at all) the helicopter can first spawn in each pursuit,
+* when exactly (if at all) the helicopter can respawn after running out of fuel,
+* when exactly (if at all) the helicopter can respawn after getting wrecked,
+* when exactly (if at all) the helicopter can rejoin the pursuit early when it loses you,
+* when exactly (if at all) the helicopter can run out of fuel after each (re)spawn,
 * the internal cooldown for the helicopter's ramming attempts through HeliStrategy 2,
-* the player-speed threshold for HeavyStrategy 3 spawns to stop their ramming attempts,
+* below what player speed HeavyStrategy 3 spawns cancel their ramming attempts early,
 * when exactly (if at all) LeaderStrategy Cross and / or his henchmen become aggressive,
 * when exactly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
 * when exactly (if at all) the game can request a new Strategy while another is still active.
@@ -105,11 +108,15 @@ The "Advanced" feature set **fixes three bugs / issues**:
 
 # 3 - What mods are (in)compatible with Bartender?
 
-Bartender should be **fully compatible** with all [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods. Other .asi mods without pursuit features should also be compatible unless they are listed below.
+Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations. However, Bartender's "Advanced" feature set replaces some "pursuitlevels" VltEd parameters:
+* the `cops` array,
+* `HeliFuelTime`,
+* `TimeBetweenHeliActive`, and
+* `SearchModeHeliSpawnChance`.
 
 &nbsp;
 
-Some popular .asi mods **require (re)configuration** to be compatible with Bartender:
+Most non-pursuit **.asi mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
 * In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable the `HeatLevelOverride` feature.
 * In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable the `EnableCopDestroyedStringHook` feature.
 * In [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, disable every cop-related feature under `[Options]`.

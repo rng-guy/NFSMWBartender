@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <string>
 #include <vector>
 
 #include "Globals.h"
@@ -156,12 +157,14 @@ namespace InteractiveMusic
 	{
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
 
+		const std::string section = "Music:Tracks";
+
 		// General parameters
 		std::array<int, maxNumTracks> allTracks = {};
 
 		const auto isValids = parser.ParseParameterTable<int>
 		(
-			"Music:Tracks",
+			section,
 			"track{:02}",
 			ConfigParser::FormatParameter<int, maxNumTracks>(allTracks)
 		);
@@ -176,10 +179,10 @@ namespace InteractiveMusic
 
 		if (tracks.empty()) return false;
 
-		transitionsEnabled = parser.ParseParameter<float>("Music:Tracks", "lengthPerTrack", lengthPerTrack);
+		transitionsEnabled = parser.ParseParameter<float>(section, "lengthPerTrack", lengthPerTrack);
 
-		parser.ParseParameter<bool>("Music:Tracks", "shuffleFirstTrack", shuffleFirstTrack);
-		parser.ParseParameter<bool>("Music:Tracks", "shuffleAfterFirst", shuffleAfterFirst);
+		parser.ParseParameter<bool>(section, "shuffleFirstTrack", shuffleFirstTrack);
+		parser.ParseParameter<bool>(section, "shuffleAfterFirst", shuffleAfterFirst);
 
 		// Code caves
 		MemoryEditor::DigCodeCave(FirstTrack,      firstTrackEntrance,      firstTrackExit);

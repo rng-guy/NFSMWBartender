@@ -18,7 +18,7 @@ namespace RadioCallsigns
 	bool featureEnabled = false;
 
 	// Code caves
-	enum CallsignGroup // C-style for inline ASM support
+	enum Group // C-style for inline ASM support
 	{
 		UNKNOWN,
 		PATROL,
@@ -27,9 +27,9 @@ namespace RadioCallsigns
 		CROSS
 	};
 
-	CallsignGroup defaultCallsignGroup = CallsignGroup::PATROL;
+	Group defaultCallsignGroup = Group::PATROL;
 
-	HashContainers::VaultMap<CallsignGroup> copTypeToCallsignGroup;
+	HashContainers::VaultMap<Group> copTypeToCallsignGroup;
 
 	
 	
@@ -37,7 +37,7 @@ namespace RadioCallsigns
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	CallsignGroup __fastcall GetCallsignGroup(const vault copType)
+	Group __fastcall GetCallsignGroup(const vault copType)
 	{
 		const auto foundType = copTypeToCallsignGroup.find(copType);
 		return (foundType != copTypeToCallsignGroup.end()) ? foundType->second : defaultCallsignGroup;
@@ -146,12 +146,12 @@ namespace RadioCallsigns
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
 
 		// Callsign groups
-		const std::unordered_map<std::string, CallsignGroup> nameToCallsign =
+		const std::unordered_map<std::string, Group> nameToCallsign =
 		{ 
-			{"patrol", CallsignGroup::PATROL},
-			{"elite",  CallsignGroup::ELITE},
-			{"rhino",  CallsignGroup::RHINO},
-			{"cross",  CallsignGroup::CROSS}
+			{"patrol", Group::PATROL},
+			{"elite",  Group::ELITE},
+			{"rhino",  Group::RHINO},
+			{"cross",  Group::CROSS}
 		};
 
 		std::vector<std::string> copVehicles;
@@ -163,8 +163,8 @@ namespace RadioCallsigns
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
 		{
-			const auto          foundName = nameToCallsign.find(callsignNames[vehicleID]);
-			const CallsignGroup group     = (foundName != nameToCallsign.end()) ? foundName->second : CallsignGroup::UNKNOWN;
+			const auto  foundName = nameToCallsign.find(callsignNames[vehicleID]);
+			const Group group     = (foundName != nameToCallsign.end()) ? foundName->second : Group::UNKNOWN;
 
 			copTypeToCallsignGroup.insert({Globals::GetVaultKey(copVehicles[vehicleID].c_str()), group});
 		}
@@ -192,13 +192,13 @@ namespace RadioCallsigns
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [RAD] RadioCallsigns");
 
-		HashContainers::ValidateVaultMap<CallsignGroup>
+		HashContainers::ValidateVaultMap<Group>
 		(
 			"Vehicle-to-callsign",
 			copTypeToCallsignGroup, 
 			defaultCallsignGroup,
-			[=](const vault         key)  {return Globals::VehicleClassMatches(key, Globals::VehicleClass::CAR);},
-			[=](const CallsignGroup value){return (value != CallsignGroup::UNKNOWN);}
+			[=](const vault key)  {return Globals::VehicleClassMatches(key, Globals::VehicleClass::CAR);},
+			[=](const Group value){return (value != Group::UNKNOWN);}
 		);
 	}
 }

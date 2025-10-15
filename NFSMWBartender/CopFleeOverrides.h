@@ -20,7 +20,7 @@ namespace CopFleeOverrides
 
 	// Heat levels
 	HeatParameters::OptionalInterval fleeDelays;
-	HeatParameters::Pair<int>        minNumChasersRemainings(2);
+	HeatParameters::Pair<int>        chasersThresholds(2);
 
 
 
@@ -37,7 +37,7 @@ namespace CopFleeOverrides
 
 		HashContainers::AddressSet        activeChaserVehicles;
 		HashContainers::AddressMap<float> chaserVehicleToFleeTimestamp;
-		HashContainers::AddressMap<float> strategyVehicleToFleeTimestamp;
+		HashContainers::AddressMap<float> supportVehicleToFleeTimestamp;
 		
 		
 		static bool IsLabelTrackable(const CopLabel copLabel)
@@ -58,16 +58,16 @@ namespace CopFleeOverrides
 		}
 
 
-		static bool IsChaserVehicleMember(const address copVehicle)
+		static bool IsChaserMember(const address copVehicle)
 		{
 			const vault copType = Globals::GetVehicleType(copVehicle);
 			return CopSpawnTables::chaserSpawnTables.current->Contains(copType);
 		}
 
 
-		void ReviewChaserVehicle(const address copVehicle)
+		void ReviewChaser(const address copVehicle)
 		{
-			if ((not fleeDelays.isEnableds.current) or this->IsChaserVehicleMember(copVehicle)) return;
+			if ((not fleeDelays.isEnableds.current) or this->IsChaserMember(copVehicle)) return;
 
 			const float timeUntilFlee = fleeDelays.GetRandomValue();
 			const bool  wasNew        = this->chaserVehicleToFleeTimestamp.insert({copVehicle, Globals::simulationTime + timeUntilFlee}).second;
@@ -75,40 +75,40 @@ namespace CopFleeOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (wasNew)
-					Globals::logger.Log(this->pursuit, "[FLE] Chaser vehicle", copVehicle, "expires in", timeUntilFlee);
+					Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", timeUntilFlee);
 
 				else
-					Globals::logger.Log("WARNING: [FLE] Chaser vehicle", copVehicle, "already scheduled");
+					Globals::logger.Log("WARNING: [FLE]", copVehicle, "already scheduled");
 			}
 		}
 
 
-		void ReviewAllChaserVehicles()
+		void ReviewAllChasers()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[FLE] Reviewing all active chaser vehicles");
+				Globals::logger.Log(this->pursuit, "[FLE] Reviewing all chaser vehicles");
 
 			this->chaserVehicleToFleeTimestamp.clear();
 
 			for (const address copVehicle : this->activeChaserVehicles)
-				this->ReviewChaserVehicle(copVehicle);
+				this->ReviewChaser(copVehicle);
 		}
 
 
-		void ScheduleStrategyVehicle
+		void ScheduleSupport
 		(
 			const address copVehicle, 
 			const float   strategyDuration
 		) {
-			const bool wasNew = this->strategyVehicleToFleeTimestamp.insert({copVehicle, Globals::simulationTime + strategyDuration}).second;
+			const bool wasNew = this->supportVehicleToFleeTimestamp.insert({copVehicle, Globals::simulationTime + strategyDuration}).second;
 
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (wasNew)
-					Globals::logger.Log(this->pursuit, "[FLE] Strategy vehicle", copVehicle, "expires in", strategyDuration);
+					Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", strategyDuration);
 
 				else
-					Globals::logger.Log("WARNING: [FLE] Strategy vehicle", copVehicle, "already scheduled");
+					Globals::logger.Log("WARNING: [FLE]", copVehicle, "already scheduled");
 			}
 		}
 
@@ -129,15 +129,15 @@ namespace CopFleeOverrides
 			switch (copLabel)
 			{
 			case CopLabel::HEAVY:
-				this->ScheduleStrategyVehicle(copVehicle, this->GetStrategyDuration(this->heavyStrategy));
+				this->ScheduleSupport(copVehicle, this->GetStrategyDuration(this->heavyStrategy));
 				break;
 
 			case CopLabel::LEADER:
-				this->ScheduleStrategyVehicle(copVehicle, this->GetStrategyDuration(this->leaderStrategy));
+				this->ScheduleSupport(copVehicle, this->GetStrategyDuration(this->leaderStrategy));
 				break;
 
 			case CopLabel::CHASER:
-				this->ReviewChaserVehicle(copVehicle);
+				this->ReviewChaser(copVehicle);
 				break;
 
 			default:
@@ -147,16 +147,16 @@ namespace CopFleeOverrides
 		}
 
 
-		bool MayAnotherChaserVehicleFlee() const
+		bool MayAnotherChaserFlee() const
 		{
-			return ((int)(this->activeChaserVehicles.size()) > minNumChasersRemainings.current);
+			return ((int)(this->activeChaserVehicles.size()) > chasersThresholds.current);
 		}
 
 
-		void CheckChaserVehicleTimestamps()
+		void CheckChaserTimestamps()
 		{
 			if (this->chaserVehicleToFleeTimestamp.empty()) return;
-			if (not this->MayAnotherChaserVehicleFlee())    return;
+			if (not this->MayAnotherChaserFlee())           return;
 			
 			auto iterator = this->chaserVehicleToFleeTimestamp.begin();
 
@@ -164,7 +164,7 @@ namespace CopFleeOverrides
 			{
 				if (Globals::simulationTime >= iterator->second)
 				{
-					this->MakeVehicleBail(iterator->first);
+					PursuitFeatures::MakeVehicleBail(iterator->first);
 					this->activeChaserVehicles.erase(iterator->first);
 
 					if constexpr (Globals::loggingEnabled)
@@ -172,10 +172,10 @@ namespace CopFleeOverrides
 
 					iterator = this->chaserVehicleToFleeTimestamp.erase(iterator);
 
-					if (not this->MayAnotherChaserVehicleFlee())
+					if (not this->MayAnotherChaserFlee())
 					{
 						if constexpr (Globals::loggingEnabled)
-							Globals::logger.Log(this->pursuit, "[FLE] Suspending fleeing");		
+							Globals::logger.Log(this->pursuit, "[FLE] Fleeing suspended");		
 
 						break;
 					}
@@ -185,22 +185,22 @@ namespace CopFleeOverrides
 		}
 
 
-		void CheckStrategyVehicleTimestamps()
+		void CheckSupportTimestamps()
 		{
-			if (this->strategyVehicleToFleeTimestamp.empty()) return;
+			if (this->supportVehicleToFleeTimestamp.empty()) return;
 
-			auto iterator = this->strategyVehicleToFleeTimestamp.begin();
+			auto iterator = this->supportVehicleToFleeTimestamp.begin();
 
-			while (iterator != this->strategyVehicleToFleeTimestamp.end())
+			while (iterator != this->supportVehicleToFleeTimestamp.end())
 			{
 				if (Globals::simulationTime >= iterator->second)
 				{
-					this->MakeVehicleBail(iterator->first);
+					PursuitFeatures::MakeVehicleBail(iterator->first);
 
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[FLE] Strategy vehicle", iterator->first, "expired");
+						Globals::logger.Log(this->pursuit, "[FLE] Support vehicle", iterator->first, "expired");
 
-					iterator = this->strategyVehicleToFleeTimestamp.erase(iterator);
+					iterator = this->supportVehicleToFleeTimestamp.erase(iterator);
 				}
 				else ++iterator;
 			}
@@ -215,14 +215,14 @@ namespace CopFleeOverrides
 
 		void UpdateOnGameplay() override 
 		{
-			this->CheckChaserVehicleTimestamps();
-			this->CheckStrategyVehicleTimestamps();
+			this->CheckChaserTimestamps();
+			this->CheckSupportTimestamps();
 		}
 
 
 		void UpdateOnHeatChange() override 
 		{
-			this->ReviewAllChaserVehicles();
+			this->ReviewAllChasers();
 		}
 
 
@@ -256,7 +256,7 @@ namespace CopFleeOverrides
 				if (this->activeChaserVehicles.erase(copVehicle))
 					this->chaserVehicleToFleeTimestamp.erase(copVehicle);
 			}
-			else this->strategyVehicleToFleeTimestamp.erase(copVehicle);
+			else this->supportVehicleToFleeTimestamp.erase(copVehicle);
 		}
 	};
 
@@ -296,8 +296,7 @@ namespace CopFleeOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
 		// Heat parameters
-		HeatParameters::Parse     (parser, "Chasers:Fleeing",     fleeDelays);
-		HeatParameters::Parse<int>(parser, "Chasers:Contingency", {minNumChasersRemainings, 0});
+		HeatParameters::Parse<int>(parser, "Chasers:Fleeing", fleeDelays, {chasersThresholds, 0});
 
 		// Code caves
 		MemoryEditor::DigCodeCave(UpdateFormation, updateFormationEntrance, updateFormationExit);
@@ -317,8 +316,8 @@ namespace CopFleeOverrides
 	) {
 		if (not featureEnabled) return;
 
-		fleeDelays             .SetToHeat(isRacing, heatLevel);
-		minNumChasersRemainings.SetToHeat(isRacing, heatLevel);
+		fleeDelays       .SetToHeat(isRacing, heatLevel);
+		chasersThresholds.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -326,7 +325,7 @@ namespace CopFleeOverrides
 			{
 				Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
 				fleeDelays.Log("fleeDelay               ");
-				Globals::logger.LogLongIndent("minNumChasersRemaining  ", minNumChasersRemainings.current);
+				Globals::logger.LogLongIndent("chasersThreshold        ", chasersThresholds.current);
 			}
 		}
 	}

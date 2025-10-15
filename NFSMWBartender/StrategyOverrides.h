@@ -35,8 +35,7 @@ namespace StrategyOverrides
 
 	class StrategyManager : public PursuitFeatures::PursuitReaction
 	{
-		using IntervalTimer = PursuitFeatures::IntervalTimer;
-		using Cache         = PursuitFeatures::Cache;
+		using Cache = PursuitFeatures::Cache;
 
 
 
@@ -49,19 +48,15 @@ namespace StrategyOverrides
 		const address& heavyStrategy  = *((address*)(this->pursuit + 0x194));
 		const address& leaderStrategy = *((address*)(this->pursuit + 0x198));
 
-		address rigidBodyOfTarget = 0x0;
+		address rigidBodyOfTarget      = 0x0;
+		bool    watchingHeavyStrategy3 = false;
+
+		PursuitFeatures::IntervalTimer unblockTimer;
 
 		HashContainers::AddressSet vehiclesOfCurrentStrategy;
 		HashContainers::AddressSet vehiclesOfUnblockedHeavy3;
 
 		const float pursuitStartTimestamp = Globals::simulationTime;
-
-		IntervalTimer* unblockTimer = nullptr;
-
-		IntervalTimer heavy3UnblockTimer  = IntervalTimer(heavy3UnblockDelays);
-		IntervalTimer heavy4UnblockTimer  = IntervalTimer(heavy4UnblockDelays);
-		IntervalTimer leader5UnblockTimer = IntervalTimer(leader5UnblockDelays);
-		IntervalTimer leader7UnblockTimer = IntervalTimer(leader7UnblockDelays);
 
 		inline static const auto ClearSupportRequest = (void (__thiscall*)(address))0x42BCF0;
 
@@ -88,43 +83,33 @@ namespace StrategyOverrides
 		}
 
 
-		bool IsWatchingAnyStrategy() const
+		void StopUnblockTimer()
 		{
-			return this->unblockTimer;
-		}
+			if (not this->unblockTimer.IsSet()) return;
 
-		
-		bool IsWatchingHeavyStrategy3() const
-		{
-			return (this->unblockTimer == &(this->heavy3UnblockTimer));
-		}
+			this->unblockTimer.Stop();
 
-
-		void Reset()
-		{
-			if (not this->IsWatchingAnyStrategy()) return;
-
-			if (this->IsWatchingHeavyStrategy3())
+			if (this->watchingHeavyStrategy3)
+			{
+				this->watchingHeavyStrategy3 = false;
 				this->vehiclesOfUnblockedHeavy3.merge(this->vehiclesOfCurrentStrategy);
+			}
+			else this->vehiclesOfCurrentStrategy.clear();
 
-			else 
-				this->vehiclesOfCurrentStrategy.clear();
-
-			this->unblockTimer = nullptr;
 			this->UpdateNumStrategyVehicles();
 		}
 
 
-		void UpdateUnblockTimer(const IntervalTimer::Setting setting)
+		void StartUnblockTimer()
 		{
-			if (not this->IsWatchingAnyStrategy()) return;
+			if (this->unblockTimer.IsSet()) return;
 
-			this->unblockTimer->Update(setting);
+			this->unblockTimer.Start();
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->unblockTimer->IsEnabled())
-					Globals::logger.Log(this->pursuit, "[STR] Unblocking in", this->unblockTimer->TimeLeft());
+				if (this->unblockTimer.IsIntervalEnabled())
+					Globals::logger.Log(this->pursuit, "[STR] Unblocking in", this->unblockTimer.GetLength());
 
 				else
 					Globals::logger.Log(this->pursuit, "[STR] Strategy blocking fully");
@@ -134,26 +119,25 @@ namespace StrategyOverrides
 
 		void CheckUnblockTimer() const
 		{
-			if (not this->IsWatchingAnyStrategy())    return;
-			if (not this->unblockTimer->HasExpired()) return;
+			if (not this->unblockTimer.HasExpired()) return;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[STR] Unblocking request");
+				Globals::logger.Log(this->pursuit, "[STR] Unblocking active Strategy");
 
 			this->ClearSupportRequest(this->pursuit);
 		}
 
 
-		void MakeVehiclesBail(HashContainers::AddressSet& copVehicles)
+		static void MakeVehiclesBail(HashContainers::AddressSet& copVehicles)
 		{
 			for (const address copVehicle : copVehicles)
-				this->MakeVehicleBail(copVehicle);
+				PursuitFeatures::MakeVehicleBail(copVehicle);
 
 			copVehicles.clear();
 		}
 
 
-		void RequestRigidBodyOfTarget()
+		void RetrieveRigidBodyOfTarget()
 		{
 			const address pursuitTarget = *((address*)(this->pursuit + 0x74));
 			const address physicsObject = *((address*)(pursuitTarget + 0x1C));
@@ -186,7 +170,7 @@ namespace StrategyOverrides
 
 		void CheckHeavyStrategy3Vehicles()
 		{
-			if ((not this->IsWatchingHeavyStrategy3()) and (this->vehiclesOfUnblockedHeavy3.empty())) return;
+			if ((not this->watchingHeavyStrategy3) and this->vehiclesOfUnblockedHeavy3.empty()) return;
 
 			if (this->IsSpeedOfTargetBelowThreshold() or this->IsSearchModeActive())
 			{
@@ -195,7 +179,7 @@ namespace StrategyOverrides
 
 				this->MakeVehiclesBail(this->vehiclesOfUnblockedHeavy3);
 
-				if (this->IsWatchingHeavyStrategy3())
+				if (this->watchingHeavyStrategy3)
 				{
 					this->MakeVehiclesBail(this->vehiclesOfCurrentStrategy);
 					this->ClearSupportRequest(this->pursuit);
@@ -233,16 +217,9 @@ namespace StrategyOverrides
 		}
 
 
-		void UpdateOnHeatChange() override
-		{
-			this->UpdateUnblockTimer(IntervalTimer::Setting::LENGTH);
-			this->CheckUnblockTimer();
-		}
-
-
 		void UpdateOncePerPursuit() override
 		{
-			this->RequestRigidBodyOfTarget();
+			this->RetrieveRigidBodyOfTarget();
 		}
 
 
@@ -255,7 +232,7 @@ namespace StrategyOverrides
 		{
 			if (not ((copLabel == CopLabel::HEAVY) or (copLabel == CopLabel::LEADER))) return;
 
-			if (not this->IsWatchingAnyStrategy())
+			if (not this->unblockTimer.IsSet())
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [STR] New vehicle", copVehicle, "without Strategy in", this->pursuit);
@@ -286,8 +263,6 @@ namespace StrategyOverrides
 				else
 					this->UpdateNumStrategyVehicles();
 			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [STR] Unknown removed vehicle", copVehicle, "in", this->pursuit);
 		}
 
 
@@ -297,7 +272,7 @@ namespace StrategyOverrides
 
 			if (not manager) return;
 
-			manager->Reset();
+			manager->StopUnblockTimer();
 
 			if (not manager->heavyStrategy)
 			{
@@ -312,11 +287,12 @@ namespace StrategyOverrides
 			switch (strategyID)
 			{
 			case 3:
-				manager->unblockTimer = &(manager->heavy3UnblockTimer);
+				manager->watchingHeavyStrategy3 = true;
+				manager->unblockTimer.LoadInterval(heavy3UnblockDelays);
 				break;
 
 			case 4:
-				manager->unblockTimer = &(manager->heavy4UnblockTimer);
+				manager->unblockTimer.LoadInterval(heavy4UnblockDelays);
 				break;
 
 			default:
@@ -328,7 +304,7 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(pursuit, "[STR] Watching HeavyStrategy", strategyID);
 
-			manager->UpdateUnblockTimer(IntervalTimer::Setting::ALL);
+			manager->StartUnblockTimer();
 		}
 
 
@@ -338,7 +314,7 @@ namespace StrategyOverrides
 
 			if (not manager) return;
 
-			manager->Reset();
+			manager->StopUnblockTimer();
 
 			if (not manager->leaderStrategy)
 			{
@@ -353,11 +329,11 @@ namespace StrategyOverrides
 			switch (strategyID)
 			{
 			case 5:
-				manager->unblockTimer = &(manager->leader5UnblockTimer);
+				manager->unblockTimer.LoadInterval(leader5UnblockDelays);
 				break;
 
 			case 7:
-				manager->unblockTimer = &(manager->leader7UnblockTimer);
+				manager->unblockTimer.LoadInterval(leader7UnblockDelays);
 				break;
 
 			default:
@@ -369,7 +345,7 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(pursuit, "[STR] Watching LeaderStrategy", strategyID);
 
-			manager->UpdateUnblockTimer(IntervalTimer::Setting::ALL);
+			manager->StartUnblockTimer();
 		}
 
 
@@ -379,7 +355,7 @@ namespace StrategyOverrides
 
 			if (not manager) return;
 
-			manager->Reset();
+			manager->StopUnblockTimer();
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(pursuit, "[STR] Active Strategy cleared");
@@ -599,10 +575,10 @@ namespace StrategyOverrides
 		// Heat parameters
 		HeatParameters::Parse<float>(parser, "Heavy3:Fleeing", {playerSpeedThresholds, 0.f});
 
-		HeatParameters::Parse(parser, "Heavy3:Unblocking",  heavy3UnblockDelays);
-		HeatParameters::Parse(parser, "Heavy4:Unblocking",  heavy4UnblockDelays);
-		HeatParameters::Parse(parser, "Leader5:Unblocking", leader5UnblockDelays);
-		HeatParameters::Parse(parser, "Leader7:Unblocking", leader7UnblockDelays);
+		HeatParameters::Parse<>(parser, "Heavy3:Unblocking",  heavy3UnblockDelays);
+		HeatParameters::Parse<>(parser, "Heavy4:Unblocking",  heavy4UnblockDelays);
+		HeatParameters::Parse<>(parser, "Leader5:Unblocking", leader5UnblockDelays);
+		HeatParameters::Parse<>(parser, "Leader7:Unblocking", leader7UnblockDelays);
 
 		// Code caves
 		MemoryEditor::Write<byte>   (0xE9,   {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check

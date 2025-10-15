@@ -18,8 +18,10 @@ namespace LeaderOverrides
 	// Heat levels
 	HeatParameters::OptionalInterval crossAggroDelays;
 	HeatParameters::OptionalInterval henchmenAggroDelays;
-	HeatParameters::OptionalInterval lostResetDelays;
+
+	HeatParameters::OptionalInterval expireResetDelays;
 	HeatParameters::OptionalInterval wreckResetDelays;
+	HeatParameters::OptionalInterval lostResetDelays;
 
 
 
@@ -29,86 +31,163 @@ namespace LeaderOverrides
 
 	class LeaderManager : public PursuitFeatures::PursuitReaction
 	{
-		using IntervalTimer = PursuitFeatures::IntervalTimer;
-
-
-
 	private:
 
-		int&  crossFlag   = *((int*)(this->pursuit + 0x164));
+		enum class Status
+		{
+			PENDING,
+			ACTIVE,
+			EXPIRED,
+			WRECKED,
+			LOST
+		};
+
+		address crossVehicle        = 0x0;
+		Status  crossStatus         = Status::PENDING;
+		float   expirationTimestamp = Globals::simulationTime;
+
+		int&  crossFlag    = *((int*)(this->pursuit + 0x164));
 		bool& skipPriority = *((bool*)(this->pursuit + 0x214));
 
-		address crossVehicle   = 0x0;
-		bool    crossIsAggro   = false;
-		bool    hasNewHenchmen = false;
+		const address& leaderStrategy = *((address*)(this->pursuit + 0x198));
 
 		HashContainers::AddressSet passiveHenchmenVehicles;
 
-		IntervalTimer lostResetTimer     = IntervalTimer(lostResetDelays);
-		IntervalTimer wreckResetTimer    = IntervalTimer(wreckResetDelays);
-		IntervalTimer crossAggroTimer    = IntervalTimer(crossAggroDelays);
-		IntervalTimer henchmenAggroTimer = IntervalTimer(henchmenAggroDelays);
-
-		IntervalTimer* flagResetTimer = nullptr;
+		PursuitFeatures::IntervalTimer flagResetTimer;
+		PursuitFeatures::IntervalTimer crossAggroTimer;
+		PursuitFeatures::IntervalTimer henchmenAggroTimer;
 
 
-		bool LeaderCanSpawn() const
+		void SetCrossFlag(const int value) const
 		{
-			return (this->flagResetTimer) ? this->flagResetTimer->HasExpired() : true;
-		}
-
-
-		void UpdateCrossFlag() const
-		{
-			this->crossFlag = (this->crossVehicle) ? 1 : ((this->LeaderCanSpawn()) ? 0 : 2);
-		}
-
-
-		void UpdateFlagResetTimer(const IntervalTimer::Setting setting)
-		{
-			if (not this->flagResetTimer) return;
-
-			this->flagResetTimer->Update(setting);
+			if ((value == 0) or (value == 1) or (value == 2))
+				this->crossFlag = value;
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->flagResetTimer->IsEnabled())
-					Globals::logger.Log(this->pursuit, "[LDR] Flag reset in", this->flagResetTimer->TimeLeft());
+				const char* actionName = nullptr;
+
+				switch (value)
+				{
+				case 0:
+					actionName = "(available)";
+					break;
+
+				case 1:
+					actionName = "(active)";
+					break;
+
+				case 2:
+					actionName = "(blocked)";
+				}
+
+				if (actionName)
+					Globals::logger.Log(this->pursuit, "[LDR] Cross flag now", value, actionName);
+
+				else
+					Globals::logger.Log("WARNING: [LDR] Invalid flag value", value, "in", this->pursuit);
 			}
 		}
 
 
-		void UpdateCrossAggroTimer(const IntervalTimer::Setting setting)
+		void CheckFlagResetTimer()
 		{
-			if ((not this->crossVehicle) or (this->crossIsAggro)) return;
+			if (not this->flagResetTimer.HasExpired()) return;
 
-			this->crossAggroTimer.Update(setting);
+			this->flagResetTimer.Stop();
+
+			this->crossStatus = Status::PENDING;
+			this->SetCrossFlag(0);
+		}
+
+
+		void UpdateFlagResetTimer()
+		{
+			switch (this->crossStatus)
+			{
+			case Status::EXPIRED:
+				this->flagResetTimer.LoadInterval(expireResetDelays);
+				break;
+
+			case Status::WRECKED:
+				this->flagResetTimer.LoadInterval(wreckResetDelays);
+				break;
+
+			case Status::LOST:
+				this->flagResetTimer.LoadInterval(lostResetDelays);
+				break;
+
+			default:
+				return;
+			}
+
+			if (not flagResetTimer.IsSet())
+				this->flagResetTimer.Start();
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				const char* actionName = nullptr;
+
+				switch (this->crossStatus)
+				{
+				case Status::EXPIRED:
+					actionName = "(expire)";
+					break;
+
+				case Status::WRECKED:
+					actionName = "(wreck)";
+					break;
+
+				case Status::LOST:
+					actionName = "(lost)";
+				}
+
+				if (actionName)
+				{
+					if (this->flagResetTimer.IsIntervalEnabled())
+						Globals::logger.Log(this->pursuit, "[LDR] Flag reset", actionName, "in", this->flagResetTimer.GetTimeLeft());
+
+					else
+						Globals::logger.Log(this->pursuit, "[LDR] Flag reset", actionName, "suspended");
+				}
+				else Globals::logger.Log("WARNING: [LDR] Invalid status in timer update", (int)(this->crossStatus), "in", this->pursuit);
+			}
+		}
+
+
+		void StartCrossAggroTimer()
+		{
+			if (this->crossAggroTimer.IsSet()) return;
+
+			this->crossAggroTimer.LoadInterval(crossAggroDelays);
+			this->crossAggroTimer.Start();
 	
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->crossAggroTimer.IsEnabled())
-					Globals::logger.Log(this->pursuit, "[LDR] Leader aggro in", this->crossAggroTimer.TimeLeft());
+				if (this->crossAggroTimer.IsIntervalEnabled())
+					Globals::logger.Log(this->pursuit, "[LDR] Cross aggro in", this->crossAggroTimer.GetLength());
 			}
 		}
 
 
-		void UpdateHenchmenAggroTimer(const IntervalTimer::Setting setting)
+		void StartHenchmenAggroTimer()
 		{
-			if (this->passiveHenchmenVehicles.empty()) return;
+			if (this->henchmenAggroTimer.IsSet()) return;
 
-			this->henchmenAggroTimer.Update(setting);
+			this->henchmenAggroTimer.LoadInterval(henchmenAggroDelays);
+			this->henchmenAggroTimer.Start();
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->henchmenAggroTimer.IsEnabled())
-					Globals::logger.Log(this->pursuit, "[LDR] Henchmen aggro in", this->henchmenAggroTimer.TimeLeft());
+				if (this->henchmenAggroTimer.IsIntervalEnabled())
+					Globals::logger.Log(this->pursuit, "[LDR] Henchmen aggro in", this->henchmenAggroTimer.GetLength());
 			}
 		}
 
 
 		static bool MakeVehicleAggro(const address copVehicle)
 		{
-			static const auto SetSupportGoal = (void(__thiscall*)(address, vault))0x409850;
+			static const auto SetSupportGoal = (void (__thiscall*)(address, vault))0x409850;
 			const address     copAIVehicle   = *((address*)(copVehicle + 0x54));
 
 			if (copAIVehicle)
@@ -123,6 +202,8 @@ namespace LeaderOverrides
 
 		void MakeHenchmenAggro()
 		{
+			this->henchmenAggroTimer.Stop();
+
 			for (const address henchmenVehicle : this->passiveHenchmenVehicles)
 				this->MakeVehicleAggro(henchmenVehicle);
 
@@ -138,17 +219,29 @@ namespace LeaderOverrides
 
 		void CheckAggroTimers()
 		{
-			if (this->crossVehicle and (not this->crossIsAggro) and this->crossAggroTimer.HasExpired())
+			if (this->crossAggroTimer.HasExpired())
 			{
+				this->crossAggroTimer.Stop();
 				this->MakeVehicleAggro(this->crossVehicle);
-				this->crossIsAggro = true;
-
+				
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[LDR] Leader now aggressive");
+					Globals::logger.Log(this->pursuit, "[LDR] Cross now aggressive");
 			}
 			
-			if ((not this->passiveHenchmenVehicles.empty()) and this->henchmenAggroTimer.HasExpired())
+			if (this->henchmenAggroTimer.HasExpired())
 				this->MakeHenchmenAggro();
+		}
+
+
+		void UpdateExpirationTimestamp()
+		{
+			this->expirationTimestamp = Globals::simulationTime;
+
+			if (this->leaderStrategy)
+				this->expirationTimestamp += *((float*)(this->leaderStrategy + 0x8));
+
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [LDR] Invalid duration pointer in", this->pursuit);
 		}
 
 
@@ -161,17 +254,14 @@ namespace LeaderOverrides
 		void UpdateOnGameplay() override
 		{
 			this->CheckAggroTimers();
-			this->UpdateCrossFlag();
+			this->CheckFlagResetTimer();
 		}
 
 
 		void UpdateOnHeatChange() override
 		{
-			this->UpdateFlagResetTimer    (IntervalTimer::Setting::LENGTH);
-			this->UpdateCrossAggroTimer   (IntervalTimer::Setting::LENGTH);
-			this->UpdateHenchmenAggroTimer(IntervalTimer::Setting::LENGTH);
-
-			this->UpdateCrossFlag();
+			this->UpdateFlagResetTimer();
+			this->CheckFlagResetTimer();
 		}
 
 
@@ -186,25 +276,20 @@ namespace LeaderOverrides
 
 			if (not this->crossVehicle) // Cross always joins first
 			{
+				this->flagResetTimer.Stop();
+
 				this->crossVehicle = copVehicle;
+				this->crossStatus  = Status::ACTIVE;
+				this->skipPriority = true;
 
-				this->skipPriority   = true;
-				this->crossIsAggro   = false;
-				this->hasNewHenchmen = false;
-				this->flagResetTimer = nullptr;
-
-				this->UpdateCrossAggroTimer(IntervalTimer::Setting::ALL);
-				this->UpdateCrossFlag();
+				this->UpdateExpirationTimestamp();
+				this->StartCrossAggroTimer();
+				this->SetCrossFlag(1);
 			}
 			else
 			{
 				this->passiveHenchmenVehicles.insert(copVehicle);
-
-				if (not this->hasNewHenchmen)
-				{
-					this->UpdateHenchmenAggroTimer(IntervalTimer::Setting::ALL);
-					this->hasNewHenchmen = true;
-				}
+				this->StartHenchmenAggroTimer();
 			}
 		}
 
@@ -220,20 +305,24 @@ namespace LeaderOverrides
 
 			if (this->crossVehicle == copVehicle)
 			{
-				const bool isWrecked = this->IsVehicleDestroyed(copVehicle);
+				this->crossAggroTimer.Stop();
+				this->crossVehicle = 0x0;
+
+				if (Globals::IsVehicleDestroyed(copVehicle))
+					this->crossStatus = Status::WRECKED;
 				
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[LDR] Leader", (isWrecked) ? "wrecked" : "lost");
-
-				this->crossVehicle   = 0x0;
-				this->flagResetTimer = &((isWrecked) ? this->wreckResetTimer : this->lostResetTimer);
-
-				this->UpdateFlagResetTimer(IntervalTimer::Setting::ALL);
-				this->UpdateCrossFlag();
-
+				else if (Globals::simulationTime > this->expirationTimestamp)				
+					this->crossStatus = Status::EXPIRED;
+				
+				else				
+					this->crossStatus = Status::LOST;
+				
+				this->SetCrossFlag(2);
+				this->UpdateFlagResetTimer();
 				this->MakeHenchmenAggro();
 			}
-			else this->passiveHenchmenVehicles.erase(copVehicle);
+			else if (this->passiveHenchmenVehicles.erase(copVehicle) and this->passiveHenchmenVehicles.empty())
+				this->henchmenAggroTimer.Stop();
 		}
 	};
 
@@ -248,10 +337,12 @@ namespace LeaderOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Leader:CrossAggro",    crossAggroDelays);
-		HeatParameters::Parse(parser, "Leader:HenchmenAggro", henchmenAggroDelays);
-		HeatParameters::Parse(parser, "Leader:LostReset",     lostResetDelays);
-		HeatParameters::Parse(parser, "Leader:WreckReset",    wreckResetDelays);
+		HeatParameters::Parse<>(parser, "Leader:CrossAggro",    crossAggroDelays);
+		HeatParameters::Parse<>(parser, "Leader:HenchmenAggro", henchmenAggroDelays);
+
+		HeatParameters::Parse<>(parser, "Leader:ExpireReset", expireResetDelays);
+		HeatParameters::Parse<>(parser, "Leader:WreckReset",  wreckResetDelays);
+		HeatParameters::Parse<>(parser, "Leader:LostReset",   lostResetDelays);
 
 		// Code caves
 		MemoryEditor::WriteToAddressRange(0x90, 0x42B6A2, 0x42B6B4); // Cross flag = 0
@@ -275,23 +366,30 @@ namespace LeaderOverrides
 
 		crossAggroDelays   .SetToHeat(isRacing, heatLevel);
 		henchmenAggroDelays.SetToHeat(isRacing, heatLevel);
-		lostResetDelays    .SetToHeat(isRacing, heatLevel);
-		wreckResetDelays   .SetToHeat(isRacing, heatLevel);
+		
+		expireResetDelays.SetToHeat(isRacing, heatLevel);
+		wreckResetDelays .SetToHeat(isRacing, heatLevel);
+		lostResetDelays  .SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (
-				crossAggroDelays.isEnableds.current 
-				or henchmenAggroDelays.isEnableds.current 
-				or lostResetDelays.isEnableds.current 
+				crossAggroDelays.isEnableds.current
+				or henchmenAggroDelays.isEnableds.current
+				or expireResetDelays.isEnableds.current
 				or wreckResetDelays.isEnableds.current
+				or lostResetDelays.isEnableds.current
 			   )
+			{
 				Globals::logger.Log("    HEAT [LDR] LeaderOverrides");
-			
-			crossAggroDelays   .Log("crossAggroDelay         ");
-			henchmenAggroDelays.Log("henchmenAggroDelay      ");
-			lostResetDelays    .Log("lostResetDelay          ");
-			wreckResetDelays   .Log("wreckResetDelay         ");
+
+				crossAggroDelays   .Log("crossAggroDelay         ");
+				henchmenAggroDelays.Log("henchmenAggroDelay      ");
+
+				expireResetDelays.Log("expireResetDelay        ");
+				wreckResetDelays .Log("wreckResetDelay         ");
+				lostResetDelays  .Log("lostResetDelay          ");
+			}
 		}
 	}
 }

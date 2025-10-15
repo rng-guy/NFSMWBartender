@@ -46,8 +46,6 @@ namespace PursuitObserver
 		inline static HashContainers::AddressSet                  copVehiclesLoaded;
 		inline static HashContainers::AddressMap<PursuitObserver> pursuitToObserver;
 
-		inline static const auto GetVehicleName = (const char* (__thiscall*)(address))0x688090;
-
 
 		static PursuitObserver* GetInstance(const address pursuit)
 		{
@@ -238,7 +236,7 @@ namespace PursuitObserver
 						"[OBS] =",
 						copVehicle,
 						(int)copLabel,
-						PursuitObserver::GetVehicleName(copVehicle),
+						Globals::GetVehicleName(copVehicle),
 						"is already",
 						(int)(addedVehicle.first->second)
 					);
@@ -251,7 +249,7 @@ namespace PursuitObserver
 				observer->RegisterVehicle(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[OBS] +", copVehicle, (int)copLabel, PursuitObserver::GetVehicleName(copVehicle));
+				Globals::logger.Log(pursuit, "[OBS] +", copVehicle, (int)copLabel, Globals::GetVehicleName(copVehicle));
 
 			for (const auto& reaction : observer->pursuitReactions)
 				reaction->ReactToAddedVehicle(copVehicle, copLabel);
@@ -277,7 +275,7 @@ namespace PursuitObserver
 					(
 						"WARNING: [OBS] Unknown vehicle",
 						copVehicle,
-						PursuitObserver::GetVehicleName(copVehicle),
+						Globals::GetVehicleName(copVehicle),
 						"in",
 						pursuit
 					);
@@ -287,7 +285,7 @@ namespace PursuitObserver
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), PursuitObserver::GetVehicleName(copVehicle));
+				Globals::logger.Log(pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), Globals::GetVehicleName(copVehicle));
 
 			for (const auto& reaction : observer->pursuitReactions)
 				reaction->ReactToRemovedVehicle(copVehicle, foundVehicle->second);
@@ -310,7 +308,7 @@ namespace PursuitObserver
 			{
 				if (isNew)
 				{
-					Globals::logger.LogIndent("[REG] +", copVehicle, PursuitObserver::GetVehicleName(copVehicle));
+					Globals::logger.LogIndent("[REG] +", copVehicle, Globals::GetVehicleName(copVehicle));
 					Globals::logger.LogIndent("[REG] Vehicles loaded:", (int)(PursuitObserver::GetNumRegisteredVehicles()));
 				}
 			}
@@ -325,7 +323,7 @@ namespace PursuitObserver
 			{
 				if (wasRegistered)
 				{
-					Globals::logger.LogIndent("[REG] -", copVehicle, PursuitObserver::GetVehicleName(copVehicle));
+					Globals::logger.LogIndent("[REG] -", copVehicle, Globals::GetVehicleName(copVehicle));
 					Globals::logger.LogIndent("[REG] Vehicles loaded:", (int)(PursuitObserver::GetNumRegisteredVehicles()));
 				}
 			}

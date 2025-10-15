@@ -430,7 +430,7 @@ namespace CopSpawnOverrides
 			switch (spawnReturn)
 			{
 			case 0x4269E6: // helicopter
-				return HelicopterOverrides::helicopterVehicles.current;
+				return HelicopterOverrides::HelicopterManager::GetHelicopterVehicle();
 
 			case 0x42EAAD: // first cop of milestone / bounty pursuit
 				[[fallthrough]];

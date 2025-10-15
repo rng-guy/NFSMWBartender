@@ -23,9 +23,9 @@ Last, there are three **possible causes for in-game issues** you might encounter
 &nbsp;
 
 To help you **solve in-game issues** with Bartender, the sections below address these questions:
-1. [What is there to know about Bartender's file parsing?](#2---what-is-there-to-know-about-bartenders-file-parsing)
-2. [What is there to know about the "Basic" feature set?](#3---what-is-there-to-know-about-the-basic-feature-set)
-3. [What is there to know about the "Advanced" feature set?](#4---what-is-there-to-know-about-the-advanced-feature-set)
+1. [What is there to know about Bartender's file parsing?](#1---what-is-there-to-know-about-bartenders-file-parsing)
+2. [What is there to know about the "Basic" feature set?](#2---what-is-there-to-know-about-the-basic-feature-set)
+3. [What is there to know about the "Advanced" feature set?](#3---what-is-there-to-know-about-the-advanced-feature-set)
 
 &nbsp;
 
@@ -169,11 +169,11 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 * The time you spend filling the green "EVADE" bar also counts towards how long you need to stay hidden in "COOLDOWN" mode. If the "EVADE" bar takes longer to fill, you escape instantly.
 
-* There are two separate checks for whether a flipped cop vehicle should be destroyed: Either some delay after being flipped, or instantly if the vehicle in question has been damaged by the player at any point. Bartender can toggle these two checks individually.
+* The two checks for whether a flipped cop should be destroyed are mutually independent: One check is damage-based, while the other is time-based and disregards vehicle damage.
 
-* The destruction delay for flipped cops has no effect if you disable the delay-based check.
+* The time-based flip check only happens at Heat levels for which you define a valid delay value.
 
-* Automatic racer resets only happen at Heat levels for which you define a valid delay value.
+* Resets of flipped racers only happen at Heat levels for which you define a valid delay value.
 
 &nbsp;
 
@@ -297,33 +297,39 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopter.ini`):
 
-* Bartender uses random timers for spawning, despawning, and respawning the helicopter. Each of these actions has a separate interval of possible timer values. Here, "spawning" refers to the very first appearance of a helicopter in a given pursuit, while "respawning" refers to any further appearances after the first. Heat transitions don't reset these timers.
+* Bartender uses separate, random timers for (re)spawning the helicopter and setting its fuel. Each despawn context (e.g. the helicopter getting wrecked) has its own respawn-delay interval.
 
-* The helicopter only spawns at Heat levels for which you define valid (re)spawn-delay values.
+* The helicopter only (re)spawns at Heat levels for which you define valid (re)spawn-delay values.
 
-* The helicopter also (de / re)spawns in "COOLDOWN" mode according to its timers.
+* In a given pursuit, the helicopter must have a successful first spawn at some point before context-dependent respawns can happen. Such first spawns carry over across Heat transitions.
+ 
+* If you don't define valid respawn-delay values for some despawn context (e.g. getting wrecked), then the helicopter won't respawn if that context happens. If a transition to another Heat level with valid respawn-delay values takes place, however, the helicopter may respawn again.
 
-* The helicopter only ever spawns in player pursuits.
+* The helicopter can only rejoin after losing you at Heat levels for which you define valid rejoin-delay and minimum-fuel values. The helicopter can only rejoin if it loses you.
 
-* The helicopter uses whatever HeliStrategy you set in VltEd.
+* The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay. If the helicopter were to rejoin with less fuel than the required minimum, it counts as having run out of fuel and triggers the appropriate respawn delay instead.
+
+* Whether an active helicopter may rejoin a given pursuit is unaffected by Heat transitions, as this is locked in as soon as it (re)spawns. This means a rejoining helicopter can keep rejoining the pursuit until it either gets wrecked or runs out of fuel. Its vehicle is also locked in to ensure it rejoins with the same model and overall properties.
+
+* Rejoining helicopters don't count towards the total number of helicopters deployed.
+
+* The helicopter only spawns with limited fuel at Heat levels for which you define valid fuel-time values. Unlimited fuel means the helicopter must either lose you or get wrecked.
+
+* The helicopter also (re)spawns in "COOLDOWN" mode according to its (re)spawn delays.
+
+* The helicopter only ever (re)spawns and rejoins in player pursuits.
 
 * Only one helicopter can ever be active at any given time. This is a game limitation; we could technically spawn more, but they would count as cars and behave very oddly.
+
+* The helicopter uses whatever HeliStrategy you set in VltEd.
 
 * Bartender replaces vehicles that don't exist in the game with `copheli`.
 
 * Bartender replaces vehicles that aren't helicopters with `copheli`.
 
-* The helicopter can only rejoin pursuits early at Heat levels for which you define valid rejoin-delay values. The helicopter doesn't rejoin if it gets wrecked or runs out of fuel.
-
-* The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay. The helicopter doesn't rejoin, however, if it wouldn't have any fuel left after rejoining.
-
-* Rejoining helicopters don't count towards the total number of helicopters deployed.
-
 &nbsp;
 
 Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
-
-* Deleting this file disables the fix for the game missing early Strategy cancellations.
 
 * Setting low player-speed thresholds for HeavyStrategy 3 spawns fixes the vanilla issue of them attempting to flee the pursuit instantly without trying to ram you. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if your speed drops below the value of the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this often happens before they can even reach you because of higher "CollapseSpeed" values and far more aggressive cops.
 
@@ -332,6 +338,8 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 * Once aggressive, Cross and / or his henchmen act like regular cops and can join formations. Also, neither Cross nor his henchmen can return to being passive again until they despawn.
 
 * Aggro delays longer than a given LeaderStrategy's `Duration` VltEd parameter have no effect.
+
+* The aggro delays of any active LeaderStrategy are unaffected by Heat transitions, as their values are locked in as soon as the game requests said LeaderStrategy.
 
 * Resets of Cross' spawn flag only happen at Heat levels for which you define valid reset-delay values. The vanilla game never resets this flag if Cross gets wrecked.
 
@@ -345,8 +353,10 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * Unblock delays longer than a given Strategy's `Duration` VltEd parameter have no effect.
 
+* The unblock delays of any active Strategy are unaffected by Heat transitions, as their values are locked in as soon as the game spawns said Strategy.
+
 * Even with unblocking, no new LeaderStrategy can spawn while a LeaderStrategy Cross is present.
 
 * It is generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
 
-* You shouldn't use short unblock delays for HeavyStrategy 3, as too many overlapping HeavyStrategy 3 spawns can lead to game instability since they ignore all spawn limits. It's often better to just use lower (~20 seconds) `Duration` VltEd parameters instead.
+* You shouldn't use short unblock delays for HeavyStrategy 3. Having too many overlapping HeavyStrategy 3 spawns can lead to game instability since they ignore all spawn limits. It's often better to just use a lower (~20 seconds) `Duration` VltEd parameter instead.

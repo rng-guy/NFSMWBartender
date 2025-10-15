@@ -12,6 +12,26 @@ namespace PursuitFeatures
 
 	bool heatLevelKnown = false;
 
+	
+
+
+
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	bool MakeVehicleBail(const address copVehicle)
+	{
+		static const auto StartFlee    = (void(__thiscall*)(address))0x423370;
+		const address     copAIVehicle = *((address*)(copVehicle + 0x54));
+
+		if (copAIVehicle)
+			StartFlee(copAIVehicle + 0x70C);
+
+		else if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
+
+		return copAIVehicle;
+	}
+
 
 
 
@@ -65,29 +85,11 @@ namespace PursuitFeatures
 
 		const address pursuit;
 
-		inline static const auto IsVehicleDestroyed = (bool (__thiscall*)(address))0x688170;
-
-
-		static bool MakeVehicleBail(const address copVehicle)
-		{
-			static const auto StartFlee    = (void(__thiscall*)(address))0x423370;
-			const address     copAIVehicle = *((address*)(copVehicle + 0x54));
-
-			if (copAIVehicle)
-				StartFlee(copAIVehicle + 0x70C);
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
-
-			return copAIVehicle;
-		}
-
-
-		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {};
-
-
+		
 
 	public:
+
+		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {};
 
 		virtual ~PursuitReaction() = default;
 
@@ -130,28 +132,19 @@ namespace PursuitFeatures
 	{
 	private:
 
+		bool  isEnabled = false;
+		float minLength = 1.f;
+		float maxLength = 1.f;
+
+		bool  isSet          = false;
 		float length         = 0.f;
 		float startTimestamp = 0.f;
 		float endTimestamp   = 0.f;
 
-		const HeatParameters::OptionalInterval& interval;
-
-
-		void UpdateStart()
-		{
-			this->startTimestamp = Globals::simulationTime;
-		}
-
 
 		void UpdateLength()
 		{
-			if (this->IsEnabled())
-				this->length = this->interval.GetRandomValue();
-		}
-
-
-		void UpdateEnd()
-		{
+			this->length       = Globals::prng.GenerateNumber<float>(this->minLength, this->maxLength);
 			this->endTimestamp = this->startTimestamp + this->length;
 		}
 
@@ -159,39 +152,51 @@ namespace PursuitFeatures
 
 	public:
 
-		explicit IntervalTimer (const HeatParameters::OptionalInterval& interval) : interval(interval) {}
-
-
-		bool IsEnabled() const
+		void Start()
 		{
-			return (heatLevelKnown and this->interval.isEnableds.current);
+			if (not this->isSet)
+			{
+				this->isSet = true;
+				this->startTimestamp = Globals::simulationTime;
+
+				if (this->isEnabled)
+					this->UpdateLength();
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [PFT] IntervalTimer already set");
 		}
 
 
-		enum class Setting
+		void Stop()
 		{
-			ALL,
-			START,
-			LENGTH
-		};
+			this->isSet = false;
+		}
 
-		void Update(const Setting value)
+
+		void LoadInterval(const HeatParameters::OptionalInterval& interval)
 		{
-			switch (value)
+			this->isEnabled = (heatLevelKnown and interval.isEnableds.current);
+
+			if (this->isEnabled)
 			{
-			case Setting::START:
-				this->UpdateStart();
-				break;
+				this->minLength = interval.minValues.current;
+				this->maxLength = interval.maxValues.current;
 
-			case Setting::ALL:
-				this->UpdateStart();
-				[[fallthrough]];
-
-			case Setting::LENGTH:
-				this->UpdateLength();
+				if (this->isSet)
+					this->UpdateLength();
 			}
+		}
 
-			this->UpdateEnd();
+
+		bool IsSet() const
+		{
+			return this->isSet;
+		}
+
+
+		bool IsIntervalEnabled() const
+		{
+			return this->isEnabled;
 		}
 
 
@@ -201,7 +206,7 @@ namespace PursuitFeatures
 		}
 
 
-		float TimeLeft() const
+		float GetTimeLeft() const
 		{
 			return (this->endTimestamp - Globals::simulationTime);
 		}
@@ -209,7 +214,7 @@ namespace PursuitFeatures
 
 		bool HasExpired() const
 		{
-			return (this->IsEnabled() and (this->TimeLeft() <= 0.f));
+			return (this->isSet and this->isEnabled and (this->GetTimeLeft() <= 0.f));
 		}
 	};
 }
