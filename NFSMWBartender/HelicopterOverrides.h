@@ -521,8 +521,8 @@ namespace HelicopterOverrides
 
 		HeatParameters::Parse<float>(parser, "Helicopter:LostRejoin", lostRejoinDelays, {minRejoinFuelTimes, 1.f});
 
-		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle",  {helicopterVehicles});
-		HeatParameters::Parse<float>      (parser, "Helicopter:Ramming",  {rammingCooldowns, 1.f});
+		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
+		HeatParameters::Parse<float>      (parser, "Helicopter:Ramming", {rammingCooldowns, 1.f});
 
 		// Code caves
 		MemoryEditor::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
