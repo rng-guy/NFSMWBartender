@@ -106,7 +106,7 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
 
  • The cop-destruction string feature is incompatible with the "EnableCopDestroyedStringHook"
    feature of the "NFSMW Unlimiter" mod by nlgxzef. To resolve this conflict, either delete 
-   Bartender's "[Vehicles:Destruction]" parameter group or disable Unlimiter's version
+   Bartender's "[Vehicles:Strings]" parameter group or disable Unlimiter's version
    of the feature by editing its "NFSMWUnlimiterSettings.ini" configuration file.
 
  • You can use the "Binary" tool by MaxHwoy to edit the game's strings and add new ones.

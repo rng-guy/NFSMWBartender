@@ -109,7 +109,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
-* The cop-destruction string feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Destruction]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
+* The cop-destruction string feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Strings]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
 
 * You can use the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy to edit the game's strings and add new ones.
 

@@ -79,7 +79,7 @@ namespace DestructionStrings
 		std::vector<std::string> copVehicles;
 		std::vector<std::string> binaryLabels;
 
-		const size_t numCopVehicles = parser.ParseUserParameter("Vehicles:Destruction", copVehicles, binaryLabels);
+		const size_t numCopVehicles = parser.ParseUserParameter("Vehicles:Strings", copVehicles, binaryLabels);
 
 		if (numCopVehicles == 0) return false;
 
