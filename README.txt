@@ -61,8 +61,8 @@ The "Basic" feature set FIXES SIX BUGS / ISSUES:
 ── ■ │ 2 - WHAT DOES THE "ADVANCED" FEATURE SET DO? │ ■ ───────────────────────────────────────────
 
 The "Advanced" feature set LETS YOU CHANGE (per Heat level)
- • how many cops can (re)spawn without backup once a wave of reinforcements is exhausted,
- • the global cop-spawn limit for how many cops in total may chase you at any given time,
+ • how many chasing cops can (re)spawn without backup once a wave of reinforcements is exhausted,
+ • the global cop-spawn limit for how many chasing cops in total may be active at any given time,
  • whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
  • when exactly (if at all) and how many chasing cops from other Heat levels can flee the pursuit,
  • what vehicles (any amount, with counts and chances) may spawn to chase and search for you,
