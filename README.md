@@ -108,7 +108,7 @@ The "Advanced" feature set **fixes three bugs / issues**:
 
 # 3 - What mods are (in)compatible with Bartender?
 
-Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations. However, Bartender's "Advanced" feature set replaces some "pursuitlevels" VltEd parameters:
+Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations. However, Bartender's "Advanced" feature set replaces some `pursuitlevels` VltEd parameters:
 * the `cops` array,
 * `HeliFuelTime`,
 * `TimeBetweenHeliActive`, and
