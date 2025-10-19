@@ -49,7 +49,7 @@ namespace PursuitObserver
 
 		static PursuitObserver* GetInstance(const address pursuit)
 		{
-			const Cache* const cache = Cache::GetPointer(pursuit);
+			const Cache* const cache = Cache::GetInstance(pursuit);
 
 			if ((not cache) or (not cache->pursuitObserver))
 			{
@@ -184,6 +184,8 @@ namespace PursuitObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     DEL [OBS] Pursuit", this->pursuit);
+
+			this->pursuitData.pursuitObserver = 0x0;
 		}
 
 

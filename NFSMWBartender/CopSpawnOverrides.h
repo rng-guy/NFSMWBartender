@@ -227,7 +227,7 @@ namespace CopSpawnOverrides
 
 		static ChasersManager* GetInstance(const address pursuit)
 		{
-			const Cache* const cache = Cache::GetPointer(pursuit);
+			const Cache* const cache = Cache::GetInstance(pursuit);
 
 			if ((not cache) or (not cache->chasersManager))
 			{
@@ -339,17 +339,32 @@ namespace CopSpawnOverrides
 
 		explicit ChasersManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
-			Cache* const pursuitData = Cache::GetPointer(this->pursuit);
+			Cache* const pursuitData = Cache::GetInstance(this->pursuit);
 
 			if (pursuitData)
 			{
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (pursuitData->chasersManager)
-						Globals::logger.Log("WARNING: [SPA] Pre-initialised cache in", this->pursuit);
-				}
-				
-				pursuitData->chasersManager = (address)this;
+				if (not pursuitData->chasersManager)
+					pursuitData->chasersManager = (address)this;
+
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log("WARNING: [SPA] Existing instance in", this->pursuit);
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [SPA] Invalid cache pointer in", this->pursuit);
+		}
+
+
+		~ChasersManager() override
+		{
+			Cache* const pursuitData = Cache::GetInstance(this->pursuit);
+
+			if (pursuitData)
+			{
+				if (pursuitData->chasersManager == (address)this)
+					pursuitData->chasersManager = 0x0;
+
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log("WARNING: [SPA] Instance mismatch in", this->pursuit);
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [SPA] Invalid cache pointer in", this->pursuit);

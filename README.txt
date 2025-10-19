@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.00.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.00.02) │ ■ ────────────────────────────────────────────────────
 
 View this document with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -46,7 +46,7 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • the selection (and order) of interactive music tracks in pursuits.
 
 The "Basic" feature set FIXES SIX BUGS / ISSUES:
- • helicopter mini-map icons are now always visible whenever a helicopter is active,
+ • the helicopter mini-map icon is now always visible whenever a helicopter is active,
  • helicopters no longer cast static shadows (like cars do) with incorrect placements,
  • the game is no longer biased in how it chooses to make Strategy requests,
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,

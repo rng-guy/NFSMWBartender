@@ -63,7 +63,7 @@ namespace StrategyOverrides
 
 		static StrategyManager* GetInstance(const address pursuit)
 		{
-			const Cache* const cache = Cache::GetPointer(pursuit);
+			const Cache* const cache = Cache::GetInstance(pursuit);
 
 			if ((not cache) or (not cache->strategyManager))
 			{
@@ -193,17 +193,32 @@ namespace StrategyOverrides
 
 		explicit StrategyManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
 		{
-			Cache* const pursuitData = Cache::GetPointer(this->pursuit);
+			Cache* const pursuitData = Cache::GetInstance(this->pursuit);
 
 			if (pursuitData)
 			{
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (pursuitData->strategyManager)
-						Globals::logger.Log("WARNING: [STR] Pre-initialised cache in", this->pursuit);
-				}
+				if (not pursuitData->strategyManager)
+					pursuitData->strategyManager = (address)this;
 
-				pursuitData->strategyManager = (address)this;
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log("WARNING: [STR] Existing instance in", this->pursuit);
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [STR] Invalid cache pointer in", this->pursuit);
+		}
+
+
+		~StrategyManager() override
+		{
+			Cache* const pursuitData = Cache::GetInstance(this->pursuit);
+
+			if (pursuitData)
+			{
+				if (pursuitData->strategyManager == (address)this)
+					pursuitData->strategyManager = 0x0;
+
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log("WARNING: [STR] Instance mismatch in", this->pursuit);
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [STR] Invalid cache pointer in", this->pursuit);

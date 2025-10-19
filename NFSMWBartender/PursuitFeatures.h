@@ -20,7 +20,7 @@ namespace PursuitFeatures
 
 	bool MakeVehicleBail(const address copVehicle)
 	{
-		static const auto StartFlee    = (void(__thiscall*)(address))0x423370;
+		static const auto StartFlee    = (void (__thiscall*)(address))0x423370;
 		const address     copAIVehicle = *((address*)(copVehicle + 0x54));
 
 		if (copAIVehicle)
@@ -42,9 +42,13 @@ namespace PursuitFeatures
 	{
 	private:
 
-		inline static constexpr address storageOffset = 0xD0;
+		const address pursuit;
 
-		address& storage;
+		
+		static Cache*& GetStorage(const address pursuit)
+		{
+			return *((Cache**)(pursuit + 0xD0));
+		}
 
 
 
@@ -55,21 +59,33 @@ namespace PursuitFeatures
 		address strategyManager = 0x0;
 
 
-		explicit Cache(const address pursuit) : storage(*((address*)(pursuit + this->storageOffset)))
+		explicit Cache(const address pursuit) : pursuit(pursuit)
 		{
-			this->storage = (address)this;
+			Cache*& storage = this->GetStorage(this->pursuit);
+
+			if (not storage)
+				storage = this;
+
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [PFT] Existing cache in", this->pursuit);
 		}
 
 
 		~Cache()
 		{
-			this->storage = 0x0;
+			Cache*& storage = this->GetStorage(this->pursuit);
+
+			if (storage == this)
+				storage = nullptr;
+
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [PFT] Cache mismatch in", this->pursuit);
 		}
 
 
-		static Cache* GetPointer(const address pursuit)
+		static Cache* GetInstance(const address pursuit)
 		{
-			return (Cache*)(*((address*)(pursuit + Cache::storageOffset)));
+			return Cache::GetStorage(pursuit);
 		}
 	};
 

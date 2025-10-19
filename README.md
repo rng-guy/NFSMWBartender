@@ -53,7 +53,7 @@ The "Basic" feature set **also lets you change** (in general)
 &nbsp;
 
 The "Basic" feature set **fixes six bugs / issues**:
-* helicopter mini-map icons are now always visible whenever a helicopter is active,
+* the helicopter mini-map icon is now always visible whenever a helicopter is active,
 * helicopters no longer cast static shadows (like cars do) with incorrect placements,
 * the game is no longer biased in how it chooses to make Strategy requests,
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
