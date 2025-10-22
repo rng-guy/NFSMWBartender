@@ -5,8 +5,8 @@
 #include <algorithm>
 
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HashContainers.h"
-#include "MemoryEditor.h"
 #include "HeatParameters.h"
 
 
@@ -97,7 +97,7 @@ namespace DestructionStrings
 		}
 	
 		// Code caves
-		MemoryEditor::DigCodeCave(CopDestruction, copDestructionEntrance, copDestructionExit);
+		MemoryTools::DigCodeCave(CopDestruction, copDestructionEntrance, copDestructionExit);
 
 		// Status flag
 		featureEnabled = true;
@@ -121,7 +121,7 @@ namespace DestructionStrings
 			"Vehicle-to-label",
 			copTypeToDestructionKey,
 			defaultDestructionKey,
-			[=](const vault  key)  {return Globals::VehicleClassMatches(key, Globals::VehicleClass::ANY);},
+			[=](const vault  key)  {return Globals::VehicleClassMatches(key, Globals::Class::ANY);},
 			[=](const binary value){return GetBinaryString(0, value);}
 		);
 	}

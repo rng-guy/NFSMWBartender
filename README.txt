@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.00.02) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.00.03) │ ■ ────────────────────────────────────────────────────
 
 View this document with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -48,10 +48,10 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
 The "Basic" feature set FIXES SIX BUGS / ISSUES:
  • the helicopter mini-map icon is now always visible whenever a helicopter is active,
  • helicopters no longer cast static shadows (like cars do) with incorrect placements,
- • the game is no longer biased in how it chooses to make Strategy requests,
+ • the game is no longer incorrectly biased in how it chooses to make Strategy requests,
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
  • Heat levels > 5 are now shown correctly in menus (requires Binary for missing textures), and
- • you can no longer get busted due to line-of-sight issues while the "EVADE" bar fills.
+ • you can no longer get busted due to line-of-sight issues while the green "EVADE" bar fills.
 
 
 
@@ -70,10 +70,10 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • what vehicles (ditto) may spawn as pre-generated cops in scripted events,
  • what vehicles (without counts) may spawn as free patrols outside pursuits,
  • what vehicle spawns in place of the regular helicopter,
- • when exactly (if at all) the helicopter can first spawn in each pursuit,
- • when exactly (if at all) the helicopter can respawn after running out of fuel,
- • when exactly (if at all) the helicopter can respawn after getting wrecked,
- • when exactly (if at all) the helicopter can rejoin the pursuit early when it loses you,
+ • when exactly (if at all) the helicopter can first spawn in each player pursuit,
+ • when exactly (if at all) the helicopter can respawn if it runs out of fuel,
+ • when exactly (if at all) the helicopter can respawn if it gets wrecked,
+ • when exactly (if at all) the helicopter can rejoin the pursuit early if it loses you,
  • when exactly (if at all) the helicopter can run out of fuel after each (re)spawn,
  • the internal cooldown for the helicopter's ramming attempts through HeliStrategy 2,
  • below what player speed HeavyStrategy 3 spawns cancel their ramming attempts early,
@@ -100,7 +100,7 @@ However, Bartender's "Advanced" feature set replaces some "pursuitlevels" VltEd 
  • "TimeBetweenHeliActive", and
  • "SearchModeHeliSpawnChance".
 
-Most non-pursuit .ASI MODS should be fully compatible with all Bartender configurations.
+Most OTHER .ASI MODS should be fully compatible with all Bartender configurations.
 However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
  • In "NFSMW ExtraOptions" by ExOptsTeam, disable the "HeatLevelOverride" feature.
  • In "NFSMW Unlimiter" by nlgxzef, disable the "EnableCopDestroyedStringHook" feature.
@@ -128,8 +128,8 @@ To INSTALL Bartender:
  4) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
 
 AFTER INSTALLING Bartender:
- 1) • check out its configuration (.ini) files in the "scripts\BartenderSettings" folder, and
- 2) • see the "APPENDIX.txt" file should you encounter any issues or want more feature details.
+ 1) • check out its configuration (.ini) files in the "scripts\BartenderSettings" folder; and
+ 2) • if you encounter any issues or want more feature details, see the "APPENDIX.txt" file.
 
 To UNINSTALL Bartender, remove its files from your game's "scripts" folder. There is no need
 to remove the optional missing textures, as the game won't ever use them without Bartender.

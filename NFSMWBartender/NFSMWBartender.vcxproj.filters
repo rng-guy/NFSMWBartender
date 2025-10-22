@@ -58,7 +58,7 @@
     <ClInclude Include="Globals.h">
       <Filter>Header Files\General</Filter>
     </ClInclude>
-    <ClInclude Include="MemoryEditor.h">
+    <ClInclude Include="MemoryTools.h">
       <Filter>Header Files\General</Filter>
     </ClInclude>
     <ClInclude Include="RandomNumbers.h">

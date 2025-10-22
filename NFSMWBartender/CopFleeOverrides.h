@@ -3,11 +3,11 @@
 #include <initializer_list>
 
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HashContainers.h"
+#include "HeatParameters.h"
 #include "PursuitFeatures.h"
 #include "CopSpawnTables.h"
-#include "HeatParameters.h"
-#include "MemoryEditor.h"
 
 
 
@@ -69,13 +69,14 @@ namespace CopFleeOverrides
 		{
 			if ((not fleeDelays.isEnableds.current) or this->IsChaserMember(copVehicle)) return;
 
-			const float timeUntilFlee = fleeDelays.GetRandomValue();
-			const bool  wasNew        = this->chaserVehicleToFleeTimestamp.insert({copVehicle, Globals::simulationTime + timeUntilFlee}).second;
+			const float fleeDelay     = fleeDelays.GetRandomValue();
+			const float fleeTimestamp = PursuitFeatures::simulationTime + fleeDelay;
+			const bool  wasNew        = this->chaserVehicleToFleeTimestamp.insert({copVehicle, fleeTimestamp}).second;
 
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (wasNew)
-					Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", timeUntilFlee);
+					Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", fleeDelay);
 
 				else
 					Globals::logger.Log("WARNING: [FLE]", copVehicle, "already scheduled");
@@ -100,7 +101,8 @@ namespace CopFleeOverrides
 			const address copVehicle, 
 			const float   strategyDuration
 		) {
-			const bool wasNew = this->supportVehicleToFleeTimestamp.insert({copVehicle, Globals::simulationTime + strategyDuration}).second;
+			const float fleeTimestamp = PursuitFeatures::simulationTime + strategyDuration;
+			const bool  wasNew        = this->supportVehicleToFleeTimestamp.insert({copVehicle, fleeTimestamp}).second;
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -162,7 +164,7 @@ namespace CopFleeOverrides
 
 			while (iterator != this->chaserVehicleToFleeTimestamp.end())
 			{
-				if (Globals::simulationTime >= iterator->second)
+				if (PursuitFeatures::simulationTime >= iterator->second)
 				{
 					PursuitFeatures::MakeVehicleBail(iterator->first);
 					this->activeChaserVehicles.erase(iterator->first);
@@ -193,7 +195,7 @@ namespace CopFleeOverrides
 
 			while (iterator != this->supportVehicleToFleeTimestamp.end())
 			{
-				if (Globals::simulationTime >= iterator->second)
+				if (PursuitFeatures::simulationTime >= iterator->second)
 				{
 					PursuitFeatures::MakeVehicleBail(iterator->first);
 
@@ -210,7 +212,18 @@ namespace CopFleeOverrides
 
 	public:
 
-		explicit MembershipManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) {}
+		explicit MembershipManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent('+', this, "MembershipManager");
+		}
+
+
+		~MembershipManager() override
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent('-', this, "MembershipManager");
+		}
 
 
 		void UpdateOnGameplay() override 
@@ -299,7 +312,7 @@ namespace CopFleeOverrides
 		HeatParameters::Parse<int>(parser, "Chasers:Fleeing", fleeDelays, {chasersThresholds, 0});
 
 		// Code caves
-		MemoryEditor::DigCodeCave(UpdateFormation, updateFormationEntrance, updateFormationExit);
+		MemoryTools::DigCodeCave(UpdateFormation, updateFormationEntrance, updateFormationExit);
 
 		// Status flag
 		featureEnabled = true;

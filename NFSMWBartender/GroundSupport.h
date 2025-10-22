@@ -3,7 +3,7 @@
 #include <string>
 
 #include "Globals.h"
-#include "MemoryEditor.h"
+#include "MemoryTools.h"
 #include "HeatParameters.h"
 
 
@@ -132,8 +132,6 @@ namespace GroundSupport
 		const address strategy,
 		const bool    isHeavyStrategy
 	) {
-		if (not strategy) return;
-
 		*((float*)(pursuit + 0x208)) = *((float*)(strategy + 0x8)); // duration
 		*((int*)(pursuit + 0x20C))   = 1;                           // request flag
 
@@ -502,20 +500,20 @@ namespace GroundSupport
 		HeatParameters::Parse<std::string, std::string>(parser, "Leader:Vehicles", {leaderCrossVehicles}, {leaderHenchmenVehicles});
 
 		// Code caves
-		MemoryEditor::Write<float*>(&(minRoadblockCooldowns.current), {0x419548});
+		MemoryTools::Write<float*>(&(minRoadblockCooldowns.current), {0x419548});
 
-		MemoryEditor::DigCodeCave(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
-		MemoryEditor::DigCodeCave(SpikesHitReaction,    spikesHitReactionEntrance,    spikesHitReactionExit);
-		MemoryEditor::DigCodeCave(StrategySelection,    strategySelectionEntrance,    strategySelectionExit);
-		MemoryEditor::DigCodeCave(RoadblockCooldown,    roadblockCooldownEntrance,    roadblockCooldownExit);
-		MemoryEditor::DigCodeCave(RivalRoadblock,       rivalRoadblockEntrance,       rivalRoadblockExit);
-        MemoryEditor::DigCodeCave(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
-		MemoryEditor::DigCodeCave(RoadblockJoin,        roadblockJoinEntrance,        roadblockJoinExit);
-		MemoryEditor::DigCodeCave(OnAttached,           onAttachedEntrance,           onAttachedExit);
-		MemoryEditor::DigCodeCave(OnDetached,           onDetachedEntrance,           onDetachedExit);
-        MemoryEditor::DigCodeCave(LeaderSub,            leaderSubEntrance,            leaderSubExit);
-		MemoryEditor::DigCodeCave(HenchmenSub,          henchmenSubEntrance,          henchmenSubExit);
-        MemoryEditor::DigCodeCave(RhinoSelector,        rhinoSelectorEntrance,        rhinoSelectorExit);
+		MemoryTools::DigCodeCave(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
+		MemoryTools::DigCodeCave(SpikesHitReaction,    spikesHitReactionEntrance,    spikesHitReactionExit);
+		MemoryTools::DigCodeCave(StrategySelection,    strategySelectionEntrance,    strategySelectionExit);
+		MemoryTools::DigCodeCave(RoadblockCooldown,    roadblockCooldownEntrance,    roadblockCooldownExit);
+		MemoryTools::DigCodeCave(RivalRoadblock,       rivalRoadblockEntrance,       rivalRoadblockExit);
+        MemoryTools::DigCodeCave(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
+		MemoryTools::DigCodeCave(RoadblockJoin,        roadblockJoinEntrance,        roadblockJoinExit);
+		MemoryTools::DigCodeCave(OnAttached,           onAttachedEntrance,           onAttachedExit);
+		MemoryTools::DigCodeCave(OnDetached,           onDetachedEntrance,           onDetachedExit);
+        MemoryTools::DigCodeCave(LeaderSub,            leaderSubEntrance,            leaderSubExit);
+		MemoryTools::DigCodeCave(HenchmenSub,          henchmenSubEntrance,          henchmenSubExit);
+        MemoryTools::DigCodeCave(RhinoSelector,        rhinoSelectorEntrance,        rhinoSelectorExit);
 
 		// Status flag
 		featureEnabled = true;
@@ -532,13 +530,21 @@ namespace GroundSupport
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
 
-		// With logging disabled, the compiler optimises the string literals away
-		heavy3LightVehicles   .Validate("HeavyStrategy 3, light",   Globals::VehicleClass::CAR);
-		heavy3HeavyVehicles   .Validate("HeavyStrategy 3, heavy",   Globals::VehicleClass::CAR);
-		heavy4LightVehicles   .Validate("HeavyStrategy 4, light",   Globals::VehicleClass::CAR);
-		heavy4HeavyVehicles   .Validate("HeavyStrategy 4, heavy",   Globals::VehicleClass::CAR);
-		leaderCrossVehicles   .Validate("LeaderStrategy, Cross",    Globals::VehicleClass::CAR);
-		leaderHenchmenVehicles.Validate("LeaderStrategy, henchmen", Globals::VehicleClass::CAR);
+		// With logging disabled, the compiler optimises the boolean and the string literals away
+		bool allValid = true;
+
+		allValid &= heavy3LightVehicles   .Validate("HeavyStrategy 3, light",   Globals::Class::CAR);
+		allValid &= heavy3HeavyVehicles   .Validate("HeavyStrategy 3, heavy",   Globals::Class::CAR);
+		allValid &= heavy4LightVehicles   .Validate("HeavyStrategy 4, light",   Globals::Class::CAR);
+		allValid &= heavy4HeavyVehicles   .Validate("HeavyStrategy 4, heavy",   Globals::Class::CAR);
+		allValid &= leaderCrossVehicles   .Validate("LeaderStrategy, Cross",    Globals::Class::CAR);
+		allValid &= leaderHenchmenVehicles.Validate("LeaderStrategy, henchmen", Globals::Class::CAR);
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (allValid)
+				Globals::logger.LogLongIndent("All vehicles valid");
+		}
 	}
 
 

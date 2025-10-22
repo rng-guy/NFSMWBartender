@@ -133,15 +133,15 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * Bartender can shuffle the first interactive music track in each pursuit instead of starting with the top one, and / or shuffle the follow-up tracks instead of playing them in order.
 
-* For interactive music, Bartender ignores track types that don't exist in the game.
+* For interactive music, Bartender ignores track indices that don't exist in the game.
 
-* If you don't define any shuffle settings, Bartender shuffles the first track in each pursuit.
+* If you don't define any shuffle settings, the game shuffles the first track in each pursuit.
 
-* If you don't define a track length, Bartender disables all interactive track transitions.
+* If you don't define a track length, the first track in each pursuit keeps playing forever.
 
 * If you only define invalid tracks, Bartender uses the vanilla setup (i.e. 0 -> 1 -> 2 -> 3).
 
-* If you don't define any interactive music tracks, Bartender disables all its music features.
+* If you don't define any interactive music tracks, Bartender's music settings have no effect.
 
 * Track transitions may take a few minutes (at worst) due to quirks of the audio scheduler.
 
@@ -151,7 +151,7 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 * Deleting this file disables the fix for getting busted while the green "EVADE" bar fills.
 
-* The `0x1e2a1051` VltEd parameter defines how much passive bounty you gain at each interval.
+* The `0x1e2a1051` VltEd parameter defines how much passive bounty you gain after each interval.
 
 * The `DestroyCopBonusTime` VltEd parameter defines the time window for combo-bounty streaks.
 

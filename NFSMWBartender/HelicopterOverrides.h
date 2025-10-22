@@ -5,9 +5,9 @@
 #include <algorithm>
 
 #include "Globals.h"
-#include "PursuitFeatures.h"
+#include "MemoryTools.h"
 #include "HeatParameters.h"
-#include "MemoryEditor.h"
+#include "PursuitFeatures.h"
 
 
 
@@ -97,7 +97,7 @@ namespace HelicopterOverrides
 			}
 
 			this->helicopterOwner   = this->pursuit;
-			this->helicopterVehicle = Globals::GetVehicleName(copVehicle);
+			this->helicopterVehicle = PursuitFeatures::GetVehicleName(copVehicle);
 		}
 
 
@@ -246,11 +246,18 @@ namespace HelicopterOverrides
 
 	public:
 
-		explicit HelicopterManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) {}
+		explicit HelicopterManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent('+', this, "HelicopterManager");
+		}
 
 
 		~HelicopterManager() override
 		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent('-', this, "HelicopterManager");
+
 			this->RelinquishOwnership();
 		}
 
@@ -334,7 +341,7 @@ namespace HelicopterOverrides
 
 			const float* const fuelTime = this->GetFuelTimePointer();
 
-			if (Globals::IsVehicleDestroyed(copVehicle))
+			if (PursuitFeatures::IsVehicleDestroyed(copVehicle))
 			{
 				this->helicopterStatus = Status::WRECKED;
 				this->RelinquishOwnership();
@@ -525,12 +532,12 @@ namespace HelicopterOverrides
 		HeatParameters::Parse<float>      (parser, "Helicopter:Ramming", {rammingCooldowns, 1.f});
 
 		// Code caves
-		MemoryEditor::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
+		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
 
-		MemoryEditor::DigCodeCave(FuelUpdate,      fuelUpdateEntrance,      fuelUpdateExit);
-		MemoryEditor::DigCodeCave(DefaultFuel,     defaultFuelEntrance,     defaultFuelExit);
-		MemoryEditor::DigCodeCave(EarlyBailout,    earlyBailoutEntrance,    earlyBailoutExit);
-		MemoryEditor::DigCodeCave(RammingCooldown, rammingCooldownEntrance, rammingCooldownExit);
+		MemoryTools::DigCodeCave(FuelUpdate,      fuelUpdateEntrance,      fuelUpdateExit);
+		MemoryTools::DigCodeCave(DefaultFuel,     defaultFuelEntrance,     defaultFuelExit);
+		MemoryTools::DigCodeCave(EarlyBailout,    earlyBailoutEntrance,    earlyBailoutExit);
+		MemoryTools::DigCodeCave(RammingCooldown, rammingCooldownEntrance, rammingCooldownExit);
 
 		// Status flag
 		featureEnabled = true;
@@ -547,8 +554,14 @@ namespace HelicopterOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [HEL] HelicopterOverrides");
 
-		// With logging disabled, the compiler optimises the string literal away
-		helicopterVehicles.Validate("Helicopters", Globals::VehicleClass::CHOPPER);
+		// With logging disabled, the compiler optimises the boolean and the string literal away
+		const bool allValid = helicopterVehicles.Validate("Helicopters", Globals::Class::CHOPPER);
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (allValid)
+				Globals::logger.LogLongIndent("All vehicles valid");
+		}
 	}
 
 

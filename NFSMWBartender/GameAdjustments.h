@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HeatParameters.h"
-#include "MemoryEditor.h"
 
 
 
@@ -52,15 +52,15 @@ namespace GameAdjustments
 	bool Initialise(HeatParameters::Parser& parser)
 	{
         // Helicopter shadow
-        MemoryEditor::Write<float>(0.f, {0x903660});
+        MemoryTools::Write<float>(0.f, {0x903660});
 
         // Disappearing helicopter mini-map marker
-        MemoryEditor::WriteToAddressRange(0x90, 0x579EA2, 0x579EAB);
-		MemoryEditor::DigCodeCave        (HelicopterMarker, helicopterMarkerEntrance, helicopterMarkerExit);
+        MemoryTools::WriteToAddressRange(0x90, 0x579EA2, 0x579EAB);
+		MemoryTools::DigCodeCave        (HelicopterMarker, helicopterMarkerEntrance, helicopterMarkerExit);
 
         // Heat-level reset (credit: ExOptsTeam)
-        MemoryEditor::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
-        MemoryEditor::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
+        MemoryTools::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
+        MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
 
 		// Status flag
 		featureEnabled = true;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <fstream>
 #include <format>
 #include <string>
@@ -24,7 +25,22 @@ namespace BasicLogger
 			this->file << value;
 		}
 
-		
+
+		template <typename T>
+		requires std::is_pointer_v<T>
+		void Print(const T value)
+		{
+			this->Print<uint32_t>((uint32_t)value);
+		}
+
+
+		template <>
+		void Print<const char*>(const char* const value)
+		{
+			this->file << value;
+		}
+
+
 		template <>
 		void Print<uint32_t>(const uint32_t value) 
 		{

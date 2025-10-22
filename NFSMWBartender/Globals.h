@@ -28,14 +28,9 @@ namespace Globals
 	// Pseudorandom number generator
 	RandomNumbers::Generator prng;
 
-	// Data pointers
-	const float& simulationTime = *((float*)0x9885D8);
-
 	// Function pointers
-	const auto GetVaultKey        = (vault       (__cdecl*)   (const char*))0x5CC240;
-	const auto GetVehicleType     = (vault       (__thiscall*)(address))    0x6880A0;
-	const auto GetVehicleName     = (const char* (__thiscall*)(address))    0x688090;
-	const auto IsVehicleDestroyed = (bool        (__thiscall*)(address))    0x688170;
+	const auto GetVaultKey    = (vault (__cdecl*)   (const char*))0x5CC240;
+	const auto GetVehicleType = (vault (__thiscall*)(address))    0x6880A0;
 
 	// Logging
 	constexpr bool loggingEnabled = false;
@@ -64,7 +59,7 @@ namespace Globals
 
 
 
-	enum class VehicleClass
+	enum class Class
 	{
 		ANY,
 		CAR,
@@ -73,15 +68,15 @@ namespace Globals
 
 	bool VehicleClassMatches
 	(
-		const vault        vehicleType,
-		const VehicleClass targetClass
+		const vault vehicleType,
+		const Class targetClass
 	) {
 		const address attribute = GetFromVault(0x4A97EC8F, vehicleType, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
-		if ((not attribute) or (targetClass == VehicleClass::ANY)) return attribute;
+		if ((not attribute) or (targetClass == Class::ANY)) return attribute;
 
 		const vault vehicleClass = *((vault*)(attribute + 0x8));
 		const bool  isHelicopter = (vehicleClass == 0xB80933AA); // checks if "CHOPPER"
 
-		return (isHelicopter == (targetClass == VehicleClass::CHOPPER));
+		return (isHelicopter == (targetClass == Class::CHOPPER));
 	}
 }

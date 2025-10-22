@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HashContainers.h"
 #include "HeatParameters.h"
 #include "CopSpawnTables.h"
@@ -26,8 +27,8 @@ namespace PursuitObserver
 	class PursuitObserver
 	{
 		using PursuitReaction = PursuitFeatures::PursuitReaction;
+		using PursuitCache    = PursuitFeatures::PursuitCache;
 		using CopLabel        = PursuitReaction::CopLabel;
-		using Cache           = PursuitFeatures::Cache;
 
 
 
@@ -38,7 +39,7 @@ namespace PursuitObserver
 		bool perPursuitUpdatePending   = true;
 		bool perHeatLevelUpdatePending = true;
 
-		Cache pursuitData = Cache(this->pursuit);
+		PursuitCache cache = PursuitCache(this->pursuit);
 
 		HashContainers::AddressMap<CopLabel>          copVehicleToLabel;
 		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
@@ -46,21 +47,7 @@ namespace PursuitObserver
 		inline static HashContainers::AddressSet                  copVehiclesLoaded;
 		inline static HashContainers::AddressMap<PursuitObserver> pursuitToObserver;
 
-
-		static PursuitObserver* GetInstance(const address pursuit)
-		{
-			const Cache* const cache = Cache::GetInstance(pursuit);
-
-			if ((not cache) or (not cache->pursuitObserver))
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [OBS] Missing instance in", pursuit);
-
-				return nullptr;
-			}
-
-			return (PursuitObserver*)(cache->pursuitObserver);
-		}
+		inline static constexpr size_t cacheIndex = 0;
 
 
 		static CopLabel LabelAddVehicleCall(const address caller)
@@ -145,9 +132,9 @@ namespace PursuitObserver
 		explicit PursuitObserver(const address pursuit) : pursuit(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("     NEW [OBS] Pursuit", this->pursuit);
+				Globals::logger.LogLongIndent('+', this, "PursuitObserver");
 
-			this->pursuitData.pursuitObserver = (address)this;
+			PursuitCache::SetPointer<this->cacheIndex>(this->pursuit, this);
 
 			this->pursuitReactions.reserve(5);
 
@@ -170,6 +157,9 @@ namespace PursuitObserver
 
 		static void __fastcall AddPursuit(const address pursuit)
 		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("     NEW [OBS] Pursuit", pursuit);
+
 			const auto addedPursuit = PursuitObserver::pursuitToObserver.try_emplace(pursuit, pursuit);
 			
 			if constexpr (Globals::loggingEnabled)
@@ -183,14 +173,17 @@ namespace PursuitObserver
 		~PursuitObserver()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("     DEL [OBS] Pursuit", this->pursuit);
+				Globals::logger.LogLongIndent('-', this, "PursuitObserver");
 
-			this->pursuitData.pursuitObserver = 0x0;
+			PursuitCache::ClearPointer<this->cacheIndex>(this->pursuit, this);
 		}
 
 
 		static void __fastcall RemovePursuit(const address pursuit)
 		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("     DEL [OBS] Pursuit", pursuit);
+
 			const bool wasPursuit = PursuitObserver::pursuitToObserver.erase(pursuit);
 
 			if constexpr (Globals::loggingEnabled)
@@ -221,7 +214,7 @@ namespace PursuitObserver
 			const address copVehicle,
 			const address caller
 		) {
-			PursuitObserver* const observer = PursuitObserver::GetInstance(pursuit);
+			const auto observer = PursuitCache::GetPointer<PursuitObserver::cacheIndex, PursuitObserver>(pursuit);
 
 			if (not observer) return;
 
@@ -238,7 +231,7 @@ namespace PursuitObserver
 						"[OBS] =",
 						copVehicle,
 						(int)copLabel,
-						Globals::GetVehicleName(copVehicle),
+						PursuitFeatures::GetVehicleName(copVehicle),
 						"is already",
 						(int)(addedVehicle.first->second)
 					);
@@ -251,7 +244,7 @@ namespace PursuitObserver
 				observer->RegisterVehicle(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[OBS] +", copVehicle, (int)copLabel, Globals::GetVehicleName(copVehicle));
+				Globals::logger.Log(pursuit, "[OBS] +", copVehicle, (int)copLabel, PursuitFeatures::GetVehicleName(copVehicle));
 
 			for (const auto& reaction : observer->pursuitReactions)
 				reaction->ReactToAddedVehicle(copVehicle, copLabel);
@@ -263,7 +256,7 @@ namespace PursuitObserver
 			const address pursuit,
 			const address copVehicle
 		) {
-			PursuitObserver* const observer = PursuitObserver::GetInstance(pursuit);
+			const auto observer = PursuitCache::GetPointer<PursuitObserver::cacheIndex, PursuitObserver>(pursuit);
 
 			if (not observer) return;
 
@@ -277,7 +270,7 @@ namespace PursuitObserver
 					(
 						"WARNING: [OBS] Unknown vehicle",
 						copVehicle,
-						Globals::GetVehicleName(copVehicle),
+						PursuitFeatures::GetVehicleName(copVehicle),
 						"in",
 						pursuit
 					);
@@ -287,7 +280,7 @@ namespace PursuitObserver
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), Globals::GetVehicleName(copVehicle));
+				Globals::logger.Log(pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), PursuitFeatures::GetVehicleName(copVehicle));
 
 			for (const auto& reaction : observer->pursuitReactions)
 				reaction->ReactToRemovedVehicle(copVehicle, foundVehicle->second);
@@ -310,7 +303,7 @@ namespace PursuitObserver
 			{
 				if (isNew)
 				{
-					Globals::logger.LogIndent("[REG] +", copVehicle, Globals::GetVehicleName(copVehicle));
+					Globals::logger.LogIndent("[REG] +", copVehicle, PursuitFeatures::GetVehicleName(copVehicle));
 					Globals::logger.LogIndent("[REG] Vehicles loaded:", (int)(PursuitObserver::GetNumRegisteredVehicles()));
 				}
 			}
@@ -325,7 +318,7 @@ namespace PursuitObserver
 			{
 				if (wasRegistered)
 				{
-					Globals::logger.LogIndent("[REG] -", copVehicle, Globals::GetVehicleName(copVehicle));
+					Globals::logger.LogIndent("[REG] -", copVehicle, PursuitFeatures::GetVehicleName(copVehicle));
 					Globals::logger.LogIndent("[REG] Vehicles loaded:", (int)(PursuitObserver::GetNumRegisteredVehicles()));
 				}
 			}
@@ -369,7 +362,7 @@ namespace PursuitObserver
 			je conclusion // spawn failed
 
 			push esi // copVehicle
-			mov ecx, offset CopSpawnOverrides::events
+			mov ecx, offset CopSpawnOverrides::eventSpawns
 			call CopSpawnOverrides::Contingent::AddVehicle
 
 			mov ecx, esi
@@ -600,21 +593,21 @@ namespace PursuitObserver
 		LeaderOverrides    ::Initialise(parser);
 		
 		// Code caves
-		MemoryEditor::Write<byte>(0x9E, {0x44319C});                 // helicopter respawn-timer initialisation
-		MemoryEditor::WriteToAddressRange(0x90, 0x443E77, 0x443E87); // update
-		MemoryEditor::WriteToAddressRange(0x90, 0x42B6B4, 0x42B6DF); // reset
+		MemoryTools::Write<byte>(0x9E, {0x44319C});                 // helicopter respawn-timer initialisation
+		MemoryTools::WriteToAddressRange(0x90, 0x443E77, 0x443E87); // update
+		MemoryTools::WriteToAddressRange(0x90, 0x42B6B4, 0x42B6DF); // reset
 
-		MemoryEditor::DigCodeCave(EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
-		MemoryEditor::DigCodeCave(PatrolSpawn, patrolSpawnEntrance, patrolSpawnExit);
+		MemoryTools::DigCodeCave(EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
+		MemoryTools::DigCodeCave(PatrolSpawn, patrolSpawnEntrance, patrolSpawnExit);
 
-		MemoryEditor::DigCodeCave(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
-		MemoryEditor::DigCodeCave(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
-		MemoryEditor::DigCodeCave(VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);
-		MemoryEditor::DigCodeCave(CopRemoved,         copRemovedEntrance,         copRemovedExit);
-		MemoryEditor::DigCodeCave(CopAdded,           copAddedEntrance,           copAddedExit);
+		MemoryTools::DigCodeCave(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
+		MemoryTools::DigCodeCave(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
+		MemoryTools::DigCodeCave(VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);
+		MemoryTools::DigCodeCave(CopRemoved,         copRemovedEntrance,         copRemovedExit);
+		MemoryTools::DigCodeCave(CopAdded,           copAddedEntrance,           copAddedExit);
 
-		MemoryEditor::DigCodeCave(MainSpawnLimit,  mainSpawnLimitEntrance,  mainSpawnLimitExit);
-		MemoryEditor::DigCodeCave(OtherSpawnLimit, otherSpawnLimitEntrance, otherSpawnLimitExit);
+		MemoryTools::DigCodeCave(MainSpawnLimit,  mainSpawnLimitEntrance,  mainSpawnLimitExit);
+		MemoryTools::DigCodeCave(OtherSpawnLimit, otherSpawnLimitEntrance, otherSpawnLimitExit);
 
 		// Status flag
 		featureEnabled = true;

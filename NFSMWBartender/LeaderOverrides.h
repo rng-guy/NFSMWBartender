@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HashContainers.h"
-#include "PursuitFeatures.h"
 #include "HeatParameters.h"
-#include "MemoryEditor.h"
+#include "PursuitFeatures.h"
 
 
 
@@ -44,7 +44,7 @@ namespace LeaderOverrides
 
 		address crossVehicle        = 0x0;
 		Status  crossStatus         = Status::PENDING;
-		float   expirationTimestamp = Globals::simulationTime;
+		float   expirationTimestamp = PursuitFeatures::simulationTime;
 
 		int&  crossFlag    = *((int*)(this->pursuit + 0x164));
 		bool& skipPriority = *((bool*)(this->pursuit + 0x214));
@@ -235,7 +235,7 @@ namespace LeaderOverrides
 
 		void UpdateExpirationTimestamp()
 		{
-			this->expirationTimestamp = Globals::simulationTime;
+			this->expirationTimestamp = PursuitFeatures::simulationTime;
 
 			if (this->leaderStrategy)
 				this->expirationTimestamp += *((float*)(this->leaderStrategy + 0x8));
@@ -248,7 +248,18 @@ namespace LeaderOverrides
 
 	public:
 
-		explicit LeaderManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) {}
+		explicit LeaderManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent('+', this, "LeaderManager");
+		}
+
+
+		~LeaderManager() override
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent('-', this, "LeaderManager");
+		}
 
 
 		void UpdateOnGameplay() override
@@ -308,10 +319,10 @@ namespace LeaderOverrides
 				this->crossAggroTimer.Stop();
 				this->crossVehicle = 0x0;
 
-				if (Globals::IsVehicleDestroyed(copVehicle))
+				if (PursuitFeatures::IsVehicleDestroyed(copVehicle))
 					this->crossStatus = Status::WRECKED;
 				
-				else if (Globals::simulationTime > this->expirationTimestamp)				
+				else if (PursuitFeatures::simulationTime > this->expirationTimestamp)
 					this->crossStatus = Status::EXPIRED;
 				
 				else				
@@ -345,9 +356,9 @@ namespace LeaderOverrides
 		HeatParameters::Parse<>(parser, "Leader:LostReset",   lostResetDelays);
 
 		// Code caves
-		MemoryEditor::WriteToAddressRange(0x90, 0x42B6A2, 0x42B6B4); // Cross flag = 0
-		MemoryEditor::WriteToAddressRange(0x90, 0x42402A, 0x424036); // Cross flag = 1
-		MemoryEditor::WriteToAddressRange(0x90, 0x42B631, 0x42B643); // Cross flag = 2
+		MemoryTools::WriteToAddressRange(0x90, 0x42B6A2, 0x42B6B4); // Cross flag = 0
+		MemoryTools::WriteToAddressRange(0x90, 0x42402A, 0x424036); // Cross flag = 1
+		MemoryTools::WriteToAddressRange(0x90, 0x42B631, 0x42B643); // Cross flag = 2
 
 		// Status flag
 		featureEnabled = true;

@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HashContainers.h"
-#include "MemoryEditor.h"
 #include "HeatParameters.h"
 
 
@@ -94,7 +94,7 @@ namespace CopSpawnTables
 		}
 
 
-		size_t RemoveInvalidTypes
+		bool RemoveInvalidTypes
 		(
 			const char* const tableName, 
 			const bool        forRaces, 
@@ -105,7 +105,7 @@ namespace CopSpawnTables
 
 			while (iterator != this->copTypeToEntry.end())
 			{
-				if (not Globals::VehicleClassMatches(iterator->first, Globals::VehicleClass::CAR))
+				if (not Globals::VehicleClassMatches(iterator->first, Globals::Class::CAR))
 				{
 					// With logging disabled, the compiler optimises all parameters away
 					if constexpr (Globals::loggingEnabled)
@@ -151,7 +151,7 @@ namespace CopSpawnTables
 					Globals::logger.LogLongIndent("  types left:", (int)(this->copTypeToEntry.size()));
 			}
 
-			return numRemoved;
+			return (numRemoved == 0);
 		}
 
 
@@ -349,16 +349,24 @@ namespace CopSpawnTables
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [TAB] CopSpawnTables");
 
+		bool allValid = true;
+
 		for (const bool forRaces : {false, true})
 		{
 			for (const size_t heatLevel : HeatParameters::heatLevels)
 			{
-				// With logging disabled, the compiler optimises all arguments away
-				(eventSpawnTables    .GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Events",     forRaces, heatLevel);
-				(patrolSpawnTables   .GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Patrols",    forRaces, heatLevel);
-				(chaserSpawnTables   .GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Chasers",    forRaces, heatLevel);
-				(roadblockSpawnTables.GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Roadblocks", forRaces, heatLevel);
+				// With logging disabled, the compiler optimises the boolean and all arguments away
+				allValid &= (eventSpawnTables    .GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Events",     forRaces, heatLevel);
+				allValid &= (patrolSpawnTables   .GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Patrols",    forRaces, heatLevel);
+				allValid &= (chaserSpawnTables   .GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Chasers",    forRaces, heatLevel);
+				allValid &= (roadblockSpawnTables.GetValues(forRaces)[heatLevel - 1]).RemoveInvalidTypes("Roadblocks", forRaces, heatLevel);
 			}
+		}
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (allValid)
+				Globals::logger.LogLongIndent("All vehicles valid");
 		}
 	}
 

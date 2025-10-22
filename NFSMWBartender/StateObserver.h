@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Globals.h"
-#include "MemoryEditor.h"
+#include "MemoryTools.h"
 #include "HeatParameters.h"
 
 #include "DestructionStrings.h"
@@ -56,7 +56,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log("\n SESSION [VER] Bartender v2.00.02");
+			Globals::logger.Log("\n SESSION [VER] Bartender v2.00.03");
 
 			Globals::logger.LogLongIndent("Basic feature set",    (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
@@ -143,9 +143,7 @@ namespace StateObserver
 			je update
 
 			cmp eax, 0x6F4BE5 // vehicle initialisation
-			je update
-
-			jmp conclusion // argument is not true Heat
+			jne conclusion    // argument is not true Heat
 
 			update:
 			mov dword ptr currentHeatLevel, ebp
@@ -329,13 +327,13 @@ namespace StateObserver
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		// Code caves
-		MemoryEditor::DigCodeCave(HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
-		MemoryEditor::DigCodeCave(GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
-		MemoryEditor::DigCodeCave(WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);
-		MemoryEditor::DigCodeCave(GameplayObserver,  gameplayObserverEntrance,  gameplayObserverExit);
-		MemoryEditor::DigCodeCave(RetryObserver,     retryObserverEntrance,     retryObserverExit);
-		MemoryEditor::DigCodeCave(HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
-		MemoryEditor::DigCodeCave(PerpVehicle,       perpVehicleEntrance,       perpVehicleExit);
+		MemoryTools::DigCodeCave(HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
+		MemoryTools::DigCodeCave(GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
+		MemoryTools::DigCodeCave(WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);
+		MemoryTools::DigCodeCave(GameplayObserver,  gameplayObserverEntrance,  gameplayObserverExit);
+		MemoryTools::DigCodeCave(RetryObserver,     retryObserverEntrance,     retryObserverExit);
+		MemoryTools::DigCodeCave(HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
+		MemoryTools::DigCodeCave(PerpVehicle,       perpVehicleEntrance,       perpVehicleExit);
 
 		// Status flag
 		featureEnabled = true;

@@ -4,9 +4,9 @@
 #include <string>
 
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HashContainers.h"
 #include "HeatParameters.h"
-#include "MemoryEditor.h"
 
 
 
@@ -170,12 +170,12 @@ namespace RadioCallsigns
 		}
 
 		// Code caves
-		MemoryEditor::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up superfluous stack variable
+		MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up superfluous stack variable
 
-		MemoryEditor::DigCodeCave(CrossCallsign,    crossCallsignEntrance,    crossCallsignExit);
-		MemoryEditor::DigCodeCave(FirstCallsign,    firstCallsignEntrance,    firstCallsignExit);
-		MemoryEditor::DigCodeCave(SecondCallsign,   secondCallsignEntrance,   secondCallsignExit);
-		MemoryEditor::DigCodeCave(CollisionCallout, collisionCalloutEntrance, collisionCalloutExit);
+		MemoryTools::DigCodeCave(CrossCallsign,    crossCallsignEntrance,    crossCallsignExit);
+		MemoryTools::DigCodeCave(FirstCallsign,    firstCallsignEntrance,    firstCallsignExit);
+		MemoryTools::DigCodeCave(SecondCallsign,   secondCallsignEntrance,   secondCallsignExit);
+		MemoryTools::DigCodeCave(CollisionCallout, collisionCalloutEntrance, collisionCalloutExit);
 
 		// Status flag
 		featureEnabled = true;
@@ -197,7 +197,7 @@ namespace RadioCallsigns
 			"Vehicle-to-callsign",
 			copTypeToCallsignGroup, 
 			defaultCallsignGroup,
-			[=](const vault key)  {return Globals::VehicleClassMatches(key, Globals::VehicleClass::CAR);},
+			[=](const vault key)  {return Globals::VehicleClassMatches(key, Globals::Class::CAR);},
 			[=](const Group value){return (value != Group::UNKNOWN);}
 		);
 	}

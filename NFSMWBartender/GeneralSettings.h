@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Globals.h"
-#include "MemoryEditor.h"
+#include "MemoryTools.h"
 #include "HeatParameters.h"
 
 
@@ -201,17 +201,17 @@ namespace GeneralSettings
 		HeatParameters::ParseOptional<float>(parser, "Flipping:Reset",  racerFlipResetEnableds,   {racerFlipResetDelays,   .001f});
 
 		// Code caves
-		MemoryEditor::Write<float*>(&bustRate,              {0x40AEDB});
-		MemoryEditor::Write<float*>(&halfEvadeRate,         {0x444A3A});
-		MemoryEditor::Write<float*>(&(bustTimers.current),  {0x4445CE});
-		MemoryEditor::Write<float*>(&bountyFrequency,       {0x444513, 0x444524});
-		MemoryEditor::Write<float*>(&(evadeTimers.current), {0x4448E6, 0x444802, 0x4338F8});
+		MemoryTools::Write<float*>(&bustRate,              {0x40AEDB});
+		MemoryTools::Write<float*>(&halfEvadeRate,         {0x444A3A});
+		MemoryTools::Write<float*>(&(bustTimers.current),  {0x4445CE});
+		MemoryTools::Write<float*>(&bountyFrequency,       {0x444513, 0x444524});
+		MemoryTools::Write<float*>(&(evadeTimers.current), {0x4448E6, 0x444802, 0x4338F8});
 
-		MemoryEditor::DigCodeCave(CopCombo,        copComboEntrance,        copComboExit);
-		MemoryEditor::DigCodeCave(CopFlipping,     copFlippingEntrance,     copFlippingExit);
-		MemoryEditor::DigCodeCave(RacerFlipping,   racerFlippingEntrance,   racerFlippingExit);
-		MemoryEditor::DigCodeCave(PassiveBounty,   passiveBountyEntrance,   passiveBountyExit);
-        MemoryEditor::DigCodeCave(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
+		MemoryTools::DigCodeCave(CopCombo,        copComboEntrance,        copComboExit);
+		MemoryTools::DigCodeCave(CopFlipping,     copFlippingEntrance,     copFlippingExit);
+		MemoryTools::DigCodeCave(RacerFlipping,   racerFlippingEntrance,   racerFlippingExit);
+		MemoryTools::DigCodeCave(PassiveBounty,   passiveBountyEntrance,   passiveBountyExit);
+        MemoryTools::DigCodeCave(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 
 		// Status flag
 		featureEnabled = true;

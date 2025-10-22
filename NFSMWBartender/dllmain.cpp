@@ -1,6 +1,6 @@
 #include <Windows.h>
 
-#include "MemoryEditor.h"
+#include "MemoryTools.h"
 #include "HeatParameters.h"
 
 #include "StateObserver.h"

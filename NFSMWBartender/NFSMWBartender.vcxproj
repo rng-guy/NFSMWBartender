@@ -168,7 +168,7 @@
     <ClInclude Include="CopFleeOverrides.h" />
     <ClInclude Include="InteractiveMusic.h" />
     <ClInclude Include="LeaderOverrides.h" />
-    <ClInclude Include="MemoryEditor.h" />
+    <ClInclude Include="MemoryTools.h" />
     <ClInclude Include="HelicopterOverrides.h" />
     <ClInclude Include="DestructionStrings.h" />
     <ClInclude Include="HeatParameters.h" />

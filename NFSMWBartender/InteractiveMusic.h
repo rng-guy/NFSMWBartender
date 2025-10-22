@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Globals.h"
-#include "MemoryEditor.h"
+#include "MemoryTools.h"
 #include "HeatParameters.h"
 #include "ConfigParser.h"
 
@@ -157,14 +157,12 @@ namespace InteractiveMusic
 	{
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
 
-		const std::string section = "Music:Tracks";
-
 		// General parameters
 		std::array<int, maxNumTracks> allTracks = {};
 
 		const auto isValids = parser.ParseParameterTable<int>
 		(
-			section,
+			"Music:Tracks",
 			"track{:02}",
 			ConfigParser::FormatParameter<int, maxNumTracks>(allTracks)
 		);
@@ -179,16 +177,18 @@ namespace InteractiveMusic
 
 		if (tracks.empty()) return false;
 
+		const std::string section = "Music:Settings";
+
 		transitionsEnabled = parser.ParseParameter<float>(section, "lengthPerTrack", lengthPerTrack);
 
 		parser.ParseParameter<bool>(section, "shuffleFirstTrack", shuffleFirstTrack);
 		parser.ParseParameter<bool>(section, "shuffleAfterFirst", shuffleAfterFirst);
 
 		// Code caves
-		MemoryEditor::DigCodeCave(FirstTrack,      firstTrackEntrance,      firstTrackExit);
-		MemoryEditor::DigCodeCave(NextTrack,       nextTrackEntrance,       nextTrackExit);
-		MemoryEditor::DigCodeCave(MainTransition,  mainTransitionEntrance,  mainTransitionExit);
-		MemoryEditor::DigCodeCave(OtherTransition, otherTransitionEntrance, otherTransitionExit);
+		MemoryTools::DigCodeCave(FirstTrack,      firstTrackEntrance,      firstTrackExit);
+		MemoryTools::DigCodeCave(NextTrack,       nextTrackEntrance,       nextTrackExit);
+		MemoryTools::DigCodeCave(MainTransition,  mainTransitionEntrance,  mainTransitionExit);
+		MemoryTools::DigCodeCave(OtherTransition, otherTransitionEntrance, otherTransitionExit);
 
 		// Status flag
 		featureEnabled = true;

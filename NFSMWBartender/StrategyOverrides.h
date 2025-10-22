@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HashContainers.h"
-#include "PursuitFeatures.h"
 #include "HeatParameters.h"
-#include "MemoryEditor.h"
+#include "PursuitFeatures.h"
 
 
 
@@ -35,13 +35,15 @@ namespace StrategyOverrides
 
 	class StrategyManager : public PursuitFeatures::PursuitReaction
 	{
-		using Cache = PursuitFeatures::Cache;
+		using PursuitCache = PursuitFeatures::PursuitCache;
 
 
 
 	private:
 
 		int& numStrategyVehicles = *((int*)(this->pursuit + 0x18C));
+
+		const float pursuitStartTimestamp = PursuitFeatures::simulationTime;
 
 		const int&     pursuitStatus  = *((int*)(this->pursuit + 0x218));
 		const bool&    isJerk         = *((bool*)(this->pursuit + 0x238));
@@ -56,25 +58,9 @@ namespace StrategyOverrides
 		HashContainers::AddressSet vehiclesOfCurrentStrategy;
 		HashContainers::AddressSet vehiclesOfUnblockedHeavy3;
 
-		const float pursuitStartTimestamp = Globals::simulationTime;
-
 		inline static const auto ClearSupportRequest = (void (__thiscall*)(address))0x42BCF0;
 
-
-		static StrategyManager* GetInstance(const address pursuit)
-		{
-			const Cache* const cache = Cache::GetInstance(pursuit);
-
-			if ((not cache) or (not cache->strategyManager))
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] Missing instance in", pursuit);
-
-				return nullptr;
-			}
-
-			return (StrategyManager*)(cache->strategyManager);
-		}
+		inline static constexpr size_t cacheIndex = 2;
 
 
 		void UpdateNumStrategyVehicles() const
@@ -193,35 +179,19 @@ namespace StrategyOverrides
 
 		explicit StrategyManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
 		{
-			Cache* const pursuitData = Cache::GetInstance(this->pursuit);
-
-			if (pursuitData)
-			{
-				if (not pursuitData->strategyManager)
-					pursuitData->strategyManager = (address)this;
-
-				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] Existing instance in", this->pursuit);
-			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [STR] Invalid cache pointer in", this->pursuit);
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent('+', this, "StrategyManager");
+			
+			PursuitCache::SetPointer<this->cacheIndex>(this->pursuit, this);
 		}
 
 
 		~StrategyManager() override
 		{
-			Cache* const pursuitData = Cache::GetInstance(this->pursuit);
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent('-', this, "StrategyManager");
 
-			if (pursuitData)
-			{
-				if (pursuitData->strategyManager == (address)this)
-					pursuitData->strategyManager = 0x0;
-
-				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] Instance mismatch in", this->pursuit);
-			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [STR] Invalid cache pointer in", this->pursuit);
+			PursuitCache::ClearPointer<this->cacheIndex>(this->pursuit, this);
 		}
 
 
@@ -283,7 +253,7 @@ namespace StrategyOverrides
 
 		static void __fastcall WatchHeavyStrategy(const address pursuit)
 		{
-			StrategyManager* const manager = StrategyManager::GetInstance(pursuit);
+			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
 
 			if (not manager) return;
 
@@ -325,7 +295,7 @@ namespace StrategyOverrides
 
 		static void __fastcall WatchLeaderStrategy(const address pursuit)
 		{
-			StrategyManager* const manager = StrategyManager::GetInstance(pursuit);
+			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
 
 			if (not manager) return;
 
@@ -366,7 +336,7 @@ namespace StrategyOverrides
 
 		static void __fastcall ClearWatchedStrategy(const address pursuit)
 		{
-			StrategyManager* const manager = StrategyManager::GetInstance(pursuit);
+			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
 
 			if (not manager) return;
 
@@ -379,8 +349,8 @@ namespace StrategyOverrides
 
 		static float __fastcall GetTruePursuitLength(const address pursuit)
 		{
-			const StrategyManager* const manager = StrategyManager::GetInstance(pursuit);
-			return (manager) ? (Globals::simulationTime - manager->pursuitStartTimestamp) : 0.f;
+			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
+			return (manager) ? (PursuitFeatures::simulationTime - manager->pursuitStartTimestamp) : 0.f;
 		}
 	};
 
@@ -408,9 +378,7 @@ namespace StrategyOverrides
 			je reset
 
 			cmp ebx, 0x4431F4 // pursuit constructor
-			je reset
-
-			jmp dword ptr goalResetSkip
+			jne skip          // do not reset
 
 			reset:
 			push ecx
@@ -418,6 +386,9 @@ namespace StrategyOverrides
 			push 0x0
 
 			jmp dword ptr goalResetExit
+
+			skip:
+			jmp dword ptr goalResetSkip
 		}
 	}
 
@@ -596,21 +567,21 @@ namespace StrategyOverrides
 		HeatParameters::Parse<>(parser, "Leader7:Unblocking", leader7UnblockDelays);
 
 		// Code caves
-		MemoryEditor::Write<byte>   (0xE9,   {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
-		MemoryEditor::Write<address>(0x02A3, {0x44384B});
+		MemoryTools::Write<byte>   (0xE9,   {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
+		MemoryTools::Write<address>(0x02A3, {0x44384B});
 		
-		MemoryEditor::WriteToAddressRange(0x90, 0x4240BD, 0x4240C3); // OnAttached increment
-		MemoryEditor::WriteToAddressRange(0x90, 0x42B71B, 0x42B72E); // OnDetached decrement
+		MemoryTools::WriteToAddressRange(0x90, 0x4240BD, 0x4240C3); // OnAttached increment
+		MemoryTools::WriteToAddressRange(0x90, 0x42B71B, 0x42B72E); // OnDetached decrement
 
-		MemoryEditor::DigCodeCave(GoalReset,      goalResetEntrance,      goalResetExit);
-		MemoryEditor::DigCodeCave(ClearRequest,   clearRequestEntrance,   clearRequestExit);
-		MemoryEditor::DigCodeCave(LeaderStrategy, leaderStrategyEntrance, leaderStrategyExit);
-		MemoryEditor::DigCodeCave(HeavyStrategy3, heavyStrategy3Entrance, heavyStrategy3Exit);
-		MemoryEditor::DigCodeCave(HeavyStrategy4, heavyStrategy4Entrance, heavyStrategy4Exit);
+		MemoryTools::DigCodeCave(GoalReset,      goalResetEntrance,      goalResetExit);
+		MemoryTools::DigCodeCave(ClearRequest,   clearRequestEntrance,   clearRequestExit);
+		MemoryTools::DigCodeCave(LeaderStrategy, leaderStrategyEntrance, leaderStrategyExit);
+		MemoryTools::DigCodeCave(HeavyStrategy3, heavyStrategy3Entrance, heavyStrategy3Exit);
+		MemoryTools::DigCodeCave(HeavyStrategy4, heavyStrategy4Entrance, heavyStrategy4Exit);
 
-		MemoryEditor::DigCodeCave(MinStrategyDelay,   minStrategyDelayEntrance,   minStrategyDelayExit);
-		MemoryEditor::DigCodeCave(MinRoadblockDelay,  minRoadblockDelayEntrance,  minRoadblockDelayExit);
-		MemoryEditor::DigCodeCave(CrossPriorityDelay, crossPriorityDelayEntrance, crossPriorityDelayExit);
+		MemoryTools::DigCodeCave(MinStrategyDelay,   minStrategyDelayEntrance,   minStrategyDelayExit);
+		MemoryTools::DigCodeCave(MinRoadblockDelay,  minRoadblockDelayEntrance,  minRoadblockDelayExit);
+		MemoryTools::DigCodeCave(CrossPriorityDelay, crossPriorityDelayEntrance, crossPriorityDelayExit);
 		
 		// Status flag
 		featureEnabled = true;

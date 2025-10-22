@@ -43,17 +43,17 @@ namespace RandomNumbers
 		{
 			uint64_t z = (state += 0x9e3779b97f4a7c15);
 
-			z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-			z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+			z = (z xor (z >> 30)) * 0xbf58476d1ce4e5b9;
+			z = (z xor (z >> 27)) * 0x94d049bb133111eb;
 
-			return z ^ (z >> 31);
+			return z xor (z >> 31);
 		}
 
 
 
 	public:
 
-		explicit constexpr Xoshiro256ss(uint64_t seed = 0)
+		explicit constexpr Xoshiro256ss(uint64_t seed = 0x0)
 		{
 			if (not seed)
 			{

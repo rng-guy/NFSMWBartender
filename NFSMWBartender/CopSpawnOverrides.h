@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HashContainers.h"
+#include "HeatParameters.h"
 #include "CopSpawnTables.h"
 #include "PursuitFeatures.h"
 #include "HelicopterOverrides.h"
-#include "HeatParameters.h"
-#include "MemoryEditor.h"
 
 
 
@@ -63,7 +63,17 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.Log(this->pursuit, "[CON] New contingent");
+					Globals::logger.LogLongIndent('+', this, "Contingent");
+			}
+		}
+
+
+		~Contingent()
+		{
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->pursuit)
+					Globals::logger.LogLongIndent('-', this, "Contingent");
 			}
 		}
 
@@ -195,8 +205,8 @@ namespace CopSpawnOverrides
 	// Code caves
 	bool skipEventSpawns = true;
 
-	Contingent events    (CopSpawnTables::eventSpawnTables);
-	Contingent roadblocks(CopSpawnTables::roadblockSpawnTables);
+	Contingent eventSpawns    (CopSpawnTables::eventSpawnTables);
+	Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTables);
 
 
 
@@ -206,7 +216,7 @@ namespace CopSpawnOverrides
 
 	class ChasersManager : public PursuitFeatures::PursuitReaction
 	{
-		using Cache = PursuitFeatures::Cache;
+		using PursuitCache = PursuitFeatures::PursuitCache;
 
 
 
@@ -222,23 +232,9 @@ namespace CopSpawnOverrides
 		const bool&  bailingPursuit = *((bool*)(this->pursuit + 0xE9));
 		const float& spawnCooldown  = *((float*)(this->pursuit + 0xCC));
 
-		Contingent chasers = Contingent(CopSpawnTables::chaserSpawnTables, this->pursuit);
+		Contingent chaserSpawns = Contingent(CopSpawnTables::chaserSpawnTables, this->pursuit);
 
-
-		static ChasersManager* GetInstance(const address pursuit)
-		{
-			const Cache* const cache = Cache::GetInstance(pursuit);
-
-			if ((not cache) or (not cache->chasersManager))
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [SPA] Missing instance in", pursuit);
-
-				return nullptr;
-			}
-
-			return (ChasersManager*)(cache->chasersManager);
-		}
+		inline static constexpr size_t cacheIndex = 1;
 
 
 		void UpdateSpawnTable()
@@ -248,7 +244,7 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[SPA] Updating table");
 
-				this->chasers.UpdateSpawnTable();
+				this->chaserSpawns.UpdateSpawnTable();
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[SPA] Skipping updating spawn table");
@@ -295,7 +291,7 @@ namespace CopSpawnOverrides
 
 		int GetWaveCapacity() const
 		{
-			return this->fullWaveCapacity - (this->numCopsLostInWave + this->chasers.GetNumActiveCops());
+			return this->fullWaveCapacity - (this->numCopsLostInWave + this->chaserSpawns.GetNumActiveCops());
 		}
 
 
@@ -317,20 +313,19 @@ namespace CopSpawnOverrides
 
 		bool CanNewChaserSpawn() const
 		{
-			if (not PursuitFeatures::heatLevelKnown)
-				return false;
+			if (not PursuitFeatures::heatLevelKnown) return false;
 
-			else if (this->isPerpBusted or this->bailingPursuit or (this->spawnCooldown > 0.f))
-				return false;
+			if (this->isPerpBusted)   return false;
+			if (this->bailingPursuit) return false;
 
-			else if ((not this->chasers.HasAvailableCop()) or (this->chasers.GetNumActiveCops() >= maxActiveCounts.current))
-				return false;
+			if (this->spawnCooldown > 0.f)                                        return false;
+			if (not this->chaserSpawns.HasAvailableCop())                         return false;
+			if (this->chaserSpawns.GetNumActiveCops() >= maxActiveCounts.current) return false;
 
-			else if (this->IsSearchModeActive())
-				return (this->chasers.GetNumActiveCops() < this->maxNumPatrolCars);
+			if (this->IsSearchModeActive())
+				return (this->chaserSpawns.GetNumActiveCops() < this->maxNumPatrolCars);
 
-			else
-				return ((this->GetWaveCapacity() > 0) or (this->chasers.GetNumActiveCops() < minActiveCounts.current));
+			return ((this->GetWaveCapacity() > 0) or (this->chaserSpawns.GetNumActiveCops() < minActiveCounts.current));
 		}
 
 
@@ -339,35 +334,19 @@ namespace CopSpawnOverrides
 
 		explicit ChasersManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
-			Cache* const pursuitData = Cache::GetInstance(this->pursuit);
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent('+', this, "ChasersManager");
 
-			if (pursuitData)
-			{
-				if (not pursuitData->chasersManager)
-					pursuitData->chasersManager = (address)this;
-
-				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [SPA] Existing instance in", this->pursuit);
-			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] Invalid cache pointer in", this->pursuit);
+			PursuitCache::SetPointer<this->cacheIndex>(this->pursuit, this);
 		}
 
 
 		~ChasersManager() override
 		{
-			Cache* const pursuitData = Cache::GetInstance(this->pursuit);
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent('-', this, "ChasersManager");
 
-			if (pursuitData)
-			{
-				if (pursuitData->chasersManager == (address)this)
-					pursuitData->chasersManager = 0x0;
-
-				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [SPA] Instance mismatch in", this->pursuit);
-			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] Invalid cache pointer in", this->pursuit);
+			PursuitCache::ClearPointer<this->cacheIndex>(this->pursuit, this);
 		}
 
 
@@ -399,7 +378,7 @@ namespace CopSpawnOverrides
 			skipEventSpawns = false;
 
 			if (copLabel == CopLabel::CHASER)
-				this->chasers.AddVehicle(copVehicle);
+				this->chaserSpawns.AddVehicle(copVehicle);
 		}
 
 
@@ -412,7 +391,7 @@ namespace CopSpawnOverrides
 		{
 			if (copLabel == CopLabel::CHASER)
 			{
-				if (this->chasers.RemoveVehicle(copVehicle))
+				if (this->chaserSpawns.RemoveVehicle(copVehicle))
 					++(this->numCopsLostInWave);
 			}
 		}
@@ -420,15 +399,15 @@ namespace CopSpawnOverrides
 
 		static bool __fastcall GetChaserSpawnStatus(const address pursuit)
 		{
-			const ChasersManager* const manager = ChasersManager::GetInstance(pursuit);
+			const auto manager = PursuitCache::GetPointer<ChasersManager::cacheIndex, ChasersManager>(pursuit);
 			return (manager) ? manager->CanNewChaserSpawn() : false;
 		}
 
 
 		static const char* __fastcall GetNameOfNewChaser(const address pursuit)
 		{
-			const ChasersManager* const manager = ChasersManager::GetInstance(pursuit);
-			return (manager and manager->CanNewChaserSpawn()) ? manager->chasers.GetNameOfAvailableCop() : nullptr;
+			const auto manager = PursuitCache::GetPointer<ChasersManager::cacheIndex, ChasersManager>(pursuit);
+			return (manager and manager->CanNewChaserSpawn()) ? manager->chaserSpawns.GetNameOfAvailableCop() : nullptr;
 		}
 	};
 
@@ -454,7 +433,7 @@ namespace CopSpawnOverrides
 				return CopSpawnTables::patrolSpawnTables.current->GetRandomCopName();
 				
 			case 0x43E049: // roadblock
-				return roadblocks.GetNameOfSpawnableCop();
+				return roadblockSpawns.GetNameOfSpawnableCop();
 			}
 
 			if constexpr (Globals::loggingEnabled)
@@ -538,7 +517,7 @@ namespace CopSpawnOverrides
 			push eax
 
 			push eax // copVehicle
-			mov ecx, offset roadblocks
+			mov ecx, offset roadblockSpawns
 			call Contingent::AddVehicle
 
 			pop ecx
@@ -554,7 +533,7 @@ namespace CopSpawnOverrides
 			dec edi
 			jne skip // car(s) left to generate
 
-			mov ecx, offset roadblocks
+			mov ecx, offset roadblockSpawns
 			call Contingent::ClearVehicles
 
 			jmp dword ptr roadblockSpawnExit
@@ -576,7 +555,7 @@ namespace CopSpawnOverrides
 			add esp, 0x4
 			push eax
 
-			mov ecx, offset events
+			mov ecx, offset eventSpawns
 			call Contingent::ClearVehicles
 
 			pop eax
@@ -609,7 +588,7 @@ namespace CopSpawnOverrides
 			cmp byte ptr PursuitFeatures::heatLevelKnown, 0x1
 			jne conclusion // Heat level unknown
 
-			mov ecx, offset events
+			mov ecx, offset eventSpawns
 			call Contingent::GetNameOfSpawnableCop
 			mov ebp, eax
 			test eax, eax
@@ -668,21 +647,21 @@ namespace CopSpawnOverrides
 		HeatParameters::Parse<int, int>(parser, "Chasers:Limits", {minActiveCounts, 0}, {maxActiveCounts, 1});
 
 		// Code caves
-		MemoryEditor::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
-		MemoryEditor::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
+		MemoryTools::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
+		MemoryTools::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
 
-		MemoryEditor::WriteToAddressRange(0x90, 0x4440D7, 0x4440DF); // membership check
+		MemoryTools::WriteToAddressRange(0x90, 0x4440D7, 0x4440DF); // membership check
 
-		MemoryEditor::Write<byte>(0x00, {0x433CB2});           // min. displayed count
-		MemoryEditor::Write<byte>(0x90, {0x57B188, 0x4443E4}); // helicopter / roadblock increment
+		MemoryTools::Write<byte>(0x00, {0x433CB2});           // min. displayed count
+		MemoryTools::Write<byte>(0x90, {0x57B188, 0x4443E4}); // helicopter / roadblock increment
 
-		MemoryEditor::DigCodeCave(CopRefill,          copRefillEntrance,          copRefillExit);
-		MemoryEditor::DigCodeCave(CopRequest,         copRequestEntrance,         copRequestExit);
-		MemoryEditor::DigCodeCave(RequestCheck,       requestCheckEntrance,       requestCheckExit);
-		MemoryEditor::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
-		MemoryEditor::DigCodeCave(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
-		MemoryEditor::DigCodeCave(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
-		MemoryEditor::DigCodeCave(ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
+		MemoryTools::DigCodeCave(CopRefill,          copRefillEntrance,          copRefillExit);
+		MemoryTools::DigCodeCave(CopRequest,         copRequestEntrance,         copRequestExit);
+		MemoryTools::DigCodeCave(RequestCheck,       requestCheckEntrance,       requestCheckExit);
+		MemoryTools::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
+		MemoryTools::DigCodeCave(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
+		MemoryTools::DigCodeCave(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
+		MemoryTools::DigCodeCave(ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 		
 		// Status flag
 		featureEnabled = true;
@@ -705,8 +684,8 @@ namespace CopSpawnOverrides
 		if (isRacing) 
 			skipEventSpawns = false;
 
-		events    .UpdateSpawnTable();
-		roadblocks.UpdateSpawnTable();
+		eventSpawns    .UpdateSpawnTable();
+		roadblockSpawns.UpdateSpawnTable();
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -723,7 +702,7 @@ namespace CopSpawnOverrides
 
 		skipEventSpawns = true;
 
-		events    .ClearVehicles();
-		roadblocks.ClearVehicles();
+		eventSpawns    .ClearVehicles();
+		roadblockSpawns.ClearVehicles();
 	}
 }

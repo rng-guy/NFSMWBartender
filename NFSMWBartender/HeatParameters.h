@@ -163,10 +163,10 @@ namespace HeatParameters
 		}
 
 
-		size_t Validate
+		bool Validate
 		(
-			const char* const           pairName,
-			const Globals::VehicleClass vehicleClass
+			const char* const    pairName,
+			const Globals::Class vehicleClass
 		) {
 			size_t numTotalReplaced = 0;
 
@@ -199,7 +199,7 @@ namespace HeatParameters
 				numTotalReplaced += numReplaced;
 			}
 
-			return numTotalReplaced;
+			return (numTotalReplaced == 0);
 		}
 	};
 

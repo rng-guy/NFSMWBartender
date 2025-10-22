@@ -1,6 +1,9 @@
 #pragma once
 
+#include <array>
+
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HeatParameters.h"
 
 
@@ -11,8 +14,18 @@ namespace PursuitFeatures
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool heatLevelKnown = false;
-
 	
+	// Data pointers
+	const float& simulationTime = *((float*)0x9885D8);
+
+	// Function pointers
+	const auto GetVehicleName     = (const char* (__thiscall*)(address))0x688090;
+	const auto IsVehicleDestroyed = (bool        (__thiscall*)(address))0x688170;
+
+	// Scoped aliases
+	using PursuitCache = MemoryTools::PointerCache<0xD0, 3>;
+
+
 
 
 
@@ -31,63 +44,6 @@ namespace PursuitFeatures
 
 		return copAIVehicle;
 	}
-
-
-
-
-
-	// Cache class ----------------------------------------------------------------------------------------------------------------------------------
-
-	class Cache
-	{
-	private:
-
-		const address pursuit;
-
-		
-		static Cache*& GetStorage(const address pursuit)
-		{
-			return *((Cache**)(pursuit + 0xD0));
-		}
-
-
-
-	public:
-
-		address pursuitObserver = 0x0;
-		address chasersManager  = 0x0;
-		address strategyManager = 0x0;
-
-
-		explicit Cache(const address pursuit) : pursuit(pursuit)
-		{
-			Cache*& storage = this->GetStorage(this->pursuit);
-
-			if (not storage)
-				storage = this;
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PFT] Existing cache in", this->pursuit);
-		}
-
-
-		~Cache()
-		{
-			Cache*& storage = this->GetStorage(this->pursuit);
-
-			if (storage == this)
-				storage = nullptr;
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PFT] Cache mismatch in", this->pursuit);
-		}
-
-
-		static Cache* GetInstance(const address pursuit)
-		{
-			return Cache::GetStorage(pursuit);
-		}
-	};
 
 
 
@@ -172,8 +128,8 @@ namespace PursuitFeatures
 		{
 			if (not this->isSet)
 			{
-				this->isSet = true;
-				this->startTimestamp = Globals::simulationTime;
+				this->isSet          = true;
+				this->startTimestamp = simulationTime;
 
 				if (this->isEnabled)
 					this->UpdateLength();
@@ -224,7 +180,7 @@ namespace PursuitFeatures
 
 		float GetTimeLeft() const
 		{
-			return (this->endTimestamp - Globals::simulationTime);
+			return (this->endTimestamp - simulationTime);
 		}
 
 
