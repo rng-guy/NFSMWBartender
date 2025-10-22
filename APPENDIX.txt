@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.00.03) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.00.04) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -572,3 +572,4 @@ v1.00.00: Initial release
       01: Made a few minor phrasing adjustments in README and some usage comments
       02: Streamlined and slightly improved a few mod internals further
       03: More work on mod internals and the interactive-music feature
+      04: Rephrased README and a few outdated usage comments

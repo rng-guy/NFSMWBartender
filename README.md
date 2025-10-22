@@ -32,12 +32,12 @@ The "Basic" feature set **lets you change** (per Heat level)
 * whether player-damaged cop vehicles are destroyed instantly if flipped over,
 * when exactly (if at all) cop vehicles in general are destroyed if flipped over,
 * when exactly (if at all) racer vehicles are reset if flipped over,
-* when exactly (if at all) interactive music can transition to another track,
 * whether cops in non-player pursuits can request ground supports,
 * the internal cooldown for non-Strategy roadblock requests,
 * the internal cooldown for Strategy requests,
 * when exactly (if at all) and at what distances roadblock vehicles can join the pursuit,
-* whether roadblock vehicles react to racers entering "COOLDOWN" mode and / or hitting spikes,
+* whether roadblock vehicles react to racers entering "COOLDOWN" mode,
+* whether roadblock vehicles react to racers hitting their spike strips,
 * how HeavyStrategy 3 requests interact with non-Strategy roadblock requests,
 * what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
 * what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
@@ -46,9 +46,9 @@ The "Basic" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Basic" feature set **also lets you change** (in general)
-* which strings the game shows whenever cop vehicles are destroyed,
-* which radio callsigns and chatter cop vehicles can trigger, and
-* the selection (and order) of interactive music tracks in pursuits.
+* which strings the game shows whenever cop vehicles are destroyed;
+* which radio callsigns and chatter cop vehicles can trigger; and
+* the selection, order, and length of interactive music tracks in pursuits.
 
 &nbsp;
 
