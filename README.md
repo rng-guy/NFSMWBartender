@@ -39,9 +39,9 @@ The "Basic" feature set **lets you change** (per Heat level)
 * whether roadblock vehicles react to racers entering "COOLDOWN" mode,
 * whether roadblock vehicles react to racers hitting their spike strips,
 * how HeavyStrategy 3 requests interact with non-Strategy roadblock requests,
-* what vehicles spawn as ramming SUVs through HeavyStrategy 3,
-* what vehicles spawn as roadblock SUVs through HeavyStrategy 4, and
-* what vehicles spawn as Cross and his henchmen through LeaderStrategy 5 / 7.
+* what vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
+* what vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4, and
+* what vehicles spawn in place of Cross and his henchmen through LeaderStrategy 5 / 7.
 
 &nbsp;
 

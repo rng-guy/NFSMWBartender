@@ -33,7 +33,7 @@ namespace Globals
 	const auto GetVehicleType = (vault (__thiscall*)(address))    0x6880A0;
 
 	// Logging
-	constexpr bool loggingEnabled = false;
+	constexpr bool loggingEnabled = true;
 
 	BasicLogger::Logger logger;
 
