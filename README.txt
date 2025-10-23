@@ -24,21 +24,21 @@ The sections below ADDRESS THESE QUESTIONS in detail:
 The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • at what time interval you gain passive bounty,
  • the maximum combo-bounty multiplier for destroying cops quickly,
- • how quickly and at what distances from cops the red "BUSTED" bar fills,
+ • how quickly and below what distance from cops the red "BUSTED" bar fills,
  • how quickly the green "EVADE" bar fills once all cops have lost sight of you,
  • whether player-damaged cop vehicles are destroyed instantly if flipped over,
- • when exactly (if at all) cop vehicles in general are destroyed if flipped over,
+ • when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
  • when exactly (if at all) racer vehicles are reset if flipped over,
  • whether cops in non-player pursuits can request ground supports,
  • the internal cooldown for non-Strategy roadblock requests,
  • the internal cooldown for Strategy requests,
- • when exactly (if at all) and at what distances roadblock vehicles can join the pursuit,
+ • when exactly (if at all) and below what distance roadblock vehicles can join the pursuit,
  • whether roadblock vehicles react to racers entering "COOLDOWN" mode,
  • whether roadblock vehicles react to racers hitting their spike strips,
  • how HeavyStrategy 3 requests interact with non-Strategy roadblock requests,
- • what vehicles spawn through HeavyStrategy 3 (the ramming SUVs),
- • what vehicles spawn through HeavyStrategy 4 (the roadblock SUVs), and
- • what vehicles spawn through LeaderStrategy 5 / 7 (Cross and his henchmen).
+ • what vehicles spawn as ramming SUVs through HeavyStrategy 3,
+ • what vehicles spawn as roadblock SUVs through HeavyStrategy 4, and
+ • what vehicles spawn as Cross and his henchmen through LeaderStrategy 5 / 7.
 
 The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • which strings the game shows whenever cop vehicles are destroyed;
