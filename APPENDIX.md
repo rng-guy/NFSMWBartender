@@ -187,6 +187,8 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * When the game requests a HeavyStrategy, it (re)sets the roadblock cooldown to a fixed value.
 
+* Not every request results in a successful spawn of whatever the game requested.
+
 * Bartender can prevent HeavyStrategy 3 requests from resetting the roadblock cooldown. This avoids the potential issue of roadblocks becoming much rarer than expected.
 
 * Strategy requests block each other: Whenever there is an active Strategy request, the game will not attempt to make more. You can change this with Bartender's "Advanced" feature set.
@@ -331,7 +333,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
-* Setting low player-speed thresholds for HeavyStrategy 3 spawns fixes the vanilla issue of them attempting to flee the pursuit instantly without trying to ram you. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if your speed drops below the value of the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this often happens before they can even reach you because of higher "CollapseSpeed" values and far more aggressive cops.
+* Defining low racer-speed thresholds for HeavyStrategy 3 spawns fixes the vanilla issue of them attempting to flee the pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if the racer's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of higher `CollapseSpeed` values and far more aggressive cops.
 
 * LeaderStrategy Cross and / or his henchmen only become aggressive at Heat levels for which you define valid aggro-delay values. Henchmen, however, always become aggressive when Cross leaves.
 

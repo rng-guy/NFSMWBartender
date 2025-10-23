@@ -16,7 +16,7 @@ namespace StrategyOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<float> playerSpeedThresholds(25.f); // kph
+	HeatParameters::Pair<float> racerSpeedThresholds(25.f); // kph
 	
 	HeatParameters::OptionalInterval heavy3UnblockDelays;
 	HeatParameters::OptionalInterval heavy4UnblockDelays;
@@ -24,7 +24,7 @@ namespace StrategyOverrides
 	HeatParameters::OptionalInterval leader7UnblockDelays;
 
 	// Conversions
-	float baseSpeedThreshold = playerSpeedThresholds.current / 3.6f; // metres / second
+	float baseSpeedThreshold = racerSpeedThresholds.current / 3.6f; // metres / second
 	float jerkSpeedThreshold = baseSpeedThreshold * .625f;
 
 
@@ -559,7 +559,7 @@ namespace StrategyOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::Parse<float>(parser, "Heavy3:Fleeing", {playerSpeedThresholds, 0.f});
+		HeatParameters::Parse<float>(parser, "Heavy3:Fleeing", {racerSpeedThresholds, 0.f});
 
 		HeatParameters::Parse<>(parser, "Heavy3:Unblocking",  heavy3UnblockDelays);
 		HeatParameters::Parse<>(parser, "Heavy4:Unblocking",  heavy4UnblockDelays);
@@ -598,9 +598,9 @@ namespace StrategyOverrides
 	) {
 		if (not featureEnabled) return;
 
-		playerSpeedThresholds.SetToHeat(isRacing, heatLevel);
+		racerSpeedThresholds.SetToHeat(isRacing, heatLevel);
 
-		baseSpeedThreshold = playerSpeedThresholds.current / 3.6f;
+		baseSpeedThreshold = racerSpeedThresholds.current / 3.6f;
 		jerkSpeedThreshold = baseSpeedThreshold * .625f;
 
 		heavy3UnblockDelays .SetToHeat(isRacing, heatLevel);
@@ -611,7 +611,7 @@ namespace StrategyOverrides
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Log("    HEAT [STR] StrategyOverrides");
-			Globals::logger.LogLongIndent("playerSpeedThreshold    ", playerSpeedThresholds.current);
+			Globals::logger.LogLongIndent("racerSpeedThreshold     ", racerSpeedThresholds.current);
 
 			heavy3UnblockDelays .Log("heavy3UnblockDelay      ");
 			heavy4UnblockDelays .Log("heavy4UnblockDelay      ");
