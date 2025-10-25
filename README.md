@@ -35,7 +35,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * which ground supports the cops can request in non-player pursuits,
 * the internal cooldown between non-Strategy roadblock requests,
 * the internal cooldown between Heavy / LeaderStrategy requests,
-* when exactly (if at all) and from what distance roadblock vehicles can join pursuits,
+* when exactly (if at all) and below what distance roadblock vehicles can join pursuits,
 * whether roadblock vehicles react to racers entering "COOLDOWN" mode,
 * whether roadblock vehicles react to racers hitting their spike strips,
 * how HeavyStrategy 3 requests interact with non-Strategy roadblock requests,
