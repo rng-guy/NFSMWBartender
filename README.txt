@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.00.05) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.01.00) │ ■ ────────────────────────────────────────────────────
 
 View this document with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -29,21 +29,21 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • whether player-damaged cop vehicles are destroyed instantly if flipped over,
  • when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
  • when exactly (if at all) racer vehicles are reset if flipped over,
- • whether cops in non-player pursuits can request ground supports,
+ • which ground supports cops can request in non-player pursuits,
  • the internal cooldown between non-Strategy roadblock requests,
  • the internal cooldown between Heavy / LeaderStrategy requests,
  • when exactly (if at all) and below what distance roadblock vehicles can join the pursuit,
  • whether roadblock vehicles react to racers entering "COOLDOWN" mode,
  • whether roadblock vehicles react to racers hitting their spike strips,
  • how HeavyStrategy 3 requests interact with non-Strategy roadblock requests,
- • what vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
- • what vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4, and
- • what vehicles spawn in place of Cross and his henchmen through LeaderStrategy 5 / 7.
+ • which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
+ • which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4, and
+ • which vehicles spawn in place of Cross and his henchmen through LeaderStrategy 5 / 7.
 
 The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • which strings the game shows whenever cop vehicles are destroyed;
  • which radio callsigns and chatter cop vehicles can trigger; and
- • the selection, order, and length of interactive music tracks in pursuits.
+ • the selection, order, and length of interactive themes that play in pursuits.
 
 The "Basic" feature set FIXES SIX BUGS / ISSUES:
  • the helicopter mini-map icon is now always visible whenever a helicopter is active,
@@ -65,11 +65,11 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • the global cop-spawn limit for how many chasing cops in total may be active at any given time,
  • whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
  • when exactly (if at all) and how many chasing cops from other Heat levels can flee the pursuit,
- • what vehicles (any amount, with counts and chances) may spawn to chase and search for racers,
- • what vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
- • what vehicles (ditto) may spawn as pre-generated cops in scripted events,
- • what vehicles (without counts) may spawn as free patrols outside pursuits,
- • what vehicle spawns in place of the regular helicopter,
+ • which vehicles (any amount, with counts and chances) may spawn to chase and search for racers,
+ • which vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
+ • which vehicles (ditto) may spawn as pre-generated cops in scripted events,
+ • which vehicles (without counts) may spawn as free patrols outside pursuits,
+ • which vehicle spawns in place of the regular helicopter,
  • when exactly (if at all) the helicopter can first spawn in each player pursuit,
  • when exactly (if at all) the helicopter can respawn if it runs out of fuel,
  • when exactly (if at all) the helicopter can respawn if it gets wrecked,
@@ -111,9 +111,6 @@ However, some pursuit-related .asi mods require manual (re)configuration for com
 
 
 
-
-
-
 ── ■ │ 4 - HOW DO I INSTALL BARTENDER FOR MY GAME? │ ■ ────────────────────────────────────────────
 
 BEFORE INSTALLING Bartender:
@@ -128,7 +125,7 @@ To INSTALL Bartender:
  4) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
 
 AFTER INSTALLING Bartender:
- 1) • check out its configuration (.ini) files in the "scripts\BartenderSettings" folder; and
+ 1) • check out the configuration (.ini) files in the new "scripts\BartenderSettings" folder; and
  2) • if you encounter any issues or want more feature details, see the "APPENDIX.txt" file.
 
 To UNINSTALL Bartender, remove its files from your game's "scripts" folder. There is no need

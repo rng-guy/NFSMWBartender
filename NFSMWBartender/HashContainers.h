@@ -73,7 +73,7 @@ namespace HashContainers
 		{
 			if (not (IsValidKey(iterator->first) and IsValidValue(iterator->second)))
 			{
-				// With logging disabled, the compiler optimises the string away
+				// With logging disabled, the compiler optimises the string literal away
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (numRemoved == 0)

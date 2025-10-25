@@ -372,6 +372,18 @@ namespace CopSpawnTables
 
 
 
+	void LogHeatReport()
+	{
+		Globals::logger.Log("    HEAT [TAB] CopSpawnTables");
+
+		eventSpawnTables    .current->LogContents("Events                  ");
+		patrolSpawnTables   .current->LogContents("Patrols                 ");
+		chaserSpawnTables   .current->LogContents("Chasers                 ");
+		roadblockSpawnTables.current->LogContents("Roadblocks              ");
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,
@@ -387,13 +399,6 @@ namespace CopSpawnTables
 		currentMaxCopCapacity = chaserSpawnTables.current->GetMaxTotalCopCapacity();
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Log("    HEAT [TAB] CopSpawnTables");
-
-			eventSpawnTables    .current->LogContents("Events                  ");
-			patrolSpawnTables   .current->LogContents("Patrols                 ");
-			chaserSpawnTables   .current->LogContents("Chasers                 ");
-			roadblockSpawnTables.current->LogContents("Roadblocks              ");
-		}
+			LogHeatReport();
 	}
 }

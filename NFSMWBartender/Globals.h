@@ -29,8 +29,9 @@ namespace Globals
 	RandomNumbers::Generator prng;
 
 	// Function pointers
-	const auto GetVaultKey    = (vault (__cdecl*)   (const char*))0x5CC240;
-	const auto GetVehicleType = (vault (__thiscall*)(address))    0x6880A0;
+	const auto IsPlayerPursuit = (bool   (__thiscall*)(address))    0x40AD80;
+	const auto GetBinaryKey    = (binary (__cdecl*)   (const char*))0x460BF0;
+	const auto GetVaultKey     = (vault  (__cdecl*)   (const char*))0x5CC240;
 
 	// Logging
 	constexpr bool loggingEnabled = false;

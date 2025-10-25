@@ -60,7 +60,7 @@ namespace CopFleeOverrides
 
 		static bool IsChaserMember(const address copVehicle)
 		{
-			const vault copType = Globals::GetVehicleType(copVehicle);
+			const vault copType = PursuitFeatures::GetVehicleType(copVehicle);
 			return CopSpawnTables::chaserSpawnTables.current->Contains(copType);
 		}
 
@@ -322,6 +322,18 @@ namespace CopFleeOverrides
 
 
 
+	void LogHeatReport()
+	{
+		if (not fleeDelays.isEnableds.current) return;
+
+		Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
+
+		fleeDelays     .Log          ("fleeDelay               ");
+		Globals::logger.LogLongIndent("chasersThreshold        ", chasersThresholds.current);
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,
@@ -333,13 +345,6 @@ namespace CopFleeOverrides
 		chasersThresholds.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			if (fleeDelays.isEnableds.current)
-			{
-				Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
-				fleeDelays.Log("fleeDelay               ");
-				Globals::logger.LogLongIndent("chasersThreshold        ", chasersThresholds.current);
-			}
-		}
+			LogHeatReport();
 	}
 }

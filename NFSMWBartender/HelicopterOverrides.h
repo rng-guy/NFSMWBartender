@@ -73,9 +73,7 @@ namespace HelicopterOverrides
 
 		void VerifyPursuit()
 		{
-			static const auto IsPlayerPursuit = (bool (__thiscall*)(address))0x40AD80;
-
-			this->isPlayerPursuit = IsPlayerPursuit(this->pursuit);
+			this->isPlayerPursuit = Globals::IsPlayerPursuit(this->pursuit);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[HEL]", (this->isPlayerPursuit) ? "Confirmed" : "Not", "player pursuit");
@@ -566,6 +564,36 @@ namespace HelicopterOverrides
 
 
 
+	void LogHeatReport()
+	{
+		if (
+			firstSpawnDelays.isEnableds.current
+			or fuelRespawnDelays.isEnableds.current
+			or wreckRespawnDelays.isEnableds.current
+			or lostRejoinDelays.isEnableds.current
+			or fuelTimes.isEnableds.current
+		   )
+		{
+			Globals::logger.Log          ("    HEAT [HEL] HelicopterOverrides");
+			Globals::logger.LogLongIndent("helicopterVehicle       ", helicopterVehicles.current);
+			Globals::logger.LogLongIndent("rammingCooldown         ", rammingCooldowns.current);
+
+			firstSpawnDelays  .Log("firstSpawnDelay         ");
+			fuelRespawnDelays .Log("fuelRespawnDelays       ");
+			wreckRespawnDelays.Log("wreckRespawnDelay       ");
+
+			if (lostRejoinDelays.isEnableds.current)
+			{
+				lostRejoinDelays.Log          ("lostRejoinDelay         ");
+				Globals::logger .LogLongIndent("minFuelToRejoin         ", minRejoinFuelTimes.current);
+			}
+
+			fuelTimes.Log("fuelTime                ");
+		}
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,
@@ -584,31 +612,6 @@ namespace HelicopterOverrides
 		fuelTimes         .SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			if (
-				firstSpawnDelays.isEnableds.current
-				or fuelRespawnDelays.isEnableds.current
-				or wreckRespawnDelays.isEnableds.current
-				or lostRejoinDelays.isEnableds.current
-				or fuelTimes.isEnableds.current
-			   )
-			{
-				Globals::logger.Log("    HEAT [HEL] HelicopterOverrides");
-				Globals::logger.LogLongIndent("helicopterVehicle       ", helicopterVehicles.current);
-				Globals::logger.LogLongIndent("rammingCooldown         ", rammingCooldowns.current);
-
-				firstSpawnDelays  .Log("firstSpawnDelay         ");
-				fuelRespawnDelays .Log("fuelRespawnDelays       ");
-				wreckRespawnDelays.Log("wreckRespawnDelay       ");
-				
-				if (lostRejoinDelays.isEnableds.current)
-				{
-					lostRejoinDelays.Log("lostRejoinDelay         ");
-					Globals::logger.LogLongIndent("minFuelToRejoin         ", minRejoinFuelTimes.current);
-				}
-
-				fuelTimes.Log("fuelTime                ");
-			}
-		}
+			LogHeatReport();
 	}
 }

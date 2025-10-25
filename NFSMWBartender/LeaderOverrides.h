@@ -368,6 +368,29 @@ namespace LeaderOverrides
 
 
 
+	void LogHeatReport()
+	{
+		if (
+			crossAggroDelays.isEnableds.current
+			or henchmenAggroDelays.isEnableds.current
+			or expireResetDelays.isEnableds.current
+			or wreckResetDelays.isEnableds.current
+			or lostResetDelays.isEnableds.current
+		   )
+		{
+			Globals::logger.Log("    HEAT [LDR] LeaderOverrides");
+
+			crossAggroDelays   .Log("crossAggroDelay         ");
+			henchmenAggroDelays.Log("henchmenAggroDelay      ");
+
+			expireResetDelays.Log("expireResetDelay        ");
+			wreckResetDelays .Log("wreckResetDelay         ");
+			lostResetDelays  .Log("lostResetDelay          ");
+		}
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,
@@ -383,24 +406,6 @@ namespace LeaderOverrides
 		lostResetDelays  .SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			if (
-				crossAggroDelays.isEnableds.current
-				or henchmenAggroDelays.isEnableds.current
-				or expireResetDelays.isEnableds.current
-				or wreckResetDelays.isEnableds.current
-				or lostResetDelays.isEnableds.current
-			   )
-			{
-				Globals::logger.Log("    HEAT [LDR] LeaderOverrides");
-
-				crossAggroDelays   .Log("crossAggroDelay         ");
-				henchmenAggroDelays.Log("henchmenAggroDelay      ");
-
-				expireResetDelays.Log("expireResetDelay        ");
-				wreckResetDelays .Log("wreckResetDelay         ");
-				lostResetDelays  .Log("lostResetDelay          ");
-			}
-		}
+			LogHeatReport();
 	}
 }

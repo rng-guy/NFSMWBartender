@@ -83,15 +83,13 @@ namespace DestructionStrings
 
 		if (numCopVehicles == 0) return false;
 
-		static const auto GetBinaryKey = (binary (__cdecl*)(const char*))0x460BF0;
-
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
 		{
 			copTypeToDestructionKey.insert
 			(
 				{ 
 					Globals::GetVaultKey(copVehicles[vehicleID].c_str()),
-					GetBinaryKey(binaryLabels[vehicleID].c_str()) 
+					Globals::GetBinaryKey(binaryLabels[vehicleID].c_str()) 
 				}
 			);
 		}

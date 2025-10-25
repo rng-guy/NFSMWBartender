@@ -16,8 +16,9 @@ namespace GroundSupport
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<bool> rivalStrategiesEnableds(true);
 	HeatParameters::Pair<bool> rivalRoadblocksEnableds(true);
+	HeatParameters::Pair<bool> rivalHeaviesEnableds   (true);
+	HeatParameters::Pair<bool> rivalLeadersEnableds   (true);
 
 	HeatParameters::Pair<float> minRoadblockCooldowns  (8.f);  // seconds
 	HeatParameters::Pair<float> maxRoadblockCooldowns  (12.f);
@@ -151,9 +152,16 @@ namespace GroundSupport
 	{
 		static std::vector<address> candidateStrategies;
 
-		MarshalStrategies<0x403600, 0x4035E0, IsHeavyStrategyAvailable>(pursuit, candidateStrategies);
+		const bool rivalTestRequired = (not (rivalHeaviesEnableds.current and rivalLeadersEnableds.current));
+		const bool isPlayerPursuit   = ((not rivalTestRequired) or Globals::IsPlayerPursuit(pursuit));
+
+		if (isPlayerPursuit or rivalHeaviesEnableds.current)
+			MarshalStrategies<0x403600, 0x4035E0, IsHeavyStrategyAvailable>(pursuit, candidateStrategies);
+
 		const size_t numHeavyStrategies = candidateStrategies.size();
-		MarshalStrategies<0x403680, 0x403660, IsLeaderStrategyAvailable>(pursuit, candidateStrategies);
+
+		if (isPlayerPursuit or rivalLeadersEnableds.current)
+			MarshalStrategies<0x403680, 0x403660, IsLeaderStrategyAvailable>(pursuit, candidateStrategies);
 
 		if (not candidateStrategies.empty())
 		{
@@ -174,7 +182,10 @@ namespace GroundSupport
 			return true;
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log(pursuit, "[SUP] Strategy request failed");
+		{
+			const char* const reason = (isPlayerPursuit or rivalHeaviesEnableds.current or rivalLeadersEnableds.current) ? "(chance)" : "(blocked)";
+			Globals::logger.Log(pursuit, "[SUP] Strategy request failed", reason);
+		}
 
 		return false;
 	}
@@ -270,35 +281,50 @@ namespace GroundSupport
 
 
 
-	constexpr address requestCooldownEntrance = 0x4196D6;
+	constexpr address requestCooldownEntrance = 0x4196DA;
 	constexpr address requestCooldownExit     = 0x4196E4;
 
 	__declspec(naked) void RequestCooldown()
 	{
-		static constexpr address requestCooldownSkip = 0x41988A;
-
 		__asm
 		{
 			mov eax, dword ptr strategyCooldowns.current
 			mov dword ptr [esi + 0x210], eax
 
-			cmp byte ptr rivalStrategiesEnableds.current, 0x1
+			jmp dword ptr requestCooldownExit
+		}
+	}
+
+
+
+	constexpr address crossPriorityEntrance = 0x419724;
+	constexpr address crossPriorityExit     = 0x41972A;
+
+	__declspec(naked) void CrossPriority()
+	{
+		static constexpr address crossPrioritySkip = 0x419780;
+
+		__asm
+		{
+			jne skip // priority flag set
+
+			cmp byte ptr rivalLeadersEnableds.current, 0x1
 			je conclusion // no rival discrimination
 
 			mov ecx, esi
-			mov eax, dword ptr [esi]
-			call dword ptr [eax + 0x8C]
-			test eax, eax
-			jne conclusion // is player pursuit
-
-			jmp dword ptr requestCooldownSkip // was rival pursuit
+			call Globals::IsPlayerPursuit
+			test al, al
+			je skip // not player pursuit
 
 			conclusion:
 			// Execute original code and resume
-			push ebp
-			lea ecx, dword ptr [esi - 0x48]
+			mov ecx, ebp
+			xor ebx, ebx
 
-			jmp dword ptr requestCooldownExit
+			jmp dword ptr crossPriorityExit
+
+			skip:
+			jmp dword ptr crossPrioritySkip
 		}
 	}
 
@@ -490,7 +516,15 @@ namespace GroundSupport
 		);
 
 		// Other Heat parameters
-		HeatParameters::Parse<bool, bool>(parser, "Supports:Rivals",      {rivalRoadblocksEnableds}, {rivalStrategiesEnableds});
+		HeatParameters::Parse<bool, bool, bool>
+		(
+			parser, 
+			"Supports:Rivals",      
+			{rivalRoadblocksEnableds}, 
+			{rivalHeaviesEnableds}, 
+			{rivalLeadersEnableds}
+		);
+
 		HeatParameters::Parse<bool, bool>(parser, "Roadblocks:Reactions", {reactToCooldownModes},    {reactToSpikesHits});
 		HeatParameters::Parse<bool, bool>(parser, "Heavy3:Roadblocks",    {heavy3TriggerCooldowns},  {heavy3AreBlockables});
 		HeatParameters::Parse<float>     (parser, "Strategies:Cooldown",  {strategyCooldowns, 1.f});
@@ -509,6 +543,7 @@ namespace GroundSupport
 		MemoryTools::DigCodeCave(RivalRoadblock,       rivalRoadblockEntrance,       rivalRoadblockExit);
         MemoryTools::DigCodeCave(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
 		MemoryTools::DigCodeCave(RoadblockJoin,        roadblockJoinEntrance,        roadblockJoinExit);
+		MemoryTools::DigCodeCave(CrossPriority,        crossPriorityEntrance,        crossPriorityExit);
 		MemoryTools::DigCodeCave(OnAttached,           onAttachedEntrance,           onAttachedExit);
 		MemoryTools::DigCodeCave(OnDetached,           onDetachedEntrance,           onDetachedExit);
         MemoryTools::DigCodeCave(LeaderSub,            leaderSubEntrance,            leaderSubExit);
@@ -549,6 +584,41 @@ namespace GroundSupport
 
 
 
+	void LogHeatReport()
+	{
+		Globals::logger.Log("    HEAT [SUP] GroundSupport");
+
+		Globals::logger.LogLongIndent("rivalRoadblocksEnabled  ", rivalRoadblocksEnableds.current);
+		Globals::logger.LogLongIndent("rivalHeaviesEnabled     ", rivalHeaviesEnableds.current);
+		Globals::logger.LogLongIndent("rivalLeadersEnabled     ", rivalLeadersEnableds.current);
+
+		Globals::logger.LogLongIndent("roadblockCooldown       ", minRoadblockCooldowns.current, "to", maxRoadblockCooldowns.current);
+		Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
+
+		Globals::logger.LogLongIndent("strategyCooldown        ", strategyCooldowns.current);
+
+		if (roadblockJoinEnableds.current)
+		{
+			Globals::logger.LogLongIndent("roadblockJoinTimer      ", roadblockJoinTimers.current);
+			Globals::logger.LogLongIndent("maxRoadblockJoinDistance", maxRoadblockJoinDistances.current);
+		}
+
+		Globals::logger.LogLongIndent("reactToCooldownMode     ", reactToCooldownModes.current);
+		Globals::logger.LogLongIndent("reactToSpikesHit        ", reactToSpikesHits.current);
+
+		Globals::logger.LogLongIndent("heavy3TriggerCooldown   ", heavy3TriggerCooldowns.current);
+		Globals::logger.LogLongIndent("heavy3AreBlockable      ", heavy3AreBlockables.current);
+
+		Globals::logger.LogLongIndent("heavy3LightVehicle      ", heavy3LightVehicles.current);
+		Globals::logger.LogLongIndent("heavy3HeavyVehicle      ", heavy3HeavyVehicles.current);
+		Globals::logger.LogLongIndent("heavy4LightVehicle      ", heavy4LightVehicles.current);
+		Globals::logger.LogLongIndent("heavy4HeavyVehicle      ", heavy4HeavyVehicles.current);
+		Globals::logger.LogLongIndent("leaderCrossVehicle      ", leaderCrossVehicles.current);
+		Globals::logger.LogLongIndent("leaderHenchmenVehicle   ", leaderHenchmenVehicles.current);
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,
@@ -556,8 +626,9 @@ namespace GroundSupport
 	) {
         if (not featureEnabled) return;
 
-		rivalStrategiesEnableds.SetToHeat(isRacing, heatLevel);
 		rivalRoadblocksEnableds.SetToHeat(isRacing, heatLevel);
+		rivalHeaviesEnableds   .SetToHeat(isRacing, heatLevel);
+		rivalLeadersEnableds   .SetToHeat(isRacing, heatLevel);
 
 		minRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		maxRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
@@ -585,35 +656,6 @@ namespace GroundSupport
 		roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Log("    HEAT [SUP] GroundSupport");
-
-			Globals::logger.LogLongIndent("rivalStrategiesEnabled  ", rivalStrategiesEnableds.current);
-			Globals::logger.LogLongIndent("rivalRoadblocksEnabled  ", rivalRoadblocksEnableds.current);
-
-			Globals::logger.LogLongIndent("roadblockCooldown       ", minRoadblockCooldowns.current, "to", maxRoadblockCooldowns.current);
-			Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
-
-			Globals::logger.LogLongIndent("strategyCooldown        ", strategyCooldowns.current);
-
-			if (roadblockJoinEnableds.current)
-			{
-				Globals::logger.LogLongIndent("roadblockJoinTimer      ", roadblockJoinTimers.current);
-				Globals::logger.LogLongIndent("maxRoadblockJoinDistance", maxRoadblockJoinDistances.current);
-			}
-
-			Globals::logger.LogLongIndent("reactToCooldownMode     ", reactToCooldownModes.current);
-			Globals::logger.LogLongIndent("reactToSpikesHit        ", reactToSpikesHits.current);
-
-			Globals::logger.LogLongIndent("heavy3TriggerCooldown   ", heavy3TriggerCooldowns.current);
-			Globals::logger.LogLongIndent("heavy3AreBlockable      ", heavy3AreBlockables.current);
-
-			Globals::logger.LogLongIndent("heavy3LightVehicle      ", heavy3LightVehicles.current);
-			Globals::logger.LogLongIndent("heavy3HeavyVehicle      ", heavy3HeavyVehicles.current);
-			Globals::logger.LogLongIndent("heavy4LightVehicle      ", heavy4LightVehicles.current);
-			Globals::logger.LogLongIndent("heavy4HeavyVehicle      ", heavy4HeavyVehicles.current);
-			Globals::logger.LogLongIndent("leaderCrossVehicle      ", leaderCrossVehicles.current);
-			Globals::logger.LogLongIndent("leaderHenchmenVehicle   ", leaderHenchmenVehicles.current);
-		}
+			LogHeatReport();
     }
 }

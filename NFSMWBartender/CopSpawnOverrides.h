@@ -115,7 +115,7 @@ namespace CopSpawnOverrides
 
 		void AddVehicle(const address copVehicle)
 		{
-			const vault copType   = Globals::GetVehicleType(copVehicle);
+			const vault copType   = PursuitFeatures::GetVehicleType(copVehicle);
 			const auto  addedType = this->copTypeToCurrentCount.insert({copType, 1});
 
 			if (not addedType.second)
@@ -134,7 +134,7 @@ namespace CopSpawnOverrides
 
 		bool RemoveVehicle(const address copVehicle)
 		{
-			const vault copType   = Globals::GetVehicleType(copVehicle);
+			const vault copType   = PursuitFeatures::GetVehicleType(copVehicle);
 			const auto  foundType = this->copTypeToCurrentCount.find(copType);
 
 			if (foundType != this->copTypeToCurrentCount.end())
@@ -671,6 +671,14 @@ namespace CopSpawnOverrides
 
 
 
+	void LogHeatReport()
+	{
+		Globals::logger.Log          ("    HEAT [SPA] CopSpawnOverrides");
+		Globals::logger.LogLongIndent("activeCount             ", minActiveCounts.current, "to", maxActiveCounts.current);
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,
@@ -688,10 +696,7 @@ namespace CopSpawnOverrides
 		roadblockSpawns.UpdateSpawnTable();
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Log("    HEAT [SPA] CopSpawnOverrides");
-			Globals::logger.LogLongIndent("activeCount             ", minActiveCounts.current, "to", maxActiveCounts.current);
-		}
+			LogHeatReport();
 	}
 
 

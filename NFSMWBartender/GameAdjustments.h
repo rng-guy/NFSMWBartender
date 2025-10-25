@@ -30,7 +30,7 @@ namespace GameAdjustments
 			je conclusion // is helicopter
 
 			cmp dword ptr [esp + 0x18], 0x8
-			jne conclusion // not at vehicle cap
+			jl conclusion // not at vehicle cap
 
 			jmp dword ptr helicopterMarkerSkip
 

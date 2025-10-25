@@ -19,6 +19,7 @@ namespace PursuitFeatures
 	const float& simulationTime = *((float*)0x9885D8);
 
 	// Function pointers
+	const auto GetVehicleType     = (vault       (__thiscall*)(address))0x6880A0;
 	const auto GetVehicleName     = (const char* (__thiscall*)(address))0x688090;
 	const auto IsVehicleDestroyed = (bool        (__thiscall*)(address))0x688170;
 

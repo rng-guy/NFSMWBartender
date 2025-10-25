@@ -591,6 +591,19 @@ namespace StrategyOverrides
 
 
 
+	void LogHeatReport()
+	{
+		Globals::logger.Log          ("    HEAT [STR] StrategyOverrides");
+		Globals::logger.LogLongIndent("racerSpeedThreshold     ", racerSpeedThresholds.current);
+
+		heavy3UnblockDelays .Log("heavy3UnblockDelay      ");
+		heavy4UnblockDelays .Log("heavy4UnblockDelay      ");
+		leader5UnblockDelays.Log("leader5UnblockDelay     ");
+		leader7UnblockDelays.Log("leader7UnblockDelay     ");
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,
@@ -609,14 +622,6 @@ namespace StrategyOverrides
 		leader7UnblockDelays.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Log("    HEAT [STR] StrategyOverrides");
-			Globals::logger.LogLongIndent("racerSpeedThreshold     ", racerSpeedThresholds.current);
-
-			heavy3UnblockDelays .Log("heavy3UnblockDelay      ");
-			heavy4UnblockDelays .Log("heavy4UnblockDelay      ");
-			leader5UnblockDelays.Log("leader5UnblockDelay     ");
-			leader7UnblockDelays.Log("leader7UnblockDelay     ");
-		}
+			LogHeatReport();
 	}
 }

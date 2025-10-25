@@ -221,6 +221,28 @@ namespace GeneralSettings
 
 
 
+	void LogHeatReport()
+	{
+		Globals::logger.Log("    HEAT [GEN] GeneralSettings");
+
+		Globals::logger.LogLongIndent("bountyInterval          ", bountyIntervals.current);
+		Globals::logger.LogLongIndent("maxBountyMultiplier     ", maxBountyMultipliers.current);
+
+		Globals::logger.LogLongIndent("bustTimer               ", bustTimers.current);
+		Globals::logger.LogLongIndent("maxBustDistance         ", maxBustDistances.current);
+		Globals::logger.LogLongIndent("evadeTimer              ", evadeTimers.current);
+
+		Globals::logger.LogLongIndent("doCopFlipDamageCheck    ", doCopFlipDamageChecks.current);
+
+		if (copFlipTimeCheckEnableds.current)
+			Globals::logger.LogLongIndent("copFlipTimeCheckDelay   ", copFlipTimeCheckDelays.current);
+
+		if (racerFlipResetEnableds.current)
+			Globals::logger.LogLongIndent("racerFlipResetDelay     ", racerFlipResetDelays.current);
+	}
+
+
+
     void SetToHeat
 	(
 		const bool   isRacing,
@@ -247,23 +269,6 @@ namespace GeneralSettings
 		racerFlipResetDelays    .SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Log("    HEAT [GEN] GeneralSettings");
-
-			Globals::logger.LogLongIndent("bountyInterval          ", bountyIntervals.current);
-			Globals::logger.LogLongIndent("maxBountyMultiplier     ", maxBountyMultipliers.current);
-
-			Globals::logger.LogLongIndent("bustTimer               ", bustTimers.current);
-			Globals::logger.LogLongIndent("maxBustDistance         ", maxBustDistances.current);
-			Globals::logger.LogLongIndent("evadeTimer              ", evadeTimers.current);
-
-			Globals::logger.LogLongIndent("doCopFlipDamageCheck    ", doCopFlipDamageChecks.current);
-
-			if (copFlipTimeCheckEnableds.current)
-				Globals::logger.LogLongIndent("copFlipTimeCheckDelay   ", copFlipTimeCheckDelays.current);
-
-			if (racerFlipResetEnableds.current)
-				Globals::logger.LogLongIndent("racerFlipResetDelay     ", racerFlipResetDelays.current);
-		}
+			LogHeatReport();
     }
 }

@@ -129,19 +129,17 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * If you define no vehicle callsigns and no `default`, Bartender disables its callsign feature.
 
-* You can define up to 20 interactive music tracks, with duplicates. In each pursuit, the interactive music tracks play from top to bottom and loop back around afterwards.
+* You can define a playlist of up to 20 tracks using the game's four interactive pursuit themes, with duplicates. In each pursuit, Bartender loops through this playlist from top to bottom.
 
-* Bartender can shuffle the first interactive music track in each pursuit instead of starting with the top one, and / or shuffle the follow-up tracks instead of playing them in order.
+* For the pursuit-theme playlist, Bartender ignores themes that don't exist in the game.
 
-* For interactive music, Bartender ignores track indices that don't exist in the game.
+* If you don't define any valid tracks, Bartender's disables all its playlist features.
 
-* If you don't define any shuffle settings, the game shuffles the first track in each pursuit.
+* Bartender can shuffle the first playlist track that plays in each pursuit, and / or shuffle the follow-up track(s) instead of playing them in order.
+
+* If you don't define any shuffle settings, Bartender shuffles the first track in each pursuit.
 
 * If you don't define a track length, the first track in each pursuit keeps playing forever.
-
-* If you only define invalid tracks, Bartender uses the vanilla setup (i.e. 0 -> 1 -> 2 -> 3).
-
-* If you don't define any interactive music tracks, Bartender's music settings have no effect.
 
 * Track transitions may take a few minutes (at worst) due to quirks of the audio scheduler.
 
