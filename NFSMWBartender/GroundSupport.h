@@ -152,8 +152,7 @@ namespace GroundSupport
 	{
 		static std::vector<address> candidateStrategies;
 
-		const bool rivalTestRequired = (not (rivalHeaviesEnableds.current and rivalLeadersEnableds.current));
-		const bool isPlayerPursuit   = ((not rivalTestRequired) or Globals::IsPlayerPursuit(pursuit));
+		const bool isPlayerPursuit = Globals::IsPlayerPursuit(pursuit);
 
 		if (isPlayerPursuit or rivalHeaviesEnableds.current)
 			MarshalStrategies<0x403600, 0x4035E0, IsHeavyStrategyAvailable>(pursuit, candidateStrategies);
@@ -183,8 +182,8 @@ namespace GroundSupport
 		}
 		else if constexpr (Globals::loggingEnabled)
 		{
-			const char* const reason = (isPlayerPursuit or rivalHeaviesEnableds.current or rivalLeadersEnableds.current) ? "(chance)" : "(blocked)";
-			Globals::logger.Log(pursuit, "[SUP] Strategy request failed", reason);
+			const bool canMakeRequest = (isPlayerPursuit or rivalHeaviesEnableds.current or rivalLeadersEnableds.current);
+			Globals::logger.Log(pursuit, "[SUP] Strategy request failed", (canMakeRequest) ? "(chance)" : "(blocked)");
 		}
 
 		return false;
