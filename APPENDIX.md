@@ -129,7 +129,7 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * If you define no vehicle callsigns and no `default`, Bartender disables its callsign feature.
 
-* You can define a playlist of up to 20 tracks using the game's four interactive pursuit themes, with duplicates. In each pursuit, Bartender loops through this playlist from top to bottom.
+* You can define a playlist of up to 20 tracks using the game's four interactive pursuit themes. By default, Bartender loops through this custom playlist from top to bottom in each pursuit.
 
 * For the pursuit-theme playlist, Bartender ignores themes that don't exist in the game.
 
