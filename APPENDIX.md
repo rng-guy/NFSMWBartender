@@ -191,7 +191,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Strategy requests block each other: Whenever there is an active Strategy request, the game will not attempt to make more. You can change this with Bartender's "Advanced" feature set.
 
-* Roadblock requests of any kind block all HeavyStrategy requests. Bartender can prevent this block for HeavyStrategy 3 requests, which often become exceedingly rare otherwise.
+* In the vanilla game, active roadblocks of any kind also block new HeavyStrategy 3 requests. Bartender can prevent this blocking, making HeavyStrategy 3 requests much more frequent.
 
 * Strategy requests end when their "Duration" VltEd parameters expire or their vehicles are gone.
 

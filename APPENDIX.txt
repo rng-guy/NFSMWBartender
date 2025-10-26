@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.01.01) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.01.02) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -204,8 +204,8 @@ Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
  • Strategy requests block each other: Whenever there is an active Strategy request, the game
    will not attempt to make more. You can change this with Bartender's "Advanced" feature set.
 
- • Roadblock requests of any kind block all HeavyStrategy requests. Bartender can prevent
-   this block for HeavyStrategy 3 requests, which often become exceedingly rare otherwise.
+ • In the vanilla game, active roadblocks of any kind also block new HeavyStrategy 3 requests.
+   Bartender can prevent this blocking, making HeavyStrategy 3 requests much more frequent.
 
  • Strategy requests end when their "Duration" VltEd parameters expire or their vehicles are gone.
 
@@ -577,3 +577,4 @@ v1.00.00: Initial release
 
    01.00: Overhauled the non-player pursuit customisation and the interactive-music features
       01: Corrected a few minor oversights in "Cosmetic.ini" configuration file
+      02: Further improved documentation and code for Strategy features

@@ -38,7 +38,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * when exactly (if at all) and below what distance roadblock vehicles can join pursuits,
 * whether roadblock vehicles react to racers entering "COOLDOWN" mode,
 * whether roadblock vehicles react to racers hitting their spike strips,
-* how HeavyStrategy 3 requests interact with non-Strategy roadblock requests,
+* how HeavyStrategy 3 requests interact with roadblock requests and spawns,
 * which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
 * which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4, and
 * which vehicles spawn in place of Cross and his henchmen through LeaderStrategy 5 / 7.

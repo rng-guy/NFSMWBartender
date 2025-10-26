@@ -16,9 +16,9 @@ namespace GroundSupport
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<bool> rivalRoadblocksEnableds(true);
-	HeatParameters::Pair<bool> rivalHeaviesEnableds   (true);
-	HeatParameters::Pair<bool> rivalLeadersEnableds   (true);
+	HeatParameters::Pair<bool> rivalRoadblockEnableds(true);
+	HeatParameters::Pair<bool> rivalHeavyEnableds    (true);
+	HeatParameters::Pair<bool> rivalLeaderEnableds   (true);
 
 	HeatParameters::Pair<float> minRoadblockCooldowns  (8.f);  // seconds
 	HeatParameters::Pair<float> maxRoadblockCooldowns  (12.f);
@@ -79,7 +79,7 @@ namespace GroundSupport
 		const address pursuit,
 		const address strategy
 	) {
-		if (*((int*)(pursuit + 0x164)) != 0) return false; // leader spawn-flag
+		if (*((int*)(pursuit + 0x164)) != 0) return false; // Cross flag
 
 		const int strategyType = *((int*)strategy);
 
@@ -154,12 +154,12 @@ namespace GroundSupport
 
 		const bool isPlayerPursuit = Globals::IsPlayerPursuit(pursuit);
 
-		if (isPlayerPursuit or rivalHeaviesEnableds.current)
+		if (isPlayerPursuit or rivalHeavyEnableds.current)
 			MarshalStrategies<0x403600, 0x4035E0, IsHeavyStrategyAvailable>(pursuit, candidateStrategies);
 
 		const size_t numHeavyStrategies = candidateStrategies.size();
 
-		if (isPlayerPursuit or rivalLeadersEnableds.current)
+		if (isPlayerPursuit or rivalLeaderEnableds.current)
 			MarshalStrategies<0x403680, 0x403660, IsLeaderStrategyAvailable>(pursuit, candidateStrategies);
 
 		if (not candidateStrategies.empty())
@@ -182,7 +182,7 @@ namespace GroundSupport
 		}
 		else if constexpr (Globals::loggingEnabled)
 		{
-			const bool canMakeRequest = (isPlayerPursuit or rivalHeaviesEnableds.current or rivalLeadersEnableds.current);
+			const bool canMakeRequest = (isPlayerPursuit or rivalHeavyEnableds.current or rivalLeaderEnableds.current);
 			Globals::logger.Log(pursuit, "[SUP] Strategy request failed", (canMakeRequest) ? "(chance)" : "(blocked)");
 		}
 
@@ -307,7 +307,7 @@ namespace GroundSupport
 		{
 			jne skip // priority flag set
 
-			cmp byte ptr rivalLeadersEnableds.current, 0x1
+			cmp byte ptr rivalLeaderEnableds.current, 0x1
 			je conclusion // no rival discrimination
 
 			mov ecx, esi
@@ -370,7 +370,7 @@ namespace GroundSupport
 
 		__asm
 		{
-			cmp byte ptr rivalRoadblocksEnableds.current, 0x1
+			cmp byte ptr rivalRoadblockEnableds.current, 0x1
 			je conclusion // no rival discrimination
 
 			call dword ptr [edx + 0x8C]
@@ -515,14 +515,7 @@ namespace GroundSupport
 		);
 
 		// Other Heat parameters
-		HeatParameters::Parse<bool, bool, bool>
-		(
-			parser, 
-			"Supports:Rivals",      
-			{rivalRoadblocksEnableds}, 
-			{rivalHeaviesEnableds}, 
-			{rivalLeadersEnableds}
-		);
+		HeatParameters::Parse<bool, bool, bool>(parser, "Supports:Rivals", {rivalRoadblockEnableds}, {rivalHeavyEnableds}, {rivalLeaderEnableds});
 
 		HeatParameters::Parse<bool, bool>(parser, "Roadblocks:Reactions", {reactToCooldownModes},    {reactToSpikesHits});
 		HeatParameters::Parse<bool, bool>(parser, "Heavy3:Roadblocks",    {heavy3TriggerCooldowns},  {heavy3AreBlockables});
@@ -587,9 +580,9 @@ namespace GroundSupport
 	{
 		Globals::logger.Log("    HEAT [SUP] GroundSupport");
 
-		Globals::logger.LogLongIndent("rivalRoadblocksEnabled  ", rivalRoadblocksEnableds.current);
-		Globals::logger.LogLongIndent("rivalHeaviesEnabled     ", rivalHeaviesEnableds.current);
-		Globals::logger.LogLongIndent("rivalLeadersEnabled     ", rivalLeadersEnableds.current);
+		Globals::logger.LogLongIndent("rivalRoadblockEnabled   ", rivalRoadblockEnableds.current);
+		Globals::logger.LogLongIndent("rivalHeavyEnabled       ", rivalHeavyEnableds.current);
+		Globals::logger.LogLongIndent("rivalLeaderEnabled      ", rivalLeaderEnableds.current);
 
 		Globals::logger.LogLongIndent("roadblockCooldown       ", minRoadblockCooldowns.current, "to", maxRoadblockCooldowns.current);
 		Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
@@ -625,9 +618,9 @@ namespace GroundSupport
 	) {
         if (not featureEnabled) return;
 
-		rivalRoadblocksEnableds.SetToHeat(isRacing, heatLevel);
-		rivalHeaviesEnableds   .SetToHeat(isRacing, heatLevel);
-		rivalLeadersEnableds   .SetToHeat(isRacing, heatLevel);
+		rivalRoadblockEnableds.SetToHeat(isRacing, heatLevel);
+		rivalHeavyEnableds    .SetToHeat(isRacing, heatLevel);
+		rivalLeaderEnableds   .SetToHeat(isRacing, heatLevel);
 
 		minRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
 		maxRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
