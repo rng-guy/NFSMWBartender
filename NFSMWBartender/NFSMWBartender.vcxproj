@@ -173,7 +173,7 @@
     <ClInclude Include="DestructionStrings.h" />
     <ClInclude Include="HeatParameters.h" />
     <ClInclude Include="GeneralSettings.h" />
-    <ClInclude Include="GroundSupport.h" />
+    <ClInclude Include="GroundSupports.h" />
     <ClInclude Include="PursuitObserver.h" />
     <ClInclude Include="CopSpawnTables.h" />
     <ClInclude Include="PursuitFeatures.h" />

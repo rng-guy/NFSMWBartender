@@ -8,7 +8,7 @@
 #include "DestructionStrings.h"
 #include "InteractiveMusic.h"
 #include "RadioCallsigns.h"
-#include "GroundSupport.h"
+#include "GroundSupports.h"
 #include "GeneralSettings.h"
 #include "GameAdjustments.h"
 
@@ -28,7 +28,7 @@ static void Initialise()
     Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
     Globals::basicSetEnabled |= InteractiveMusic  ::Initialise(parser);
     Globals::basicSetEnabled |= RadioCallsigns    ::Initialise(parser);
-    Globals::basicSetEnabled |= GroundSupport     ::Initialise(parser);
+    Globals::basicSetEnabled |= GroundSupports    ::Initialise(parser);
     Globals::basicSetEnabled |= GeneralSettings   ::Initialise(parser);
 
     if (Globals::basicSetEnabled)

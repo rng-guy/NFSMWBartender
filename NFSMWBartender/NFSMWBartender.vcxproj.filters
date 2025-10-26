@@ -73,7 +73,7 @@
     <ClInclude Include="DestructionStrings.h">
       <Filter>Header Files\Modifications\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="GroundSupport.h">
+    <ClInclude Include="GroundSupports.h">
       <Filter>Header Files\Modifications\Basic</Filter>
     </ClInclude>
     <ClInclude Include="GeneralSettings.h">

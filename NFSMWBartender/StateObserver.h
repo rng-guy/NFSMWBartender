@@ -7,7 +7,7 @@
 #include "DestructionStrings.h"
 #include "InteractiveMusic.h"
 #include "RadioCallsigns.h"
-#include "GroundSupport.h"
+#include "GroundSupports.h"
 #include "GeneralSettings.h"
 
 #include "PursuitObserver.h"
@@ -41,7 +41,7 @@ namespace StateObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("    HEAT [STA] Heat level is now", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
 
-			GroundSupport   ::SetToHeat(playerIsRacing, currentHeatLevel);
+			GroundSupports  ::SetToHeat(playerIsRacing, currentHeatLevel);
 			GeneralSettings ::SetToHeat(playerIsRacing, currentHeatLevel);
 			PursuitObserver ::SetToHeat(playerIsRacing, currentHeatLevel);
 		}
@@ -68,7 +68,7 @@ namespace StateObserver
 			InteractiveMusic::LogConfigurationReport();
 
 		RadioCallsigns ::Validate();
-		GroundSupport  ::Validate();
+		GroundSupports ::Validate();
 		PursuitObserver::Validate();
 	}
 

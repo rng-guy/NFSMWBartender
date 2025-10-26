@@ -8,7 +8,7 @@
 
 
 
-namespace GroundSupport
+namespace GroundSupports
 {
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
@@ -555,7 +555,7 @@ namespace GroundSupport
 		if (not featureEnabled) return;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
+			Globals::logger.Log("  CONFIG [SUP] GroundSupports");
 
 		// With logging disabled, the compiler optimises the boolean and the string literals away
 		bool allValid = true;
