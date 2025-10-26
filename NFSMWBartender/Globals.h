@@ -34,7 +34,7 @@ namespace Globals
 	const auto GetVaultKey     = (vault  (__cdecl*)   (const char*))0x5CC240;
 
 	// Logging
-	constexpr bool loggingEnabled = false;
+	constexpr bool loggingEnabled = true;
 
 	BasicLogger::Logger logger;
 

@@ -136,7 +136,7 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
 
  • For the pursuit-theme playlist, Bartender ignores themes that don't exist in the game.
 
- • If you don't define any valid tracks, Bartender's disables all its playlist features.
+ • If you don't define any valid tracks, Bartender disables all its playlist features.
 
  • Bartender can shuffle the first playlist track that plays in each pursuit,
    and / or shuffle the follow-up track(s) instead of playing them in order.
