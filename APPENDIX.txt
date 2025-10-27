@@ -261,15 +261,11 @@ Regarding the "Advanced" feature set AS A WHOLE:
    fix makes the engagement count track "Chasers" only, while disregarding any vehicles
    that join the pursuit through Strategy spawns, from roadblocks, or as helicopters.
 
- • For each Heat level, you should use a "FullEngagementCopCount" VltEd parameter > 0.
+ • For each Heat level, you should set a "FullEngagementCopCount" VltEd parameter > 0.
    Otherwise, Bartender may fail to update the displayed engagement count accurately.
 
- • If this feature set is enabled, LeaderStrategy respawns don't happen if Cross loses you
-   unless you define valid delay values in Bartender's "Strategies.ini" configuration file.
-
- • If this feature set is enabled, the following "pursuitlevels" VltEd parameters are ignored
-   because this feature set fulfils their intended purposes with extended customisation:
-   "cops", "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
+ • If enabled, this feature set overrides the following "pursuitlevels" VltEd parameters:
+   the "cops" array, "HeliFuelTime", "TimeBetweenHeliActive", and "SearchModeHeliSpawnChance".
 
 
    
@@ -441,6 +437,8 @@ Regarding STRATEGY REQUESTS ("BartenderSettings\Advanced\Strategies.ini"):
    Without unblocking, an active Strategy request prevents the game from making a new request.
    Unblocking allows multiple Strategy requests to spawn at the same time, and they each continue
    until either their "Duration" VltEd parameters expire or all their vehicles have despawned.
+
+ • If enabled, Bartender unblocks the request queue after each successful Strategy spawn.
 
  • Bartender only unblocks requests at Heat levels for which you define valid unblock-delay values.
 

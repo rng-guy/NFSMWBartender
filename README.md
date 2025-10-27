@@ -3,7 +3,7 @@
 
 Bartender adds **new customisation options** to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in two feature sets:
 * the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
-* the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/XwFSpc97hF4).
+* the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/AECx4WNqfCI).
 
 &nbsp;
 
@@ -36,8 +36,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the internal cooldown between non-Strategy roadblock requests,
 * the internal cooldown between Heavy / LeaderStrategy requests,
 * when exactly (if at all) and below what distance roadblock vehicles can join pursuits,
-* whether roadblock vehicles react to racers entering "COOLDOWN" mode,
-* whether roadblock vehicles react to racers hitting their spike strips,
+* whether roadblock vehicles react to racers entering "COOLDOWN" mode and / or hitting spikes,
 * how HeavyStrategy 3 requests interact with roadblock requests and spawns,
 * which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
 * which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4, and
@@ -46,9 +45,9 @@ The "Basic" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Basic" feature set **also lets you change** (in general)
-* which strings the game shows whenever cop vehicles are destroyed;
-* which radio callsigns and chatter cop vehicles can trigger; and
-* the selection, order, and length of interactive themes that play in pursuits.
+* which notification string the game displays whenever you destroy a given cop vehicle;
+* which radio callsigns and chatter a given cop vehicle can trigger in player pursuits; and
+* the selection, order, and length of interactive themes that play during player pursuits.
 
 &nbsp;
 
@@ -94,7 +93,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Advanced" feature set **fixes three bugs / issues**:
-* non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer blocked in races,
+* non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer disabled in races,
 * early Strategy despawns or cancellations no longer stall the game from making new requests, and
 * the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 
@@ -108,7 +107,7 @@ The "Advanced" feature set **fixes three bugs / issues**:
 
 # 3 - What mods are (in)compatible with Bartender?
 
-Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations. However, Bartender's "Advanced" feature set replaces some `pursuitlevels` VltEd parameters:
+Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations. However, Bartender's "Advanced" feature set overrides some `pursuitlevels` VltEd parameters:
 * the `cops` array,
 * `HeliFuelTime`,
 * `TimeBetweenHeliActive`, and
@@ -138,7 +137,7 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 
 &nbsp;
 
-To **install** Bartender:
+**To install** Bartender:
 1. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
 2. copy the `BartenderSettings` folder and .asi file into your game's `scripts` folder;
 3. if Bartender's .asi file gets flagged by your antivirus software, whitelist the file; and
@@ -147,16 +146,16 @@ To **install** Bartender:
 &nbsp;
 
 **After installing** Bartender: 
-1. check out the configuration (.ini) files in the new `scripts\BartenderSettings` folder; and
+1. edit the configuration (.ini) files in the `BartenderSettings` folder to your liking; and
 2. if you encounter any issues or want more feature details, see the [appendix file](APPENDIX.md).
 
 &nbsp;
 
-To **uninstall** Bartender, remove its files from your game's `scripts` folder. There is no need to remove the optional missing textures, as the game won't ever use them without Bartender.
+**To uninstall** Bartender, remove its files from your game's `scripts` folder. There's no need to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 &nbsp;
 
-To **update** Bartender, uninstall it and repeat the installation process above. Whenever you update, make sure to replace *all* old configuration files!
+**To update** Bartender, uninstall it and repeat the installation process above. Whenever you update, make sure to replace *all* old configuration files!
 
 &nbsp;
 

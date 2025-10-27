@@ -33,17 +33,16 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • the internal cooldown between non-Strategy roadblock requests,
  • the internal cooldown between Heavy / LeaderStrategy requests,
  • when exactly (if at all) and below what distance roadblock vehicles can join pursuits,
- • whether roadblock vehicles react to racers entering "COOLDOWN" mode,
- • whether roadblock vehicles react to racers hitting their spike strips,
+ • whether roadblock vehicles react to racers entering "COOLDOWN" mode and / or hitting spikes,
  • how HeavyStrategy 3 requests interact with roadblock requests and spawns,
  • which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
  • which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4, and
  • which vehicles spawn in place of Cross and his henchmen through LeaderStrategy 5 / 7.
 
 The "Basic" feature set ALSO LETS YOU CHANGE (in general)
- • which strings the game shows whenever cop vehicles are destroyed;
- • which radio callsigns and chatter cop vehicles can trigger; and
- • the selection, order, and length of interactive themes that play in pursuits.
+ • which notification string the game displays whenever you destroy a given cop vehicle;
+ • which radio callsigns and chatter a given cop vehicle can trigger in player pursuits; and
+ • the selection, order, and length of interactive themes that play during player pursuits.
 
 The "Basic" feature set FIXES SIX BUGS / ISSUES:
  • the helicopter mini-map icon is now always visible whenever a helicopter is active,
@@ -82,7 +81,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the game can request a new Strategy while another is still active.
 
 The "Advanced" feature set FIXES THREE BUGS / ISSUES:
- • non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer blocked in races,
+ • non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer disabled in races,
  • early Strategy despawns or cancellations no longer stall the game from making new requests, and
  • the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
 
@@ -94,7 +93,7 @@ The "Advanced" feature set FIXES THREE BUGS / ISSUES:
 ── ■ │ 3 - WHAT MODS ARE (IN)COMPATIBLE WITH BARTENDER? │ ■ ───────────────────────────────────────
 
 Almost all VLTED AND BINARY MODS should be fully compatible with all Bartender configurations.
-However, Bartender's "Advanced" feature set replaces some "pursuitlevels" VltEd parameters:
+However, Bartender's "Advanced" feature set overrides some "pursuitlevels" VltEd parameters:
  • the "cops" array,
  • "HeliFuelTime",
  • "TimeBetweenHeliActive", and
@@ -118,20 +117,20 @@ BEFORE INSTALLING Bartender:
  2) • make sure your game's "speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
  3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 
-To INSTALL Bartender:
+TO INSTALL Bartender:
  1) • if it doesn't exist already, create a "scripts" folder in your game's installation folder;
  2) • copy the contents of Bartender's "scripts" folder into your game's "scripts" folder;
  3) • if Bartender's .asi file gets flagged by your antivirus software, whitelist the file; and
  4) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
 
 AFTER INSTALLING Bartender:
- 1) • check out the configuration (.ini) files in the new "scripts\BartenderSettings" folder; and
+ 1) • edit the configuration (.ini) files in the "BartenderSettings" folder to your liking; and
  2) • if you encounter any issues or want more feature details, see the "APPENDIX.txt" file.
 
-To UNINSTALL Bartender, remove its files from your game's "scripts" folder. There is no need
-to remove the optional missing textures, as the game won't ever use them without Bartender.
+TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. There's no need
+to remove the optional missing textures, as the game doesn't use them without Bartender.
 
-To UPDATE Bartender, uninstall it and repeat the installation process above.
+TO UPDATE Bartender, uninstall it and repeat the installation process above.
 Whenever you update, make sure to replace ALL old configuration files!
 
 

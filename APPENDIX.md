@@ -237,11 +237,9 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That is because Bartender's fix makes the engagement count track "Chasers" only, while disregarding any vehicles that join the pursuit through Strategy spawns, from roadblocks, or as helicopters.
 
-* For each Heat level, you should use a `FullEngagementCopCount` VltEd parameter > 0. Otherwise, Bartender may fail to update the displayed engagement count accurately.
+* For each Heat level, you should set a `FullEngagementCopCount` VltEd parameter > 0. Otherwise, Bartender may fail to update the displayed engagement count accurately.
 
-* If this feature set is enabled, LeaderStrategy respawns don't happen if Cross loses you unless you define valid delay values in Bartender's `Strategies.ini` configuration file.
-
-* If this feature set is enabled, the following `pursuitlevels` VltEd parameters are ignored because this feature set fulfils their intended purposes with extended customisation: `cops`, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
+* If enabled, this feature set overrides the following `pursuitlevels` VltEd parameters: the `cops` array, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
 &nbsp;
 
@@ -348,6 +346,8 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 * For LeaderStrategy 7, the henchmen must also despawn first before the game can request another Strategy. You can circumvent this with Bartender's unblocking feature (see below).
 
 * Bartender can unblock the Strategy-request queue while there is still an active Strategy. Without unblocking, an active Strategy request prevents the game from making a new request. Unblocking allows multiple Strategy requests to spawn at the same time, and they each continue until either their `Duration` VltEd parameters expire or all their vehicles have despawned.
+
+* Unblocking happens whenever a Strategy request leads to a successful spawn.
 
 * Bartender only unblocks requests at Heat levels for which you define valid unblock-delay values.
 
