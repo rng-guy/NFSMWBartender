@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.01.02) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.01.03) │ ■ ────────────────────────────────────────────────────
 
 View this document with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -47,10 +47,10 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
 The "Basic" feature set FIXES SIX BUGS / ISSUES:
  • the helicopter mini-map icon is now always visible whenever a helicopter is active,
  • helicopters no longer cast static shadows (like cars do) with incorrect placements,
- • the game is no longer incorrectly biased in how it chooses to make Strategy requests,
+ • the game is no longer inadvertently biased in how it chooses to make Strategy requests,
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
  • Heat levels > 5 are now shown correctly in menus (requires Binary for missing textures), and
- • you can no longer get busted due to line-of-sight issues while the green "EVADE" bar fills.
+ • racers can no longer get busted due to line-of-sight issues while the green "EVADE" bar fills.
 
 
 

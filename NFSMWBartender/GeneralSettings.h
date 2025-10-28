@@ -95,12 +95,13 @@ namespace GeneralSettings
 
 			damaged:
 			cmp byte ptr doCopFlipDamageChecks.current, 0x1
-			je conclusion // damage check enabled
-
-			jmp dword ptr copFlippingSkip // no flipping enabled
+			jne skip // damage check disabled
 
 			conclusion:
 			jmp dword ptr copFlippingExit
+
+			skip:
+			jmp dword ptr copFlippingSkip
 		}
 	}
 

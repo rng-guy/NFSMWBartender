@@ -373,13 +373,10 @@ namespace GroundSupports
 			cmp byte ptr rivalRoadblockEnableds.current, 0x1
 			je conclusion // no rival discrimination
 
-			call dword ptr [edx + 0x8C]
-			test eax, eax
-			jne restore // is player pursuit
+			call Globals::IsPlayerPursuit
+			test al, al
+			je skip // not player pursuit
 
-			jmp dword ptr rivalRoadblockSkip // was rival pursuit
-
-			restore:
 			mov ecx, esi
 			mov edx, dword ptr [esi]
 
@@ -389,6 +386,9 @@ namespace GroundSupports
 			cmp al, 0x1
 
 			jmp dword ptr rivalRoadblockExit
+
+			skip:
+			jmp dword ptr rivalRoadblockSkip
 		}
 	}
 
@@ -465,14 +465,14 @@ namespace GroundSupports
 			mov eax, dword ptr [esi]
 			jl heavy // is "heavy" Rhino variant
 
-			cmp byte ptr [eax], 0x3
+			cmp dword ptr [eax], 0x3
 			mov eax, dword ptr heavy3LightVehicles.current
 			je conclusion  // is HeavyStrategy 3
 			mov eax, dword ptr heavy4LightVehicles.current
 			jmp conclusion // is HeavyStrategy 4
 
 			heavy:
-			cmp byte ptr [eax], 0x3
+			cmp dword ptr [eax], 0x3
 			mov eax, dword ptr heavy3HeavyVehicles.current
 			je conclusion
 			mov eax, dword ptr heavy4HeavyVehicles.current

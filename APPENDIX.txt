@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.01.02) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.01.03) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -576,3 +576,4 @@ v1.00.00: Initial release
    01.00: Overhauled the non-player pursuit customisation and the interactive-music features
       01: Corrected a few minor oversights in "Cosmetic.ini" configuration file
       02: Further improved documentation and code for Strategy features
+      03: Prettified assorted assembly code that nobody else reads
