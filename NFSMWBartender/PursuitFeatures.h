@@ -32,6 +32,21 @@ namespace PursuitFeatures
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	address GetFromPursuitlevel
+	(
+		const address pursuit,
+		const vault   attributeKey,
+		const size_t  attributeIndex = 0
+	) {
+		static const auto GetPursuitNode      = (address (__thiscall*)(address))               0x418E90;
+		static const auto GetPursuitAttribute = (address (__thiscall*)(address, vault, size_t))0x454810;
+
+		const address node = GetPursuitNode(pursuit);
+		return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : node;
+	}
+
+
+
 	bool MakeVehicleBail(const address copVehicle)
 	{
 		static const auto StartFlee    = (void (__thiscall*)(address))0x423370;

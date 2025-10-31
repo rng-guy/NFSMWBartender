@@ -46,7 +46,7 @@ namespace StateObserver
 			PursuitObserver ::SetToHeat(playerIsRacing, currentHeatLevel);
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("WARNING: [STA] Invalid Heat level", (int)currentHeatLevel);
+			Globals::logger.Log("WARNING: [STA] Invalid Heat level", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
 	}
 
 
@@ -118,20 +118,20 @@ namespace StateObserver
 	constexpr address heatLevelObserverEntrance = 0x4090BE;
 	constexpr address heatLevelObserverExit     = 0x4090C6;
 
-	// Active when loading into areas or during pursuits
+	// Triggers when loading into areas or during pursuits
 	__declspec(naked) void HeatLevelObserver()
 	{
 		__asm
 		{
 			cmp ebp, dword ptr currentHeatLevel
-			je conclusion // Heat is unchanged
+			je conclusion // Heat unchanged
 
 			mov eax, dword ptr playerVehicle
 
 			test eax, eax
 			je conclusion // player vehicle unknown
 
-			cmp eax, esi
+			cmp esi, eax
 			jne conclusion // not player vehicle
 
 			mov eax, dword ptr [esp + 0x20]
@@ -167,7 +167,7 @@ namespace StateObserver
 	constexpr address gameStartObserverEntrance = 0x570620;
 	constexpr address gameStartObserverExit     = 0x570626;
 
-	// Active when entering the main menu screen
+	// Triggers when entering the main menu screen
 	__declspec(naked) void GameStartObserver()
 	{
 		static bool gameStartHandled = false;
@@ -198,7 +198,7 @@ namespace StateObserver
 	constexpr address worldLoadObserverEntrance = 0x66296C;
 	constexpr address worldLoadObserverExit     = 0x662971;
 
-	// Active during world loading screens
+	// Triggers during world loading screens
 	__declspec(naked) void WorldLoadObserver()
 	{
 		__asm
@@ -223,7 +223,7 @@ namespace StateObserver
 	constexpr address gameplayObserverEntrance = 0x71D09D;
 	constexpr address gameplayObserverExit     = 0x71D0A5;
 
-	// Constantly active during gameplay, but not excessively so
+	// Triggers during gameplay, but not every frame
 	__declspec(naked) void GameplayObserver()
 	{
 		__asm
@@ -244,7 +244,7 @@ namespace StateObserver
 	constexpr address retryObserverEntrance = 0x6F4768;
 	constexpr address retryObserverExit     = 0x6F476D;
 
-	// Active during event / race resets
+	// Triggers on event / race resets
 	__declspec(naked) void RetryObserver()
 	{
 		__asm
@@ -267,21 +267,21 @@ namespace StateObserver
 	constexpr address heatEqualiserEntrance = 0x409084;
 	constexpr address heatEqualiserExit     = 0x40908A;
 
-	// Non-player drivers have the same heat as the player
+	// Non-player drivers have the same Heat as the player
 	__declspec(naked) void HeatEqualiser()
 	{
 		__asm
 		{
-			mov ebx, dword ptr playerVehicle
+			mov edi, dword ptr playerVehicle
 
-			test ebx, ebx
+			test edi, edi
 			je conclusion // player vehicle unknown
 
-			cmp esi, ebx
+			cmp esi, edi
 			je conclusion // is player vehicle
 
-			mov edx, dword ptr [ebx + 0x1C] // player Heat
-			mov dword ptr [esp + 0x24], edx
+			mov edi, dword ptr [edi + 0x1C] // player Heat
+			mov dword ptr [esp + 0x24], edi
 
 			conclusion:
 			// Execute original code and resume

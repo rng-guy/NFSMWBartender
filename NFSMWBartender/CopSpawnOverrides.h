@@ -251,24 +251,9 @@ namespace CopSpawnOverrides
 		}
 
 
-		address GetFromPursuitNode
-		(
-			const vault  attributeKey,
-			const size_t attributeIndex = 0
-		) 
-			const
-		{
-			static const auto GetPursuitNode      = (address (__thiscall*)(address))               0x418E90;
-			static const auto GetPursuitAttribute = (address (__thiscall*)(address, vault, size_t))0x454810;
-
-			const address node = GetPursuitNode(this->pursuit);
-			return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : node;
-		}
-
-
 		void UpdateNumPatrolCars()
 		{
-			const address attribute = this->GetFromPursuitNode(0x24F7A1BC); // fetches "NumPatrolCars"
+			const address attribute = PursuitFeatures::GetFromPursuitlevel(this->pursuit, 0x24F7A1BC); // fetches "NumPatrolCars"
 
 			this->maxNumPatrolCars = (attribute) ? *((int*)attribute) : 0;
 

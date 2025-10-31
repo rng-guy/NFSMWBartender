@@ -37,7 +37,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the internal cooldown between Heavy / LeaderStrategy requests,
 * when exactly (if at all) and below what distance roadblock vehicles can join pursuits,
 * whether roadblock vehicles react to racers entering "COOLDOWN" mode and / or hitting spikes,
-* how HeavyStrategy 3 requests interact with roadblock requests and spawns,
+* whether HeavyStrategy 3 requests interact with roadblock requests and spawns,
 * which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
 * which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4, and
 * which vehicles spawn in place of Cross and his henchmen through LeaderStrategy 5 / 7.
@@ -57,7 +57,7 @@ The "Basic" feature set **fixes six bugs / issues**:
 * the game is no longer inadvertently biased in how it chooses to make Strategy requests,
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures), and
-* racers can no longer get busted due to line-of-sight issues while the green "EVADE" bar fills.
+* you can no longer get busted due to line-of-sight issues while the green "EVADE" bar fills.
 
 &nbsp;
 
