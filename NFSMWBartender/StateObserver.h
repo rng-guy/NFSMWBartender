@@ -22,10 +22,9 @@ namespace StateObserver
 	bool featureEnabled = false;
 
 	// Code caves
-	address playerVehicle  = 0x0;
-	bool    playerIsRacing = false;
-
-	size_t currentHeatLevel = 0;
+	address playerVehicle   = 0x0;
+	bool    playerIsRacing  = false;
+	size_t  playerHeatLevel = 0;
 
 
 
@@ -36,17 +35,17 @@ namespace StateObserver
 	void OnHeatLevelUpdates()
 	{
 		// Shouldn't be necessary, but this is a BlackBox game..
-		if ((currentHeatLevel >= 1) and (currentHeatLevel <= HeatParameters::maxHeatLevel))
+		if ((playerHeatLevel >= 1) and (playerHeatLevel <= HeatParameters::maxHeatLevel))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("    HEAT [STA] Heat level is now", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
+				Globals::logger.Log("    HEAT [STA] Heat level is now", (int)playerHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
 
-			GroundSupports  ::SetToHeat(playerIsRacing, currentHeatLevel);
-			GeneralSettings ::SetToHeat(playerIsRacing, currentHeatLevel);
-			PursuitObserver ::SetToHeat(playerIsRacing, currentHeatLevel);
+			GroundSupports  ::SetToHeat(playerIsRacing, playerHeatLevel);
+			GeneralSettings ::SetToHeat(playerIsRacing, playerHeatLevel);
+			PursuitObserver ::SetToHeat(playerIsRacing, playerHeatLevel);
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("WARNING: [STA] Invalid Heat level", (int)currentHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
+			Globals::logger.Log("WARNING: [STA] Invalid Heat level", (int)playerHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
 	}
 
 
@@ -56,7 +55,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log("\n SESSION [VER] Bartender v2.01.03");
+			Globals::logger.Log ("\n SESSION [VER] Bartender v2.01.04");
 
 			Globals::logger.LogLongIndent("Basic feature set",    (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
@@ -92,19 +91,14 @@ namespace StateObserver
 
 	void OnWorldLoadUpdates()
 	{
-		playerVehicle  = 0x0;
-		playerIsRacing = false;
-
-		currentHeatLevel = 0;
-
 		PursuitObserver::HardResetState();
 	}
 
 
 
-	void OnRetryUpdates() 
+	void OnRetryUpdates()
 	{
-		currentHeatLevel = 0;
+		playerHeatLevel = 0;
 
 		PursuitObserver::SoftResetState();
 	}
@@ -123,15 +117,10 @@ namespace StateObserver
 	{
 		__asm
 		{
-			cmp ebp, dword ptr currentHeatLevel
+			cmp ebp, dword ptr playerHeatLevel
 			je conclusion // Heat unchanged
 
-			mov eax, dword ptr playerVehicle
-
-			test eax, eax
-			je conclusion // player vehicle unknown
-
-			cmp esi, eax
+			cmp esi, dword ptr playerVehicle
 			jne conclusion // not player vehicle
 
 			mov eax, dword ptr [esp + 0x20]
@@ -149,7 +138,7 @@ namespace StateObserver
 			jne conclusion    // argument is not true Heat
 
 			update:
-			mov dword ptr currentHeatLevel, ebp
+			mov dword ptr playerHeatLevel, ebp
 			call OnHeatLevelUpdates
 
 			conclusion:
@@ -220,6 +209,61 @@ namespace StateObserver
 
 
 
+	constexpr address playerConstructorEntrance = 0x43EF99;
+	constexpr address playerConstructorExit     = 0x43EFA0;
+
+	// Stores the player's AIPerpVehicle
+	__declspec(naked) void PlayerConstructor()
+	{
+		__asm
+		{
+			cmp dword ptr playerVehicle, 0x0
+			jne conclusion // vehicle already stored
+
+			test eax, eax
+			je conclusion // invalid vehicle
+
+			add eax, 0x758
+			mov dword ptr playerVehicle, eax
+
+			conclusion:
+			// Execute original code and resume
+			mov eax, dword ptr [edi + 0x4]
+			xor ebx, ebx
+			cmp eax, ebx
+
+			jmp dword ptr playerConstructorExit
+		}
+	}
+
+
+
+	constexpr address playerDestructorEntrance = 0x43506E;
+	constexpr address playerDestructorExit     = 0x435073;
+
+	// Clears the player's AIPerpVehicle
+	__declspec(naked) void PlayerDestructor()
+	{
+		__asm
+		{
+			cmp eax, dword ptr playerVehicle
+			jne conclusion // not stored vehicle
+
+			mov dword ptr playerVehicle, 0x0
+			mov byte ptr playerIsRacing, 0x0
+			mov dword ptr playerHeatLevel, 0x0
+
+			conclusion:
+			// Execute original code and resume
+			mov ecx, eax
+			call dword ptr [edx + 0x4]
+
+			jmp dword ptr playerDestructorExit
+		}
+	}
+
+
+
 	constexpr address gameplayObserverEntrance = 0x71D09D;
 	constexpr address gameplayObserverExit     = 0x71D0A5;
 
@@ -272,52 +316,23 @@ namespace StateObserver
 	{
 		__asm
 		{
-			mov edi, dword ptr playerVehicle
-
-			test edi, edi
-			je conclusion // player vehicle unknown
-
-			cmp esi, edi
-			je conclusion // is player vehicle
-
-			mov edi, dword ptr [edi + 0x1C] // player Heat
-			mov dword ptr [esp + 0x24], edi
-
-			conclusion:
-			// Execute original code and resume
-			fld dword ptr [esp + 0x24]
 			mov edi, eax
+			mov eax, dword ptr playerVehicle
 
-			jmp dword ptr heatEqualiserExit
-		}
-	}
+			test eax, eax
+			je retain // player vehicle unknown
 
+			cmp eax, esi
+			je retain // is player vehicle
 
+			fld dword ptr [eax + 0x1C]
+			jmp conclusion
 
-	constexpr address perpVehicleEntrance = 0x43D252;
-	constexpr address perpVehicleExit     = 0x43D257;
-
-	// Identifies the player's AIPerpVehicle
-	__declspec(naked) void PerpVehicle()
-	{
-		__asm
-		{
-			mov ebx, dword ptr [esp + 0x3C]
-
-			cmp ebx, 0x43EF99
-			jne conclusion // not player vehicle
-
-			lea ebx, dword ptr [esi + 0x758]
-			mov dword ptr playerVehicle, ebx
+			retain:
+			fld dword ptr [esp + 0x24]
 
 			conclusion:
-			// Execute original code and resume
-			pop edi
-			mov eax, esi
-			pop esi
-			pop ebx
-
-			jmp dword ptr perpVehicleExit
+			jmp dword ptr heatEqualiserExit
 		}
 	}
 
@@ -333,10 +348,11 @@ namespace StateObserver
 		MemoryTools::DigCodeCave(HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
 		MemoryTools::DigCodeCave(GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
 		MemoryTools::DigCodeCave(WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);
+		MemoryTools::DigCodeCave(PlayerConstructor, playerConstructorEntrance, playerConstructorExit);
+		MemoryTools::DigCodeCave(PlayerDestructor,  playerDestructorEntrance,  playerDestructorExit);
 		MemoryTools::DigCodeCave(GameplayObserver,  gameplayObserverEntrance,  gameplayObserverExit);
 		MemoryTools::DigCodeCave(RetryObserver,     retryObserverEntrance,     retryObserverExit);
 		MemoryTools::DigCodeCave(HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
-		MemoryTools::DigCodeCave(PerpVehicle,       perpVehicleEntrance,       perpVehicleExit);
 
 		// Status flag
 		featureEnabled = true;

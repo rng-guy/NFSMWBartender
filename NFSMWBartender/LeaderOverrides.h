@@ -332,8 +332,11 @@ namespace LeaderOverrides
 				this->UpdateFlagResetTimer();
 				this->MakeHenchmenAggro();
 			}
-			else if (this->passiveHenchmenVehicles.erase(copVehicle) and this->passiveHenchmenVehicles.empty())
-				this->henchmenAggroTimer.Stop();
+			else if (this->passiveHenchmenVehicles.erase(copVehicle))
+			{
+				if (this->passiveHenchmenVehicles.empty())
+					this->henchmenAggroTimer.Stop();
+			}
 		}
 	};
 

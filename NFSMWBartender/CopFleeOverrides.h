@@ -290,8 +290,7 @@ namespace CopFleeOverrides
 			test edi, edi
 			je conclusion // invalid AIVehiclePursuit
 
-			mov eax, dword ptr [edi - 0x758 + 0xC4]
-			cmp eax, 0x88C018A9 // AIGoalFleePursuit
+			cmp dword ptr [edi - 0x758 + 0xC4], 0x88C018A9 // AIGoalFleePursuit
 
 			conclusion:
 			jmp dword ptr updateFormationExit

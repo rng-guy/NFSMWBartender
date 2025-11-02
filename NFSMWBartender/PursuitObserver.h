@@ -593,7 +593,7 @@ namespace PursuitObserver
 		LeaderOverrides    ::Initialise(parser);
 		
 		// Code caves
-		MemoryTools::Write<byte>(0x9E, {0x44319C});                 // helicopter respawn-timer initialisation
+		MemoryTools::Write<byte>        (0x9E, {0x44319C});         // helicopter respawn-timer initialisation
 		MemoryTools::WriteToAddressRange(0x90, 0x443E77, 0x443E87); // update
 		MemoryTools::WriteToAddressRange(0x90, 0x42B6B4, 0x42B6DF); // reset
 
