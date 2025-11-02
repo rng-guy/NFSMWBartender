@@ -18,9 +18,9 @@
 
 
 
-// Parsing and injection ----------------------------------------------------------------------------------------------------------------------------
+// Initialisation and injection ---------------------------------------------------------------------------------------------------------------------
 
-static void Initialise() 
+static void ApplyBartender() 
 {
     HeatParameters::Parser parser;
 
@@ -48,13 +48,14 @@ static void Initialise()
 
 // DLL hook boilerplate -----------------------------------------------------------------------------------------------------------------------------
 
-BOOL APIENTRY DllMain
+BOOL WINAPI DllMain
 (
-    HMODULE hModule, 
-    DWORD   ul_reason_for_call, 
-    LPVOID  lpReserved
+    HINSTANCE hinstDLL,
+    DWORD     fdwReason,
+    LPVOID    lpvReserved
 ) {
-    if (ul_reason_for_call == DLL_PROCESS_ATTACH) Initialise();
+    if (fdwReason == DLL_PROCESS_ATTACH) 
+        ApplyBartender();
 
     return TRUE;
 }
