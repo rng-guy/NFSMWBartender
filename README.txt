@@ -144,7 +144,7 @@ You are free to bundle Bartender and its files with your own pursuit mod, NO CRE
 In the interest of code transparency, however, consider linking to Bartender's GitHub repository 
 (https://github.com/rng-guy/NFSMWBartender) somewhere in your mod's documentation (e.g. README).
 
-Finally, Bartender would not have seen the light of day without
+Finally, Bartender wouldn't have seen the light of day without
  • DarkByte, for Cheat Engine;
  • rx, for encouraging me to try .asi modding;
  • nlgxzef, for the Most Wanted debug symbols;

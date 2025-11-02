@@ -171,7 +171,7 @@ You are free to bundle Bartender and its files with your own pursuit mod, **no c
 
 &nbsp;
 
-Finally, Bartender would not have seen the light of day without
+Finally, Bartender wouldn't have seen the light of day without
 * **DarkByte**, for [Cheat Engine](https://www.cheatengine.org/);
 * **[rx](https://github.com/rxyyy)**, for encouraging me to try .asi modding;
 * **[nlgxzef](https://github.com/nlgxzef)**, for the Most Wanted debug symbols;
