@@ -55,7 +55,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log ("\n SESSION [VER] Bartender v2.01.04");
+			Globals::logger.Log ("\n SESSION [VER] Bartender v2.01.05");
 
 			Globals::logger.LogLongIndent("Basic feature set",    (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
@@ -209,29 +209,23 @@ namespace StateObserver
 
 
 
-	constexpr address playerConstructorEntrance = 0x43EF99;
-	constexpr address playerConstructorExit     = 0x43EFA0;
+	constexpr address playerConstructorEntrance = 0x43F005;
+	constexpr address playerConstructorExit     = 0x43F00F;
 
 	// Stores the player's AIPerpVehicle
 	__declspec(naked) void PlayerConstructor()
 	{
 		__asm
 		{
+			lea eax, dword ptr [esi + 0x758]
+			mov dword ptr [eax], 0x892988
+
 			cmp dword ptr playerVehicle, 0x0
 			jne conclusion // vehicle already stored
-
-			test eax, eax
-			je conclusion // invalid vehicle
-
-			add eax, 0x758
+	
 			mov dword ptr playerVehicle, eax
 
 			conclusion:
-			// Execute original code and resume
-			mov eax, dword ptr [edi + 0x4]
-			xor ebx, ebx
-			cmp eax, ebx
-
 			jmp dword ptr playerConstructorExit
 		}
 	}
