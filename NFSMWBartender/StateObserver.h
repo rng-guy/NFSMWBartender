@@ -243,9 +243,11 @@ namespace StateObserver
 			cmp eax, dword ptr playerVehicle
 			jne conclusion // not stored vehicle
 
-			mov dword ptr playerVehicle, 0x0
-			mov byte ptr playerIsRacing, 0x0
-			mov dword ptr playerHeatLevel, 0x0
+			xor ecx, ecx
+
+			mov dword ptr playerVehicle, ecx
+			mov byte ptr playerIsRacing, cl
+			mov dword ptr playerHeatLevel, ecx
 
 			conclusion:
 			// Execute original code and resume
