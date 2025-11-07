@@ -579,4 +579,4 @@ v1.00.00: Initial release
       03: Prettified assorted assembly code that nobody else reads
       04: Optimised and foolproofed some more assembly code
       05: Made even more OCD-fuelled assembly improvements
-      06: Fixed an issue with Mia's scripted Heat reset
+      06: Fixed an issue with scripted Heat changes in Career mode
