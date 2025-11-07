@@ -55,7 +55,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log ("\n SESSION [VER] Bartender v2.01.05");
+			Globals::logger.Log ("\n SESSION [VER] Bartender v2.01.06");
 
 			Globals::logger.LogLongIndent("Basic feature set",    (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
@@ -123,21 +123,9 @@ namespace StateObserver
 			cmp esi, dword ptr playerVehicle
 			jne conclusion // not player vehicle
 
-			mov eax, dword ptr [esp + 0x20]
+			cmp dword ptr [esp + 0x20], 0x416A75
+			je conclusion // not true Heat
 
-			cmp eax, 0x443DEA // pursuit update
-			je update
-
-			cmp eax, 0x423EC9 // pursuit initialisation
-			je update
-
-			cmp eax, 0x60DE53 // race initialisation
-			je update
-
-			cmp eax, 0x6F4BE5 // vehicle initialisation
-			jne conclusion    // argument is not true Heat
-
-			update:
 			mov dword ptr playerHeatLevel, ebp
 			call OnHeatLevelUpdates
 

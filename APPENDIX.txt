@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.01.05) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.01.06) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -579,3 +579,4 @@ v1.00.00: Initial release
       03: Prettified assorted assembly code that nobody else reads
       04: Optimised and foolproofed some more assembly code
       05: Made even more OCD-fuelled assembly improvements
+      06: Fixed an issue with Mia's scripted Heat reset
