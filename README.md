@@ -155,7 +155,7 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. Whenever you update, make sure to replace *all* old configuration files!
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.01.00, you must replace all old configuration files.
 
 &nbsp;
 

@@ -98,7 +98,7 @@ namespace StateObserver
 
 	void OnRetryUpdates()
 	{
-		playerHeatLevel = 0;
+		playerHeatLevel = 0; // forces an update
 
 		PursuitObserver::SoftResetState();
 	}

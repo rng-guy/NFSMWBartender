@@ -679,7 +679,9 @@ namespace PursuitObserver
 	{
 		if (not featureEnabled) return;
 
-		SoftResetState();
+		PursuitFeatures::heatLevelKnown = false;
+		CopSpawnOverrides::ResetState();
+
 		PursuitObserver::ClearVehicleRegistrations();
 	}
 }
