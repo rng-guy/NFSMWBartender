@@ -38,24 +38,6 @@ namespace CopFleeOverrides
 		HashContainers::AddressSet        activeChaserVehicles;
 		HashContainers::AddressMap<float> chaserVehicleToFleeTimestamp;
 		HashContainers::AddressMap<float> supportVehicleToFleeTimestamp;
-		
-		
-		static bool IsLabelTrackable(const CopLabel copLabel)
-		{
-			switch (copLabel)
-			{
-			case CopLabel::HEAVY:
-				[[fallthrough]];
-
-			case CopLabel::LEADER:
-				[[fallthrough]];
-
-			case CopLabel::CHASER:
-				return true;
-			}
-
-			return false;
-		}
 
 
 		static bool IsChaserMember(const address copVehicle)
@@ -67,7 +49,9 @@ namespace CopFleeOverrides
 
 		void ReviewChaser(const address copVehicle)
 		{
-			if ((not fleeDelays.isEnableds.current) or this->IsChaserMember(copVehicle)) return;
+			if (not PursuitFeatures::heatLevelKnown) return;
+			if (not fleeDelays.isEnableds.current)   return;
+			if (this->IsChaserMember(copVehicle))    return;
 
 			const float fleeDelay     = fleeDelays.GetRandomValue();
 			const float fleeTimestamp = PursuitFeatures::simulationTime + fleeDelay;
@@ -101,6 +85,8 @@ namespace CopFleeOverrides
 			const address copVehicle, 
 			const float   strategyDuration
 		) {
+			if (not PursuitFeatures::heatLevelKnown) return;
+
 			const float fleeTimestamp = PursuitFeatures::simulationTime + strategyDuration;
 			const bool  wasNew        = this->supportVehicleToFleeTimestamp.insert({copVehicle, fleeTimestamp}).second;
 
@@ -118,34 +104,6 @@ namespace CopFleeOverrides
 		static float GetStrategyDuration(const address strategy)
 		{
 			return (strategy) ? *((float*)(strategy + 0x8)) : 1.f;
-		}
-
-
-		void ReviewVehicle
-		(
-			const address  copVehicle,
-			const CopLabel copLabel
-		) {
-			if (not PursuitFeatures::heatLevelKnown) return;
-
-			switch (copLabel)
-			{
-			case CopLabel::HEAVY:
-				this->ScheduleSupport(copVehicle, this->GetStrategyDuration(this->heavyStrategy));
-				break;
-
-			case CopLabel::LEADER:
-				this->ScheduleSupport(copVehicle, this->GetStrategyDuration(this->leaderStrategy));
-				break;
-
-			case CopLabel::CHASER:
-				this->ReviewChaser(copVehicle);
-				break;
-
-			default:
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [FLE] Untrackable label", (int)copLabel, "for", copVehicle, "in", this->pursuit);
-			}
 		}
 
 
@@ -246,12 +204,20 @@ namespace CopFleeOverrides
 		) 
 			override
 		{
-			if (not this->IsLabelTrackable(copLabel)) return;
+			switch (copLabel)
+			{
+			case CopLabel::HEAVY:
+				this->ScheduleSupport(copVehicle, this->GetStrategyDuration(this->heavyStrategy));
+				return;
 
-			if (copLabel == CopLabel::CHASER)
+			case CopLabel::LEADER:
+				this->ScheduleSupport(copVehicle, this->GetStrategyDuration(this->leaderStrategy));
+				return;
+
+			case CopLabel::CHASER:
 				this->activeChaserVehicles.insert(copVehicle);
-
-			this->ReviewVehicle(copVehicle, copLabel);
+				this->ReviewChaser(copVehicle);
+			}
 		}
 
 
@@ -262,14 +228,19 @@ namespace CopFleeOverrides
 		) 
 			override
 		{
-			if (not this->IsLabelTrackable(copLabel)) return;
-
-			if (copLabel == CopLabel::CHASER)
+			switch (copLabel)
 			{
-				if (this->activeChaserVehicles.erase(copVehicle))
-					this->chaserVehicleToFleeTimestamp.erase(copVehicle);
+			case CopLabel::HEAVY:
+				[[fallthrough]];
+
+			case CopLabel::LEADER:
+				this->supportVehicleToFleeTimestamp.erase(copVehicle);
+				return;
+
+			case CopLabel::CHASER:
+				this->activeChaserVehicles        .erase(copVehicle);
+				this->chaserVehicleToFleeTimestamp.erase(copVehicle);
 			}
-			else this->supportVehicleToFleeTimestamp.erase(copVehicle);
 		}
 	};
 

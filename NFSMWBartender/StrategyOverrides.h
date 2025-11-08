@@ -110,7 +110,7 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[STR] Unblocking active Strategy");
 
-			this->ClearSupportRequest(this->pursuit);
+			this->ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
 		}
 
 
@@ -168,7 +168,7 @@ namespace StrategyOverrides
 				if (this->watchingHeavyStrategy3)
 				{
 					this->MakeVehiclesBail(this->vehiclesOfCurrentStrategy);
-					this->ClearSupportRequest(this->pursuit);
+					this->ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
 				}
 			}
 		}
@@ -217,16 +217,13 @@ namespace StrategyOverrides
 		{
 			if (not ((copLabel == CopLabel::HEAVY) or (copLabel == CopLabel::LEADER))) return;
 
-			if (not this->unblockTimer.IsSet())
+			if (this->unblockTimer.IsSet())
 			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] New vehicle", copVehicle, "without Strategy in", this->pursuit);
-
-				return;
+				this->vehiclesOfCurrentStrategy.insert(copVehicle);
+				this->UpdateNumStrategyVehicles();
 			}
-
-			this->vehiclesOfCurrentStrategy.insert(copVehicle);
-			this->UpdateNumStrategyVehicles();
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [STR] New vehicle", copVehicle, "without Strategy in", this->pursuit);
 		}
 
 
@@ -237,17 +234,18 @@ namespace StrategyOverrides
 		)
 			override
 		{
-			if (not ((copLabel == CopLabel::HEAVY) or (copLabel == CopLabel::LEADER)))               return;
-			if ((copLabel == CopLabel::HEAVY) and this->vehiclesOfUnblockedHeavy3.erase(copVehicle)) return;
+			if (not ((copLabel == CopLabel::HEAVY) or (copLabel == CopLabel::LEADER))) return;
 
 			if (this->vehiclesOfCurrentStrategy.erase(copVehicle))
 			{
 				if (this->vehiclesOfCurrentStrategy.empty())
-					this->ClearSupportRequest(this->pursuit);
+					this->ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
 
 				else
 					this->UpdateNumStrategyVehicles();
 			}
+			else if (copLabel == CopLabel::HEAVY)
+				this->vehiclesOfUnblockedHeavy3.erase(copVehicle);
 		}
 
 
@@ -283,6 +281,7 @@ namespace StrategyOverrides
 			default:
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [STR] Unknown HeavyStrategy", strategyID, "in", pursuit);
+
 				return;
 			}
 
@@ -324,6 +323,7 @@ namespace StrategyOverrides
 			default:
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [STR] Unknown LeaderStrategy", strategyID, "in", pursuit);
+
 				return;
 			}
 
@@ -412,7 +412,7 @@ namespace StrategyOverrides
 
 			push ecx
 
-			lea ecx, dword ptr [ebp - 0x194]
+			lea ecx, dword ptr [ebp + 0x78 - 0x20C]
 			call StrategyManager::ClearWatchedStrategy // ecx: pursuit
 
 			pop ecx
