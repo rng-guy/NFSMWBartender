@@ -1,7 +1,5 @@
 #pragma once
 
-#include <initializer_list>
-
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "HashContainers.h"
