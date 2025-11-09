@@ -93,7 +93,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 * The configuration (.ini) files for this feature set are located in `BartenderSettings\Basic`.
 
-* The unedited configuration files for this feature set use the game's vanilla values.
+* The unedited configuration files for this feature set mostly match the game's vanilla values.
 
 * You can disable this entire feature set by deleting all of its configuration files.
 
@@ -155,13 +155,13 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 * Bartender sets all combo-bounty multiplier limits that are < 1 to 1 instead.
 
-* The red "BUSTED" bar fills when you drive slowly enough and are near a cop who can see you. Once the bar is full, the cops apprehend you and end the pursuit in their favour.
+* The red "BUSTED" bar fills when you drive slowly enough and are near a cop who can see you. Once the bar is full, the cops apprehend you and end your pursuit in their favour.
 
 * The cops' visual range limits the effective max. bust distance. The cops' visual range is defined by the `frontLOSdistance`, `rearLOSdistance`, and `heliLOSdistance` VltEd parameters.
 
 * The `BustSpeed` VltEd parameter defines the speed threshold for busting.
    
-* The green "EVADE" bar fills when you are not within line of sight of any cops. Once the bar is full, you enter "COOLDOWN" mode and need to stay hidden for a while to escape the pursuit.
+* The green "EVADE" bar fills when you are not within line of sight of any cops. Once the bar is full, you enter "COOLDOWN" mode and need to stay hidden for a while to escape your pursuit.
 
 * The `evadetimeout` VltEd parameter defines how long you need to stay hidden in "COOLDOWN" mode.
 
@@ -201,15 +201,15 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Vehicles joining pursuits from roadblocks after some time is vanilla behaviour, but the age threshold usually makes it a rare event because most roadblocks despawn too early.
 
-* You shouldn't use low roadblock-age thresholds (< 20 seconds) for roadblock vehicles to join the pursuit: Too many vehicles joining can cause game instability, as they ignore spawn limits.
+* You shouldn't use low roadblock-age thresholds (< 20 seconds) for roadblock vehicles to join pursuits: Too many vehicles joining can cause game instability, as they ignore spawn limits.
 
 * Age-based joining from roadblocks only happens at Heat levels for which you define valid age and distance values, and has no bearing on other means by which roadblock vehicles may join.
 
-* Roadblock vehicles can react to the pursuit entering "COOLDOWN" mode and / or spike-strip hits. For the former, one vehicle joins the pursuit; for the latter, all of them join the pursuit.
+* Roadblock vehicles can react to racers entering "COOLDOWN" mode and / or spike-strip hits. For the former, one vehicle joins the pursuit; for the latter, all of them join the pursuit.
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
-* You shouldn't use the replacement vehicles for Cross for any other cop in the game unless you also use Bartender's "Advanced" feature set. Otherwise, these vehicles interfere with LeaderStrategy spawns whenever they are present in the pursuit.
+* You shouldn't use the replacement vehicles for Cross for any other cop in the game unless you also use Bartender's "Advanced" feature set. Otherwise, these vehicles interfere with LeaderStrategy spawns whenever they are present in a given pursuit.
 
 * Bartender replaces vehicles that don't exist in the game with whatever the vanilla game uses.
 
@@ -229,13 +229,13 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * The configuration (.ini) files for this feature set are located in `BartenderSettings\Advanced`.
 
-* The unedited configuration files for this feature set approximate the game's vanilla values.
+* The unedited configuration files for this feature set resemble the game's vanilla values.
 
 * You can disable this entire feature set by deleting all of its configuration files.
 
 * Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
 
-* Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That is because Bartender's fix makes the engagement count track "Chasers" only, while disregarding any vehicles that join the pursuit through Strategy spawns, from roadblocks, or as helicopters.
+* Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That is because Bartender's fix makes the engagement count track "Chasers" only, while disregarding any vehicles that join your pursuit through Strategy spawns, from roadblocks, or as helicopters.
 
 * For each Heat level, you should set a `FullEngagementCopCount` VltEd parameter > 0. Otherwise, Bartender may fail to update the displayed engagement count accurately.
 
@@ -271,7 +271,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Bartender enforces the `count` values for "Chasers" for each active pursuit separately. For "Roadblocks" / "Events", Bartender enforces `count` values for each roadblock / event. "Patrols" lack `count` values because they technically don't belong to anything trackable.
 
-* Once they join the pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
+* Once they join a given pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
 
 * The "Roadblocks" spawn tables don't apply to HeavyStrategy 4 roadblocks.
 
@@ -281,15 +281,15 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock spawns in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This doesn't apply to vehicles with `count` values of at least 5, as no roadblock consists of more than 5 cars.
 
-* Rarely, vehicles that are not in a "Roadblocks" spawn table will still show up in roadblocks. This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it's processing a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
+* Rarely, vehicles that are not in a "Roadblocks" spawn table may still show up in roadblocks. This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it's processing a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
 * The "Events" spawn tables also apply to the scripted patrols in prologue (DDay) race events.
 
 * The "Events" spawn tables don't apply to the very first scripted, pre-generated cop that spawns in a given free-roam event (e.g. a Challenge Series pursuit). Instead, this first cop is always of the type defined by the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible for Bartender to know which spawn table to use for just this single vehicle.
 
-* You shouldn't use fast Heat transitions (`0x80deb840` VltEd parameter(s) set to < 5 seconds), else you might see a mix of cops from more than one "Events" spawn table appear in events with scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
+* You shouldn't use fast Heat transitions (`0x80deb840` VltEd parameter(s) set to < 5 seconds), else you might see a mix of cops from more than one "Events" spawn table appear in events with scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can also avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
 
-* Bartender uses different spawn tables for each of the two patrol-spawn types in the game: "Patrols" tables replace the free patrols that spawn when there is no active pursuit, and "Chasers" tables replace the searching patrols that spawn in pursuits when you are in "COOLDOWN" mode. You can control the number of patrol spawns through the `NumPatrolCars` VltEd parameter, but there are two important quirks: Free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count.
+* Bartender uses different spawn tables for each of the two patrol-spawn types in the game: "Patrols" tables replace the free patrols that spawn when there is no active pursuit, and "Chasers" tables replace the searching patrols that spawn in pursuits when racers are in "COOLDOWN" mode. You can control the number of patrol spawns through the `NumPatrolCars` VltEd parameter, but there are two important quirks: Free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count.
 
 &nbsp;
 
@@ -307,7 +307,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay. If the helicopter were to rejoin with less fuel than the required minimum, it counts as having run out of fuel and triggers the appropriate respawn delay instead.
 
-* Whether an active helicopter may rejoin a given pursuit is unaffected by Heat transitions, as this is locked in as soon as it (re)spawns. This means a rejoining helicopter can keep rejoining the pursuit until it either gets wrecked or runs out of fuel. Its vehicle is also locked in to ensure it rejoins with the same model and overall properties.
+* Whether an active helicopter may rejoin a given pursuit is unaffected by Heat transitions, as this is locked in as soon as it (re)spawns. This means a rejoining helicopter can keep rejoining your pursuit until it either gets wrecked or runs out of fuel. Its vehicle is also locked in to ensure it rejoins with the same model and overall properties.
 
 * Rejoining helicopters don't count towards the total number of helicopters deployed.
 
@@ -329,7 +329,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
-* Defining low racer-speed thresholds for HeavyStrategy 3 spawns fixes the vanilla issue of them attempting to flee the pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if the racer's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of higher `CollapseSpeed` values and far more aggressive cops.
+* Defining low racer-speed thresholds for HeavyStrategy 3 spawns fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if the racer's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of higher `CollapseSpeed` values and far more aggressive cops.
 
 * LeaderStrategy Cross and / or his henchmen only become aggressive at Heat levels for which you define valid aggro-delay values. Henchmen, however, always become aggressive when Cross leaves.
 
