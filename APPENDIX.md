@@ -265,7 +265,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Bartender adds a `copmidsize` to each non-empty table that contains only ignored vehicles.
 
-* The `chance` values are weights (like in VltEd), not percentages. The actual spawn chance of a vehicle is its `chance` value divided by the sum of the `chance` values of all vehicles from the same spawn table. Whenever a vehicle reaches its `count` value (i.e. spawn cap), Bartender treats its `chance` value as 0 until there is room for further spawns of that vehicle again.
+* The `chance` values are weights (like in VltEd), not percentages. The actual spawn chance of a vehicle is its `chance` value divided by the sum of the `chance` values of all vehicles in the same spawn table. Whenever a vehicle reaches its `count` value (i.e. spawn cap), Bartender treats its `chance` value as 0 until there is room for further spawns of that vehicle again.
 
 * Bartender sets all `count` and `chance` values that are < 1 to 1 instead.
 
