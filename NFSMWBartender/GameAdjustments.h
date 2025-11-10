@@ -18,28 +18,29 @@ namespace GameAdjustments
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address helicopterMarkerEntrance = 0x579EE5;
-	constexpr address helicopterMarkerExit     = 0x579EEA;
+	constexpr address helicopterIconEntrance = 0x579EE5;
+	constexpr address helicopterIconExit     = 0x579EEA;
 
-	__declspec(naked) void HelicopterMarker()
+	__declspec(naked) void HelicopterIcon()
 	{
-		static constexpr address helicopterMarkerSkip = 0x57A09F;
+		static constexpr address helicopterIconSkip = 0x57A09F;
 
 		__asm
 		{
 			je conclusion // is helicopter
 
 			cmp dword ptr [esp + 0x18], 0x8
-			jl conclusion // not at vehicle cap
-
-			jmp dword ptr helicopterMarkerSkip
+			jge skip // at vehicle cap
 
 			conclusion:
 			// Execute original code and resume
 			mov eax, 0x91CF00
 			mov al, byte ptr [eax]
 
-			jmp dword ptr helicopterMarkerExit
+			jmp dword ptr helicopterIconExit
+
+			skip:
+			jmp dword ptr helicopterIconSkip
 		}
 	}
 
@@ -54,9 +55,9 @@ namespace GameAdjustments
         // Helicopter shadow
         MemoryTools::Write<float>(0.f, {0x903660});
 
-        // Disappearing helicopter mini-map marker
+        // Disappearing helicopter mini-map icon
         MemoryTools::WriteToAddressRange(0x90, 0x579EA2, 0x579EAB);
-		MemoryTools::DigCodeCave        (HelicopterMarker, helicopterMarkerEntrance, helicopterMarkerExit);
+		MemoryTools::DigCodeCave        (HelicopterIcon, helicopterIconEntrance, helicopterIconExit);
 
         // Heat-level reset (credit: ExOptsTeam)
         MemoryTools::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
