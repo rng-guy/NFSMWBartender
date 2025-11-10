@@ -402,11 +402,11 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	const char* __fastcall GetByClassReplacement(const address spawnReturn)
+	const char* __fastcall GetByClassReplacement(const address caller)
 	{
 		if (PursuitFeatures::heatLevelKnown)
 		{
-			switch (spawnReturn)
+			switch (caller)
 			{
 			case 0x4269E6: // helicopter
 				return HelicopterOverrides::HelicopterManager::GetHelicopterVehicle();
@@ -422,7 +422,7 @@ namespace CopSpawnOverrides
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] Unknown ByClass return address:", spawnReturn);
+				Globals::logger.Log("WARNING: [SPA] Unknown ByClass return address:", caller);
 		}
 
 		return nullptr;
@@ -559,26 +559,26 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			// Execute original code first
-			mov ebp, dword ptr [esp + 0x74]
-			test ebp, ebp
-			je conclusion // spawn intended to fail
-
 			cmp dword ptr [esp + 0x70], 0x42E72E
-			jne conclusion // not "Events" spawn
+			jne retain // not "Events" spawn
 
 			cmp byte ptr skipEventSpawns, 0x0
-			jne conclusion // skip "Events" spawn
+			jne retain // skip "Events" spawn
 
 			cmp byte ptr PursuitFeatures::heatLevelKnown, 0x1
-			jne conclusion // Heat level unknown
+			jne retain // Heat level unknown
 
 			mov ecx, offset eventSpawns
 			call Contingent::GetNameOfSpawnableCop
 			mov ebp, eax
-			test eax, eax
+			jmp conclusion
+
+			retain:
+			mov ebp, dword ptr [esp + 0x74]
 
 			conclusion:
+			test ebp, ebp
+
 			jmp dword ptr byNameInterceptorExit
 		}
 	}
@@ -586,7 +586,7 @@ namespace CopSpawnOverrides
 
 
 	constexpr address byClassInterceptorEntrance = 0x426621;
-	constexpr address byClassInterceptorExit     = 0x426627;
+	constexpr address byClassInterceptorExit     = 0x42672E;
 
 	__declspec(naked) void ByClassInterceptor()
 	{
@@ -597,23 +597,19 @@ namespace CopSpawnOverrides
 			je failure // spawn intended to fail
 
 			mov ecx, dword ptr [esp + 0x8]
-			call GetByClassReplacement // ecx: spawnReturn
+			call GetByClassReplacement // ecx: caller
 			test eax, eax
 			je conclusion              // skip this spawn
 
-			mov ecx, ebp                           // AICopManager
-			push eax                               // newCopName
-			call dword ptr getPursuitVehicleByName // pops newCopName
-			jmp conclusion                         // cop replaced
+			mov ecx, ebp
+			push eax
+			call dword ptr getPursuitVehicleByName
+			jmp conclusion // cop replaced
 
 			failure:
 			xor eax, eax
 
 			conclusion:
-			// Execute original code and resume
-			pop ebp
-			pop ecx
-
 			jmp dword ptr byClassInterceptorExit
 		}
 	}

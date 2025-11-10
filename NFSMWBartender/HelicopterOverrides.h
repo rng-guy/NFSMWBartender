@@ -408,6 +408,8 @@ namespace HelicopterOverrides
 
 		static const char* GetHelicopterVehicle()
 		{
+			if (not featureEnabled) return nullptr;
+
 			if (HelicopterManager::helicopterOwner)
 			{
 				if (HelicopterManager::helicopterVehicle)
