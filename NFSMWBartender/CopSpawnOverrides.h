@@ -202,7 +202,7 @@ namespace CopSpawnOverrides
 	HeatParameters::Pair<int> minActiveCounts(1);
 	HeatParameters::Pair<int> maxActiveCounts(8);
 
-	// Code caves
+	// Code caves 
 	bool skipEventSpawns = true;
 
 	Contingent eventSpawns    (CopSpawnTables::eventSpawnTables);
@@ -222,14 +222,16 @@ namespace CopSpawnOverrides
 
 	private:
 
-		int maxNumPatrolCars = 0;
-		
+		int  maxNumPatrolCars    = 0;
+		bool waveParametersKnown = false;
+
 		int& fullWaveCapacity  = *((int*)(this->pursuit + 0x144));
 		int& numCopsLostInWave = *((int*)(this->pursuit + 0x14C));
 
 		const int&   pursuitStatus  = *((int*)(this->pursuit + 0x218));
 		const bool&  isPerpBusted   = *((bool*)(this->pursuit + 0xE8));
 		const bool&  bailingPursuit = *((bool*)(this->pursuit + 0xE9));
+		const bool&  updateCopsLost = *((bool*)(this->pursuit + 0xA8));
 		const float& spawnCooldown  = *((float*)(this->pursuit + 0xCC));
 
 		Contingent chaserSpawns = Contingent(CopSpawnTables::chaserSpawnTables, this->pursuit);
@@ -282,7 +284,7 @@ namespace CopSpawnOverrides
 
 		void CorrectWaveCapacity() const
 		{
-			if (this->fullWaveCapacity == 0) return;
+			if (not this->waveParametersKnown) return;
 
 			const int waveCapacity = this->GetWaveCapacity();
 
@@ -300,9 +302,8 @@ namespace CopSpawnOverrides
 		{
 			if (not PursuitFeatures::heatLevelKnown) return false;
 
-			if (this->isPerpBusted)   return false;
-			if (this->bailingPursuit) return false;
-
+			if (this->isPerpBusted)                                               return false;
+			if (this->bailingPursuit)                                             return false;
 			if (this->spawnCooldown > 0.f)                                        return false;
 			if (not this->chaserSpawns.HasAvailableCop())                         return false;
 			if (this->chaserSpawns.GetNumActiveCops() >= maxActiveCounts.current) return false;
@@ -311,6 +312,15 @@ namespace CopSpawnOverrides
 				return (this->chaserSpawns.GetNumActiveCops() < this->maxNumPatrolCars);
 
 			return ((this->GetWaveCapacity() > 0) or (this->chaserSpawns.GetNumActiveCops() < minActiveCounts.current));
+		}
+
+
+		static bool VehicleHasEngaged(const address copVehicle)
+		{
+			static const auto FindObject = (address (__thiscall*)(address, address))0x5D59F0;
+
+			const address pursuitVehicle = FindObject(copVehicle - 0x9C, 0x4038E0); // fetches AIVehiclePursuit
+			return (pursuitVehicle) ? *((bool*)(pursuitVehicle + 0x22)) : false;
 		}
 
 
@@ -335,12 +345,6 @@ namespace CopSpawnOverrides
 		}
 
 
-		void UpdateOnGameplay() override 
-		{		
-			this->CorrectWaveCapacity();
-		}
-
-
 		void UpdateOnHeatChange() override 
 		{
 			this->UpdateSpawnTable();
@@ -362,8 +366,10 @@ namespace CopSpawnOverrides
 		{
 			skipEventSpawns = false;
 
-			if (copLabel == CopLabel::CHASER)
-				this->chaserSpawns.AddVehicle(copVehicle);
+			if (copLabel != CopLabel::CHASER) return;
+
+			this->chaserSpawns.AddVehicle(copVehicle);
+			this->CorrectWaveCapacity();
 		}
 
 
@@ -374,10 +380,35 @@ namespace CopSpawnOverrides
 		) 
 			override
 		{
-			if (copLabel == CopLabel::CHASER)
+			if (copLabel != CopLabel::CHASER) return;
+
+			if (this->chaserSpawns.RemoveVehicle(copVehicle))
 			{
-				if (this->chaserSpawns.RemoveVehicle(copVehicle))
+				if (this->updateCopsLost and this->VehicleHasEngaged(copVehicle))
 					++(this->numCopsLostInWave);
+
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log(this->pursuit, "[SPA] Skipping loss increment");
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [SPA] Unknown chaser vehicle", copVehicle, "in", this->pursuit);
+		}
+
+
+		static void __fastcall NotifyOfWaveReset(const address pursuit)
+		{
+			const auto manager = PursuitCache::GetPointer<ChasersManager::cacheIndex, ChasersManager>(pursuit);
+
+			if (manager)
+			{
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (not manager->waveParametersKnown)
+						Globals::logger.Log(manager->pursuit, "[SPA] Wave parameters now known");
+				}
+
+				manager->waveParametersKnown = true;
+				manager->CorrectWaveCapacity();
 			}
 		}
 
@@ -434,22 +465,19 @@ namespace CopSpawnOverrides
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address copRefillEntrance = 0x4442AE;
-	constexpr address copRefillExit     = 0x4442B6;
+	constexpr address waveResetEntrance = 0x40A9E9;
+	constexpr address waveResetExit     = 0x40A9F3;
 
-	__declspec(naked) void CopRefill()
+	__declspec(naked) void WaveReset()
 	{
 		__asm
 		{
-			cmp dword ptr minActiveCounts.current, 0x0
-			je conclusion // zero is valid engagement count
+			mov dword ptr [esi + 0x14C], 0x0
 
-			inc edx
-			mov dword ptr [esi + 0x184], edx
-			inc eax
+			mov ecx, esi
+			call ChasersManager::NotifyOfWaveReset // ecx: pursuit
 
-			conclusion:
-			jmp dword ptr copRefillExit
+			jmp dword ptr waveResetExit
 		}
 	}
 
@@ -492,8 +520,8 @@ namespace CopSpawnOverrides
 
 	__declspec(naked) void RoadblockSpawn()
 	{
-		static constexpr address roadblockSpawnSkip    = 0x43E031;
 		static constexpr address addVehicleToRoadblock = 0x43C4E0;
+		static constexpr address roadblockSpawnSkip    = 0x43E031;
 
 		__asm
 		{
@@ -627,16 +655,17 @@ namespace CopSpawnOverrides
 		// Heat parameters
 		HeatParameters::Parse<int, int>(parser, "Chasers:Limits", {minActiveCounts, 0}, {maxActiveCounts, 1});
 
-		// Code caves
-		MemoryTools::WriteToByteRange(0x90, 0x4442BC, 6); // wave-capacity increment
-		MemoryTools::WriteToByteRange(0x90, 0x42B76B, 6); // cops-lost increment
+		// Code modifications 
+		MemoryTools::ClearAddressRange(0x4442B8, 0x4442C2); // wave-capacity increment
+		MemoryTools::ClearAddressRange(0x57B186, 0x57B189); // helicopter increment
+		MemoryTools::ClearAddressRange(0x42B74E, 0x42B771); // cops-lost increment
+		MemoryTools::ClearAddressRange(0x4442AC, 0x4442B6); // zero-wave increment
+		MemoryTools::ClearAddressRange(0x4440D7, 0x4440DF); // membership check
 
-		MemoryTools::WriteToAddressRange(0x90, 0x4440D7, 0x4440DF); // membership check
+		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
+		MemoryTools::Write<byte>(0x90, {0x4443E4}); // roadblock increment
 
-		MemoryTools::Write<byte>(0x00, {0x433CB2});           // min. displayed count
-		MemoryTools::Write<byte>(0x90, {0x57B188, 0x4443E4}); // helicopter / roadblock increment
-
-		MemoryTools::DigCodeCave(CopRefill,          copRefillEntrance,          copRefillExit);
+		MemoryTools::DigCodeCave(WaveReset,          waveResetEntrance,          waveResetExit);
 		MemoryTools::DigCodeCave(CopRequest,         copRequestEntrance,         copRequestExit);
 		MemoryTools::DigCodeCave(RequestCheck,       requestCheckEntrance,       requestCheckExit);
 		MemoryTools::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);

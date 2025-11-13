@@ -279,7 +279,7 @@ namespace CopFleeOverrides
 		// Heat parameters
 		HeatParameters::Parse<int>(parser, "Chasers:Fleeing", fleeDelays, {chasersThresholds, 0});
 
-		// Code caves
+		// Code modifications 
 		MemoryTools::DigCodeCave(UpdateFormation, updateFormationEntrance, updateFormationExit);
 
 		// Status flag

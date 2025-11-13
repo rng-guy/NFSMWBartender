@@ -17,7 +17,7 @@ namespace RadioCallsigns
 
 	bool featureEnabled = false;
 
-	// Code caves
+	// Code caves 
 	enum Group // C-style for inline ASM support
 	{
 		UNKNOWN,
@@ -169,7 +169,7 @@ namespace RadioCallsigns
 			copTypeToCallsignGroup.insert({Globals::GetVaultKey(copVehicles[vehicleID].c_str()), group});
 		}
 
-		// Code caves
+		// Code modifications 
 		MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up superfluous stack variable
 
 		MemoryTools::DigCodeCave(CrossCallsign,    crossCallsignEntrance,    crossCallsignExit);

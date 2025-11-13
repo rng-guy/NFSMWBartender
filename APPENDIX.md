@@ -237,15 +237,13 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That is because Bartender's fix makes the engagement count track "Chasers" only, while disregarding any vehicles that join your pursuit through Strategy spawns, from roadblocks, or as helicopters.
 
-* For each Heat level, you should set a `FullEngagementCopCount` VltEd parameter > 0. Otherwise, Bartender may fail to update the displayed engagement count accurately.
-
 * If enabled, this feature set overrides the following `pursuitlevels` VltEd parameters: the `cops` array, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
 &nbsp;
 
 Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
-* A minimum engagement count > 0 allows that many "Chasers" to (re)spawn without backup. This minimum count doesn't spawn cops beyond their `count` values or the global cop-spawn limit.
+* A minimum engagement count > 0 always allows that many "Chasers" to (re)spawn without backup. This minimum count cannot spawn cops beyond their `count` values or the global cop-spawn limit.
 
 * In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the min. engagement count.
 
@@ -255,7 +253,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * If you want to use global cop-spawn limits > 8 and / or make "Chasers" spawns independent of other vehicles, you must also install and configure the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351. This is necessary because the vanilla game becomes unstable if there are too many vehicles present. To configure LA to work with Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file; there, set `PursuitCops` to 255 and disable every single cop-related feature under `[Options]`. After configuring LA like this, use Bartender to set global cop-spawn limits.
 
-* "Chasers" will only flee at Heat levels for which you define valid flee-delay values.
+* "Chasers" only flee at Heat levels for which you define valid flee-delay values.
 
 * Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
 
@@ -347,11 +345,11 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * Bartender can unblock the Strategy-request queue while there is still an active Strategy. Without unblocking, an active Strategy request prevents the game from making a new request. Unblocking allows multiple Strategy requests to spawn at the same time, and they each continue until either their `Duration` VltEd parameters expire or all their vehicles have despawned.
 
-* Unblocking happens whenever a Strategy request leads to a successful spawn.
-
 * Bartender only unblocks requests at Heat levels for which you define valid unblock-delay values.
 
 * Unblock delays longer than a given Strategy's `Duration` VltEd parameter have no effect.
+
+* Unblocking happens after some delay following each successful Strategy spawn.
 
 * The unblock delays of any active Strategy are unaffected by Heat transitions, as their values are locked in as soon as the game spawns said Strategy.
 

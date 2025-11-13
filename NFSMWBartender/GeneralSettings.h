@@ -201,7 +201,7 @@ namespace GeneralSettings
 		HeatParameters::ParseOptional<float>(parser, "Flipping:Time",   copFlipTimeCheckEnableds, {copFlipTimeCheckDelays, .001f});
 		HeatParameters::ParseOptional<float>(parser, "Flipping:Reset",  racerFlipResetEnableds,   {racerFlipResetDelays,   .001f});
 
-		// Code caves
+		// Code modifications 
 		MemoryTools::Write<float*>(&bustRate,              {0x40AEDB});
 		MemoryTools::Write<float*>(&halfEvadeRate,         {0x444A3A});
 		MemoryTools::Write<float*>(&(bustTimers.current),  {0x4445CE});

@@ -21,7 +21,7 @@ namespace StateObserver
 
 	bool featureEnabled = false;
 
-	// Code caves
+	// Code caves 
 	address playerVehicle   = 0x0;
 	bool    playerIsRacing  = false;
 	size_t  playerHeatLevel = 0;
@@ -328,7 +328,7 @@ namespace StateObserver
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		// Code caves
+		// Code modifications 
 		MemoryTools::DigCodeCave(HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
 		MemoryTools::DigCodeCave(GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
 		MemoryTools::DigCodeCave(WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);

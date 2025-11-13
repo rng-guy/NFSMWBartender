@@ -22,8 +22,8 @@ namespace MemoryTools
 	) {
 		constexpr size_t size = sizeof(T);
 
-		void* memoryLocation;
-		DWORD previousSetting;
+		void* memoryLocation  = nullptr;
+		DWORD previousSetting = 0x0;
 
 		for (const address location : locations)
 		{
@@ -37,29 +37,30 @@ namespace MemoryTools
 
 
 
-	void WriteToByteRange
-	(
-		const byte    value,
-		const address start,
-		const size_t  byteRange
-	) {
-		void* memoryLocation  = (void*)start;
-		DWORD previousSetting = 0x0;
-
-		VirtualProtect(memoryLocation, byteRange, PAGE_READWRITE,  &previousSetting);
-		std::memset   (memoryLocation, value,     byteRange);
-		VirtualProtect(memoryLocation, byteRange, previousSetting, &previousSetting);
-	}
-
-
-
 	void WriteToAddressRange
 	(
 		const byte    value,
 		const address start,
 		const address end
 	) {
-		WriteToByteRange(value, start, end - start);
+		const size_t numBytes = end - start;
+
+		void* memoryLocation  = (void*)start;
+		DWORD previousSetting = 0x0;
+
+		VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE, &previousSetting);
+		std::memset   (memoryLocation, value,    numBytes);
+		VirtualProtect(memoryLocation, numBytes, previousSetting, &previousSetting);
+	}
+
+
+
+	void ClearAddressRange
+	(
+		const address start,
+		const address end
+	) {
+		WriteToAddressRange(0x90, start, end);
 	}
 
 
@@ -70,10 +71,10 @@ namespace MemoryTools
 		const address     entrance,
 		const address     exit
 	) {
-		WriteToAddressRange(0x90, entrance, exit); // NOP
-		Write<byte>        (0xE9, {entrance});     // JMP rel16
+		ClearAddressRange(entrance, exit);
+		Write<byte>      (0xE9, {entrance});
 
-		// It is necessary to account for the instruction length and offset
+		// It's necessary to account for the instruction length and offset
 		Write<address>((address)function - (entrance + 5), {entrance + 1});
 	}
 

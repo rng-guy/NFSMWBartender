@@ -18,7 +18,7 @@ namespace DestructionStrings
 
 	bool featureEnabled = false;
 
-	// Code caves
+	// Code caves 
 	binary defaultDestructionKey = 0x0;
 
 	HashContainers::VaultMap<binary> copTypeToDestructionKey;
@@ -94,7 +94,7 @@ namespace DestructionStrings
 			);
 		}
 	
-		// Code caves
+		// Code modifications 
 		MemoryTools::DigCodeCave(CopDestruction, copDestructionEntrance, copDestructionExit);
 
 		// Status flag

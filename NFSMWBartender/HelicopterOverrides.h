@@ -31,7 +31,7 @@ namespace HelicopterOverrides
 
 	HeatParameters::OptionalInterval fuelTimes;
 
-	// Code caves
+	// Code caves 
 	bool hasLimitedFuel    = false;
 	bool skipBailoutSpeech = false;
 
@@ -531,7 +531,7 @@ namespace HelicopterOverrides
 		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
 		HeatParameters::Parse<float>      (parser, "Helicopter:Ramming", {rammingCooldowns, 1.f});
 
-		// Code caves
+		// Code modifications 
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
 
 		MemoryTools::DigCodeCave(FuelUpdate,      fuelUpdateEntrance,      fuelUpdateExit);

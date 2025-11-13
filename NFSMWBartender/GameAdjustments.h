@@ -56,8 +56,8 @@ namespace GameAdjustments
         MemoryTools::Write<float>(0.f, {0x903660});
 
         // Disappearing helicopter mini-map icon
-        MemoryTools::WriteToAddressRange(0x90, 0x579EA2, 0x579EAB);
-		MemoryTools::DigCodeCave        (HelicopterIcon, helicopterIconEntrance, helicopterIconExit);
+        MemoryTools::ClearAddressRange(0x579EA2, 0x579EAB);
+		MemoryTools::DigCodeCave      (HelicopterIcon, helicopterIconEntrance, helicopterIconExit);
 
         // Heat-level reset (credit: ExOptsTeam)
         MemoryTools::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});

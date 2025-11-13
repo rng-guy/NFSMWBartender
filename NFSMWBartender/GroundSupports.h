@@ -525,7 +525,7 @@ namespace GroundSupports
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy4:Vehicles", {heavy4LightVehicles}, {heavy4HeavyVehicles});
 		HeatParameters::Parse<std::string, std::string>(parser, "Leader:Vehicles", {leaderCrossVehicles}, {leaderHenchmenVehicles});
 
-		// Code caves
+		// Code modifications 
 		MemoryTools::Write<float*>(&(minRoadblockCooldowns.current), {0x419548});
 
 		MemoryTools::DigCodeCave(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);

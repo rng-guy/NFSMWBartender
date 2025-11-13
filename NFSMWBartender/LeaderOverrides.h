@@ -358,10 +358,10 @@ namespace LeaderOverrides
 		HeatParameters::Parse<>(parser, "Leader:WreckReset",  wreckResetDelays);
 		HeatParameters::Parse<>(parser, "Leader:LostReset",   lostResetDelays);
 
-		// Code caves
-		MemoryTools::WriteToAddressRange(0x90, 0x42B6A2, 0x42B6B4); // Cross flag = 0
-		MemoryTools::WriteToAddressRange(0x90, 0x42402A, 0x424036); // Cross flag = 1
-		MemoryTools::WriteToAddressRange(0x90, 0x42B631, 0x42B643); // Cross flag = 2
+		// Code modifications
+		MemoryTools::ClearAddressRange(0x42B6A2, 0x42B6B4); // Cross flag = 0
+		MemoryTools::ClearAddressRange(0x42402A, 0x424036); //              1
+		MemoryTools::ClearAddressRange(0x42B631, 0x42B643); //              2
 
 		// Status flag
 		featureEnabled = true;

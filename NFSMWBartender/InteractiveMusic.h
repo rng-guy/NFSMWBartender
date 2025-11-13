@@ -194,7 +194,7 @@ namespace InteractiveMusic
 		parser.ParseParameter<bool>(section, "shuffleFirstTrack", shuffleFirstTrack);
 		parser.ParseParameter<bool>(section, "shuffleAfterFirst", shuffleAfterFirst);
 
-		// Code caves
+		// Code modifications 
 		MemoryTools::DigCodeCave(FirstTrack,      firstTrackEntrance,      firstTrackExit);
 		MemoryTools::DigCodeCave(NextTrack,       nextTrackEntrance,       nextTrackExit);
 		MemoryTools::DigCodeCave(MainTransition,  mainTransitionEntrance,  mainTransitionExit);

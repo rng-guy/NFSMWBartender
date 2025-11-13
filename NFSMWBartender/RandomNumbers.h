@@ -112,32 +112,28 @@ namespace RandomNumbers
 	public:
 
 		template <std::integral T>
-		T GenerateNumber
+		constexpr T GenerateNumber
 		(
 			const T min,
 			const T max
 		) {
-			std::uniform_int_distribution<T> distribution(min, max);
-
-			return distribution(this->engine);
+			return std::uniform_int_distribution<T>{min, max}(this->engine);
 		}
 
 
 		template <std::floating_point T>
-		T GenerateNumber
+		constexpr T GenerateNumber
 		(
 			const T min,
 			const T max
 		) {
-			std::uniform_real_distribution<T> distribution(min, max);
-
-			return distribution(this->engine);
+			return std::uniform_real_distribution<T>{min, max}(this->engine);
 		}
 
 
-		size_t GenerateIndex(const size_t size)
+		constexpr size_t GenerateIndex(const size_t size)
 		{
-			return (size > 1) ? this->GenerateNumber<size_t>(1, size) - 1 : 0;
+			return (size > 1) ? this->GenerateNumber<size_t>(0, size - 1) : 0;
 		}
 	};
 }

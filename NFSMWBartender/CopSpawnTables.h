@@ -244,7 +244,7 @@ namespace CopSpawnTables
 	HeatParameters::Pair<SpawnTable> chaserSpawnTables;
 	HeatParameters::Pair<SpawnTable> roadblockSpawnTables;
 
-	// Code caves
+	// Code caves 
 	int currentMaxCopCapacity = 0;
 
 

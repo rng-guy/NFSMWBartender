@@ -338,12 +338,13 @@ namespace StrategyOverrides
 		{
 			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
 
-			if (not manager) return;
+			if (manager)
+			{
+				manager->StopUnblockTimer();
 
-			manager->StopUnblockTimer();
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[STR] Active Strategy cleared");
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log(pursuit, "[STR] Active Strategy cleared");
+			}
 		}
 
 
@@ -566,12 +567,12 @@ namespace StrategyOverrides
 		HeatParameters::Parse<>(parser, "Leader5:Unblocking", leader5UnblockDelays);
 		HeatParameters::Parse<>(parser, "Leader7:Unblocking", leader7UnblockDelays);
 
-		// Code caves
-		MemoryTools::Write<byte>   (0xE9,   {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
-		MemoryTools::Write<address>(0x02A3, {0x44384B});
+		// Code modifications 
+		MemoryTools::Write<byte>   (0xE9,  {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
+		MemoryTools::Write<address>(0x2A3, {0x44384B});
 		
-		MemoryTools::WriteToAddressRange(0x90, 0x4240BD, 0x4240C3); // OnAttached increment
-		MemoryTools::WriteToAddressRange(0x90, 0x42B71B, 0x42B72E); // OnDetached decrement
+		MemoryTools::ClearAddressRange(0x4240BD, 0x4240C3); // OnAttached increment
+		MemoryTools::ClearAddressRange(0x42B717, 0x42B72E); // OnDetached decrement
 
 		MemoryTools::DigCodeCave(GoalReset,      goalResetEntrance,      goalResetExit);
 		MemoryTools::DigCodeCave(ClearRequest,   clearRequestEntrance,   clearRequestExit);
