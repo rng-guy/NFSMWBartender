@@ -9,6 +9,7 @@
 #include "MemoryTools.h"
 #include "HashContainers.h"
 #include "HeatParameters.h"
+
 #include "CopSpawnTables.h"
 #include "PursuitFeatures.h"
 #include "CopSpawnOverrides.h"
@@ -57,7 +58,7 @@ namespace PursuitObserver
 			case 0x40B02A: // roadblock cop after spike-strip hit
 				[[fallthrough]];
 
-			case 0x4443D8: // lone roadblock cop
+			case 0x4443D8: // regular roadblock cop
 				return CopLabel::ROADBLOCK;
 
 			case 0x41F7E6: // LeaderStrategy spawn
@@ -214,40 +215,27 @@ namespace PursuitObserver
 			const address copVehicle,
 			const address caller
 		) {
+			const CopLabel copLabel = PursuitObserver::LabelAddVehicleCall(caller);
+
+			if (copLabel != CopLabel::HELICOPTER)
+				PursuitObserver::RegisterVehicle(copVehicle);
+
 			const auto observer = PursuitCache::GetPointer<PursuitObserver::cacheIndex, PursuitObserver>(pursuit);
 
 			if (not observer) return;
 
-			const CopLabel copLabel     = PursuitObserver::LabelAddVehicleCall(caller);
-			const auto     addedVehicle = observer->copVehicleToLabel.insert({copVehicle, copLabel});
+			const auto addedVehicle = observer->copVehicleToLabel.insert({copVehicle, copLabel});
 
-			if (not addedVehicle.second)
+			if (addedVehicle.second)
 			{
 				if constexpr (Globals::loggingEnabled)
-				{
-					Globals::logger.Log
-					(
-						pursuit,
-						"[OBS] =",
-						copVehicle,
-						(int)copLabel,
-						PursuitFeatures::GetVehicleName(copVehicle),
-						"is already",
-						(int)(addedVehicle.first->second)
-					);
-				}
+					Globals::logger.Log(pursuit, "[OBS] +", copVehicle, (int)copLabel, PursuitFeatures::GetVehicleName(copVehicle));
 
-				return;
+				for (const auto& reaction : observer->pursuitReactions)
+					reaction->ReactToAddedVehicle(copVehicle, copLabel);
 			}
-
-			if (copLabel != CopLabel::HELICOPTER)
-				observer->RegisterVehicle(copVehicle);
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[OBS] +", copVehicle, (int)copLabel, PursuitFeatures::GetVehicleName(copVehicle));
-
-			for (const auto& reaction : observer->pursuitReactions)
-				reaction->ReactToAddedVehicle(copVehicle, copLabel);
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(pursuit, "[OBS] =", copVehicle, (int)copLabel, "is already", (int)(addedVehicle.first->second));		
 		}
 
 

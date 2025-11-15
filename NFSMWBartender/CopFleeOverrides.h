@@ -4,8 +4,9 @@
 #include "MemoryTools.h"
 #include "HashContainers.h"
 #include "HeatParameters.h"
-#include "PursuitFeatures.h"
+
 #include "CopSpawnTables.h"
+#include "PursuitFeatures.h"
 
 
 
