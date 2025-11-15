@@ -199,13 +199,13 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before the game can make non-Strategy roadblock and Strategy requests in a given pursuit.
 
-* Vehicles joining pursuits from roadblocks after some time is vanilla behaviour, but the age threshold usually makes it a rare event because most roadblocks despawn too early.
+* Time-based joining from roadblocks only happens at Heat levels for which you define valid time values, and has no bearing on other methods through which roadblock vehicles may join. Only the time racers spend near a roadblock counts towards the trigger for this joining method.
 
-* You shouldn't use low roadblock-age thresholds (< 20 seconds) for roadblock vehicles to join pursuits: Too many vehicles joining can cause game instability, as they ignore spawn limits.
+* Both the definition of when a racer is "near" a roadblock and how many vehicles per roadblock join apply to all methods through which roadblock vehicles can join pursuits.
 
-* Age-based joining from roadblocks only happens at Heat levels for which you define valid age and distance values, and has no bearing on other means by which roadblock vehicles may join.
+* Roadblock vehicles can react to racers entering "COOLDOWN" mode and / or spike-strip hits. For the former, some vehicles join the pursuit immediately; for the latter, all of them do.
 
-* Roadblock vehicles can react to racers entering "COOLDOWN" mode and / or spike-strip hits. For the former, one vehicle joins the pursuit; for the latter, all of them join the pursuit.
+* You shouldn't make roadblock vehicles join pursuits too frequently. Too many vehicles joining can cause game instability, as roadblock vehicles ignore all spawn limits.
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 

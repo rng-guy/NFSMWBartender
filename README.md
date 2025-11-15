@@ -35,7 +35,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * which ground supports the cops can request in non-player pursuits,
 * the internal cooldown between non-Strategy roadblock requests,
 * the internal cooldown between Heavy / LeaderStrategy requests,
-* when exactly (if at all) and below what distance roadblock vehicles can join pursuits,
+* under which circumstances (if at all) roadblock vehicles can join pursuits,
 * whether roadblock vehicles react to racers entering "COOLDOWN" mode and / or hitting spikes,
 * whether HeavyStrategy 3 requests interact with roadblock requests and spawns,
 * which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
@@ -92,10 +92,15 @@ The "Advanced" feature set **lets you change** (per Heat level)
 
 &nbsp;
 
+The "Advanced" feature set **also lets you change** (in general)
+* which cop types increment / decrement the engagement count shown above the pursuit board.
+
+&nbsp;
+
 The "Advanced" feature set **fixes three bugs / issues**:
 * non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer disabled in races,
 * early Strategy despawns or cancellations no longer stall the game from making new requests, and
-* the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
+* the engagement count shown above the pursuit board now counts all tracked cops accurately.
 
 &nbsp;
 
@@ -155,7 +160,7 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.01.00, you must replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.02.00, replace all old configuration files.
 
 &nbsp;
 

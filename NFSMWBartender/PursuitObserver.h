@@ -262,30 +262,18 @@ namespace PursuitObserver
 
 			const auto foundVehicle = observer->copVehicleToLabel.find(copVehicle);
 
-			if (foundVehicle == observer->copVehicleToLabel.end())
+			if (foundVehicle != observer->copVehicleToLabel.end())
 			{
 				if constexpr (Globals::loggingEnabled)
-				{
-					Globals::logger.Log
-					(
-						"WARNING: [OBS] Unknown vehicle",
-						copVehicle,
-						PursuitFeatures::GetVehicleName(copVehicle),
-						"in",
-						pursuit
-					);
-				}
+					Globals::logger.Log(pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), PursuitFeatures::GetVehicleName(copVehicle));
 
-				return;
+				for (const auto& reaction : observer->pursuitReactions)
+					reaction->ReactToRemovedVehicle(copVehicle, foundVehicle->second);
+
+				observer->copVehicleToLabel.erase(foundVehicle);
 			}
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), PursuitFeatures::GetVehicleName(copVehicle));
-
-			for (const auto& reaction : observer->pursuitReactions)
-				reaction->ReactToRemovedVehicle(copVehicle, foundVehicle->second);
-
-			observer->copVehicleToLabel.erase(foundVehicle);
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [OBS] Unknown vehicle", copVehicle, PursuitFeatures::GetVehicleName(copVehicle), "in", pursuit);
 		}
 
 
@@ -312,7 +300,7 @@ namespace PursuitObserver
 
 		static void __fastcall UnregisterVehicle(const address copVehicle)
 		{
-			const bool wasRegistered = (PursuitObserver::copVehiclesLoaded.erase(copVehicle) > 0);
+			const bool wasRegistered = PursuitObserver::copVehiclesLoaded.erase(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -328,7 +316,7 @@ namespace PursuitObserver
 		static void ClearVehicleRegistrations()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogIndent("[REG] Clearing all vehicles loaded");
+				Globals::logger.LogIndent("[REG] Clearing all registrations");
 
 			PursuitObserver::copVehiclesLoaded.clear();
 		}
@@ -621,7 +609,11 @@ namespace PursuitObserver
 	{
 		if (not featureEnabled) return;
 
-		CopSpawnTables     ::Validate();
+		CopSpawnTables::Validate();
+
+		if constexpr (Globals::loggingEnabled)
+			CopSpawnOverrides::LogConfigurationReport();
+
 		HelicopterOverrides::Validate();
 	}
 

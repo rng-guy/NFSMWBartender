@@ -44,6 +44,18 @@ static void ApplyBartender()
 
 
 
+// Credit: thelink2012 and MWisBest
+static bool IsExecutableCompatible()
+{
+    const auto base = (uintptr_t)(GetModuleHandleA(NULL));
+    const auto dos  = (PIMAGE_DOS_HEADER)base;
+    const auto nt   = (PIMAGE_NT_HEADERS)(base + dos->e_lfanew);
+
+    return (nt->OptionalHeader.AddressOfEntryPoint == 0x3C4040);
+}
+
+
+
 
 
 // DLL hook boilerplate -----------------------------------------------------------------------------------------------------------------------------
@@ -54,8 +66,16 @@ BOOL WINAPI DllMain
     DWORD     fdwReason,
     LPVOID    lpvReserved
 ) {
-    if (fdwReason == DLL_PROCESS_ATTACH) 
-        ApplyBartender();
+    if (fdwReason == DLL_PROCESS_ATTACH)
+    {
+        if (not IsExecutableCompatible())
+        {
+            MessageBoxA(NULL, "This .exe is not compatible with Bartender.\nSee Bartender's README for help.", "NFSMW Bartender", MB_ICONERROR);
+
+            return FALSE;
+        }
+        else ApplyBartender();
+    }   
 
     return TRUE;
 }

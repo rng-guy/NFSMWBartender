@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "HashContainers.h"
@@ -202,6 +204,11 @@ namespace CopSpawnOverrides
 	HeatParameters::Pair<int> minActiveCounts(1);
 	HeatParameters::Pair<int> maxActiveCounts(8);
 
+	// Pursuit-board tracking
+	bool trackHeavyVehicles           = false;
+	bool trackLeaderVehicles          = false;
+	bool trackJoinedRoadblockVehicles = false;
+
 	// Code caves 
 	bool skipEventSpawns = true;
 
@@ -223,10 +230,12 @@ namespace CopSpawnOverrides
 	private:
 
 		int  maxNumPatrolCars    = 0;
+		int  numActiveNonChasers = 0;
 		bool waveParametersKnown = false;
 
-		int& fullWaveCapacity  = *((int*)(this->pursuit + 0x144));
-		int& numCopsLostInWave = *((int*)(this->pursuit + 0x14C));
+		int& fullWaveCapacity       = *((int*)(this->pursuit + 0x144));
+		int& numCopsLostInWave      = *((int*)(this->pursuit + 0x14C));
+		int& numCopsToTriggerBackup = *((int*)(this->pursuit + 0x148));
 
 		const int&   pursuitStatus  = *((int*)(this->pursuit + 0x218));
 		const bool&  isPerpBusted   = *((bool*)(this->pursuit + 0xE8));
@@ -278,7 +287,12 @@ namespace CopSpawnOverrides
 
 		int GetWaveCapacity() const
 		{
-			return this->fullWaveCapacity - (this->numCopsLostInWave + this->chaserSpawns.GetNumActiveCops());
+			int waveCapacity = this->fullWaveCapacity - (this->numCopsLostInWave + this->chaserSpawns.GetNumActiveCops());
+
+			if (this->waveParametersKnown)
+				waveCapacity -= this->numActiveNonChasers;
+
+			return waveCapacity;
 		}
 
 
@@ -315,12 +329,30 @@ namespace CopSpawnOverrides
 		}
 
 
-		static bool VehicleHasEngaged(const address copVehicle)
+		static bool HasVehicleEngaged(const address copVehicle)
 		{
 			static const auto FindObject = (address (__thiscall*)(address, address))0x5D59F0;
 
 			const address pursuitVehicle = FindObject(copVehicle - 0x9C, 0x4038E0); // fetches AIVehiclePursuit
 			return (pursuitVehicle) ? *((bool*)(pursuitVehicle + 0x22)) : false;
+		}
+
+
+		static bool IsTrackedOnPursuitBoard(const CopLabel copLabel)
+		{
+			switch (copLabel)
+			{
+			case CopLabel::HEAVY:
+				return trackHeavyVehicles;
+
+			case CopLabel::LEADER:
+				return trackLeaderVehicles;
+
+			case CopLabel::ROADBLOCK:
+				return trackJoinedRoadblockVehicles;
+			}
+
+			return false;
 		}
 
 
@@ -366,10 +398,21 @@ namespace CopSpawnOverrides
 		{
 			skipEventSpawns = false;
 
-			if (copLabel != CopLabel::CHASER) return;
+			if (copLabel == CopLabel::CHASER)
+			{
+				this->chaserSpawns.AddVehicle(copVehicle);
+				this->CorrectWaveCapacity();
+			}
+			else if (this->IsTrackedOnPursuitBoard(copLabel))
+			{
+				++(this->numActiveNonChasers);
 
-			this->chaserSpawns.AddVehicle(copVehicle);
-			this->CorrectWaveCapacity();
+				if (this->waveParametersKnown)
+				{
+					++(this->fullWaveCapacity);
+					++(this->numCopsToTriggerBackup);
+				}
+			}
 		}
 
 
@@ -380,18 +423,29 @@ namespace CopSpawnOverrides
 		) 
 			override
 		{
-			if (copLabel != CopLabel::CHASER) return;
-
-			if (this->chaserSpawns.RemoveVehicle(copVehicle))
+			if (copLabel == CopLabel::CHASER)
 			{
-				if (this->updateCopsLost and this->VehicleHasEngaged(copVehicle))
-					++(this->numCopsLostInWave);
+				if (this->chaserSpawns.RemoveVehicle(copVehicle))
+				{
+					if (this->updateCopsLost and this->HasVehicleEngaged(copVehicle))
+						++(this->numCopsLostInWave);
 
+					else if constexpr (Globals::loggingEnabled)
+						Globals::logger.Log(this->pursuit, "[SPA] Skipping loss increment");
+				}
 				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[SPA] Skipping loss increment");
+					Globals::logger.Log("WARNING: [SPA] Unknown chaser vehicle", copVehicle, "in", this->pursuit);
 			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] Unknown chaser vehicle", copVehicle, "in", this->pursuit);
+			else if (this->IsTrackedOnPursuitBoard(copLabel))
+			{
+				--(this->numActiveNonChasers);
+
+				if (this->waveParametersKnown)
+				{
+					--(this->fullWaveCapacity);
+					--(this->numCopsToTriggerBackup);
+				}		
+			}
 		}
 
 
@@ -407,7 +461,10 @@ namespace CopSpawnOverrides
 						Globals::logger.Log(manager->pursuit, "[SPA] Wave parameters now known");
 				}
 
-				manager->waveParametersKnown = true;
+				manager->waveParametersKnown     = true;
+				manager->fullWaveCapacity       += manager->numActiveNonChasers;
+				manager->numCopsToTriggerBackup += manager->numActiveNonChasers;
+
 				manager->CorrectWaveCapacity();
 			}
 		}
@@ -655,6 +712,13 @@ namespace CopSpawnOverrides
 		// Heat parameters
 		HeatParameters::Parse<int, int>(parser, "Chasers:Limits", {minActiveCounts, 0}, {maxActiveCounts, 1});
 
+		// Pursuit-board tracking
+		const std::string section = "Board:Tracking";
+
+		parser.ParseParameter<bool>(section, "heavyStrategyVehicles",   trackHeavyVehicles);
+		parser.ParseParameter<bool>(section, "leaderStrategyVehicles",  trackLeaderVehicles);
+		parser.ParseParameter<bool>(section, "joinedRoadblockVehicles", trackJoinedRoadblockVehicles);
+
 		// Code modifications 
 		MemoryTools::ClearAddressRange(0x4442B8, 0x4442C2); // wave-capacity increment
 		MemoryTools::ClearAddressRange(0x57B186, 0x57B189); // helicopter increment
@@ -719,5 +783,18 @@ namespace CopSpawnOverrides
 
 		eventSpawns    .ClearVehicles();
 		roadblockSpawns.ClearVehicles();
+	}
+
+
+
+	void LogConfigurationReport()
+	{
+		if (not featureEnabled) return;
+
+		Globals::logger.Log("  CONFIG [SPA] CopSpawnOverrides");
+
+		Globals::logger.LogLongIndent("HeavyStrategy tracked:   ", trackHeavyVehicles);
+		Globals::logger.LogLongIndent("LeaderStrategy tracked:  ", trackLeaderVehicles);
+		Globals::logger.LogLongIndent("Joined roadblock tracked:", trackJoinedRoadblockVehicles);
 	}
 }

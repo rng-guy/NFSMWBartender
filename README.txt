@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.01.08) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.02.00) │ ■ ────────────────────────────────────────────────────
 
 View this document with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -32,7 +32,7 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • which ground supports the cops can request in non-player pursuits,
  • the internal cooldown between non-Strategy roadblock requests,
  • the internal cooldown between Heavy / LeaderStrategy requests,
- • when exactly (if at all) and below what distance roadblock vehicles can join pursuits,
+ • under which circumstances (if at all) roadblock vehicles can join pursuits,
  • whether roadblock vehicles react to racers entering "COOLDOWN" mode and / or hitting spikes,
  • whether HeavyStrategy 3 requests interact with roadblock requests and spawns,
  • which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
@@ -80,10 +80,13 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
  • when exactly (if at all) the game can request a new Strategy while another is still active.
 
+The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
+ • which cop types increment / decrement the engagement count shown above the pursuit board.
+
 The "Advanced" feature set FIXES THREE BUGS / ISSUES:
  • non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer disabled in races,
  • early Strategy despawns or cancellations no longer stall the game from making new requests, and
- • the engagement count shown above the pursuit board now (accurately) counts chasing cops only.
+ • the engagement count shown above the pursuit board now counts all tracked cops accurately.
 
 
 
@@ -131,7 +134,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v2.01.00, you must replace all old configuration files.
+If you update from a version older than v2.02.00, replace all old configuration files.
 
 
 
