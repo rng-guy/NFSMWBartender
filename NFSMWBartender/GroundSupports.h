@@ -271,19 +271,31 @@ namespace GroundSupports
 
 
 
-	constexpr address spikesHitReactionEntrance = 0x63BB92;
-	constexpr address spikesHitReactionExit     = 0x63BB98;
+	constexpr address spikesHitReactionEntrance = 0x63BB9E;
+	constexpr address spikesHitReactionExit     = 0x63BBA6;
 
 	__declspec(naked) void SpikesHitReaction()
 	{
+		static constexpr float maxJoinRange = 80.f; // metres
+
 		__asm
 		{
 			// Execute original code first
+			call dword ptr [edx + 0xA0]
 			test eax, eax
-			mov dword ptr [esp + 0x10], eax
-			je conclusion // no pursuit or roadblock
+			je conclusion // no pursuit
 
 			cmp byte ptr reactToSpikesHits.current, 0x0
+			je conclusion // reaction disabled
+
+			mov edx, eax
+
+			fld dword ptr [edx + 0x7C]
+			fcomp dword ptr maxJoinRange
+			fnstsw ax
+			test ah, ah
+
+			mov eax, edx
 
 			conclusion:
 			jmp dword ptr spikesHitReactionExit
@@ -500,31 +512,6 @@ namespace GroundSupports
 
 
 
-	constexpr address spikesHitEntrance = 0x40AFCC;
-	constexpr address spikesHitExit     = 0x40AFD4;
-
-	__declspec(naked) void SpikesHit()
-	{
-		static constexpr float maxTriggerRange = 80.f; // metres
-
-		__asm
-		{
-			// Execute original code first
-			cmp dword ptr [edi + 0x23C], 0x0
-			jne conclusion // vehicles have already joined
-
-			fld dword ptr maxTriggerRange
-			fcomp dword ptr [edi + 0x7C]
-			fnstsw ax
-			test ah, 0x1
-			
-			conclusion:
-			jmp dword ptr spikesHitExit
-		}
-	}
-
-
-
 
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
@@ -589,7 +576,6 @@ namespace GroundSupports
 		MemoryTools::DigCodeCave(OnAttached,           onAttachedEntrance,           onAttachedExit);
 		MemoryTools::DigCodeCave(OnDetached,           onDetachedEntrance,           onDetachedExit);
         MemoryTools::DigCodeCave(LeaderSub,            leaderSubEntrance,            leaderSubExit);
-		MemoryTools::DigCodeCave(SpikesHit,            spikesHitEntrance,            spikesHitExit);
         
 		// Status flag
 		featureEnabled = true;
