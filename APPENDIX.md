@@ -205,7 +205,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Roadblock vehicles can react to racers entering "COOLDOWN" mode and / or spike-strip hits. For the former, some vehicles join the pursuit immediately; for the latter, all of them do.
 
-* You shouldn't make roadblock vehicles join pursuits too frequently. Too many vehicles joining can cause game instability, as roadblock vehicles ignore all spawn limits.
+* If you make roadblock vehicles join pursuits frequently, then you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351. That's because roadblock vehicles ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear.
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
@@ -251,9 +251,11 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
-* If you want to use global cop-spawn limits > 8 and / or make "Chasers" spawns independent of other vehicles, you must also install and configure the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) (LA) by Zolika1351. This is necessary because the vanilla game becomes unstable if there are too many vehicles present. To configure LA to work with Bartender, open LA's `NFSMWLimitAdjuster.ini` configuration file; there, set `PursuitCops` to 255 and disable every single cop-related feature under `[Options]`. After configuring LA like this, use Bartender to set global cop-spawn limits.
+* If you want to use global cop-spawn limits > 8 and / or make "Chasers" spawns independent of other vehicles, then you also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
 
-* "Chasers" only flee at Heat levels for which you define valid flee-delay values.
+* Very small spawning clearances for "Chasers" may sometimes cause congested roads.
+
+* "Chasers" only flee at Heat levels for which you define valid flee-delay values. A given "Chaser" also only flees if it isn't in the current Heat level's "Chasers" spawn table, and only if there would be enough active "Chasers" left in the pursuit afterwards.
 
 * Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
 
@@ -357,4 +359,4 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * It is generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
 
-* You shouldn't use short unblock delays for HeavyStrategy 3. Having too many overlapping HeavyStrategy 3 spawns can lead to game instability since they ignore all spawn limits. It's often better to just use a lower (~20 seconds) `Duration` VltEd parameter instead.
+* If you use short unblock delays for HeavyStrategy 3, then you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351. That's because HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear. Using lower (~20 seconds) `Duration` VltEd parameters instead is a safe alternative.

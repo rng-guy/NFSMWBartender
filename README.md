@@ -11,8 +11,9 @@ The sections below **address these questions** in detail:
 1. [What does the "Basic" feature set do?](#1---what-does-the-basic-feature-set-do)
 2. [What does the "Advanced" feature set do?](#2---what-does-the-advanced-feature-set-do)
 3. [What mods are (in)compatible with Bartender?](#3---what-mods-are-incompatible-with-bartender)
-4. [How do I install Bartender for my game?](#4---how-do-i-install-bartender-for-my-game)
-5. [How may I share or bundle Bartender?](#5---how-may-i-share-or-bundle-bartender)
+4. [What other mods does Bartender depend on?](#4---what-other-mods-does-bartender-depend-on)
+5. [How do I install Bartender for my game?](#5---how-do-i-install-bartender-for-my-game)
+6. [How may I share or bundle Bartender?](#6---how-may-i-share-or-bundle-bartender)
 
 &nbsp;
 
@@ -70,9 +71,10 @@ The "Basic" feature set **fixes six bugs / issues**:
 # 2 - What does the "Advanced" feature set do?
 
 The "Advanced" feature set **lets you change** (per Heat level)
-* how many chasing cops can (re)spawn without backup once a wave of reinforcements is exhausted,
+* how many chasing cops can (re)spawn regardless of the remaining engagement count,
 * the global cop-spawn limit for how many chasing cops in total may be active at any given time,
 * whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
+* how far away new chasing cops must spawn from all already active cops,
 * when exactly (if at all) and how many chasing cops from other Heat levels can flee the pursuit,
 * which vehicles (any amount, with counts and chances) may spawn to chase and search for racers,
 * which vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
@@ -123,7 +125,7 @@ Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-releas
 Most **other .asi mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
 * In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable the `HeatLevelOverride` feature.
 * In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable the `EnableCopDestroyedStringHook` feature.
-* In [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, disable every cop-related feature under `[Options]`.
+* For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#4---what-other-mods-does-bartender-depend-on) below.
 
 &nbsp;
 
@@ -133,10 +135,32 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 
 
 
-# 4 - How do I install Bartender for my game?
+# 4 - What other mods does Bartender depend on?
+
+Bartender **may depend on** the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351 for game stability. You generally only need that mod if you ever encounter (partially) invisible cops in pursuits. Invisible cops are only likely to appear if you configure some Bartender features in certain ways:
+* `[Chasers:Limits]` (`Cars.ini`): You set any Heat's global cop-spawn limit > 8.
+* `[Chasers:Independence]` (`Cars.ini`): You enable independent spawns at any Heat.
+* `[Joining:Definitions]` (`Supports.ini`): You make joining from roadblocks very frequent.
+* `[Heavy3:Unblocking]` (`Strategies.ini`): You define short unblock delays at any Heat.
+
+&nbsp;
+ 
+To make [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) **compatible with Bartender**:
+1. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set the `PursuitCops` parameter to 255; and
+2. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+
+# 5 - How do I install Bartender for my game?
 
 **Before installing** Bartender:
-1. make sure you have read and understood the [section about mod (in)compatibility](#3---what-mods-are-(in)compatible-with-bartender) above,
+1. read and understand the two sections about [mod (in)compatibilities](#3---what-mods-are-incompatible-with-bartender) and [dependencies](#4---what-other-mods-does-bartender-depend-on) above,
 2. make sure your game's `speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
 3. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
 
@@ -170,7 +194,7 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 
 
 
-# 5 - How may I share or bundle Bartender?
+# 6 - How may I share or bundle Bartender?
 
 You are free to bundle Bartender and its files with your own pursuit mod, **no credit required**. In the interest of code transparency, however, consider linking to [Bartender's GitHub repository](https://github.com/rng-guy/NFSMWBartender) somewhere in your mod's documentation (e.g. README).
 

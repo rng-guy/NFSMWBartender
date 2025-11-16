@@ -11,8 +11,9 @@ The sections below ADDRESS THESE QUESTIONS in detail:
  1) • What does the "Basic" feature set do?
  2) • What does the "Advanced" feature set do?
  3) • What mods are (in)compatible with Bartender?
- 4) • How do I install Bartender for my game?
- 5) • How may I share or bundle Bartender?
+ 4) • What other mods does Bartender depend on?
+ 5) • How do I install Bartender for my game?
+ 6) • How may I share or bundle Bartender?
 
 
 
@@ -60,9 +61,10 @@ The "Basic" feature set FIXES SIX BUGS / ISSUES:
 ── ■ │ 2 - WHAT DOES THE "ADVANCED" FEATURE SET DO? │ ■ ───────────────────────────────────────────
 
 The "Advanced" feature set LETS YOU CHANGE (per Heat level)
- • how many chasing cops can (re)spawn without backup once a wave of reinforcements is exhausted,
+ • how many chasing cops can (re)spawn regardless of the remaining engagement count,
  • the global cop-spawn limit for how many chasing cops in total may be active at any given time,
  • whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
+ • how far away new chasing cops must spawn from all already active cops,
  • when exactly (if at all) and how many chasing cops from other Heat levels can flee the pursuit,
  • which vehicles (any amount, with counts and chances) may spawn to chase and search for racers,
  • which vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
@@ -106,17 +108,36 @@ Most OTHER .ASI MODS should be fully compatible with all Bartender configuration
 However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
  • In "NFSMW ExtraOptions" by ExOptsTeam, disable the "HeatLevelOverride" feature.
  • In "NFSMW Unlimiter" by nlgxzef, disable the "EnableCopDestroyedStringHook" feature.
- • In "NFSMW LimitAdjuster" by Zolika1351, disable every cop-related feature under "[Options]".
+ • For "NFSMW LimitAdjuster" by Zolika1351 see the section about dependencies below.
 
 
 
 
 
 
-── ■ │ 4 - HOW DO I INSTALL BARTENDER FOR MY GAME? │ ■ ────────────────────────────────────────────
+── ■ │ 4 - WHAT OTHER MODS DOES BARTENDER DEPEND ON? │ ■ ──────────────────────────────────────────
+
+Bartender MAY DEPEND ON the "NFSMW LimitAdjuster" mod by Zolika1351 for game stability.
+You generally only need that mod if you ever encounter (partially) invisible cops in pursuits.
+Invisible cops are only likely to appear if you configure some Bartender features in certain ways:
+ • "[Chasers:Limits]"       ("Cars.ini"):       You set any Heat's global cop-spawn limit > 8.
+ • "[Chasers:Independence]" ("Cars.ini"):       You enable independent spawns at any Heat.
+ • "[Joining:Definitions]"  ("Supports.ini"):   You make joining from roadblocks very frequent.
+ • "[Heavy3:Unblocking]"    ("Strategies.ini"): You define short unblock delays at any Heat.
+ 
+To make "NFSMW LimitAdjuster" COMPATIBLE WITH BARTENDER:
+ 1) • under "[Limits]" in "NFSMWLimitAdjuster.ini", set the "PursuitCops" parameter to 255; and
+ 2) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature.
+
+
+
+
+
+
+── ■ │ 5 - HOW DO I INSTALL BARTENDER FOR MY GAME? │ ■ ────────────────────────────────────────────
 
 BEFORE INSTALLING Bartender:
- 1) • make sure you have read and understood the section about mod (in)compatibility above,
+ 1) • read and understand the two sections about mod (in)compatibilities and dependencies above,
  2) • make sure your game's "speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
  3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 
@@ -141,7 +162,7 @@ If you update from a version older than v2.02.00, replace all old configuration 
 
 
 
-── ■ │ 5 - HOW MAY I SHARE OR BUNDLE BARTENDER? │ ■ ───────────────────────────────────────────────
+── ■ │ 6 - HOW MAY I SHARE OR BUNDLE BARTENDER? │ ■ ───────────────────────────────────────────────
 
 You are free to bundle Bartender and its files with your own pursuit mod, NO CREDIT REQUIRED.
 In the interest of code transparency, however, consider linking to Bartender's GitHub repository 

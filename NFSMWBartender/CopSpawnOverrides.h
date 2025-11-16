@@ -205,13 +205,16 @@ namespace CopSpawnOverrides
 	HeatParameters::Pair<int> minActiveCounts(1);
 	HeatParameters::Pair<int> maxActiveCounts(8);
 
+	HeatParameters::Pair<float> copSpawnClearances(40.f); // metres
+
 	// Pursuit-board tracking
 	bool trackHeavyVehicles           = false;
 	bool trackLeaderVehicles          = false;
 	bool trackJoinedRoadblockVehicles = false;
 
 	// Code caves 
-	bool skipEventSpawns = true;
+	bool  skipEventSpawns          = true;
+	float squaredCopSpawnClearance = copSpawnClearances.current * copSpawnClearances.current;
 
 	Contingent eventSpawns    (CopSpawnTables::eventSpawnTables);
 	Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTables);
@@ -711,7 +714,8 @@ namespace CopSpawnOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
 		// Heat parameters
-		HeatParameters::Parse<int, int>(parser, "Chasers:Limits", {minActiveCounts, 0}, {maxActiveCounts, 1});
+		HeatParameters::Parse<int, int>(parser, "Chasers:Limits",    {minActiveCounts, 0}, {maxActiveCounts, 1});
+		HeatParameters::Parse<float>   (parser, "Chasers:Clearance", {copSpawnClearances, 0.f});
 
 		// Pursuit-board tracking
 		const std::string section = "Board:Tracking";
@@ -721,15 +725,17 @@ namespace CopSpawnOverrides
 		parser.ParseParameter<bool>(section, "joinedRoadblockVehicles", trackJoinedRoadblockVehicles);
 
 		// Code modifications 
+		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
+		MemoryTools::Write<byte>(0x90, {0x4443E4}); // roadblock increment
+
+		MemoryTools::Write<float*>(&squaredCopSpawnClearance, {0x41A13B});
+
 		MemoryTools::ClearAddressRange(0x4442B8, 0x4442C2); // wave-capacity increment
 		MemoryTools::ClearAddressRange(0x57B186, 0x57B189); // helicopter increment
 		MemoryTools::ClearAddressRange(0x42B74E, 0x42B771); // cops-lost increment
 		MemoryTools::ClearAddressRange(0x4442AC, 0x4442B6); // zero-wave increment
 		MemoryTools::ClearAddressRange(0x4440D7, 0x4440DF); // membership check
-
-		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
-		MemoryTools::Write<byte>(0x90, {0x4443E4}); // roadblock increment
-
+		
 		MemoryTools::DigCodeCave(WaveReset,          waveResetEntrance,          waveResetExit);
 		MemoryTools::DigCodeCave(CopRequest,         copRequestEntrance,         copRequestExit);
 		MemoryTools::DigCodeCave(RequestCheck,       requestCheckEntrance,       requestCheckExit);
@@ -749,7 +755,9 @@ namespace CopSpawnOverrides
 	void LogHeatReport()
 	{
 		Globals::logger.Log          ("    HEAT [SPA] CopSpawnOverrides");
+
 		Globals::logger.LogLongIndent("activeCount             ", minActiveCounts.current, "to", maxActiveCounts.current);
+		Globals::logger.LogLongIndent("copSpawnClearance       ", copSpawnClearances.current);
 	}
 
 
@@ -761,14 +769,18 @@ namespace CopSpawnOverrides
 	) {
 		if (not featureEnabled) return;
 
-		minActiveCounts.SetToHeat(isRacing, heatLevel);
-		maxActiveCounts.SetToHeat(isRacing, heatLevel);
-
-		if (isRacing) 
+		if (isRacing)
 			skipEventSpawns = false;
 
 		eventSpawns    .UpdateSpawnTable();
 		roadblockSpawns.UpdateSpawnTable();
+
+		minActiveCounts.SetToHeat(isRacing, heatLevel);
+		maxActiveCounts.SetToHeat(isRacing, heatLevel);
+
+		copSpawnClearances.SetToHeat(isRacing, heatLevel);
+
+		squaredCopSpawnClearance = copSpawnClearances.current * copSpawnClearances.current;
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();

@@ -15,7 +15,7 @@ namespace GeneralSettings
 
 	// Heat levels
 	HeatParameters::Pair<float> bountyIntervals     (10.f); // seconds
-	HeatParameters::Pair<int>   maxBountyMultipliers(3);    // kills
+	HeatParameters::Pair<int>   maxBountyMultipliers(3);
 
 	HeatParameters::Pair<float> maxBustDistances(15.f); // metres
 	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
