@@ -138,14 +138,14 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 # 4 - What other mods does Bartender depend on?
 
 Bartender **may depend on** the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351 for game stability. You generally only need that mod if you ever encounter (partially) invisible cops in pursuits. Invisible cops are only likely to appear if you configure some Bartender features in certain ways:
-* `[Chasers:Limits]` (`Cars.ini`): You set any Heat's global cop-spawn limit > 8.
-* `[Chasers:Independence]` (`Cars.ini`): You enable independent spawns at any Heat.
-* `[Joining:Definitions]` (`Supports.ini`): You make joining from roadblocks very frequent.
-* `[Heavy3:Unblocking]` (`Strategies.ini`): You define short unblock delays at any Heat.
+* `[Chasers:Limits]` in `Cars.ini`: You set any a global cop-spawn limit > 8 for any Heat.
+* `[Chasers:Independence]` in `Cars.ini`: You enable independent spawns for any Heat.
+* `[Joining:Definitions]` in `Supports.ini`: You make joining from roadblocks very frequent.
+* `[Heavy3:Unblocking]` in `Strategies.ini`: You define short unblock delays for any Heat.
 
 &nbsp;
  
-To make [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) **compatible with Bartender**:
+**To configure** the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) for optimal compatibility with Bartender:
 1. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set the `PursuitCops` parameter to 255; and
 2. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature.
 
