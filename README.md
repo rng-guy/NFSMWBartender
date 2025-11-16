@@ -3,7 +3,7 @@
 
 Bartender adds **new customisation options** to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in two feature sets:
 * the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
-* the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/AECx4WNqfCI).
+* the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/k3mRxXFMim0).
 
 &nbsp;
 

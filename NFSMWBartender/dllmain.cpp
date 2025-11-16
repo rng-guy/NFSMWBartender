@@ -44,9 +44,9 @@ static void ApplyBartender()
 
 
 
-// Credit: thelink2012 and MWisBest
 static bool IsExecutableCompatible()
 {
+    // Credit: thelink2012 and MWisBest
     const auto base = (uintptr_t)(GetModuleHandleA(NULL));
     const auto dos  = (PIMAGE_DOS_HEADER)base;
     const auto nt   = (PIMAGE_NT_HEADERS)(base + dos->e_lfanew);
@@ -62,9 +62,9 @@ static bool IsExecutableCompatible()
 
 BOOL WINAPI DllMain
 (
-    HINSTANCE hinstDLL,
-    DWORD     fdwReason,
-    LPVOID    lpvReserved
+    const HINSTANCE hinstDLL,
+    const DWORD     fdwReason,
+    const LPVOID    lpvReserved
 ) {
     if (fdwReason == DLL_PROCESS_ATTACH)
     {
