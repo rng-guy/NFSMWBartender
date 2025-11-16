@@ -95,14 +95,14 @@ The "Advanced" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Advanced" feature set **also lets you change** (in general)
-* which cop types increment / decrement the engagement count shown above the pursuit board.
+* which cop types are tracked by the engagement count shown above the pursuit board.
 
 &nbsp;
 
 The "Advanced" feature set **fixes three bugs / issues**:
 * non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer disabled in races,
 * early Strategy despawns or cancellations no longer stall the game from making new requests, and
-* the engagement count shown above the pursuit board now counts all tracked cops accurately.
+* the engagement count shown above the pursuit board now always tracks all cops accurately.
 
 &nbsp;
 
