@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.02.02) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.02.03) │ ■ ────────────────────────────────────────────────────
 
 View this document with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -30,7 +30,7 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • whether player-damaged cop vehicles are destroyed instantly if flipped over,
  • when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
  • when exactly (if at all) racer vehicles are reset if flipped over,
- • which ground supports the cops can request in non-player pursuits,
+ • which of the enabled ground supports the cops may request in non-player pursuits,
  • the internal cooldown between non-Strategy roadblock requests,
  • the internal cooldown between Heavy / LeaderStrategy requests,
  • under which conditions and to what extent (if at all) roadblock vehicles can join pursuits,
@@ -117,12 +117,12 @@ However, some pursuit-related .asi mods require manual (re)configuration for com
 
 ── ■ │ 4 - WHAT OTHER MODS DOES BARTENDER DEPEND ON? │ ■ ──────────────────────────────────────────
 
-Bartender MAY REQUIRE the "NFSMW LimitAdjuster" mod by Zolika1351 under certain conditions.
+Under certain conditions, Bartender MAY REQUIRE the "NFSMW LimitAdjuster" mod by Zolika1351.
 Specifically, you likely need that mod if you configure Bartender in any of the following ways:
  • "[Chasers:Limits]"       in "Cars.ini"      : You define a global cop-spawn limit > 8.
  • "[Chasers:Independence]" in "Cars.ini"      : You enable independent spawns for chasing cops.
  • "[Joining:Definitions]"  in "Supports.ini"  : You make joining from roadblocks frequent.
- • "[Heavy3:Unblocking]"    in "Strategies.ini": You define short unblock delays.
+ • "[Heavy3:Unblocking]"    in "Strategies.ini": You define very short unblock delays.
  
 TO CONFIGURE the "NFSMW LimitAdjuster" mod for optimal compatibility with Bartender:
  1) • under "[Limits]" in "NFSMWLimitAdjuster.ini", set the "PursuitCops" parameter to 255; and

@@ -33,7 +33,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * whether player-damaged cop vehicles are destroyed instantly if flipped over,
 * when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
 * when exactly (if at all) racer vehicles are reset if flipped over,
-* which ground supports the cops can request in non-player pursuits,
+* which of the enabled ground supports the cops may request in non-player pursuits,
 * the internal cooldown between non-Strategy roadblock requests,
 * the internal cooldown between Heavy / LeaderStrategy requests,
 * under which conditions and to what extent (if at all) roadblock vehicles can join pursuits,
@@ -137,11 +137,11 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 
 # 4 - What other mods does Bartender depend on?
 
-Bartender **may require** the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351 under certain conditions. Specifically, you likely need that mod if you configure Bartender in any of the following ways:
+Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351. Specifically, you likely need that mod if you configure Bartender in any of the following ways:
 * `[Chasers:Limits]` in `Cars.ini`: You define a global cop-spawn limit > 8.
 * `[Chasers:Independence]` in `Cars.ini`: You enable independent spawns for chasing cops.
 * `[Joining:Definitions]` in `Supports.ini`: You make joining from roadblocks frequent.
-* `[Heavy3:Unblocking]` in `Strategies.ini`: You define short unblock delays.
+* `[Heavy3:Unblocking]` in `Strategies.ini`: You define very short unblock delays.
 
 &nbsp;
  
