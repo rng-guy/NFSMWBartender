@@ -31,9 +31,8 @@ namespace GeneralSettings
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current; // seconds
-
-	float halfEvadeRate = .5f / evadeTimers.current; // Hertz
-	float bustRate      = 1.f / bustTimers.current;
+	float halfEvadeRate   = .5f / evadeTimers.current;     // hertz
+	float bustRate        = 1.f / bustTimers.current;
 
 
 

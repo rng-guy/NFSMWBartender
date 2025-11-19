@@ -201,7 +201,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Time-based joining from roadblocks only happens at Heat levels for which you define valid time values, and has no bearing on other methods through which roadblock vehicles may join. Only the time racers spend near a roadblock counts towards the trigger for this joining method.
 
-* Both the definition of when a racer is "near" a roadblock and how many vehicles per roadblock join apply to all methods through which roadblock vehicles can join pursuits.
+* Both the definition of when a racer is "near" a roadblock and how many vehicles join per roadblock apply to all methods through which roadblock vehicles can join pursuits.
 
 * Roadblock vehicles can react to racers entering "COOLDOWN" mode and / or spike-strip hits. For the former, some vehicles join the pursuit immediately; for the latter, all of them do.
 
@@ -243,7 +243,9 @@ Regarding the "Advanced" feature set **as a whole**:
 
 Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
-* A minimum engagement count > 0 always allows that many "Chasers" to (re)spawn without backup. This minimum count cannot spawn cops beyond their `count` values or the global cop-spawn limit.
+* The engagement count shown above the pursuit board is purely cosmetic: Bartender tracks all "Chasers" accurately behind the scenes and ensures that backups trigger as intended.
+
+* Under no circumstances can minimum counts cause more "Chasers" spawns than otherwise possible; they respect the current global cop-spawn limit and the `count` values in the "Chasers" table.
 
 * In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the min. engagement count.
 
@@ -251,11 +253,11 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
-* If you want to use global cop-spawn limits > 8 and / or make "Chasers" spawns independent of other vehicles, then you also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
+* If you want to use global cop-spawn limits > 8 and / or make "Chasers" spawns independent of other vehicles, you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
 
-* Very small spawning clearances for "Chasers" may sometimes cause congested roads.
+* Very small spawning clearances for "Chasers" may lead to overly congested roads.
 
-* "Chasers" only flee at Heat levels for which you define valid flee-delay values. A given "Chaser" also only flees if it isn't in the current Heat level's "Chasers" spawn table, and only if there would be enough active "Chasers" left in the pursuit afterwards.
+* "Chasers" only flee at Heat levels for which you define valid flee-delay values. "Chasers" also only flee if they aren't in the current Heat level's "Chasers" spawn table, and if there would be enough active "Chasers" remaining in the pursuit after their retreat.
 
 * Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
 

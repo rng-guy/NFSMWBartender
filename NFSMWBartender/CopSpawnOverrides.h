@@ -213,11 +213,13 @@ namespace CopSpawnOverrides
 	bool trackJoinedRoadblockVehicles = false;
 
 	// Code caves 
-	bool  skipEventSpawns          = true;
-	float squaredCopSpawnClearance = copSpawnClearances.current * copSpawnClearances.current;
-
+	bool skipEventSpawns = true;
+	
 	Contingent eventSpawns    (CopSpawnTables::eventSpawnTables);
 	Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTables);
+
+	// Conversions
+	float squaredCopSpawnClearance = copSpawnClearances.current * copSpawnClearances.current;
 
 
 
@@ -320,16 +322,19 @@ namespace CopSpawnOverrides
 		{
 			if (not PursuitFeatures::heatLevelKnown) return false;
 
-			if (this->isPerpBusted)                                               return false;
-			if (this->bailingPursuit)                                             return false;
-			if (this->spawnCooldown > 0.f)                                        return false;
-			if (not this->chaserSpawns.HasAvailableCop())                         return false;
-			if (this->chaserSpawns.GetNumActiveCops() >= maxActiveCounts.current) return false;
+			if (this->isPerpBusted)        return false;
+			if (this->bailingPursuit)      return false;
+			if (this->spawnCooldown > 0.f) return false;
+
+			if (not this->chaserSpawns.HasAvailableCop()) return false;
+
+			const int numActiveChasers = this->chaserSpawns.GetNumActiveCops();
+			if (numActiveChasers >= maxActiveCounts.current) return false;
 
 			if (this->IsSearchModeActive())
-				return (this->chaserSpawns.GetNumActiveCops() < this->maxNumPatrolCars);
+				return (numActiveChasers < this->maxNumPatrolCars);
 
-			return ((this->GetWaveCapacity() > 0) or (this->chaserSpawns.GetNumActiveCops() < minActiveCounts.current));
+			return ((numActiveChasers < minActiveCounts.current) or (this->GetWaveCapacity() > 0));
 		}
 
 
@@ -660,7 +665,7 @@ namespace CopSpawnOverrides
 			mov ecx, offset eventSpawns
 			call Contingent::GetNameOfSpawnableCop
 			mov ebp, eax
-			jmp conclusion
+			jmp conclusion // cop replaced
 
 			retain:
 			mov ebp, dword ptr [esp + 0x74]

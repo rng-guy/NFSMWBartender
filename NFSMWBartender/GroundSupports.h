@@ -311,12 +311,14 @@ namespace GroundSupports
 	{
 		__asm
 		{
+			xor edi, edi
+
 			mov ecx, esi
 			call SetRandomStrategy // ecx: pursuit
 			test al, al
 			je conclusion          // no Strategy set
 
-			mov edi, -0x1
+			dec edi
 
 			conclusion:
 			jmp dword ptr strategySelectionExit
