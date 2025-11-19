@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.02.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.02.02) │ ■ ────────────────────────────────────────────────────
 
 View this document with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -119,11 +119,11 @@ However, some pursuit-related .asi mods require manual (re)configuration for com
 
 Bartender MAY DEPEND ON the "NFSMW LimitAdjuster" mod by Zolika1351 for game stability.
 You generally only need that mod if you ever encounter (partially) invisible cops in pursuits.
-Invisible cops are only likely to appear if you configure some Bartender features in certain ways:
- • "[Chasers:Limits]"       in "Cars.ini"      : You define a global cop-spawn limit > 8 anywhere.
- • "[Chasers:Independence]" in "Cars.ini"      : You enable independent spawns for cops anywhere.
- • "[Joining:Definitions]"  in "Supports.ini"  : You make joining from roadblock frequent anywhere.
- • "[Heavy3:Unblocking]"    in "Strategies.ini": You define short unblock delays anywhere.
+Invisible cops are likely to appear if you configure certain Bartender features in specific ways:
+ • "[Chasers:Limits]"       in "Cars.ini"      : You define a global cop-spawn limit > 8.
+ • "[Chasers:Independence]" in "Cars.ini"      : You enable independent spawns for chasing cops.
+ • "[Joining:Definitions]"  in "Supports.ini"  : You make joining from roadblocks frequent.
+ • "[Heavy3:Unblocking]"    in "Strategies.ini": You define short unblock delays.
  
 TO CONFIGURE the "NFSMW LimitAdjuster" mod for optimal compatibility with Bartender:
  1) • under "[Limits]" in "NFSMWLimitAdjuster.ini", set the "PursuitCops" parameter to 255; and
