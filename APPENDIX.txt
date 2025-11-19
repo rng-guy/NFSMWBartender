@@ -587,4 +587,4 @@ v1.00.00: Initial release
       07: Slightly improved efficiency of "Advanced" feature set
 
    02.00: Added more roadblock and "Chasers" behaviour features, and fixed a rare tracking issue
-      01: Added missing documentation for cop tracking and fixed extremely rare Strategy issue
+      01: Added missing documentation for cop tracking and fixed an extremely rare Strategy issue
