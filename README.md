@@ -137,7 +137,7 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 
 # 4 - What other mods does Bartender depend on?
 
-Bartender **may depend on** the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351 for game stability. You generally only need that mod if you ever encounter (partially) invisible cops in pursuits. Invisible cops are likely to appear if you configure certain Bartender features in specific ways:
+Bartender **may require** the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351 under certain conditions. Specifically, you likely need that mod if you configure Bartender in any of the following ways:
 * `[Chasers:Limits]` in `Cars.ini`: You define a global cop-spawn limit > 8.
 * `[Chasers:Independence]` in `Cars.ini`: You enable independent spawns for chasing cops.
 * `[Joining:Definitions]` in `Supports.ini`: You make joining from roadblocks frequent.
