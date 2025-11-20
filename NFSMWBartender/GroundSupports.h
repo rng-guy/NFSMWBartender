@@ -436,15 +436,13 @@ namespace GroundSupports
 
 			cmp dword ptr [eax], 0x3
 			mov eax, dword ptr heavy3LightVehicles.current
-			je conclusion  // is HeavyStrategy 3
-			mov eax, dword ptr heavy4LightVehicles.current
-			jmp conclusion // is HeavyStrategy 4
+			cmovne eax, dword ptr heavy4LightVehicles.current
+			jmp conclusion // was "light" variant
 
 			heavy:
 			cmp dword ptr [eax], 0x3
 			mov eax, dword ptr heavy3HeavyVehicles.current
-			je conclusion
-			mov eax, dword ptr heavy4HeavyVehicles.current
+			cmovne eax, dword ptr heavy4HeavyVehicles.current
 
 			conclusion:
 			jmp dword ptr rhinoSelectorExit

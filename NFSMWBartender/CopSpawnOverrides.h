@@ -564,6 +564,27 @@ namespace CopSpawnOverrides
 
 
 
+	constexpr address copClearanceEntrance = 0x41A139;
+	constexpr address copClearanceExit     = 0x41A13F;
+
+	__declspec(naked) void CopClearance()
+	{
+		__asm
+		{
+			mov edx, 0x891064
+			mov eax, offset squaredCopSpawnClearance
+
+			cmp byte ptr [esp + 0x2C], 0x0
+			cmove edx, eax
+
+			fcomp dword ptr [edx]
+
+			jmp dword ptr copClearanceExit
+		}
+	}
+
+
+
 	constexpr address requestCheckEntrance = 0x426C56;
 	constexpr address requestCheckExit     = 0x426C5F;
 
@@ -733,8 +754,6 @@ namespace CopSpawnOverrides
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
 		MemoryTools::Write<byte>(0x90, {0x4443E4}); // roadblock increment
 
-		MemoryTools::Write<float*>(&squaredCopSpawnClearance, {0x41A13B});
-
 		MemoryTools::ClearAddressRange(0x4442B8, 0x4442C2); // wave-capacity increment
 		MemoryTools::ClearAddressRange(0x57B186, 0x57B189); // helicopter increment
 		MemoryTools::ClearAddressRange(0x42B74E, 0x42B771); // cops-lost increment
@@ -743,6 +762,7 @@ namespace CopSpawnOverrides
 		
 		MemoryTools::DigCodeCave(WaveReset,          waveResetEntrance,          waveResetExit);
 		MemoryTools::DigCodeCave(CopRequest,         copRequestEntrance,         copRequestExit);
+		MemoryTools::DigCodeCave(CopClearance,       copClearanceEntrance,       copClearanceExit);
 		MemoryTools::DigCodeCave(RequestCheck,       requestCheckEntrance,       requestCheckExit);
 		MemoryTools::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
 		MemoryTools::DigCodeCave(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);

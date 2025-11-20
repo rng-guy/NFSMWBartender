@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.02.03) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.02.04) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -590,3 +590,4 @@ v1.00.00: Initial release
       01: Added missing documentation for cop tracking and fixed an extremely rare Strategy issue
       02: Corrected a few annoying (albeit very minor) oversights and ambiguities in README
       03: I should REALLY stop reading my own documentation, because it's driving me insane
+      04: Fixed a rare, unintentional side effect of new spawn-clearance feature
