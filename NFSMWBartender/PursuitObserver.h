@@ -229,13 +229,13 @@ namespace PursuitObserver
 			if (addedVehicle.second)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(pursuit, "[OBS] +", copVehicle, (int)copLabel, PursuitFeatures::GetVehicleName(copVehicle));
+					Globals::logger.Log(pursuit, "[OBS] +", copVehicle, copLabel, Globals::GetVehicleName(copVehicle));
 
 				for (const auto& reaction : observer->pursuitReactions)
 					reaction->ReactToAddedVehicle(copVehicle, copLabel);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[OBS] =", copVehicle, (int)copLabel, "is already", (int)(addedVehicle.first->second));		
+				Globals::logger.Log(pursuit, "[OBS] =", copVehicle, copLabel, "is already", addedVehicle.first->second);		
 		}
 
 
@@ -253,7 +253,7 @@ namespace PursuitObserver
 			if (foundVehicle != observer->copVehicleToLabel.end())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(pursuit, "[OBS] -", copVehicle, (int)(foundVehicle->second), PursuitFeatures::GetVehicleName(copVehicle));
+					Globals::logger.Log(pursuit, "[OBS] -", copVehicle, foundVehicle->second, Globals::GetVehicleName(copVehicle));
 
 				for (const auto& reaction : observer->pursuitReactions)
 					reaction->ReactToRemovedVehicle(copVehicle, foundVehicle->second);
@@ -261,7 +261,7 @@ namespace PursuitObserver
 				observer->copVehicleToLabel.erase(foundVehicle);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [OBS] Unknown vehicle", copVehicle, PursuitFeatures::GetVehicleName(copVehicle), "in", pursuit);
+				Globals::logger.Log("WARNING: [OBS] Unknown vehicle", copVehicle, Globals::GetVehicleName(copVehicle), "in", pursuit);
 		}
 
 
@@ -279,7 +279,7 @@ namespace PursuitObserver
 			{
 				if (isNew)
 				{
-					Globals::logger.LogIndent("[REG] +", copVehicle, PursuitFeatures::GetVehicleName(copVehicle));
+					Globals::logger.LogIndent("[REG] +", copVehicle, Globals::GetVehicleName(copVehicle));
 					Globals::logger.LogIndent("[REG] Vehicles loaded:", (int)(PursuitObserver::GetNumRegisteredVehicles()));
 				}
 			}
@@ -294,7 +294,7 @@ namespace PursuitObserver
 			{
 				if (wasRegistered)
 				{
-					Globals::logger.LogIndent("[REG] -", copVehicle, PursuitFeatures::GetVehicleName(copVehicle));
+					Globals::logger.LogIndent("[REG] -", copVehicle, Globals::GetVehicleName(copVehicle));
 					Globals::logger.LogIndent("[REG] Vehicles loaded:", (int)(PursuitObserver::GetNumRegisteredVehicles()));
 				}
 			}
@@ -325,55 +325,18 @@ namespace PursuitObserver
 
 
 
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	size_t GetNumActiveVehicles()
+	{
+		return (spawnsAreIndependents.current) ? 0 : PursuitObserver::GetNumRegisteredVehicles();
+	}
+
+
+
+
+
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
-
-	constexpr address eventSpawnEntrance = 0x42E8A8;
-	constexpr address eventSpawnExit     = 0x42E8AF;
-
-	__declspec(naked) void EventSpawn()
-	{
-		__asm
-		{
-			test al, al
-			je conclusion // spawn failed
-
-			push esi // copVehicle
-			mov ecx, offset CopSpawnOverrides::eventSpawns
-			call CopSpawnOverrides::Contingent::AddVehicle
-
-			mov ecx, esi
-			call PursuitObserver::RegisterVehicle // ecx: copVehicle
-
-			mov al, 0x1
-
-			conclusion:
-			// Execute original code and resume
-			mov ecx, dword ptr [esp + 0x314]
-
-			jmp dword ptr eventSpawnExit
-		}
-	}
-
-
-
-	constexpr address patrolSpawnEntrance = 0x430E37;
-	constexpr address patrolSpawnExit     = 0x430E3D;
-
-	__declspec(naked) void PatrolSpawn()
-	{
-		__asm
-		{
-			mov ecx, edi
-			call PursuitObserver::RegisterVehicle // ecx: copVehicle
-
-			// Execute original code and resume
-			inc dword ptr [ebp + 0x94]
-
-			jmp dword ptr patrolSpawnExit
-		}
-	}
-
-
 
 	constexpr address pursuitConstructorEntrance = 0x4432D0;
 	constexpr address pursuitConstructorExit     = 0x4432D7;
@@ -448,6 +411,86 @@ namespace PursuitObserver
 
 
 
+	constexpr address copSpawnLimitEntrance = 0x43EB84;
+	constexpr address copSpawnLimitExit     = 0x43EB90;
+
+	__declspec(naked) void CopSpawnLimit()
+	{
+		__asm
+		{
+			call GetNumActiveVehicles
+			cmp eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
+
+			jmp dword ptr copSpawnLimitExit
+		}
+	}
+
+
+
+	constexpr address densityFlagEntrance = 0x426C4E;
+	constexpr address densityFlagExit     = 0x426C54;
+
+	__declspec(naked) void DensityFlag()
+	{
+		__asm
+		{
+			call GetNumActiveVehicles
+			cmp eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
+
+			jmp dword ptr densityFlagExit
+		}
+	}
+
+
+
+	constexpr address patrolSpawnEntrance = 0x430E37;
+	constexpr address patrolSpawnExit     = 0x430E3D;
+
+	__declspec(naked) void PatrolSpawn()
+	{
+		__asm
+		{
+			mov ecx, edi
+			call PursuitObserver::RegisterVehicle // ecx: copVehicle
+
+			// Execute original code and resume
+			inc dword ptr [ebp + 0x94]
+
+			jmp dword ptr patrolSpawnExit
+		}
+	}
+
+
+
+	constexpr address eventSpawnEntrance = 0x42E8A8;
+	constexpr address eventSpawnExit     = 0x42E8AF;
+
+	__declspec(naked) void EventSpawn()
+	{
+		__asm
+		{
+			test al, al
+			je conclusion // spawn failed
+
+			push esi // copVehicle
+			mov ecx, offset CopSpawnOverrides::eventSpawns
+			call CopSpawnOverrides::Contingent::AddVehicle
+
+			mov ecx, esi
+			call PursuitObserver::RegisterVehicle // ecx: copVehicle
+
+			mov al, 0x1
+
+			conclusion:
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x314]
+
+			jmp dword ptr eventSpawnExit
+		}
+	}
+
+
+
 	constexpr address copAddedEntrance = 0x4338A0;
 	constexpr address copAddedExit     = 0x4338A5;
 
@@ -498,56 +541,6 @@ namespace PursuitObserver
 
 
 
-	constexpr address mainSpawnLimitEntrance = 0x43EB84;
-	constexpr address mainSpawnLimitExit     = 0x43EB90;
-
-	__declspec(naked) void MainSpawnLimit()
-	{
-		__asm
-		{
-			cmp byte ptr spawnsAreIndependents.current, 0x1
-			je independent // chasers are independent
-
-			call PursuitObserver::GetNumRegisteredVehicles
-			jmp conclusion // chasers weren't independent
-
-			independent:
-			xor eax, eax
-
-			conclusion:
-			cmp eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
-
-			jmp dword ptr mainSpawnLimitExit
-		}
-	}
-
-
-
-	constexpr address otherSpawnLimitEntrance = 0x426C4E;
-	constexpr address otherSpawnLimitExit     = 0x426C54;
-
-	__declspec(naked) void OtherSpawnLimit()
-	{
-		__asm
-		{
-			cmp byte ptr spawnsAreIndependents.current, 0x1
-			je independent // chasers are independent
-
-			call PursuitObserver::GetNumRegisteredVehicles
-			jmp conclusion // chasers weren't independent
-
-			independent:
-			xor eax, eax
-
-			conclusion:
-			cmp eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
-
-			jmp dword ptr otherSpawnLimitExit
-		}
-	}
-
-
-
 
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
@@ -569,21 +562,20 @@ namespace PursuitObserver
 		LeaderOverrides    ::Initialise(parser);
 		
 		// Code modifications 
-		MemoryTools::Write<byte>      (0x9E, {0x44319C});   // helicopter respawn-timer initialisation
-		MemoryTools::ClearAddressRange(0x443E77, 0x443E87); // update
-		MemoryTools::ClearAddressRange(0x42B6B4, 0x42B6DF); // reset
+		MemoryTools::Write<byte>(0x9E, {0x44319C}); // helicopter respawn-timer initialisation
 
-		MemoryTools::DigCodeCave(EventSpawn,  eventSpawnEntrance,  eventSpawnExit);
-		MemoryTools::DigCodeCave(PatrolSpawn, patrolSpawnEntrance, patrolSpawnExit);
+		MemoryTools::MakeRangeNOP(0x443E77, 0x443E87); // helicopter respawn-timer update
+		MemoryTools::MakeRangeNOP(0x42B6B4, 0x42B6DF); // reset
 
-		MemoryTools::DigCodeCave(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
-		MemoryTools::DigCodeCave(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
-		MemoryTools::DigCodeCave(VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);
-		MemoryTools::DigCodeCave(CopRemoved,         copRemovedEntrance,         copRemovedExit);
-		MemoryTools::DigCodeCave(CopAdded,           copAddedEntrance,           copAddedExit);
-
-		MemoryTools::DigCodeCave(MainSpawnLimit,  mainSpawnLimitEntrance,  mainSpawnLimitExit);
-		MemoryTools::DigCodeCave(OtherSpawnLimit, otherSpawnLimitEntrance, otherSpawnLimitExit);
+		MemoryTools::MakeRangeJMP(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
+		MemoryTools::MakeRangeJMP(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
+		MemoryTools::MakeRangeJMP(VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);
+		MemoryTools::MakeRangeJMP(CopSpawnLimit,      copSpawnLimitEntrance,      copSpawnLimitExit);
+		MemoryTools::MakeRangeJMP(DensityFlag,        densityFlagEntrance,        densityFlagExit);
+		MemoryTools::MakeRangeJMP(PatrolSpawn,        patrolSpawnEntrance,        patrolSpawnExit);
+		MemoryTools::MakeRangeJMP(EventSpawn,         eventSpawnEntrance,         eventSpawnExit);
+		MemoryTools::MakeRangeJMP(CopRemoved,         copRemovedEntrance,         copRemovedExit);
+		MemoryTools::MakeRangeJMP(CopAdded,           copAddedEntrance,           copAddedExit);
 
 		// Status flag
 		featureEnabled = true;

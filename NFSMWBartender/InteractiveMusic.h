@@ -195,10 +195,10 @@ namespace InteractiveMusic
 		parser.ParseParameter<bool>(section, "shuffleAfterFirst", shuffleAfterFirst);
 
 		// Code modifications 
-		MemoryTools::DigCodeCave(FirstTrack,      firstTrackEntrance,      firstTrackExit);
-		MemoryTools::DigCodeCave(NextTrack,       nextTrackEntrance,       nextTrackExit);
-		MemoryTools::DigCodeCave(MainTransition,  mainTransitionEntrance,  mainTransitionExit);
-		MemoryTools::DigCodeCave(OtherTransition, otherTransitionEntrance, otherTransitionExit);
+		MemoryTools::MakeRangeJMP(FirstTrack,      firstTrackEntrance,      firstTrackExit);
+		MemoryTools::MakeRangeJMP(NextTrack,       nextTrackEntrance,       nextTrackExit);
+		MemoryTools::MakeRangeJMP(MainTransition,  mainTransitionEntrance,  mainTransitionExit);
+		MemoryTools::MakeRangeJMP(OtherTransition, otherTransitionEntrance, otherTransitionExit);
 
 		// Status flag
 		featureEnabled = true;

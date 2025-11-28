@@ -47,21 +47,14 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov eax, dword ptr maxBountyMultipliers.current
-
-			cmp dword ptr [esi + 0xF0], eax
-			je conclusion // at current limit
-			jg reset      // above
-
+			mov ecx, dword ptr maxBountyMultipliers.current
 			mov eax, dword ptr [esi + 0xF0]
+
 			inc eax
+			cmp eax, ecx
+			cmovl ecx, eax // count below maximum
 
-			reset:
-			mov dword ptr [esi + 0xF0], eax
-
-			conclusion:
-			// Execute original code and resume
-			mov ecx, dword ptr [esi + 0xF0]
+			mov dword ptr [esi + 0xF0], ecx
 
 			jmp dword ptr copComboExit
 		}
@@ -135,8 +128,8 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			sub eax, ebx  // accounts for short intervals
-			je conclusion // not yet at interval threshold
+			sub eax, ebx   // accounts for short intervals
+			jle conclusion // below threshold
 
 			imul eax, dword ptr [esi + 0x174]
 
@@ -159,19 +152,17 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			fldz
+			mov edx, offset maxBustDistances.current
+			mov ecx, 0x890968 // 0.f
+
+			fld dword ptr [ecx]
 			fcomp dword ptr [esi + 0x168] // EVADE progress
 			fnstsw ax
 			test ah, 0x1
-			jne obstructed                // in EVADE state
+			cmovne edx, ecx               // in EVADE state
+			
+			fld dword ptr [edx]
 
-			fld dword ptr maxBustDistances.current
-			jmp conclusion
-
-			obstructed:
-			fldz
-
-			conclusion:
 			// Execute original code and resume
 			test bl, bl
 
@@ -184,6 +175,20 @@ namespace GeneralSettings
 
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
+
+	void ApplyFixes()
+	{
+		static bool fixesApplied = false;
+
+		if (fixesApplied) return;
+
+		// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
+		MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
+
+		fixesApplied = true;
+	}
+
+
 
     bool Initialise(HeatParameters::Parser& parser)
     {
@@ -207,11 +212,12 @@ namespace GeneralSettings
 		MemoryTools::Write<float*>(&bountyFrequency,       {0x444513, 0x444524});
 		MemoryTools::Write<float*>(&(evadeTimers.current), {0x4448E6, 0x444802, 0x4338F8});
 
-		MemoryTools::DigCodeCave(CopCombo,        copComboEntrance,        copComboExit);
-		MemoryTools::DigCodeCave(CopFlipping,     copFlippingEntrance,     copFlippingExit);
-		MemoryTools::DigCodeCave(RacerFlipping,   racerFlippingEntrance,   racerFlippingExit);
-		MemoryTools::DigCodeCave(PassiveBounty,   passiveBountyEntrance,   passiveBountyExit);
-        MemoryTools::DigCodeCave(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
+		MemoryTools::MakeRangeJMP(CopCombo,      copComboEntrance,      copComboExit);
+		MemoryTools::MakeRangeJMP(CopFlipping,   copFlippingEntrance,   copFlippingExit);
+		MemoryTools::MakeRangeJMP(RacerFlipping, racerFlippingEntrance, racerFlippingExit);
+		MemoryTools::MakeRangeJMP(PassiveBounty, passiveBountyEntrance, passiveBountyExit);
+
+		ApplyFixes();
 
 		// Status flag
 		featureEnabled = true;

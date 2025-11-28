@@ -572,18 +572,18 @@ namespace StrategyOverrides
 		MemoryTools::Write<byte>   (0xE9,  {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
 		MemoryTools::Write<address>(0x2A3, {0x44384B});
 		
-		MemoryTools::ClearAddressRange(0x4240BD, 0x4240C3); // OnAttached increment
-		MemoryTools::ClearAddressRange(0x42B717, 0x42B72E); // OnDetached decrement
+		MemoryTools::MakeRangeNOP(0x4240BD, 0x4240C3); // OnAttached increment
+		MemoryTools::MakeRangeNOP(0x42B717, 0x42B72E); // OnDetached decrement
 
-		MemoryTools::DigCodeCave(GoalReset,      goalResetEntrance,      goalResetExit);
-		MemoryTools::DigCodeCave(ClearRequest,   clearRequestEntrance,   clearRequestExit);
-		MemoryTools::DigCodeCave(LeaderStrategy, leaderStrategyEntrance, leaderStrategyExit);
-		MemoryTools::DigCodeCave(HeavyStrategy3, heavyStrategy3Entrance, heavyStrategy3Exit);
-		MemoryTools::DigCodeCave(HeavyStrategy4, heavyStrategy4Entrance, heavyStrategy4Exit);
+		MemoryTools::MakeRangeJMP(GoalReset,      goalResetEntrance,      goalResetExit);
+		MemoryTools::MakeRangeJMP(ClearRequest,   clearRequestEntrance,   clearRequestExit);
+		MemoryTools::MakeRangeJMP(LeaderStrategy, leaderStrategyEntrance, leaderStrategyExit);
+		MemoryTools::MakeRangeJMP(HeavyStrategy3, heavyStrategy3Entrance, heavyStrategy3Exit);
+		MemoryTools::MakeRangeJMP(HeavyStrategy4, heavyStrategy4Entrance, heavyStrategy4Exit);
 
-		MemoryTools::DigCodeCave(MinStrategyDelay,   minStrategyDelayEntrance,   minStrategyDelayExit);
-		MemoryTools::DigCodeCave(MinRoadblockDelay,  minRoadblockDelayEntrance,  minRoadblockDelayExit);
-		MemoryTools::DigCodeCave(CrossPriorityDelay, crossPriorityDelayEntrance, crossPriorityDelayExit);
+		MemoryTools::MakeRangeJMP(MinStrategyDelay,   minStrategyDelayEntrance,   minStrategyDelayExit);
+		MemoryTools::MakeRangeJMP(MinRoadblockDelay,  minRoadblockDelayEntrance,  minRoadblockDelayExit);
+		MemoryTools::MakeRangeJMP(CrossPriorityDelay, crossPriorityDelayEntrance, crossPriorityDelayExit);
 		
 		// Status flag
 		featureEnabled = true;

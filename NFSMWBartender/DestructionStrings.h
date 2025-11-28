@@ -95,7 +95,7 @@ namespace DestructionStrings
 		}
 	
 		// Code modifications 
-		MemoryTools::DigCodeCave(CopDestruction, copDestructionEntrance, copDestructionExit);
+		MemoryTools::MakeRangeJMP(CopDestruction, copDestructionEntrance, copDestructionExit);
 
 		// Status flag
 		featureEnabled = true;

@@ -115,10 +115,10 @@
     <ClInclude Include="HashContainers.h">
       <Filter>Header Files\General</Filter>
     </ClInclude>
-    <ClInclude Include="GameAdjustments.h">
+    <ClInclude Include="InteractiveMusic.h">
       <Filter>Header Files\Modifications\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="InteractiveMusic.h">
+    <ClInclude Include="CopDetection.h">
       <Filter>Header Files\Modifications\Basic</Filter>
     </ClInclude>
   </ItemGroup>

@@ -47,7 +47,8 @@ The "Basic" feature set **lets you change** (per Heat level)
 
 The "Basic" feature set **also lets you change** (in general)
 * which notification string the game displays whenever you destroy a given cop vehicle;
-* which radio callsigns and chatter a given cop vehicle can trigger in player pursuits; and
+* which radio callsigns and chatter a given cop vehicle can trigger in player pursuits;
+* under which conditions (if at all) a given cop vehicle shows up on the radar / mini-map; and
 * the selection, order, and length of interactive themes that play during player pursuits.
 
 &nbsp;

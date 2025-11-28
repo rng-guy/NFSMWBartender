@@ -28,10 +28,15 @@ namespace Globals
 	// Pseudorandom number generator
 	RandomNumbers::Generator prng;
 
-	// Function pointers
-	const auto IsPlayerPursuit = (bool   (__thiscall*)(address))    0x40AD80;
-	const auto GetBinaryKey    = (binary (__cdecl*)   (const char*))0x460BF0;
-	const auto GetVaultKey     = (vault  (__cdecl*)   (const char*))0x5CC240;
+	// Common function pointers
+	const auto GetVaultKey  = (vault  (__cdecl*)(const char*))0x5CC240;
+	const auto GetBinaryKey = (binary (__cdecl*)(const char*))0x460BF0;
+	
+	const auto GetVehicleType = (vault       (__thiscall*)(address))0x6880A0;
+	const auto GetVehicleName = (const char* (__thiscall*)(address))0x688090;
+
+	const auto IsPlayerPursuit    = (bool (__thiscall*)(address))0x40AD80;
+	const auto IsVehicleDestroyed = (bool (__thiscall*)(address))0x688170;
 
 	// Logging
 	constexpr bool loggingEnabled = false;

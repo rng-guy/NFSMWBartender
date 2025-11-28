@@ -436,13 +436,13 @@ namespace GroundSupports
 
 			cmp dword ptr [eax], 0x3
 			mov eax, dword ptr heavy3LightVehicles.current
-			cmovne eax, dword ptr heavy4LightVehicles.current
-			jmp conclusion // was "light" variant
+			cmovne eax, dword ptr heavy4LightVehicles.current // not HeavyStrategy 3
+			jmp conclusion                                    // was "light" variant
 
 			heavy:
 			cmp dword ptr [eax], 0x3
 			mov eax, dword ptr heavy3HeavyVehicles.current
-			cmovne eax, dword ptr heavy4HeavyVehicles.current
+			cmovne eax, dword ptr heavy4HeavyVehicles.current // not HeavyStrategy 3
 
 			conclusion:
 			jmp dword ptr rhinoSelectorExit
@@ -516,6 +516,20 @@ namespace GroundSupports
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
 
+	void ApplyFixes()
+	{
+		static bool fixesApplied = false;
+
+		if (fixesApplied) return;
+
+		// Also fixes the unintended biases in the Strategy-selection process
+		MemoryTools::MakeRangeJMP(StrategySelection, strategySelectionEntrance, strategySelectionExit);
+
+		fixesApplied = true;
+	}
+
+
+
     bool Initialise(HeatParameters::Parser& parser)
     {
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Supports.ini")) return false;
@@ -556,26 +570,27 @@ namespace GroundSupports
 		HeatParameters::Parse<std::string, std::string>(parser, "Leader:Vehicles", {leaderCrossVehicles}, {leaderHenchmenVehicles});
 
 		// Code modifications 
-		MemoryTools::ClearAddressRange(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
+		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
 
 		MemoryTools::Write<float*>(&(minRoadblockCooldowns.current),   {0x419548});
 		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),      {0x42BEBC});
 		MemoryTools::Write<float*>(&(maxRBJoinElevationDiffs.current), {0x42BE3A});
 
-		MemoryTools::DigCodeCave(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
-		MemoryTools::DigCodeCave(RoadblockJoinTimer,   roadblockJoinTimerEntrance,   roadblockJoinTimerExit);
-		MemoryTools::DigCodeCave(RoadblockJoinCount,   roadblockJoinCountEntrance,   roadblockJoinCountExit);
-		MemoryTools::DigCodeCave(SpikesHitReaction,    spikesHitReactionEntrance,    spikesHitReactionExit);
-		MemoryTools::DigCodeCave(StrategySelection,    strategySelectionEntrance,    strategySelectionExit);
-		MemoryTools::DigCodeCave(RoadblockCooldown,    roadblockCooldownEntrance,    roadblockCooldownExit);
-		MemoryTools::DigCodeCave(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
-		MemoryTools::DigCodeCave(RivalRoadblock,       rivalRoadblockEntrance,       rivalRoadblockExit);
-		MemoryTools::DigCodeCave(CrossPriority,        crossPriorityEntrance,        crossPriorityExit);
-		MemoryTools::DigCodeCave(RhinoSelector,        rhinoSelectorEntrance,        rhinoSelectorExit);
-		MemoryTools::DigCodeCave(HenchmenSub,          henchmenSubEntrance,          henchmenSubExit);
-		MemoryTools::DigCodeCave(OnAttached,           onAttachedEntrance,           onAttachedExit);
-		MemoryTools::DigCodeCave(OnDetached,           onDetachedEntrance,           onDetachedExit);
-        MemoryTools::DigCodeCave(LeaderSub,            leaderSubEntrance,            leaderSubExit);
+		MemoryTools::MakeRangeJMP(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
+		MemoryTools::MakeRangeJMP(RoadblockJoinTimer,   roadblockJoinTimerEntrance,   roadblockJoinTimerExit);
+		MemoryTools::MakeRangeJMP(RoadblockJoinCount,   roadblockJoinCountEntrance,   roadblockJoinCountExit);
+		MemoryTools::MakeRangeJMP(SpikesHitReaction,    spikesHitReactionEntrance,    spikesHitReactionExit);
+		MemoryTools::MakeRangeJMP(RoadblockCooldown,    roadblockCooldownEntrance,    roadblockCooldownExit);
+		MemoryTools::MakeRangeJMP(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
+		MemoryTools::MakeRangeJMP(RivalRoadblock,       rivalRoadblockEntrance,       rivalRoadblockExit);
+		MemoryTools::MakeRangeJMP(CrossPriority,        crossPriorityEntrance,        crossPriorityExit);
+		MemoryTools::MakeRangeJMP(RhinoSelector,        rhinoSelectorEntrance,        rhinoSelectorExit);
+		MemoryTools::MakeRangeJMP(HenchmenSub,          henchmenSubEntrance,          henchmenSubExit);
+		MemoryTools::MakeRangeJMP(OnAttached,           onAttachedEntrance,           onAttachedExit);
+		MemoryTools::MakeRangeJMP(OnDetached,           onDetachedEntrance,           onDetachedExit);
+        MemoryTools::MakeRangeJMP(LeaderSub,            leaderSubEntrance,            leaderSubExit);
+
+		ApplyFixes();
         
 		// Status flag
 		featureEnabled = true;

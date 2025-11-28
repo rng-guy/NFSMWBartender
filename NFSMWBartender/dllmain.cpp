@@ -6,11 +6,11 @@
 #include "StateObserver.h"
 
 #include "DestructionStrings.h"
+#include "CopDetection.h"
 #include "InteractiveMusic.h"
 #include "RadioCallsigns.h"
 #include "GroundSupports.h"
 #include "GeneralSettings.h"
-#include "GameAdjustments.h"
 
 #include "PursuitObserver.h"
 
@@ -26,13 +26,26 @@ static void ApplyBartender()
 
     // "Basic" feature set
     Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
+    Globals::basicSetEnabled |= CopDetection      ::Initialise(parser);
     Globals::basicSetEnabled |= InteractiveMusic  ::Initialise(parser);
     Globals::basicSetEnabled |= RadioCallsigns    ::Initialise(parser);
     Globals::basicSetEnabled |= GroundSupports    ::Initialise(parser);
     Globals::basicSetEnabled |= GeneralSettings   ::Initialise(parser);
 
     if (Globals::basicSetEnabled)
-        GameAdjustments::Initialise(parser);
+    {
+        // Feature-linked fixes
+        CopDetection   ::ApplyFixes();
+        GroundSupports ::ApplyFixes();
+        GeneralSettings::ApplyFixes();
+
+        // Helicopter shadow
+        MemoryTools::Write<float>(0.f, {0x903660});
+
+        // Heat-level reset (credit: ExOptsTeam)
+        MemoryTools::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
+        MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
+    }
     
     // "Advanced" feature set
     Globals::advancedSetEnabled = PursuitObserver::Initialise(parser);

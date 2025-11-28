@@ -92,10 +92,10 @@ namespace HashContainers
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (numRemoved > 0)
-				Globals::logger.LogLongIndent("  pairs left:", (int)map.size());
+				Globals::logger.LogLongIndent("  pairs left:", (int)(map.size()));
 
 			else
-				Globals::logger.LogLongIndent(mapName, "pairs:", (int)map.size());
+				Globals::logger.LogLongIndent(mapName, "pairs:", (int)(map.size()));
 		}
 	}
 }

@@ -41,7 +41,7 @@ namespace CopFleeOverrides
 
 		static bool IsChaserMember(const address copVehicle)
 		{
-			const vault copType = PursuitFeatures::GetVehicleType(copVehicle);
+			const vault copType = Globals::GetVehicleType(copVehicle);
 			return CopSpawnTables::chaserSpawnTables.current->Contains(copType);
 		}
 
@@ -249,21 +249,21 @@ namespace CopFleeOverrides
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address updateFormationEntrance = 0x443917;
-	constexpr address updateFormationExit     = 0x44391C;
+	constexpr address goalUpdateEntrance = 0x443917;
+	constexpr address goalUpdateExit     = 0x44391C;
 
-	__declspec(naked) void UpdateFormation()
+	__declspec(naked) void GoalUpdate()
 	{
 		__asm
 		{
 			mov edi, dword ptr [ebp]
 			test edi, edi
-			je conclusion // invalid AIVehiclePursuit
+			je conclusion // invalid vehicle
 
 			cmp dword ptr [edi - 0x758 + 0xC4], 0x88C018A9 // AIGoalFleePursuit
 
 			conclusion:
-			jmp dword ptr updateFormationExit
+			jmp dword ptr goalUpdateExit
 		}
 	}
 
@@ -281,7 +281,7 @@ namespace CopFleeOverrides
 		HeatParameters::Parse<int>(parser, "Chasers:Fleeing", fleeDelays, {chasersThresholds, 0});
 
 		// Code modifications 
-		MemoryTools::DigCodeCave(UpdateFormation, updateFormationEntrance, updateFormationExit);
+		MemoryTools::MakeRangeJMP(GoalUpdate, goalUpdateEntrance, goalUpdateExit);
 
 		// Status flag
 		featureEnabled = true;

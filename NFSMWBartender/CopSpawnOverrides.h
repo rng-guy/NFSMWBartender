@@ -118,7 +118,7 @@ namespace CopSpawnOverrides
 
 		void AddVehicle(const address copVehicle)
 		{
-			const vault copType   = PursuitFeatures::GetVehicleType(copVehicle);
+			const vault copType   = Globals::GetVehicleType(copVehicle);
 			const auto  addedType = this->copTypeToCurrentCount.insert({copType, 1});
 
 			if (not addedType.second)
@@ -137,7 +137,7 @@ namespace CopSpawnOverrides
 
 		bool RemoveVehicle(const address copVehicle)
 		{
-			const vault copType   = PursuitFeatures::GetVehicleType(copVehicle);
+			const vault copType   = Globals::GetVehicleType(copVehicle);
 			const auto  foundType = this->copTypeToCurrentCount.find(copType);
 
 			if (foundType != this->copTypeToCurrentCount.end())
@@ -571,11 +571,11 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			mov edx, 0x891064
-			mov eax, offset squaredCopSpawnClearance
+			mov edx, offset squaredCopSpawnClearance
+			mov eax, 0x891064 // 40.f * 40.f
 
 			cmp byte ptr [esp + 0x2C], 0x0
-			cmove edx, eax
+			cmovne edx, eax
 
 			fcomp dword ptr [edx]
 
@@ -754,20 +754,20 @@ namespace CopSpawnOverrides
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
 		MemoryTools::Write<byte>(0x90, {0x4443E4}); // roadblock increment
 
-		MemoryTools::ClearAddressRange(0x4442B8, 0x4442C2); // wave-capacity increment
-		MemoryTools::ClearAddressRange(0x57B186, 0x57B189); // helicopter increment
-		MemoryTools::ClearAddressRange(0x42B74E, 0x42B771); // cops-lost increment
-		MemoryTools::ClearAddressRange(0x4442AC, 0x4442B6); // zero-wave increment
-		MemoryTools::ClearAddressRange(0x4440D7, 0x4440DF); // membership check
+		MemoryTools::MakeRangeNOP(0x4442B8, 0x4442C2); // wave-capacity increment
+		MemoryTools::MakeRangeNOP(0x57B186, 0x57B189); // helicopter increment
+		MemoryTools::MakeRangeNOP(0x42B74E, 0x42B771); // cops-lost increment
+		MemoryTools::MakeRangeNOP(0x4442AC, 0x4442B6); // zero-wave increment
+		MemoryTools::MakeRangeNOP(0x4440D7, 0x4440DF); // membership check
 		
-		MemoryTools::DigCodeCave(WaveReset,          waveResetEntrance,          waveResetExit);
-		MemoryTools::DigCodeCave(CopRequest,         copRequestEntrance,         copRequestExit);
-		MemoryTools::DigCodeCave(CopClearance,       copClearanceEntrance,       copClearanceExit);
-		MemoryTools::DigCodeCave(RequestCheck,       requestCheckEntrance,       requestCheckExit);
-		MemoryTools::DigCodeCave(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
-		MemoryTools::DigCodeCave(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
-		MemoryTools::DigCodeCave(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
-		MemoryTools::DigCodeCave(ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
+		MemoryTools::MakeRangeJMP(WaveReset,          waveResetEntrance,          waveResetExit);
+		MemoryTools::MakeRangeJMP(CopRequest,         copRequestEntrance,         copRequestExit);
+		MemoryTools::MakeRangeJMP(CopClearance,       copClearanceEntrance,       copClearanceExit);
+		MemoryTools::MakeRangeJMP(RequestCheck,       requestCheckEntrance,       requestCheckExit);
+		MemoryTools::MakeRangeJMP(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
+		MemoryTools::MakeRangeJMP(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
+		MemoryTools::MakeRangeJMP(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
+		MemoryTools::MakeRangeJMP(ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 		
 		// Status flag
 		featureEnabled = true;
@@ -831,8 +831,8 @@ namespace CopSpawnOverrides
 
 		Globals::logger.Log("  CONFIG [SPA] CopSpawnOverrides");
 
-		Globals::logger.LogLongIndent("HeavyStrategy tracked:   ", trackHeavyVehicles);
-		Globals::logger.LogLongIndent("LeaderStrategy tracked:  ", trackLeaderVehicles);
+		Globals::logger.LogLongIndent("HeavyStrategy    tracked:", trackHeavyVehicles);
+		Globals::logger.LogLongIndent("LeaderStrategy   tracked:", trackLeaderVehicles);
 		Globals::logger.LogLongIndent("Joined roadblock tracked:", trackJoinedRoadblockVehicles);
 	}
 }

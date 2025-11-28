@@ -151,7 +151,7 @@ namespace LeaderOverrides
 					else
 						Globals::logger.Log(this->pursuit, "[LDR] Flag reset", actionName, "suspended");
 				}
-				else Globals::logger.Log("WARNING: [LDR] Invalid status in timer update", (int)(this->crossStatus), "in", this->pursuit);
+				else Globals::logger.Log("WARNING: [LDR] Invalid status in timer update", this->crossStatus, "in", this->pursuit);
 			}
 		}
 
@@ -320,7 +320,7 @@ namespace LeaderOverrides
 				this->crossAggroTimer.Stop();
 				this->crossVehicle = 0x0;
 
-				if (PursuitFeatures::IsVehicleDestroyed(copVehicle))
+				if (Globals::IsVehicleDestroyed(copVehicle))
 					this->crossStatus = Status::WRECKED;
 				
 				else if (PursuitFeatures::simulationTime > this->expirationTimestamp)
@@ -360,9 +360,9 @@ namespace LeaderOverrides
 		HeatParameters::Parse<>(parser, "Leader:LostReset",   lostResetDelays);
 
 		// Code modifications
-		MemoryTools::ClearAddressRange(0x42B6A2, 0x42B6B4); // Cross flag = 0
-		MemoryTools::ClearAddressRange(0x42402A, 0x424036); //              1
-		MemoryTools::ClearAddressRange(0x42B631, 0x42B643); //              2
+		MemoryTools::MakeRangeNOP(0x42B6A2, 0x42B6B4); // Cross flag = 0
+		MemoryTools::MakeRangeNOP(0x42402A, 0x424036); //              1
+		MemoryTools::MakeRangeNOP(0x42B631, 0x42B643); //              2
 
 		// Status flag
 		featureEnabled = true;

@@ -27,6 +27,14 @@ namespace BasicLogger
 
 
 		template <typename T>
+		requires std::is_enum_v<T>
+		void Print(const T value)
+		{
+			this->file << (int)value;
+		}
+
+
+		template <typename T>
 		requires std::is_pointer_v<T>
 		void Print(const T value)
 		{

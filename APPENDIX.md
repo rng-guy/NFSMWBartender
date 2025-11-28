@@ -95,11 +95,9 @@ Regarding the "Basic" feature set **as a whole**:
 
 * The unedited configuration files for this feature set mostly match the game's vanilla values.
 
-* You can disable this entire feature set by deleting all of its configuration files.
+* To disable a given feature of this set, delete the file containing its parameter group.
 
-* You can disable any feature of this set by deleting the file containing its parameter group. Fixes, however, don't have parameters and are tied to specific files implicitly instead.
-
-* To disable the shadow and Heat-level fixes, delete all configuration files of this feature set.
+* To disable this entire feature set and its fixes, delete all its configuration files.
 
 * The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions mod](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd node determines the maximum Heat level (1-10) at Blacklist rival #XY.
 
@@ -129,6 +127,12 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * If you define no vehicle callsigns and no `default`, Bartender disables its callsign feature.
 
+* The game will only draw up to 8 cop icons (not counting the helicopter) on the mini-map. Removing this limitation proves rather difficult because it's tied to the broader UI code.
+
+* For cop detection, Bartender ignores vehicles that are helicopters or don't exist in the game.
+
+* If you define no vehicle settings and no `default`, Bartender disables its detection feature.
+
 * You can define a playlist of up to 20 tracks using the game's four interactive pursuit themes. By default, Bartender loops through this custom playlist from top to bottom in each pursuit.
 
 * For the pursuit-theme playlist, Bartender ignores themes that don't exist in the game.
@@ -146,8 +150,6 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 &nbsp;
 
 Regarding **general features** (`BartenderSettings\Basic\General.ini`):
-
-* Deleting this file disables the fix for getting busted while the green "EVADE" bar fills.
 
 * The `0x1e2a1051` VltEd parameter defines how much passive bounty you gain after each interval.
 
@@ -176,8 +178,6 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 &nbsp;
 
 Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
-
-* Deleting this file disables the fix for the biases in the game's Strategy-selection process.
 
 * When the game requests a non-Strategy roadblock, a random roadblock cooldown begins. While this cooldown is active, the game cannot make more non-Strategy roadblock requests.
 
@@ -231,11 +231,11 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * The unedited configuration files for this feature set resemble the game's vanilla values.
 
-* You can disable this entire feature set by deleting all of its configuration files.
+* To disable this entire feature set and its fixes, delete all of its configuration files.
 
 * Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
 
-* Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That is because Bartender's fix makes the engagement count track "Chasers" only, while disregarding any vehicles that join your pursuit through Strategy spawns, from roadblocks, or as helicopters.
+* Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That's because, by default, Bartender's fix makes the engagement count track "Chasers" only, disregarding others.
 
 * If enabled, this feature set overrides the following `pursuitlevels` VltEd parameters: the `cops` array, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
 
@@ -245,9 +245,9 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * The engagement count shown above the pursuit board is purely cosmetic: Bartender tracks all "Chasers" accurately behind the scenes and ensures that backups trigger as intended.
 
-* Under no circumstances can minimum counts cause more "Chasers" spawns than otherwise possible; they respect the current global cop-spawn limit and the `count` values in the "Chasers" table.
+* Under no circumstances can minimum counts cause more "Chasers" spawns than otherwise possible; they respect the current global cop-spawn limit and the `count` values in "Chasers" tables.
 
-* In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the min. engagement count.
+* In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the minimum count.
 
 * The global cop-spawn limit determines whether the game may spawn new "Chasers" at any point. The game can spawn additional "Chasers" as long as the total amount of non-roadblock and non-helicopter cops that currently exist across all pursuits is less than this global limit. This also means that any active Strategy spawns or NPC pursuits can affect how many more "Chasers" can still spawn in your pursuit (this is vanilla behaviour).
 

@@ -76,11 +76,13 @@ namespace RadioCallsigns
 
 		__asm
 		{
-			cmp dword ptr [esp + 0x28], PATROL
+			mov edx, dword ptr [esp + 0x28]
+
+			cmp edx, PATROL
 			je conclusion // is "patrol"
 
 			mov eax, 0x20
-			cmp dword ptr [esp + 0x28], RHINO
+			cmp edx, RHINO
 			je skip // is "rhino"
 
 			mov eax, 0x10
@@ -102,12 +104,14 @@ namespace RadioCallsigns
 	{
 		__asm
 		{
+			mov edx, dword ptr [esp + 0x28]
+
 			mov eax, -0x1
-			cmp dword ptr [esp + 0x28], PATROL
+			cmp edx, PATROL
 			je conclusion // is "patrol"
 
 			mov eax, 0x20
-			cmp dword ptr [esp + 0x28], RHINO
+			cmp edx, RHINO
 			je conclusion // is "rhino"
 
 			mov eax, 0x10
@@ -172,10 +176,10 @@ namespace RadioCallsigns
 		// Code modifications 
 		MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up superfluous stack variable
 
-		MemoryTools::DigCodeCave(CrossCallsign,    crossCallsignEntrance,    crossCallsignExit);
-		MemoryTools::DigCodeCave(FirstCallsign,    firstCallsignEntrance,    firstCallsignExit);
-		MemoryTools::DigCodeCave(SecondCallsign,   secondCallsignEntrance,   secondCallsignExit);
-		MemoryTools::DigCodeCave(CollisionCallout, collisionCalloutEntrance, collisionCalloutExit);
+		MemoryTools::MakeRangeJMP(CrossCallsign,    crossCallsignEntrance,    crossCallsignExit);
+		MemoryTools::MakeRangeJMP(FirstCallsign,    firstCallsignEntrance,    firstCallsignExit);
+		MemoryTools::MakeRangeJMP(SecondCallsign,   secondCallsignEntrance,   secondCallsignExit);
+		MemoryTools::MakeRangeJMP(CollisionCallout, collisionCalloutEntrance, collisionCalloutExit);
 
 		// Status flag
 		featureEnabled = true;

@@ -96,7 +96,7 @@ namespace HelicopterOverrides
 			}
 
 			this->helicopterOwner   = this->pursuit;
-			this->helicopterVehicle = PursuitFeatures::GetVehicleName(copVehicle);
+			this->helicopterVehicle = Globals::GetVehicleName(copVehicle);
 		}
 
 
@@ -237,7 +237,7 @@ namespace HelicopterOverrides
 					else
 						Globals::logger.Log(this->pursuit, "[HEL]", actionName, "suspended");
 				}
-				else Globals::logger.Log("WARNING: [HEL] Invalid status in timer update", (int)(this->helicopterStatus), "in", this->pursuit);
+				else Globals::logger.Log("WARNING: [HEL] Invalid status in timer update", this->helicopterStatus, "in", this->pursuit);
 			}
 		}
 
@@ -340,7 +340,7 @@ namespace HelicopterOverrides
 
 			const float* const fuelTime = this->GetFuelTimePointer();
 
-			if (PursuitFeatures::IsVehicleDestroyed(copVehicle))
+			if (Globals::IsVehicleDestroyed(copVehicle))
 			{
 				this->helicopterStatus = Status::WRECKED;
 				this->RelinquishOwnership();
@@ -535,10 +535,10 @@ namespace HelicopterOverrides
 		// Code modifications 
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
 
-		MemoryTools::DigCodeCave(FuelUpdate,      fuelUpdateEntrance,      fuelUpdateExit);
-		MemoryTools::DigCodeCave(DefaultFuel,     defaultFuelEntrance,     defaultFuelExit);
-		MemoryTools::DigCodeCave(EarlyBailout,    earlyBailoutEntrance,    earlyBailoutExit);
-		MemoryTools::DigCodeCave(RammingCooldown, rammingCooldownEntrance, rammingCooldownExit);
+		MemoryTools::MakeRangeJMP(FuelUpdate,      fuelUpdateEntrance,      fuelUpdateExit);
+		MemoryTools::MakeRangeJMP(DefaultFuel,     defaultFuelEntrance,     defaultFuelExit);
+		MemoryTools::MakeRangeJMP(EarlyBailout,    earlyBailoutEntrance,    earlyBailoutExit);
+		MemoryTools::MakeRangeJMP(RammingCooldown, rammingCooldownEntrance, rammingCooldownExit);
 
 		// Status flag
 		featureEnabled = true;

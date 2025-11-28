@@ -161,13 +161,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BasicLogger.h" />
-    <ClInclude Include="GameAdjustments.h" />
     <ClInclude Include="HashContainers.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="ConfigParser.h" />
     <ClInclude Include="CopFleeOverrides.h" />
     <ClInclude Include="InteractiveMusic.h" />
     <ClInclude Include="LeaderOverrides.h" />
+    <ClInclude Include="CopDetection.h" />
     <ClInclude Include="MemoryTools.h" />
     <ClInclude Include="HelicopterOverrides.h" />
     <ClInclude Include="DestructionStrings.h" />

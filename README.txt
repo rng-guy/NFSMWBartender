@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.02.04) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.03.00) │ ■ ────────────────────────────────────────────────────
 
 View this document with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -42,7 +42,8 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
 
 The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • which notification string the game displays whenever you destroy a given cop vehicle;
- • which radio callsigns and chatter a given cop vehicle can trigger in player pursuits; and
+ • which radio callsigns and chatter a given cop vehicle can trigger in player pursuits; 
+ • under which conditions (if at all) a given cop vehicle shows up on the radar / mini-map; and
  • the selection, order, and length of interactive themes that play during player pursuits.
 
 The "Basic" feature set FIXES SIX BUGS / ISSUES:
@@ -154,7 +155,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v2.02.00, replace all old configuration files.
+If you update from a version older than v2.03.00, replace all old configuration files.
 
 
 

@@ -5,6 +5,7 @@
 #include "HeatParameters.h"
 
 #include "DestructionStrings.h"
+#include "CopDetection.h"
 #include "InteractiveMusic.h"
 #include "RadioCallsigns.h"
 #include "GroundSupports.h"
@@ -22,15 +23,22 @@ namespace StateObserver
 	bool featureEnabled = false;
 
 	// Code caves 
-	address playerVehicle   = 0x0;
-	bool    playerIsRacing  = false;
-	size_t  playerHeatLevel = 0;
+	address playerPerpVehicle = 0x0;
+	size_t  playerHeatLevel   = 0;
+	bool    playerIsRacing    = false;
 
 
 
 
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	void OnPlayerVehicleUpdates()
+	{
+		CopDetection::playerPerpVehicle = playerPerpVehicle;
+	}
+
+
 
 	void OnHeatLevelUpdates()
 	{
@@ -55,13 +63,20 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log ("\n SESSION [VER] Bartender v2.02.04");
+			Globals::logger.Log ("\n SESSION [VER] Bartender v2.03.00");
 
 			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
+
+			if (MemoryTools::numRangeErrors > 0)
+				Globals::logger.LogLongIndent("[MEM]", (int)(MemoryTools::numRangeErrors), "RANGE ERRORS!");
+
+			if (MemoryTools::numCaveErrors > 0)
+				Globals::logger.LogLongIndent("[MEM]", (int)(MemoryTools::numCaveErrors), "CAVE ERRORS!");
 		}
 
 		DestructionStrings::Validate();
+		CopDetection      ::Validate();
 
 		if constexpr (Globals::loggingEnabled)
 			InteractiveMusic::LogConfigurationReport();
@@ -77,7 +92,7 @@ namespace StateObserver
 	{
 		static const auto IsRacing = (bool (__thiscall*)(address))0x409500;
 
-		if (playerVehicle and (playerIsRacing != IsRacing(playerVehicle)))
+		if (playerPerpVehicle and (playerIsRacing != IsRacing(playerPerpVehicle)))
 		{
 			playerIsRacing = (not playerIsRacing);
 
@@ -120,7 +135,7 @@ namespace StateObserver
 			cmp ebp, dword ptr playerHeatLevel
 			je conclusion // Heat unchanged
 
-			cmp esi, dword ptr playerVehicle
+			cmp esi, dword ptr playerPerpVehicle
 			jne conclusion // not player vehicle
 
 			cmp dword ptr [esp + 0x20], 0x416A75
@@ -208,10 +223,12 @@ namespace StateObserver
 			lea eax, dword ptr [esi + 0x758]
 			mov dword ptr [eax], 0x892988
 
-			cmp dword ptr playerVehicle, 0x0
+			cmp dword ptr playerPerpVehicle, 0x0
 			jne conclusion // vehicle already stored
 	
-			mov dword ptr playerVehicle, eax
+			mov dword ptr playerPerpVehicle, eax
+			call OnPlayerVehicleUpdates
+			mov ecx, dword ptr [esp + 0xC]
 
 			conclusion:
 			jmp dword ptr playerConstructorExit
@@ -220,7 +237,7 @@ namespace StateObserver
 
 
 
-	constexpr address playerDestructorEntrance = 0x43506E;
+	constexpr address playerDestructorEntrance = 0x43506C;
 	constexpr address playerDestructorExit     = 0x435073;
 
 	// Clears the player's AIPerpVehicle
@@ -228,17 +245,24 @@ namespace StateObserver
 	{
 		__asm
 		{
-			cmp eax, dword ptr playerVehicle
+			cmp eax, dword ptr playerPerpVehicle
 			jne conclusion // not stored vehicle
 
 			xor ecx, ecx
 
-			mov dword ptr playerVehicle, ecx
-			mov byte ptr playerIsRacing, cl
+			mov dword ptr playerPerpVehicle, ecx
 			mov dword ptr playerHeatLevel, ecx
+			mov byte ptr playerIsRacing, cl
+
+			push eax
+
+			call OnPlayerVehicleUpdates
+
+			pop eax
 
 			conclusion:
 			// Execute original code and resume
+			mov edx, dword ptr [eax]
 			mov ecx, eax
 			call dword ptr [edx + 0x4]
 
@@ -301,7 +325,7 @@ namespace StateObserver
 		__asm
 		{
 			mov edi, eax
-			mov eax, dword ptr playerVehicle
+			mov eax, dword ptr playerPerpVehicle
 
 			test eax, eax
 			je retain // player vehicle unknown
@@ -329,14 +353,14 @@ namespace StateObserver
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		// Code modifications 
-		MemoryTools::DigCodeCave(HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
-		MemoryTools::DigCodeCave(GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
-		MemoryTools::DigCodeCave(WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);
-		MemoryTools::DigCodeCave(PlayerConstructor, playerConstructorEntrance, playerConstructorExit);
-		MemoryTools::DigCodeCave(PlayerDestructor,  playerDestructorEntrance,  playerDestructorExit);
-		MemoryTools::DigCodeCave(GameplayObserver,  gameplayObserverEntrance,  gameplayObserverExit);
-		MemoryTools::DigCodeCave(RetryObserver,     retryObserverEntrance,     retryObserverExit);
-		MemoryTools::DigCodeCave(HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
+		MemoryTools::MakeRangeJMP(HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
+		MemoryTools::MakeRangeJMP(GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
+		MemoryTools::MakeRangeJMP(WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);
+		MemoryTools::MakeRangeJMP(PlayerConstructor, playerConstructorEntrance, playerConstructorExit);
+		MemoryTools::MakeRangeJMP(PlayerDestructor,  playerDestructorEntrance,  playerDestructorExit);
+		MemoryTools::MakeRangeJMP(GameplayObserver,  gameplayObserverEntrance,  gameplayObserverExit);
+		MemoryTools::MakeRangeJMP(RetryObserver,     retryObserverEntrance,     retryObserverExit);
+		MemoryTools::MakeRangeJMP(HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
 
 		// Status flag
 		featureEnabled = true;

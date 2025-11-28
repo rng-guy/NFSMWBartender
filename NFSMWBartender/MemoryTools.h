@@ -12,6 +12,15 @@
 namespace MemoryTools
 {
 
+	// Status variables -----------------------------------------------------------------------------------------------------------------------------
+
+	size_t numRangeErrors = 0;
+	size_t numCaveErrors  = 0;
+
+
+
+
+
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
@@ -37,45 +46,53 @@ namespace MemoryTools
 
 
 
-	void WriteToAddressRange
+	void WriteToRange
 	(
 		const byte    value,
 		const address start,
 		const address end
 	) {
-		const size_t numBytes = end - start;
+		if (end > start)
+		{
+			const size_t numBytes = end - start;
 
-		void* memoryLocation  = (void*)start;
-		DWORD previousSetting = 0x0;
+			void* memoryLocation  = (void*)start;
+			DWORD previousSetting = 0x0;
 
-		VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE, &previousSetting);
-		std::memset   (memoryLocation, value,    numBytes);
-		VirtualProtect(memoryLocation, numBytes, previousSetting, &previousSetting);
+			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE, &previousSetting);
+			std::memset   (memoryLocation, value,    numBytes);
+			VirtualProtect(memoryLocation, numBytes, previousSetting, &previousSetting);
+		}
+		else ++numRangeErrors;
 	}
 
 
 
-	void ClearAddressRange
+	void MakeRangeNOP
 	(
 		const address start,
 		const address end
 	) {
-		WriteToAddressRange(0x90, start, end);
+		WriteToRange(0x90, start, end);
 	}
 
 
 
-	void DigCodeCave
+	void MakeRangeJMP
 	(
-		const void* const function,
-		const address     entrance,
-		const address     exit
+		const void* const target,
+		const address     start,
+		const address     end
 	) {
-		ClearAddressRange(entrance, exit);
-		Write<byte>      (0xE9, {entrance});
-
-		// It's necessary to account for the instruction length and offset
-		Write<address>((address)function - (entrance + 5), {entrance + 1});
+		if (end > start + 4)
+		{
+			MakeRangeNOP(start, end);
+			
+			// It's necessary to account for the instruction length and offset
+			Write<byte>   (0xE9,                          {start});
+			Write<address>((address)target - (start + 5), {start + 1});
+		}
+		else ++numCaveErrors;
 	}
 
 
