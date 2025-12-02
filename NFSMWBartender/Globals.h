@@ -1,5 +1,7 @@
 #pragma once
 
+#include <concepts>
+
 #include "BasicLogger.h"
 #include "RandomNumbers.h"
 
@@ -10,9 +12,9 @@
 
 // Unscoped aliases
 using byte    = unsigned char;
-using address = uint32_t;
-using binary  = uint32_t;
-using vault   = uint32_t;
+using address = uintptr_t;
+using binary  = uintptr_t;
+using vault   = uintptr_t;
 
 
 
@@ -38,10 +40,26 @@ namespace Globals
 	const auto IsPlayerPursuit    = (bool (__thiscall*)(address))0x40AD80;
 	const auto IsVehicleDestroyed = (bool (__thiscall*)(address))0x688170;
 
+	// Common data pointers
+	const float& simulationTime = *((float*)0x9885D8);
+
+	// Player state
+	address playerPerpVehicle    = 0x0;
+	bool    playerHeatLevelKnown = false;
+
 	// Logging
 	constexpr bool loggingEnabled = false;
 
 	BasicLogger::Logger logger;
+
+
+
+
+
+	// Concepts -------------------------------------------------------------------------------------------------------------------------------------
+
+	template <typename T>
+	concept isTrivial = std::is_fundamental_v<T> or std::is_pointer_v<T> or std::is_enum_v<T>;
 
 
 

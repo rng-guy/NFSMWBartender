@@ -1,9 +1,9 @@
 #pragma once
 
-#include <unordered_set>
-#include <unordered_map>
+#include <concepts>
 
 #include "Globals.h"
+#include "unordered_dense.h"
 
 
 
@@ -23,79 +23,177 @@ namespace HashContainers
 
 
 
-	template <typename K>
-	using IdentitySet = std::unordered_set<K, IdentityHash<K>>;
+	template <typename K, typename H = std::hash<K>>
+	using Set = ankerl::unordered_dense::set<K, H>;
 
-	using AddressSet = IdentitySet<address>;
-	using VaultSet   = IdentitySet<vault>;
+	template <typename K>
+	requires std::is_integral_v<K>
+	using FastSet = Set<K, IdentityHash<K>>;
+
+	using AddressSet = FastSet<address>;
+	using VaultSet   = FastSet<vault>;
+
+
+
+	template <typename K, typename V, typename H = std::hash<K>>
+	using Map = ankerl::unordered_dense::map<K, V, H>;
+
+	template <typename K, typename V>
+	requires std::is_integral_v<K>
+	using FastMap = Map<K, V, IdentityHash<K>>;
+
+	template <typename V>
+	using AddressMap = FastMap<address, V>;
+
+	template <typename V>
+	using VaultMap = FastMap<vault, V>;
+
+
+
+
+
+	// HashContainer classes ------------------------------------------------------------------------------------------------------------------------
+
+	template <typename K, typename V>
+	class BaseCachedMap : public FastMap<K, V>
+	{
+	protected:
+
+		K cachedKey    = K();
+		V defaultValue = V();
+
+
+		explicit BaseCachedMap() = default;
+
+
+
+	public:
+
+		void Validate
+		(
+			const char* const mapName,
+			const auto&       IsValidKey,
+			const auto&       IsValidValue
+		) {
+			// Extract "default" key if provided (and valid)
+			const auto foundPair = this->find(Globals::GetVaultKey("default"));
+
+			if (foundPair != this->end())
+			{
+				if (IsValidValue(foundPair->second))
+				{
+					this->defaultValue = foundPair->second;
+
+					if constexpr (Globals::loggingEnabled)
+						Globals::logger.LogLongIndent("Valid default value:", this->defaultValue);
+				}
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.LogLongIndent("Invalid default value, using", this->defaultValue);
+
+				this->erase(foundPair);
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent("No default value, using", this->defaultValue);
+
+			// Remove any invalid pairs
+			auto   iterator   = this->begin();
+			size_t numRemoved = 0;
+
+			while (iterator != this->end())
+			{
+				if (not (IsValidKey(iterator->first) and IsValidValue(iterator->second)))
+				{
+					// With logging disabled, the compiler optimises the string literal away
+					if constexpr (Globals::loggingEnabled)
+					{
+						if (numRemoved == 0)
+							Globals::logger.LogLongIndent(mapName, "map");
+
+						Globals::logger.LogLongIndent("  -", iterator->first, iterator->second);
+					}
+
+					iterator = this->erase(iterator);
+
+					++numRemoved;
+				}
+				else ++iterator;
+			}
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (numRemoved > 0)
+					Globals::logger.LogLongIndent("  pairs left:", (int)(this->size()));
+
+				else
+					Globals::logger.LogLongIndent(mapName, "pairs:", (int)(this->size()));
+			}
+		}
+	};
 
 
 
 	template <typename K, typename V>
-	using IdentityMap = std::unordered_map<K, V, IdentityHash<K>>;
+	class CachedMap : public BaseCachedMap<K, V>
+	{
+	private:
 
-	template <typename V>
-	using AddressMap = IdentityMap<address, V>;
-
-	template <typename V>
-	using VaultMap = IdentityMap<vault, V>;
+		const V* cachedValue = &(this->defaultValue);
 
 
 
+	public:
 
-
-	// Parsing and validation functions -------------------------------------------------------------------------------------------------------------
-
-	template <typename T, typename K, typename V>
-	void ValidateVaultMap
-	(
-		const char* const mapName,
-		VaultMap<T>&      map,
-		T&                defaultValue,
-		const K&          IsValidKey,
-		const V&          IsValidValue
-	) {
-		// Extract "default" key if provided (and valid)
-		const auto pair    = map.extract(Globals::GetVaultKey("default"));
-		const bool isValid = ((not pair.empty()) and IsValidValue(pair.mapped()));
-
-		if (isValid)
-			defaultValue = pair.mapped();
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent((isValid) ? "Valid default value:" : "No valid default value, using", defaultValue);
-
-		// Remove any invalid pairs
-		auto   iterator   = map.begin();
-		size_t numRemoved = 0;
-
-		while (iterator != map.end())
+		explicit CachedMap(const V& defaultValue)
 		{
-			if (not (IsValidKey(iterator->first) and IsValidValue(iterator->second)))
+			this->defaultValue = defaultValue;
+		}
+
+
+		const V* GetValue(const K key)
+		{
+			if (key != this->cachedKey)
 			{
-				// With logging disabled, the compiler optimises the string literal away
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (numRemoved == 0)
-						Globals::logger.LogLongIndent(mapName, "map");
+				const auto foundPair = this->find(key);
 
-					Globals::logger.LogLongIndent("  -", iterator->first, iterator->second);
-				}
-
-				iterator = map.erase(iterator);
-
-				++numRemoved;
+				this->cachedKey   = key;
+				this->cachedValue = &((foundPair != this->end()) ? foundPair->second : this->defaultValue);
 			}
-			else ++iterator;
-		}
 
-		if constexpr (Globals::loggingEnabled)
+			return this->cachedValue;
+		}
+	};
+
+
+
+	template <typename K, typename V>
+	requires Globals::isTrivial<V>
+	class CachedMap<K, V> : public BaseCachedMap<K, V>
+	{
+	private:
+
+		V cachedValue;
+
+
+
+	public:
+
+		explicit CachedMap(const V defaultValue) : cachedValue(defaultValue)
 		{
-			if (numRemoved > 0)
-				Globals::logger.LogLongIndent("  pairs left:", (int)(map.size()));
-
-			else
-				Globals::logger.LogLongIndent(mapName, "pairs:", (int)(map.size()));
+			this->defaultValue = defaultValue;
 		}
-	}
+
+
+		V GetValue(const K key)
+		{
+			if (key != this->cachedKey)
+			{
+				const auto foundPair = this->find(key);
+
+				this->cachedKey   = key;
+				this->cachedValue = (foundPair != this->end()) ? foundPair->second : this->defaultValue;
+			}
+			
+			return this->cachedValue;
+		}
+	};
 }

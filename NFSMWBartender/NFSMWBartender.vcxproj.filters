@@ -121,6 +121,12 @@
     <ClInclude Include="CopDetection.h">
       <Filter>Header Files\Modifications\Basic</Filter>
     </ClInclude>
+    <ClInclude Include="unordered_dense.h">
+      <Filter>Header Files\Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="stl.h">
+      <Filter>Header Files\Libraries</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Basic\General.ini">

@@ -11,14 +11,8 @@
 namespace PursuitFeatures
 {
 
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
-	bool heatLevelKnown = false;
-	
-	// Data pointers
-	const float& simulationTime = *((float*)0x9885D8);
-
-	// Scoped aliases
 	using PursuitCache = MemoryTools::PointerCache<0xD0, 3>;
 
 
@@ -140,7 +134,7 @@ namespace PursuitFeatures
 			if (not this->isSet)
 			{
 				this->isSet          = true;
-				this->startTimestamp = simulationTime;
+				this->startTimestamp = Globals::simulationTime;
 
 				if (this->isEnabled)
 					this->UpdateLength();
@@ -158,7 +152,7 @@ namespace PursuitFeatures
 
 		void LoadInterval(const HeatParameters::OptionalInterval& interval)
 		{
-			this->isEnabled = (heatLevelKnown and interval.isEnableds.current);
+			this->isEnabled = (Globals::playerHeatLevelKnown and interval.isEnableds.current);
 
 			if (this->isEnabled)
 			{
@@ -191,7 +185,7 @@ namespace PursuitFeatures
 
 		float GetTimeLeft() const
 		{
-			return (this->endTimestamp - simulationTime);
+			return (this->endTimestamp - Globals::simulationTime);
 		}
 
 

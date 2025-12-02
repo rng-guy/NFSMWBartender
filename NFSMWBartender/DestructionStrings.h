@@ -19,24 +19,10 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves 
-	binary defaultDestructionKey = 0x0;
-
-	HashContainers::VaultMap<binary> copTypeToDestructionKey;
+	HashContainers::CachedMap<vault, binary> copTypeToDestructionKey(0x0);
 
 
 	
-
-
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	binary __fastcall GetDestructionKey(const vault copType)
-	{
-		const auto foundType = copTypeToDestructionKey.find(copType);
-		return (foundType != copTypeToDestructionKey.end()) ? foundType->second : defaultDestructionKey;
-	}
-
-
-
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
@@ -51,8 +37,9 @@ namespace DestructionStrings
 
 		__asm
 		{
-			mov ecx, dword ptr [esp + 0x54]
-			call GetDestructionKey // ecx: copType
+			push dword ptr [esp + 0x54] // copType
+			mov ecx, offset copTypeToDestructionKey
+			call HashContainers::CachedMap<vault, binary>::GetValue
 			test eax, eax
 			je skip                // type unknown and no default key
 
@@ -114,13 +101,11 @@ namespace DestructionStrings
 
 		static const auto GetBinaryString = (const char* (__fastcall*)(int, binary))0x56BB80;
 
-		HashContainers::ValidateVaultMap<binary>
+		copTypeToDestructionKey.Validate
 		(
 			"Vehicle-to-label",
-			copTypeToDestructionKey,
-			defaultDestructionKey,
-			[=](const vault  key)  {return Globals::VehicleClassMatches(key, Globals::Class::ANY);},
-			[=](const binary value){return GetBinaryString(0, value);}
+			[=](const vault  key)   {return Globals::VehicleClassMatches(key, Globals::Class::ANY);},
+			[=](const binary value) {return GetBinaryString(0, value); }
 		);
 	}
 }

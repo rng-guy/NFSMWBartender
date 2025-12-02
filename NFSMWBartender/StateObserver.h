@@ -22,23 +22,15 @@ namespace StateObserver
 
 	bool featureEnabled = false;
 
-	// Code caves 
-	address playerPerpVehicle = 0x0;
-	size_t  playerHeatLevel   = 0;
-	bool    playerIsRacing    = false;
+	// Code caves
+	size_t playerHeatLevel = 0;
+	bool   playerIsRacing  = false;
 
 
 
 
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	void OnPlayerVehicleUpdates()
-	{
-		CopDetection::playerPerpVehicle = playerPerpVehicle;
-	}
-
-
 
 	void OnHeatLevelUpdates()
 	{
@@ -47,6 +39,8 @@ namespace StateObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("    HEAT [STA] Heat level is now", (int)playerHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
+
+			Globals::playerHeatLevelKnown = true;
 
 			GroundSupports  ::SetToHeat(playerIsRacing, playerHeatLevel);
 			GeneralSettings ::SetToHeat(playerIsRacing, playerHeatLevel);
@@ -92,7 +86,7 @@ namespace StateObserver
 	{
 		static const auto IsRacing = (bool (__thiscall*)(address))0x409500;
 
-		if (playerPerpVehicle and (playerIsRacing != IsRacing(playerPerpVehicle)))
+		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
 		{
 			playerIsRacing = (not playerIsRacing);
 
@@ -115,6 +109,8 @@ namespace StateObserver
 	{
 		playerHeatLevel = 0; // forces an update
 
+		Globals::playerHeatLevelKnown = false;
+
 		PursuitObserver::SoftResetState();
 	}
 
@@ -135,7 +131,7 @@ namespace StateObserver
 			cmp ebp, dword ptr playerHeatLevel
 			je conclusion // Heat unchanged
 
-			cmp esi, dword ptr playerPerpVehicle
+			cmp esi, dword ptr Globals::playerPerpVehicle
 			jne conclusion // not player vehicle
 
 			cmp dword ptr [esp + 0x20], 0x416A75
@@ -223,12 +219,10 @@ namespace StateObserver
 			lea eax, dword ptr [esi + 0x758]
 			mov dword ptr [eax], 0x892988
 
-			cmp dword ptr playerPerpVehicle, 0x0
+			cmp dword ptr Globals::playerPerpVehicle, 0x0
 			jne conclusion // vehicle already stored
 	
-			mov dword ptr playerPerpVehicle, eax
-			call OnPlayerVehicleUpdates
-			mov ecx, dword ptr [esp + 0xC]
+			mov dword ptr Globals::playerPerpVehicle, eax
 
 			conclusion:
 			jmp dword ptr playerConstructorExit
@@ -245,20 +239,16 @@ namespace StateObserver
 	{
 		__asm
 		{
-			cmp eax, dword ptr playerPerpVehicle
+			cmp eax, dword ptr Globals::playerPerpVehicle
 			jne conclusion // not stored vehicle
 
 			xor ecx, ecx
 
-			mov dword ptr playerPerpVehicle, ecx
+			mov dword ptr Globals::playerPerpVehicle, ecx
+			mov byte ptr Globals::playerHeatLevelKnown, cl
+
 			mov dword ptr playerHeatLevel, ecx
 			mov byte ptr playerIsRacing, cl
-
-			push eax
-
-			call OnPlayerVehicleUpdates
-
-			pop eax
 
 			conclusion:
 			// Execute original code and resume
@@ -325,21 +315,19 @@ namespace StateObserver
 		__asm
 		{
 			mov edi, eax
-			mov eax, dword ptr playerPerpVehicle
+
+			mov eax, dword ptr Globals::playerPerpVehicle
+			lea ecx, dword ptr [esp + 0x24]
+			lea edx, dword ptr [eax + 0x1C]
 
 			test eax, eax
-			je retain // player vehicle unknown
+			cmove edx, ecx // player vehicle unknown
 
 			cmp eax, esi
-			je retain // is player vehicle
+			cmove edx, ecx // is player vehicle
 
-			fld dword ptr [eax + 0x1C]
-			jmp conclusion
+			fld dword ptr [edx]
 
-			retain:
-			fld dword ptr [esp + 0x24]
-
-			conclusion:
 			jmp dword ptr heatEqualiserExit
 		}
 	}

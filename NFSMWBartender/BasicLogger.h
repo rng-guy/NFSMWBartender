@@ -38,7 +38,7 @@ namespace BasicLogger
 		requires std::is_pointer_v<T>
 		void Print(const T value)
 		{
-			this->Print<uint32_t>((uint32_t)value);
+			this->Print<uintptr_t>((uintptr_t)value);
 		}
 
 
@@ -50,7 +50,7 @@ namespace BasicLogger
 
 
 		template <>
-		void Print<uint32_t>(const uint32_t value) 
+		void Print<uintptr_t>(const uintptr_t value)
 		{
 			this->file << std::format("{:08x}", value);
 		}

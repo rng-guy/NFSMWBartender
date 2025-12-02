@@ -19,8 +19,6 @@ namespace CopDetection
 	bool featureEnabled = false;
 
 	// Code caves
-	address playerPerpVehicle = 0x0;
-
 	struct Settings
 	{
 		float radarRange;
@@ -29,9 +27,7 @@ namespace CopDetection
 		bool  lockIcon;
 	};
 
-	Settings defaultSettings = {300.f, 0.f, 300.f, true};
-
-	HashContainers::VaultMap<Settings> copTypeToSettings;
+	HashContainers::CachedMap<vault, Settings> copTypeToSettings({300.f, 0.f, 300.f, true});
 
 
 
@@ -57,22 +53,12 @@ namespace CopDetection
 			hasBeenInPursuit = (hasPursuit or isRoadblock);
 		}
 
-		if (not playerPerpVehicle) return false; // should never happen
+		if (not Globals::playerPerpVehicle) return false; // should never happen
 
-		static address         cachedType     = 0x0;
-		static const Settings* cachedSettings = &defaultSettings;
+		const Settings* const settings = copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle));
+		if (not settings) return false; // should never happen
 
-		const address copType = Globals::GetVehicleType(copVehicle);
-
-		if (copType != cachedType)
-		{
-			const auto foundType = copTypeToSettings.find(copType);
-
-			cachedType     = copType;
-			cachedSettings = &((foundType != copTypeToSettings.end()) ? foundType->second : defaultSettings);
-		}
-
-		const float iconRange = (hasBeenInPursuit) ? cachedSettings->pursuitIconRange : cachedSettings->patrolIconRange;
+		const float iconRange = (hasBeenInPursuit) ? settings->pursuitIconRange : settings->patrolIconRange;
 
 		if (iconRange > 0.f)
 		{
@@ -81,7 +67,7 @@ namespace CopDetection
 			const address copPosition = GetVehiclePosition(copVehicle);
 			if (not copPosition) return false; // should never happen
 
-			const address playerVehicle  = *((address*)(playerPerpVehicle - 0x758 + 0x4C - 0x4));
+			const address playerVehicle  = *((address*)(Globals::playerPerpVehicle - 0x758 + 0x4C - 0x4));
 			const address playerPosition = GetVehiclePosition(playerVehicle);
 			if (not playerPosition) return false; // should never happen
 
@@ -90,7 +76,7 @@ namespace CopDetection
 
 			if (copDistanceSquared <= iconRange * iconRange)
 			{
-				iconIsLocked = cachedSettings->lockIcon;
+				iconIsLocked = settings->lockIcon;
 
 				return true;
 			}
@@ -103,25 +89,13 @@ namespace CopDetection
 
 	float __fastcall GetRadarRange(const address copVehicle)
 	{
-		static address cachedType  = 0x0;
-		static float   cachedRange = defaultSettings.radarRange;
-
-		const address copType = Globals::GetVehicleType(copVehicle);
-
-		if (copType != cachedType)
-		{
-			const auto foundType = copTypeToSettings.find(copType);
-
-			cachedType  = copType;
-			cachedRange = ((foundType != copTypeToSettings.end()) ? foundType->second : defaultSettings).radarRange;
-		}
-
-		return cachedRange;
+		const Settings* const settings = copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle));
+		return (settings) ? settings->radarRange : 0.f;
 	}
 
 
 
-	std::fstream& operator <<
+	std::fstream& operator<<
 	(
 		std::fstream&   stream,
 		const Settings& copSettings
@@ -154,10 +128,10 @@ namespace CopDetection
 			je conclusion // is helicopter
 
 			cmp dword ptr [esp + 0x18], 0x8
-			jge skip // at vehicle cap
+			jge skip // at vehicle icon cap
 
 			cmp byte ptr featureEnabled, 0x1
-			jne conclusion // main feature disabled
+			jne conclusion // map feature disabled
 
 			mov ecx, dword ptr [esi]
 			call IsInMapRange // ecx: copVehicle
@@ -270,7 +244,7 @@ namespace CopDetection
 		MemoryTools::MakeRangeJMP(CopVehicleRadar, copVehicleRadarEntrance, copVehicleRadarExit);
 		MemoryTools::MakeRangeJMP(ResetInternals,  resetInternalsEntrance,  resetInternalsExit);
 
-		ApplyFixes(); // also contains feature(s)
+		ApplyFixes(); // also contains map-icon feature
 
 		// Status flag
 		featureEnabled = true;
@@ -287,11 +261,9 @@ namespace CopDetection
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [DET] CopDetection");
 
-		HashContainers::ValidateVaultMap<Settings>
+		copTypeToSettings.Validate
 		(
 			"Vehicle-to-settings",
-			copTypeToSettings,
-			defaultSettings,
 			[=](const vault     key)   {return Globals::VehicleClassMatches(key, Globals::Class::CAR);},
 			[=](const Settings& value) {return true;}
 		);

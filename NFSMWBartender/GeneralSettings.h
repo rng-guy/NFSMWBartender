@@ -152,19 +152,18 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov edx, offset maxBustDistances.current
 			mov ecx, 0x890968 // 0.f
+			mov edx, offset maxBustDistances.current
 
 			fld dword ptr [ecx]
 			fcomp dword ptr [esi + 0x168] // EVADE progress
 			fnstsw ax
 			test ah, 0x1
 			cmovne edx, ecx               // in EVADE state
-			
-			fld dword ptr [edx]
 
 			// Execute original code and resume
 			test bl, bl
+			fld dword ptr [edx]
 
 			jmp dword ptr maxBustDistanceExit
 		}

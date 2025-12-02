@@ -182,7 +182,9 @@
     <ClInclude Include="RandomNumbers.h" />
     <ClInclude Include="StateObserver.h" />
     <ClInclude Include="inipp.h" />
+    <ClInclude Include="stl.h" />
     <ClInclude Include="StrategyOverrides.h" />
+    <ClInclude Include="unordered_dense.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\APPENDIX.md" />

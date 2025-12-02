@@ -293,7 +293,7 @@ namespace GroundSupports
 			fld dword ptr [edx + 0x7C]
 			fcomp dword ptr maxJoinRange
 			fnstsw ax
-			test ah, ah
+			test ah, 0x41
 
 			mov eax, edx
 

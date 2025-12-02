@@ -44,7 +44,7 @@ namespace StrategyOverrides
 
 		int& numStrategyVehicles = *((int*)(this->pursuit + 0x18C));
 
-		const float pursuitStartTimestamp = PursuitFeatures::simulationTime;
+		const float pursuitStartTimestamp = Globals::simulationTime;
 
 		const int&     pursuitStatus  = *((int*)(this->pursuit + 0x218));
 		const bool&    isJerk         = *((bool*)(this->pursuit + 0x238));
@@ -78,11 +78,13 @@ namespace StrategyOverrides
 
 			if (this->watchingHeavyStrategy3)
 			{
-				this->watchingHeavyStrategy3 = false;
-				this->vehiclesOfUnblockedHeavy3.merge(this->vehiclesOfCurrentStrategy);
-			}
-			else this->vehiclesOfCurrentStrategy.clear();
+				for (const address copVehicle : this->vehiclesOfCurrentStrategy)
+					this->vehiclesOfUnblockedHeavy3.insert(copVehicle);
 
+				this->watchingHeavyStrategy3 = false;
+			}
+			
+			this->vehiclesOfCurrentStrategy.clear();
 			this->UpdateNumStrategyVehicles();
 		}
 
@@ -352,7 +354,7 @@ namespace StrategyOverrides
 		static float __fastcall GetTruePursuitLength(const address pursuit)
 		{
 			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
-			return (manager) ? (PursuitFeatures::simulationTime - manager->pursuitStartTimestamp) : 0.f;
+			return (manager) ? (Globals::simulationTime - manager->pursuitStartTimestamp) : 0.f;
 		}
 	};
 

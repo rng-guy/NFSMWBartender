@@ -2,7 +2,6 @@
 
 #include <array>
 #include <string>
-#include <concepts>
 #include <optional>
 #include <algorithm>
 
@@ -71,7 +70,7 @@ namespace HeatParameters
 	{
 	protected:
 
-		BasePair() = default;
+		explicit BasePair() = default;
 
 
 
@@ -113,7 +112,7 @@ namespace HeatParameters
 
 
 	template <typename T>
-	requires std::is_arithmetic_v<T>
+	requires Globals::isTrivial<T>
 	struct Pair<T> : public BasePair<T>
 	{
 		T current;

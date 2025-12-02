@@ -27,6 +27,9 @@ namespace PursuitObserver
 
 	class PursuitObserver
 	{
+		template <typename T>
+		using UniqueVector = std::vector<std::unique_ptr<T>>;
+
 		using PursuitReaction = PursuitFeatures::PursuitReaction;
 		using PursuitCache    = PursuitFeatures::PursuitCache;
 		using CopLabel        = PursuitReaction::CopLabel;
@@ -42,13 +45,29 @@ namespace PursuitObserver
 
 		PursuitCache cache = PursuitCache(this->pursuit);
 
-		HashContainers::AddressMap<CopLabel>          copVehicleToLabel;
-		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
-
-		inline static HashContainers::AddressSet                  copVehiclesLoaded;
-		inline static HashContainers::AddressMap<PursuitObserver> pursuitToObserver;
+		UniqueVector<PursuitReaction>        pursuitReactions;
+		HashContainers::AddressMap<CopLabel> copVehicleToLabel;
+		
+		// Pointers avoid the moving of Observers on reallocation
+		inline static UniqueVector<PursuitObserver> observers;
+		inline static HashContainers::AddressSet    copVehiclesLoaded;
 
 		inline static constexpr size_t cacheIndex = 0;
+
+
+		static auto FindObserver(const address pursuit)
+		{
+			auto iterator = PursuitObserver::observers.begin();
+
+			while (iterator != PursuitObserver::observers.end())
+			{
+				if ((*iterator)->pursuit == pursuit) break;
+
+				++iterator;
+			}
+
+			return iterator;
+		}
 
 
 		static CopLabel LabelAddVehicleCall(const address caller)
@@ -87,7 +106,7 @@ namespace PursuitObserver
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [OBS] Unknown AddVehicle return address:", caller);
+				Globals::logger.Log("WARNING: [OBS] Unknown AddVehicle caller:", caller);
 
 			return CopLabel::UNKNOWN;
 		}
@@ -103,7 +122,7 @@ namespace PursuitObserver
 		void UpdateOnHeatChange()
 		{
 			for (const auto& reaction : this->pursuitReactions)
-				reaction.get()->UpdateOnHeatChange();
+				reaction->UpdateOnHeatChange();
 
 			this->perHeatLevelUpdatePending = true;
 		}
@@ -114,12 +133,12 @@ namespace PursuitObserver
 			for (const auto& reaction : this->pursuitReactions)
 			{
 				if (this->perPursuitUpdatePending)
-					reaction.get()->UpdateOncePerPursuit();
+					reaction->UpdateOncePerPursuit();
 
 				if (this->perHeatLevelUpdatePending)
-					reaction.get()->UpdateOncePerHeatLevel();
+					reaction->UpdateOncePerHeatLevel();
 
-				reaction.get()->UpdateOnGameplay();
+				reaction->UpdateOnGameplay();
 			}
 
 			this->perPursuitUpdatePending   = false;
@@ -161,13 +180,11 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     NEW [OBS] Pursuit", pursuit);
 
-			const auto addedPursuit = PursuitObserver::pursuitToObserver.try_emplace(pursuit, pursuit);
-			
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (not addedPursuit.second)
-					Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
-			}
+			if (PursuitObserver::FindObserver(pursuit) == PursuitObserver::observers.end())
+				PursuitObserver::observers.push_back(std::make_unique<PursuitObserver>(pursuit));
+
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
 		}
 
 
@@ -185,27 +202,27 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     DEL [OBS] Pursuit", pursuit);
 
-			const bool wasPursuit = PursuitObserver::pursuitToObserver.erase(pursuit);
+			const auto iterator = PursuitObserver::FindObserver(pursuit);
 
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (not wasPursuit)
-					Globals::logger.Log("WARNING: [OBS] Unknown pursuit", pursuit);
-			}
+			if (iterator != PursuitObserver::observers.end())
+				PursuitObserver::observers.erase(iterator);
+
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [OBS] Unknown pursuit", pursuit);
 		}
 
 
 		static void NotifyOfHeatChange()
 		{
-			for (auto& pair : PursuitObserver::pursuitToObserver)
-				pair.second.UpdateOnHeatChange();
+			for (const auto& observer : PursuitObserver::observers)
+				observer->UpdateOnHeatChange();
 		}
 
 
 		static void NotifyOfGameplay()
 		{
-			for (auto& pair : PursuitObserver::pursuitToObserver)
-				pair.second.UpdateOnGameplay();
+			for (const auto& observer : PursuitObserver::observers)
+				observer->UpdateOnGameplay();
 		}
 
 
@@ -614,8 +631,6 @@ namespace PursuitObserver
 			Globals::logger.LogLongIndent("spawnsAreIndependent    ", spawnsAreIndependents.current);
 		}
 
-		PursuitFeatures::heatLevelKnown = true;
-
 		CopSpawnTables     ::SetToHeat(isRacing, heatLevel);
 		CopSpawnOverrides  ::SetToHeat(isRacing, heatLevel);
 		CopFleeOverrides   ::SetToHeat(isRacing, heatLevel);
@@ -641,7 +656,6 @@ namespace PursuitObserver
 	{
 		if (not featureEnabled) return;
 
-		PursuitFeatures::heatLevelKnown = false;
 		CopSpawnOverrides::ResetState();
 	}
 
@@ -651,7 +665,6 @@ namespace PursuitObserver
 	{
 		if (not featureEnabled) return;
 
-		PursuitFeatures::heatLevelKnown = false;
 		CopSpawnOverrides::ResetState();
 
 		PursuitObserver::ClearVehicleRegistrations();

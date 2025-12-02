@@ -43,9 +43,10 @@ namespace LeaderOverrides
 			LOST
 		};
 
-		address crossVehicle        = 0x0;
-		Status  crossStatus         = Status::PENDING;
-		float   expirationTimestamp = PursuitFeatures::simulationTime;
+		address crossVehicle = 0x0;
+		Status  crossStatus  = Status::PENDING;
+
+		float expirationTimestamp = Globals::simulationTime;
 
 		int&  crossFlag    = *((int*)(this->pursuit + 0x164));
 		bool& skipPriority = *((bool*)(this->pursuit + 0x214));
@@ -236,7 +237,7 @@ namespace LeaderOverrides
 
 		void UpdateExpirationTimestamp()
 		{
-			this->expirationTimestamp = PursuitFeatures::simulationTime;
+			this->expirationTimestamp = Globals::simulationTime;
 
 			if (this->leaderStrategy)
 				this->expirationTimestamp += *((float*)(this->leaderStrategy + 0x8));
@@ -323,7 +324,7 @@ namespace LeaderOverrides
 				if (Globals::IsVehicleDestroyed(copVehicle))
 					this->crossStatus = Status::WRECKED;
 				
-				else if (PursuitFeatures::simulationTime > this->expirationTimestamp)
+				else if (Globals::simulationTime >= this->expirationTimestamp)
 					this->crossStatus = Status::EXPIRED;
 				
 				else				

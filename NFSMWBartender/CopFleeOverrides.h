@@ -48,12 +48,12 @@ namespace CopFleeOverrides
 
 		void ReviewChaser(const address copVehicle)
 		{
-			if (not PursuitFeatures::heatLevelKnown) return;
-			if (not fleeDelays.isEnableds.current)   return;
-			if (this->IsChaserMember(copVehicle))    return;
+			if (not Globals::playerHeatLevelKnown) return;
+			if (not fleeDelays.isEnableds.current) return;
+			if (this->IsChaserMember(copVehicle))  return;
 
 			const float fleeDelay     = fleeDelays.GetRandomValue();
-			const float fleeTimestamp = PursuitFeatures::simulationTime + fleeDelay;
+			const float fleeTimestamp = Globals::simulationTime + fleeDelay;
 			const bool  wasNew        = this->chaserVehicleToFleeTimestamp.insert({copVehicle, fleeTimestamp}).second;
 
 			if constexpr (Globals::loggingEnabled)
@@ -84,9 +84,9 @@ namespace CopFleeOverrides
 			const address copVehicle, 
 			const float   strategyDuration
 		) {
-			if (not PursuitFeatures::heatLevelKnown) return;
+			if (not Globals::playerHeatLevelKnown) return;
 
-			const float fleeTimestamp = PursuitFeatures::simulationTime + strategyDuration;
+			const float fleeTimestamp = Globals::simulationTime + strategyDuration;
 			const bool  wasNew        = this->supportVehicleToFleeTimestamp.insert({copVehicle, fleeTimestamp}).second;
 
 			if constexpr (Globals::loggingEnabled)
@@ -121,7 +121,7 @@ namespace CopFleeOverrides
 
 			while (iterator != this->chaserVehicleToFleeTimestamp.end())
 			{
-				if (PursuitFeatures::simulationTime >= iterator->second)
+				if (Globals::simulationTime >= iterator->second)
 				{
 					PursuitFeatures::MakeVehicleBail(iterator->first);
 					this->activeChaserVehicles.erase(iterator->first);
@@ -152,7 +152,7 @@ namespace CopFleeOverrides
 
 			while (iterator != this->supportVehicleToFleeTimestamp.end())
 			{
-				if (PursuitFeatures::simulationTime >= iterator->second)
+				if (Globals::simulationTime >= iterator->second)
 				{
 					PursuitFeatures::MakeVehicleBail(iterator->first);
 

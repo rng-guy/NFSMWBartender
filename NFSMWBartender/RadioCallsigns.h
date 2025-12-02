@@ -27,24 +27,10 @@ namespace RadioCallsigns
 		CROSS
 	};
 
-	Group defaultCallsignGroup = Group::PATROL;
-
-	HashContainers::VaultMap<Group> copTypeToCallsignGroup;
+	HashContainers::CachedMap<vault, Group> copTypeToCallsignGroup(Group::PATROL);
 
 	
 	
-
-
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	Group __fastcall GetCallsignGroup(const vault copType)
-	{
-		const auto foundType = copTypeToCallsignGroup.find(copType);
-		return (foundType != copTypeToCallsignGroup.end()) ? foundType->second : defaultCallsignGroup;
-	}
-
-
-
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
@@ -56,8 +42,9 @@ namespace RadioCallsigns
 	{
 		__asm
 		{
-			mov ecx, eax
-			call GetCallsignGroup // ecx: copType
+			push eax // copType
+			mov ecx, offset copTypeToCallsignGroup
+			call HashContainers::CachedMap<vault, Group>::GetValue
 			mov dword ptr [esp + 0x28], eax
 			cmp eax, CROSS
 
@@ -130,10 +117,11 @@ namespace RadioCallsigns
 	{
 		__asm
 		{
-			mov ecx, eax
-			call GetCallsignGroup // ecx: copType
+			push eax                   // copType
+			mov ecx, offset copTypeToCallsignGroup
+			call HashContainers::CachedMap<vault, Group>::GetValue
 			cmp eax, RHINO
-			sete byte ptr [esp + 0x2B]
+			sete byte ptr [esp + 0x2B] // is "rhino"
 
 			jmp dword ptr collisionCalloutExit
 		}
@@ -150,7 +138,7 @@ namespace RadioCallsigns
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
 
 		// Callsign groups
-		const std::unordered_map<std::string, Group> nameToCallsign =
+		const HashContainers::Map<std::string, Group> nameToCallsign =
 		{ 
 			{"patrol", Group::PATROL},
 			{"elite",  Group::ELITE},
@@ -196,13 +184,11 @@ namespace RadioCallsigns
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [RAD] RadioCallsigns");
 
-		HashContainers::ValidateVaultMap<Group>
+		copTypeToCallsignGroup.Validate
 		(
 			"Vehicle-to-callsign",
-			copTypeToCallsignGroup, 
-			defaultCallsignGroup,
-			[=](const vault key)  {return Globals::VehicleClassMatches(key, Globals::Class::CAR);},
-			[=](const Group value){return (value != Group::UNKNOWN);}
+			[=](const vault key)   {return Globals::VehicleClassMatches(key, Globals::Class::CAR);},
+			[=](const Group value) {return (value != Group::UNKNOWN);}
 		);
 	}
 }

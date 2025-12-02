@@ -256,7 +256,7 @@ namespace CopSpawnOverrides
 
 		void UpdateSpawnTable()
 		{
-			if (PursuitFeatures::heatLevelKnown)
+			if (Globals::playerHeatLevelKnown)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[SPA] Updating table");
@@ -320,7 +320,7 @@ namespace CopSpawnOverrides
 
 		bool CanNewChaserSpawn() const
 		{
-			if (not PursuitFeatures::heatLevelKnown) return false;
+			if (not Globals::playerHeatLevelKnown) return false;
 
 			if (this->isPerpBusted)        return false;
 			if (this->bailingPursuit)      return false;
@@ -501,7 +501,7 @@ namespace CopSpawnOverrides
 
 	const char* __fastcall GetByClassReplacement(const address caller)
 	{
-		if (PursuitFeatures::heatLevelKnown)
+		if (Globals::playerHeatLevelKnown)
 		{
 			switch (caller)
 			{
@@ -680,7 +680,7 @@ namespace CopSpawnOverrides
 			cmp byte ptr skipEventSpawns, 0x0
 			jne retain // skip "Events" spawn
 
-			cmp byte ptr PursuitFeatures::heatLevelKnown, 0x1
+			cmp byte ptr Globals::playerHeatLevelKnown, 0x1
 			jne retain // Heat level unknown
 
 			mov ecx, offset eventSpawns
