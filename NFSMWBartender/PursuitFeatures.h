@@ -19,41 +19,6 @@ namespace PursuitFeatures
 
 	
 
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	address GetFromPursuitlevel
-	(
-		const address pursuit,
-		const vault   attributeKey,
-		const size_t  attributeIndex = 0
-	) {
-		static const auto GetPursuitNode      = (address (__thiscall*)(address))               0x418E90;
-		static const auto GetPursuitAttribute = (address (__thiscall*)(address, vault, size_t))0x454810;
-
-		const address node = GetPursuitNode(pursuit);
-		return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : node;
-	}
-
-
-
-	bool MakeVehicleBail(const address copVehicle)
-	{
-		static const auto StartFlee    = (void (__thiscall*)(address))0x423370;
-		const address     copAIVehicle = *((address*)(copVehicle + 0x54));
-
-		if (copAIVehicle)
-			StartFlee(copAIVehicle + 0x70C);
-
-		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
-
-		return copAIVehicle;
-	}
-
-
-
-
-
 	// PursuitReaction class ------------------------------------------------------------------------------------------------------------------------
 
 	class PursuitReaction
@@ -62,7 +27,57 @@ namespace PursuitFeatures
 
 		const address pursuit;
 
+		const int& pursuitStatus = *reinterpret_cast<int*>(this->pursuit + 0x218);
+
 		
+		address GetFromPursuitlevel
+		(
+			const vault  attributeKey,
+			const size_t attributeIndex = 0
+		)
+			const
+		{
+			static const auto GetPursuitNode      = reinterpret_cast<address (__thiscall*)(address)>               (0x418E90);
+			static const auto GetPursuitAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
+
+			const address node = GetPursuitNode(this->pursuit);
+			return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : node;
+		}
+
+
+		static address GetPursuitVehicle(const address copVehicle)
+		{
+			const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (not copAIVehicle)
+					Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
+			}
+
+			return (copAIVehicle) ? (copAIVehicle - 0x4C + 0x758) : 0x0;
+		}
+
+
+		static bool MakeVehicleBail(const address copVehicle)
+		{
+			const address pursuitVehicle = PursuitReaction::GetPursuitVehicle(copVehicle);
+
+			static const auto StartFlee = reinterpret_cast<void (__thiscall*)(address)>(0x423370);
+
+			if (pursuitVehicle)
+				StartFlee(pursuitVehicle);
+
+			return pursuitVehicle;
+		}
+
+
+		bool IsSearchModeActive() const
+		{
+			return (this->pursuitStatus == 2);
+		}
+
+
 
 	public:
 

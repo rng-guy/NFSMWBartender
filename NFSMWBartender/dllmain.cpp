@@ -60,9 +60,9 @@ static void ApplyBartender()
 static bool IsExecutableCompatible()
 {
     // Credit: thelink2012 and MWisBest
-    const auto base = (uintptr_t)(GetModuleHandleA(NULL));
-    const auto dos  = (PIMAGE_DOS_HEADER)base;
-    const auto nt   = (PIMAGE_NT_HEADERS)(base + dos->e_lfanew);
+    const auto base = reinterpret_cast<uintptr_t>        (GetModuleHandleA(NULL));
+    const auto dos  = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
+    const auto nt   = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dos->e_lfanew);
 
     return (nt->OptionalHeader.AddressOfEntryPoint == 0x3C4040);
 }

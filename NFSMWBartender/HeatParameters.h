@@ -17,7 +17,7 @@ namespace HeatParameters
 
 	// Heat levels
 	constexpr size_t maxHeatLevel = 10;
-	constexpr float  maxHeat      = (float)maxHeatLevel;
+	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
 
 	// Configuration files
 	const std::string configFormatRoam   = "heat{:02}";
@@ -186,7 +186,7 @@ namespace HeatParameters
 							if (numReplaced == 0)
 								Globals::logger.LogLongIndent(pairName, (forRaces) ? "(race)" : "(free-roam)");
 
-							Globals::logger.LogLongIndent(' ', (int)heatLevel, vehicle, "->", this->current);
+							Globals::logger.LogLongIndent(' ', static_cast<int>(heatLevel), vehicle, "->", this->current);
 						}
 
 						vehicle = this->current;

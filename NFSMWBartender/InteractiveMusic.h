@@ -3,10 +3,10 @@
 #include <array>
 #include <string>
 #include <vector>
-#include <unordered_map>
 
 #include "Globals.h"
 #include "MemoryTools.h"
+#include "HashContainers.h"
 #include "HeatParameters.h"
 #include "ConfigParser.h"
 
@@ -168,7 +168,7 @@ namespace InteractiveMusic
 
 		if (numParsedTracks == 0) return false;
 
-		const std::unordered_map<std::string, int> nameToIndex =
+		const HashContainers::Map<std::string, int> nameToIndex =
 		{
 			{"theme1", 0},
 			{"theme2", 1},
@@ -208,7 +208,7 @@ namespace InteractiveMusic
 
 
 
-	void LogConfigurationReport()
+	void LogSetupReport()
 	{
 		if (numParsedTracks == 0) return;
 
@@ -217,17 +217,17 @@ namespace InteractiveMusic
 		if (numValidTracks != numParsedTracks)
 		{
 			if (numValidTracks == 0)
-				Globals::logger.LogLongIndent("All", (int)numParsedTracks, "tracks invalid");
+				Globals::logger.LogLongIndent("All", static_cast<int>(numParsedTracks), "tracks invalid");
 				
 			else 
-				Globals::logger.LogLongIndent((int)numValidTracks, '/', (int)numParsedTracks, "tracks valid");
+				Globals::logger.LogLongIndent(static_cast<int>(numValidTracks), '/', static_cast<int>(numParsedTracks), "tracks valid");
 		}
-		else Globals::logger.LogLongIndent("All", (int)numParsedTracks, "tracks valid");
+		else Globals::logger.LogLongIndent("All", static_cast<int>(numParsedTracks), "tracks valid");
 
 		if (featureEnabled) 
 		{
 			for (size_t trackID = 0; trackID < numValidTracks; ++trackID)
-				Globals::logger.LogLongIndent("  track", (int)(trackID + 1), "= theme", playlist[trackID] + 1);
+				Globals::logger.LogLongIndent("  track", static_cast<int>(trackID + 1), "= theme", playlist[trackID] + 1);
 
 			if (transitionsEnabled)
 				Globals::logger.LogLongIndent("Length per track:", lengthPerTrack);

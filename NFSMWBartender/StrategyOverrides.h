@@ -42,14 +42,13 @@ namespace StrategyOverrides
 
 	private:
 
-		int& numStrategyVehicles = *((int*)(this->pursuit + 0x18C));
+		int& numStrategyVehicles = *reinterpret_cast<int*>(this->pursuit + 0x18C);
 
 		const float pursuitStartTimestamp = Globals::simulationTime;
 
-		const int&     pursuitStatus  = *((int*)(this->pursuit + 0x218));
-		const bool&    isJerk         = *((bool*)(this->pursuit + 0x238));
-		const address& heavyStrategy  = *((address*)(this->pursuit + 0x194));
-		const address& leaderStrategy = *((address*)(this->pursuit + 0x198));
+		const bool&    isJerk         = *reinterpret_cast<bool*>   (this->pursuit + 0x238);
+		const address& heavyStrategy  = *reinterpret_cast<address*>(this->pursuit + 0x194);
+		const address& leaderStrategy = *reinterpret_cast<address*>(this->pursuit + 0x198);
 
 		address rigidBodyOfTarget      = 0x0;
 		bool    watchingHeavyStrategy3 = false;
@@ -59,14 +58,14 @@ namespace StrategyOverrides
 		HashContainers::AddressSet vehiclesOfCurrentStrategy;
 		HashContainers::AddressSet vehiclesOfUnblockedHeavy3;
 
-		inline static const auto ClearSupportRequest = (void (__thiscall*)(address))0x42BCF0;
+		inline static const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
 
 		inline static constexpr size_t cacheIndex = 2;
 
 
 		void UpdateNumStrategyVehicles() const
 		{
-			this->numStrategyVehicles = (int)(this->vehiclesOfCurrentStrategy.size());
+			this->numStrategyVehicles = static_cast<int>(this->vehiclesOfCurrentStrategy.size());
 		}
 
 
@@ -120,7 +119,7 @@ namespace StrategyOverrides
 		static void MakeVehiclesBail(HashContainers::AddressSet& copVehicles)
 		{
 			for (const address copVehicle : copVehicles)
-				PursuitFeatures::MakeVehicleBail(copVehicle);
+				StrategyManager::MakeVehicleBail(copVehicle);
 
 			copVehicles.clear();
 		}
@@ -128,10 +127,10 @@ namespace StrategyOverrides
 
 		void RetrieveRigidBodyOfTarget()
 		{
-			const address pursuitTarget = *((address*)(this->pursuit + 0x74));
-			const address physicsObject = *((address*)(pursuitTarget + 0x1C));
+			const address pursuitTarget = *reinterpret_cast<address*>(this->pursuit + 0x74);
+			const address physicsObject = *reinterpret_cast<address*>(pursuitTarget + 0x1C);
 
-			this->rigidBodyOfTarget = (physicsObject) ? *((address*)(physicsObject + 0x4C)) : 0x0;
+			this->rigidBodyOfTarget = (physicsObject) ? *reinterpret_cast<address*>(physicsObject + 0x4C) : 0x0;
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -143,17 +142,11 @@ namespace StrategyOverrides
 
 		bool IsSpeedOfTargetBelowThreshold() const
 		{
-			if (not this->rigidBodyOfTarget) return false;
+			if (not this->rigidBodyOfTarget) return false; // should never happen
 
-			static const auto GetSpeedXZ = (float (__thiscall*)(address))0x6711F0;
+			static const auto GetSpeedXZ = reinterpret_cast<float (__thiscall*)(address)>(0x6711F0);
 
 			return (GetSpeedXZ(this->rigidBodyOfTarget) < ((this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold));
-		}
-
-
-		bool IsSearchModeActive() const
-		{
-			return (this->pursuitStatus == 2);
 		}
 
 
@@ -256,7 +249,7 @@ namespace StrategyOverrides
 		{
 			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
 
-			if (not manager) return;
+			if (not manager) return; // should never happen
 
 			manager->StopUnblockTimer();
 
@@ -265,10 +258,10 @@ namespace StrategyOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [STR] Invalid HeavyStrategy pointer in", pursuit);
 
-				return;
+				return; // should never happen
 			}
 
-			const int strategyID = *((int*)(manager->heavyStrategy));
+			const int strategyID = *reinterpret_cast<int*>(manager->heavyStrategy);
 
 			switch (strategyID)
 			{
@@ -285,7 +278,7 @@ namespace StrategyOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [STR] Unknown HeavyStrategy", strategyID, "in", pursuit);
 
-				return;
+				return; // should never happen
 			}
 
 			if constexpr (Globals::loggingEnabled)
@@ -299,7 +292,7 @@ namespace StrategyOverrides
 		{
 			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
 
-			if (not manager) return;
+			if (not manager) return; // should never happen
 
 			manager->StopUnblockTimer();
 
@@ -308,10 +301,10 @@ namespace StrategyOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [STR] Invalid LeaderStrategy pointer in", pursuit);
 
-				return;
+				return; // should never happen
 			}
 
-			const int strategyID = *((int*)(manager->leaderStrategy));
+			const int strategyID = *reinterpret_cast<int*>(manager->leaderStrategy);
 
 			switch (strategyID)
 			{
@@ -327,7 +320,7 @@ namespace StrategyOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [STR] Unknown LeaderStrategy", strategyID, "in", pursuit);
 
-				return;
+				return; // should never happen
 			}
 
 			if constexpr (Globals::loggingEnabled)

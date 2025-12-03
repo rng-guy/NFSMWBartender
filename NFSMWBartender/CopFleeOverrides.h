@@ -31,8 +31,8 @@ namespace CopFleeOverrides
 	{
 	private:
 
-		const address& heavyStrategy  = *((address*)(this->pursuit + 0x194));
-		const address& leaderStrategy = *((address*)(this->pursuit + 0x198));
+		const address& heavyStrategy  = *reinterpret_cast<address*>(this->pursuit + 0x194);
+		const address& leaderStrategy = *reinterpret_cast<address*>(this->pursuit + 0x198);
 
 		HashContainers::AddressSet        activeChaserVehicles;
 		HashContainers::AddressMap<float> chaserVehicleToFleeTimestamp;
@@ -42,7 +42,7 @@ namespace CopFleeOverrides
 		static bool IsChaserMember(const address copVehicle)
 		{
 			const vault copType = Globals::GetVehicleType(copVehicle);
-			return CopSpawnTables::chaserSpawnTables.current->Contains(copType);
+			return CopSpawnTables::chaserSpawnTables.current->ContainsType(copType);
 		}
 
 
@@ -52,13 +52,13 @@ namespace CopFleeOverrides
 			if (not fleeDelays.isEnableds.current) return;
 			if (this->IsChaserMember(copVehicle))  return;
 
-			const float fleeDelay     = fleeDelays.GetRandomValue();
-			const float fleeTimestamp = Globals::simulationTime + fleeDelay;
-			const bool  wasNew        = this->chaserVehicleToFleeTimestamp.insert({copVehicle, fleeTimestamp}).second;
+			const float fleeDelay        = fleeDelays.GetRandomValue();
+			const float fleeTimestamp    = Globals::simulationTime + fleeDelay;
+			const auto  [pair, wasAdded] = this->chaserVehicleToFleeTimestamp.try_emplace(copVehicle, fleeTimestamp);
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (wasNew)
+				if (wasAdded)
 					Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", fleeDelay);
 
 				else
@@ -86,12 +86,12 @@ namespace CopFleeOverrides
 		) {
 			if (not Globals::playerHeatLevelKnown) return;
 
-			const float fleeTimestamp = Globals::simulationTime + strategyDuration;
-			const bool  wasNew        = this->supportVehicleToFleeTimestamp.insert({copVehicle, fleeTimestamp}).second;
+			const float fleeTimestamp    = Globals::simulationTime + strategyDuration;
+			const auto  [pair, wasAdded] = this->supportVehicleToFleeTimestamp.try_emplace(copVehicle, fleeTimestamp);
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (wasNew)
+				if (wasAdded)
 					Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", strategyDuration);
 
 				else
@@ -102,13 +102,13 @@ namespace CopFleeOverrides
 
 		static float GetStrategyDuration(const address strategy)
 		{
-			return (strategy) ? *((float*)(strategy + 0x8)) : 1.f;
+			return (strategy) ? *reinterpret_cast<float*>(strategy + 0x8) : 1.f;
 		}
 
 
 		bool MayAnotherChaserFlee() const
 		{
-			return ((int)(this->activeChaserVehicles.size()) > chasersThresholds.current);
+			return (static_cast<int>(this->activeChaserVehicles.size()) > chasersThresholds.current);
 		}
 
 
@@ -123,7 +123,7 @@ namespace CopFleeOverrides
 			{
 				if (Globals::simulationTime >= iterator->second)
 				{
-					PursuitFeatures::MakeVehicleBail(iterator->first);
+					this->MakeVehicleBail           (iterator->first);
 					this->activeChaserVehicles.erase(iterator->first);
 
 					if constexpr (Globals::loggingEnabled)
@@ -154,7 +154,7 @@ namespace CopFleeOverrides
 			{
 				if (Globals::simulationTime >= iterator->second)
 				{
-					PursuitFeatures::MakeVehicleBail(iterator->first);
+					this->MakeVehicleBail(iterator->first);
 
 					if constexpr (Globals::loggingEnabled)
 						Globals::logger.Log(this->pursuit, "[FLE] Support vehicle", iterator->first, "expired");

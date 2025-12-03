@@ -48,10 +48,10 @@ namespace LeaderOverrides
 
 		float expirationTimestamp = Globals::simulationTime;
 
-		int&  crossFlag    = *((int*)(this->pursuit + 0x164));
-		bool& skipPriority = *((bool*)(this->pursuit + 0x214));
+		int&  crossFlag    = *reinterpret_cast<int*> (this->pursuit + 0x164);
+		bool& skipPriority = *reinterpret_cast<bool*>(this->pursuit + 0x214);
 
-		const address& leaderStrategy = *((address*)(this->pursuit + 0x198));
+		const address& leaderStrategy = *reinterpret_cast<address*>(this->pursuit + 0x198);
 
 		HashContainers::AddressSet passiveHenchmenVehicles;
 
@@ -189,16 +189,14 @@ namespace LeaderOverrides
 
 		static bool MakeVehicleAggro(const address copVehicle)
 		{
-			static const auto SetSupportGoal = (void (__thiscall*)(address, vault))0x409850;
-			const address     copAIVehicle   = *((address*)(copVehicle + 0x54));
+			static const auto SetSupportGoal = reinterpret_cast<void (__thiscall*)(address, vault)>(0x409850);
 
-			if (copAIVehicle)
-				SetSupportGoal(copAIVehicle + 0x70C, 0x0);
+			const address pursuitVehicle = LeaderManager::GetPursuitVehicle(copVehicle);
 
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [LDR] Invalid AIVehicle pointer for", copVehicle);
+			if (pursuitVehicle)
+				SetSupportGoal(pursuitVehicle, 0x0);
 
-			return copAIVehicle;
+			return pursuitVehicle;
 		}
 
 
@@ -240,7 +238,7 @@ namespace LeaderOverrides
 			this->expirationTimestamp = Globals::simulationTime;
 
 			if (this->leaderStrategy)
-				this->expirationTimestamp += *((float*)(this->leaderStrategy + 0x8));
+				this->expirationTimestamp += *reinterpret_cast<float*>(this->leaderStrategy + 0x8);
 
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [LDR] Invalid duration pointer in", this->pursuit);

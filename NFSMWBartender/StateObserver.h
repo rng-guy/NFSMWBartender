@@ -38,7 +38,7 @@ namespace StateObserver
 		if ((playerHeatLevel >= 1) and (playerHeatLevel <= HeatParameters::maxHeatLevel))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("    HEAT [STA] Heat level is now", (int)playerHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
+				Globals::logger.Log("    HEAT [STA] Heat level now", static_cast<int>(playerHeatLevel), (playerIsRacing) ? "(race)" : "(free-roam)");
 
 			Globals::playerHeatLevelKnown = true;
 
@@ -47,7 +47,7 @@ namespace StateObserver
 			PursuitObserver ::SetToHeat(playerIsRacing, playerHeatLevel);
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("WARNING: [STA] Invalid Heat level", (int)playerHeatLevel, (playerIsRacing) ? "(race)" : "(free-roam)");
+			Globals::logger.Log("WARNING: [STA] Invalid Heat level", static_cast<int>(playerHeatLevel), (playerIsRacing) ? "(race)" : "(free-roam)");
 	}
 
 
@@ -63,17 +63,17 @@ namespace StateObserver
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
 
 			if (MemoryTools::numRangeErrors > 0)
-				Globals::logger.LogLongIndent("[MEM]", (int)(MemoryTools::numRangeErrors), "RANGE ERRORS!");
+				Globals::logger.LogLongIndent("[MEM]", static_cast<int>(MemoryTools::numRangeErrors), "RANGE ERRORS!");
 
 			if (MemoryTools::numCaveErrors > 0)
-				Globals::logger.LogLongIndent("[MEM]", (int)(MemoryTools::numCaveErrors), "CAVE ERRORS!");
+				Globals::logger.LogLongIndent("[MEM]", static_cast<int>(MemoryTools::numCaveErrors), "CAVE ERRORS!");
 		}
 
 		DestructionStrings::Validate();
 		CopDetection      ::Validate();
 
 		if constexpr (Globals::loggingEnabled)
-			InteractiveMusic::LogConfigurationReport();
+			InteractiveMusic::LogSetupReport();
 
 		RadioCallsigns ::Validate();
 		GroundSupports ::Validate();
@@ -84,7 +84,7 @@ namespace StateObserver
 
 	void OnGameplayUpdates()
 	{
-		static const auto IsRacing = (bool (__thiscall*)(address))0x409500;
+		static const auto IsRacing = reinterpret_cast<bool (__thiscall*)(address)>(0x409500);
 
 		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
 		{

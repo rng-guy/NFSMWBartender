@@ -26,7 +26,7 @@ namespace RandomNumbers
 			const uint32_t upper,
 			const uint32_t lower
 		) {
-			return ((uint64_t)upper << 32) bitor lower;
+			return (static_cast<uint64_t>(upper) << 32) bitor lower;
 		}
 
 
@@ -111,7 +111,8 @@ namespace RandomNumbers
 
 	public:
 
-		template <std::integral T>
+		template <typename T>
+		requires std::is_integral_v<T>
 		constexpr T GenerateNumber
 		(
 			const T min,
@@ -121,7 +122,8 @@ namespace RandomNumbers
 		}
 
 
-		template <std::floating_point T>
+		template <typename T>
+		requires std::is_floating_point_v<T>
 		constexpr T GenerateNumber
 		(
 			const T min,

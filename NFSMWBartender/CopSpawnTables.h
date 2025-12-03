@@ -42,7 +42,8 @@ namespace CopSpawnTables
 		static vault ConvertNameToType(const std::string& copName)
 		{
 			const vault copType = Globals::GetVaultKey(copName.c_str());
-			SpawnTable::copTypeToName.insert({copType, copName});
+			SpawnTable::copTypeToName.try_emplace(copType, copName);
+
 			return copType;
 		}
 
@@ -54,13 +55,13 @@ namespace CopSpawnTables
 		}
 
 
-		bool Contains(const vault copType) const
+		bool ContainsType(const vault copType) const
 		{
 			return this->copTypeToEntry.contains(copType);
 		}
 
 
-		bool AddType
+		bool AddTypeByName
 		(
 			const std::string& copName,
 			const int          copCount, 
@@ -69,16 +70,17 @@ namespace CopSpawnTables
 			if (copCount < 1)  return false;
 			if (copChance < 1) return false;
 			
-			const vault copType   = this->ConvertNameToType(copName);
-			const auto  addedType = this->copTypeToEntry.insert({copType, {copCount, copChance}});
+			const vault copType          = this->ConvertNameToType(copName);
+			const auto  [pair, wasAdded] = this->copTypeToEntry.try_emplace(copType, copCount, copChance);
 
-			if (not addedType.second) return false;
+			if (wasAdded)
+			{
+				this->maxTotalCopCapacity   += copCount;
+				this->maxTotalCopChance     += copChance;
+				this->currentTotalCopChance += copChance;
+			}
 
-			this->maxTotalCopCapacity   += copCount;
-			this->maxTotalCopChance     += copChance;
-			this->currentTotalCopChance += copChance;
-
-			return true;
+			return wasAdded;
 		}
 
 
@@ -111,7 +113,7 @@ namespace CopSpawnTables
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (numRemoved == 0)
-							Globals::logger.LogLongIndent(tableName, (int)heatLevel, (forRaces) ? "(race)" : "(free-roam)");
+							Globals::logger.LogLongIndent(tableName, static_cast<int>(heatLevel), (forRaces) ? "(race)" : "(free-roam)");
 						
 						Globals::logger.LogLongIndent
 						(
@@ -135,20 +137,20 @@ namespace CopSpawnTables
 				else ++iterator;
 			}
 
-			static const std::string fillerVehicle = "copmidsize";
-
 			if (this->IsEmpty())
 			{
+				const char* const fillerVehicle = "copmidsize";
+
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.LogLongIndent("  +", fillerVehicle, 1, 100);
 
-				this->AddType(fillerVehicle, 1, 100);
+				this->AddTypeByName(fillerVehicle, 1, 100);
 			}
 
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (numRemoved > 0) 
-					Globals::logger.LogLongIndent("  types left:", (int)(this->copTypeToEntry.size()));
+					Globals::logger.LogLongIndent("  types left:", static_cast<int>(this->copTypeToEntry.size()));
 			}
 
 			return (numRemoved == 0);
@@ -216,17 +218,13 @@ namespace CopSpawnTables
 		{
 			Globals::logger.LogLongIndent(tableName, this->maxTotalCopCapacity);
 
+			std::string copName;
+
 			for (const auto& pair : this->copTypeToEntry)
 			{
-				const std::string copName = std::format("  {:22}", this->copTypeToName.at(pair.first));
+				copName = std::format("  {:22}", this->copTypeToName.at(pair.first));
 				Globals::logger.LogLongIndent(copName, pair.second.capacity, pair.second.chance);
 			}
-		}
-
-
-		int GetMaxTotalCopCapacity() const 
-		{
-			return this->maxTotalCopCapacity;
 		}
 	};
 
@@ -243,9 +241,6 @@ namespace CopSpawnTables
 	HeatParameters::Pair<SpawnTable> patrolSpawnTables;
 	HeatParameters::Pair<SpawnTable> chaserSpawnTables;
 	HeatParameters::Pair<SpawnTable> roadblockSpawnTables;
-
-	// Code caves 
-	int currentMaxCopCapacity = 0;
 
 
 
@@ -285,7 +280,7 @@ namespace CopSpawnTables
 			else numEntries = parser.ParseUserParameter<int>(section, copNames, copChances, 1);
 
 			for (size_t entryID = 0; entryID < numEntries; ++entryID)
-				spawnTables[heatLevel - 1].AddType(copNames[entryID], (hasCounts) ? copCounts[entryID] : 1, copChances[entryID]);
+				spawnTables[heatLevel - 1].AddTypeByName(copNames[entryID], (hasCounts) ? copCounts[entryID] : 1, copChances[entryID]);
 		}
 	}
 
@@ -395,8 +390,6 @@ namespace CopSpawnTables
 		patrolSpawnTables   .SetToHeat(isRacing, heatLevel);
 		chaserSpawnTables   .SetToHeat(isRacing, heatLevel);
 		roadblockSpawnTables.SetToHeat(isRacing, heatLevel);
-
-		currentMaxCopCapacity = chaserSpawnTables.current->GetMaxTotalCopCapacity();
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();

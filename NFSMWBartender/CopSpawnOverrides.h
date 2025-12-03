@@ -118,11 +118,11 @@ namespace CopSpawnOverrides
 
 		void AddVehicle(const address copVehicle)
 		{
-			const vault copType   = Globals::GetVehicleType(copVehicle);
-			const auto  addedType = this->copTypeToCurrentCount.insert({copType, 1});
+			const vault copType          = Globals::GetVehicleType(copVehicle);
+			const auto  [pair, wasAdded] = this->copTypeToCurrentCount.try_emplace(copType, 1);
 
-			if (not addedType.second)
-				++(addedType.first->second);
+			if (not wasAdded)
+				++(pair->second);
 
 			this->UpdateSpawnTableCapacity(copType, -1);
 			++(this->numActiveCops);
@@ -130,7 +130,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.Log(this->pursuit, "[CON] Type ratio:", addedType.first->second, '/', this->numActiveCops);
+					Globals::logger.Log(this->pursuit, "[CON] Type ratio:", pair->second, '/', this->numActiveCops);
 			}
 		}
 
@@ -239,15 +239,14 @@ namespace CopSpawnOverrides
 		int  numActiveNonChasers = 0;
 		bool waveParametersKnown = false;
 
-		int& fullWaveCapacity       = *((int*)(this->pursuit + 0x144));
-		int& numCopsLostInWave      = *((int*)(this->pursuit + 0x14C));
-		int& numCopsToTriggerBackup = *((int*)(this->pursuit + 0x148));
+		int& fullWaveCapacity       = *reinterpret_cast<int*>(this->pursuit + 0x144);
+		int& numCopsLostInWave      = *reinterpret_cast<int*>(this->pursuit + 0x14C);
+		int& numCopsToTriggerBackup = *reinterpret_cast<int*>(this->pursuit + 0x148);
 
-		const int&   pursuitStatus  = *((int*)(this->pursuit + 0x218));
-		const bool&  isPerpBusted   = *((bool*)(this->pursuit + 0xE8));
-		const bool&  bailingPursuit = *((bool*)(this->pursuit + 0xE9));
-		const bool&  updateCopsLost = *((bool*)(this->pursuit + 0xA8));
-		const float& spawnCooldown  = *((float*)(this->pursuit + 0xCC));
+		const bool&  isPerpBusted   = *reinterpret_cast<bool*> (this->pursuit + 0xE8);
+		const bool&  bailingPursuit = *reinterpret_cast<bool*> (this->pursuit + 0xE9);
+		const bool&  updateCopsLost = *reinterpret_cast<bool*> (this->pursuit + 0xA8);
+		const float& spawnCooldown  = *reinterpret_cast<float*>(this->pursuit + 0xCC);
 
 		Contingent chaserSpawns = Contingent(CopSpawnTables::chaserSpawnTables, this->pursuit);
 
@@ -270,9 +269,9 @@ namespace CopSpawnOverrides
 
 		void UpdateNumPatrolCars()
 		{
-			const address attribute = PursuitFeatures::GetFromPursuitlevel(this->pursuit, 0x24F7A1BC); // fetches "NumPatrolCars"
+			const address attribute = this->GetFromPursuitlevel(0x24F7A1BC); // fetches "NumPatrolCars"
 
-			this->maxNumPatrolCars = (attribute) ? *((int*)attribute) : 0;
+			this->maxNumPatrolCars = (attribute) ? *reinterpret_cast<int*>(attribute) : 0;
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -282,12 +281,6 @@ namespace CopSpawnOverrides
 				else
 					Globals::logger.Log("WARNING: [SPA] Invalid numPatrolCars pointer in", this->pursuit);
 			}
-		}
-
-
-		bool IsSearchModeActive() const 
-		{
-			return (this->pursuitStatus == 2);
 		}
 
 
@@ -340,10 +333,8 @@ namespace CopSpawnOverrides
 
 		static bool HasVehicleEngaged(const address copVehicle)
 		{
-			static const auto FindObject = (address (__thiscall*)(address, address))0x5D59F0;
-
-			const address pursuitVehicle = FindObject(copVehicle - 0x9C, 0x4038E0); // fetches AIVehiclePursuit
-			return (pursuitVehicle) ? *((bool*)(pursuitVehicle + 0x22)) : false;
+			const address pursuitVehicle = ChasersManager::GetPursuitVehicle(copVehicle);
+			return (pursuitVehicle) ? *reinterpret_cast<bool*>(pursuitVehicle + 0x22) : false;
 		}
 
 
@@ -511,7 +502,7 @@ namespace CopSpawnOverrides
 			case 0x42EAAD: // first cop of milestone / bounty pursuit
 				[[fallthrough]];
 
-			case 0x430DAD: // free-roam patrol
+			case 0x430DAD: // free patrol
 				return CopSpawnTables::patrolSpawnTables.current->GetRandomCopName();
 				
 			case 0x43E049: // roadblock

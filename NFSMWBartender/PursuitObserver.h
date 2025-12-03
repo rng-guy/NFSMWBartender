@@ -27,9 +27,6 @@ namespace PursuitObserver
 
 	class PursuitObserver
 	{
-		template <typename T>
-		using UniqueVector = std::vector<std::unique_ptr<T>>;
-
 		using PursuitReaction = PursuitFeatures::PursuitReaction;
 		using PursuitCache    = PursuitFeatures::PursuitCache;
 		using CopLabel        = PursuitReaction::CopLabel;
@@ -45,29 +42,14 @@ namespace PursuitObserver
 
 		PursuitCache cache = PursuitCache(this->pursuit);
 
-		UniqueVector<PursuitReaction>        pursuitReactions;
-		HashContainers::AddressMap<CopLabel> copVehicleToLabel;
+		HashContainers::AddressMap<CopLabel>          copVehicleToLabel;
+		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
 		
 		// Pointers avoid the moving of Observers on reallocation
-		inline static UniqueVector<PursuitObserver> observers;
-		inline static HashContainers::AddressSet    copVehiclesLoaded;
+		inline static HashContainers::AddressSet                                   copVehiclesLoaded;
+		inline static HashContainers::AddressMap<std::unique_ptr<PursuitObserver>> pursuitToObserver;
 
 		inline static constexpr size_t cacheIndex = 0;
-
-
-		static auto FindObserver(const address pursuit)
-		{
-			auto iterator = PursuitObserver::observers.begin();
-
-			while (iterator != PursuitObserver::observers.end())
-			{
-				if ((*iterator)->pursuit == pursuit) break;
-
-				++iterator;
-			}
-
-			return iterator;
-		}
 
 
 		static CopLabel LabelAddVehicleCall(const address caller)
@@ -89,7 +71,7 @@ namespace PursuitObserver
 			case 0x426BC6: // helicopter
 				return CopLabel::HELICOPTER;
 
-			case 0x43EAF5: // non-pursuit patrol
+			case 0x43EAF5: // free patrol
 				[[fallthrough]];
 
 			case 0x43EE97: // first patrol in race
@@ -180,9 +162,11 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     NEW [OBS] Pursuit", pursuit);
 
-			if (PursuitObserver::FindObserver(pursuit) == PursuitObserver::observers.end())
-				PursuitObserver::observers.push_back(std::make_unique<PursuitObserver>(pursuit));
+			const auto [pair, wasAdded] = PursuitObserver::pursuitToObserver.try_emplace(pursuit, nullptr);
 
+			if (wasAdded)
+				pair->second = std::make_unique<PursuitObserver>(pursuit);
+			
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
 		}
@@ -202,27 +186,27 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     DEL [OBS] Pursuit", pursuit);
 
-			const auto iterator = PursuitObserver::FindObserver(pursuit);
+			const auto wasRemoved = PursuitObserver::pursuitToObserver.erase(pursuit);
 
-			if (iterator != PursuitObserver::observers.end())
-				PursuitObserver::observers.erase(iterator);
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [OBS] Unknown pursuit", pursuit);
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (not wasRemoved)
+					Globals::logger.Log("WARNING: [OBS] Unknown pursuit", pursuit);
+			}
 		}
 
 
 		static void NotifyOfHeatChange()
 		{
-			for (const auto& observer : PursuitObserver::observers)
-				observer->UpdateOnHeatChange();
+			for (const auto& pair : PursuitObserver::pursuitToObserver)
+				pair.second->UpdateOnHeatChange();
 		}
 
 
 		static void NotifyOfGameplay()
 		{
-			for (const auto& observer : PursuitObserver::observers)
-				observer->UpdateOnGameplay();
+			for (const auto& pair : PursuitObserver::pursuitToObserver)
+				pair.second->UpdateOnGameplay();
 		}
 
 
@@ -239,11 +223,11 @@ namespace PursuitObserver
 
 			const auto observer = PursuitCache::GetPointer<PursuitObserver::cacheIndex, PursuitObserver>(pursuit);
 
-			if (not observer) return;
+			if (not observer) return; // should never happen
 
-			const auto addedVehicle = observer->copVehicleToLabel.insert({copVehicle, copLabel});
+			const auto [pair, wasAdded] = observer->copVehicleToLabel.try_emplace(copVehicle, copLabel);
 
-			if (addedVehicle.second)
+			if (wasAdded)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(pursuit, "[OBS] +", copVehicle, copLabel, Globals::GetVehicleName(copVehicle));
@@ -252,7 +236,7 @@ namespace PursuitObserver
 					reaction->ReactToAddedVehicle(copVehicle, copLabel);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[OBS] =", copVehicle, copLabel, "is already", addedVehicle.first->second);		
+				Globals::logger.Log(pursuit, "[OBS] =", copVehicle, copLabel, "is already", pair->second);		
 		}
 
 
@@ -263,7 +247,7 @@ namespace PursuitObserver
 		) {
 			const auto observer = PursuitCache::GetPointer<PursuitObserver::cacheIndex, PursuitObserver>(pursuit);
 
-			if (not observer) return;
+			if (not observer) return; // should never happen
 
 			const auto foundVehicle = observer->copVehicleToLabel.find(copVehicle);
 
@@ -290,14 +274,14 @@ namespace PursuitObserver
 
 		static void __fastcall RegisterVehicle(const address copVehicle)
 		{
-			const bool isNew = (PursuitObserver::copVehiclesLoaded.insert(copVehicle)).second;
+			const auto [pair, wasAdded] = PursuitObserver::copVehiclesLoaded.insert(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (isNew)
+				if (wasAdded)
 				{
 					Globals::logger.LogIndent("[REG] +", copVehicle, Globals::GetVehicleName(copVehicle));
-					Globals::logger.LogIndent("[REG] Vehicles loaded:", (int)(PursuitObserver::GetNumRegisteredVehicles()));
+					Globals::logger.LogIndent("[REG] Vehicles loaded:", static_cast<int>(PursuitObserver::GetNumRegisteredVehicles()));
 				}
 			}
 		}
@@ -305,14 +289,14 @@ namespace PursuitObserver
 
 		static void __fastcall UnregisterVehicle(const address copVehicle)
 		{
-			const bool wasRegistered = PursuitObserver::copVehiclesLoaded.erase(copVehicle);
+			const bool wasRemoved = PursuitObserver::copVehiclesLoaded.erase(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (wasRegistered)
+				if (wasRemoved)
 				{
 					Globals::logger.LogIndent("[REG] -", copVehicle, Globals::GetVehicleName(copVehicle));
-					Globals::logger.LogIndent("[REG] Vehicles loaded:", (int)(PursuitObserver::GetNumRegisteredVehicles()));
+					Globals::logger.LogIndent("[REG] Vehicles loaded:", static_cast<int>(PursuitObserver::GetNumRegisteredVehicles()));
 				}
 			}
 		}

@@ -30,7 +30,7 @@ namespace BasicLogger
 		requires std::is_enum_v<T>
 		void Print(const T value)
 		{
-			this->file << (int)value;
+			this->Print<int>(static_cast<int>(value));
 		}
 
 
@@ -38,7 +38,7 @@ namespace BasicLogger
 		requires std::is_pointer_v<T>
 		void Print(const T value)
 		{
-			this->Print<uintptr_t>((uintptr_t)value);
+			this->Print<uintptr_t>(reinterpret_cast<uintptr_t>(value));
 		}
 
 
@@ -56,8 +56,9 @@ namespace BasicLogger
 		}
 
 
-		template <>
-		void Print<float>(const float value) 
+		template <typename T>
+		requires std::is_floating_point_v<T>
+		void Print(const T value) 
 		{
 			this->file << std::format("{:.3f}", value);
 		}
@@ -66,7 +67,7 @@ namespace BasicLogger
 		template <>
 		void Print<bool>(const bool value)
 		{
-			this->file << ((value) ? "true" : "false");
+			this->Print<const char*>((value) ? "true" : "false");
 		}
 
 

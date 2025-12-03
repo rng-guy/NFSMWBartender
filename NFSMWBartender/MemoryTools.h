@@ -36,7 +36,7 @@ namespace MemoryTools
 
 		for (const address location : locations)
 		{
-			memoryLocation = (void*)location;
+			memoryLocation = reinterpret_cast<void*>(location);
 
 			VirtualProtect(memoryLocation, size,  PAGE_READWRITE,  &previousSetting);
 			std::memcpy   (memoryLocation, &data, size);
@@ -56,7 +56,7 @@ namespace MemoryTools
 		{
 			const size_t numBytes = end - start;
 
-			void* memoryLocation  = (void*)start;
+			auto  memoryLocation  = reinterpret_cast<void*>(start);
 			DWORD previousSetting = 0x0;
 
 			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE, &previousSetting);
@@ -89,8 +89,8 @@ namespace MemoryTools
 			MakeRangeNOP(start, end);
 			
 			// It's necessary to account for the instruction length and offset
-			Write<byte>   (0xE9,                          {start});
-			Write<address>((address)target - (start + 5), {start + 1});
+			Write<byte>   (0xE9, {start});
+			Write<address>(reinterpret_cast<address>(target) - (start + 5), {start + 1});
 		}
 		else ++numCaveErrors;
 	}
@@ -113,7 +113,7 @@ namespace MemoryTools
 
 		static PointerCache*& GetStorage(const address base)
 		{
-			return *((PointerCache**)(base + offset));
+			return *reinterpret_cast<PointerCache**>(base + offset);
 		}
 
 
@@ -181,7 +181,7 @@ namespace MemoryTools
 				pointer = newValue;
 
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PCA] Pointer", (int)index, "already", pointer, "at", base);
+				Globals::logger.Log("WARNING: [PCA] Pointer", static_cast<int>(index), "already", pointer, "at", base);
 		}
 
 
@@ -204,10 +204,10 @@ namespace MemoryTools
 			else if constexpr (Globals::loggingEnabled)
 			{
 				if (not pointer)
-					Globals::logger.Log("WARNING: [PCA] Pointer", (int)index, "not set at", base);
+					Globals::logger.Log("WARNING: [PCA] Pointer", static_cast<int>(index), "not set at", base);
 
 				else
-					Globals::logger.Log("WARNING: [PCA] Pointer", (int)index, "set to", pointer, "at", base);
+					Globals::logger.Log("WARNING: [PCA] Pointer", static_cast<int>(index), "set to", pointer, "at", base);
 			}
 		}
 
@@ -224,10 +224,10 @@ namespace MemoryTools
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (not access->pointers[index])
-					Globals::logger.Log("WARNING: [PCA] Pointer", (int)index, "not set at", base);
+					Globals::logger.Log("WARNING: [PCA] Pointer", static_cast<int>(index), "not set at", base);
 			}
 
-			return (T*)(access->pointers[index]);
+			return reinterpret_cast<T*>(access->pointers[index]);
 		}
 	};
 }

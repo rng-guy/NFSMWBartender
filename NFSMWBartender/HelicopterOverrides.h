@@ -61,7 +61,7 @@ namespace HelicopterOverrides
 
 		bool isPlayerPursuit = false;
 
-		int& numHelicoptersDeployed = *((int*)(this->pursuit + 0x150));
+		int& numHelicoptersDeployed = *reinterpret_cast<int*>(this->pursuit + 0x150);
 
 		PursuitFeatures::IntervalTimer spawnTimer;
 
@@ -143,15 +143,15 @@ namespace HelicopterOverrides
 			if (not this->isPlayerPursuit)         return;
 			if (not this->spawnTimer.HasExpired()) return;
 
-			static const address& copManager      = *((address*)0x989098);
-			static const auto     SpawnHelicopter = (bool (__thiscall*)(address, address))0x4269A0;
-
+			static const address& copManager = *reinterpret_cast<address*>(0x989098);
+			
 			if (copManager)
 			{ 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[HEL] Requesting helicopter");
 
-				SpawnHelicopter(copManager, this->pursuit);
+				static const auto SpawnHelicopter = reinterpret_cast<bool (__thiscall*)(address, address)>(0x4269A0);
+				SpawnHelicopter(copManager, this->pursuit); // usually takes 1-2 attempts to succeed
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [HEL] Invalid AICopManager pointer");
@@ -160,8 +160,8 @@ namespace HelicopterOverrides
 
 		static float* GetFuelTimePointer()
 		{ 
-			static const address& helicopter = *((address*)0x90D61C);
-			return (helicopter) ? (float*)(helicopter + 0x7D8) : nullptr;
+			static const address& helicopter = *reinterpret_cast<address*>(0x90D61C);
+			return (helicopter) ? reinterpret_cast<float*>(helicopter + 0x7D8) : nullptr;
 		}
 
 

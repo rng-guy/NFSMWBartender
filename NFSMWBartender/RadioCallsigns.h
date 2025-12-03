@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -158,7 +157,7 @@ namespace RadioCallsigns
 			const auto  foundName = nameToCallsign.find(callsignNames[vehicleID]);
 			const Group group     = (foundName != nameToCallsign.end()) ? foundName->second : Group::UNKNOWN;
 
-			copTypeToCallsignGroup.insert({Globals::GetVaultKey(copVehicles[vehicleID].c_str()), group});
+			copTypeToCallsignGroup.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), group);
 		}
 
 		// Code modifications 

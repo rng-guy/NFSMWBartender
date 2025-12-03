@@ -41,7 +41,7 @@ namespace DestructionStrings
 			mov ecx, offset copTypeToDestructionKey
 			call HashContainers::CachedMap<vault, binary>::GetValue
 			test eax, eax
-			je skip                // type unknown and no default key
+			je skip                     // type unknown and no default key
 
 			push eax
 
@@ -72,12 +72,10 @@ namespace DestructionStrings
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
 		{
-			copTypeToDestructionKey.insert
+			copTypeToDestructionKey.try_emplace
 			(
-				{ 
-					Globals::GetVaultKey(copVehicles[vehicleID].c_str()),
-					Globals::GetBinaryKey(binaryLabels[vehicleID].c_str()) 
-				}
+				Globals::GetVaultKey (copVehicles [vehicleID].c_str()), 
+				Globals::GetBinaryKey(binaryLabels[vehicleID].c_str())
 			);
 		}
 	
@@ -99,7 +97,7 @@ namespace DestructionStrings
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [DST] DestructionStrings");
 
-		static const auto GetBinaryString = (const char* (__fastcall*)(int, binary))0x56BB80;
+		static const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
 
 		copTypeToDestructionKey.Validate
 		(

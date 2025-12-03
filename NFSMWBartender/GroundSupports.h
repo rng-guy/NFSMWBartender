@@ -60,16 +60,16 @@ namespace GroundSupports
 		const address pursuit,
 		const address strategy
 	) {
-		const int strategyType = *((int*)strategy);
+		const int     strategyID      = *reinterpret_cast<int*>    (strategy);
+		const address activeRoadblock = *reinterpret_cast<address*>(pursuit + 0x84);
 
-		switch (strategyType)
+		switch (strategyID)
 		{
 		case 3:
-			if (not heavy3AreBlockables.current) return true;
-			[[fallthrough]];
+			return (not (activeRoadblock and heavy3AreBlockables.current));
 
 		case 4:
-			return (not *((address*)(pursuit + 0x84))); // active roadblock
+			return (not activeRoadblock);
 		}
 
 		return false;
@@ -82,17 +82,20 @@ namespace GroundSupports
 		const address pursuit,
 		const address strategy
 	) {
-		if (*((int*)(pursuit + 0x164)) != 0) return false; // Cross flag
+		const int crossFlag = *reinterpret_cast<int*>(pursuit + 0x164);
 
-		const int strategyType = *((int*)strategy);
-
-		switch (strategyType)
+		if (crossFlag == 0)
 		{
-		case 5:
-			[[fallthrough]];
+			const int strategyID = *reinterpret_cast<int*>(strategy);
 
-		case 7:
-			return true;
+			switch (strategyID)
+			{
+			case 5:
+				[[fallthrough]];
+
+			case 7:
+				return true;
+			}
 		}
 
 		return false;
@@ -106,13 +109,13 @@ namespace GroundSupports
 		const address         pursuit,
 		std::vector<address>& candidateStrategies
 	) {
-		static const auto GetSupportNode = (address (__thiscall*)(address))0x418EE0;
+		static const auto GetSupportNode = reinterpret_cast<address (__thiscall*)(address)>(0x418EE0);
 		const address     supportNode    = GetSupportNode(pursuit - 0x48);
 
-		if (not supportNode) return;
+		if (not supportNode) return; // should never happen
 
-		static const auto GetNumStrategies = (size_t  (__thiscall*)(address))        getNumStrategies;
-		static const auto GetStrategy      = (address (__thiscall*)(address, size_t))getStrategy;
+		static const auto GetNumStrategies = reinterpret_cast<size_t  (__thiscall*)(address)>        (getNumStrategies);
+		static const auto GetStrategy      = reinterpret_cast<address (__thiscall*)(address, size_t)>(getStrategy);
 
 		const size_t numStrategies = GetNumStrategies(supportNode);
 
@@ -121,7 +124,7 @@ namespace GroundSupports
 			const address strategy = GetStrategy(supportNode, strategyID);
 			if (not IsStrategyAvailable(pursuit, strategy)) continue;
 
-			const int chance = *((int*)(strategy + 0x4));
+			const int chance = *reinterpret_cast<int*>(strategy + 0x4);
 
 			if (Globals::prng.GenerateNumber<int>(1, 100) <= chance)
 				candidateStrategies.push_back(strategy);
@@ -136,17 +139,21 @@ namespace GroundSupports
 		const address strategy,
 		const bool    isHeavyStrategy
 	) {
-		*((float*)(pursuit + 0x208)) = *((float*)(strategy + 0x8)); // duration
-		*((int*)(pursuit + 0x20C))   = 1;                           // request flag
+		const float duration = *reinterpret_cast<float*>(strategy + 0x8);
+
+		*reinterpret_cast<float*>(pursuit + 0x208) = duration; // strategy duration
+		*reinterpret_cast<int*>  (pursuit + 0x20C) = 1;        // request flag
 
 		if (isHeavyStrategy)
 		{
-			*((address*)(pursuit + 0x194)) = strategy; // HeavyStrategy
+			*reinterpret_cast<address*>(pursuit + 0x194) = strategy; // HeavyStrategy
 
-			if (heavy3TriggerCooldowns.current or (*((int*)strategy) != 3))
-				*((float*)(pursuit + 0xC8)) = roadblockHeavyCooldowns.current; // roadblock CD
+			const int strategyID = *reinterpret_cast<int*>(strategy);
+
+			if ((strategyID != 3) or heavy3TriggerCooldowns.current)
+				*reinterpret_cast<float*>(pursuit + 0xC8) = roadblockHeavyCooldowns.current; // roadblock CD
 		}
-		else *((address*)(pursuit + 0x198)) = strategy; // LeaderStrategy
+		else *reinterpret_cast<address*>(pursuit + 0x198) = strategy; // LeaderStrategy
 	}
 
 
@@ -175,8 +182,10 @@ namespace GroundSupports
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::logger.Log(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", *((int*)randomStrategy));
-				Globals::logger.Log(pursuit, "[SUP] Candidate", (int)(index + 1), "out of", (int)candidateStrategies.size());
+				const int strategyID = *reinterpret_cast<int*>(randomStrategy);
+
+				Globals::logger.Log(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
+				Globals::logger.Log(pursuit, "[SUP] Candidate", static_cast<int>(index + 1), "out of", static_cast<int>(candidateStrategies.size()));
 			}
 
 			candidateStrategies.clear();

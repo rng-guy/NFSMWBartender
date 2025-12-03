@@ -122,10 +122,10 @@ namespace HashContainers
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (numRemoved > 0)
-					Globals::logger.LogLongIndent("  pairs left:", (int)(this->size()));
+					Globals::logger.LogLongIndent("  pairs left:", static_cast<int>(this->size()));
 
 				else
-					Globals::logger.LogLongIndent(mapName, "pairs:", (int)(this->size()));
+					Globals::logger.LogLongIndent(mapName, "pairs:", static_cast<int>(this->size()));
 			}
 		}
 	};

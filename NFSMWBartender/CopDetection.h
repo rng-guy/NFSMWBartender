@@ -27,7 +27,7 @@ namespace CopDetection
 		bool  lockIcon;
 	};
 
-	HashContainers::CachedMap<vault, Settings> copTypeToSettings({300.f, 0.f, 300.f, true});
+	HashContainers::CachedMap<vault, Settings> copTypeToSettings({300.f, 0.f, 50.f, true});
 
 
 
@@ -37,18 +37,18 @@ namespace CopDetection
 
 	bool __fastcall IsInMapRange(const address copVehicle)
 	{
-		const address copAIVehicle = *((address*)(copVehicle + 0x54));
+		const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
 		if (not copAIVehicle) return false; // should never happen
 
-		bool& iconIsLocked = *((bool*)(copAIVehicle - 0x4C + 0x769));
+		bool& iconIsLocked = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x769);
 		if (iconIsLocked) return true; // mini-map icon locked in
 
-		bool& hasBeenInPursuit = *((bool*)(copAIVehicle - 0x4C + 0x76A));
+		bool& hasBeenInPursuit = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x76A);
 
 		if (not hasBeenInPursuit)
 		{
-			const bool hasPursuit  = *((address*)(copAIVehicle + 0x70));
-			const bool isRoadblock = *((address*)(copAIVehicle + 0x74));
+			const bool hasPursuit  = *reinterpret_cast<address*>(copAIVehicle + 0x70);
+			const bool isRoadblock = *reinterpret_cast<address*>(copAIVehicle + 0x74);
 
 			hasBeenInPursuit = (hasPursuit or isRoadblock);
 		}
@@ -62,16 +62,16 @@ namespace CopDetection
 
 		if (iconRange > 0.f)
 		{
-			static const auto GetVehiclePosition = (address (__thiscall*)(address))0x688340;
+			static const auto GetVehiclePosition = reinterpret_cast<address (__thiscall*)(address)>(0x688340);
 
 			const address copPosition = GetVehiclePosition(copVehicle);
 			if (not copPosition) return false; // should never happen
 
-			const address playerVehicle  = *((address*)(Globals::playerPerpVehicle - 0x758 + 0x4C - 0x4));
+			const address playerVehicle  = *reinterpret_cast<address*>(Globals::playerPerpVehicle - 0x758 + 0x4C - 0x4);
 			const address playerPosition = GetVehiclePosition(playerVehicle);
 			if (not playerPosition) return false; // should never happen
 
-			static const auto GetSquaredDistance = (float (__cdecl*)(address, address))0x401930;
+			static const auto GetSquaredDistance = reinterpret_cast<float (__cdecl*)(address, address)>(0x401930);
 			const float       copDistanceSquared = GetSquaredDistance(copPosition, playerPosition);
 
 			if (copDistanceSquared <= iconRange * iconRange)
@@ -229,12 +229,13 @@ namespace CopDetection
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
 		{
-			copTypeToSettings.insert
+			copTypeToSettings.try_emplace
 			(
-				{
-					Globals::GetVaultKey(copVehicles[vehicleID].c_str()), 
-					{radarRanges[vehicleID], patrolIconRanges[vehicleID], pursuitIconRanges[vehicleID], lockIcons[vehicleID]}
-				}
+				Globals::GetVaultKey(copVehicles[vehicleID].c_str()), 
+				radarRanges      [vehicleID], 
+				patrolIconRanges [vehicleID], 
+				pursuitIconRanges[vehicleID], 
+				lockIcons        [vehicleID]
 			);
 		}
 
