@@ -58,10 +58,10 @@ namespace CopSpawnOverrides
 
 		explicit Contingent
 		(
-			const HeatParameters::Pair<CopSpawnTables::SpawnTable>& tables,
-			const address                                           pursuit = 0x0
+			const CopSpawnTables::SpawnTable* const& source,
+			const address                            pursuit = 0x0
 		) 
-			: source(tables.current), pursuit(pursuit)
+			: source(source), pursuit(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -158,7 +158,8 @@ namespace CopSpawnOverrides
 
 				return true;
 			}
-			else if constexpr (Globals::loggingEnabled)
+			
+			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
 					Globals::logger.Log("WARNING: [CON] Unknown type", copType, "in", this->pursuit);
@@ -182,14 +183,14 @@ namespace CopSpawnOverrides
 
 		const char* GetNameOfAvailableCop() const
 		{
-			return this->table.GetRandomCopName();
+			return this->table.GetRandomAvailableCop();
 		}
 
 
 		const char* GetNameOfSpawnableCop() const
 		{
 			const char* const copName = this->GetNameOfAvailableCop();
-			return (copName) ? copName : this->source->GetRandomCopName();
+			return (copName) ? copName : this->source->GetRandomAvailableCop();
 		}
 	};
 
@@ -215,8 +216,9 @@ namespace CopSpawnOverrides
 	// Code caves 
 	bool skipEventSpawns = true;
 	
-	Contingent eventSpawns    (CopSpawnTables::eventSpawnTables);
-	Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTables);
+	Contingent eventSpawns    (CopSpawnTables::eventSpawnTables.current);
+	Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTables.current);
+	Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTables.current);
 
 	// Conversions
 	float squaredCopSpawnClearance = copSpawnClearances.current * copSpawnClearances.current;
@@ -248,7 +250,7 @@ namespace CopSpawnOverrides
 		const bool&  updateCopsLost = *reinterpret_cast<bool*> (this->pursuit + 0xA8);
 		const float& spawnCooldown  = *reinterpret_cast<float*>(this->pursuit + 0xCC);
 
-		Contingent chaserSpawns = Contingent(CopSpawnTables::chaserSpawnTables, this->pursuit);
+		Contingent chaserSpawns = Contingent(CopSpawnTables::chaserSpawnTables.current, this->pursuit);
 
 		inline static constexpr size_t cacheIndex = 1;
 
@@ -364,7 +366,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('+', this, "ChasersManager");
 
-			PursuitCache::SetPointer<this->cacheIndex>(this->pursuit, this);
+			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, this);
 		}
 
 
@@ -373,7 +375,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('-', this, "ChasersManager");
 
-			PursuitCache::ClearPointer<this->cacheIndex>(this->pursuit, this);
+			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, nullptr);
 		}
 
 
@@ -451,7 +453,7 @@ namespace CopSpawnOverrides
 
 		static void __fastcall NotifyOfWaveReset(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetPointer<ChasersManager::cacheIndex, ChasersManager>(pursuit);
+			const auto manager = PursuitCache::GetValue<ChasersManager::cacheIndex, ChasersManager*>(pursuit);
 
 			if (manager)
 			{
@@ -472,14 +474,14 @@ namespace CopSpawnOverrides
 
 		static bool __fastcall GetChaserSpawnStatus(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetPointer<ChasersManager::cacheIndex, ChasersManager>(pursuit);
+			const auto manager = PursuitCache::GetValue<ChasersManager::cacheIndex, ChasersManager*>(pursuit);
 			return (manager) ? manager->CanNewChaserSpawn() : false;
 		}
 
 
 		static const char* __fastcall GetNameOfNewChaser(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetPointer<ChasersManager::cacheIndex, ChasersManager>(pursuit);
+			const auto manager = PursuitCache::GetValue<ChasersManager::cacheIndex, ChasersManager*>(pursuit);
 			return (manager and manager->CanNewChaserSpawn()) ? manager->chaserSpawns.GetNameOfAvailableCop() : nullptr;
 		}
 	};
@@ -500,10 +502,10 @@ namespace CopSpawnOverrides
 				return HelicopterOverrides::HelicopterManager::GetHelicopterVehicle();
 
 			case 0x42EAAD: // first cop of milestone / bounty pursuit
-				[[fallthrough]];
+				return CopSpawnTables::patrolSpawnTables.current->GetRandomAvailableCop();
 
 			case 0x430DAD: // free patrol
-				return CopSpawnTables::patrolSpawnTables.current->GetRandomCopName();
+				return patrolSpawns.GetNameOfAvailableCop();
 				
 			case 0x43E049: // roadblock
 				return roadblockSpawns.GetNameOfSpawnableCop();
@@ -529,6 +531,7 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
+			// Execute original code first
 			mov dword ptr [esi + 0x14C], 0x0
 
 			mov ecx, esi
@@ -555,6 +558,55 @@ namespace CopSpawnOverrides
 
 
 
+	constexpr address eventSpawnEntrance = 0x42E8A8;
+	constexpr address eventSpawnExit     = 0x42E8AF;
+
+	__declspec(naked) void EventSpawn()
+	{
+		__asm
+		{
+			test al, al
+			je conclusion // spawn failed
+
+			push esi // copVehicle
+			mov ecx, offset eventSpawns
+			call Contingent::AddVehicle
+
+			mov al, 0x1
+
+			mov ecx, dword ptr [esi + 0x54]
+			mov byte ptr [ecx - 0x4C + 0x76B], al
+
+			conclusion:
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x314]
+
+			jmp dword ptr eventSpawnExit
+		}
+	}
+
+
+
+	constexpr address patrolSpawnEntrance = 0x430E37;
+	constexpr address patrolSpawnExit     = 0x430E3D;
+
+	__declspec(naked) void PatrolSpawn()
+	{
+		__asm
+		{
+			push edi // copVehicle
+			mov ecx, offset patrolSpawns
+			call Contingent::AddVehicle
+
+			// Execute original code and resume
+			inc dword ptr [ebp + 0x94]
+
+			jmp dword ptr patrolSpawnExit
+		}
+	}
+
+
+
 	constexpr address copClearanceEntrance = 0x41A139;
 	constexpr address copClearanceExit     = 0x41A13F;
 
@@ -563,10 +615,10 @@ namespace CopSpawnOverrides
 		__asm
 		{
 			mov edx, offset squaredCopSpawnClearance
-			mov eax, 0x891064 // 40.f * 40.f
+			mov eax, 0x891064 // pointer -> 40.f * 40.f
 
 			cmp byte ptr [esp + 0x2C], 0x0
-			cmovne edx, eax
+			cmovne edx, eax // not "Chaser" spawn
 
 			fcomp dword ptr [edx]
 
@@ -588,6 +640,68 @@ namespace CopSpawnOverrides
 			test al, al
 
 			jmp dword ptr requestCheckExit
+		}
+	}
+
+
+
+	constexpr address patrolPursuitEntrance = 0x4224B0;
+	constexpr address patrolPursuitExit     = 0x4224B6;
+
+	__declspec(naked) void PatrolPursuit()
+	{
+		__asm
+		{
+			cmp eax, 0x9AF1BF40 // AIGoalPatrol
+			jne conclusion      // not patrol goal
+
+			mov eax, dword ptr [edi + 0x4C - 0x4]
+			cmp dword ptr [eax + 0x94], 0x2
+			jne conclusion // not cop
+
+			cmp byte ptr [edi + 0x76B], 0x1
+			je conclusion // event cop
+
+			push eax // copVehicle
+			mov ecx, offset patrolSpawns
+			call Contingent::RemoveVehicle
+
+			conclusion:
+			// Execute original code and resume
+			mov ecx, dword ptr [edi + 0xB8]
+
+			jmp dword ptr patrolPursuitExit
+		}
+	}
+
+
+
+	constexpr address patrolDespawnEntrance = 0x415E03;
+	constexpr address patrolDespawnExit     = 0x415E08;
+
+	__declspec(naked) void PatrolDespawn()
+	{
+		__asm
+		{
+			cmp dword ptr [esi + 0x78], 0x9AF1BF40 // AIGoalPatrol
+			jne conclusion                         // not patrol goal
+
+			mov eax, dword ptr [esi - 0x4]
+			cmp dword ptr [eax + 0x94], 0x2
+			jne conclusion // not cop
+
+			cmp byte ptr [esi - 0x4C + 0x76B], 0x1
+			je conclusion // event cop
+
+			push eax // copVehicle
+			mov ecx, offset patrolSpawns
+			call Contingent::RemoveVehicle
+
+			conclusion:
+			// Execute original code and resume
+			xor eax, eax
+
+			jmp dword ptr patrolDespawnExit
 		}
 	}
 
@@ -636,21 +750,27 @@ namespace CopSpawnOverrides
 
 
 
-	constexpr address eventSpawnResetEntrance = 0x58E7E0;
-	constexpr address eventSpawnResetExit     = 0x58E7E6;
+	constexpr address eventSpawnResetEntrance = 0x42E901;
+	constexpr address eventSpawnResetExit     = 0x42E906;
 
 	__declspec(naked) void EventSpawnReset()
 	{
 		__asm
 		{
-			add esp, 0x4
+			cmp dword ptr [esi + 0x70], 0x1
+			jg conclusion // spawns remaining
+
 			push eax
 
 			mov ecx, offset eventSpawns
 			call Contingent::ClearVehicles
 
 			pop eax
-			mov dword ptr [esp], eax
+
+			conclusion:
+			// Execute original code and resume
+			mov ecx, dword ptr [eax]
+			mov edx, dword ptr [eax + 0x4]
 
 			jmp dword ptr eventSpawnResetExit
 		}
@@ -753,8 +873,12 @@ namespace CopSpawnOverrides
 		
 		MemoryTools::MakeRangeJMP(WaveReset,          waveResetEntrance,          waveResetExit);
 		MemoryTools::MakeRangeJMP(CopRequest,         copRequestEntrance,         copRequestExit);
+		MemoryTools::MakeRangeJMP(EventSpawn,         eventSpawnEntrance,         eventSpawnExit);
+		MemoryTools::MakeRangeJMP(PatrolSpawn,        patrolSpawnEntrance,        patrolSpawnExit);
 		MemoryTools::MakeRangeJMP(CopClearance,       copClearanceEntrance,       copClearanceExit);
 		MemoryTools::MakeRangeJMP(RequestCheck,       requestCheckEntrance,       requestCheckExit);
+		MemoryTools::MakeRangeJMP(PatrolPursuit,      patrolPursuitEntrance,      patrolPursuitExit);
+		MemoryTools::MakeRangeJMP(PatrolDespawn,      patrolDespawnEntrance,      patrolDespawnExit);
 		MemoryTools::MakeRangeJMP(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
 		MemoryTools::MakeRangeJMP(EventSpawnReset,    eventSpawnResetEntrance,    eventSpawnResetExit);
 		MemoryTools::MakeRangeJMP(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
@@ -789,6 +913,7 @@ namespace CopSpawnOverrides
 			skipEventSpawns = false;
 
 		eventSpawns    .UpdateSpawnTable();
+		patrolSpawns   .UpdateSpawnTable();
 		roadblockSpawns.UpdateSpawnTable();
 
 		minActiveCounts.SetToHeat(isRacing, heatLevel);
@@ -811,12 +936,13 @@ namespace CopSpawnOverrides
 		skipEventSpawns = true;
 
 		eventSpawns    .ClearVehicles();
+		patrolSpawns   .ClearVehicles();
 		roadblockSpawns.ClearVehicles();
 	}
 
 
 
-	void LogConfigurationReport()
+	void LogSetupReport()
 	{
 		if (not featureEnabled) return;
 

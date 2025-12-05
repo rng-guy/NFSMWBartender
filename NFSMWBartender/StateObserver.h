@@ -12,6 +12,7 @@
 #include "GeneralSettings.h"
 
 #include "PursuitObserver.h"
+#include "CopSpawnOverrides.h"
 
 
 
@@ -100,7 +101,7 @@ namespace StateObserver
 
 	void OnWorldLoadUpdates()
 	{
-		PursuitObserver::HardResetState();
+		CopSpawnOverrides::ResetState();
 	}
 
 
@@ -111,7 +112,7 @@ namespace StateObserver
 
 		Globals::playerHeatLevelKnown = false;
 
-		PursuitObserver::SoftResetState();
+		CopSpawnOverrides::ResetState();
 	}
 
 
@@ -283,6 +284,26 @@ namespace StateObserver
 
 
 
+	constexpr address resetInternalsEntrance = 0x416B7A;
+	constexpr address resetInternalsExit     = 0x416B80;
+
+	__declspec(naked) void ResetInternals()
+	{
+		__asm
+		{
+			// Execute original code first
+			mov byte ptr [esi + 0x768], al
+
+			mov byte ptr [esi + 0x769], al // used in "CopDetection.h"
+			mov byte ptr [esi + 0x76A], al // as above
+			mov byte ptr [esi + 0x76B], al // used in "CopSpawnOverrides.h"
+
+			jmp dword ptr resetInternalsExit
+		}
+	}
+
+
+
 	constexpr address retryObserverEntrance = 0x6F4768;
 	constexpr address retryObserverExit     = 0x6F476D;
 
@@ -347,6 +368,7 @@ namespace StateObserver
 		MemoryTools::MakeRangeJMP(PlayerConstructor, playerConstructorEntrance, playerConstructorExit);
 		MemoryTools::MakeRangeJMP(PlayerDestructor,  playerDestructorEntrance,  playerDestructorExit);
 		MemoryTools::MakeRangeJMP(GameplayObserver,  gameplayObserverEntrance,  gameplayObserverExit);
+		MemoryTools::MakeRangeJMP(ResetInternals,    resetInternalsEntrance,    resetInternalsExit);
 		MemoryTools::MakeRangeJMP(RetryObserver,     retryObserverEntrance,     retryObserverExit);
 		MemoryTools::MakeRangeJMP(HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
 

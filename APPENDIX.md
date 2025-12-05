@@ -249,7 +249,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the minimum count.
 
-* The global cop-spawn limit determines whether the game may spawn new "Chasers" at any point. The game can spawn additional "Chasers" as long as the total amount of non-roadblock and non-helicopter cops that currently exist across all pursuits is less than this global limit. This also means that any active Strategy spawns or NPC pursuits can affect how many more "Chasers" can still spawn in your pursuit (this is vanilla behaviour).
+* The global cop-spawn limit determines whether the game may spawn more "Chasers" at any point. The game may spawn additional "Chasers" as long as the total amount of non-helicopter cops that currently exist across all pursuits is below this global limit. This also means that any active Strategy spawns, roadblocks, or NPC pursuits in general can affect how many more "Chasers" may still spawn in your pursuit (this is vanilla behaviour).
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
@@ -271,7 +271,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Bartender sets all `count` and `chance` values that are < 1 to 1 instead.
 
-* Bartender enforces the `count` values for "Chasers" for each active pursuit separately. For "Roadblocks" / "Events", Bartender enforces `count` values for each roadblock / event. "Patrols" lack `count` values because they technically don't belong to anything trackable.
+* Bartender enforces the `count` values for "Chasers" for each active pursuit separately. For "Roadblocks" / "Events", Bartender enforces `count` values for each roadblock / event. "Patrols" have their `count` values enforced globally instead, as they lack a pursuit.
 
 * Once they join a given pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
 

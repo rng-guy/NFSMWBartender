@@ -56,24 +56,31 @@ namespace ConfigParser
 			const std::optional<T>& lowerBound      = {},
 			const std::optional<T>& upperBound      = {}
 		) {
-			if (lowerBound and (parameterValue < lowerBound.value())) parameterValue = lowerBound.value();
-			if (upperBound and (parameterValue > upperBound.value())) parameterValue = upperBound.value();
+			if (lowerBound and (parameterValue < lowerBound.value())) 
+				parameterValue = lowerBound.value();
+
+			if (upperBound and (parameterValue > upperBound.value())) 
+				parameterValue = upperBound.value();
 		}
 
 
-		std::vector<std::string> SplitTableRow (std::string source) const
+		void ExtractColumns
+		(
+			std::string               row,
+			std::vector<std::string>& columns
+		) 
+			const
 		{
-			std::vector<std::string> column;
-			size_t                   position = 0;
+			size_t position;
+			columns.clear();
 
-			while ((position = source.find(this->tableColumnSeparator)) != std::string::npos)
+			while ((position = row.find(this->tableColumnSeparator)) != std::string::npos)
 			{
-				column.push_back(source.substr(0, position));
-				source.erase(0, position + this->tableColumnSeparator.length());
+				columns.push_back(row.substr(0, position));
+				row.erase(0, position + this->tableColumnSeparator.length());
 			}
-			column.push_back(source);
 
-			return column;
+			columns.push_back(row);
 		}
 
 
@@ -112,6 +119,7 @@ namespace ConfigParser
 		) {
 			const bool readSuccess = inipp::extract<char, T>(source, parameterValue);
 			Parser::EnforceBounds<T>(parameterValue, lowerBound, upperBound);
+
 			return readSuccess;
 		}
 
@@ -172,7 +180,9 @@ namespace ConfigParser
 
 			for (auto& parameterValue : parameterValues)
 			{
-				if (defaultValue) parameterValue = defaultValue.value();
+				if (defaultValue) 
+					parameterValue = defaultValue.value();
+
 				parameterKey = std::vformat(format, std::make_format_args(formatIndex));
 
 				numTotalReads += this->ParseParameter<T>
@@ -261,41 +271,39 @@ namespace ConfigParser
 		) {
 			constexpr size_t numColumns = sizeof...(T);
 
-			std::array<bool, numColumns> pushedValue;
-			std::vector<std::string>     unverifiedKeys;
-			std::vector<std::string>     tableRows;
-			std::vector<std::string>     columnStrings;
+			std::array<bool, numColumns> pushedValue = {};
 
-			bool isValidRow   = true;
-			bool wasValidRow;
+			std::vector<std::string> unverifiedKeys;
+			std::vector<std::string> tableRows;
+			std::vector<std::string> columnStrings;
 
-			size_t columnID;
+			bool isValidRow = true;
 			
 			this->ParseUserParameter<std::string>(section, unverifiedKeys, tableRows);
 
 			parameterKeys.clear();
-
 			([&]{parameters.values.clear();}(), ...);
 
 			for (size_t rowID = 0; rowID < tableRows.size(); ++rowID)
 			{
-				columnStrings = this->SplitTableRow(tableRows[rowID]);
+				this->ExtractColumns(tableRows[rowID], columnStrings);
 				if (columnStrings.size() != numColumns) continue;
 
-				wasValidRow = isValidRow;
-				isValidRow  = true;
-				columnID    = 0;
+				const bool wasValidRow = isValidRow;
+				size_t     columnID    = 0;
+
+				isValidRow = true;
 
 				(
 					[&]
 					{
-						T parameterValue = T();
-
 						if ((not wasValidRow) and pushedValue[columnID]) 
 							parameters.values.pop_back();
 
 						if (isValidRow)
 						{
+							T parameterValue = T();
+
 							isValidRow &= this->ParseParameterFromString<T>
 							(
 								columnStrings[columnID],
@@ -303,10 +311,10 @@ namespace ConfigParser
 								parameters.lowerBound,
 								parameters.upperBound
 							);
-						}
 
-						if (isValidRow) 
-							parameters.values.push_back(parameterValue);
+							if (isValidRow)
+								parameters.values.push_back(parameterValue);
+						}
 
 						pushedValue[columnID++] = isValidRow;
 					}
@@ -316,15 +324,16 @@ namespace ConfigParser
 					parameterKeys.push_back(unverifiedKeys[rowID]);
 			}
 
+			// Check final row separately
 			if (not isValidRow)
 			{
-				columnID = 0;
+				size_t columnID = 0;
 
 				(
 					[&]
 					{
 						if (pushedValue[columnID++])
-							parameters.values.erase(parameters.values.end());
+							parameters.values.pop_back();
 					}
 				(), ...);
 			}
@@ -350,7 +359,6 @@ namespace ConfigParser
 			std::string              defaultRow;
 
 			size_t numDefaultValues = 0;
-			size_t columnID;
 	
 			(
 				[&]
@@ -372,32 +380,34 @@ namespace ConfigParser
 
 				if (isValidDefaultRow) // new defaults in file
 				{
-					columnStrings = this->SplitTableRow(defaultRow);
+					this->ExtractColumns(defaultRow, columnStrings);
 
-					columnID = 0;
+					size_t columnID = 0;
 
 					// Check new defaults for validity
 					(
 						[&]
 						{
-							T defaultValue = T();
-
 							if (isValidDefaultRow)
+							{
+								T dummyDefaultValue = T();
+
 								isValidDefaultRow &= this->ParseParameterFromString<T>
 								(
-									columnStrings[columnID],
-									defaultValue
+									columnStrings[columnID], 
+									dummyDefaultValue
 								);
-
+							}
+						
 							++columnID;
 						}
 					(), ...);
 				}
 
-				columnID = 0;
-
 				if (isValidDefaultRow) // new defaults are valid
 				{
+					size_t columnID = 0;
+
 					// Overwrite old defaults with new ones
 					(
 						[&]
@@ -416,6 +426,8 @@ namespace ConfigParser
 				}
 				else // new defaults either invalid or not in file
 				{
+					size_t columnID = 0;
+
 					defaultRow = std::string();
 
 					(
@@ -444,22 +456,21 @@ namespace ConfigParser
 
 				this->ParseFormatParameter<std::string>(section, format, tableRows, defaultRow);
 			}
-
-			else
-				this->ParseFormatParameter<std::string>(section, format, tableRows);
+			else this->ParseFormatParameter<std::string>(section, format, tableRows);
 
 			for (size_t rowID = 0; rowID < size; ++rowID)
 			{
-				columnStrings     = this->SplitTableRow(tableRows[rowID]);
+				this->ExtractColumns(tableRows[rowID], columnStrings);
 				isValidRow[rowID] = (columnStrings.size() == numColumns);
 				if (not isValidRow[rowID]) continue;
 
-				columnID = 0;
+				size_t columnID = 0;
 			
 				(
 					[&]
 					{
 						if (isValidRow[rowID])
+						{
 							isValidRow[rowID] &= this->ParseParameterFromString<T>
 							(
 								columnStrings[columnID],
@@ -467,6 +478,7 @@ namespace ConfigParser
 								parameters.lowerBound,
 								parameters.upperBound
 							);
+						}
 
 						++columnID;
 					}

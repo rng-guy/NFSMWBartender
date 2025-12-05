@@ -45,9 +45,7 @@ namespace PursuitObserver
 		HashContainers::AddressMap<CopLabel>          copVehicleToLabel;
 		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
 		
-		// Pointers avoid the moving of Observers on reallocation
-		inline static HashContainers::AddressSet                                   copVehiclesLoaded;
-		inline static HashContainers::AddressMap<std::unique_ptr<PursuitObserver>> pursuitToObserver;
+		inline static HashContainers::SafeAddressMap<PursuitObserver> pursuitToObserver;
 
 		inline static constexpr size_t cacheIndex = 0;
 
@@ -136,7 +134,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('+', this, "PursuitObserver");
 
-			PursuitCache::SetPointer<this->cacheIndex>(this->pursuit, this);
+			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, this);
 
 			this->pursuitReactions.reserve(5);
 
@@ -177,7 +175,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('-', this, "PursuitObserver");
 
-			PursuitCache::ClearPointer<this->cacheIndex>(this->pursuit, this);
+			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, nullptr);
 		}
 
 
@@ -216,16 +214,12 @@ namespace PursuitObserver
 			const address copVehicle,
 			const address caller
 		) {
-			const CopLabel copLabel = PursuitObserver::LabelAddVehicleCall(caller);
-
-			if (copLabel != CopLabel::HELICOPTER)
-				PursuitObserver::RegisterVehicle(copVehicle);
-
-			const auto observer = PursuitCache::GetPointer<PursuitObserver::cacheIndex, PursuitObserver>(pursuit);
+			const auto observer = PursuitCache::GetValue<PursuitObserver::cacheIndex, PursuitObserver*>(pursuit);
 
 			if (not observer) return; // should never happen
 
-			const auto [pair, wasAdded] = observer->copVehicleToLabel.try_emplace(copVehicle, copLabel);
+			const CopLabel copLabel         = PursuitObserver::LabelAddVehicleCall(caller);
+			const auto     [pair, wasAdded] = observer->copVehicleToLabel.try_emplace(copVehicle, copLabel);
 
 			if (wasAdded)
 			{
@@ -245,7 +239,7 @@ namespace PursuitObserver
 			const address pursuit,
 			const address copVehicle
 		) {
-			const auto observer = PursuitCache::GetPointer<PursuitObserver::cacheIndex, PursuitObserver>(pursuit);
+			const auto observer = PursuitCache::GetValue<PursuitObserver::cacheIndex, PursuitObserver*>(pursuit);
 
 			if (not observer) return; // should never happen
 
@@ -264,51 +258,6 @@ namespace PursuitObserver
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [OBS] Unknown vehicle", copVehicle, Globals::GetVehicleName(copVehicle), "in", pursuit);
 		}
-
-
-		static size_t GetNumRegisteredVehicles()
-		{
-			return PursuitObserver::copVehiclesLoaded.size();
-		}
-
-
-		static void __fastcall RegisterVehicle(const address copVehicle)
-		{
-			const auto [pair, wasAdded] = PursuitObserver::copVehiclesLoaded.insert(copVehicle);
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (wasAdded)
-				{
-					Globals::logger.LogIndent("[REG] +", copVehicle, Globals::GetVehicleName(copVehicle));
-					Globals::logger.LogIndent("[REG] Vehicles loaded:", static_cast<int>(PursuitObserver::GetNumRegisteredVehicles()));
-				}
-			}
-		}
-
-
-		static void __fastcall UnregisterVehicle(const address copVehicle)
-		{
-			const bool wasRemoved = PursuitObserver::copVehiclesLoaded.erase(copVehicle);
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (wasRemoved)
-				{
-					Globals::logger.LogIndent("[REG] -", copVehicle, Globals::GetVehicleName(copVehicle));
-					Globals::logger.LogIndent("[REG] Vehicles loaded:", static_cast<int>(PursuitObserver::GetNumRegisteredVehicles()));
-				}
-			}
-		}
-
-
-		static void ClearVehicleRegistrations()
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogIndent("[REG] Clearing all registrations");
-
-			PursuitObserver::copVehiclesLoaded.clear();
-		}
 	};
 
 
@@ -321,17 +270,6 @@ namespace PursuitObserver
 
 	// Heat levels
 	HeatParameters::Pair<bool> spawnsAreIndependents(false);
-
-
-
-
-
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	size_t GetNumActiveVehicles()
-	{
-		return (spawnsAreIndependents.current) ? 0 : PursuitObserver::GetNumRegisteredVehicles();
-	}
 
 
 
@@ -388,30 +326,6 @@ namespace PursuitObserver
 
 
 
-	constexpr address vehicleDespawnedEntrance = 0x6693C0;
-	constexpr address vehicleDespawnedExit     = 0x6693C7;
-
-	__declspec(naked) void VehicleDespawned()
-	{
-		__asm
-		{
-			push ecx
-
-			call PursuitObserver::UnregisterVehicle // ecx: copVehicle
-
-			pop ecx
-
-			// Execute original code and resume
-			mov eax, dword ptr [ecx]
-			push 0x0
-			call dword ptr [eax + 0x34]
-
-			jmp dword ptr vehicleDespawnedExit
-		}
-	}
-
-
-
 	constexpr address copSpawnLimitEntrance = 0x43EB84;
 	constexpr address copSpawnLimitExit     = 0x43EB90;
 
@@ -419,8 +333,13 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			call GetNumActiveVehicles
-			cmp eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
+			xor eax, eax
+			mov ecx, dword ptr [edi + 0x94]
+
+			cmp byte ptr spawnsAreIndependents.current, 0x1
+			cmove ecx, eax // "Chasers" independent
+
+			cmp ecx, dword ptr CopSpawnOverrides::maxActiveCounts.current
 
 			jmp dword ptr copSpawnLimitExit
 		}
@@ -435,58 +354,15 @@ namespace PursuitObserver
 	{
 		__asm
 		{
-			call GetNumActiveVehicles
-			cmp eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
+			mov eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
+			mov ecx, dword ptr [ebx + 0x40]
+
+			cmp byte ptr spawnsAreIndependents.current, 0x1
+			cmove ecx, eax // "Chasers" independent
+
+			cmp ecx, eax
 
 			jmp dword ptr densityFlagExit
-		}
-	}
-
-
-
-	constexpr address patrolSpawnEntrance = 0x430E37;
-	constexpr address patrolSpawnExit     = 0x430E3D;
-
-	__declspec(naked) void PatrolSpawn()
-	{
-		__asm
-		{
-			mov ecx, edi
-			call PursuitObserver::RegisterVehicle // ecx: copVehicle
-
-			// Execute original code and resume
-			inc dword ptr [ebp + 0x94]
-
-			jmp dword ptr patrolSpawnExit
-		}
-	}
-
-
-
-	constexpr address eventSpawnEntrance = 0x42E8A8;
-	constexpr address eventSpawnExit     = 0x42E8AF;
-
-	__declspec(naked) void EventSpawn()
-	{
-		__asm
-		{
-			test al, al
-			je conclusion // spawn failed
-
-			push esi // copVehicle
-			mov ecx, offset CopSpawnOverrides::eventSpawns
-			call CopSpawnOverrides::Contingent::AddVehicle
-
-			mov ecx, esi
-			call PursuitObserver::RegisterVehicle // ecx: copVehicle
-
-			mov al, 0x1
-
-			conclusion:
-			// Execute original code and resume
-			mov ecx, dword ptr [esp + 0x314]
-
-			jmp dword ptr eventSpawnExit
 		}
 	}
 
@@ -570,11 +446,8 @@ namespace PursuitObserver
 
 		MemoryTools::MakeRangeJMP(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryTools::MakeRangeJMP(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
-		MemoryTools::MakeRangeJMP(VehicleDespawned,   vehicleDespawnedEntrance,   vehicleDespawnedExit);
 		MemoryTools::MakeRangeJMP(CopSpawnLimit,      copSpawnLimitEntrance,      copSpawnLimitExit);
 		MemoryTools::MakeRangeJMP(DensityFlag,        densityFlagEntrance,        densityFlagExit);
-		MemoryTools::MakeRangeJMP(PatrolSpawn,        patrolSpawnEntrance,        patrolSpawnExit);
-		MemoryTools::MakeRangeJMP(EventSpawn,         eventSpawnEntrance,         eventSpawnExit);
 		MemoryTools::MakeRangeJMP(CopRemoved,         copRemovedEntrance,         copRemovedExit);
 		MemoryTools::MakeRangeJMP(CopAdded,           copAddedEntrance,           copAddedExit);
 
@@ -593,7 +466,7 @@ namespace PursuitObserver
 		CopSpawnTables::Validate();
 
 		if constexpr (Globals::loggingEnabled)
-			CopSpawnOverrides::LogConfigurationReport();
+			CopSpawnOverrides::LogSetupReport();
 
 		HelicopterOverrides::Validate();
 	}
@@ -632,25 +505,5 @@ namespace PursuitObserver
 		if (not featureEnabled) return;
 
 		PursuitObserver::NotifyOfGameplay();
-	}
-
-
-
-	void SoftResetState()
-	{
-		if (not featureEnabled) return;
-
-		CopSpawnOverrides::ResetState();
-	}
-
-
-
-	void HardResetState()
-	{
-		if (not featureEnabled) return;
-
-		CopSpawnOverrides::ResetState();
-
-		PursuitObserver::ClearVehicleRegistrations();
 	}
 }

@@ -24,7 +24,7 @@ namespace CopDetection
 		float radarRange;
 		float patrolIconRange;
 		float pursuitIconRange;
-		bool  lockIcon;
+		bool  keepsIcon;
 	};
 
 	HashContainers::CachedMap<vault, Settings> copTypeToSettings({300.f, 0.f, 50.f, true});
@@ -35,13 +35,13 @@ namespace CopDetection
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	bool __fastcall IsInMapRange(const address copVehicle)
+	bool __fastcall GetsMapIcon(const address copVehicle)
 	{
 		const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
 		if (not copAIVehicle) return false; // should never happen
 
-		bool& iconIsLocked = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x769);
-		if (iconIsLocked) return true; // mini-map icon locked in
+		bool& iconIsKept = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x769);
+		if (iconIsKept) return true; // mini-map icon already kept
 
 		bool& hasBeenInPursuit = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x76A);
 
@@ -76,7 +76,7 @@ namespace CopDetection
 
 			if (copDistanceSquared <= iconRange * iconRange)
 			{
-				iconIsLocked = settings->lockIcon;
+				iconIsKept = settings->keepsIcon;
 
 				return true;
 			}
@@ -90,7 +90,7 @@ namespace CopDetection
 	float __fastcall GetRadarRange(const address copVehicle)
 	{
 		const Settings* const settings = copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle));
-		return (settings) ? settings->radarRange : 0.f;
+		return (settings) ? settings->radarRange : 0.f; // should never be false
 	}
 
 
@@ -103,7 +103,7 @@ namespace CopDetection
 		stream << copSettings.radarRange;
 		stream << ", " << copSettings.patrolIconRange;
 		stream << ", " << copSettings.pursuitIconRange;
-		stream << ", " << ((copSettings.lockIcon) ? "true" : "false");
+		stream << ", " << ((copSettings.keepsIcon) ? "true" : "false");
 
 		return stream;
 	}
@@ -124,8 +124,8 @@ namespace CopDetection
 		__asm
 		{
 			// Execute original code first
-			cmp eax, 0xB80933AA
-			je conclusion // is helicopter
+			cmp eax, 0xB80933AA // "CHOPPER" class
+			je conclusion       // is helicopter
 
 			cmp dword ptr [esp + 0x18], 0x8
 			jge skip // at vehicle icon cap
@@ -134,34 +134,15 @@ namespace CopDetection
 			jne conclusion // map feature disabled
 
 			mov ecx, dword ptr [esi]
-			call IsInMapRange // ecx: copVehicle
+			call GetsMapIcon // ecx: copVehicle
 			test al, al
-			je skip           // not in range
+			je skip          // not in range
 
 			conclusion:
 			jmp dword ptr copVehicleIconExit
 
 			skip:
 			jmp dword ptr copVehicleIconSkip
-		}
-	}
-
-
-
-	constexpr address resetInternalsEntrance = 0x416B7A;
-	constexpr address resetInternalsExit     = 0x416B80;
-
-	__declspec(naked) void ResetInternals()
-	{
-		__asm
-		{
-			// Execute original code first
-			mov byte ptr [esi + 0x768], al
-
-			mov byte ptr [esi + 0x769], al
-			mov byte ptr [esi + 0x76A], al
-
-			jmp dword ptr resetInternalsExit
 		}
 	}
 
@@ -213,7 +194,7 @@ namespace CopDetection
 		std::vector<float> radarRanges;
 		std::vector<float> patrolIconRanges;
 		std::vector<float> pursuitIconRanges;
-		std::vector<bool>  lockIcons;
+		std::vector<bool>  keepsIcons;
 
 		const size_t numCopVehicles = parser.ParseParameterTable<float, float, float, bool>
 		(
@@ -222,7 +203,7 @@ namespace CopDetection
 			{radarRanges,       0.f},
 			{patrolIconRanges,  0.f},
 			{pursuitIconRanges, 0.f},
-			{lockIcons}
+			{keepsIcons}
 		);
 
 		if (numCopVehicles == 0) return false;
@@ -235,15 +216,13 @@ namespace CopDetection
 				radarRanges      [vehicleID], 
 				patrolIconRanges [vehicleID], 
 				pursuitIconRanges[vehicleID], 
-				lockIcons        [vehicleID]
+				keepsIcons       [vehicleID]
 			);
 		}
 
 		// Code modifications
 		MemoryTools::MakeRangeNOP(0x579EF0, 0x579F0E); // engagement-radius check
-
 		MemoryTools::MakeRangeJMP(CopVehicleRadar, copVehicleRadarEntrance, copVehicleRadarExit);
-		MemoryTools::MakeRangeJMP(ResetInternals,  resetInternalsEntrance,  resetInternalsExit);
 
 		ApplyFixes(); // also contains map-icon feature
 

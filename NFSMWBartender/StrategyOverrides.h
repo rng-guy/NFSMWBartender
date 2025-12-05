@@ -178,7 +178,7 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('+', this, "StrategyManager");
 			
-			PursuitCache::SetPointer<this->cacheIndex>(this->pursuit, this);
+			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, this);
 		}
 
 
@@ -187,7 +187,7 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('-', this, "StrategyManager");
 
-			PursuitCache::ClearPointer<this->cacheIndex>(this->pursuit, this);
+			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, nullptr);
 		}
 
 
@@ -247,7 +247,7 @@ namespace StrategyOverrides
 
 		static void __fastcall WatchHeavyStrategy(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
+			const auto manager = PursuitCache::GetValue<StrategyManager::cacheIndex, StrategyManager*>(pursuit);
 
 			if (not manager) return; // should never happen
 
@@ -290,7 +290,7 @@ namespace StrategyOverrides
 
 		static void __fastcall WatchLeaderStrategy(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
+			const auto manager = PursuitCache::GetValue<StrategyManager::cacheIndex, StrategyManager*>(pursuit);
 
 			if (not manager) return; // should never happen
 
@@ -332,7 +332,7 @@ namespace StrategyOverrides
 
 		static void __fastcall ClearWatchedStrategy(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
+			const auto manager = PursuitCache::GetValue<StrategyManager::cacheIndex, StrategyManager*>(pursuit);
 
 			if (manager)
 			{
@@ -346,7 +346,7 @@ namespace StrategyOverrides
 
 		static float __fastcall GetTruePursuitLength(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetPointer<StrategyManager::cacheIndex, StrategyManager>(pursuit);
+			const auto manager = PursuitCache::GetValue<StrategyManager::cacheIndex, StrategyManager*>(pursuit);
 			return (manager) ? (Globals::simulationTime - manager->pursuitStartTimestamp) : 0.f;
 		}
 	};

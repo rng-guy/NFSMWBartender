@@ -1,13 +1,16 @@
 
 ── ■ │ WHAT IS NFSMW BARTENDER? (v2.03.00) │ ■ ────────────────────────────────────────────────────
 
-View this document with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
+View THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
 Bartender adds NEW CUSTOMISATION OPTIONS to pursuits. These new options come in two feature sets:
  • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
-The sections below ADDRESS THESE QUESTIONS in detail:
+For OPTIMAL PURSUIT CUSTOMISABILITY, pair Bartender with VltEd. Bartender can't replace VltEd,
+as Bartender's features are deliberately limited to things that are beyond what VltEd can do.
+
+The SECTIONS BELOW address these questions in detail:
  1) • What does the "Basic" feature set do?
  2) • What does the "Advanced" feature set do?
  3) • What mods are (in)compatible with Bartender?
@@ -62,15 +65,15 @@ The "Basic" feature set FIXES SIX BUGS / ISSUES:
 ── ■ │ 2 - WHAT DOES THE "ADVANCED" FEATURE SET DO? │ ■ ───────────────────────────────────────────
 
 The "Advanced" feature set LETS YOU CHANGE (per Heat level)
- • how many chasing cops can (re)spawn regardless of the remaining engagement count,
- • the global cop-spawn limit for how many chasing cops in total may be active at any given time,
+ • how many chasing cops may (re)spawn regardless of the remaining engagement count,
+ • below what total number of active cops in the world the game may spawn new chasing cops,
  • whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
  • how far away new chasing cops must spawn from all already active cops,
  • when exactly (if at all) and how many chasing cops from other Heat levels can flee the pursuit,
  • which vehicles (any amount, with counts and chances) may spawn to chase and search for racers,
  • which vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
  • which vehicles (ditto) may spawn as pre-generated cops in scripted events,
- • which vehicles (without counts) may spawn as free patrols outside pursuits,
+ • which vehicles (ditto again) may spawn as free patrols outside pursuits,
  • which vehicle spawns in place of the regular helicopter,
  • when exactly (if at all) the helicopter can first spawn in each player pursuit,
  • when exactly (if at all) the helicopter can respawn if it runs out of fuel,

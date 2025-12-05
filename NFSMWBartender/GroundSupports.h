@@ -29,9 +29,9 @@ namespace GroundSupports
 	HeatParameters::Pair<bool>  roadblockJoinTimerEnableds(false);
 	HeatParameters::Pair<float> roadblockJoinTimers       (20.f);  // seconds
 
-	HeatParameters::Pair<float> maxRBJoinDistances     (500.f); // metres
-	HeatParameters::Pair<float> maxRBJoinElevationDiffs(1.5f);
-	HeatParameters::Pair<int>   maxRBJoinCounts        (1);
+	HeatParameters::Pair<float> maxRBJoinDistances      (500.f); // metres
+	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f);
+	HeatParameters::Pair<int>   maxRBJoinCounts         (1);
 
 	HeatParameters::Pair<bool> reactToCooldownModes(true);
 	HeatParameters::Pair<bool> reactToSpikesHits   (true);
@@ -146,12 +146,12 @@ namespace GroundSupports
 
 		if (isHeavyStrategy)
 		{
-			*reinterpret_cast<address*>(pursuit + 0x194) = strategy; // HeavyStrategy
-
 			const int strategyID = *reinterpret_cast<int*>(strategy);
 
 			if ((strategyID != 3) or heavy3TriggerCooldowns.current)
 				*reinterpret_cast<float*>(pursuit + 0xC8) = roadblockHeavyCooldowns.current; // roadblock CD
+
+			*reinterpret_cast<address*>(pursuit + 0x194) = strategy; // HeavyStrategy
 		}
 		else *reinterpret_cast<address*>(pursuit + 0x198) = strategy; // LeaderStrategy
 	}
@@ -185,7 +185,7 @@ namespace GroundSupports
 				const int strategyID = *reinterpret_cast<int*>(randomStrategy);
 
 				Globals::logger.Log(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
-				Globals::logger.Log(pursuit, "[SUP] Candidate", static_cast<int>(index + 1), "out of", static_cast<int>(candidateStrategies.size()));
+				Globals::logger.Log(pursuit, "[SUP] Candidate", static_cast<int>(index + 1), '/', static_cast<int>(candidateStrategies.size()));
 			}
 
 			candidateStrategies.clear();
@@ -560,9 +560,9 @@ namespace GroundSupports
 		(
 			parser,
 			"Joining:Definitions",
-			{maxRBJoinDistances,      0.f},
-			{maxRBJoinElevationDiffs, 0.f},
-			{maxRBJoinCounts,         0}
+			{maxRBJoinDistances,       0.f},
+			{maxRBJoinElevationDeltas, 0.f},
+			{maxRBJoinCounts,          0}
 		);
 
 		HeatParameters::ParseOptional<float>(parser, "Roadblocks:Joining", roadblockJoinTimerEnableds, {roadblockJoinTimers, .001f});
@@ -581,9 +581,9 @@ namespace GroundSupports
 		// Code modifications 
 		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
 
-		MemoryTools::Write<float*>(&(minRoadblockCooldowns.current),   {0x419548});
-		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),      {0x42BEBC});
-		MemoryTools::Write<float*>(&(maxRBJoinElevationDiffs.current), {0x42BE3A});
+		MemoryTools::Write<float*>(&(minRoadblockCooldowns.current),    {0x419548});
+		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),       {0x42BEBC});
+		MemoryTools::Write<float*>(&(maxRBJoinElevationDeltas.current), {0x42BE3A});
 
 		MemoryTools::MakeRangeJMP(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
 		MemoryTools::MakeRangeJMP(RoadblockJoinTimer,   roadblockJoinTimerEntrance,   roadblockJoinTimerExit);
@@ -651,7 +651,7 @@ namespace GroundSupports
 		if (roadblockJoinTimerEnableds.current or reactToCooldownModes.current)
 		{
 			Globals::logger.LogLongIndent("maxRBJoinDistance       ", maxRBJoinDistances.current);
-			Globals::logger.LogLongIndent("maxRBJoinElevationDiff  ", maxRBJoinElevationDiffs.current);
+			Globals::logger.LogLongIndent("maxRBJoinElevationDeltas", maxRBJoinElevationDeltas.current);
 			Globals::logger.LogLongIndent("maxRBJoinCount          ", maxRBJoinCounts.current);
 		}
 
@@ -696,9 +696,9 @@ namespace GroundSupports
 		roadblockJoinTimerEnableds.SetToHeat(isRacing, heatLevel);
 		roadblockJoinTimers       .SetToHeat(isRacing, heatLevel);
 
-		maxRBJoinDistances     .SetToHeat(isRacing, heatLevel);
-		maxRBJoinElevationDiffs.SetToHeat(isRacing, heatLevel);
-		maxRBJoinCounts        .SetToHeat(isRacing, heatLevel);
+		maxRBJoinDistances      .SetToHeat(isRacing, heatLevel);
+		maxRBJoinElevationDeltas.SetToHeat(isRacing, heatLevel);
+		maxRBJoinCounts         .SetToHeat(isRacing, heatLevel);
 
 		reactToCooldownModes.SetToHeat(isRacing, heatLevel);
 		reactToSpikesHits   .SetToHeat(isRacing, heatLevel);

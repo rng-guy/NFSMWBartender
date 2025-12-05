@@ -7,7 +7,11 @@ Bartender adds **new customisation options** to pursuits in *Need for Speed: Mos
 
 &nbsp;
 
-The sections below **address these questions** in detail:
+For **optimal pursuit customisability**, pair Bartender with [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html). Bartender can't replace VltEd, as Bartender's features are deliberately limited to things that are beyond what VltEd can do.
+
+&nbsp;
+
+The **sections below** address these questions in detail:
 1. [What does the "Basic" feature set do?](#1---what-does-the-basic-feature-set-do)
 2. [What does the "Advanced" feature set do?](#2---what-does-the-advanced-feature-set-do)
 3. [What mods are (in)compatible with Bartender?](#3---what-mods-are-incompatible-with-bartender)
@@ -72,15 +76,15 @@ The "Basic" feature set **fixes six bugs / issues**:
 # 2 - What does the "Advanced" feature set do?
 
 The "Advanced" feature set **lets you change** (per Heat level)
-* how many chasing cops can (re)spawn regardless of the remaining engagement count,
-* the global cop-spawn limit for how many chasing cops in total may be active at any given time,
+* how many chasing cops may (re)spawn regardless of the remaining engagement count,
+* below what total number of active cops in the world the game may spawn new chasing cops,
 * whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
 * how far away new chasing cops must spawn from all already active cops,
 * when exactly (if at all) and how many chasing cops from other Heat levels can flee the pursuit,
 * which vehicles (any amount, with counts and chances) may spawn to chase and search for racers,
 * which vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
 * which vehicles (ditto) may spawn as pre-generated cops in scripted events,
-* which vehicles (without counts) may spawn as free patrols outside pursuits,
+* which vehicles (ditto again) may spawn as free patrols outside pursuits,
 * which vehicle spawns in place of the regular helicopter,
 * when exactly (if at all) the helicopter can first spawn in each player pursuit,
 * when exactly (if at all) the helicopter can respawn if it runs out of fuel,

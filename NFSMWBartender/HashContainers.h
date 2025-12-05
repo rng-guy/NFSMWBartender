@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <concepts>
 
 #include "Globals.h"
@@ -46,7 +47,13 @@ namespace HashContainers
 	using AddressMap = FastMap<address, V>;
 
 	template <typename V>
+	using SafeAddressMap = AddressMap<std::unique_ptr<V>>;
+
+	template <typename V>
 	using VaultMap = FastMap<vault, V>;
+
+	template <typename V>
+	using SafeVaultMap = VaultMap<std::unique_ptr<V>>;
 
 
 

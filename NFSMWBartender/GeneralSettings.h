@@ -152,14 +152,14 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov ecx, 0x890968 // 0.f
+			mov ecx, 0x890968 // pointer -> 0.f
 			mov edx, offset maxBustDistances.current
 
-			fld dword ptr [ecx]
-			fcomp dword ptr [esi + 0x168] // EVADE progress
+			fldz
+			fcomp dword ptr [esi + 0x168] // EVADE state
 			fnstsw ax
 			test ah, 0x1
-			cmovne edx, ecx               // in EVADE state
+			cmovne edx, ecx               // LOS broken
 
 			// Execute original code and resume
 			test bl, bl

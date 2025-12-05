@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstring>
+#include <concepts>
 #include <Windows.h>
 #include <initializer_list>
 
@@ -101,30 +102,31 @@ namespace MemoryTools
 
 	// PointerCache class ---------------------------------------------------------------------------------------------------------------------------
 
-	template <int offset, size_t capacity>
-	class PointerCache
+	template <int storageOffset, size_t capacity, typename S = uint32_t>
+	requires std::is_integral_v<S>
+	class DataCache
 	{
 	private:
 
-		const address base;
+		const address storageBase;
 		
-		std::array<void*, capacity> pointers = {};
+		std::array<S, capacity> data = {};
 
 
-		static PointerCache*& GetStorage(const address base)
+		static DataCache*& GetStorage(const address storageBase)
 		{
-			return *reinterpret_cast<PointerCache**>(base + offset);
+			return *reinterpret_cast<DataCache**>(storageBase + storageOffset);
 		}
 
 
-		static PointerCache* GetAccess(const address base)
+		static DataCache* GetAccess(const address storageBase)
 		{
-			PointerCache*& storage = PointerCache::GetStorage(base);
+			DataCache*& storage = DataCache::GetStorage(storageBase);
 
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (not storage)
-					Globals::logger.Log("WARNING: [PCA] Failed to access cache at", base);
+					Globals::logger.Log("WARNING: [DAT] Failed to access cache at", storageBase);
 			}
 
 			return storage;
@@ -134,100 +136,67 @@ namespace MemoryTools
 
 	public:
 
-		explicit PointerCache(const address base) : base(base)
+		explicit DataCache(const address storageBase) : storageBase(storageBase)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('+', this, "PointerCache");
+				Globals::logger.LogLongIndent('+', this, "DataCache");
 
-			PointerCache*& storage = this->GetStorage(this->base);
+			DataCache*& storage = this->GetStorage(this->storageBase);
 
 			if (not storage)
 				storage = this;
 
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PCA] Existing cache at", this->base);
+				Globals::logger.Log("WARNING: [PCA] Existing cache at", this->storageBase);
 		}
 
 
-		~PointerCache()
+		~DataCache()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('-', this, "PointerCache");
+				Globals::logger.LogLongIndent('-', this, "DataCache");
 
-			PointerCache*& storage = this->GetStorage(this->base);
+			DataCache*& storage = this->GetStorage(this->storageBase);
 
 			if (storage == this)
 				storage = nullptr;
 
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PCA] Cache mismatch at", this->base);
-		}
-
-
-		template <size_t index>
-		static void SetPointer
-		(
-			const address base,
-			void* const   newValue
-		) {
-			PointerCache* const access = PointerCache::GetAccess(base);
-
-			if (not access) return;
-
-			static_assert(index < capacity);
-			void*& pointer = access->pointers[index];
-
-			if (not pointer)
-				pointer = newValue;
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PCA] Pointer", static_cast<int>(index), "already", pointer, "at", base);
-		}
-
-
-		template <size_t index>
-		static void ClearPointer
-		(
-			const address base,
-			void* const   oldValue
-		) {
-			PointerCache* const access = PointerCache::GetAccess(base);
-
-			if (not access) return;
-
-			static_assert(index < capacity);
-			void*& pointer = access->pointers[index];
-
-			if (pointer == oldValue)
-				pointer = nullptr;
-
-			else if constexpr (Globals::loggingEnabled)
-			{
-				if (not pointer)
-					Globals::logger.Log("WARNING: [PCA] Pointer", static_cast<int>(index), "not set at", base);
-
-				else
-					Globals::logger.Log("WARNING: [PCA] Pointer", static_cast<int>(index), "set to", pointer, "at", base);
-			}
+				Globals::logger.Log("WARNING: [PCA] Cache mismatch at", this->storageBase);
 		}
 
 
 		template <size_t index, typename T>
-		static T* GetPointer(const address base)
+		requires ((index < capacity) and (sizeof(T) <= sizeof(S)))
+		static bool SetValue
+		(
+			const address storageBase,
+			const T       value
+		) {
+			DataCache* const access = DataCache::GetAccess(storageBase);
+
+			if (access)
+				*reinterpret_cast<T*>(&(access->data[index])) = value;
+
+			return access;
+		}
+
+
+		template <size_t index, typename T>
+		requires ((index < capacity) and (sizeof(T) <= sizeof(S)))
+		static T* GetPointer(const address storageBase)
 		{
-			PointerCache* const access = PointerCache::GetAccess(base);
+			DataCache* const access = DataCache::GetAccess(storageBase);
+			return (access) ? reinterpret_cast<T*>(&(access->data[index])) : nullptr;
+		}
 
-			if (not access) return nullptr;
 
-			static_assert(index < capacity);
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (not access->pointers[index])
-					Globals::logger.Log("WARNING: [PCA] Pointer", static_cast<int>(index), "not set at", base);
-			}
-
-			return reinterpret_cast<T*>(access->pointers[index]);
+		template <size_t index, typename T>
+		requires ((index < capacity) and (sizeof(T) <= sizeof(S)))
+		static T GetValue(const address storageBase)
+		{
+			const auto pointer = DataCache::GetPointer<index, T>(storageBase);
+			return (pointer) ? *pointer : T();
 		}
 	};
 }
