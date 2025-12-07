@@ -174,13 +174,14 @@ namespace CopDetection
 	{
 		static bool fixesApplied = false;
 
-		if (fixesApplied) return;
-		
-		// Also fixes the disappearing helicopter icon
-		MemoryTools::MakeRangeNOP(0x579EA2, 0x579EAB); // early icon-counter check
-		MemoryTools::MakeRangeJMP(CopVehicleIcon, copVehicleIconEntrance, copVehicleIconExit);
-		
-		fixesApplied = true;
+		if (not fixesApplied)
+		{
+			// Also fixes the disappearing helicopter icon
+			MemoryTools::MakeRangeNOP(0x579EA2, 0x579EAB); // early icon-counter check
+			MemoryTools::MakeRangeJMP(CopVehicleIcon, copVehicleIconEntrance, copVehicleIconExit);
+
+			fixesApplied = true;
+		}
 	}
 
 

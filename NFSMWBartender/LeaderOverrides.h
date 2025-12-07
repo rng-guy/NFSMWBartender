@@ -17,12 +17,12 @@ namespace LeaderOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::OptionalInterval crossAggroDelays;
-	HeatParameters::OptionalInterval henchmenAggroDelays;
+	HeatParameters::OptionalInterval<float> crossAggroDelays;
+	HeatParameters::OptionalInterval<float> henchmenAggroDelays;
 
-	HeatParameters::OptionalInterval expireResetDelays;
-	HeatParameters::OptionalInterval wreckResetDelays;
-	HeatParameters::OptionalInterval lostResetDelays;
+	HeatParameters::OptionalInterval<float> expireResetDelays;
+	HeatParameters::OptionalInterval<float> wreckResetDelays;
+	HeatParameters::OptionalInterval<float> lostResetDelays;
 
 
 
@@ -351,12 +351,12 @@ namespace LeaderOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::Parse<>(parser, "Leader:CrossAggro",    crossAggroDelays);
-		HeatParameters::Parse<>(parser, "Leader:HenchmenAggro", henchmenAggroDelays);
+		HeatParameters::ParseOptional<float>(parser, "Leader:CrossAggro",    {crossAggroDelays,    1.f});
+		HeatParameters::ParseOptional<float>(parser, "Leader:HenchmenAggro", {henchmenAggroDelays, 1.f});
 
-		HeatParameters::Parse<>(parser, "Leader:ExpireReset", expireResetDelays);
-		HeatParameters::Parse<>(parser, "Leader:WreckReset",  wreckResetDelays);
-		HeatParameters::Parse<>(parser, "Leader:LostReset",   lostResetDelays);
+		HeatParameters::ParseOptional<float>(parser, "Leader:ExpireReset", {expireResetDelays, 1.f});
+		HeatParameters::ParseOptional<float>(parser, "Leader:WreckReset",  {wreckResetDelays,  1.f});
+		HeatParameters::ParseOptional<float>(parser, "Leader:LostReset",   {lostResetDelays,   1.f});
 
 		// Code modifications
 		MemoryTools::MakeRangeNOP(0x42B6A2, 0x42B6B4); // Cross flag = 0

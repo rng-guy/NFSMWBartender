@@ -23,14 +23,14 @@ namespace HelicopterOverrides
 	HeatParameters::Pair<std::string> helicopterVehicles("copheli");
 	HeatParameters::Pair<float>       rammingCooldowns  (8.f);       // seconds
 
-	HeatParameters::OptionalInterval firstSpawnDelays;
-	HeatParameters::OptionalInterval fuelRespawnDelays;
-	HeatParameters::OptionalInterval wreckRespawnDelays;
+	HeatParameters::OptionalInterval<float> firstSpawnDelays;
+	HeatParameters::OptionalInterval<float> fuelRespawnDelays;
+	HeatParameters::OptionalInterval<float> wreckRespawnDelays;
 
-	HeatParameters::OptionalInterval lostRejoinDelays;
-	HeatParameters::Pair<float>      minRejoinFuelTimes(10.f); // seconds
+	HeatParameters::OptionalInterval<float> lostRejoinDelays;
+	HeatParameters::Pair            <float> minRejoinFuelTimes(10.f); // seconds
 
-	HeatParameters::OptionalInterval fuelTimes;
+	HeatParameters::OptionalInterval<float> fuelTimes;
 
 	// Code caves 
 	bool hasLimitedFuel    = false;
@@ -68,7 +68,7 @@ namespace HelicopterOverrides
 		inline static address     helicopterOwner   = 0x0;
 		inline static const char* helicopterVehicle = nullptr;
 
-		inline static float fuelTimeOnRejoin  = 0.f;     // seconds
+		inline static float fuelTimeOnRejoin  = 0.f;  // seconds
 		inline static float minRejoinFuelTime = 10.f;
 
 
@@ -112,6 +112,8 @@ namespace HelicopterOverrides
 
 		void LockInRejoinParameters()
 		{
+			if (not this->IsOwner()) return;
+
 			this->spawnTimer.LoadInterval(lostRejoinDelays);
 			hasLimitedFuel = fuelTimes.isEnableds.current;
 
@@ -324,7 +326,7 @@ namespace HelicopterOverrides
 			}
 
 			this->helicopterStatus = Status::ACTIVE;
-			
+
 			skipBailoutSpeech = false;
 		}
 
@@ -520,14 +522,14 @@ namespace HelicopterOverrides
 		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini")) return false;
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Helicopter:FirstSpawn", firstSpawnDelays);
+		HeatParameters::ParseOptional<float>(parser, "Helicopter:FirstSpawn", {firstSpawnDelays, 1.f});
 		if (not firstSpawnDelays.isEnableds.AnyNonzero()) return false;
 
-		HeatParameters::Parse<>(parser, "Helicopter:FuelRespawn",  fuelRespawnDelays);
-		HeatParameters::Parse<>(parser, "Helicopter:WreckRespawn", wreckRespawnDelays);
-		HeatParameters::Parse<>(parser, "Helicopter:FuelTime",     fuelTimes);
+		HeatParameters::ParseOptional<float>(parser, "Helicopter:FuelRespawn",  {fuelRespawnDelays , 1.f});
+		HeatParameters::ParseOptional<float>(parser, "Helicopter:WreckRespawn", {wreckRespawnDelays, 1.f});
+		HeatParameters::ParseOptional<float>(parser, "Helicopter:FuelTime",     {fuelTimes,          1.f});
 
-		HeatParameters::Parse<float>(parser, "Helicopter:LostRejoin", lostRejoinDelays, {minRejoinFuelTimes, 1.f});
+		HeatParameters::ParseOptional<float, float>(parser, "Helicopter:LostRejoin", {lostRejoinDelays, 1.f}, {minRejoinFuelTimes, 1.f});
 
 		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
 		HeatParameters::Parse<float>      (parser, "Helicopter:Ramming", {rammingCooldowns, 1.f});
@@ -556,7 +558,7 @@ namespace HelicopterOverrides
 			Globals::logger.Log("  CONFIG [HEL] HelicopterOverrides");
 
 		// With logging disabled, the compiler optimises the boolean and the string literal away
-		const bool allValid = helicopterVehicles.Validate("Helicopters", Globals::Class::CHOPPER);
+		const bool allValid = HeatParameters::ValidateVehicles("Helicopters", helicopterVehicles, Globals::Class::CHOPPER);
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -577,9 +579,10 @@ namespace HelicopterOverrides
 			or fuelTimes.isEnableds.current
 		   )
 		{
-			Globals::logger.Log          ("    HEAT [HEL] HelicopterOverrides");
-			Globals::logger.LogLongIndent("helicopterVehicle       ", helicopterVehicles.current);
-			Globals::logger.LogLongIndent("rammingCooldown         ", rammingCooldowns.current);
+			Globals::logger.Log("    HEAT [HEL] HelicopterOverrides");
+
+			helicopterVehicles.Log("helicopterVehicle       ");
+			rammingCooldowns  .Log("rammingCooldown         ");
 
 			firstSpawnDelays  .Log("firstSpawnDelay         ");
 			fuelRespawnDelays .Log("fuelRespawnDelays       ");
@@ -587,8 +590,8 @@ namespace HelicopterOverrides
 
 			if (lostRejoinDelays.isEnableds.current)
 			{
-				lostRejoinDelays.Log          ("lostRejoinDelay         ");
-				Globals::logger .LogLongIndent("minFuelToRejoin         ", minRejoinFuelTimes.current);
+				lostRejoinDelays  .Log("lostRejoinDelay         ");
+				minRejoinFuelTimes.Log("minRejoinFuelTime       ");
 			}
 
 			fuelTimes.Log("fuelTime                ");

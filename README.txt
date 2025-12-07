@@ -7,8 +7,8 @@ Bartender adds NEW CUSTOMISATION OPTIONS to pursuits. These new options come in 
  • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
-For OPTIMAL PURSUIT CUSTOMISABILITY, pair Bartender with VltEd. Bartender can't replace VltEd,
-as Bartender's features are deliberately limited to things that are beyond what VltEd can do.
+For OPTIMAL CUSTOMISABILITY, use VltEd along with Bartender. Bartender doesn't replace VltEd,
+as Bartender's features are deliberately limited to things you cannot do with VltEd alone.
 
 The SECTIONS BELOW address these questions in detail:
  1) • What does the "Basic" feature set do?
@@ -179,5 +179,6 @@ Finally, Bartender wouldn't have seen the light of day without
  • Sebastiano Vigna, for his pseudorandom number generators;
  • Matthias C. M. Troffaes, for his configuration-file parser;
  • ExOptsTeam, for permitting me to use their Heat-level fixes;
+ • Martin Leitner-Ankerl, for his performant hashmap implementation;
  • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a resource; and
  • Orsal, Aven, Astra King79, and MORELLO, for testing and providing feedback.

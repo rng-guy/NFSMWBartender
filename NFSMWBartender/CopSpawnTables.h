@@ -233,7 +233,7 @@ namespace CopSpawnTables
 		}
 
 
-		void LogContents(const char* const tableName) const
+		void Log(const char* const tableName) const
 		{
 			Globals::logger.LogLongIndent(tableName, this->totalCopCount);
 
@@ -251,9 +251,9 @@ namespace CopSpawnTables
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<SpawnTable> eventSpawnTables;
 	HeatParameters::Pair<SpawnTable> patrolSpawnTables;
 	HeatParameters::Pair<SpawnTable> chaserSpawnTables;
+	HeatParameters::Pair<SpawnTable> scriptedSpawnTables;
 	HeatParameters::Pair<SpawnTable> roadblockSpawnTables;
 
 
@@ -318,9 +318,9 @@ namespace CopSpawnTables
 		{
 			const std::string format = (forRaces) ? "Race{:02}:" : "Heat{:02}:";
 
-			ParseTables(parser, "Events",     format, eventSpawnTables    .GetValues(forRaces));
 			ParseTables(parser, "Patrols",    format, patrolSpawnTables   .GetValues(forRaces));
 			ParseTables(parser, "Chasers",    format, chaserSpawnTables   .GetValues(forRaces));
+			ParseTables(parser, "Scripted",   format, scriptedSpawnTables .GetValues(forRaces));
 			ParseTables(parser, "Roadblocks", format, roadblockSpawnTables.GetValues(forRaces));
 		}
 
@@ -328,13 +328,13 @@ namespace CopSpawnTables
 		for (const SpawnTable& table : chaserSpawnTables.roam) 
 			if (table.IsEmpty()) return false;
 
-		ReplaceEmptyTables(eventSpawnTables.roam,     chaserSpawnTables.roam);
 		ReplaceEmptyTables(patrolSpawnTables.roam,    chaserSpawnTables.roam);
+		ReplaceEmptyTables(scriptedSpawnTables.roam,  chaserSpawnTables.roam);
 		ReplaceEmptyTables(roadblockSpawnTables.roam, chaserSpawnTables.roam);
 
-		ReplaceEmptyTables(eventSpawnTables.race,     eventSpawnTables.roam);
 		ReplaceEmptyTables(patrolSpawnTables.race,    patrolSpawnTables.roam);
 		ReplaceEmptyTables(chaserSpawnTables.race,    chaserSpawnTables.roam);
+		ReplaceEmptyTables(scriptedSpawnTables.race,  scriptedSpawnTables.roam);
 		ReplaceEmptyTables(roadblockSpawnTables.race, roadblockSpawnTables.roam);
 
 		// Status flag
@@ -359,9 +359,9 @@ namespace CopSpawnTables
 			for (const size_t heatLevel : HeatParameters::heatLevels)
 			{
 				// With logging disabled, the compiler optimises the boolean and all arguments away
-				allValid &= (eventSpawnTables    .GetValues(forRaces)[heatLevel - 1]).Validate("Events",     forRaces, heatLevel);
 				allValid &= (patrolSpawnTables   .GetValues(forRaces)[heatLevel - 1]).Validate("Patrols",    forRaces, heatLevel);
 				allValid &= (chaserSpawnTables   .GetValues(forRaces)[heatLevel - 1]).Validate("Chasers",    forRaces, heatLevel);
+				allValid &= (scriptedSpawnTables .GetValues(forRaces)[heatLevel - 1]).Validate("Scripted",   forRaces, heatLevel);
 				allValid &= (roadblockSpawnTables.GetValues(forRaces)[heatLevel - 1]).Validate("Roadblocks", forRaces, heatLevel);
 			}
 		}
@@ -379,10 +379,10 @@ namespace CopSpawnTables
 	{
 		Globals::logger.Log("    HEAT [TAB] CopSpawnTables");
 
-		eventSpawnTables    .current->LogContents("Events                  ");
-		patrolSpawnTables   .current->LogContents("Patrols                 ");
-		chaserSpawnTables   .current->LogContents("Chasers                 ");
-		roadblockSpawnTables.current->LogContents("Roadblocks              ");
+		patrolSpawnTables   .current->Log("Patrols                 ");
+		chaserSpawnTables   .current->Log("Chasers                 ");
+		scriptedSpawnTables .current->Log("Scripted                ");
+		roadblockSpawnTables.current->Log("Roadblocks              ");
 	}
 
 
@@ -394,9 +394,9 @@ namespace CopSpawnTables
 	) {
 		if (not featureEnabled) return;
 
-		eventSpawnTables    .SetToHeat(isRacing, heatLevel);
 		patrolSpawnTables   .SetToHeat(isRacing, heatLevel);
 		chaserSpawnTables   .SetToHeat(isRacing, heatLevel);
+		scriptedSpawnTables .SetToHeat(isRacing, heatLevel);
 		roadblockSpawnTables.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)

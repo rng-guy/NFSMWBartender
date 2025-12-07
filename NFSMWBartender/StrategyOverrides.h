@@ -19,10 +19,10 @@ namespace StrategyOverrides
 	// Heat levels
 	HeatParameters::Pair<float> racerSpeedThresholds(25.f); // kph
 	
-	HeatParameters::OptionalInterval heavy3UnblockDelays;
-	HeatParameters::OptionalInterval heavy4UnblockDelays;
-	HeatParameters::OptionalInterval leader5UnblockDelays;
-	HeatParameters::OptionalInterval leader7UnblockDelays;
+	HeatParameters::OptionalInterval<float> heavy3UnblockDelays;
+	HeatParameters::OptionalInterval<float> heavy4UnblockDelays;
+	HeatParameters::OptionalInterval<float> leader5UnblockDelays;
+	HeatParameters::OptionalInterval<float> leader7UnblockDelays;
 
 	// Conversions
 	float baseSpeedThreshold = racerSpeedThresholds.current / 3.6f; // metres / second
@@ -558,10 +558,10 @@ namespace StrategyOverrides
 		// Heat parameters
 		HeatParameters::Parse<float>(parser, "Heavy3:Fleeing", {racerSpeedThresholds, 0.f});
 
-		HeatParameters::Parse<>(parser, "Heavy3:Unblocking",  heavy3UnblockDelays);
-		HeatParameters::Parse<>(parser, "Heavy4:Unblocking",  heavy4UnblockDelays);
-		HeatParameters::Parse<>(parser, "Leader5:Unblocking", leader5UnblockDelays);
-		HeatParameters::Parse<>(parser, "Leader7:Unblocking", leader7UnblockDelays);
+		HeatParameters::ParseOptional<float>(parser, "Heavy3:Unblocking",  {heavy3UnblockDelays , 1.f});
+		HeatParameters::ParseOptional<float>(parser, "Heavy4:Unblocking",  {heavy4UnblockDelays , 1.f});
+		HeatParameters::ParseOptional<float>(parser, "Leader5:Unblocking", {leader5UnblockDelays, 1.f});
+		HeatParameters::ParseOptional<float>(parser, "Leader7:Unblocking", {leader7UnblockDelays, 1.f});
 
 		// Code modifications 
 		MemoryTools::Write<byte>   (0xE9,  {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
@@ -590,8 +590,9 @@ namespace StrategyOverrides
 
 	void LogHeatReport()
 	{
-		Globals::logger.Log          ("    HEAT [STR] StrategyOverrides");
-		Globals::logger.LogLongIndent("racerSpeedThreshold     ", racerSpeedThresholds.current);
+		Globals::logger.Log("    HEAT [STR] StrategyOverrides");
+
+		racerSpeedThresholds.Log("racerSpeedThreshold     ");
 
 		heavy3UnblockDelays .Log("heavy3UnblockDelay      ");
 		heavy4UnblockDelays .Log("heavy4UnblockDelay      ");

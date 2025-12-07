@@ -103,7 +103,7 @@ namespace DestructionStrings
 		(
 			"Vehicle-to-label",
 			[=](const vault  key)   {return Globals::VehicleClassMatches(key, Globals::Class::ANY);},
-			[=](const binary value) {return GetBinaryString(0, value); }
+			[=](const binary value) {return GetBinaryString(0, value);}
 		);
 	}
 }

@@ -23,6 +23,14 @@
 namespace PursuitObserver
 {
 
+	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+
+	bool featureEnabled = false;
+
+
+
+
+
 	// PursuitObserver class ------------------------------------------------------------------------------------------------------------------------
 
 	class PursuitObserver
@@ -264,17 +272,6 @@ namespace PursuitObserver
 
 	
 
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
-
-	bool featureEnabled = false;
-
-	// Heat levels
-	HeatParameters::Pair<bool> spawnsAreIndependents(false);
-
-
-
-
-
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address pursuitConstructorEntrance = 0x4432D0;
@@ -321,48 +318,6 @@ namespace PursuitObserver
 			push esi
 
 			jmp dword ptr pursuitDestructorExit
-		}
-	}
-
-
-
-	constexpr address copSpawnLimitEntrance = 0x43EB84;
-	constexpr address copSpawnLimitExit     = 0x43EB90;
-
-	__declspec(naked) void CopSpawnLimit()
-	{
-		__asm
-		{
-			xor eax, eax
-			mov ecx, dword ptr [edi + 0x94]
-
-			cmp byte ptr spawnsAreIndependents.current, 0x1
-			cmove ecx, eax // "Chasers" independent
-
-			cmp ecx, dword ptr CopSpawnOverrides::maxActiveCounts.current
-
-			jmp dword ptr copSpawnLimitExit
-		}
-	}
-
-
-
-	constexpr address densityFlagEntrance = 0x426C4E;
-	constexpr address densityFlagExit     = 0x426C54;
-
-	__declspec(naked) void DensityFlag()
-	{
-		__asm
-		{
-			mov eax, dword ptr CopSpawnOverrides::maxActiveCounts.current
-			mov ecx, dword ptr [ebx + 0x40]
-
-			cmp byte ptr spawnsAreIndependents.current, 0x1
-			cmove ecx, eax // "Chasers" independent
-
-			cmp ecx, eax
-
-			jmp dword ptr densityFlagExit
 		}
 	}
 
@@ -426,11 +381,6 @@ namespace PursuitObserver
 	{
 		if (not CopSpawnTables::Initialise(parser)) return false;
 
-		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
-
-		// Heat parameters
-		HeatParameters::Parse<bool>(parser, "Chasers:Independence", {spawnsAreIndependents});
-
 		// Subheaders
 		CopSpawnOverrides  ::Initialise(parser);
 		CopFleeOverrides   ::Initialise(parser);
@@ -446,8 +396,6 @@ namespace PursuitObserver
 
 		MemoryTools::MakeRangeJMP(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryTools::MakeRangeJMP(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
-		MemoryTools::MakeRangeJMP(CopSpawnLimit,      copSpawnLimitEntrance,      copSpawnLimitExit);
-		MemoryTools::MakeRangeJMP(DensityFlag,        densityFlagEntrance,        densityFlagExit);
 		MemoryTools::MakeRangeJMP(CopRemoved,         copRemovedEntrance,         copRemovedExit);
 		MemoryTools::MakeRangeJMP(CopAdded,           copAddedEntrance,           copAddedExit);
 
@@ -479,14 +427,6 @@ namespace PursuitObserver
 		const size_t heatLevel
 	) {
 		if (not featureEnabled) return;
-
-		spawnsAreIndependents.SetToHeat(isRacing, heatLevel);
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Log("    HEAT [OBS] PursuitObserver");
-			Globals::logger.LogLongIndent("spawnsAreIndependent    ", spawnsAreIndependents.current);
-		}
 
 		CopSpawnTables     ::SetToHeat(isRacing, heatLevel);
 		CopSpawnOverrides  ::SetToHeat(isRacing, heatLevel);

@@ -165,18 +165,39 @@ namespace PursuitFeatures
 		}
 
 
-		void LoadInterval(const HeatParameters::OptionalInterval& interval)
-		{
-			this->isEnabled = (Globals::playerHeatLevelKnown and interval.isEnableds.current);
+		void UpdateParameters
+		(
+			const bool  isEnabled,
+			const float minLength,
+			const float maxLength
+		) {
+			this->isEnabled = isEnabled;
 
 			if (this->isEnabled)
 			{
-				this->minLength = interval.minValues.current;
-				this->maxLength = interval.maxValues.current;
+				this->minLength = minLength;
+				this->maxLength = maxLength;
 
 				if (this->isSet)
 					this->UpdateLength();
 			}
+		}
+
+
+		void LoadInterval(const HeatParameters::Interval<float>& interval)
+		{
+			this->UpdateParameters(true, interval.minValues.current, interval.maxValues.current);
+		}
+
+
+		void LoadInterval(const HeatParameters::OptionalInterval<float>& interval)
+		{
+			this->UpdateParameters
+			(
+				interval.isEnableds.current and Globals::playerHeatLevelKnown,
+				interval.minValues.current, 
+				interval.maxValues.current
+			);
 		}
 
 

@@ -21,13 +21,10 @@ namespace GeneralSettings
 	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
 	HeatParameters::Pair<float> bustTimers      (5.f);
 
-	HeatParameters::Pair<bool> doCopFlipDamageChecks(true);
+	HeatParameters::Pair<bool> copFlipByDamageEnableds(true);
 
-	HeatParameters::Pair<bool>  copFlipTimeCheckEnableds(false);
-	HeatParameters::Pair<float> copFlipTimeCheckDelays  (6.f);  // seconds
-
-	HeatParameters::Pair<bool>  racerFlipResetEnableds(false);
-	HeatParameters::Pair<float> racerFlipResetDelays  (4.f);   // seconds
+	HeatParameters::OptionalPair<float> copFlipByTimers;
+	HeatParameters::OptionalPair<float> racerFlipResetDelays;
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current; // seconds
@@ -71,11 +68,11 @@ namespace GeneralSettings
 
 		__asm
 		{
-			cmp byte ptr copFlipTimeCheckEnableds.current, 0x1
+			cmp byte ptr copFlipByTimers.isEnableds.current, 0x1
 			jne damaged // time check disabled
 
 			fld dword ptr [esi + 0xB8]
-			fcomp dword ptr copFlipTimeCheckDelays.current
+			fcomp dword ptr copFlipByTimers.values.current
 			fnstsw ax
 			test ah, 0x41
 			jne damaged // delay has yet to expire
@@ -86,7 +83,7 @@ namespace GeneralSettings
 			jmp conclusion // was destroyed
 
 			damaged:
-			cmp byte ptr doCopFlipDamageChecks.current, 0x1
+			cmp byte ptr copFlipByDamageEnableds.current, 0x1
 			jne skip // damage check disabled
 
 			conclusion:
@@ -106,11 +103,11 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			cmp byte ptr racerFlipResetEnableds.current, 0x1
+			cmp byte ptr racerFlipResetDelays.isEnableds.current, 0x1
 			jne conclusion // flipping resets disabled
 
 			fld dword ptr [esi + 0x54]
-			fcomp dword ptr racerFlipResetDelays.current
+			fcomp dword ptr racerFlipResetDelays.values.current
 			fnstsw ax
 			test ah, 0x41
 
@@ -179,12 +176,13 @@ namespace GeneralSettings
 	{
 		static bool fixesApplied = false;
 
-		if (fixesApplied) return;
+		if (not fixesApplied)
+		{
+			// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
+			MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 
-		// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
-		MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
-
-		fixesApplied = true;
+			fixesApplied = true;
+		}
 	}
 
 
@@ -200,9 +198,10 @@ namespace GeneralSettings
 		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,  .001f}, {maxBustDistances, 0.f});
 		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers, .001f});
 
-		HeatParameters::Parse<bool>         (parser, "Flipping:Damage", {doCopFlipDamageChecks});
-		HeatParameters::ParseOptional<float>(parser, "Flipping:Time",   copFlipTimeCheckEnableds, {copFlipTimeCheckDelays, .001f});
-		HeatParameters::ParseOptional<float>(parser, "Flipping:Reset",  racerFlipResetEnableds,   {racerFlipResetDelays,   .001f});
+		HeatParameters::Parse<bool>(parser, "Flipping:Damage", {copFlipByDamageEnableds});
+
+		HeatParameters::ParseOptional<float>(parser, "Flipping:Time",  {copFlipByTimers,      .001f});
+		HeatParameters::ParseOptional<float>(parser, "Flipping:Reset", {racerFlipResetDelays, .001f});
 
 		// Code modifications 
 		MemoryTools::Write<float*>(&bustRate,              {0x40AEDB});
@@ -216,7 +215,7 @@ namespace GeneralSettings
 		MemoryTools::MakeRangeJMP(RacerFlipping, racerFlippingEntrance, racerFlippingExit);
 		MemoryTools::MakeRangeJMP(PassiveBounty, passiveBountyEntrance, passiveBountyExit);
 
-		ApplyFixes();
+		ApplyFixes(); // also contains bust-distance feature
 
 		// Status flag
 		featureEnabled = true;
@@ -230,20 +229,16 @@ namespace GeneralSettings
 	{
 		Globals::logger.Log("    HEAT [GEN] GeneralSettings");
 
-		Globals::logger.LogLongIndent("bountyInterval          ", bountyIntervals.current);
-		Globals::logger.LogLongIndent("maxBountyMultiplier     ", maxBountyMultipliers.current);
+		bountyIntervals     .Log("bountyInterval          ");
+		maxBountyMultipliers.Log("maxBountyMultiplier     ");
 
-		Globals::logger.LogLongIndent("bustTimer               ", bustTimers.current);
-		Globals::logger.LogLongIndent("maxBustDistance         ", maxBustDistances.current);
-		Globals::logger.LogLongIndent("evadeTimer              ", evadeTimers.current);
+		bustTimers      .Log("bustTimer               ");
+		maxBustDistances.Log("maxBustDistance         ");
+		evadeTimers     .Log("evadeTimer              ");
 
-		Globals::logger.LogLongIndent("doCopFlipDamageCheck    ", doCopFlipDamageChecks.current);
-
-		if (copFlipTimeCheckEnableds.current)
-			Globals::logger.LogLongIndent("copFlipTimeCheckDelay   ", copFlipTimeCheckDelays.current);
-
-		if (racerFlipResetEnableds.current)
-			Globals::logger.LogLongIndent("racerFlipResetDelay     ", racerFlipResetDelays.current);
+		copFlipByDamageEnableds.Log("copFlipByDamageEnabled  ");
+		copFlipByTimers        .Log("copFlipByTimer          ");
+		racerFlipResetDelays   .Log("racerFlipResetDelay     ");
 	}
 
 
@@ -267,11 +262,9 @@ namespace GeneralSettings
 		halfEvadeRate = .5f / evadeTimers.current;
 		bustRate      = 1.f / bustTimers.current;
 
-		doCopFlipDamageChecks   .SetToHeat(isRacing, heatLevel);
-		copFlipTimeCheckEnableds.SetToHeat(isRacing, heatLevel);
-		copFlipTimeCheckDelays  .SetToHeat(isRacing, heatLevel);
-		racerFlipResetEnableds  .SetToHeat(isRacing, heatLevel);
-		racerFlipResetDelays    .SetToHeat(isRacing, heatLevel);
+		copFlipByDamageEnableds.SetToHeat(isRacing, heatLevel);
+		copFlipByTimers        .SetToHeat(isRacing, heatLevel);
+		racerFlipResetDelays   .SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();

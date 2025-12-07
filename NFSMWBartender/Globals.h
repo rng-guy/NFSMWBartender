@@ -56,15 +56,6 @@ namespace Globals
 
 
 
-	// Concepts -------------------------------------------------------------------------------------------------------------------------------------
-
-	template <typename T>
-	concept isTrivial = std::is_fundamental_v<T> or std::is_pointer_v<T> or std::is_enum_v<T>;
-
-
-
-
-
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
 	address GetFromVault

@@ -17,7 +17,7 @@ namespace RadioCallsigns
 	bool featureEnabled = false;
 
 	// Code caves 
-	enum Group // C-style for inline ASM support
+	enum Group // C-style for inline ASM
 	{
 		UNKNOWN,
 		PATROL,

@@ -30,7 +30,8 @@ namespace BasicLogger
 		requires std::is_enum_v<T>
 		void Print(const T value)
 		{
-			this->Print<int>(static_cast<int>(value));
+			using base = std::underlying_type_t<T>;
+			this->Print<base>(static_cast<base>(value));
 		}
 
 
@@ -50,7 +51,7 @@ namespace BasicLogger
 
 
 		template <>
-		void Print<uintptr_t>(const uintptr_t value)
+		void Print<uint32_t>(const uint32_t value)
 		{
 			this->file << std::format("{:08x}", value);
 		}

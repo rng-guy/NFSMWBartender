@@ -7,7 +7,7 @@ Bartender adds **new customisation options** to pursuits in *Need for Speed: Mos
 
 &nbsp;
 
-For **optimal pursuit customisability**, pair Bartender with [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html). Bartender can't replace VltEd, as Bartender's features are deliberately limited to things that are beyond what VltEd can do.
+For **optimal customisability**, use [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) along with Bartender. Bartender doesn't replace VltEd, as Bartender's features are deliberately limited to things you cannot do with VltEd alone.
 
 &nbsp;
 
@@ -213,5 +213,6 @@ Finally, Bartender wouldn't have seen the light of day without
 * **Matthias C. M. Troffaes**, for his [configuration-file parser](https://github.com/mcmtroffaes/inipp);
 * **[ExOptsTeam](https://github.com/ExOptsTeam)**, for permitting me to use their Heat-level fixes;
 * **Sebastiano Vigna**, for his [pseudorandom number generators](https://prng.di.unimi.it/);
+* **Martin Leitner-Ankerl**, for his [performant hashmap implementation](https://github.com/martinus/unordered_dense);
 * **trelbutate**, for his [NFSMW Cop Car Healthbars mod](https://github.com/trelbutate/MWHealthbars/) as a resource; and
 * **Orsal**, **Aven**, **Astra King79**, and **MORELLO**, for testing and providing feedback.

@@ -18,8 +18,8 @@ namespace CopFleeOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::OptionalInterval fleeDelays;
-	HeatParameters::Pair<int>        chasersThresholds(2);
+	HeatParameters::OptionalInterval<float> fleeDelays;
+	HeatParameters::Pair            <int>   chasersThresholds(2);
 
 
 
@@ -127,7 +127,7 @@ namespace CopFleeOverrides
 					this->activeChaserVehicles.erase(iterator->first);
 
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[FLE] Chaser vehicle", iterator->first, "expired");
+						Globals::logger.Log(this->pursuit, "[FLE] Chaser", iterator->first, "expired");
 
 					iterator = this->chaserVehicleToFleeTimestamp.erase(iterator);
 
@@ -157,7 +157,7 @@ namespace CopFleeOverrides
 					this->MakeVehicleBail(iterator->first);
 
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[FLE] Support vehicle", iterator->first, "expired");
+						Globals::logger.Log(this->pursuit, "[FLE] Support", iterator->first, "expired");
 
 					iterator = this->supportVehicleToFleeTimestamp.erase(iterator);
 				}
@@ -278,7 +278,7 @@ namespace CopFleeOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
 		// Heat parameters
-		HeatParameters::Parse<int>(parser, "Chasers:Fleeing", fleeDelays, {chasersThresholds, 0});
+		HeatParameters::ParseOptional<float, int>(parser, "Chasers:Fleeing", {fleeDelays, 1.f}, {chasersThresholds, 0});
 
 		// Code modifications 
 		MemoryTools::MakeRangeJMP(GoalUpdate, goalUpdateEntrance, goalUpdateExit);
@@ -297,8 +297,8 @@ namespace CopFleeOverrides
 
 		Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
 
-		fleeDelays     .Log          ("fleeDelay               ");
-		Globals::logger.LogLongIndent("chasersThreshold        ", chasersThresholds.current);
+		fleeDelays       .Log("fleeDelay               ");
+		chasersThresholds.Log("chasersThreshold        ");
 	}
 
 

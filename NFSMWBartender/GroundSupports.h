@@ -20,14 +20,12 @@ namespace GroundSupports
 	HeatParameters::Pair<bool> rivalHeavyEnableds    (true);
 	HeatParameters::Pair<bool> rivalLeaderEnableds   (true);
 
-	HeatParameters::Pair<float> minRoadblockCooldowns  (8.f);  // seconds
-	HeatParameters::Pair<float> maxRoadblockCooldowns  (12.f);
-	HeatParameters::Pair<float> roadblockHeavyCooldowns(15.f);
+	HeatParameters::Interval<float> roadblockCooldowns     (8.f, 12.f); // seconds
+	HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f);
 
 	HeatParameters::Pair<float> strategyCooldowns(10.f); // seconds
 
-	HeatParameters::Pair<bool>  roadblockJoinTimerEnableds(false);
-	HeatParameters::Pair<float> roadblockJoinTimers       (20.f);  // seconds
+	HeatParameters::OptionalPair<float> roadblockJoinTimers;
 
 	HeatParameters::Pair<float> maxRBJoinDistances      (500.f); // metres
 	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f);
@@ -45,9 +43,6 @@ namespace GroundSupports
 	HeatParameters::Pair<std::string> heavy4HeavyVehicles   ("copsuv");
 	HeatParameters::Pair<std::string> leaderCrossVehicles   ("copcross");
 	HeatParameters::Pair<std::string> leaderHenchmenVehicles("copsporthench");
-
-	// Conversions
-	float roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current; // seconds
 
 
 
@@ -242,10 +237,10 @@ namespace GroundSupports
 	{
 		__asm
 		{
-			cmp byte ptr roadblockJoinTimerEnableds.current, 0x1
+			cmp byte ptr roadblockJoinTimers.isEnableds.current, 0x1
 			jne conclusion // time-based joining disabled
 
-			fcom dword ptr roadblockJoinTimers.current
+			fcom dword ptr roadblockJoinTimers.values.current
 			fnstsw ax
 			test ah, 0x41
 
@@ -337,13 +332,14 @@ namespace GroundSupports
 
 
 	constexpr address roadblockCooldownEntrance = 0x419535;
-	constexpr address roadblockCooldownExit     = 0x41953A;
+	constexpr address roadblockCooldownExit     = 0x41954C;
 
 	__declspec(naked) void RoadblockCooldown()
 	{
 		__asm
 		{
-			push dword ptr roadblockCooldownRange
+			mov ecx, offset roadblockCooldowns
+			call HeatParameters::Interval<float>::GetRandomValue
 
 			jmp dword ptr roadblockCooldownExit
 		}
@@ -529,12 +525,13 @@ namespace GroundSupports
 	{
 		static bool fixesApplied = false;
 
-		if (fixesApplied) return;
+		if (not fixesApplied)
+		{
+			// Also fixes the unintended biases in the Strategy-selection process
+			MemoryTools::MakeRangeJMP(StrategySelection, strategySelectionEntrance, strategySelectionExit);
 
-		// Also fixes the unintended biases in the Strategy-selection process
-		MemoryTools::MakeRangeJMP(StrategySelection, strategySelectionEntrance, strategySelectionExit);
-
-		fixesApplied = true;
+			fixesApplied = true;
+		}
 	}
 
 
@@ -544,16 +541,13 @@ namespace GroundSupports
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Supports.ini")) return false;
 
 		// Roadblock cooldowns
-		HeatParameters::Parse<float, float, float>
+		HeatParameters::Parse<float, float>
 		(
 			parser,
 			"Roadblocks:Cooldown",
-			{minRoadblockCooldowns,   1.f},
-			{maxRoadblockCooldowns,   1.f},
+			{roadblockCooldowns,      1.f},
 			{roadblockHeavyCooldowns, 1.f}
 		);
-
-		HeatParameters::CheckIntervals<float>(minRoadblockCooldowns, maxRoadblockCooldowns);
 
 		// Roadblock joining
 		HeatParameters::Parse<float, float, int>
@@ -565,7 +559,7 @@ namespace GroundSupports
 			{maxRBJoinCounts,          0}
 		);
 
-		HeatParameters::ParseOptional<float>(parser, "Roadblocks:Joining", roadblockJoinTimerEnableds, {roadblockJoinTimers, .001f});
+		HeatParameters::ParseOptional<float>(parser, "Roadblocks:Joining", {roadblockJoinTimers, .001f});
 
 		// Other Heat parameters
 		HeatParameters::Parse<bool, bool, bool>(parser, "Supports:Rivals", {rivalRoadblockEnableds}, {rivalHeavyEnableds}, {rivalLeaderEnableds});
@@ -581,7 +575,6 @@ namespace GroundSupports
 		// Code modifications 
 		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
 
-		MemoryTools::Write<float*>(&(minRoadblockCooldowns.current),    {0x419548});
 		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),       {0x42BEBC});
 		MemoryTools::Write<float*>(&(maxRBJoinElevationDeltas.current), {0x42BE3A});
 
@@ -599,7 +592,7 @@ namespace GroundSupports
 		MemoryTools::MakeRangeJMP(OnDetached,           onDetachedEntrance,           onDetachedExit);
         MemoryTools::MakeRangeJMP(LeaderSub,            leaderSubEntrance,            leaderSubExit);
 
-		ApplyFixes();
+		ApplyFixes(); // also contains Strategy-selection feature
         
 		// Status flag
 		featureEnabled = true;
@@ -619,12 +612,12 @@ namespace GroundSupports
 		// With logging disabled, the compiler optimises the boolean and the string literals away
 		bool allValid = true;
 
-		allValid &= heavy3LightVehicles   .Validate("HeavyStrategy 3, light",   Globals::Class::CAR);
-		allValid &= heavy3HeavyVehicles   .Validate("HeavyStrategy 3, heavy",   Globals::Class::CAR);
-		allValid &= heavy4LightVehicles   .Validate("HeavyStrategy 4, light",   Globals::Class::CAR);
-		allValid &= heavy4HeavyVehicles   .Validate("HeavyStrategy 4, heavy",   Globals::Class::CAR);
-		allValid &= leaderCrossVehicles   .Validate("LeaderStrategy, Cross",    Globals::Class::CAR);
-		allValid &= leaderHenchmenVehicles.Validate("LeaderStrategy, henchmen", Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, light",   heavy3LightVehicles,    Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, heavy",   heavy3HeavyVehicles,    Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, light",   heavy4LightVehicles,    Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, heavy",   heavy4HeavyVehicles,    Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy, Cross",    leaderCrossVehicles,    Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy, henchmen", leaderHenchmenVehicles, Globals::Class::CAR);
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -639,37 +632,36 @@ namespace GroundSupports
 	{
 		Globals::logger.Log("    HEAT [SUP] GroundSupport");
 
-		Globals::logger.LogLongIndent("rivalRoadblockEnabled   ", rivalRoadblockEnableds.current);
-		Globals::logger.LogLongIndent("rivalHeavyEnabled       ", rivalHeavyEnableds.current);
-		Globals::logger.LogLongIndent("rivalLeaderEnabled      ", rivalLeaderEnableds.current);
+		rivalRoadblockEnableds.Log("rivalRoadblockEnabled   ");
+		rivalHeavyEnableds    .Log("rivalHeavyEnabled       ");
+		rivalLeaderEnableds   .Log("rivalLeaderEnabled      ");
 
-		Globals::logger.LogLongIndent("roadblockCooldown       ", minRoadblockCooldowns.current, "to", maxRoadblockCooldowns.current);
-		Globals::logger.LogLongIndent("roadblockHeavyCooldown  ", roadblockHeavyCooldowns.current);
+		roadblockCooldowns     .Log("roadblockCooldown       ");
+		roadblockHeavyCooldowns.Log("roadblockHeavyCooldown  ");
 
-		Globals::logger.LogLongIndent("strategyCooldown        ", strategyCooldowns.current);
+		strategyCooldowns.Log("strategyCooldown        ");
 
-		if (roadblockJoinTimerEnableds.current or reactToCooldownModes.current)
+		if (roadblockJoinTimers.isEnableds.current or reactToCooldownModes.current)
 		{
-			Globals::logger.LogLongIndent("maxRBJoinDistance       ", maxRBJoinDistances.current);
-			Globals::logger.LogLongIndent("maxRBJoinElevationDeltas", maxRBJoinElevationDeltas.current);
-			Globals::logger.LogLongIndent("maxRBJoinCount          ", maxRBJoinCounts.current);
+			maxRBJoinDistances      .Log("maxRBJoinDistance       ");
+			maxRBJoinElevationDeltas.Log("maxRBJoinElevationDeltas");
+			maxRBJoinCounts         .Log("maxRBJoinCount          ");
 		}
 
-		if (roadblockJoinTimerEnableds.current)
-			Globals::logger.LogLongIndent("roadblockJoinTimer      ", roadblockJoinTimers.current);
+		roadblockJoinTimers.Log("roadblockJoinTimer      ");
 
-		Globals::logger.LogLongIndent("reactToCooldownMode     ", reactToCooldownModes.current);
-		Globals::logger.LogLongIndent("reactToSpikesHit        ", reactToSpikesHits.current);
+		reactToCooldownModes.Log("reactToCooldownMode     ");
+		reactToSpikesHits   .Log("reactToSpikesHit        ");
 
-		Globals::logger.LogLongIndent("heavy3TriggerCooldown   ", heavy3TriggerCooldowns.current);
-		Globals::logger.LogLongIndent("heavy3AreBlockable      ", heavy3AreBlockables.current);
+		heavy3TriggerCooldowns.Log("heavy3TriggerCooldown   ");
+		heavy3AreBlockables   .Log("heavy3AreBlockable      ");
 
-		Globals::logger.LogLongIndent("heavy3LightVehicle      ", heavy3LightVehicles.current);
-		Globals::logger.LogLongIndent("heavy3HeavyVehicle      ", heavy3HeavyVehicles.current);
-		Globals::logger.LogLongIndent("heavy4LightVehicle      ", heavy4LightVehicles.current);
-		Globals::logger.LogLongIndent("heavy4HeavyVehicle      ", heavy4HeavyVehicles.current);
-		Globals::logger.LogLongIndent("leaderCrossVehicle      ", leaderCrossVehicles.current);
-		Globals::logger.LogLongIndent("leaderHenchmenVehicle   ", leaderHenchmenVehicles.current);
+		heavy3LightVehicles   .Log("heavy3LightVehicle      ");
+		heavy3HeavyVehicles   .Log("heavy3HeavyVehicle      ");
+		heavy4LightVehicles   .Log("heavy4LightVehicle      ");
+		heavy4HeavyVehicles   .Log("heavy4HeavyVehicle      ");
+		leaderCrossVehicles   .Log("leaderCrossVehicle      ");
+		leaderHenchmenVehicles.Log("leaderHenchmenVehicle   ");
 	}
 
 
@@ -685,20 +677,16 @@ namespace GroundSupports
 		rivalHeavyEnableds    .SetToHeat(isRacing, heatLevel);
 		rivalLeaderEnableds   .SetToHeat(isRacing, heatLevel);
 
-		minRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
-		maxRoadblockCooldowns  .SetToHeat(isRacing, heatLevel);
+		roadblockCooldowns     .SetToHeat(isRacing, heatLevel);
 		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
 
-		roadblockCooldownRange = maxRoadblockCooldowns.current - minRoadblockCooldowns.current;
-
 		strategyCooldowns.SetToHeat(isRacing, heatLevel);
-
-		roadblockJoinTimerEnableds.SetToHeat(isRacing, heatLevel);
-		roadblockJoinTimers       .SetToHeat(isRacing, heatLevel);
 
 		maxRBJoinDistances      .SetToHeat(isRacing, heatLevel);
 		maxRBJoinElevationDeltas.SetToHeat(isRacing, heatLevel);
 		maxRBJoinCounts         .SetToHeat(isRacing, heatLevel);
+
+		roadblockJoinTimers.SetToHeat(isRacing, heatLevel);
 
 		reactToCooldownModes.SetToHeat(isRacing, heatLevel);
 		reactToSpikesHits   .SetToHeat(isRacing, heatLevel);

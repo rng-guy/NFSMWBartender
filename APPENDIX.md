@@ -259,7 +259,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * "Chasers" only flee at Heat levels for which you define valid flee-delay values. "Chasers" also only flee if they aren't in the current Heat level's "Chasers" spawn table, and if there would be enough active "Chasers" remaining in the pursuit after their retreat.
 
-* Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Events", and "Patrols" spawn tables you leave empty.
+* Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Scripted", and "Patrols" spawn tables you leave empty.
 
 * Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
 
@@ -271,25 +271,25 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Bartender sets all `count` and `chance` values that are < 1 to 1 instead.
 
-* Bartender enforces the `count` values for "Chasers" for each active pursuit separately. For "Roadblocks" / "Events", Bartender enforces `count` values for each roadblock / event. "Patrols" have their `count` values enforced globally instead, as they lack a pursuit.
+* Bartender enforces the `count` values for "Chasers" for each active pursuit separately. For "Roadblocks" / "Scripted", Bartender enforces `count` values for each roadblock / script. "Patrols" have their `count` values enforced globally instead, as they lack a pursuit.
 
-* Once they join a given pursuit, "Events" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
+* Once they join a given pursuit, "Scripted" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
 
 * The "Roadblocks" spawn tables don't apply to HeavyStrategy 4 roadblocks.
 
-* Each roadblock / event in the game requests a hard-coded number of vehicles. No roadblock formation in the game requests more than 5 vehicles, and no scripted event more than 8.
+* Each roadblock / script in the game requests a hard-coded number of vehicles. No roadblock formation in the vanilla game requests more than 5 vehicles, and no scripted event more than 8.
  
-* Bartender temporarily ignores the `count` values in a "Roadblocks" / "Events" spawn table whenever a roadblock / event requests more vehicles in total than they would otherwise allow. This ensures the game cannot get stuck trying to spawn a roadblock or start a scripted event.
+* Bartender temporarily ignores the `count` values in a "Roadblocks" / "Scripted" spawn table whenever a roadblock / script requests more vehicles in total than they would otherwise allow. This ensures the game cannot get stuck trying to spawn a roadblock or start a scripted event.
 
 * Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock spawns in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This doesn't apply to vehicles with `count` values of at least 5, as no roadblock consists of more than 5 cars.
 
 * Rarely, vehicles that are not in a "Roadblocks" spawn table may still show up in roadblocks. This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it's processing a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
-* The "Events" spawn tables also apply to the scripted patrols in prologue (DDay) race events.
+* To be precise, the "Scripted" spawn tables apply to each LUA script that requests cop spawns. This includes pre-generated cops in Challenge Series pursuits and patrols in prologue races.
 
-* The "Events" spawn tables don't apply to the very first scripted, pre-generated cop that spawns in a given free-roam event (e.g. a Challenge Series pursuit). Instead, this first cop is always of the type defined by the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible for Bartender to know which spawn table to use for just this single vehicle.
+* The "Scripted" spawn tables don't apply to the very first pre-generated cop that spawns in a given Challenge Series pursuit. Instead, this first cop is always of the type defined by the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible to replace properly.
 
-* You shouldn't use fast Heat transitions (`0x80deb840` VltEd parameter(s) set to < 5 seconds), else you might see a mix of cops from more than one "Events" spawn table appear in events with scripted, pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can also avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
+* You shouldn't use fast Heat transitions (`0x80deb840` VltEd parameter set to < 5 seconds), else you might see a mix of cops from more than one "Scripted" spawn table appear in events with pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can also avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
 
 * Bartender uses different spawn tables for each of the two patrol-spawn types in the game: "Patrols" tables replace the free patrols that spawn when there is no active pursuit, and "Chasers" tables replace the searching patrols that spawn in pursuits when racers are in "COOLDOWN" mode. You can control the number of patrol spawns through the `NumPatrolCars` VltEd parameter, but there are two important quirks: Free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count.
 

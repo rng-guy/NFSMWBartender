@@ -173,7 +173,7 @@ namespace HashContainers
 
 
 	template <typename K, typename V>
-	requires Globals::isTrivial<V>
+	requires (std::is_trivially_copyable_v<V> and (sizeof(V) <= sizeof(uint32_t)))
 	class CachedMap<K, V> : public BaseCachedMap<K, V>
 	{
 	private:

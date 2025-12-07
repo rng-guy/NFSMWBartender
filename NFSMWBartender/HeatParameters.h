@@ -112,7 +112,7 @@ namespace HeatParameters
 
 
 	template <typename T>
-	requires Globals::isTrivial<T>
+	requires std::is_arithmetic_v<T>
 	struct Pair<T> : public BasePair<T>
 	{
 		T current;
@@ -140,6 +140,12 @@ namespace HeatParameters
 
 			return false;
 		}
+
+
+		void Log(const char* const pairName) const
+		{
+			Globals::logger.LogLongIndent(pairName, this->current);
+		}
 	};
 
 
@@ -162,53 +168,20 @@ namespace HeatParameters
 		}
 
 
-		bool Validate
-		(
-			const char* const    pairName,
-			const Globals::Class vehicleClass
-		) {
-			size_t numTotalReplaced = 0;
-
-			for (const bool forRaces : {false, true})
-			{
-				size_t numReplaced = 0;
-
-				for (const size_t heatLevel : heatLevels)
-				{
-					std::string& vehicle = this->GetValues(forRaces)[heatLevel - 1];
-					const vault  copType = Globals::GetVaultKey(vehicle.c_str());
-
-					if (not Globals::VehicleClassMatches(copType, vehicleClass))
-					{
-						// With logging disabled, the compiler optimises "pairName" away
-						if constexpr (Globals::loggingEnabled)
-						{
-							if (numReplaced == 0)
-								Globals::logger.LogLongIndent(pairName, (forRaces) ? "(race)" : "(free-roam)");
-
-							Globals::logger.LogLongIndent(' ', static_cast<int>(heatLevel), vehicle, "->", this->current);
-						}
-
-						vehicle = this->current;
-
-						++numReplaced;
-					}
-				}
-
-				numTotalReplaced += numReplaced;
-			}
-
-			return (numTotalReplaced == 0);
+		void Log(const char* const pairName) const
+		{
+			Globals::logger.LogLongIndent(pairName, this->current);
 		}
 	};
 
 
 
-	struct OptionalInterval
+	template <typename T>
+	requires std::is_arithmetic_v<T>
+	struct OptionalPair
 	{
-		Pair<bool>  isEnableds = Pair<bool> (false);
-		Pair<float> minValues  = Pair<float>(1.f);
-		Pair<float> maxValues  = Pair<float>(1.f);
+		Pair<bool> isEnableds = Pair<bool>(false);
+		Pair<T>    values     = Pair<T>   (T());
 
 
 		void SetToHeat
@@ -217,15 +190,83 @@ namespace HeatParameters
 			const size_t heatLevel
 		) {
 			this->isEnableds.SetToHeat(forRaces, heatLevel);
+			this->values    .SetToHeat(forRaces, heatLevel);
+		}
 
+
+		void Log(const char* const optionalName) const
+		{
+			if (this->isEnableds.current)
+				Globals::logger.LogLongIndent(optionalName, this->values.current);
+		}
+	};
+
+
+
+	template <typename T>
+	requires std::is_arithmetic_v<T>
+	struct Interval
+	{
+		Pair<T> minValues;
+		Pair<T> maxValues;
+
+
+		explicit Interval
+		(
+			const T originalMin,
+			const T originalMax
+		) 
+			: minValues(originalMin), maxValues(originalMax) 
+		{}
+
+
+		void SetToHeat
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
 			this->minValues.SetToHeat(forRaces, heatLevel);
 			this->maxValues.SetToHeat(forRaces, heatLevel);
 		}
 
 
-		float GetRandomValue() const
+		T GetRandomValue() const
 		{
-			return Globals::prng.GenerateNumber<float>(this->minValues.current, this->maxValues.current);
+			return Globals::prng.GenerateNumber<T>(this->minValues.current, this->maxValues.current);
+		}
+
+
+		void Log(const char* const intervalName) const
+		{
+			Globals::logger.LogLongIndent(intervalName, this->minValues.current, "to", this->maxValues.current);
+		}
+	};
+
+
+
+	template <typename T>
+	requires std::is_arithmetic_v<T>
+	struct OptionalInterval
+	{
+		Pair<bool> isEnableds = Pair<bool>(false);
+		Pair<T>    minValues  = Pair<T>(T());
+		Pair<T>    maxValues  = Pair<T>(T());
+
+
+		void SetToHeat
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->isEnableds.SetToHeat(forRaces, heatLevel);
+			this->minValues .SetToHeat(forRaces, heatLevel);
+			this->maxValues .SetToHeat(forRaces, heatLevel);
+		}
+
+
+		T GetRandomValue() const
+		{
+			return Globals::prng.GenerateNumber<T>(this->minValues.current, this->maxValues.current);
 		}
 
 
@@ -243,7 +284,7 @@ namespace HeatParameters
 	// Validation functions -------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
-	void CheckIntervals
+	void ValidateIntervals
 	(
 		Pair<T>&       minValues,
 		const Pair<T>& maxValues
@@ -260,16 +301,58 @@ namespace HeatParameters
 
 
 
+	bool ValidateVehicles
+	(
+		const char* const    pairName,
+		Pair<std::string>&   pair,
+		const Globals::Class vehicleClass
+	) {
+		size_t numTotalReplaced = 0;
+
+		for (const bool forRaces : {false, true})
+		{
+			size_t numReplaced = 0;
+
+			for (const size_t heatLevel : heatLevels)
+			{
+				std::string& vehicle = pair.GetValues(forRaces)[heatLevel - 1];
+				const vault  copType = Globals::GetVaultKey(vehicle.c_str());
+
+				if (not Globals::VehicleClassMatches(copType, vehicleClass))
+				{
+					// With logging disabled, the compiler optimises "pairName" away
+					if constexpr (Globals::loggingEnabled)
+					{
+						if (numReplaced == 0)
+							Globals::logger.LogLongIndent(pairName, (forRaces) ? "(race)" : "(free-roam)");
+
+						Globals::logger.LogLongIndent(' ', static_cast<int>(heatLevel), vehicle, "->", pair.current);
+					}
+
+					vehicle = pair.current;
+
+					++numReplaced;
+				}
+			}
+
+			numTotalReplaced += numReplaced;
+		}
+
+		return (numTotalReplaced == 0);
+	}
+
+
+
 
 
 	// Parsing types and functions ------------------------------------------------------------------------------------------------------------------
 
-	template <typename T>
+	template <typename T, typename V>
 	struct ParsingSetup
 	{
-		Pair<T>&               pair;
-		const std::optional<T> lowerBound = {};
-		const std::optional<T> upperBound = {};
+		T&                     values;
+		const std::optional<V> lowerBound = {};
+		const std::optional<V> upperBound = {};
 	};
 
 
@@ -277,27 +360,27 @@ namespace HeatParameters
 	template <typename T>
 	void Parse
 	(
-		Parser&            parser,
-		const std::string& section,
-		ParsingSetup<T>&&  setup
+		Parser&                    parser,
+		const std::string&         section,
+		ParsingSetup<Pair<T>, T>&& setup
 	) {
 		parser.ParseFormatParameter<T>
 		(
 			section,
 			configFormatRoam,
-			setup.pair.roam,
-			setup.pair.current,
+			setup.values.roam,
+			setup.values.current,
 			setup.lowerBound,
 			setup.upperBound
 		);
 
-		setup.pair.race = setup.pair.roam;
+		setup.values.race = setup.values.roam;
 
 		parser.ParseFormatParameter<T>
 		(
 			section,
 			configFormatRace,
-			setup.pair.race,
+			setup.values.race,
 			{},
 			setup.lowerBound,
 			setup.upperBound
@@ -309,9 +392,9 @@ namespace HeatParameters
 	template <typename ...T>
 	void Parse
 	(
-		Parser&               parser,
-		const std::string&    section,
-		ParsingSetup<T>&&  ...columns
+		Parser&                        parser,
+		const std::string&             section,
+		ParsingSetup<Pair<T>, T>&&  ...columns
 	) {
 		parser.ParseParameterTable<T...>
 		(
@@ -319,8 +402,8 @@ namespace HeatParameters
 			configFormatRoam,
 			Format<T>
 			(
-				columns.pair.roam,
-				columns.pair.current,
+				columns.values.roam,
+				columns.values.current,
 				columns.lowerBound,
 				columns.upperBound
 			)...
@@ -332,7 +415,7 @@ namespace HeatParameters
 			configFormatRace,
 			Format<T>
 			(
-				columns.pair.race,
+				columns.values.race,
 				{},
 				columns.lowerBound,
 				columns.upperBound
@@ -345,7 +428,7 @@ namespace HeatParameters
 				for (const size_t heatLevel : heatLevels)
 				{
 					if (not isValids[heatLevel - 1])
-						columns.pair.race[heatLevel - 1] = columns.pair.roam[heatLevel - 1];
+						columns.values.race[heatLevel - 1] = columns.values.roam[heatLevel - 1];
 				}
 			}
 		(), ...);
@@ -353,13 +436,35 @@ namespace HeatParameters
 
 
 
+	template <typename V, typename ...T>
+	void Parse
+	(
+		Parser&                           parser,
+		const std::string&                section,
+		ParsingSetup<Interval<V>, V>&&    setup,
+		ParsingSetup<Pair<T>, T>&&     ...columns
+	) {
+		Parse<V, V, T...>
+		(
+			parser, 
+			section, 
+			{setup.values.minValues, setup.lowerBound, setup.upperBound},
+			{setup.values.maxValues, setup.lowerBound, setup.upperBound},
+			std::forward<ParsingSetup<Pair<T>, T>>(columns)...
+		);
+
+		ValidateIntervals<V>(setup.values.minValues, setup.values.maxValues);
+	}
+
+
+
 	template <typename ...T>
 	void ParseOptional
 	(
-		Parser&               parser,
-		const std::string&    section,
-		Pair<bool>&           isEnableds,
-		ParsingSetup<T>&&  ...columns
+		Parser&                        parser,
+		const std::string&             section,
+		Pair<bool>&                    isEnableds,
+		ParsingSetup<Pair<T>, T>&&  ...columns
 	) {
 		for (const bool forRaces : {false, true})
 		{
@@ -369,7 +474,7 @@ namespace HeatParameters
 				(forRaces) ? configFormatRace : configFormatRoam,
 				Format<T>
 				(
-					columns.pair.GetValues(forRaces),
+					columns.values.GetValues(forRaces),
 					{},
 					columns.lowerBound,
 					columns.upperBound
@@ -380,24 +485,44 @@ namespace HeatParameters
 
 
 
-	template <typename ...T>
-	void Parse
+	template <typename V, typename ...T>
+	void ParseOptional
 	(
-		Parser&               parser,
-		const std::string&    section,
-		OptionalInterval&     interval,
-		ParsingSetup<T>&&  ...columns
+		Parser&                               parser,
+		const std::string&                    section,
+		ParsingSetup<OptionalPair<V>, V>&&    setup,
+		ParsingSetup<Pair<T>, T>&&         ...columns
 	) {
-		ParseOptional<float, float, T...>
+		ParseOptional<V, T...>
+		(
+			parser,
+			section,
+			setup.values.isEnableds,
+			{setup.values.values, setup.lowerBound, setup.upperBound},
+			std::forward<ParsingSetup<Pair<T>, T>>(columns)...
+		);
+	}
+
+
+
+	template <typename V, typename ...T>
+	void ParseOptional
+	(
+		Parser&                                   parser,
+		const std::string&                        section,
+		ParsingSetup<OptionalInterval<V>, V>&&    setup,
+		ParsingSetup<Pair<T>, T>&&             ...columns
+	) {
+		ParseOptional<V, V, T...>
 		(
 			parser, 
 			section, 
-			interval.isEnableds, 
-			{interval.minValues, 1.f}, 
-			{interval.maxValues, 1.f}, 
-			std::forward<ParsingSetup<T>>(columns)...
+			setup.values.isEnableds,
+			{setup.values.minValues, setup.lowerBound, setup.upperBound},
+			{setup.values.maxValues, setup.lowerBound, setup.upperBound},
+			std::forward<ParsingSetup<Pair<T>, T>>(columns)...
 		);
 
-		CheckIntervals<float>(interval.minValues, interval.maxValues);
+		ValidateIntervals<V>(setup.values.minValues, setup.values.maxValues);
 	}
 }
