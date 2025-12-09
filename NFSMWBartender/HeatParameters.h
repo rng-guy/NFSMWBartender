@@ -249,8 +249,8 @@ namespace HeatParameters
 	struct OptionalInterval
 	{
 		Pair<bool> isEnableds = Pair<bool>(false);
-		Pair<T>    minValues  = Pair<T>(T());
-		Pair<T>    maxValues  = Pair<T>(T());
+		Pair<T>    minValues  = Pair<T>   (T());
+		Pair<T>    maxValues  = Pair<T>   (T());
 
 
 		void SetToHeat
@@ -454,7 +454,7 @@ namespace HeatParameters
 		Parser&                           parser,
 		const std::string&                section,
 		ParsingSetup<Interval<V>, V>&&    setup,
-		ParsingSetup<Pair<T>, T>&&     ...columns
+		ParsingSetup<Pair    <T>, T>&& ...columns
 	) {
 		Parse<V, V, T...>
 		(
@@ -503,7 +503,7 @@ namespace HeatParameters
 		Parser&                               parser,
 		const std::string&                    section,
 		ParsingSetup<OptionalPair<V>, V>&&    setup,
-		ParsingSetup<Pair<T>, T>&&         ...columns
+		ParsingSetup<Pair        <T>, T>&& ...columns
 	) {
 		ParseOptional<V, T...>
 		(
@@ -523,7 +523,7 @@ namespace HeatParameters
 		Parser&                                   parser,
 		const std::string&                        section,
 		ParsingSetup<OptionalInterval<V>, V>&&    setup,
-		ParsingSetup<Pair<T>, T>&&             ...columns
+		ParsingSetup<Pair            <T>, T>&& ...columns
 	) {
 		ParseOptional<V, V, T...>
 		(
