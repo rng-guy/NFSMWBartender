@@ -365,7 +365,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('+', this, "ChasersManager");
 
-			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, this);
+			PursuitCache::SetValue<this->cacheIndex, ChasersManager*>(this, this->pursuit);
 		}
 
 
@@ -374,7 +374,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('-', this, "ChasersManager");
 
-			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, nullptr);
+			PursuitCache::SetValue<this->cacheIndex, ChasersManager*>(nullptr, this->pursuit);
 		}
 
 

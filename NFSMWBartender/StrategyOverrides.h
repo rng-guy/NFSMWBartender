@@ -178,7 +178,7 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('+', this, "StrategyManager");
 			
-			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, this);
+			PursuitCache::SetValue<this->cacheIndex, StrategyManager*>(this, this->pursuit);
 		}
 
 
@@ -187,7 +187,7 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('-', this, "StrategyManager");
 
-			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, nullptr);
+			PursuitCache::SetValue<this->cacheIndex, StrategyManager*>(nullptr, this->pursuit);
 		}
 
 

@@ -127,16 +127,17 @@ namespace CopDetection
 			cmp eax, 0xB80933AA // "CHOPPER" class
 			je conclusion       // is helicopter
 
-			cmp dword ptr [esp + 0x18], 0x8
-			jge skip // at vehicle icon cap
-
 			cmp byte ptr featureEnabled, 0x1
-			jne conclusion // map feature disabled
+			jne limitation // map feature disabled
 
 			mov ecx, dword ptr [esi]
 			call GetsMapIcon // ecx: copVehicle
 			test al, al
-			je skip          // not in range
+			je skip          // no icon
+
+			limitation:
+			cmp dword ptr [esp + 0x18], 0x8
+			jge skip // at icon cap
 
 			conclusion:
 			jmp dword ptr copVehicleIconExit

@@ -13,7 +13,7 @@ namespace PursuitFeatures
 
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
-	using PursuitCache = MemoryTools::DataCache<0xD0, 3>;
+	using PursuitCache = MemoryTools::DataCache<sizeof(uintptr_t), 3, 0xD0>;
 
 
 

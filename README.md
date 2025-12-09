@@ -142,7 +142,7 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 
 # 4 - What other mods does Bartender depend on?
 
-Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351. Specifically, you likely need that mod if you configure Bartender in any of the following ways:
+Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. Specifically, you likely need that mod if you configure Bartender in any of the following ways:
 * `[Chasers:Limits]` in `Cars.ini`: You define a global cop-spawn limit > 8.
 * `[Chasers:Independence]` in `Cars.ini`: You enable independent spawns for chasing cops.
 * `[Joining:Definitions]` in `Supports.ini`: You make joining from roadblocks frequent.
@@ -150,7 +150,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster mod
 
 &nbsp;
  
-**To configure** the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) for optimal compatibility with Bartender:
+**To configure** [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) for optimal compatibility with Bartender:
 1. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set the `PursuitCops` parameter to 255; and
 2. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature.
 
@@ -189,7 +189,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster mod
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.02.00, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.03.00, replace all old configuration files.
 
 &nbsp;
 
@@ -215,4 +215,4 @@ Finally, Bartender wouldn't have seen the light of day without
 * **Sebastiano Vigna**, for his [pseudorandom number generators](https://prng.di.unimi.it/);
 * **Martin Leitner-Ankerl**, for his [performant hashmap implementation](https://github.com/martinus/unordered_dense);
 * **trelbutate**, for his [NFSMW Cop Car Healthbars mod](https://github.com/trelbutate/MWHealthbars/) as a resource; and
-* **Orsal**, **Aven**, **Astra King79**, and **MORELLO**, for testing and providing feedback.
+* **[Orsal](https://nfsmods.xyz/usermods/20407)**, **[Aven](https://nfsmods.xyz/usermods/1610)**, **Astra King79**, and **[MORELLO](https://nfsmods.xyz/usermods/6960)**, for testing and providing feedback.

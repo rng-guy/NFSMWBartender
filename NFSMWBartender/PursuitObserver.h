@@ -142,7 +142,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('+', this, "PursuitObserver");
 
-			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, this);
+			PursuitCache::SetValue<this->cacheIndex, PursuitObserver*>(this, this->pursuit);
 
 			this->pursuitReactions.reserve(5);
 
@@ -183,7 +183,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('-', this, "PursuitObserver");
 
-			PursuitCache::SetValue<this->cacheIndex>(this->pursuit, nullptr);
+			PursuitCache::SetValue<this->cacheIndex, PursuitObserver*>(nullptr, this->pursuit);
 		}
 
 

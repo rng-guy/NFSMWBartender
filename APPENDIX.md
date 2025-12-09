@@ -99,7 +99,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 * To disable this entire feature set and its fixes, delete all its configuration files.
 
-* The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions mod](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd node determines the maximum Heat level (1-10) at Blacklist rival #XY.
+* The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd node determines the maximum Heat level (1-10) at Blacklist rival #XY.
 
 * If you don't install the optional missing textures (`FixMissingTextures.end`), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures doesn't affect the Heat-level reset fix in any way.
 
@@ -107,11 +107,11 @@ Regarding the "Basic" feature set **as a whole**:
 
 Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
-* The cop-destruction string feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter mod](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Strings]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
+* The cop-destruction string feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Strings]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
 
 * You can use the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy to edit the game's strings and add new ones.
 
-* For destruction strings, Bartender ignores vehicles and strings that don't exist in the game.
+* For the vehicle strings, Bartender ignores vehicles / strings that don't exist in VltEd / Binary.
 
 * If you don't define a valid `default` string, string-less vehicles won't trigger notifications.
 
@@ -121,15 +121,15 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * The game automatically assigns the helicopter-exclusive callsign to all helicopters.
 
-* For callsigns, Bartender ignores vehicles that are helicopters or don't exist in the game. Bartender also ignores all callsigns other than `patrol`, `elite`, `rhino`, and `cross`.
+* For callsigns, Bartender ignores vehicles that are helicopters or don't exist in VltEd. Bartender also ignores all callsigns other than `patrol`, `elite`, `rhino`, and `cross`.
 
 * If you don't define a valid `default` callsign, Bartender uses `patrol` instead.
 
 * If you define no vehicle callsigns and no `default`, Bartender disables its callsign feature.
 
-* The game will only draw up to 8 cop icons (not counting the helicopter) on the mini-map. Removing this limitation proves rather difficult because it's tied to the broader UI code.
+* You might see cop vehicles get or lose their icons when they shouldn't. This happens because the game only draws the mini-map icons of the first 8 currently flagged cops in its memory, so some of them may suddenly (dis)appear if any cops before them get or lose their flags.
 
-* For cop detection, Bartender ignores vehicles that are helicopters or don't exist in the game.
+* For cop detection, Bartender ignores vehicles that are helicopters or don't exist in VltEd.
 
 * If you define no vehicle settings and no `default`, Bartender disables its detection feature.
 
@@ -205,13 +205,13 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Roadblock vehicles can react to racers entering "COOLDOWN" mode and / or spike-strip hits. For the former, some vehicles join the pursuit immediately; for the latter, all of them do.
 
-* If you make roadblock vehicles join pursuits frequently, then you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351. That's because roadblock vehicles ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear.
+* If you make roadblock vehicles join pursuits frequently, then you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. That's because roadblock vehicles ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear.
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
 * You shouldn't use the replacement vehicles for Cross for any other cop in the game unless you also use Bartender's "Advanced" feature set. Otherwise, these vehicles interfere with LeaderStrategy spawns whenever they are present in a given pursuit.
 
-* Bartender replaces vehicles that don't exist in the game with whatever the vanilla game uses.
+* Bartender replaces vehicles that don't exist in VltEd with whatever the vanilla game uses.
 
 * Bartender replaces vehicles that are helicopters with whatever the vanilla game uses.
 
@@ -253,7 +253,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
-* If you want to use global cop-spawn limits > 8 and / or make "Chasers" spawns independent of other vehicles, you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
+* If you want to use global cop-spawn limits > 8 and / or make "Chasers" spawns independent of other vehicles, you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
 
 * Very small spawning clearances for "Chasers" may lead to overly congested roads.
 
@@ -263,7 +263,7 @@ Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
 
-* Bartender ignores vehicles that are helicopters or don't exist in the game.
+* Bartender ignores vehicles that are helicopters or don't exist in VltEd.
 
 * Bartender adds a `copmidsize` to each non-empty table that contains only ignored vehicles.
 
@@ -323,7 +323,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * The helicopter uses whatever HeliStrategy you set in VltEd.
 
-* Bartender replaces vehicles that don't exist in the game with `copheli`.
+* Bartender replaces vehicles that don't exist in VltEd with `copheli`.
 
 * Bartender replaces vehicles that aren't helicopters with `copheli`.
 
@@ -361,4 +361,4 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * It is generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
 
-* If you use short unblock delays for HeavyStrategy 3, then you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster mod](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351. That's because HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear. Using lower (~20 seconds) `Duration` VltEd parameters instead is a safe alternative.
+* If you use short unblock delays for HeavyStrategy 3, then you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. That's because HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear. Using lower (~20 seconds) `Duration` VltEd parameters instead is a safe alternative.

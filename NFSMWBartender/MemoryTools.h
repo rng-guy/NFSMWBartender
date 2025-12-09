@@ -30,18 +30,16 @@ namespace MemoryTools
 		const T&                              data,
 		const std::initializer_list<address>& locations
 	) {
-		constexpr size_t size = sizeof(T);
-
-		void* memoryLocation  = nullptr;
-		DWORD previousSetting = 0x0;
+		constexpr size_t numBytes = sizeof(T);
 
 		for (const address location : locations)
 		{
-			memoryLocation = reinterpret_cast<void*>(location);
+			DWORD previousSetting = 0x0;
+			auto  memoryLocation  = reinterpret_cast<void*>(location);
 
-			VirtualProtect(memoryLocation, size,  PAGE_READWRITE,  &previousSetting);
-			std::memcpy   (memoryLocation, &data, size);
-			VirtualProtect(memoryLocation, size,  previousSetting, &previousSetting);
+			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE,  &previousSetting);
+			std::memcpy   (memoryLocation, &data,    numBytes);
+			VirtualProtect(memoryLocation, numBytes, previousSetting, &previousSetting);
 		}
 	}
 
@@ -57,8 +55,8 @@ namespace MemoryTools
 		{
 			const size_t numBytes = end - start;
 
-			auto  memoryLocation  = reinterpret_cast<void*>(start);
 			DWORD previousSetting = 0x0;
+			auto  memoryLocation  = reinterpret_cast<void*>(start);
 
 			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE, &previousSetting);
 			std::memset   (memoryLocation, value,    numBytes);
@@ -100,17 +98,16 @@ namespace MemoryTools
 
 
 
-	// PointerCache class ---------------------------------------------------------------------------------------------------------------------------
+	// DataCache class ------------------------------------------------------------------------------------------------------------------------------
 
-	template <int storageOffset, size_t capacity, typename S = uint32_t>
-	requires std::is_integral_v<S>
+	template <size_t numBytes, size_t numEntries, int storageOffset = 0>
 	class DataCache
 	{
 	private:
 
 		const address storageBase;
 		
-		std::array<S, capacity> data = {};
+		std::array<std::array<byte, numBytes>, numEntries> memory = {};
 
 
 		static DataCache*& GetStorage(const address storageBase)
@@ -147,7 +144,7 @@ namespace MemoryTools
 				storage = this;
 
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PCA] Existing cache at", this->storageBase);
+				Globals::logger.Log("WARNING: [DAT] Existing cache at", this->storageBase);
 		}
 
 
@@ -162,41 +159,38 @@ namespace MemoryTools
 				storage = nullptr;
 
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PCA] Cache mismatch at", this->storageBase);
+				Globals::logger.Log("WARNING: [DAT] Cache mismatch at", this->storageBase);
 		}
 
 
 		template <size_t index, typename T>
-		requires ((index < capacity) and (sizeof(T) <= sizeof(S)))
+		requires ((index < numEntries) and (sizeof(T) <= numBytes) and std::is_trivially_copyable_v<T>)
 		static bool SetValue
 		(
-			const address storageBase,
-			const T       value
+			const T       value,
+			const address storageBase
 		) {
 			DataCache* const access = DataCache::GetAccess(storageBase);
 
 			if (access)
-				*reinterpret_cast<T*>(&(access->data[index])) = value;
+				std::memcpy((access->memory[index]).data(), &value, sizeof(T));
 
 			return access;
 		}
 
 
 		template <size_t index, typename T>
-		requires ((index < capacity) and (sizeof(T) <= sizeof(S)))
-		static T* GetPointer(const address storageBase)
-		{
-			DataCache* const access = DataCache::GetAccess(storageBase);
-			return (access) ? reinterpret_cast<T*>(&(access->data[index])) : nullptr;
-		}
-
-
-		template <size_t index, typename T>
-		requires ((index < capacity) and (sizeof(T) <= sizeof(S)))
+		requires ((index < numEntries) and (sizeof(T) <= numBytes) and std::is_trivially_copyable_v<T>)
 		static T GetValue(const address storageBase)
 		{
-			const auto pointer = DataCache::GetPointer<index, T>(storageBase);
-			return (pointer) ? *pointer : T();
+			const DataCache* const access = DataCache::GetAccess(storageBase);
+
+			T value = T(); // T() = nullptr if T is pointer
+
+			if (access)
+				std::memcpy(&value, (access->memory[index]).data(), sizeof(T));
+
+			return value; 
 		}
 	};
 }

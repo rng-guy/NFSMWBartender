@@ -128,7 +128,7 @@ Specifically, you likely need that mod if you configure Bartender in any of the 
  • "[Joining:Definitions]"  in "Supports.ini"  : You make joining from roadblocks frequent.
  • "[Heavy3:Unblocking]"    in "Strategies.ini": You define very short unblock delays.
  
-TO CONFIGURE the "NFSMW LimitAdjuster" mod for optimal compatibility with Bartender:
+TO CONFIGURE "NFSMW LimitAdjuster" for optimal compatibility with Bartender:
  1) • under "[Limits]" in "NFSMWLimitAdjuster.ini", set the "PursuitCops" parameter to 255; and
  2) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature.
 
