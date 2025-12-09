@@ -130,18 +130,6 @@ namespace HeatParameters
 		}
 
 
-		bool AnyNonzero() const
-		{
-			for (const bool forRaces : {false, true})
-			{
-				for (const T value : this->GetValues(forRaces))
-					if (value) return true;
-			}
-
-			return false;
-		}
-
-
 		void Log(const char* const pairName) const
 		{
 			Globals::logger.LogLongIndent(pairName, this->current);
@@ -191,6 +179,18 @@ namespace HeatParameters
 		) {
 			this->isEnableds.SetToHeat(forRaces, heatLevel);
 			this->values    .SetToHeat(forRaces, heatLevel);
+		}
+
+
+		bool AnyEnabled() const
+		{
+			for (const bool forRaces : {false, true})
+			{
+				for (const T value : this->isEnableds.GetValues(forRaces))
+					if (value) return true;
+			}
+
+			return false;
 		}
 
 
@@ -267,6 +267,18 @@ namespace HeatParameters
 		T GetRandomValue() const
 		{
 			return Globals::prng.GenerateNumber<T>(this->minValues.current, this->maxValues.current);
+		}
+
+
+		bool AnyEnabled() const
+		{
+			for (const bool forRaces : {false, true})
+			{
+				for (const T value : this->isEnableds.GetValues(forRaces))
+					if (value) return true;
+			}
+
+			return false;
 		}
 
 

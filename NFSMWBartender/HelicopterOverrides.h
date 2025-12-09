@@ -523,7 +523,7 @@ namespace HelicopterOverrides
 
 		// Heat parameters
 		HeatParameters::ParseOptional<float>(parser, "Helicopter:FirstSpawn", {firstSpawnDelays, 1.f});
-		if (not firstSpawnDelays.isEnableds.AnyNonzero()) return false;
+		if (not firstSpawnDelays.AnyEnabled()) return false; // no helicopters can ever spawn
 
 		HeatParameters::ParseOptional<float>(parser, "Helicopter:FuelRespawn",  {fuelRespawnDelays , 1.f});
 		HeatParameters::ParseOptional<float>(parser, "Helicopter:WreckRespawn", {wreckRespawnDelays, 1.f});

@@ -83,7 +83,7 @@ BOOL WINAPI DllMain
     {
         if (not IsExecutableCompatible())
         {
-            MessageBoxA(NULL, "This .exe is not compatible with Bartender.\nSee Bartender's README for help.", "NFSMW Bartender", MB_ICONERROR);
+            MessageBoxA(NULL, "This .exe isn't compatible with Bartender.\nSee Bartender's README for help.", "NFSMW Bartender", MB_ICONERROR);
 
             return FALSE;
         }
