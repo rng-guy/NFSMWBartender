@@ -27,8 +27,16 @@ namespace Globals
 	bool basicSetEnabled    = false;
 	bool advancedSetEnabled = false;
 
-	// Pseudorandom number generator
+	// Common objects
 	RandomNumbers::Generator prng;
+	BasicLogger::Logger      logger;
+
+	// Player state
+	address playerPerpVehicle    = 0x0;
+	bool    playerHeatLevelKnown = false;
+
+	// Logging flag
+	constexpr bool loggingEnabled = false;
 
 	// Common function pointers
 	const auto GetVaultKey  = reinterpret_cast<vault  (__cdecl*)(const char*)>(0x5CC240);
@@ -43,16 +51,7 @@ namespace Globals
 	// Common data pointers
 	const float& simulationTime = *reinterpret_cast<float*>(0x9885D8);
 
-	// Player state
-	address playerPerpVehicle    = 0x0;
-	bool    playerHeatLevelKnown = false;
-
-	// Logging
-	constexpr bool loggingEnabled = false;
-
-	BasicLogger::Logger logger;
-
-
+	
 
 
 
