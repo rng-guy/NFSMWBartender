@@ -359,6 +359,6 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * Even with unblocking, no new LeaderStrategy can spawn while a LeaderStrategy Cross is present.
 
-* It is generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
+* It's generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
 
 * If you use short unblock delays for HeavyStrategy 3, then you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. That's because HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear. Using lower (~20 seconds) `Duration` VltEd parameters instead is a safe alternative.

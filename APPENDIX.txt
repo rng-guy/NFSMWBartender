@@ -132,7 +132,7 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
    the game only draws the mini-map icons of the first 8 currently flagged cops in its memory,
    so some of them may suddenly (dis)appear if any cops before them get or lose their flags.
 
- • For detection, Bartender ignores vehicles that are helicopters or don't exist in VltEd.
+ • For cop detection, Bartender ignores vehicles that are helicopters or don't exist in VltEd.
 
  • If you define no vehicle settings and no "default", Bartender disables its detection feature.
 
@@ -452,7 +452,7 @@ Regarding STRATEGY REQUESTS ("BartenderSettings\Advanced\Strategies.ini"):
 
  • Even with unblocking, no new LeaderStrategy can spawn while a LeaderStrategy Cross is present.
 
- • It is generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
+ • It's generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
 
  • If you use short unblock delays for HeavyStrategy 3, then you may also need to install
    the "NFSMW LimitAdjuster" mod by Zolika1351. That's because HeavyStrategy 3 spawns ignore

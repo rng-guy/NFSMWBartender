@@ -100,10 +100,12 @@ namespace CopDetection
 		std::fstream&   stream,
 		const Settings& copSettings
 	) {
+		const char* const delimiter = ", ";
+
 		stream << copSettings.radarRange;
-		stream << ", " << copSettings.patrolIconRange;
-		stream << ", " << copSettings.pursuitIconRange;
-		stream << ", " << ((copSettings.keepsIcon) ? "true" : "false");
+		stream << delimiter << copSettings.patrolIconRange;
+		stream << delimiter << copSettings.pursuitIconRange;
+		stream << delimiter << ((copSettings.keepsIcon) ? "true" : "false");
 
 		return stream;
 	}
