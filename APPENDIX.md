@@ -135,6 +135,8 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * If you don't define colours for both sight states, Bartender disables its vision-cone feature.
 
+* The playlist feature is incompatible with the [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) mod by xan1242. If you want to use that mod, you must delete Bartender's `[Music:Playlist]` parameter group or leave it empty.
+
 * You can define a playlist of up to 20 tracks using the game's four interactive pursuit themes. By default, Bartender loops through this custom playlist from top to bottom in each pursuit.
 
 * For the pursuit-theme playlist, Bartender ignores themes that don't exist in the game.

@@ -225,6 +225,7 @@ namespace CopDetection
 		}
 
 		// Code modifications
+		MemoryTools::MakeRangeNOP(0x579E33, 0x579E69); // pursuit check
 		MemoryTools::MakeRangeNOP(0x579EE5, 0x579EEA); // non-pursuit icon flag
 		MemoryTools::MakeRangeNOP(0x579EF0, 0x579F0E); // engagement-radius check
 		MemoryTools::MakeRangeNOP(0x579FCD, 0x579FFD); // icon-flag checks

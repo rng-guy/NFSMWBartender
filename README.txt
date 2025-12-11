@@ -111,9 +111,9 @@ However, Bartender's "Advanced" feature set overrides some "pursuitlevels" VltEd
 
 Most OTHER .ASI MODS should be fully compatible with all Bartender configurations.
 However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
- • In "NFSMW ExtraOptions" by ExOptsTeam, disable the "HeatLevelOverride" feature.
- • In "NFSMW Unlimiter" by nlgxzef, disable the "EnableCopDestroyedStringHook" feature.
- • For "XNFSMusicPlayer" by xan1242, delete Bartender's "[Music:Playlist]" parameter group.
+ • In  "NFSMW ExtraOptions"  by ExOptsTeam, disable the "HeatLevelOverride" feature.
+ • In  "NFSMW Unlimiter"     by nlgxzef,    disable the "EnableCopDestroyedStringHook" feature.
+ • For "XNFSMusicPlayer"     by xan1242,    delete Bartender's "[Music:Playlist]" parameter group.
  • For "NFSMW LimitAdjuster" by Zolika1351, see the section about dependencies below.
 
 

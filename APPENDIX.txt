@@ -138,6 +138,9 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
 
  • If you don't define colours for both sight states, Bartender disables its vision-cone feature.
 
+ • The playlist feature is incompatible with the "XNFSMusicPlayer" mod by xan1242. If you want to
+   use that mod, you must delete Bartender's "[Music:Playlist]" parameter group or leave it empty.
+
  • You can define a playlist of up to 20 tracks using the game's four interactive pursuit themes. 
    By default, Bartender loops through this custom playlist from top to bottom in each pursuit.
 
@@ -596,4 +599,4 @@ v1.00.00: Initial release
 
    03.00: Added counts to "Patrols" tables, and feature to customise radar / mini-map behaviour
 
-   04.00: Added feature to customise behaviour and colour of helicopter vision-cone mini-map icon
+   04.00: Fixed patrol mini-map icons and added feature to customise helicopter vision-cone icon
