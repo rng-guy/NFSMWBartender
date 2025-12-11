@@ -14,6 +14,17 @@ namespace ConfigParser
 
 	// Parameter data structures --------------------------------------------------------------------------------------------------------------------
 
+	template <typename T>
+	struct Parameter
+	{
+		T& value;
+
+		std::optional<T> lowerBound;
+		std::optional<T> upperBound;
+	};
+
+
+
 	template <typename T, size_t size>
 	struct FormatParameter
 	{
@@ -152,6 +163,24 @@ namespace ConfigParser
 		}
 
 
+		template <typename T>
+		bool ParseParameter
+		(
+			const std::string& section,
+			const std::string& parameterKey,
+			Parameter<T>&&     parameter
+		) {
+			return this->ParseParameter<T>
+			(
+				section, 
+				parameterKey, 
+				parameter.value, 
+				parameter.lowerBound, 
+				parameter.upperBound
+			);
+		}
+
+
 		// For fixed-format keys from parsed file
 		template <typename T, size_t size>
 		size_t ParseFormatParameter
@@ -258,6 +287,47 @@ namespace ConfigParser
 				parameter.lowerBound,
 				parameter.upperBound
 			);
+		}
+
+
+		// For single parameter rows
+		template <typename ...T>
+		bool ParseParameterRow
+		(
+			const std::string&    section,
+			const std::string&    parameterKey,
+			Parameter<T>&&     ...parameters
+		) {
+			constexpr size_t numColumns = sizeof...(T);
+
+			std::string              rowString;
+			std::vector<std::string> columnStrings;
+
+			this->ParseParameter<std::string>(section, parameterKey, rowString);
+			this->ExtractColumns(rowString, columnStrings);
+
+			if (columnStrings.size() != numColumns) return false;
+
+			size_t columnID   = 0;
+			bool   isValidRow = true;
+
+			(
+				[&]
+				{
+					if (isValidRow)
+					{
+						isValidRow &= this->ParseParameterFromString<T>
+						(
+							columnStrings[columnID++],
+							parameters.value,
+							parameters.lowerBound,
+							parameters.upperBound
+						);
+					}
+				}
+			(), ...);
+
+			return isValidRow;
 		}
 
 
@@ -489,9 +559,12 @@ namespace ConfigParser
 			{
 				for (size_t rowID = 0; rowID < size; ++rowID)
 				{
-					if (isValidRow[rowID]) continue;
-					([&]{parameters.values[rowID] = parameters.defaultValue.value();}(), ...);
-					isValidRow[rowID] = true;
+					if (not isValidRow[rowID])
+					{
+						([&]{parameters.values[rowID] = parameters.defaultValue.value();}(), ...);
+
+						isValidRow[rowID] = true;
+					}
 				}
 			}
 

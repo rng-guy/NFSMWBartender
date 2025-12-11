@@ -165,6 +165,7 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="ConfigParser.h" />
     <ClInclude Include="CopFleeOverrides.h" />
+    <ClInclude Include="HelicopterVision.h" />
     <ClInclude Include="InteractiveMusic.h" />
     <ClInclude Include="LeaderOverrides.h" />
     <ClInclude Include="CopDetection.h" />

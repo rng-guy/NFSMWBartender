@@ -5,11 +5,13 @@
 #include "HeatParameters.h"
 
 #include "DestructionStrings.h"
-#include "CopDetection.h"
+#include "HelicopterVision.h"
 #include "InteractiveMusic.h"
 #include "RadioCallsigns.h"
-#include "GroundSupports.h"
+#include "CopDetection.h"
+
 #include "GeneralSettings.h"
+#include "GroundSupports.h"
 
 #include "PursuitObserver.h"
 #include "CopSpawnOverrides.h"
@@ -43,9 +45,9 @@ namespace StateObserver
 
 			Globals::playerHeatLevelKnown = true;
 
-			GroundSupports  ::SetToHeat(playerIsRacing, playerHeatLevel);
-			GeneralSettings ::SetToHeat(playerIsRacing, playerHeatLevel);
-			PursuitObserver ::SetToHeat(playerIsRacing, playerHeatLevel);
+			GeneralSettings::SetToHeat(playerIsRacing, playerHeatLevel);
+			GroundSupports ::SetToHeat(playerIsRacing, playerHeatLevel);
+			PursuitObserver::SetToHeat(playerIsRacing, playerHeatLevel);
 		}
 		else if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("WARNING: [STA] Invalid Heat level", static_cast<int>(playerHeatLevel), (playerIsRacing) ? "(race)" : "(free-roam)");
@@ -58,7 +60,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log ("\n SESSION [VER] Bartender v2.03.00");
+			Globals::logger.Log ("\n SESSION [VER] Bartender v2.04.00");
 
 			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
@@ -71,12 +73,16 @@ namespace StateObserver
 		}
 
 		DestructionStrings::Validate();
-		CopDetection      ::Validate();
-
+		
 		if constexpr (Globals::loggingEnabled)
+		{
+			HelicopterVision::LogSetupReport();
 			InteractiveMusic::LogSetupReport();
+		}
 
-		RadioCallsigns ::Validate();
+		RadioCallsigns::Validate();
+		CopDetection  ::Validate();
+
 		GroundSupports ::Validate();
 		PursuitObserver::Validate();
 	}

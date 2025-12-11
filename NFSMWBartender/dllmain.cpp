@@ -6,11 +6,13 @@
 #include "StateObserver.h"
 
 #include "DestructionStrings.h"
-#include "CopDetection.h"
+#include "HelicopterVision.h"
 #include "InteractiveMusic.h"
 #include "RadioCallsigns.h"
-#include "GroundSupports.h"
+#include "CopDetection.h"
+
 #include "GeneralSettings.h"
+#include "GroundSupports.h"
 
 #include "PursuitObserver.h"
 
@@ -26,11 +28,13 @@ static void ApplyBartender()
 
     // "Basic" feature set
     Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
-    Globals::basicSetEnabled |= CopDetection      ::Initialise(parser);
+    Globals::basicSetEnabled |= HelicopterVision  ::Initialise(parser);
     Globals::basicSetEnabled |= InteractiveMusic  ::Initialise(parser);
     Globals::basicSetEnabled |= RadioCallsigns    ::Initialise(parser);
-    Globals::basicSetEnabled |= GroundSupports    ::Initialise(parser);
-    Globals::basicSetEnabled |= GeneralSettings   ::Initialise(parser);
+    Globals::basicSetEnabled |= CopDetection      ::Initialise(parser);
+  
+    Globals::basicSetEnabled |= GeneralSettings::Initialise(parser);
+    Globals::basicSetEnabled |= GroundSupports ::Initialise(parser);
 
     if (Globals::basicSetEnabled)
     {

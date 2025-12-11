@@ -127,6 +127,9 @@
     <ClInclude Include="stl.h">
       <Filter>Header Files\Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="HelicopterVision.h">
+      <Filter>Header Files\Modifications\Basic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Basic\General.ini">

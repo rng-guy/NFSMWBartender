@@ -52,7 +52,8 @@ The "Basic" feature set **lets you change** (per Heat level)
 The "Basic" feature set **also lets you change** (in general)
 * which notification string the game displays whenever you destroy a given cop vehicle;
 * which radio callsigns and chatter a given cop vehicle can trigger in player pursuits;
-* under which conditions (if at all) a given cop vehicle shows up on the radar / mini-map; and
+* under which conditions (if at all) a given cop vehicle shows up on the radar / mini-map;
+* how (if at all) line of sight affects the colour of the helicopter's cone-of-vision icon; and
 * the selection, order, and length of interactive themes that play during player pursuits.
 
 &nbsp;
@@ -130,6 +131,7 @@ Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-releas
 Most **other .asi mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
 * In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable the `HeatLevelOverride` feature.
 * In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable the `EnableCopDestroyedStringHook` feature.
+* For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` parameter group.
 * For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#4---what-other-mods-does-bartender-depend-on) below.
 
 &nbsp;
