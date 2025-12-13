@@ -160,7 +160,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v2.04.01, replace all old configuration files.
+If you update from a version older than v2.04.03, replace all old configuration files.
 
 
 
