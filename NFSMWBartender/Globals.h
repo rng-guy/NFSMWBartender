@@ -36,7 +36,7 @@ namespace Globals
 	bool    playerHeatLevelKnown = false;
 
 	// Logging flag
-	constexpr bool loggingEnabled = true;
+	constexpr bool loggingEnabled = false;
 
 	// Common function pointers
 	const auto GetVaultKey  = reinterpret_cast<vault  (__cdecl*)(const char*)>(0x5CC240);
