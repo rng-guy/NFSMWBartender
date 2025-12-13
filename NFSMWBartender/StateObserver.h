@@ -300,10 +300,10 @@ namespace StateObserver
 			// Execute original code first
 			mov byte ptr [esi + 0x768], al
 
-			mov byte ptr [esi + 0x769], al // used in "CopDetection.h" and "HelicopterVision.h"
-			mov byte ptr [esi + 0x76A], al //         "CopDetection.h" 
-			mov byte ptr [esi + 0x76B], al //         "CopSpawnOverrides.h"
-			mov byte ptr [esi + 0x77B], al //         "GroundSupports.h"
+			mov byte ptr [esi + 0x769], al // "CopDetection.h" & "HelicopterVision.h"
+			mov byte ptr [esi + 0x76A], al // "CopDetection.h" 
+			mov byte ptr [esi + 0x76B], al // "CopSpawnOverrides.h"
+			mov byte ptr [esi + 0x77B], al // "GroundSupports.h"
 
 			jmp dword ptr resetInternalsExit
 		}
