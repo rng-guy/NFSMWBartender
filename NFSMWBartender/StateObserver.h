@@ -60,7 +60,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log ("\n SESSION [VER] Bartender v2.04.02");
+			Globals::logger.Log ("\n SESSION [VER] Bartender v2.04.03");
 
 			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");

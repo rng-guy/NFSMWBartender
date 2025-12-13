@@ -27,7 +27,7 @@ namespace CopDetection
 		bool  keepsIcon;
 	};
 
-	HashContainers::CachedVaultMap<Settings> copTypeToSettings({300.f, 0.f, 50.f, true});
+	HashContainers::CachedVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true});
 
 
 

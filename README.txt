@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.04.02) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.04.03) │ ■ ────────────────────────────────────────────────────
 
 View THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
