@@ -27,7 +27,7 @@ namespace CopDetection
 		bool  keepsIcon;
 	};
 
-	HashContainers::CachedMap<vault, Settings> copTypeToSettings({300.f, 0.f, 50.f, true});
+	HashContainers::CachedVaultMap<Settings> copTypeToSettings({300.f, 0.f, 50.f, true});
 
 
 
@@ -35,7 +35,7 @@ namespace CopDetection
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	bool __fastcall GetsMapIcon(const address copVehicle)
+	bool __fastcall GetsMiniMapIcon(const address copVehicle) 
 	{
 		const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
 		if (not copAIVehicle) return false; // should never happen
@@ -62,7 +62,8 @@ namespace CopDetection
 
 		if (iconRange > 0.f)
 		{
-			static const auto GetVehiclePosition = reinterpret_cast<address (__thiscall*)(address)>(0x688340);
+			static const auto GetVehiclePosition = reinterpret_cast<address (__thiscall*)(address)>         (0x688340);
+			static const auto GetSquaredDistance = reinterpret_cast<float   (__cdecl*)   (address, address)>(0x401930);
 
 			const address copPosition = GetVehiclePosition(copVehicle);
 			if (not copPosition) return false; // should never happen
@@ -71,10 +72,7 @@ namespace CopDetection
 			const address playerPosition = GetVehiclePosition(playerVehicle);
 			if (not playerPosition) return false; // should never happen
 
-			static const auto GetSquaredDistance = reinterpret_cast<float (__cdecl*)(address, address)>(0x401930);
-			const float       copDistanceSquared = GetSquaredDistance(copPosition, playerPosition);
-
-			if (copDistanceSquared <= iconRange * iconRange)
+			if (GetSquaredDistance(copPosition, playerPosition) <= iconRange * iconRange)
 			{
 				iconIsKept = settings->keepsIcon;
 
@@ -133,9 +131,9 @@ namespace CopDetection
 			jne limitation // map feature disabled
 
 			mov ecx, dword ptr [esi]
-			call GetsMapIcon // ecx: copVehicle
+			call GetsMiniMapIcon // ecx: copVehicle
 			test al, al
-			je skip          // no icon
+			je skip              // no icon
 
 			limitation:
 			cmp dword ptr [esp + 0x18], 0x8
@@ -175,16 +173,9 @@ namespace CopDetection
 
 	void ApplyFixes()
 	{
-		static bool fixesApplied = false;
-
-		if (not fixesApplied)
-		{
-			// Also fixes the disappearing helicopter icon
-			MemoryTools::MakeRangeNOP(0x579EA2, 0x579EAB); // early icon-counter check
-			MemoryTools::MakeRangeJMP(CopVehicleIcon, copVehicleIconEntrance, copVehicleIconExit);
-
-			fixesApplied = true;
-		}
+		// Also fixes the disappearing helicopter icon
+		MemoryTools::MakeRangeNOP(0x579EA2, 0x579EAB); // early icon-counter check
+		MemoryTools::MakeRangeJMP(CopVehicleIcon, copVehicleIconEntrance, copVehicleIconExit);
 	}
 
 

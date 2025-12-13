@@ -39,9 +39,14 @@ static void ApplyBartender()
     if (Globals::basicSetEnabled)
     {
         // Feature-linked fixes
-        CopDetection   ::ApplyFixes();
-        GroundSupports ::ApplyFixes();
-        GeneralSettings::ApplyFixes();
+        if (not CopDetection::featureEnabled)
+            CopDetection::ApplyFixes();
+
+        if (not GroundSupports::featureEnabled)
+            GroundSupports::ApplyFixes();
+
+        if (not GeneralSettings::featureEnabled)
+            GeneralSettings::ApplyFixes();
 
         // Helicopter shadow
         MemoryTools::Write<float>(0.f, {0x903660});

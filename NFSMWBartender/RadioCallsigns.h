@@ -26,7 +26,7 @@ namespace RadioCallsigns
 		CROSS
 	};
 
-	HashContainers::CachedMap<vault, Group> copTypeToCallsignGroup(Group::PATROL);
+	HashContainers::CachedVaultMap<Group> copTypeToCallsignGroup(Group::PATROL);
 
 	
 	
@@ -43,7 +43,8 @@ namespace RadioCallsigns
 		{
 			push eax // copType
 			mov ecx, offset copTypeToCallsignGroup
-			call HashContainers::CachedMap<vault, Group>::GetValue
+			call HashContainers::CachedVaultMap<Group>::GetValue
+
 			mov dword ptr [esp + 0x28], eax
 			cmp eax, CROSS
 
@@ -67,13 +68,12 @@ namespace RadioCallsigns
 			cmp edx, PATROL
 			je conclusion // is "patrol"
 
-			mov eax, 0x20
-			cmp edx, RHINO
-			je skip // is "rhino"
-
 			mov eax, 0x10
 
-			skip:
+			mov ecx, 0x20
+			cmp edx, RHINO
+			cmove eax, ecx // is "rhino"
+
 			jmp dword ptr firstCallsignSkip
 
 			conclusion:
@@ -90,19 +90,17 @@ namespace RadioCallsigns
 	{
 		__asm
 		{
+			mov eax, 0x10
 			mov edx, dword ptr [esp + 0x28]
 
-			mov eax, -0x1
+			mov ecx, -0x1
 			cmp edx, PATROL
-			je conclusion // is "patrol"
+			cmove eax, ecx // is "patrol"
 
-			mov eax, 0x20
+			mov ecx, 0x20
 			cmp edx, RHINO
-			je conclusion // is "rhino"
+			cmove eax, ecx // is "rhino"
 
-			mov eax, 0x10
-
-			conclusion:
 			jmp dword ptr secondCallsignExit
 		}
 	}
@@ -116,9 +114,10 @@ namespace RadioCallsigns
 	{
 		__asm
 		{
-			push eax                   // copType
+			push eax // copType
 			mov ecx, offset copTypeToCallsignGroup
-			call HashContainers::CachedMap<vault, Group>::GetValue
+			call HashContainers::CachedVaultMap<Group>::GetValue
+
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B] // is "rhino"
 

@@ -213,8 +213,6 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
-* You shouldn't use the replacement vehicles for Cross for any other cop in the game unless you also use Bartender's "Advanced" feature set. Otherwise, these vehicles interfere with LeaderStrategy spawns whenever they are present in a given pursuit.
-
 * Bartender replaces vehicles that don't exist in VltEd with whatever the vanilla game uses.
 
 * Bartender replaces vehicles that are helicopters with whatever the vanilla game uses.

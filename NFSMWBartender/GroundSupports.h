@@ -6,6 +6,8 @@
 #include "MemoryTools.h"
 #include "HeatParameters.h"
 
+#include "LeaderOverrides.h"
+
 
 
 namespace GroundSupports
@@ -315,16 +317,13 @@ namespace GroundSupports
 	{
 		__asm
 		{
-			xor edi, edi
-
 			mov ecx, esi
 			call SetRandomStrategy // ecx: pursuit
-			test al, al
-			je conclusion          // no Strategy set
+			movzx eax, al
 
-			dec edi
+			xor edi, edi
+			sub edi, eax
 
-			conclusion:
 			jmp dword ptr strategySelectionExit
 		}
 	}
@@ -471,14 +470,25 @@ namespace GroundSupports
 
 
 
-	constexpr address onAttachedEntrance = 0x423F92;
-	constexpr address onAttachedExit     = 0x423F97;
+	constexpr address onAttachedEntrance = 0x424036;
+	constexpr address onAttachedExit     = 0x42403C;
 
 	__declspec(naked) void OnAttached()
 	{
 		__asm
 		{
-			push dword ptr leaderCrossVehicles.current
+			cmp byte ptr LeaderOverrides::featureEnabled, 0x1
+			je conclusion // Cross flag already managed
+
+			mov edx, dword ptr [edi + 0x54]
+			cmp byte ptr [edx - 0x4C + 0x77B], 0x1
+			jne conclusion // not Cross' vehicle
+
+			mov dword ptr [esi + 0x174], 0x1
+			
+			conclusion:
+			// Execute original code and resume
+			fild dword ptr [esi + 0x148]
 
 			jmp dword ptr onAttachedExit
 		}
@@ -487,15 +497,42 @@ namespace GroundSupports
 
 
 	constexpr address onDetachedEntrance = 0x42B5F1;
-	constexpr address onDetachedExit     = 0x42B5F6;
+	constexpr address onDetachedExit     = 0x42B616;
 
 	__declspec(naked) void OnDetached()
 	{
 		__asm
 		{
-			push dword ptr leaderCrossVehicles.current
+			// Execute original code first
+			mov ecx, esi
+			mov edx, dword ptr [esi]
+
+			mov eax, dword ptr [esi + 0x54]
+			cmp byte ptr [eax - 0x4C + 0x77B], 0x1
 
 			jmp dword ptr onDetachedExit
+		}
+	}
+
+
+
+	constexpr address crossSpawnEntrance = 0x41F7D9;
+	constexpr address crossSpawnExit     = 0x41F7E0;
+
+	__declspec(naked) void CrossSpawn()
+	{
+		__asm
+		{
+			mov eax, dword ptr [esp + 0x94]
+			mov edx, dword ptr [eax + 0xC]
+
+			cmp ebp, edx
+			sete byte ptr [esi - 0x758 + 0x77B] // is Cross' vehicle
+
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x90]
+
+			jmp dword ptr crossSpawnExit
 		}
 	}
 
@@ -523,15 +560,8 @@ namespace GroundSupports
 
 	void ApplyFixes()
 	{
-		static bool fixesApplied = false;
-
-		if (not fixesApplied)
-		{
-			// Also fixes the unintended biases in the Strategy-selection process
-			MemoryTools::MakeRangeJMP(StrategySelection, strategySelectionEntrance, strategySelectionExit);
-
-			fixesApplied = true;
-		}
+		// Also fixes the unintended biases in the Strategy-selection process
+		MemoryTools::MakeRangeJMP(StrategySelection, strategySelectionEntrance, strategySelectionExit);
 	}
 
 
@@ -574,6 +604,7 @@ namespace GroundSupports
 
 		// Code modifications 
 		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
+		MemoryTools::MakeRangeNOP(0x42402A, 0x424036); // Cross flag = 1
 
 		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),       {0x42BEBC});
 		MemoryTools::Write<float*>(&(maxRBJoinElevationDeltas.current), {0x42BE3A});
@@ -590,6 +621,7 @@ namespace GroundSupports
 		MemoryTools::MakeRangeJMP(HenchmenSub,          henchmenSubEntrance,          henchmenSubExit);
 		MemoryTools::MakeRangeJMP(OnAttached,           onAttachedEntrance,           onAttachedExit);
 		MemoryTools::MakeRangeJMP(OnDetached,           onDetachedEntrance,           onDetachedExit);
+		MemoryTools::MakeRangeJMP(CrossSpawn,           crossSpawnEntrance,           crossSpawnExit);
         MemoryTools::MakeRangeJMP(LeaderSub,            leaderSubEntrance,            leaderSubExit);
 
 		ApplyFixes(); // also contains Strategy-selection feature

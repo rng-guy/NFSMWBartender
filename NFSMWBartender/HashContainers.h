@@ -203,4 +203,16 @@ namespace HashContainers
 			return this->cachedValue;
 		}
 	};
+
+
+
+
+
+	// Derived (scoped) aliases ---------------------------------------------------------------------------------------------------------------------
+
+	template <typename V>
+	using CachedAddressMap = CachedMap<address, V>;
+
+	template <typename V>
+	using CachedVaultMap = CachedMap<vault, V>;
 }

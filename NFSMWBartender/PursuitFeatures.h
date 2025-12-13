@@ -11,14 +11,6 @@
 namespace PursuitFeatures
 {
 
-	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
-
-	using PursuitCache = MemoryTools::DataCache<sizeof(uintptr_t), 3, 0xD0>;
-
-
-
-	
-
 	// PursuitReaction class ------------------------------------------------------------------------------------------------------------------------
 
 	class PursuitReaction

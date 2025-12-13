@@ -174,15 +174,8 @@ namespace GeneralSettings
 
 	void ApplyFixes()
 	{
-		static bool fixesApplied = false;
-
-		if (not fixesApplied)
-		{
-			// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
-			MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
-
-			fixesApplied = true;
-		}
+		// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
+		MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 	}
 
 

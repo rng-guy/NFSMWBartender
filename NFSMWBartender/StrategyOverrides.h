@@ -36,10 +36,6 @@ namespace StrategyOverrides
 
 	class StrategyManager : public PursuitFeatures::PursuitReaction
 	{
-		using PursuitCache = PursuitFeatures::PursuitCache;
-
-
-
 	private:
 
 		int& numStrategyVehicles = *reinterpret_cast<int*>(this->pursuit + 0x18C);
@@ -60,7 +56,7 @@ namespace StrategyOverrides
 
 		inline static const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
 
-		inline static constexpr size_t cacheIndex = 2;
+		inline static HashContainers::AddressMap<StrategyManager*> pursuitToManager;
 
 
 		void UpdateNumStrategyVehicles() const
@@ -170,6 +166,20 @@ namespace StrategyOverrides
 		}
 		
 		
+		static StrategyManager* FindManager(const address pursuit)
+		{
+			const auto foundManager = StrategyManager::pursuitToManager.find(pursuit);
+
+			if (foundManager != StrategyManager::pursuitToManager.end())
+				return foundManager->second;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [STR] No manager for pursuit", pursuit);
+
+			return nullptr;
+		}
+
+
 
 	public:
 
@@ -178,7 +188,7 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('+', this, "StrategyManager");
 			
-			PursuitCache::SetValue<this->cacheIndex, StrategyManager*>(this, this->pursuit);
+			this->pursuitToManager.try_emplace(this->pursuit, this);
 		}
 
 
@@ -187,7 +197,7 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('-', this, "StrategyManager");
 
-			PursuitCache::SetValue<this->cacheIndex, StrategyManager*>(nullptr, this->pursuit);
+			this->pursuitToManager.erase(this->pursuit);
 		}
 
 
@@ -247,8 +257,7 @@ namespace StrategyOverrides
 
 		static void __fastcall WatchHeavyStrategy(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetValue<StrategyManager::cacheIndex, StrategyManager*>(pursuit);
-
+			StrategyManager* const manager = StrategyManager::FindManager(pursuit);
 			if (not manager) return; // should never happen
 
 			manager->StopUnblockTimer();
@@ -290,8 +299,7 @@ namespace StrategyOverrides
 
 		static void __fastcall WatchLeaderStrategy(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetValue<StrategyManager::cacheIndex, StrategyManager*>(pursuit);
-
+			StrategyManager* const manager = StrategyManager::FindManager(pursuit);
 			if (not manager) return; // should never happen
 
 			manager->StopUnblockTimer();
@@ -332,21 +340,19 @@ namespace StrategyOverrides
 
 		static void __fastcall ClearWatchedStrategy(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetValue<StrategyManager::cacheIndex, StrategyManager*>(pursuit);
+			StrategyManager* const manager = StrategyManager::FindManager(pursuit);
+			if (not manager) return; // should never happen
 
-			if (manager)
-			{
-				manager->StopUnblockTimer();
+			manager->StopUnblockTimer();
 
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(pursuit, "[STR] Active Strategy cleared");
-			}
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(pursuit, "[STR] Active Strategy cleared");
 		}
 
 
-		static float __fastcall GetTruePursuitLength(const address pursuit)
+		static float __fastcall GetFullPursuitLength(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetValue<StrategyManager::cacheIndex, StrategyManager*>(pursuit);
+			const StrategyManager* const manager = StrategyManager::FindManager(pursuit);
 			return (manager) ? (Globals::simulationTime - manager->pursuitStartTimestamp) : 0.f;
 		}
 	};
@@ -481,20 +487,16 @@ namespace StrategyOverrides
 
 
 
-	constexpr address minStrategyDelayEntrance = 0x4196F2;
+	constexpr address minStrategyDelayEntrance = 0x4196F4;
 	constexpr address minStrategyDelayExit     = 0x4196FA;
 
 	__declspec(naked) void MinStrategyDelay()
 	{
 		__asm
 		{
-			push eax
-
 			mov ecx, esi
-			call StrategyManager::GetTruePursuitLength // ecx: pursuit
-
-			pop eax
-			fld dword ptr [eax]
+			call StrategyManager::GetFullPursuitLength // ecx: pursuit
+			fxch st(1)
 			fcompp
 
 			jmp dword ptr minStrategyDelayExit
@@ -503,20 +505,16 @@ namespace StrategyOverrides
 
 
 
-	constexpr address minRoadblockDelayEntrance = 0x41950C;
+	constexpr address minRoadblockDelayEntrance = 0x41950E;
 	constexpr address minRoadblockDelayExit     = 0x419514;
 
 	__declspec(naked) void MinRoadblockDelay()
 	{
 		__asm
 		{
-			push eax
-
 			mov ecx, esi
-			call StrategyManager::GetTruePursuitLength // ecx: pursuit
-
-			pop eax
-			fld dword ptr [eax]
+			call StrategyManager::GetFullPursuitLength // ecx: pursuit
+			fxch st(1)
 			fcompp
 
 			jmp dword ptr minRoadblockDelayExit
@@ -525,7 +523,7 @@ namespace StrategyOverrides
 
 
 
-	constexpr address crossPriorityDelayEntrance = 0x41973D;
+	constexpr address crossPriorityDelayEntrance = 0x419740;
 	constexpr address crossPriorityDelayExit     = 0x419746;
 
 	__declspec(naked) void CrossPriorityDelay()
@@ -535,11 +533,11 @@ namespace StrategyOverrides
 			push ecx
 
 			mov ecx, esi
-			call StrategyManager::GetTruePursuitLength // ecx: pursuit
+			call StrategyManager::GetFullPursuitLength // ecx: pursuit
+			fxch st(1)
+			fcompp
 
 			pop ecx
-			fld dword ptr [ecx + 0x10]
-			fcompp
 
 			jmp dword ptr crossPriorityDelayExit
 		}

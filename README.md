@@ -3,7 +3,7 @@
 
 Bartender adds **new customisation options** to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in two feature sets:
 * the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
-* the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/k3mRxXFMim0).
+* the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/s0U-1PTUqYI).
 
 &nbsp;
 
@@ -191,7 +191,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.04.00, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.04.01, replace all old configuration files.
 
 &nbsp;
 

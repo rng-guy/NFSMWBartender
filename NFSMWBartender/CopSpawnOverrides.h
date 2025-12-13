@@ -230,10 +230,6 @@ namespace CopSpawnOverrides
 
 	class ChasersManager : public PursuitFeatures::PursuitReaction
 	{
-		using PursuitCache = PursuitFeatures::PursuitCache;
-
-
-
 	private:
 
 		int  maxNumPatrolCars    = 0;
@@ -251,7 +247,7 @@ namespace CopSpawnOverrides
 
 		Contingent chaserSpawns = Contingent(CopSpawnTables::chaserSpawnTables.current, this->pursuit);
 
-		inline static constexpr size_t cacheIndex = 1;
+		inline static HashContainers::AddressMap<ChasersManager*> pursuitToManager;
 
 
 		void UpdateSpawnTable()
@@ -357,6 +353,20 @@ namespace CopSpawnOverrides
 		}
 
 
+		static ChasersManager* FindManager(const address pursuit)
+		{
+			const auto foundManager = ChasersManager::pursuitToManager.find(pursuit);
+
+			if (foundManager != ChasersManager::pursuitToManager.end())
+				return foundManager->second;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [SPA] No manager for pursuit", pursuit);
+
+			return nullptr;
+		}
+
+
 
 	public:
 
@@ -365,7 +375,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('+', this, "ChasersManager");
 
-			PursuitCache::SetValue<this->cacheIndex, ChasersManager*>(this, this->pursuit);
+			this->pursuitToManager.try_emplace(this->pursuit, this);
 		}
 
 
@@ -374,7 +384,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('-', this, "ChasersManager");
 
-			PursuitCache::SetValue<this->cacheIndex, ChasersManager*>(nullptr, this->pursuit);
+			this->pursuitToManager.erase(this->pursuit);
 		}
 
 
@@ -452,35 +462,33 @@ namespace CopSpawnOverrides
 
 		static void __fastcall NotifyOfWaveReset(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetValue<ChasersManager::cacheIndex, ChasersManager*>(pursuit);
+			ChasersManager* const manager = ChasersManager::FindManager(pursuit);
+			if (not manager) return; // should never happen
 
-			if (manager)
+			if constexpr (Globals::loggingEnabled)
 			{
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (not manager->waveParametersKnown)
-						Globals::logger.Log(manager->pursuit, "[SPA] Wave parameters now known");
-				}
-
-				manager->waveParametersKnown     = true;
-				manager->fullWaveCapacity       += manager->numActiveNonChasers;
-				manager->numCopsToTriggerBackup += manager->numActiveNonChasers;
-
-				manager->CorrectWaveCapacity();
+				if (not manager->waveParametersKnown)
+					Globals::logger.Log(manager->pursuit, "[SPA] Wave parameters now known");
 			}
+
+			manager->waveParametersKnown     = true;
+			manager->fullWaveCapacity       += manager->numActiveNonChasers;
+			manager->numCopsToTriggerBackup += manager->numActiveNonChasers;
+
+			manager->CorrectWaveCapacity();
 		}
 
 
 		static bool __fastcall GetChaserSpawnStatus(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetValue<ChasersManager::cacheIndex, ChasersManager*>(pursuit);
+			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
 			return (manager) ? manager->CanNewChaserSpawn() : false;
 		}
 
 
 		static const char* __fastcall GetNameOfNewChaser(const address pursuit)
 		{
-			const auto manager = PursuitCache::GetValue<ChasersManager::cacheIndex, ChasersManager*>(pursuit);
+			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
 			return (manager and manager->CanNewChaserSpawn()) ? manager->chaserSpawns.GetNameOfAvailableCop() : nullptr;
 		}
 	};
@@ -798,22 +806,21 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
+			// Execute original code first
+			mov ebp, dword ptr [esp + 0x74]
+
 			cmp dword ptr [esp + 0x70], 0x42E72E
-			jne retain // not "Scripted" spawn
+			jne conclusion // not "Scripted" spawn
 
 			cmp byte ptr skipScriptedSpawns, 0x0
-			jne retain // skip "Scripted" spawn
+			jne conclusion // skip "Scripted" spawn
 
 			cmp byte ptr Globals::playerHeatLevelKnown, 0x1
-			jne retain // Heat level unknown
+			jne conclusion // Heat level unknown
 
 			mov ecx, offset scriptedSpawns
 			call Contingent::GetNameOfSpawnableCop
 			mov ebp, eax
-			jmp conclusion // cop replaced
-
-			retain:
-			mov ebp, dword ptr [esp + 0x74]
 
 			conclusion:
 			test ebp, ebp

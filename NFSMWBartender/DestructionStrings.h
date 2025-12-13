@@ -19,7 +19,7 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves 
-	HashContainers::CachedMap<vault, binary> copTypeToDestructionKey(0x0);
+	HashContainers::CachedVaultMap<binary> copTypeToDestructionKey(0x0);
 
 
 	
@@ -39,7 +39,7 @@ namespace DestructionStrings
 		{
 			push dword ptr [esp + 0x54] // copType
 			mov ecx, offset copTypeToDestructionKey
-			call HashContainers::CachedMap<vault, binary>::GetValue
+			call HashContainers::CachedVaultMap<binary>::GetValue
 			test eax, eax
 			je skip                     // type unknown and no default key
 

@@ -36,7 +36,6 @@ namespace PursuitObserver
 	class PursuitObserver
 	{
 		using PursuitReaction = PursuitFeatures::PursuitReaction;
-		using PursuitCache    = PursuitFeatures::PursuitCache;
 		using CopLabel        = PursuitReaction::CopLabel;
 
 
@@ -48,14 +47,10 @@ namespace PursuitObserver
 		bool perPursuitUpdatePending   = true;
 		bool perHeatLevelUpdatePending = true;
 
-		PursuitCache cache = PursuitCache(this->pursuit);
-
 		HashContainers::AddressMap<CopLabel>          copVehicleToLabel;
 		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
 		
 		inline static HashContainers::SafeAddressMap<PursuitObserver> pursuitToObserver;
-
-		inline static constexpr size_t cacheIndex = 0;
 
 
 		static CopLabel LabelAddVehicleCall(const address caller)
@@ -134,6 +129,20 @@ namespace PursuitObserver
 		}
 
 
+		static PursuitObserver* FindObserver(const address pursuit)
+		{
+			const auto foundObserver = PursuitObserver::pursuitToObserver.find(pursuit);
+
+			if (foundObserver != PursuitObserver::pursuitToObserver.end())
+				return foundObserver->second.get();
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [OBS] No observer for pursuit", pursuit);
+
+			return nullptr;
+		}
+
+
 
 	public:
 
@@ -141,8 +150,6 @@ namespace PursuitObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('+', this, "PursuitObserver");
-
-			PursuitCache::SetValue<this->cacheIndex, PursuitObserver*>(this, this->pursuit);
 
 			this->pursuitReactions.reserve(5);
 
@@ -182,8 +189,6 @@ namespace PursuitObserver
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('-', this, "PursuitObserver");
-
-			PursuitCache::SetValue<this->cacheIndex, PursuitObserver*>(nullptr, this->pursuit);
 		}
 
 
@@ -222,11 +227,10 @@ namespace PursuitObserver
 			const address copVehicle,
 			const address caller
 		) {
-			const auto observer = PursuitCache::GetValue<PursuitObserver::cacheIndex, PursuitObserver*>(pursuit);
-
+			PursuitObserver* const observer = PursuitObserver::FindObserver(pursuit);
 			if (not observer) return; // should never happen
 
-			const CopLabel copLabel         = PursuitObserver::LabelAddVehicleCall(caller);
+			const CopLabel copLabel         = observer->LabelAddVehicleCall(caller);
 			const auto     [pair, wasAdded] = observer->copVehicleToLabel.try_emplace(copVehicle, copLabel);
 
 			if (wasAdded)
@@ -247,8 +251,7 @@ namespace PursuitObserver
 			const address pursuit,
 			const address copVehicle
 		) {
-			const auto observer = PursuitCache::GetValue<PursuitObserver::cacheIndex, PursuitObserver*>(pursuit);
-
+			PursuitObserver* const observer = PursuitObserver::FindObserver(pursuit);
 			if (not observer) return; // should never happen
 
 			const auto foundVehicle = observer->copVehicleToLabel.find(copVehicle);
@@ -340,7 +343,7 @@ namespace PursuitObserver
 			pop ecx
 
 			// Execute original code and resume
-			add ecx, -0x1C
+			sub ecx, 0x1C
 			mov eax, dword ptr [ecx]
 
 			jmp dword ptr copAddedExit
@@ -364,7 +367,7 @@ namespace PursuitObserver
 			pop ecx
 
 			// Execute original code and resume
-			add ecx, -0x1C
+			sub ecx, 0x1C
 			mov eax, dword ptr [ecx]
 
 			jmp dword ptr copRemovedExit
@@ -389,11 +392,6 @@ namespace PursuitObserver
 		LeaderOverrides    ::Initialise(parser);
 		
 		// Code modifications 
-		MemoryTools::Write<byte>(0x9E, {0x44319C}); // helicopter respawn-timer initialisation
-
-		MemoryTools::MakeRangeNOP(0x443E77, 0x443E87); // helicopter respawn-timer update
-		MemoryTools::MakeRangeNOP(0x42B6B4, 0x42B6DF); // reset
-
 		MemoryTools::MakeRangeJMP(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 		MemoryTools::MakeRangeJMP(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
 		MemoryTools::MakeRangeJMP(CopRemoved,         copRemovedEntrance,         copRemovedExit);
