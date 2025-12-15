@@ -935,10 +935,9 @@ namespace CopSpawnOverrides
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
 		MemoryTools::Write<byte>(0x90, {0x4443E4}); // roadblock increment
 
-		MemoryTools::MakeRangeNOP(0x4442B8, 0x4442C2); // wave-capacity increment
+		MemoryTools::MakeRangeNOP(0x4442AC, 0x4442C2); // zero-wave / capacity increment
 		MemoryTools::MakeRangeNOP(0x57B186, 0x57B189); // helicopter increment
 		MemoryTools::MakeRangeNOP(0x42B74E, 0x42B771); // cops-lost increment
-		MemoryTools::MakeRangeNOP(0x4442AC, 0x4442B6); // zero-wave increment
 		MemoryTools::MakeRangeNOP(0x4440D7, 0x4440DF); // membership check
 		
 		MemoryTools::MakeRangeJMP(WaveReset,          waveResetEntrance,          waveResetExit);
