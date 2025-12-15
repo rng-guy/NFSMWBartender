@@ -44,15 +44,15 @@ namespace HelicopterVision
 
 
 
-	uint32_t __fastcall GetConeColour
+	uint32_t __fastcall GetNewColour
 	(
-		const address helicopterAIVehicle,
+		const address heliAIVehicle,
 		const bool    canSeeTarget
 	) {
 		static float currentColourState  = 0.f;
 		static float lastUpdateTimestamp = Globals::simulationTime;
 
-		bool& isKnownVehicle = *reinterpret_cast<bool*>(helicopterAIVehicle - 0x4C + 0x769);
+		bool& isKnownVehicle = *reinterpret_cast<bool*>(heliAIVehicle - 0x4C + 0x769);
 
 		if (isKnownVehicle)
 		{
@@ -114,46 +114,51 @@ namespace HelicopterVision
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address coneIconEntrance = 0x579FC6;
-	constexpr address coneIconExit     = 0x579FCB;
+	constexpr address coneIconColourEntrance = 0x579FC6;
+	constexpr address coneIconColourExit     = 0x579FCB;
 
-	__declspec(naked) void ConeIcon()
+	__declspec(naked) void ConeIconColour()
 	{
 		static constexpr address updateFEngColour = 0x5157E0;
 
 		__asm
 		{
-			mov edx, dword ptr [esi]
-			mov ecx, dword ptr [edx + 0x54]
-			test ecx, ecx
-			je conclusion // invalid vehicle
+			mov ecx, dword ptr [esi]
+			call Globals::IsVehicleDestroyed
+			movzx eax, al
+			dec eax
+			je colour // helicopter destroyed
 
+			mov eax, 0xFF90B8FF
+			cmp byte ptr featureEnabled, 0x1
+			jne colour // cone feature disabled
+
+			mov eax, dword ptr [esi]
+			mov ecx, dword ptr [eax + 0x54]
 			push ecx
 
 			mov edx, dword ptr [ecx]
 			call dword ptr [edx + 0x64]
 
-			mov edx, dword ptr [esp]
-			lea ecx, dword ptr [edx - 0x4C + 0x758]
-
 			push eax
+			mov ecx, edi
 			mov edx, dword ptr [ecx]
 			call dword ptr [edx + 0x7C]
 
 			pop ecx
 			mov dl, al
-			call GetConeColour // ecx: helicopterAIVehicle, dl: canSeeTarget
+			call GetNewColour // ecx: heliAIVehicle, dl: canSeeTarget
 
+			colour:
 			push eax
 			push dword ptr [ebx + 0xCC]
 			call dword ptr updateFEngColour
 			add esp, 0x8
 
-			conclusion:
 			// Execute original code and resume
 			mov byte ptr [esp + 0x13], 0x1
 
-			jmp dword ptr coneIconExit
+			jmp dword ptr coneIconColourExit
 		}
 	}
 
@@ -162,6 +167,14 @@ namespace HelicopterVision
 
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
+
+	void ApplyFixes()
+	{
+		// Also fixes the helicopter cone icon staying visible if destroyed
+		MemoryTools::MakeRangeJMP(ConeIconColour, coneIconColourEntrance, coneIconColourExit);
+	}
+
+
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
@@ -174,7 +187,7 @@ namespace HelicopterVision
 			colourRange[channelID] -= baseColour[channelID];
 
 		// Code modifications
-		MemoryTools::MakeRangeJMP(ConeIcon, coneIconEntrance, coneIconExit);
+		ApplyFixes(); // also contains vision-cone feature
 
 		// Status flag
 		featureEnabled = true;

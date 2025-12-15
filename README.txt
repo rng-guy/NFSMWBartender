@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.04.03) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.05.00) │ ■ ────────────────────────────────────────────────────
 
 View THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -47,11 +47,13 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • which notification string the game displays whenever you destroy a given cop vehicle;
  • which radio callsigns and chatter a given cop vehicle can trigger in player pursuits;
  • under which conditions (if at all) a given cop vehicle shows up on the radar / mini-map;
- • how (if at all) line of sight affects the colour of the helicopter's cone-of-vision icon; and
+ • how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and
  • the selection, order, and length of interactive themes that play during player pursuits.
 
-The "Basic" feature set FIXES SIX BUGS / ISSUES:
+The "Basic" feature set FIXES EIGHT BUGS / ISSUES:
+ • vehicles joining pursuits from roadblocks no longer ignore spawn limits for cops,
  • the helicopter mini-map icon is now always visible whenever a helicopter is active,
+ • the helicopter vision-cone icon now always disappears whenever a helicopter is destroyed,
  • helicopters no longer cast static shadows (like cars do) with incorrect placements,
  • the game is no longer inadvertently biased in how it chooses to make Strategy requests,
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
@@ -66,6 +68,7 @@ The "Basic" feature set FIXES SIX BUGS / ISSUES:
 ── ■ │ 2 - WHAT DOES THE "ADVANCED" FEATURE SET DO? │ ■ ───────────────────────────────────────────
 
 The "Advanced" feature set LETS YOU CHANGE (per Heat level)
+ • whether spawning decisions for traffic cars are independent of those for cops,
  • how many chasing cops may (re)spawn regardless of the remaining engagement count,
  • below what total number of active cops in the world the game may spawn new chasing cops,
  • whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
@@ -127,7 +130,6 @@ Under certain conditions, Bartender MAY REQUIRE the "NFSMW LimitAdjuster" mod by
 Specifically, you likely need that mod if you configure Bartender in any of the following ways:
  • "[Chasers:Limits]"       in "Cars.ini"      : You define a global cop-spawn limit > 8.
  • "[Chasers:Independence]" in "Cars.ini"      : You enable independent spawns for chasing cops.
- • "[Joining:Definitions]"  in "Supports.ini"  : You make joining from roadblocks frequent.
  • "[Heavy3:Unblocking]"    in "Strategies.ini": You define very short unblock delays.
  
 TO CONFIGURE "NFSMW LimitAdjuster" for optimal compatibility with Bartender:
@@ -160,7 +162,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v2.04.03, replace all old configuration files.
+If you update from a version older than v2.05.00, replace all old configuration files.
 
 
 

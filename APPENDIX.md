@@ -135,6 +135,8 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * If you don't define colours for both sight states, Bartender disables its vision-cone feature.
 
+* The actual visual range of helicopters can differ from what the vision-cone icon might suggest; the `heliLOSdistance` VltEd parameter controls the visual range the game uses for calculations.
+
 * The playlist feature is incompatible with the [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) mod by xan1242. If you want to use that mod, you must delete Bartender's `[Music:Playlist]` parameter group or leave it empty.
 
 * You can define a playlist of up to 20 tracks using the game's four interactive pursuit themes. By default, Bartender loops through this custom playlist from top to bottom in each pursuit.
@@ -209,7 +211,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Roadblock vehicles can react to racers entering "COOLDOWN" mode and / or spike-strip hits. For the former, some vehicles join the pursuit immediately; for the latter, all of them do.
 
-* If you make roadblock vehicles join pursuits frequently, then you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. That's because roadblock vehicles ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear.
+* Roadblock vehicles are affected by the global cop-spawn limit: they may only join a pursuit if the total number of all non-roadblock vehicles is below that limit. You can soften this restriction with Bartender's "Advanced" feature set (see the `Cars.ini` file).
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
@@ -243,17 +245,21 @@ Regarding the "Advanced" feature set **as a whole**:
 
 &nbsp;
 
-Regarding **cop (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
+Regarding **car (de / re)spawning** (`BartenderSettings\Advanced\Cars.ini`):
 
 * The engagement count shown above the pursuit board is purely cosmetic: Bartender tracks all "Chasers" accurately behind the scenes and ensures that backups trigger as intended.
 
 * Under no circumstances can minimum counts cause more "Chasers" spawns than otherwise possible; they respect the current global cop-spawn limit and the `count` values in "Chasers" tables.
+
+* Fully independent traffic spawns may sometimes slow down "Chasers" spawns slightly.
 
 * In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the minimum count.
 
 * The global cop-spawn limit determines whether the game may spawn more "Chasers" at any point. The game may spawn additional "Chasers" as long as the total amount of non-helicopter cops that currently exist across all pursuits is below this global limit. This also means that any active Strategy spawns, roadblocks, or NPC pursuits in general can affect how many more "Chasers" may still spawn in your pursuit (this is vanilla behaviour).
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
+
+* Making "Chasers" spawns independent also changes how the global cop-spawn limit affects roadblock vehicles trying to join a pursuit: they may join whenever the total number of active "Chasers" and already joined roadblock vehicles in a pursuit is below this limit.
 
 * If you want to use global cop-spawn limits > 8 and / or make "Chasers" spawns independent of other vehicles, you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
 

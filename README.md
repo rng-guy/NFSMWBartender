@@ -53,13 +53,15 @@ The "Basic" feature set **also lets you change** (in general)
 * which notification string the game displays whenever you destroy a given cop vehicle;
 * which radio callsigns and chatter a given cop vehicle can trigger in player pursuits;
 * under which conditions (if at all) a given cop vehicle shows up on the radar / mini-map;
-* how (if at all) line of sight affects the colour of the helicopter's cone-of-vision icon; and
+* how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and
 * the selection, order, and length of interactive themes that play during player pursuits.
 
 &nbsp;
 
-The "Basic" feature set **fixes six bugs / issues**:
+The "Basic" feature set **fixes eight bugs / issues**:
+* vehicles joining pursuits from roadblocks no longer ignore spawn limits for cops,
 * the helicopter mini-map icon is now always visible whenever a helicopter is active,
+* the helicopter vision-cone icon now always disappears whenever a helicopter is destroyed,
 * helicopters no longer cast static shadows (like cars do) with incorrect placements,
 * the game is no longer inadvertently biased in how it chooses to make Strategy requests,
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
@@ -77,6 +79,7 @@ The "Basic" feature set **fixes six bugs / issues**:
 # 2 - What does the "Advanced" feature set do?
 
 The "Advanced" feature set **lets you change** (per Heat level)
+* whether spawning decisions for traffic cars are independent of those for cops,
 * how many chasing cops may (re)spawn regardless of the remaining engagement count,
 * below what total number of active cops in the world the game may spawn new chasing cops,
 * whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
@@ -147,7 +150,6 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. Specifically, you likely need that mod if you configure Bartender in any of the following ways:
 * `[Chasers:Limits]` in `Cars.ini`: You define a global cop-spawn limit > 8.
 * `[Chasers:Independence]` in `Cars.ini`: You enable independent spawns for chasing cops.
-* `[Joining:Definitions]` in `Supports.ini`: You make joining from roadblocks frequent.
 * `[Heavy3:Unblocking]` in `Strategies.ini`: You define very short unblock delays.
 
 &nbsp;
@@ -191,7 +193,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.04.03, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.05.00, replace all old configuration files.
 
 &nbsp;
 

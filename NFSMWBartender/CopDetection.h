@@ -38,7 +38,6 @@ namespace CopDetection
 	bool __fastcall GetsMiniMapIcon(const address copVehicle) 
 	{
 		const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
-		if (not copAIVehicle) return false; // should never happen
 
 		bool& iconIsKept = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x769);
 		if (iconIsKept) return true; // mini-map icon already kept

@@ -6,6 +6,7 @@
 #include "MemoryTools.h"
 #include "HeatParameters.h"
 
+#include "CopSpawnOverrides.h"
 #include "LeaderOverrides.h"
 
 
@@ -200,6 +201,40 @@ namespace GroundSupports
 
 
 
+	int GetNumNonRoadblockVehicles()
+	{
+		int numNonRoadblockVehicles = 0;
+
+		if (Globals::copManager)
+		{
+			numNonRoadblockVehicles = *reinterpret_cast<int*>(Globals::copManager + 0x94);
+
+			const address finalPursuitListEntry   = *reinterpret_cast<address*>(Globals::copManager + 0x128);
+			address       currentPursuitListEntry = *reinterpret_cast<address*>(finalPursuitListEntry);
+
+			while (currentPursuitListEntry != finalPursuitListEntry)
+			{
+				const address pursuit   = *reinterpret_cast<address*>(currentPursuitListEntry + 0x8);
+				const address roadblock = *reinterpret_cast<address*>(pursuit + 0x84);
+
+				if (roadblock)
+				{
+					const address firstVehiclePointer = *reinterpret_cast<address*>(roadblock + 0xC);
+					const address lastVehiclePointer  = *reinterpret_cast<address*>(roadblock + 0x10);
+
+					if (lastVehiclePointer > firstVehiclePointer)
+						numNonRoadblockVehicles -= (lastVehiclePointer - firstVehiclePointer) / sizeof(address);
+				}
+
+				currentPursuitListEntry = *reinterpret_cast<address*>(currentPursuitListEntry);
+			}
+		}
+
+		return numNonRoadblockVehicles;
+	}
+
+
+
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
@@ -264,10 +299,25 @@ namespace GroundSupports
 
 		__asm
 		{
-			mov eax, dword ptr [esi + 0x27C]
+			mov eax, dword ptr [esi + 0x40 + 0x23C]
 			cmp eax, dword ptr maxRBJoinCounts.current
-			jge skip // no more vehicles can join
+			jge skip // join limit reached
 
+			cmp byte ptr CopSpawnOverrides::chasersAreIndependents.current, 0x1
+			je independent // "Chasers" independent
+
+			call GetNumNonRoadblockVehicles
+			cmp eax, dword ptr CopSpawnOverrides::activeChaserCounts.maxValues.current
+			jge skip       // at or above spawn limit
+			jmp conclusion // below
+
+			independent:
+			lea ecx, dword ptr [esi + 0x40]
+			call CopSpawnOverrides::ChasersManager::IsJoinable // ecx: pursuit
+			test al, al
+			je skip                                            // may not join
+
+			conclusion:
 			jmp dword ptr roadblockJoinCountExit
 
 			skip:
@@ -562,6 +612,9 @@ namespace GroundSupports
 	{
 		// Also fixes the unintended biases in the Strategy-selection process
 		MemoryTools::MakeRangeJMP(StrategySelection, strategySelectionEntrance, strategySelectionExit);
+
+		// Also prevents excessive joining from roadblocks
+		MemoryTools::MakeRangeJMP(RoadblockJoinCount, roadblockJoinCountEntrance, roadblockJoinCountExit);
 	}
 
 
@@ -611,7 +664,6 @@ namespace GroundSupports
 
 		MemoryTools::MakeRangeJMP(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
 		MemoryTools::MakeRangeJMP(RoadblockJoinTimer,   roadblockJoinTimerEntrance,   roadblockJoinTimerExit);
-		MemoryTools::MakeRangeJMP(RoadblockJoinCount,   roadblockJoinCountEntrance,   roadblockJoinCountExit);
 		MemoryTools::MakeRangeJMP(SpikesHitReaction,    spikesHitReactionEntrance,    spikesHitReactionExit);
 		MemoryTools::MakeRangeJMP(RoadblockCooldown,    roadblockCooldownEntrance,    roadblockCooldownExit);
 		MemoryTools::MakeRangeJMP(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
@@ -624,7 +676,7 @@ namespace GroundSupports
 		MemoryTools::MakeRangeJMP(CrossSpawn,           crossSpawnEntrance,           crossSpawnExit);
         MemoryTools::MakeRangeJMP(LeaderSub,            leaderSubEntrance,            leaderSubExit);
 
-		ApplyFixes(); // also contains Strategy-selection feature
+		ApplyFixes(); // also contains Strategy-selection and roadblock-joining features
         
 		// Status flag
 		featureEnabled = true;

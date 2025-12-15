@@ -41,7 +41,7 @@ namespace DestructionStrings
 			mov ecx, offset copTypeToDestructionKey
 			call HashContainers::CachedVaultMap<binary>::GetValue
 			test eax, eax
-			je skip                     // invalid string
+			je skip                     // string invalid
 
 			push eax
 

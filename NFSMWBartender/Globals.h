@@ -49,9 +49,10 @@ namespace Globals
 	const auto IsVehicleDestroyed = reinterpret_cast<bool (__thiscall*)(address)>(0x688170);
 
 	// Common data pointers
-	const float& simulationTime = *reinterpret_cast<float*>(0x9885D8);
-
+	const float&   simulationTime = *reinterpret_cast<float*>  (0x9885D8);
+	const address& copManager     = *reinterpret_cast<address*>(0x989098);
 	
+
 
 
 

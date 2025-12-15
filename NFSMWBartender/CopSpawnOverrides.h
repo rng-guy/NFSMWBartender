@@ -203,6 +203,9 @@ namespace CopSpawnOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
+	HeatParameters::Pair<bool> trafficIgnoresChasers(false);
+	HeatParameters::Pair<bool> trafficIgnoresRoadblocks(false);
+
 	HeatParameters::Interval<int>   activeChaserCounts    (1, 8);
 	HeatParameters::Pair    <bool>  chasersAreIndependents(false);
 	HeatParameters::Pair    <float> chaserSpawnClearances (40.f);  // metres
@@ -212,7 +215,7 @@ namespace CopSpawnOverrides
 	bool trackLeaderVehicles          = false;
 	bool trackJoinedRoadblockVehicles = false;
 
-	// Code caves 
+	// Code caves
 	bool skipScriptedSpawns = true;
 	
 	Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTables.current);
@@ -232,9 +235,11 @@ namespace CopSpawnOverrides
 	{
 	private:
 
-		int  maxNumPatrolCars    = 0;
-		int  numActiveNonChasers = 0;
 		bool waveParametersKnown = false;
+
+		int maxNumPatrolCars           = 0;
+		int numActiveNonChasers        = 0;
+		int numJoinedRoadblockVehicles = 0;
 
 		int& fullWaveCapacity       = *reinterpret_cast<int*>(this->pursuit + 0x144);
 		int& numCopsLostInWave      = *reinterpret_cast<int*>(this->pursuit + 0x14C);
@@ -424,6 +429,9 @@ namespace CopSpawnOverrides
 					++(this->numCopsToTriggerBackup);
 				}
 			}
+
+			if (copLabel == CopLabel::ROADBLOCK)
+				++(this->numJoinedRoadblockVehicles);
 		}
 
 
@@ -457,6 +465,9 @@ namespace CopSpawnOverrides
 					--(this->numCopsToTriggerBackup);
 				}		
 			}
+
+			if (copLabel == CopLabel::ROADBLOCK)
+				--(this->numJoinedRoadblockVehicles);
 		}
 
 
@@ -483,6 +494,16 @@ namespace CopSpawnOverrides
 		{
 			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
 			return (manager) ? manager->CanNewChaserSpawn() : false;
+		}
+
+
+		static bool __fastcall IsJoinable(const address pursuit)
+		{
+			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
+			if (not manager) return false; // should never happen
+
+			const int numActiveChasers = manager->chaserSpawns.GetNumActiveCops();
+			return (numActiveChasers + manager->numJoinedRoadblockVehicles < activeChaserCounts.maxValues.current);
 		}
 
 
@@ -565,27 +586,6 @@ namespace CopSpawnOverrides
 
 
 
-	constexpr address densityFlagEntrance = 0x426C4E;
-	constexpr address densityFlagExit     = 0x426C54;
-
-	__declspec(naked) void DensityFlag()
-	{
-		__asm
-		{
-			mov eax, dword ptr activeChaserCounts.maxValues.current
-			mov ecx, dword ptr [ebx + 0x40]
-
-			cmp byte ptr chasersAreIndependents.current, 0x1
-			cmove ecx, eax // "Chasers" independent
-
-			cmp ecx, eax
-
-			jmp dword ptr densityFlagExit
-		}
-	}
-
-
-
 	constexpr address patrolSpawnEntrance = 0x430E37;
 	constexpr address patrolSpawnExit     = 0x430E3D;
 
@@ -622,23 +622,6 @@ namespace CopSpawnOverrides
 			fcomp dword ptr [edx]
 
 			jmp dword ptr copClearanceExit
-		}
-	}
-
-
-
-	constexpr address requestCheckEntrance = 0x426C56;
-	constexpr address requestCheckExit     = 0x426C5F;
-
-	__declspec(naked) void RequestCheck()
-	{
-		__asm
-		{
-			mov ecx, edi
-			call ChasersManager::GetChaserSpawnStatus // ecx: pursuit
-			test al, al
-
-			jmp dword ptr requestCheckExit
 		}
 	}
 
@@ -799,6 +782,42 @@ namespace CopSpawnOverrides
 
 
 
+	constexpr address trafficDensityEntrance = 0x426C4E;
+	constexpr address trafficDensityExit     = 0x426C6A;
+
+	__declspec(naked) void TrafficDensity()
+	{
+		__asm
+		{
+			cmp byte ptr trafficIgnoresChasers.current, 0x1
+			je roadblock // "Chasers" ignored
+
+			cmp byte ptr chasersAreIndependents.current, 0x1
+			je chasers // "Chasers" independent
+
+			mov eax, dword ptr [ebx - 0x54 + 0x94]
+			cmp eax, dword ptr activeChaserCounts.maxValues.current
+			jge roadblock // at or above spawn limit
+
+			chasers:
+			mov ecx, edi
+			call ChasersManager::GetChaserSpawnStatus // ecx: pursuit
+			test al, al
+			jne conclusion // pending "Chasers" spawn
+
+			roadblock:
+			cmp byte ptr trafficIgnoresRoadblocks.current, 0x1
+			je conclusion // roadblocks ignored
+
+			cmp byte ptr [edi + 0x190], 0x0
+
+			conclusion:
+			jmp dword ptr trafficDensityExit
+		}
+	}
+
+
+
 	constexpr address byNameInterceptorEntrance = 0x41ECEC;
 	constexpr address byNameInterceptorExit     = 0x41ECF2;
 
@@ -898,17 +917,19 @@ namespace CopSpawnOverrides
 	{
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
 
-		// Heat parameters
-		HeatParameters::Parse<int>  (parser, "Chasers:Limits",       {activeChaserCounts,    0});
-		HeatParameters::Parse<bool> (parser, "Chasers:Independence", {chasersAreIndependents});
-		HeatParameters::Parse<float>(parser, "Chasers:Clearance",    {chaserSpawnClearances, 0.f});
-
 		// Pursuit-board tracking
 		const std::string section = "Board:Tracking";
 
 		parser.ParseParameter<bool>(section, "heavyStrategyVehicles",   trackHeavyVehicles);
 		parser.ParseParameter<bool>(section, "leaderStrategyVehicles",  trackLeaderVehicles);
 		parser.ParseParameter<bool>(section, "joinedRoadblockVehicles", trackJoinedRoadblockVehicles);
+
+		// Heat parameters
+		HeatParameters::Parse<bool, bool>(parser, "Traffic:Independence", {trafficIgnoresChasers}, {trafficIgnoresRoadblocks});
+
+		HeatParameters::Parse<int>  (parser, "Chasers:Limits",       {activeChaserCounts,    0});
+		HeatParameters::Parse<bool> (parser, "Chasers:Independence", {chasersAreIndependents});
+		HeatParameters::Parse<float>(parser, "Chasers:Clearance",    {chaserSpawnClearances, 0.f});
 
 		// Code modifications 
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
@@ -922,15 +943,14 @@ namespace CopSpawnOverrides
 		
 		MemoryTools::MakeRangeJMP(WaveReset,          waveResetEntrance,          waveResetExit);
 		MemoryTools::MakeRangeJMP(CopRequest,         copRequestEntrance,         copRequestExit);
-		MemoryTools::MakeRangeJMP(DensityFlag,        densityFlagEntrance,        densityFlagExit);
 		MemoryTools::MakeRangeJMP(PatrolSpawn,        patrolSpawnEntrance,        patrolSpawnExit);
 		MemoryTools::MakeRangeJMP(CopClearance,       copClearanceEntrance,       copClearanceExit);
-		MemoryTools::MakeRangeJMP(RequestCheck,       requestCheckEntrance,       requestCheckExit);
 		MemoryTools::MakeRangeJMP(CopSpawnLimit,      copSpawnLimitEntrance,      copSpawnLimitExit);
 		MemoryTools::MakeRangeJMP(ScriptedSpawn,      scriptedSpawnEntrance,      scriptedSpawnExit);
 		MemoryTools::MakeRangeJMP(PatrolPursuit,      patrolPursuitEntrance,      patrolPursuitExit);
 		MemoryTools::MakeRangeJMP(PatrolDespawn,      patrolDespawnEntrance,      patrolDespawnExit);
 		MemoryTools::MakeRangeJMP(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
+		MemoryTools::MakeRangeJMP(TrafficDensity,     trafficDensityEntrance,     trafficDensityExit);
 		MemoryTools::MakeRangeJMP(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
 		MemoryTools::MakeRangeJMP(ScriptedSpawnReset, scriptedSpawnResetEntrance, scriptedSpawnResetExit);
 		MemoryTools::MakeRangeJMP(ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
@@ -946,6 +966,9 @@ namespace CopSpawnOverrides
 	void LogHeatReport()
 	{
 		Globals::logger.Log("    HEAT [SPA] CopSpawnOverrides");
+
+		trafficIgnoresChasers   .Log("trafficIgnoresChasers   ");
+		trafficIgnoresRoadblocks.Log("trafficIgnoresRoadblocks");
 
 		activeChaserCounts    .Log("activeChaserCount       ");
 		chasersAreIndependents.Log("chasersAreIndependent   ");
@@ -967,6 +990,9 @@ namespace CopSpawnOverrides
 		patrolSpawns   .UpdateSpawnTable();
 		scriptedSpawns .UpdateSpawnTable();
 		roadblockSpawns.UpdateSpawnTable();
+
+		trafficIgnoresChasers   .SetToHeat(isRacing, heatLevel);
+		trafficIgnoresRoadblocks.SetToHeat(isRacing, heatLevel);
 
 		activeChaserCounts    .SetToHeat(isRacing, heatLevel);
 		chasersAreIndependents.SetToHeat(isRacing, heatLevel);

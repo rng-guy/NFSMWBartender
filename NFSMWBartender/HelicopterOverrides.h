@@ -48,6 +48,8 @@ namespace HelicopterOverrides
 	{
 	private:
 		
+		bool isPlayerPursuit = false;
+
 		enum class Status
 		{
 			PENDING,
@@ -59,17 +61,17 @@ namespace HelicopterOverrides
 
 		Status helicopterStatus = Status::PENDING;
 
-		bool isPlayerPursuit = false;
+		PursuitFeatures::IntervalTimer spawnTimer;
 
 		int& numHelicoptersDeployed = *reinterpret_cast<int*>(this->pursuit + 0x150);
-
-		PursuitFeatures::IntervalTimer spawnTimer;
 
 		inline static address     helicopterOwner   = 0x0;
 		inline static const char* helicopterVehicle = nullptr;
 
 		inline static float fuelTimeOnRejoin  = 0.f;  // seconds
 		inline static float minRejoinFuelTime = 10.f;
+
+		inline static const address& helicopterObject = *reinterpret_cast<address*>(0x90D61C);
 
 
 		void VerifyPursuit()
@@ -142,18 +144,18 @@ namespace HelicopterOverrides
 		{
 			if (this->helicopterOwner and (not this->IsOwner())) return;
 
+			if (this->helicopterObject)            return;
 			if (not this->isPlayerPursuit)         return;
 			if (not this->spawnTimer.HasExpired()) return;
 
-			static const address& copManager = *reinterpret_cast<address*>(0x989098);
-			
-			if (copManager)
+			if (Globals::copManager)
 			{ 
+				static const auto SpawnHelicopter = reinterpret_cast<bool (__thiscall*)(address, address)>(0x4269A0);
+
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[HEL] Requesting helicopter");
 
-				static const auto SpawnHelicopter = reinterpret_cast<bool (__thiscall*)(address, address)>(0x4269A0);
-				SpawnHelicopter(copManager, this->pursuit); // usually takes 1-2 attempts to succeed
+				SpawnHelicopter(Globals::copManager, this->pursuit); // usually takes 1-2 attempts to succeed
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [HEL] Invalid AICopManager pointer");
@@ -162,8 +164,7 @@ namespace HelicopterOverrides
 
 		static float* GetFuelTimePointer()
 		{ 
-			static const address& helicopter = *reinterpret_cast<address*>(0x90D61C);
-			return (helicopter) ? reinterpret_cast<float*>(helicopter + 0x7D8) : nullptr;
+			return (HelicopterManager::helicopterObject) ? reinterpret_cast<float*>(HelicopterManager::helicopterObject + 0x7D8) : nullptr;
 		}
 
 
