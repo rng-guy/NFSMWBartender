@@ -17,12 +17,12 @@ namespace LeaderOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::OptionalInterval<float> crossAggroDelays;
-	HeatParameters::OptionalInterval<float> henchmenAggroDelays;
+	HeatParameters::OptionalInterval<float> crossAggroDelays;    // seconds
+	HeatParameters::OptionalInterval<float> henchmenAggroDelays; // seconds
 
-	HeatParameters::OptionalInterval<float> expireResetDelays;
-	HeatParameters::OptionalInterval<float> wreckResetDelays;
-	HeatParameters::OptionalInterval<float> lostResetDelays;
+	HeatParameters::OptionalInterval<float> expireResetDelays; // seconds
+	HeatParameters::OptionalInterval<float> wreckResetDelays;  // seconds
+	HeatParameters::OptionalInterval<float> lostResetDelays;   // seconds
 
 
 

@@ -311,9 +311,9 @@ namespace CopSpawnTables
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		// Heat parameters
-		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "CarTables.ini")) return false;
 
+		// Heat parameters
 		for (const bool forRaces : {false, true})
 		{
 			const std::string format = (forRaces) ? "Race{:02}:" : "Heat{:02}:";

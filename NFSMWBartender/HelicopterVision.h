@@ -18,10 +18,10 @@ namespace HelicopterVision
 
 	// Code caves
 	template <typename T>
-	using BGRA = std::array<T, 4>;
+	using BGRA = std::array<T, 4>; // blue, green, red, alpha
 
-	float lengthToBase = .2f;
-	float lengthToEnd  = .2f;
+	float lengthToBase = .2f; // seconds
+	float lengthToEnd  = .2f; // seconds
 
 	BGRA<float> baseColour  = {};
 	BGRA<float> colourRange = {};

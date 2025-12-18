@@ -19,33 +19,37 @@ namespace GroundSupports
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<bool> rivalRoadblockEnableds(true);
-	HeatParameters::Pair<bool> rivalHeavyEnableds    (true);
-	HeatParameters::Pair<bool> rivalLeaderEnableds   (true);
+	HeatParameters::Pair<bool> rivalRoadblockEnableds(true); // flag
+	HeatParameters::Pair<bool> rivalHeavyEnableds    (true); // flag
+	HeatParameters::Pair<bool> rivalLeaderEnableds   (true); // flag
 
 	HeatParameters::Interval<float> roadblockCooldowns     (8.f, 12.f); // seconds
-	HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f);
+	HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f);      // seconds
 
-	HeatParameters::Pair<float> strategyCooldowns(10.f); // seconds
+	HeatParameters::Interval<float> roadblockSpawnDistances(250.f, 250.f); // metres
 
-	HeatParameters::OptionalPair<float> roadblockJoinTimers;
+	HeatParameters::OptionalPair<float> roadblockJoinTimers; // seconds
 
 	HeatParameters::Pair<float> maxRBJoinDistances      (500.f); // metres
-	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f);
-	HeatParameters::Pair<int>   maxRBJoinCounts         (1);
+	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f);  // metres
+	HeatParameters::Pair<int>   maxRBJoinCounts         (1);     // cars
 
-	HeatParameters::Pair<bool> reactToCooldownModes(true);
-	HeatParameters::Pair<bool> reactToSpikesHits   (true);
+	HeatParameters::Pair<bool> reactToCooldownModes(true); // flag
+	HeatParameters::Pair<bool> reactToSpikesHits   (true); // flag
 	
-	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
-	HeatParameters::Pair<bool> heavy3AreBlockables   (true);
+	HeatParameters::Interval<float> strategyCooldowns(10.f, 10.f); // seconds
 
-	HeatParameters::Pair<std::string> heavy3LightVehicles   ("copsuvl");
-	HeatParameters::Pair<std::string> heavy3HeavyVehicles   ("copsuv");
-	HeatParameters::Pair<std::string> heavy4LightVehicles   ("copsuvl");
-	HeatParameters::Pair<std::string> heavy4HeavyVehicles   ("copsuv");
-	HeatParameters::Pair<std::string> leaderCrossVehicles   ("copcross");
-	HeatParameters::Pair<std::string> leaderHenchmenVehicles("copsporthench");
+	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true); // flag
+	HeatParameters::Pair<bool> heavy3AreBlockables   (true); // flag
+
+	HeatParameters::Pair<std::string> heavy3LightVehicles("copsuvl"); // name
+	HeatParameters::Pair<std::string> heavy3HeavyVehicles("copsuv");  // name
+	HeatParameters::Pair<std::string> heavy4LightVehicles("copsuvl"); // name
+	HeatParameters::Pair<std::string> heavy4HeavyVehicles("copsuv");  // name
+
+	HeatParameters::Pair<std::string> leader5CrossVehicles   ("copcross");      // name
+	HeatParameters::Pair<std::string> leader7CrossVehicles   ("copcross");      // name
+	HeatParameters::Pair<std::string> leader7HenchmenVehicles("copsporthench"); // name
 
 
 
@@ -201,8 +205,23 @@ namespace GroundSupports
 
 
 
-	int GetNumNonRoadblockVehicles()
+	bool __fastcall AcceptsRoadblockVehicles(const address pursuit)
 	{
+		const int numVehiclesJoined = *reinterpret_cast<int*>(pursuit + 0x23C);
+		if (numVehiclesJoined >= maxRBJoinCounts.current) return false;
+
+		const float distanceToRoadblock = *reinterpret_cast<float*>(pursuit + 0x7C);
+		if (distanceToRoadblock > maxRBJoinDistances.current) return false;
+
+		if (CopSpawnOverrides::featureEnabled)
+		{
+			if (not CopSpawnOverrides::ChasersManager::HasJoinCapacity(pursuit)) 
+				return false;
+
+			else if (CopSpawnOverrides::chasersAreIndependents.current) 
+				return true;
+		}
+
 		int numNonRoadblockVehicles = 0;
 
 		if (Globals::copManager)
@@ -230,7 +249,7 @@ namespace GroundSupports
 			}
 		}
 
-		return numNonRoadblockVehicles;
+		return (numNonRoadblockVehicles < CopSpawnOverrides::activeChaserCounts.maxValues.current);
 	}
 
 
@@ -239,282 +258,21 @@ namespace GroundSupports
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address cooldownModeReactionEntrance = 0x42BF16;
-	constexpr address cooldownModeReactionExit     = 0x42BF2B;
+	constexpr address crossSubEntrance = 0x41F504;
+	constexpr address crossSubExit     = 0x41F50C;
 
-	__declspec(naked) void CooldownModeReaction()
+	__declspec(naked) void CrossSub()
 	{
 		__asm
 		{
-			cmp byte ptr reactToCooldownModes.current, 0x1
-			jne conclusion // no "COOLDOWN"-mode reaction
-
-			// Execute original code and resume
-			mov edx, dword ptr [ebp]
-			mov ecx, ebp
-			call dword ptr [edx + 0x1C]
-
-			mov edx, dword ptr [eax]
-			mov ecx, eax
-			call dword ptr [edx + 0x114]
-
-			cmp eax, 0x2
-
-			conclusion:
-			jmp dword ptr cooldownModeReactionExit
-		}
-	}
-
-
-
-	constexpr address roadblockJoinTimerEntrance = 0x42BF09;
-	constexpr address roadblockJoinTimerExit     = 0x42BF14;
-
-	__declspec(naked) void RoadblockJoinTimer()
-	{
-		__asm
-		{
-			cmp byte ptr roadblockJoinTimers.isEnableds.current, 0x1
-			jne conclusion // time-based joining disabled
-
-			fcom dword ptr roadblockJoinTimers.values.current
-			fnstsw ax
-			test ah, 0x41
-
-			conclusion:
-			fstp st(0)
-
-			jmp dword ptr roadblockJoinTimerExit
-		}
-	}
-
-
-
-	constexpr address roadblockJoinCountEntrance = 0x4443A6;
-	constexpr address roadblockJoinCountExit     = 0x4443AE;
-
-	__declspec(naked) void RoadblockJoinCount()
-	{
-		static constexpr address roadblockJoinCountSkip = 0x444400;
-
-		__asm
-		{
-			mov eax, dword ptr [esi + 0x40 + 0x23C]
-			cmp eax, dword ptr maxRBJoinCounts.current
-			jge skip // join limit reached
-
-			cmp byte ptr CopSpawnOverrides::chasersAreIndependents.current, 0x1
-			je independent // "Chasers" independent
-
-			call GetNumNonRoadblockVehicles
-			cmp eax, dword ptr CopSpawnOverrides::activeChaserCounts.maxValues.current
-			jge skip       // at or above spawn limit
-			jmp conclusion // below
-
-			independent:
-			lea ecx, dword ptr [esi + 0x40]
-			call CopSpawnOverrides::ChasersManager::IsJoinable // ecx: pursuit
-			test al, al
-			je skip                                            // may not join
-
-			conclusion:
-			jmp dword ptr roadblockJoinCountExit
-
-			skip:
-			jmp dword ptr roadblockJoinCountSkip
-		}
-	}
-
-
-
-	constexpr address spikesHitReactionEntrance = 0x63BB9E;
-	constexpr address spikesHitReactionExit     = 0x63BBA6;
-
-	__declspec(naked) void SpikesHitReaction()
-	{
-		static constexpr float maxJoinRange = 80.f; // metres
-
-		__asm
-		{
-			// Execute original code first
-			call dword ptr [edx + 0xA0]
 			test eax, eax
-			je conclusion // no pursuit
 
-			cmp byte ptr reactToSpikesHits.current, 0x0
-			je conclusion // reaction disabled
+			mov ecx, dword ptr leader5CrossVehicles.current
+			cmovne ecx, dword ptr leader7CrossVehicles.current // not LeaderStrategy 5
+			
+			mov dword ptr [esp + 0x24], ecx
 
-			mov edx, eax
-
-			fld dword ptr [edx + 0x7C]
-			fcomp dword ptr maxJoinRange
-			fnstsw ax
-			test ah, 0x41
-
-			mov eax, edx
-
-			conclusion:
-			jmp dword ptr spikesHitReactionExit
-		}
-	}
-
-
-
-	constexpr address strategySelectionEntrance = 0x41978D;
-	constexpr address strategySelectionExit     = 0x41984E;
-
-	__declspec(naked) void StrategySelection()
-	{
-		__asm
-		{
-			mov ecx, esi
-			call SetRandomStrategy // ecx: pursuit
-			movzx eax, al
-
-			xor edi, edi
-			sub edi, eax
-
-			jmp dword ptr strategySelectionExit
-		}
-	}
-
-
-
-	constexpr address roadblockCooldownEntrance = 0x419535;
-	constexpr address roadblockCooldownExit     = 0x41954C;
-
-	__declspec(naked) void RoadblockCooldown()
-	{
-		__asm
-		{
-			mov ecx, offset roadblockCooldowns
-			call HeatParameters::Interval<float>::GetRandomValue
-
-			jmp dword ptr roadblockCooldownExit
-		}
-	}
-
-
-
-	constexpr address requestCooldownEntrance = 0x4196DA;
-	constexpr address requestCooldownExit     = 0x4196E4;
-
-	__declspec(naked) void RequestCooldown()
-	{
-		__asm
-		{
-			mov eax, dword ptr strategyCooldowns.current
-			mov dword ptr [esi + 0x210], eax
-
-			jmp dword ptr requestCooldownExit
-		}
-	}
-
-
-
-	constexpr address rivalRoadblockEntrance = 0x419563;
-	constexpr address rivalRoadblockExit     = 0x419568;
-
-	__declspec(naked) void RivalRoadblock()
-	{
-		static constexpr address rivalRoadblockSkip = 0x4195CD;
-
-		__asm
-		{
-			cmp byte ptr rivalRoadblockEnableds.current, 0x1
-			je conclusion // no rival discrimination
-
-			call Globals::IsPlayerPursuit
-			test al, al
-			je skip // not player pursuit
-
-			mov ecx, esi
-			mov edx, dword ptr [esi]
-
-			conclusion:
-			// Execute original code and resume
-			call dword ptr [edx + 0x28]
-			cmp al, 0x1
-
-			jmp dword ptr rivalRoadblockExit
-
-			skip:
-			jmp dword ptr rivalRoadblockSkip
-		}
-	}
-
-
-
-	constexpr address crossPriorityEntrance = 0x419724;
-	constexpr address crossPriorityExit     = 0x41972A;
-
-	__declspec(naked) void CrossPriority()
-	{
-		static constexpr address crossPrioritySkip = 0x419780;
-
-		__asm
-		{
-			jne skip // priority flag set
-
-			cmp byte ptr rivalLeaderEnableds.current, 0x1
-			je conclusion // no rival discrimination
-
-			mov ecx, esi
-			call Globals::IsPlayerPursuit
-			test al, al
-			je skip // not player pursuit
-
-			conclusion:
-			// Execute original code and resume
-			mov ecx, ebp
-			xor ebx, ebx
-
-			jmp dword ptr crossPriorityExit
-
-			skip:
-			jmp dword ptr crossPrioritySkip
-		}
-	}
-
-
-
-	constexpr address rhinoSelectorEntrance = 0x41F1BC;
-	constexpr address rhinoSelectorExit     = 0x41F1C8;
-
-	__declspec(naked) void RhinoSelector()
-	{
-		__asm
-		{
-			mov eax, dword ptr [esi]
-			jl heavy // is "heavy" Rhino variant
-
-			cmp dword ptr [eax], 0x3
-			mov eax, dword ptr heavy3LightVehicles.current
-			cmovne eax, dword ptr heavy4LightVehicles.current // not HeavyStrategy 3
-			jmp conclusion                                    // was "light" variant
-
-			heavy:
-			cmp dword ptr [eax], 0x3
-			mov eax, dword ptr heavy3HeavyVehicles.current
-			cmovne eax, dword ptr heavy4HeavyVehicles.current // not HeavyStrategy 3
-
-			conclusion:
-			jmp dword ptr rhinoSelectorExit
-		}
-	}
-
-
-
-	constexpr address henchmenSubEntrance = 0x41F485;
-	constexpr address henchmenSubExit     = 0x41F48A;
-
-	__declspec(naked) void HenchmenSub()
-	{
-		__asm
-		{
-			mov eax, dword ptr leaderHenchmenVehicles.current
-
-			jmp dword ptr henchmenSubExit
+			jmp dword ptr crossSubExit
 		}
 	}
 
@@ -588,17 +346,289 @@ namespace GroundSupports
 
 
 
-	constexpr address leaderSubEntrance = 0x41F504;
-	constexpr address leaderSubExit     = 0x41F50C;
+	constexpr address henchmenSubEntrance = 0x41F485;
+	constexpr address henchmenSubExit     = 0x41F48A;
 
-	__declspec(naked) void LeaderSub()
+	__declspec(naked) void HenchmenSub()
 	{
 		__asm
 		{
-			mov ecx, dword ptr leaderCrossVehicles.current
-			mov dword ptr [esp + 0x24], ecx
+			mov eax, dword ptr leader7HenchmenVehicles.current
 
-			jmp dword ptr leaderSubExit
+			jmp dword ptr henchmenSubExit
+		}
+	}
+
+
+
+	constexpr address rhinoSelectorEntrance = 0x41F1BC;
+	constexpr address rhinoSelectorExit     = 0x41F1C8;
+
+	__declspec(naked) void RhinoSelector()
+	{
+		__asm
+		{
+			mov eax, dword ptr heavy3LightVehicles.current
+			cmovl eax, dword ptr heavy3HeavyVehicles.current // is "heavy" variant
+
+			mov edx, dword ptr heavy4LightVehicles.current
+			cmovl edx, dword ptr heavy4HeavyVehicles.current // is "heavy" variant
+
+			mov ecx, dword ptr [esi]
+			cmp dword ptr [ecx], 0x3
+			cmovne eax, edx // not HeavyStrategy 3
+
+			jmp dword ptr rhinoSelectorExit
+		}
+	}
+
+
+
+	constexpr address crossPriorityEntrance = 0x419724;
+	constexpr address crossPriorityExit     = 0x41972A;
+
+	__declspec(naked) void CrossPriority()
+	{
+		static constexpr address crossPrioritySkip = 0x419780;
+
+		__asm
+		{
+			jne skip // priority flag set
+
+			cmp byte ptr rivalLeaderEnableds.current, 0x1
+			je conclusion // no rival discrimination
+
+			mov ecx, esi
+			call Globals::IsPlayerPursuit
+			test al, al
+			je skip // not player pursuit
+
+			conclusion:
+			// Execute original code and resume
+			mov ecx, ebp
+			xor ebx, ebx
+
+			jmp dword ptr crossPriorityExit
+
+			skip:
+			jmp dword ptr crossPrioritySkip
+		}
+	}
+
+
+
+	constexpr address rivalRoadblockEntrance = 0x419563;
+	constexpr address rivalRoadblockExit     = 0x419568;
+
+	__declspec(naked) void RivalRoadblock()
+	{
+		static constexpr address rivalRoadblockSkip = 0x4195CD;
+
+		__asm
+		{
+			cmp byte ptr rivalRoadblockEnableds.current, 0x1
+			je conclusion // no rival discrimination
+
+			call Globals::IsPlayerPursuit
+			test al, al
+			je skip // not player pursuit
+
+			mov ecx, esi
+			mov edx, dword ptr [esi]
+
+			conclusion:
+			// Execute original code and resume
+			call dword ptr [edx + 0x28]
+			cmp al, 0x1
+
+			jmp dword ptr rivalRoadblockExit
+
+			skip:
+			jmp dword ptr rivalRoadblockSkip
+		}
+	}
+
+
+
+	constexpr address requestCooldownEntrance = 0x4196D7;
+	constexpr address requestCooldownExit     = 0x4196E4;
+
+	__declspec(naked) void RequestCooldown()
+	{
+		__asm
+		{
+			mov ecx, offset strategyCooldowns
+			call HeatParameters::Interval<float>::GetRandomValue
+			fstp dword ptr [esi + 0x210]
+
+			// Execute original code and resume
+			lea ecx, dword ptr [esi - 0x48]
+
+			jmp dword ptr requestCooldownExit
+		}
+	}
+
+
+
+	constexpr address roadblockCooldownEntrance = 0x419535;
+	constexpr address roadblockCooldownExit     = 0x41954C;
+
+	__declspec(naked) void RoadblockCooldown()
+	{
+		__asm
+		{
+			mov ecx, offset roadblockCooldowns
+			call HeatParameters::Interval<float>::GetRandomValue
+
+			jmp dword ptr roadblockCooldownExit
+		}
+	}
+
+
+
+	constexpr address roadblockDistanceEntrance = 0x43DE45;
+	constexpr address roadblockDistanceExit     = 0x43DE4A;
+
+	__declspec(naked) void RoadblockDistance()
+	{
+		__asm
+		{
+			push ecx
+
+			mov ecx, offset roadblockSpawnDistances
+			call HeatParameters::Interval<float>::GetRandomValue
+
+			mov ecx, dword ptr [esp]
+			fstp dword ptr [esp]
+
+			jmp dword ptr roadblockDistanceExit
+		}
+	}
+
+
+
+	constexpr address strategySelectionEntrance = 0x41978D;
+	constexpr address strategySelectionExit     = 0x41984E;
+
+	__declspec(naked) void StrategySelection()
+	{
+		__asm
+		{
+			mov ecx, esi
+			call SetRandomStrategy // ecx: pursuit
+			movzx eax, al
+
+			xor edi, edi
+			sub edi, eax
+
+			jmp dword ptr strategySelectionExit
+		}
+	}
+
+
+
+	constexpr address spikesHitReactionEntrance = 0x63BB9E;
+	constexpr address spikesHitReactionExit     = 0x63BBA6;
+
+	__declspec(naked) void SpikesHitReaction()
+	{
+		static constexpr float maxJoinRange = 80.f; // metres
+
+		__asm
+		{
+			// Execute original code first
+			call dword ptr [edx + 0xA0]
+			test eax, eax
+			je conclusion // no pursuit
+
+			cmp byte ptr reactToSpikesHits.current, 0x0
+			je conclusion // reaction disabled
+
+			mov edx, eax
+
+			fld dword ptr [edx + 0x7C]
+			fcomp dword ptr maxJoinRange
+			fnstsw ax
+			test ah, 0x41
+
+			mov eax, edx
+
+			conclusion:
+			jmp dword ptr spikesHitReactionExit
+		}
+	}
+
+
+
+	constexpr address roadblockJoinCountEntrance = 0x4443A6;
+	constexpr address roadblockJoinCountExit     = 0x4443AE;
+
+	__declspec(naked) void RoadblockJoinCount()
+	{
+		static constexpr address roadblockJoinCountSkip = 0x444400;
+
+		__asm
+		{
+			lea ecx, dword ptr [esi + 0x40]
+			call AcceptsRoadblockVehicles // ecx: pursuit
+			test al, al
+			je skip                       // may not join
+
+			jmp dword ptr roadblockJoinCountExit
+
+			skip:
+			jmp dword ptr roadblockJoinCountSkip
+		}
+	}
+
+
+
+	constexpr address roadblockJoinTimerEntrance = 0x42BF09;
+	constexpr address roadblockJoinTimerExit     = 0x42BF14;
+
+	__declspec(naked) void RoadblockJoinTimer()
+	{
+		__asm
+		{
+			cmp byte ptr roadblockJoinTimers.isEnableds.current, 0x1
+			jne conclusion // time-based joining disabled
+
+			fcom dword ptr roadblockJoinTimers.values.current
+			fnstsw ax
+			test ah, 0x41
+
+			conclusion:
+			fstp st(0)
+
+			jmp dword ptr roadblockJoinTimerExit
+		}
+	}
+
+
+
+	constexpr address cooldownModeReactionEntrance = 0x42BF16;
+	constexpr address cooldownModeReactionExit     = 0x42BF2B;
+
+	__declspec(naked) void CooldownModeReaction()
+	{
+		__asm
+		{
+			cmp byte ptr reactToCooldownModes.current, 0x1
+			jne conclusion // no "COOLDOWN"-mode reaction
+
+			// Execute original code and resume
+			mov edx, dword ptr [ebp]
+			mov ecx, ebp
+			call dword ptr [edx + 0x1C]
+
+			mov edx, dword ptr [eax]
+			mov ecx, eax
+			call dword ptr [edx + 0x114]
+
+			cmp eax, 0x2
+
+			conclusion:
+			jmp dword ptr cooldownModeReactionExit
 		}
 	}
 
@@ -623,37 +653,32 @@ namespace GroundSupports
     {
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Supports.ini")) return false;
 
-		// Roadblock cooldowns
-		HeatParameters::Parse<float, float>
-		(
-			parser,
-			"Roadblocks:Cooldown",
-			{roadblockCooldowns,      1.f},
-			{roadblockHeavyCooldowns, 1.f}
-		);
+		// Heat parameters
+		HeatParameters::Parse<bool, bool, bool>(parser, "Supports:Rivals", {rivalRoadblockEnableds}, {rivalHeavyEnableds}, {rivalLeaderEnableds});
 
-		// Roadblock joining
+		HeatParameters::Parse        <float, float>(parser, "Roadblocks:Cooldown", {roadblockCooldowns,      1.f}, {roadblockHeavyCooldowns, 1.f});
+		HeatParameters::Parse        <float>       (parser, "Roadblocks:Distance", {roadblockSpawnDistances, 0.f});
+		HeatParameters::ParseOptional<float>       (parser, "Roadblocks:Joining",  {roadblockJoinTimers,     0.f});
+
+		HeatParameters::Parse<bool, bool> (parser, "Roadblocks:Reactions", {reactToCooldownModes}, {reactToSpikesHits});
+
 		HeatParameters::Parse<float, float, int>
 		(
 			parser,
 			"Joining:Definitions",
 			{maxRBJoinDistances,       0.f},
 			{maxRBJoinElevationDeltas, 0.f},
-			{maxRBJoinCounts,          0}
+			{maxRBJoinCounts,            0}
 		);
 
-		HeatParameters::ParseOptional<float>(parser, "Roadblocks:Joining", {roadblockJoinTimers, .001f});
-
-		// Other Heat parameters
-		HeatParameters::Parse<bool, bool, bool>(parser, "Supports:Rivals", {rivalRoadblockEnableds}, {rivalHeavyEnableds}, {rivalLeaderEnableds});
-
-		HeatParameters::Parse<bool, bool>(parser, "Roadblocks:Reactions", {reactToCooldownModes},    {reactToSpikesHits});
-		HeatParameters::Parse<bool, bool>(parser, "Heavy3:Roadblocks",    {heavy3TriggerCooldowns},  {heavy3AreBlockables});
-		HeatParameters::Parse<float>     (parser, "Strategies:Cooldown",  {strategyCooldowns, 1.f});
-
+		HeatParameters::Parse<float>     (parser, "Strategies:Cooldown", {strategyCooldowns, 1.f});
+		HeatParameters::Parse<bool, bool>(parser, "Heavy3:Roadblocks",   {heavy3TriggerCooldowns}, {heavy3AreBlockables});
+		
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy3:Vehicles", {heavy3LightVehicles}, {heavy3HeavyVehicles});
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy4:Vehicles", {heavy4LightVehicles}, {heavy4HeavyVehicles});
-		HeatParameters::Parse<std::string, std::string>(parser, "Leader:Vehicles", {leaderCrossVehicles}, {leaderHenchmenVehicles});
+
+		HeatParameters::Parse<std::string>             (parser, "Leader5:Vehicle",  {leader5CrossVehicles});
+		HeatParameters::Parse<std::string, std::string>(parser, "Leader7:Vehicles", {leader7CrossVehicles}, {leader7HenchmenVehicles});
 
 		// Code modifications 
 		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
@@ -662,20 +687,21 @@ namespace GroundSupports
 		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),       {0x42BEBC});
 		MemoryTools::Write<float*>(&(maxRBJoinElevationDeltas.current), {0x42BE3A});
 
-		MemoryTools::MakeRangeJMP(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
-		MemoryTools::MakeRangeJMP(RoadblockJoinTimer,   roadblockJoinTimerEntrance,   roadblockJoinTimerExit);
-		MemoryTools::MakeRangeJMP(SpikesHitReaction,    spikesHitReactionEntrance,    spikesHitReactionExit);
-		MemoryTools::MakeRangeJMP(RoadblockCooldown,    roadblockCooldownEntrance,    roadblockCooldownExit);
-		MemoryTools::MakeRangeJMP(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
-		MemoryTools::MakeRangeJMP(RivalRoadblock,       rivalRoadblockEntrance,       rivalRoadblockExit);
-		MemoryTools::MakeRangeJMP(CrossPriority,        crossPriorityEntrance,        crossPriorityExit);
-		MemoryTools::MakeRangeJMP(RhinoSelector,        rhinoSelectorEntrance,        rhinoSelectorExit);
-		MemoryTools::MakeRangeJMP(HenchmenSub,          henchmenSubEntrance,          henchmenSubExit);
+		MemoryTools::MakeRangeJMP(CrossSub,             crossSubEntrance,             crossSubExit);
 		MemoryTools::MakeRangeJMP(OnAttached,           onAttachedEntrance,           onAttachedExit);
 		MemoryTools::MakeRangeJMP(OnDetached,           onDetachedEntrance,           onDetachedExit);
 		MemoryTools::MakeRangeJMP(CrossSpawn,           crossSpawnEntrance,           crossSpawnExit);
-        MemoryTools::MakeRangeJMP(LeaderSub,            leaderSubEntrance,            leaderSubExit);
-
+		MemoryTools::MakeRangeJMP(HenchmenSub,          henchmenSubEntrance,          henchmenSubExit);
+		MemoryTools::MakeRangeJMP(RhinoSelector,        rhinoSelectorEntrance,        rhinoSelectorExit);
+		MemoryTools::MakeRangeJMP(CrossPriority,        crossPriorityEntrance,        crossPriorityExit);
+		MemoryTools::MakeRangeJMP(RivalRoadblock,       rivalRoadblockEntrance,       rivalRoadblockExit);
+		MemoryTools::MakeRangeJMP(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
+		MemoryTools::MakeRangeJMP(RoadblockCooldown,    roadblockCooldownEntrance,    roadblockCooldownExit);
+		MemoryTools::MakeRangeJMP(RoadblockDistance,    roadblockDistanceEntrance,    roadblockDistanceExit);
+		MemoryTools::MakeRangeJMP(SpikesHitReaction,    spikesHitReactionEntrance,    spikesHitReactionExit);
+		MemoryTools::MakeRangeJMP(RoadblockJoinTimer,   roadblockJoinTimerEntrance,   roadblockJoinTimerExit);
+		MemoryTools::MakeRangeJMP(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
+        
 		ApplyFixes(); // also contains Strategy-selection and roadblock-joining features
         
 		// Status flag
@@ -696,12 +722,14 @@ namespace GroundSupports
 		// With logging disabled, the compiler optimises the boolean and the string literals away
 		bool allValid = true;
 
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, light",   heavy3LightVehicles,    Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, heavy",   heavy3HeavyVehicles,    Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, light",   heavy4LightVehicles,    Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, heavy",   heavy4HeavyVehicles,    Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy, Cross",    leaderCrossVehicles,    Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy, henchmen", leaderHenchmenVehicles, Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, light", heavy3LightVehicles, Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, heavy", heavy3HeavyVehicles, Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, light", heavy4LightVehicles, Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, heavy", heavy4HeavyVehicles, Globals::Class::CAR);
+
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 5, Cross",    leader5CrossVehicles,    Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, Cross",    leader7CrossVehicles,    Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, henchmen", leader7HenchmenVehicles, Globals::Class::CAR);
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -723,7 +751,7 @@ namespace GroundSupports
 		roadblockCooldowns     .Log("roadblockCooldown       ");
 		roadblockHeavyCooldowns.Log("roadblockHeavyCooldown  ");
 
-		strategyCooldowns.Log("strategyCooldown        ");
+		roadblockSpawnDistances.Log("roadblockSpawnDistance  ");
 
 		if (roadblockJoinTimers.isEnableds.current or reactToCooldownModes.current)
 		{
@@ -737,15 +765,19 @@ namespace GroundSupports
 		reactToCooldownModes.Log("reactToCooldownMode     ");
 		reactToSpikesHits   .Log("reactToSpikesHit        ");
 
+		strategyCooldowns.Log("strategyCooldown        ");
+
 		heavy3TriggerCooldowns.Log("heavy3TriggerCooldown   ");
 		heavy3AreBlockables   .Log("heavy3AreBlockable      ");
 
-		heavy3LightVehicles   .Log("heavy3LightVehicle      ");
-		heavy3HeavyVehicles   .Log("heavy3HeavyVehicle      ");
-		heavy4LightVehicles   .Log("heavy4LightVehicle      ");
-		heavy4HeavyVehicles   .Log("heavy4HeavyVehicle      ");
-		leaderCrossVehicles   .Log("leaderCrossVehicle      ");
-		leaderHenchmenVehicles.Log("leaderHenchmenVehicle   ");
+		heavy3LightVehicles.Log("heavy3LightVehicle      ");
+		heavy3HeavyVehicles.Log("heavy3HeavyVehicle      ");
+		heavy4LightVehicles.Log("heavy4LightVehicle      ");
+		heavy4HeavyVehicles.Log("heavy4HeavyVehicle      ");
+
+		leader5CrossVehicles   .Log("leader5CrossVehicle     ");
+		leader7CrossVehicles   .Log("leader7CrossVehicle     ");
+		leader7HenchmenVehicles.Log("leader7HenchmenVehicle  ");
 	}
 
 
@@ -764,7 +796,7 @@ namespace GroundSupports
 		roadblockCooldowns     .SetToHeat(isRacing, heatLevel);
 		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
 
-		strategyCooldowns.SetToHeat(isRacing, heatLevel);
+		roadblockSpawnDistances.SetToHeat(isRacing, heatLevel);
 
 		maxRBJoinDistances      .SetToHeat(isRacing, heatLevel);
 		maxRBJoinElevationDeltas.SetToHeat(isRacing, heatLevel);
@@ -775,15 +807,19 @@ namespace GroundSupports
 		reactToCooldownModes.SetToHeat(isRacing, heatLevel);
 		reactToSpikesHits   .SetToHeat(isRacing, heatLevel);
 
+		strategyCooldowns.SetToHeat(isRacing, heatLevel);
+
 		heavy3TriggerCooldowns.SetToHeat(isRacing, heatLevel);
 		heavy3AreBlockables   .SetToHeat(isRacing, heatLevel);
 
-		heavy3LightVehicles   .SetToHeat(isRacing, heatLevel);
-		heavy3HeavyVehicles   .SetToHeat(isRacing, heatLevel);
-		heavy4LightVehicles   .SetToHeat(isRacing, heatLevel);
-		heavy4HeavyVehicles   .SetToHeat(isRacing, heatLevel);
-		leaderCrossVehicles   .SetToHeat(isRacing, heatLevel);
-		leaderHenchmenVehicles.SetToHeat(isRacing, heatLevel);
+		heavy3LightVehicles.SetToHeat(isRacing, heatLevel);
+		heavy3HeavyVehicles.SetToHeat(isRacing, heatLevel);
+		heavy4LightVehicles.SetToHeat(isRacing, heatLevel);
+		heavy4HeavyVehicles.SetToHeat(isRacing, heatLevel);
+
+		leader5CrossVehicles   .SetToHeat(isRacing, heatLevel);
+		leader7CrossVehicles   .SetToHeat(isRacing, heatLevel);
+		leader7HenchmenVehicles.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();

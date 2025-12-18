@@ -141,7 +141,7 @@
     <None Include="..\BartenderSettings\Basic\Supports.ini">
       <Filter>Config Files\Basic</Filter>
     </None>
-    <None Include="..\BartenderSettings\Advanced\Cars.ini">
+    <None Include="..\BartenderSettings\Advanced\CarTables.ini">
       <Filter>Config Files\Advanced</Filter>
     </None>
     <None Include="..\BartenderSettings\Advanced\Helicopter.ini">
@@ -160,6 +160,9 @@
       <Filter>Documentation</Filter>
     </None>
     <None Include="..\BartenderSettings\Advanced\Strategies.ini">
+      <Filter>Config Files\Advanced</Filter>
+    </None>
+    <None Include="..\BartenderSettings\Advanced\CarSpawns.ini">
       <Filter>Config Files\Advanced</Filter>
     </None>
   </ItemGroup>

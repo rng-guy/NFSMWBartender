@@ -18,8 +18,11 @@ namespace CopFleeOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::OptionalInterval<float> fleeDelays;
-	HeatParameters::Pair            <int>   chasersThresholds(2);
+	HeatParameters::OptionalInterval<float> chaserFleeDelays;           // seconds
+	HeatParameters::Pair            <int>   chaserChasersThresholds(2); // cars
+
+	HeatParameters::OptionalInterval<float> joinedFleeDelays;           // seconds
+	HeatParameters::Pair            <int>   joinedChasersThresholds(2); // cars
 
 
 
@@ -34,32 +37,29 @@ namespace CopFleeOverrides
 		const address& heavyStrategy  = *reinterpret_cast<address*>(this->pursuit + 0x194);
 		const address& leaderStrategy = *reinterpret_cast<address*>(this->pursuit + 0x198);
 
-		HashContainers::AddressSet        activeChaserVehicles;
-		HashContainers::AddressMap<float> chaserVehicleToFleeTimestamp;
-		HashContainers::AddressMap<float> supportVehicleToFleeTimestamp;
+		HashContainers::AddressSet chaserVehicles;
+		HashContainers::AddressSet joinedVehicles;
+
+		HashContainers::AddressMap<float> chaserVehicleToTimestamp;
+		HashContainers::AddressMap<float> joinedVehicleToTimestamp;
+		HashContainers::AddressMap<float> strategyVehicleToTimestamp;
 
 
-		static bool IsChaserMember(const address copVehicle)
+		void ScheduleVehicle
+		(
+			const address                      copVehicle,
+			const float                        vehicleFleeDelay,
+			HashContainers::AddressMap<float>& vehicleToTimestamp
+		) 
+			const 
 		{
-			const vault copType = Globals::GetVehicleType(copVehicle);
-			return CopSpawnTables::chaserSpawnTables.current->ContainsType(copType);
-		}
-
-
-		void ReviewChaser(const address copVehicle)
-		{
-			if (not Globals::playerHeatLevelKnown) return;
-			if (not fleeDelays.isEnableds.current) return;
-			if (this->IsChaserMember(copVehicle))  return;
-
-			const float fleeDelay        = fleeDelays.GetRandomValue();
-			const float fleeTimestamp    = Globals::simulationTime + fleeDelay;
-			const auto  [pair, wasAdded] = this->chaserVehicleToFleeTimestamp.try_emplace(copVehicle, fleeTimestamp);
+			const float fleeTimestamp    = Globals::simulationTime + vehicleFleeDelay;
+			const auto  [pair, wasAdded] = vehicleToTimestamp.try_emplace(copVehicle, fleeTimestamp);
 
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (wasAdded)
-					Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", fleeDelay);
+					Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", vehicleFleeDelay);
 
 				else
 					Globals::logger.Log("WARNING: [FLE]", copVehicle, "already scheduled");
@@ -67,74 +67,99 @@ namespace CopFleeOverrides
 		}
 
 
-		void ReviewAllChasers()
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[FLE] Reviewing all chaser vehicles");
-
-			this->chaserVehicleToFleeTimestamp.clear();
-
-			for (const address copVehicle : this->activeChaserVehicles)
-				this->ReviewChaser(copVehicle);
-		}
-
-
-		void ScheduleSupport
+		void ScheduleStrategyVehicle
 		(
-			const address copVehicle, 
-			const float   strategyDuration
+			const address copVehicle,
+			const address strategy
 		) {
 			if (not Globals::playerHeatLevelKnown) return;
 
-			const float fleeTimestamp    = Globals::simulationTime + strategyDuration;
-			const auto  [pair, wasAdded] = this->supportVehicleToFleeTimestamp.try_emplace(copVehicle, fleeTimestamp);
+			const float strategyDuration = (strategy) ? *reinterpret_cast<float*>(strategy + 0x8) : 1.f;
+			this->ScheduleVehicle(copVehicle, strategyDuration, this->strategyVehicleToTimestamp);
+		}
 
+
+		void ReviewChaserVehicle(const address copVehicle)
+		{
+			if (not Globals::playerHeatLevelKnown)       return;
+			if (not chaserFleeDelays.isEnableds.current) return;
+
+			const vault copType  = Globals::GetVehicleType(copVehicle);
+			const bool  isMember = CopSpawnTables::chaserSpawnTables.current->ContainsType(copType);
+
+			if (not isMember)
+				this->ScheduleVehicle(copVehicle, chaserFleeDelays.GetRandomValue(), this->chaserVehicleToTimestamp);
+		}
+
+
+		void ReviewAllChaserVehicles()
+		{
 			if constexpr (Globals::loggingEnabled)
-			{
-				if (wasAdded)
-					Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", strategyDuration);
+				Globals::logger.Log(this->pursuit, "[FLE] Reviewing chaser vehicles");
 
-				else
-					Globals::logger.Log("WARNING: [FLE]", copVehicle, "already scheduled");
-			}
+			this->chaserVehicleToTimestamp.clear();
+
+			for (const address copVehicle : this->chaserVehicles)
+				this->ReviewChaserVehicle(copVehicle);
 		}
 
 
-		static float GetStrategyDuration(const address strategy)
+		void ReviewJoinedVehicle(const address copVehicle)
 		{
-			return (strategy) ? *reinterpret_cast<float*>(strategy + 0x8) : 1.f;
+			if (not Globals::playerHeatLevelKnown)       return;
+			if (not joinedFleeDelays.isEnableds.current) return;
+
+			this->ScheduleVehicle(copVehicle, joinedFleeDelays.GetRandomValue(), this->joinedVehicleToTimestamp);
 		}
 
 
-		bool MayAnotherChaserFlee() const
+		void ReviewAllJoinedVehicles()
 		{
-			return (static_cast<int>(this->activeChaserVehicles.size()) > chasersThresholds.current);
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[FLE] Reviewing joined vehicles");
+
+			this->joinedVehicleToTimestamp.clear();
+
+			for (const address copVehicle : this->joinedVehicles)
+				this->ReviewJoinedVehicle(copVehicle);
 		}
 
 
-		void CheckChaserTimestamps()
+		bool FleeingPermitted(const int chasersThreshold) const
 		{
-			if (this->chaserVehicleToFleeTimestamp.empty()) return;
-			if (not this->MayAnotherChaserFlee())           return;
-			
-			auto iterator = this->chaserVehicleToFleeTimestamp.begin();
+			return (static_cast<int>(this->chaserVehicles.size()) > chasersThreshold);
+		}
 
-			while (iterator != this->chaserVehicleToFleeTimestamp.end())
+
+		void CheckVolatileVehicles
+		(
+			HashContainers::AddressSet&        vehicles,
+			HashContainers::AddressMap<float>& vehicleToTimestamp,
+			const int                          chasersThreshold
+		) 
+			const
+		{
+			if (vehicleToTimestamp.empty())                   return;
+			if (not this->FleeingPermitted(chasersThreshold)) return;
+
+			auto iterator = vehicleToTimestamp.begin();
+
+			while (iterator != vehicleToTimestamp.end())
 			{
 				if (Globals::simulationTime >= iterator->second)
 				{
-					this->MakeVehicleBail           (iterator->first);
-					this->activeChaserVehicles.erase(iterator->first);
+					this->MakeVehicleBail(iterator->first);
+					vehicles.erase(iterator->first);
 
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[FLE] Chaser", iterator->first, "expired");
+						Globals::logger.Log(this->pursuit, "[FLE] Vehicle", iterator->first, "expired");
 
-					iterator = this->chaserVehicleToFleeTimestamp.erase(iterator);
+					iterator = vehicleToTimestamp.erase(iterator);
 
-					if (not this->MayAnotherChaserFlee())
+					if (not this->FleeingPermitted(chasersThreshold))
 					{
 						if constexpr (Globals::loggingEnabled)
-							Globals::logger.Log(this->pursuit, "[FLE] Fleeing suspended");		
+							Globals::logger.Log(this->pursuit, "[FLE] Fleeing suspended");
 
 						break;
 					}
@@ -144,22 +169,22 @@ namespace CopFleeOverrides
 		}
 
 
-		void CheckSupportTimestamps()
+		void CheckStrategyVehicles()
 		{
-			if (this->supportVehicleToFleeTimestamp.empty()) return;
+			if (this->strategyVehicleToTimestamp.empty()) return;
 
-			auto iterator = this->supportVehicleToFleeTimestamp.begin();
+			auto iterator = this->strategyVehicleToTimestamp.begin();
 
-			while (iterator != this->supportVehicleToFleeTimestamp.end())
+			while (iterator != this->strategyVehicleToTimestamp.end())
 			{
 				if (Globals::simulationTime >= iterator->second)
 				{
 					this->MakeVehicleBail(iterator->first);
 
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[FLE] Support", iterator->first, "expired");
+						Globals::logger.Log(this->pursuit, "[FLE] Vehicle", iterator->first, "expired");
 
-					iterator = this->supportVehicleToFleeTimestamp.erase(iterator);
+					iterator = this->strategyVehicleToTimestamp.erase(iterator);
 				}
 				else ++iterator;
 			}
@@ -185,14 +210,17 @@ namespace CopFleeOverrides
 
 		void UpdateOnGameplay() override 
 		{
-			this->CheckChaserTimestamps();
-			this->CheckSupportTimestamps();
+			this->CheckStrategyVehicles();
+
+			this->CheckVolatileVehicles(this->chaserVehicles, this->chaserVehicleToTimestamp, chaserChasersThresholds.current);
+			this->CheckVolatileVehicles(this->joinedVehicles, this->joinedVehicleToTimestamp, joinedChasersThresholds.current);
 		}
 
 
 		void UpdateOnHeatChange() override 
 		{
-			this->ReviewAllChasers();
+			this->ReviewAllChaserVehicles();
+			this->ReviewAllJoinedVehicles();
 		}
 
 
@@ -206,16 +234,21 @@ namespace CopFleeOverrides
 			switch (copLabel)
 			{
 			case CopLabel::HEAVY:
-				this->ScheduleSupport(copVehicle, this->GetStrategyDuration(this->heavyStrategy));
+				this->ScheduleStrategyVehicle(copVehicle, this->heavyStrategy);
 				return;
 
 			case CopLabel::LEADER:
-				this->ScheduleSupport(copVehicle, this->GetStrategyDuration(this->leaderStrategy));
+				this->ScheduleStrategyVehicle(copVehicle, this->leaderStrategy);
 				return;
 
 			case CopLabel::CHASER:
-				this->activeChaserVehicles.insert(copVehicle);
-				this->ReviewChaser(copVehicle);
+				this->chaserVehicles.insert(copVehicle);
+				this->ReviewChaserVehicle  (copVehicle);
+				return;
+
+			case CopLabel::ROADBLOCK:
+				this->joinedVehicles.insert(copVehicle);
+				this->ReviewJoinedVehicle  (copVehicle);
 			}
 		}
 
@@ -233,12 +266,17 @@ namespace CopFleeOverrides
 				[[fallthrough]];
 
 			case CopLabel::LEADER:
-				this->supportVehicleToFleeTimestamp.erase(copVehicle);
+				this->strategyVehicleToTimestamp.erase(copVehicle);
 				return;
 
 			case CopLabel::CHASER:
-				this->activeChaserVehicles        .erase(copVehicle);
-				this->chaserVehicleToFleeTimestamp.erase(copVehicle);
+				this->chaserVehicles          .erase(copVehicle);
+				this->chaserVehicleToTimestamp.erase(copVehicle);
+				return;
+
+			case CopLabel::ROADBLOCK:
+				this->joinedVehicles          .erase(copVehicle);
+				this->joinedVehicleToTimestamp.erase(copVehicle);
 			}
 		}
 	};
@@ -275,10 +313,11 @@ namespace CopFleeOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced + "CarSpawns.ini");
 
 		// Heat parameters
-		HeatParameters::ParseOptional<float, int>(parser, "Chasers:Fleeing", {fleeDelays, 1.f}, {chasersThresholds, 0});
+		HeatParameters::ParseOptional<float, int>(parser, "Joining:Fleeing", {joinedFleeDelays, 1.f}, {joinedChasersThresholds, 0});
+		HeatParameters::ParseOptional<float, int>(parser, "Chasers:Fleeing", {chaserFleeDelays, 1.f}, {chaserChasersThresholds, 0});
 
 		// Code modifications 
 		MemoryTools::MakeRangeJMP(GoalUpdate, goalUpdateEntrance, goalUpdateExit);
@@ -293,12 +332,21 @@ namespace CopFleeOverrides
 
 	void LogHeatReport()
 	{
-		if (not fleeDelays.isEnableds.current) return;
+		if (not featureEnabled) return;
 
 		Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
 
-		fleeDelays       .Log("fleeDelay               ");
-		chasersThresholds.Log("chasersThreshold        ");
+		if (chaserFleeDelays.isEnableds.current)
+		{
+			chaserFleeDelays       .Log("chaserFleeDelay         ");
+			chaserChasersThresholds.Log("chaserChasersThreshold  ");
+		}
+
+		if (joinedFleeDelays.isEnableds.current)
+		{
+			joinedFleeDelays       .Log("joinedFleeDelay         ");
+			joinedChasersThresholds.Log("joinedChasersThreshold  ");
+		}
 	}
 
 
@@ -310,8 +358,11 @@ namespace CopFleeOverrides
 	) {
 		if (not featureEnabled) return;
 
-		fleeDelays       .SetToHeat(isRacing, heatLevel);
-		chasersThresholds.SetToHeat(isRacing, heatLevel);
+		chaserFleeDelays       .SetToHeat(isRacing, heatLevel);
+		chaserChasersThresholds.SetToHeat(isRacing, heatLevel);
+
+		joinedFleeDelays       .SetToHeat(isRacing, heatLevel);
+		joinedChasersThresholds.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();

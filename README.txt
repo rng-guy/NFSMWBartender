@@ -36,12 +36,14 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • which of the enabled ground supports the cops may request in non-player pursuits,
  • the internal cooldown between non-Strategy roadblock requests,
  • the internal cooldown between Heavy / LeaderStrategy requests,
- • under which conditions and to what extent (if at all) roadblock vehicles can join pursuits,
+ • at what distance from racers roadblocks may spawn,
+ • under which conditions and to what extent (if at all) roadblock vehicles may join pursuits,
  • whether roadblock vehicles react to racers entering "COOLDOWN" mode and / or hitting spikes,
  • whether HeavyStrategy 3 requests interact with roadblock requests and spawns,
  • which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
- • which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4, and
- • which vehicles spawn in place of Cross and his henchmen through LeaderStrategy 5 / 7.
+ • which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4,
+ • which vehicle spawns in place of Cross through LeaderStrategy 5, and
+ • which vehicles spawn in place of Cross and his henchmen through LeaderStrategy 7.
 
 The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • which notification string the game displays whenever you destroy a given cop vehicle;
@@ -68,11 +70,13 @@ The "Basic" feature set FIXES EIGHT BUGS / ISSUES:
 ── ■ │ 2 - WHAT DOES THE "ADVANCED" FEATURE SET DO? │ ■ ───────────────────────────────────────────
 
 The "Advanced" feature set LETS YOU CHANGE (per Heat level)
- • whether spawning decisions for traffic cars are independent of those for cops,
  • how many chasing cops may (re)spawn regardless of the remaining engagement count,
  • below what total number of active cops in the world the game may spawn new chasing cops,
  • whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
+ • whether spawning decisions for traffic cars are independent of those for cops,
  • how far away new chasing cops must spawn from all already active cops,
+ • above what count (if at all) no more cops may join the pursuit from roadblocks,
+ • when exactly (if at all) and how many cops that joined from roadblocks can flee the pursuit,
  • when exactly (if at all) and how many chasing cops from other Heat levels can flee the pursuit,
  • which vehicles (any amount, with counts and chances) may spawn to chase and search for racers,
  • which vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
@@ -128,13 +132,16 @@ However, some pursuit-related .asi mods require manual (re)configuration for com
 
 Under certain conditions, Bartender MAY REQUIRE the "NFSMW LimitAdjuster" mod by Zolika1351.
 Specifically, you likely need that mod if you configure Bartender in any of the following ways:
- • "[Chasers:Limits]"       in "Cars.ini"      : You define a global cop-spawn limit > 8.
- • "[Chasers:Independence]" in "Cars.ini"      : You enable independent spawns for chasing cops.
+ • "[Chasers:Limits]"       in "CarSpawns.ini" : You define a global cop-spawn limit > 8.
+ • "[Chasers:Independence]" in "CarSpawns.ini" : You enable independent spawns for chasing cops.
+ • "[Traffic:Independence]" in "CarSpawns.ini" : You enable independent spawns for traffic.
  • "[Heavy3:Unblocking]"    in "Strategies.ini": You define very short unblock delays.
  
 TO CONFIGURE "NFSMW LimitAdjuster" for optimal compatibility with Bartender:
- 1) • under "[Limits]" in "NFSMWLimitAdjuster.ini", set the "PursuitCops" parameter to 255; and
- 2) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature.
+ 1) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature; 
+ 2) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50; 
+ 3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "PursuitCops"      to 255; and
+ 4) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "Vehicles_SoftCap" to 255.
 
 
 

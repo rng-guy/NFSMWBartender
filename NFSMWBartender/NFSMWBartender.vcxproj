@@ -189,7 +189,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\APPENDIX.md" />
-    <None Include="..\BartenderSettings\Advanced\Cars.ini" />
+    <None Include="..\BartenderSettings\Advanced\CarSpawns.ini" />
+    <None Include="..\BartenderSettings\Advanced\CarTables.ini" />
     <None Include="..\BartenderSettings\Advanced\Helicopter.ini" />
     <None Include="..\BartenderSettings\Advanced\Strategies.ini" />
     <None Include="..\BartenderSettings\Basic\General.ini" />

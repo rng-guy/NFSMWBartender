@@ -277,55 +277,6 @@ namespace PursuitObserver
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address pursuitConstructorEntrance = 0x4432D0;
-	constexpr address pursuitConstructorExit     = 0x4432D7;
-
-	__declspec(naked) void PursuitConstructor()
-	{
-		__asm
-		{
-			add eax, 0x2C
-			push eax
-
-			lea ecx, dword ptr [eax + 0x1C]
-			call PursuitObserver::AddPursuit // ecx: pursuit
-
-			pop eax
-
-			// Execute original code and resume
-			mov ecx, dword ptr [esp + 0x8]
-
-			jmp dword ptr pursuitConstructorExit
-		}
-	}
-
-
-
-	constexpr address pursuitDestructorEntrance = 0x433775;
-	constexpr address pursuitDestructorExit     = 0x43377A;
-
-	__declspec(naked) void PursuitDestructor()
-	{
-		__asm
-		{
-			push ecx
-
-			add ecx, 0x48
-			call PursuitObserver::RemovePursuit // ecx: pursuit
-
-			pop ecx
-
-			// Execute original code and resume
-			sub esp, 0x8
-			push ebx
-			push esi
-
-			jmp dword ptr pursuitDestructorExit
-		}
-	}
-
-
-
 	constexpr address copAddedEntrance = 0x4338A0;
 	constexpr address copAddedExit     = 0x4338A5;
 
@@ -376,7 +327,56 @@ namespace PursuitObserver
 
 
 
+	constexpr address pursuitDestructorEntrance = 0x433775;
+	constexpr address pursuitDestructorExit     = 0x43377A;
 
+	__declspec(naked) void PursuitDestructor()
+	{
+		__asm
+		{
+			push ecx
+
+			add ecx, 0x48
+			call PursuitObserver::RemovePursuit // ecx: pursuit
+
+			pop ecx
+
+			// Execute original code and resume
+			sub esp, 0x8
+			push ebx
+			push esi
+
+			jmp dword ptr pursuitDestructorExit
+		}
+	}
+
+
+
+	constexpr address pursuitConstructorEntrance = 0x4432D0;
+	constexpr address pursuitConstructorExit     = 0x4432D7;
+
+	__declspec(naked) void PursuitConstructor()
+	{
+		__asm
+		{
+			add eax, 0x2C
+			push eax
+
+			lea ecx, dword ptr [eax + 0x1C]
+			call PursuitObserver::AddPursuit // ecx: pursuit
+
+			pop eax
+
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x8]
+
+			jmp dword ptr pursuitConstructorExit
+		}
+	}
+
+
+
+	
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
@@ -392,10 +392,10 @@ namespace PursuitObserver
 		LeaderOverrides    ::Initialise(parser);
 		
 		// Code modifications 
-		MemoryTools::MakeRangeJMP(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
-		MemoryTools::MakeRangeJMP(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
-		MemoryTools::MakeRangeJMP(CopRemoved,         copRemovedEntrance,         copRemovedExit);
 		MemoryTools::MakeRangeJMP(CopAdded,           copAddedEntrance,           copAddedExit);
+		MemoryTools::MakeRangeJMP(CopRemoved,         copRemovedEntrance,         copRemovedExit);
+		MemoryTools::MakeRangeJMP(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
+		MemoryTools::MakeRangeJMP(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
 
 		// Status flag
 		featureEnabled = true;

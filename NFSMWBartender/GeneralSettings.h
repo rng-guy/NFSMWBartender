@@ -15,21 +15,21 @@ namespace GeneralSettings
 
 	// Heat levels
 	HeatParameters::Pair<float> bountyIntervals     (10.f); // seconds
-	HeatParameters::Pair<int>   maxBountyMultipliers(3);
+	HeatParameters::Pair<int>   maxBountyMultipliers(3);    // times
 
 	HeatParameters::Pair<float> maxBustDistances(15.f); // metres
 	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
-	HeatParameters::Pair<float> bustTimers      (5.f);
+	HeatParameters::Pair<float> bustTimers      (5.f);  // seconds
 
-	HeatParameters::Pair<bool> copFlipByDamageEnableds(true);
+	HeatParameters::Pair<bool> copFlipByDamageEnableds(true); // flag
 
-	HeatParameters::OptionalPair<float> copFlipByTimers;
-	HeatParameters::OptionalPair<float> racerFlipResetDelays;
+	HeatParameters::OptionalPair<float> copFlipByTimers;      // seconds
+	HeatParameters::OptionalPair<float> racerFlipResetDelays; // seconds
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current; // seconds
 	float halfEvadeRate   = .5f / evadeTimers.current;     // hertz
-	float bustRate        = 1.f / bustTimers.current;
+	float bustRate        = 1.f / bustTimers.current;      // hertz
 
 
 
@@ -191,10 +191,9 @@ namespace GeneralSettings
 		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,  .001f}, {maxBustDistances, 0.f});
 		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers, .001f});
 
-		HeatParameters::Parse<bool>(parser, "Flipping:Damage", {copFlipByDamageEnableds});
-
-		HeatParameters::ParseOptional<float>(parser, "Flipping:Time",  {copFlipByTimers,      .001f});
-		HeatParameters::ParseOptional<float>(parser, "Flipping:Reset", {racerFlipResetDelays, .001f});
+		HeatParameters::Parse        <bool> (parser, "Flipping:Damage", {copFlipByDamageEnableds});
+		HeatParameters::ParseOptional<float>(parser, "Flipping:Time",   {copFlipByTimers,      0.f});
+		HeatParameters::ParseOptional<float>(parser, "Flipping:Reset",  {racerFlipResetDelays, 0.f});
 
 		// Code modifications 
 		MemoryTools::Write<float*>(&bustRate,              {0x40AEDB});

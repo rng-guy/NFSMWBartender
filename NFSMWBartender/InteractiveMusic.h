@@ -27,11 +27,11 @@ namespace InteractiveMusic
 
 	std::array<int, maxNumTracks> playlist = {};
 
-	bool  transitionsEnabled = true;
+	bool  transitionsEnabled = true;  // flag
 	float lengthPerTrack     = 600.f; // seconds
 
-	bool shuffleFirstTrack = true;
-	bool shuffleAfterFirst = false;
+	bool shuffleFirstTrack = true;  // flag
+	bool shuffleAfterFirst = false; // flag
 
 	// Code caves
 	size_t currentTrackID = 0;
@@ -71,6 +71,21 @@ namespace InteractiveMusic
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
+	constexpr address nextTrackEntrance = 0x4E7A0D;
+	constexpr address nextTrackExit     = 0x4E7A17;
+
+	__declspec(naked) void NextTrack()
+	{
+		__asm
+		{
+			call GetNextTrack
+
+			jmp dword ptr nextTrackExit
+		}
+	}
+
+
+
 	constexpr address firstTrackEntrance = 0x4F8A5D;
 	constexpr address firstTrackExit     = 0x4F8A6C;
 
@@ -85,21 +100,6 @@ namespace InteractiveMusic
 			add esp, 0x14
 
 			jmp dword ptr firstTrackExit
-		}
-	}
-
-
-
-	constexpr address nextTrackEntrance = 0x4E7A0D;
-	constexpr address nextTrackExit     = 0x4E7A17;
-
-	__declspec(naked) void NextTrack()
-	{
-		__asm
-		{
-			call GetNextTrack
-
-			jmp dword ptr nextTrackExit
 		}
 	}
 
@@ -195,8 +195,8 @@ namespace InteractiveMusic
 		parser.ParseParameter<bool>(section, "shuffleAfterFirst", shuffleAfterFirst);
 
 		// Code modifications 
-		MemoryTools::MakeRangeJMP(FirstTrack,      firstTrackEntrance,      firstTrackExit);
 		MemoryTools::MakeRangeJMP(NextTrack,       nextTrackEntrance,       nextTrackExit);
+		MemoryTools::MakeRangeJMP(FirstTrack,      firstTrackEntrance,      firstTrackExit);
 		MemoryTools::MakeRangeJMP(MainTransition,  mainTransitionEntrance,  mainTransitionExit);
 		MemoryTools::MakeRangeJMP(OtherTransition, otherTransitionEntrance, otherTransitionExit);
 

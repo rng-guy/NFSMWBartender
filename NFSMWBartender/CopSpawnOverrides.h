@@ -203,17 +203,19 @@ namespace CopSpawnOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<bool> trafficIgnoresChasers(false);
-	HeatParameters::Pair<bool> trafficIgnoresRoadblocks(false);
-
-	HeatParameters::Interval<int>   activeChaserCounts    (1, 8);
-	HeatParameters::Pair    <bool>  chasersAreIndependents(false);
+	HeatParameters::Interval<int>   activeChaserCounts    (1, 8);  // cars
+	HeatParameters::Pair    <bool>  chasersAreIndependents(false); // flag
 	HeatParameters::Pair    <float> chaserSpawnClearances (40.f);  // metres
 
+	HeatParameters::Pair<bool> trafficIgnoresChasers   (false); // flag
+	HeatParameters::Pair<bool> trafficIgnoresRoadblocks(false); // flag
+
+	HeatParameters::OptionalPair<int> roadblockJoinLimits; // cars
+
 	// Pursuit-board tracking
-	bool trackHeavyVehicles           = false;
-	bool trackLeaderVehicles          = false;
-	bool trackJoinedRoadblockVehicles = false;
+	bool trackHeavyVehicles  = false; // flag
+	bool trackLeaderVehicles = false; // flag
+	bool trackJoinedVehicles = false; // flag
 
 	// Code caves
 	bool skipScriptedSpawns = true;
@@ -223,7 +225,7 @@ namespace CopSpawnOverrides
 	Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTables.current);
 
 	// Conversions
-	float squaredChaserSpawnClearance = chaserSpawnClearances.current * chaserSpawnClearances.current;
+	float squaredChaserSpawnClearance = chaserSpawnClearances.current * chaserSpawnClearances.current; // sq. metres
 
 
 
@@ -313,6 +315,12 @@ namespace CopSpawnOverrides
 		}
 
 
+		int GetNumPersistentCops() const
+		{
+			return this->chaserSpawns.GetNumActiveCops() + this->numJoinedRoadblockVehicles;
+		}
+
+
 		bool CanNewChaserSpawn() const
 		{
 			if (not Globals::playerHeatLevelKnown) return false;
@@ -321,10 +329,10 @@ namespace CopSpawnOverrides
 			if (this->bailingPursuit)      return false;
 			if (this->spawnCooldown > 0.f) return false;
 
-			if (not this->chaserSpawns.HasAvailableCop()) return false;
+			if (not this->chaserSpawns.HasAvailableCop())                             return false;
+			if (this->GetNumPersistentCops() >= activeChaserCounts.maxValues.current) return false;
 
 			const int numActiveChasers = this->chaserSpawns.GetNumActiveCops();
-			if (numActiveChasers >= activeChaserCounts.maxValues.current) return false;
 
 			if (this->IsSearchModeActive())
 				return (numActiveChasers < this->maxNumPatrolCars);
@@ -351,7 +359,7 @@ namespace CopSpawnOverrides
 				return trackLeaderVehicles;
 
 			case CopLabel::ROADBLOCK:
-				return trackJoinedRoadblockVehicles;
+				return trackJoinedVehicles;
 			}
 
 			return false;
@@ -482,7 +490,8 @@ namespace CopSpawnOverrides
 					Globals::logger.Log(manager->pursuit, "[SPA] Wave parameters now known");
 			}
 
-			manager->waveParametersKnown     = true;
+			manager->waveParametersKnown = true;
+
 			manager->fullWaveCapacity       += manager->numActiveNonChasers;
 			manager->numCopsToTriggerBackup += manager->numActiveNonChasers;
 
@@ -497,13 +506,17 @@ namespace CopSpawnOverrides
 		}
 
 
-		static bool __fastcall IsJoinable(const address pursuit)
+		static bool __fastcall HasJoinCapacity(const address pursuit)
 		{
 			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
 			if (not manager) return false; // should never happen
 
-			const int numActiveChasers = manager->chaserSpawns.GetNumActiveCops();
-			return (numActiveChasers + manager->numJoinedRoadblockVehicles < activeChaserCounts.maxValues.current);
+			const bool hasGeneralCapacity = (manager->GetNumPersistentCops() < activeChaserCounts.maxValues.current);
+
+			if (roadblockJoinLimits.isEnableds.current)
+				return (hasGeneralCapacity and (manager->numJoinedRoadblockVehicles < roadblockJoinLimits.values.current));
+			
+			return hasGeneralCapacity;
 		}
 
 
@@ -635,12 +648,11 @@ namespace CopSpawnOverrides
 		__asm
 		{
 			xor eax, eax
-			mov ecx, dword ptr [edi + 0x94]
 
 			cmp byte ptr chasersAreIndependents.current, 0x1
-			cmove ecx, eax // "Chasers" independent
+			cmovne eax, dword ptr [edi + 0x94] // "Chasers" not independent
 
-			cmp ecx, dword ptr activeChaserCounts.maxValues.current
+			cmp eax, dword ptr activeChaserCounts.maxValues.current
 
 			jmp dword ptr copSpawnLimitExit
 		}
@@ -915,21 +927,23 @@ namespace CopSpawnOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		parser.LoadFile(HeatParameters::configPathAdvanced + "Cars.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced + "CarSpawns.ini");
 
 		// Pursuit-board tracking
 		const std::string section = "Board:Tracking";
 
-		parser.ParseParameter<bool>(section, "heavyStrategyVehicles",   trackHeavyVehicles);
-		parser.ParseParameter<bool>(section, "leaderStrategyVehicles",  trackLeaderVehicles);
-		parser.ParseParameter<bool>(section, "joinedRoadblockVehicles", trackJoinedRoadblockVehicles);
+		parser.ParseParameter<bool>(section, "heavyVehicles",  trackHeavyVehicles);
+		parser.ParseParameter<bool>(section, "leaderVehicles", trackLeaderVehicles);
+		parser.ParseParameter<bool>(section, "joinedVehicles", trackJoinedVehicles);
 
 		// Heat parameters
-		HeatParameters::Parse<bool, bool>(parser, "Traffic:Independence", {trafficIgnoresChasers}, {trafficIgnoresRoadblocks});
-
-		HeatParameters::Parse<int>  (parser, "Chasers:Limits",       {activeChaserCounts,    0});
+		HeatParameters::Parse<int>  (parser, "Chasers:Limits",       {activeChaserCounts,      0});
 		HeatParameters::Parse<bool> (parser, "Chasers:Independence", {chasersAreIndependents});
 		HeatParameters::Parse<float>(parser, "Chasers:Clearance",    {chaserSpawnClearances, 0.f});
+
+		HeatParameters::Parse<bool, bool>(parser, "Traffic:Independence", {trafficIgnoresChasers}, {trafficIgnoresRoadblocks});
+
+		HeatParameters::ParseOptional<int>(parser, "Joining:Limit", {roadblockJoinLimits, 0});
 
 		// Code modifications 
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
@@ -966,12 +980,14 @@ namespace CopSpawnOverrides
 	{
 		Globals::logger.Log("    HEAT [SPA] CopSpawnOverrides");
 
-		trafficIgnoresChasers   .Log("trafficIgnoresChasers   ");
-		trafficIgnoresRoadblocks.Log("trafficIgnoresRoadblocks");
-
 		activeChaserCounts    .Log("activeChaserCount       ");
 		chasersAreIndependents.Log("chasersAreIndependent   ");
 		chaserSpawnClearances .Log("chaserSpawnClearance    ");
+
+		trafficIgnoresChasers   .Log("trafficIgnoresChasers   ");
+		trafficIgnoresRoadblocks.Log("trafficIgnoresRoadblocks");
+
+		roadblockJoinLimits.Log("roadblockJoinLimit      ");
 	}
 
 
@@ -990,14 +1006,16 @@ namespace CopSpawnOverrides
 		scriptedSpawns .UpdateSpawnTable();
 		roadblockSpawns.UpdateSpawnTable();
 
-		trafficIgnoresChasers   .SetToHeat(isRacing, heatLevel);
-		trafficIgnoresRoadblocks.SetToHeat(isRacing, heatLevel);
-
 		activeChaserCounts    .SetToHeat(isRacing, heatLevel);
 		chasersAreIndependents.SetToHeat(isRacing, heatLevel);
 		chaserSpawnClearances .SetToHeat(isRacing, heatLevel);
 
 		squaredChaserSpawnClearance = chaserSpawnClearances.current * chaserSpawnClearances.current;
+
+		trafficIgnoresChasers   .SetToHeat(isRacing, heatLevel);
+		trafficIgnoresRoadblocks.SetToHeat(isRacing, heatLevel);
+
+		roadblockJoinLimits.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();
@@ -1026,6 +1044,6 @@ namespace CopSpawnOverrides
 
 		Globals::logger.LogLongIndent("HeavyStrategy    tracked:", trackHeavyVehicles);
 		Globals::logger.LogLongIndent("LeaderStrategy   tracked:", trackLeaderVehicles);
-		Globals::logger.LogLongIndent("Joined roadblock tracked:", trackJoinedRoadblockVehicles);
+		Globals::logger.LogLongIndent("Joined roadblock tracked:", trackJoinedVehicles);
 	}
 }

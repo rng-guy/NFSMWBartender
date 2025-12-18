@@ -19,14 +19,14 @@ namespace StrategyOverrides
 	// Heat levels
 	HeatParameters::Pair<float> racerSpeedThresholds(25.f); // kph
 	
-	HeatParameters::OptionalInterval<float> heavy3UnblockDelays;
-	HeatParameters::OptionalInterval<float> heavy4UnblockDelays;
-	HeatParameters::OptionalInterval<float> leader5UnblockDelays;
-	HeatParameters::OptionalInterval<float> leader7UnblockDelays;
+	HeatParameters::OptionalInterval<float> heavy3UnblockDelays;  // seconds
+	HeatParameters::OptionalInterval<float> heavy4UnblockDelays;  // seconds
+	HeatParameters::OptionalInterval<float> leader5UnblockDelays; // seconds
+	HeatParameters::OptionalInterval<float> leader7UnblockDelays; // seconds
 
 	// Conversions
-	float baseSpeedThreshold = racerSpeedThresholds.current / 3.6f; // metres / second
-	float jerkSpeedThreshold = baseSpeedThreshold * .625f;
+	float baseSpeedThreshold = racerSpeedThresholds.current / 3.6f; // mps
+	float jerkSpeedThreshold = baseSpeedThreshold * .625f;          // mps
 
 
 
