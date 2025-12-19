@@ -16,10 +16,11 @@ namespace HelicopterVision
 
 	bool featureEnabled = false;
 
-	// Code caves
+	// Data structures
 	template <typename T>
 	using BGRA = std::array<T, 4>; // blue, green, red, alpha
 
+	// Code caves
 	float lengthToBase = .2f; // seconds
 	float lengthToEnd  = .2f; // seconds
 

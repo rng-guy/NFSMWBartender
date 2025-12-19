@@ -18,7 +18,7 @@ namespace CopDetection
 
 	bool featureEnabled = false;
 
-	// Code caves
+	// Data structures
 	struct Settings
 	{
 		float radarRange;
@@ -27,6 +27,7 @@ namespace CopDetection
 		bool  keepsIcon;
 	};
 
+	// Code caves
 	HashContainers::CachedVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3), flag
 
 

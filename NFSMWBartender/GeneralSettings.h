@@ -17,9 +17,10 @@ namespace GeneralSettings
 	HeatParameters::Pair<float> bountyIntervals     (10.f); // seconds
 	HeatParameters::Pair<int>   maxBountyMultipliers(3);    // times
 
-	HeatParameters::Pair<float> maxBustDistances(15.f); // metres
-	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
-	HeatParameters::Pair<float> bustTimers      (5.f);  // seconds
+	HeatParameters::Pair<bool>  rivalPursuitsEnableds(true); // flag
+	HeatParameters::Pair<float> maxBustDistances     (15.f); // metres
+	HeatParameters::Pair<float> evadeTimers          (7.f);  // seconds
+	HeatParameters::Pair<float> bustTimers           (5.f);  // seconds
 
 	HeatParameters::Pair<bool> copFlipByDamageEnableds(true); // flag
 
@@ -91,6 +92,27 @@ namespace GeneralSettings
 
 			skip:
 			jmp dword ptr copFlippingSkip
+		}
+	}
+
+
+
+	constexpr address rivalPursuitEntrance = 0x426C9C;
+	constexpr address rivalPursuitExit     = 0x426CA4;
+
+	__declspec(naked) void RivalPursuit()
+	{
+		__asm
+		{
+			cmp byte ptr rivalPursuitsEnableds.current, 0x0
+			je conclusion // rival pursuits disabled
+
+			// Execute original and resume
+			mov ecx, dword ptr [eax + 0x1968]
+			test ecx, ecx
+
+			conclusion:
+			jmp dword ptr rivalPursuitExit
 		}
 	}
 
@@ -188,6 +210,7 @@ namespace GeneralSettings
 		HeatParameters::Parse<float>(parser, "Bounty:Interval", {bountyIntervals,      .001f});
 		HeatParameters::Parse<int>  (parser, "Bounty:Combo",    {maxBountyMultipliers,     1});
 		
+		HeatParameters::Parse<bool>        (parser, "State:Rivals",  {rivalPursuitsEnableds});
 		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,  .001f}, {maxBustDistances, 0.f});
 		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers, .001f});
 
@@ -204,6 +227,7 @@ namespace GeneralSettings
 
 		MemoryTools::MakeRangeJMP(CopCombo,      copComboEntrance,      copComboExit);
 		MemoryTools::MakeRangeJMP(CopFlipping,   copFlippingEntrance,   copFlippingExit);
+		MemoryTools::MakeRangeJMP(RivalPursuit,  rivalPursuitEntrance,  rivalPursuitExit);
 		MemoryTools::MakeRangeJMP(RacerFlipping, racerFlippingEntrance, racerFlippingExit);
 		MemoryTools::MakeRangeJMP(PassiveBounty, passiveBountyEntrance, passiveBountyExit);
 
@@ -224,9 +248,10 @@ namespace GeneralSettings
 		bountyIntervals     .Log("bountyInterval          ");
 		maxBountyMultipliers.Log("maxBountyMultiplier     ");
 
-		bustTimers      .Log("bustTimer               ");
-		maxBustDistances.Log("maxBustDistance         ");
-		evadeTimers     .Log("evadeTimer              ");
+		rivalPursuitsEnableds.Log("rivalPursuitsEnabled    ");
+		bustTimers           .Log("bustTimer               ");
+		maxBustDistances     .Log("maxBustDistance         ");
+		evadeTimers          .Log("evadeTimer              ");
 
 		copFlipByDamageEnableds.Log("copFlipByDamageEnabled  ");
 		copFlipByTimers        .Log("copFlipByTimer          ");
@@ -247,9 +272,10 @@ namespace GeneralSettings
 
 		bountyFrequency = 1.f / bountyIntervals.current;
 
-		bustTimers      .SetToHeat(isRacing, heatLevel);
-		maxBustDistances.SetToHeat(isRacing, heatLevel);
-		evadeTimers     .SetToHeat(isRacing, heatLevel);
+		rivalPursuitsEnableds.SetToHeat(isRacing, heatLevel);
+		bustTimers           .SetToHeat(isRacing, heatLevel);
+		maxBustDistances     .SetToHeat(isRacing, heatLevel);
+		evadeTimers          .SetToHeat(isRacing, heatLevel);
 
 		halfEvadeRate = .5f / evadeTimers.current;
 		bustRate      = 1.f / bustTimers.current;

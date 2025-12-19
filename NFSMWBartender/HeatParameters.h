@@ -324,10 +324,11 @@ namespace HeatParameters
 		for (const bool forRaces : {false, true})
 		{
 			size_t numReplaced = 0;
+			auto&  vehicles    = pair.GetValues(forRaces);
 
 			for (const size_t heatLevel : heatLevels)
 			{
-				std::string& vehicle = pair.GetValues(forRaces)[heatLevel - 1];
+				std::string& vehicle = vehicles[heatLevel - 1];
 				const vault  copType = Globals::GetVaultKey(vehicle.c_str());
 
 				if (not Globals::VehicleClassMatches(copType, vehicleClass))

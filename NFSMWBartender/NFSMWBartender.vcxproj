@@ -179,7 +179,7 @@
     <ClInclude Include="CopSpawnTables.h" />
     <ClInclude Include="PursuitFeatures.h" />
     <ClInclude Include="CopSpawnOverrides.h" />
-    <ClInclude Include="RadioCallsigns.h" />
+    <ClInclude Include="CopRadio.h" />
     <ClInclude Include="RandomNumbers.h" />
     <ClInclude Include="StateObserver.h" />
     <ClInclude Include="inipp.h" />

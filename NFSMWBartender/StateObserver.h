@@ -7,8 +7,8 @@
 #include "DestructionStrings.h"
 #include "HelicopterVision.h"
 #include "InteractiveMusic.h"
-#include "RadioCallsigns.h"
 #include "CopDetection.h"
+#include "CopRadio.h"
 
 #include "GeneralSettings.h"
 #include "GroundSupports.h"
@@ -45,6 +45,7 @@ namespace StateObserver
 
 			Globals::playerHeatLevelKnown = true;
 
+			CopRadio       ::SetToHeat(playerIsRacing, playerHeatLevel);
 			GeneralSettings::SetToHeat(playerIsRacing, playerHeatLevel);
 			GroundSupports ::SetToHeat(playerIsRacing, playerHeatLevel);
 			PursuitObserver::SetToHeat(playerIsRacing, playerHeatLevel);
@@ -60,7 +61,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log ("\n SESSION [VER] Bartender v2.05.00");
+			Globals::logger.Log ("\n SESSION [VER] Bartender v2.05.01");
 
 			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
@@ -80,8 +81,8 @@ namespace StateObserver
 			InteractiveMusic::LogSetupReport();
 		}
 
-		RadioCallsigns::Validate();
-		CopDetection  ::Validate();
+		CopDetection::Validate();
+		CopRadio    ::Validate();
 
 		GroundSupports ::Validate();
 		PursuitObserver::Validate();

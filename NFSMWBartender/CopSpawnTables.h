@@ -108,6 +108,13 @@ namespace CopSpawnTables
 		}
 
 
+		int GetCount(const vault copType) const
+		{
+			const auto foundType = this->copTypeToEntry.find(copType);
+			return (foundType != this->copTypeToEntry.end()) ? foundType->second.count : 0;
+		}
+
+
 		int GetCapacity(const vault copType) const
 		{
 			const auto foundType = this->copTypeToEntry.find(copType);
@@ -356,13 +363,18 @@ namespace CopSpawnTables
 
 		for (const bool forRaces : {false, true})
 		{
+			auto& patrolTables    = patrolSpawnTables   .GetValues(forRaces);
+			auto& chaserTables    = chaserSpawnTables   .GetValues(forRaces);
+			auto& scriptedTables  = scriptedSpawnTables .GetValues(forRaces);
+			auto& roadblockTables = roadblockSpawnTables.GetValues(forRaces);
+
 			for (const size_t heatLevel : HeatParameters::heatLevels)
 			{
 				// With logging disabled, the compiler optimises the boolean and all arguments away
-				allValid &= (patrolSpawnTables   .GetValues(forRaces)[heatLevel - 1]).Validate("Patrols",    forRaces, heatLevel);
-				allValid &= (chaserSpawnTables   .GetValues(forRaces)[heatLevel - 1]).Validate("Chasers",    forRaces, heatLevel);
-				allValid &= (scriptedSpawnTables .GetValues(forRaces)[heatLevel - 1]).Validate("Scripted",   forRaces, heatLevel);
-				allValid &= (roadblockSpawnTables.GetValues(forRaces)[heatLevel - 1]).Validate("Roadblocks", forRaces, heatLevel);
+				allValid &= (patrolTables   [heatLevel - 1]).Validate("Patrols",    forRaces, heatLevel);
+				allValid &= (chaserTables   [heatLevel - 1]).Validate("Chasers",    forRaces, heatLevel);
+				allValid &= (scriptedTables [heatLevel - 1]).Validate("Scripted",   forRaces, heatLevel);
+				allValid &= (roadblockTables[heatLevel - 1]).Validate("Roadblocks", forRaces, heatLevel);
 			}
 		}
 

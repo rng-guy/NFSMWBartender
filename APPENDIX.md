@@ -119,11 +119,11 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * You might hear cops use callsigns you didn't assign to them. This is vanilla behaviour: The game maintains a pool of "actors" that it constantly shuffles between all active vehicles. This is also the reason why you may still hear Cross or helicopter lines even if they are gone, and why dispatch may sometimes refer to Cross by the callsign of another unrelated vehicle.
 
-* The game automatically assigns the helicopter-exclusive callsign to all helicopters.
+* The game automatically assigns the helicopter-exclusive callsigns to all helicopters.
 
 * For callsigns, Bartender ignores vehicles that are helicopters or don't exist in VltEd. Bartender also ignores all callsigns other than `patrol`, `elite`, `rhino`, and `cross`.
 
-* If you don't define a valid `default` callsign, Bartender uses `patrol` instead.
+* If you don't define valid `default` callsigns, Bartender uses `patrol` instead.
 
 * If you define no vehicle callsigns and no `default`, Bartender disables its callsign feature.
 
@@ -136,6 +136,8 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 * If you don't define colours for both sight states, Bartender disables its vision-cone feature.
 
 * The actual visual range of helicopters can differ from what the vision-cone icon might suggest; the `heliLOSdistance` VltEd parameter controls the visual range the game uses for calculations.
+
+* Dispatch may not always acknowledge a change in jurisdiction over the radio. This is because there's randomness involved, and because each pursuit is limited to just one acknowledgement.
 
 * The playlist feature is incompatible with the [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) mod by xan1242. If you want to use that mod, you must delete Bartender's `[Music:Playlist]` parameter group or leave it empty.
 

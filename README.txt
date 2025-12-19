@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.05.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.05.01) │ ■ ────────────────────────────────────────────────────
 
 View THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -27,17 +27,19 @@ The SECTIONS BELOW address these questions in detail:
 
 The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • at what time interval you gain passive bounty,
+ • whether the cops can start non-player pursuits,
  • the maximum combo-bounty multiplier for destroying cops quickly,
  • how quickly and below what distance from cops the red "BUSTED" bar fills,
  • how quickly the green "EVADE" bar fills once all cops have lost sight of you,
  • whether player-damaged cop vehicles are destroyed instantly if flipped over,
  • when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
  • when exactly (if at all) racer vehicles are reset if flipped over,
- • which of the enabled ground supports the cops may request in non-player pursuits,
+ • which pursuit jurisdiction dispatch announces over radio after a Heat transition,
+ • which of the enabled ground supports the cops can request in non-player pursuits,
  • the internal cooldown between non-Strategy roadblock requests,
  • the internal cooldown between Heavy / LeaderStrategy requests,
- • at what distance from racers roadblocks may spawn,
- • under which conditions and to what extent (if at all) roadblock vehicles may join pursuits,
+ • at what distance from racers roadblocks can spawn,
+ • under which conditions and to what extent (if at all) roadblock vehicles can join pursuits,
  • whether roadblock vehicles react to racers entering "COOLDOWN" mode and / or hitting spikes,
  • whether HeavyStrategy 3 requests interact with roadblock requests and spawns,
  • which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
@@ -52,7 +54,9 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and
  • the selection, order, and length of interactive themes that play during player pursuits.
 
-The "Basic" feature set FIXES EIGHT BUGS / ISSUES:
+The "Basic" feature set FIXES TEN BUGS / ISSUES automatically:
+ • transitions to Heat levels > 5 now trigger their proper radio announcements,
+ • the game no longer skips Heat-level announcements in scripted pursuit events,
  • vehicles joining pursuits from roadblocks no longer ignore spawn limits for cops,
  • the helicopter mini-map icon is now always visible whenever a helicopter is active,
  • the helicopter vision-cone icon now always disappears whenever a helicopter is destroyed,
@@ -70,18 +74,18 @@ The "Basic" feature set FIXES EIGHT BUGS / ISSUES:
 ── ■ │ 2 - WHAT DOES THE "ADVANCED" FEATURE SET DO? │ ■ ───────────────────────────────────────────
 
 The "Advanced" feature set LETS YOU CHANGE (per Heat level)
- • how many chasing cops may (re)spawn regardless of the remaining engagement count,
- • below what total number of active cops in the world the game may spawn new chasing cops,
+ • how many chasing cops can (re)spawn regardless of the remaining engagement count,
+ • below what total number of active cops in the world the game can spawn new chasing cops,
  • whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
  • whether spawning decisions for traffic cars are independent of those for cops,
  • how far away new chasing cops must spawn from all already active cops,
- • above what count (if at all) no more cops may join the pursuit from roadblocks,
+ • above what count (if at all) no more cops can join the pursuit from roadblocks,
  • when exactly (if at all) and how many cops that joined from roadblocks can flee the pursuit,
  • when exactly (if at all) and how many chasing cops from other Heat levels can flee the pursuit,
- • which vehicles (any amount, with counts and chances) may spawn to chase and search for racers,
- • which vehicles (same liberties as above) may spawn in non-Strategy roadblocks,
- • which vehicles (ditto) may spawn as pre-generated cops in scripted events,
- • which vehicles (ditto again) may spawn as free patrols outside pursuits,
+ • which vehicles (any amount, with counts and chances) can spawn to chase and search for racers,
+ • which vehicles (same liberties as above) can spawn in non-Strategy roadblocks,
+ • which vehicles (ditto) can spawn as pre-generated cops in scripted events,
+ • which vehicles (ditto again) can spawn as free patrols outside pursuits,
  • which vehicle spawns in place of the regular helicopter,
  • when exactly (if at all) the helicopter can first spawn in each player pursuit,
  • when exactly (if at all) the helicopter can respawn if it runs out of fuel,
@@ -97,7 +101,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
 The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
-The "Advanced" feature set FIXES THREE BUGS / ISSUES:
+The "Advanced" feature set FIXES THREE BUGS / ISSUES automatically:
  • non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer disabled in races,
  • early Strategy despawns or cancellations no longer stall the game from making new requests, and
  • the engagement count shown above the pursuit board now always tracks relevant cops accurately.
