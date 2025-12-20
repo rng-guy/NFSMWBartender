@@ -93,13 +93,11 @@ namespace RadioChatter
 	{
 		__asm
 		{
-			push ecx
-
 			mov eax, 0x1
-			mov ecx, ebp
+			xchg ecx, ebp
 			shl eax, cl
 
-			pop ecx
+			mov ecx, ebp
 
 			jmp dword ptr heatReportExit
 		}
