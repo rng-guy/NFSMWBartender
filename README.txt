@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.06.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.06.01) │ ■ ────────────────────────────────────────────────────
 
 View THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -142,10 +142,11 @@ Specifically, you likely need that mod if you configure Bartender in any of the 
  • "[Heavy3:Unblocking]"    in "Strategies.ini": You define very short unblock delays.
  
 TO CONFIGURE "NFSMW LimitAdjuster" for optimal compatibility with Bartender:
- 1) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature; 
- 2) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50 (or higher); 
- 3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "PursuitCops"      to 255; and
- 4) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "Vehicles_SoftCap" to 255.
+ 1) • place "NFSMWLimitAdjuster.asi" / ".ini" into the same folder as "speed.exe" (NOT "scripts");
+ 2) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature; 
+ 3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50 (or higher); 
+ 4) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "PursuitCops"      to 255; and
+ 5) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "Vehicles_SoftCap" to 255.
 
 
 

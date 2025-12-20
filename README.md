@@ -164,10 +164,11 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 &nbsp;
  
 **To configure** [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) for optimal compatibility with Bartender:
-1. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature;
-2. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50 (or higher);
-3. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `PursuitCops` to 255; and
-4. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `Vehicles_SoftCap` to 255.
+1. place `NFSMWLimitAdjuster.asi` / `.ini` into the same folder as `speed.exe` (*not* `scripts`);
+2. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature;
+3. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50 (or higher);
+4. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `PursuitCops` to 255; and
+5. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `Vehicles_SoftCap` to 255.
 
 &nbsp;
 
