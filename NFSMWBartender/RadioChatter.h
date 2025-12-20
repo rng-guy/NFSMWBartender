@@ -93,8 +93,9 @@ namespace RadioChatter
 	{
 		__asm
 		{
-			mov eax, 0x1
 			xchg ecx, ebp
+
+			mov eax, 0x1
 			shl eax, cl
 
 			mov ecx, ebp
