@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.05.01) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.06.00) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -86,6 +86,8 @@ Regarding the "Basic" feature set AS A WHOLE:
  • To disable a given feature of this set, delete the file containing its parameter group.
 
  • To disable this entire feature set and its fixes, delete all its configuration files.
+
+ • As long as this feature set isn't disabled, all its fixes apply automatically.
 
  • The Heat-level reset fix is incompatible with the "HeatLevelOverride" feature of the 
    "NFSMW ExtraOptions" mod by ExOptsTeam. To disable this ExtraOptions feature, edit its
@@ -266,6 +268,8 @@ Regarding the "Advanced" feature set AS A WHOLE:
  • To disable this entire feature set and its fixes, delete all of its configuration files.
 
  • Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
+
+ • As long as this feature set isn't disabled, all its fixes apply automatically.
 
  • Rarely, the engagement count above the pursuit board may appear to be inaccurate compared
    to how many cops are actually around you at a given moment. That's because, by default,
@@ -621,4 +625,5 @@ v1.00.00: Initial release
       03: Corrected default value for cosmetic cop-detection feature
 
    05.00: Added / expanded multiple features and fixed two more vanilla issues
-      01: Fixed vanilla issue of Heat levels > 5 lacking radio announcements
+
+   06.00: Fixed vanilla radio announcements for Heat levels > 5 and added jurisdiction feature

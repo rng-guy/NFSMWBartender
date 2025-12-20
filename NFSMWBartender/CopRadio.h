@@ -42,8 +42,9 @@ namespace CopRadio
 	// Code caves 
 	HashContainers::CachedVaultMap<Callsigns> copTypeToCallsigns (Callsigns::PATROL);
 
-	int    lastJurisdictionID    = Jurisdiction::CITY;
 	size_t lastReportedHeatLevel = 1;
+	int    lastJurisdictionID    = heatJurisdictionIDs.current;
+
 
 
 
@@ -116,8 +117,8 @@ namespace CopRadio
 			mov eax, dword ptr lastReportedHeat
 			mov dword ptr [eax], 0x3F800000 // 1.f
 
-			mov dword ptr lastJurisdictionID, CITY
 			mov dword ptr lastReportedHeatLevel, 0x1
+			mov dword ptr lastJurisdictionID, CITY
 
 			// Execute original code and resume
 			mov dword ptr [esi + 0x130], edi
@@ -256,13 +257,12 @@ namespace CopRadio
 
 	void ApplyFixes()
 	{
-		MemoryTools::Write<byte>(0x1, {0x71D356}); // Heat-level 1 skip
+		MemoryTools::Write<byte>(0x1, {0x71D356}); // remove Heat-level 1 skip
 
 		// Fixes radio announcements for Heat levels > 5
 		MemoryTools::MakeRangeJMP(HeatCheck,     heatCheckEntrance,     heatCheckExit);
 		MemoryTools::MakeRangeJMP(HeatReport,    heatReportEntrance,    heatReportExit);
 		MemoryTools::MakeRangeJMP(PlayerPursuit, playerPursuitEntrance, playerPursuitExit);
-
 	}
 
 

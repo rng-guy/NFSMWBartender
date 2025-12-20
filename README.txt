@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.05.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.06.00) │ ■ ────────────────────────────────────────────────────
 
 View THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -143,7 +143,7 @@ Specifically, you likely need that mod if you configure Bartender in any of the 
  
 TO CONFIGURE "NFSMW LimitAdjuster" for optimal compatibility with Bartender:
  1) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature; 
- 2) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50; 
+ 2) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50 (or higher); 
  3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "PursuitCops"      to 255; and
  4) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "Vehicles_SoftCap" to 255.
 
@@ -155,9 +155,10 @@ TO CONFIGURE "NFSMW LimitAdjuster" for optimal compatibility with Bartender:
 ── ■ │ 5 - HOW DO I INSTALL BARTENDER FOR MY GAME? │ ■ ────────────────────────────────────────────
 
 BEFORE INSTALLING Bartender:
- 1) • read and understand the two sections about mod (in)compatibilities and dependencies above,
- 2) • make sure your game's "speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
- 3) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
+ 1) • make sure your original copy of the game wasn't a repack or came pre-modified in any way,
+ 2) • read and understand the two sections about mod (in)compatibilities and dependencies above,
+ 3) • make sure your game's "speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
+ 4) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 
 TO INSTALL Bartender:
  1) • if it doesn't exist already, create a "scripts" folder in your game's installation folder;
@@ -173,7 +174,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v2.05.00, replace all old configuration files.
+If you update from a version older than v2.06.00, replace all old configuration files.
 
 
 

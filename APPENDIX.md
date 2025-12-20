@@ -99,6 +99,8 @@ Regarding the "Basic" feature set **as a whole**:
 
 * To disable this entire feature set and its fixes, delete all its configuration files.
 
+* As long as this feature set isn't disabled, all its fixes apply automatically.
+
 * The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd node determines the maximum Heat level (1-10) at Blacklist rival #XY.
 
 * If you don't install the optional missing textures (`FixMissingTextures.end`), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures doesn't affect the Heat-level reset fix in any way.
@@ -240,6 +242,8 @@ Regarding the "Advanced" feature set **as a whole**:
 * To disable this entire feature set and its fixes, delete all of its configuration files.
 
 * Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
+
+* As long as this feature set isn't disabled, all its fixes apply automatically.
 
 * Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That's because, by default, Bartender's fix makes the engagement count track "Chasers" only, disregarding others.
 

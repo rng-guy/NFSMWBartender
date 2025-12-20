@@ -165,7 +165,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
  
 **To configure** [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) for optimal compatibility with Bartender:
 1. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature;
-2. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50;
+2. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50 (or higher);
 3. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `PursuitCops` to 255; and
 4. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `Vehicles_SoftCap` to 255.
 
@@ -180,9 +180,10 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 # 5 - How do I install Bartender for my game?
 
 **Before installing** Bartender:
-1. read and understand the two sections about [mod (in)compatibilities](#3---what-mods-are-incompatible-with-bartender) and [dependencies](#4---what-other-mods-does-bartender-depend-on) above,
-2. make sure your game's `speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
-3. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
+1. make sure your original copy of the game wasn't a repack or came pre-modified in any way,
+2. read and understand the two sections about [mod (in)compatibilities](#3---what-mods-are-incompatible-with-bartender) and [dependencies](#4---what-other-mods-does-bartender-depend-on) above,
+3. make sure your game's `speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
+4. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
 
 &nbsp;
 
@@ -204,7 +205,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.05.00, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.06.00, replace all old configuration files.
 
 &nbsp;
 

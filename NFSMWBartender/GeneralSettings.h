@@ -14,13 +14,14 @@ namespace GeneralSettings
 	bool featureEnabled = false;
 
 	// Heat levels
+	HeatParameters::Pair<bool> rivalPursuitsEnableds(true); // flag
+
 	HeatParameters::Pair<float> bountyIntervals     (10.f); // seconds
 	HeatParameters::Pair<int>   maxBountyMultipliers(3);    // times
 
-	HeatParameters::Pair<bool>  rivalPursuitsEnableds(true); // flag
-	HeatParameters::Pair<float> maxBustDistances     (15.f); // metres
-	HeatParameters::Pair<float> evadeTimers          (7.f);  // seconds
-	HeatParameters::Pair<float> bustTimers           (5.f);  // seconds
+	HeatParameters::Pair<float> maxBustDistances(15.f); // metres
+	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
+	HeatParameters::Pair<float> bustTimers      (5.f);  // seconds
 
 	HeatParameters::Pair<bool> copFlipByDamageEnableds(true); // flag
 
@@ -207,10 +208,11 @@ namespace GeneralSettings
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "General.ini")) return false;
 
 		// Heat parameters
+		HeatParameters::Parse<bool>(parser, "Pursuits:Rivals", {rivalPursuitsEnableds});
+
 		HeatParameters::Parse<float>(parser, "Bounty:Interval", {bountyIntervals,      .001f});
 		HeatParameters::Parse<int>  (parser, "Bounty:Combo",    {maxBountyMultipliers,     1});
 		
-		HeatParameters::Parse<bool>        (parser, "State:Rivals",  {rivalPursuitsEnableds});
 		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,  .001f}, {maxBustDistances, 0.f});
 		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers, .001f});
 
@@ -245,13 +247,14 @@ namespace GeneralSettings
 	{
 		Globals::logger.Log("    HEAT [GEN] GeneralSettings");
 
+		rivalPursuitsEnableds.Log("rivalPursuitsEnabled    ");
+
 		bountyIntervals     .Log("bountyInterval          ");
 		maxBountyMultipliers.Log("maxBountyMultiplier     ");
 
-		rivalPursuitsEnableds.Log("rivalPursuitsEnabled    ");
-		bustTimers           .Log("bustTimer               ");
-		maxBustDistances     .Log("maxBustDistance         ");
-		evadeTimers          .Log("evadeTimer              ");
+		bustTimers      .Log("bustTimer               ");
+		maxBustDistances.Log("maxBustDistance         ");
+		evadeTimers     .Log("evadeTimer              ");
 
 		copFlipByDamageEnableds.Log("copFlipByDamageEnabled  ");
 		copFlipByTimers        .Log("copFlipByTimer          ");
@@ -267,15 +270,16 @@ namespace GeneralSettings
 	) {
         if (not featureEnabled) return;
 
+		rivalPursuitsEnableds.SetToHeat(isRacing, heatLevel);
+
 		bountyIntervals     .SetToHeat(isRacing, heatLevel);
 		maxBountyMultipliers.SetToHeat(isRacing, heatLevel);
 
 		bountyFrequency = 1.f / bountyIntervals.current;
 
-		rivalPursuitsEnableds.SetToHeat(isRacing, heatLevel);
-		bustTimers           .SetToHeat(isRacing, heatLevel);
-		maxBustDistances     .SetToHeat(isRacing, heatLevel);
-		evadeTimers          .SetToHeat(isRacing, heatLevel);
+		bustTimers      .SetToHeat(isRacing, heatLevel);
+		maxBustDistances.SetToHeat(isRacing, heatLevel);
+		evadeTimers     .SetToHeat(isRacing, heatLevel);
 
 		halfEvadeRate = .5f / evadeTimers.current;
 		bustRate      = 1.f / bustTimers.current;
