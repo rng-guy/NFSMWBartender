@@ -3,7 +3,7 @@
 
 Bartender adds **new customisation options** to pursuits in *Need for Speed: Most Wanted* (2005). These new options come in two feature sets:
 * the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
-* the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/s0U-1PTUqYI).
+* the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/4o4rhrwuMKU).
 
 &nbsp;
 
@@ -183,7 +183,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 1. make sure your original copy of the game wasn't a repack or came pre-modified in any way,
 2. read and understand the two sections about [mod (in)compatibilities](#3---what-mods-are-incompatible-with-bartender) and [dependencies](#4---what-other-mods-does-bartender-depend-on) above,
 3. make sure your game's `speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
-4. install an .asi loader or any mod with one (e.g. the [WideScreenFix mod](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) by ThirteenAG).
+4. install an .asi loader or any mod with one (e.g. the [WideScreenFix](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) mod by ThirteenAG).
 
 &nbsp;
 
