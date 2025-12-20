@@ -9,7 +9,7 @@
 #include "HelicopterVision.h"
 #include "InteractiveMusic.h"
 #include "CopDetection.h"
-#include "CopRadio.h"
+#include "RadioChatter.h"
 
 #include "GeneralSettings.h"
 #include "GroundSupports.h"
@@ -31,7 +31,7 @@ static void ApplyBartender()
     Globals::basicSetEnabled |= HelicopterVision  ::Initialise(parser);
     Globals::basicSetEnabled |= InteractiveMusic  ::Initialise(parser);
     Globals::basicSetEnabled |= CopDetection      ::Initialise(parser);
-    Globals::basicSetEnabled |= CopRadio          ::Initialise(parser);
+    Globals::basicSetEnabled |= RadioChatter      ::Initialise(parser);
   
     Globals::basicSetEnabled |= GeneralSettings::Initialise(parser);
     Globals::basicSetEnabled |= GroundSupports ::Initialise(parser);
@@ -45,8 +45,8 @@ static void ApplyBartender()
         if (not CopDetection::featureEnabled)
             CopDetection::ApplyFixes();
 
-        if (not CopRadio::featureEnabled)
-            CopRadio::ApplyFixes();
+        if (not RadioChatter::featureEnabled)
+            RadioChatter::ApplyFixes();
 
         if (not GeneralSettings::featureEnabled)
             GeneralSettings::ApplyFixes();

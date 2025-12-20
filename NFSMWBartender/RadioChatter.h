@@ -9,7 +9,7 @@
 
 
 
-namespace CopRadio
+namespace RadioChatter
 {
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
@@ -17,13 +17,6 @@ namespace CopRadio
 	bool featureEnabled = false;
 
 	// Data structures
-	enum Jurisdiction // C-style for ASM
-	{
-		CITY    = 0,
-		STATE   = 1,
-		FEDERAL = 2
-	};
-
 	enum Callsigns // C-style for ASM
 	{
 		UNKNOWN,
@@ -33,6 +26,13 @@ namespace CopRadio
 		CROSS
 	};
 
+	enum Jurisdiction // as above
+	{
+		CITY    = 0,
+		STATE   = 1,
+		FEDERAL = 2
+	};
+
 	// Data pointers
 	float& lastReportedHeat = *reinterpret_cast<float*>(0x9020A0);
 
@@ -40,7 +40,7 @@ namespace CopRadio
 	HeatParameters::Pair<int> heatJurisdictionIDs(Jurisdiction::CITY);
 
 	// Code caves 
-	HashContainers::CachedVaultMap<Callsigns> copTypeToCallsigns (Callsigns::PATROL);
+	HashContainers::CachedVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
 
 	size_t lastReportedHeatLevel = 1;
 	int    lastJurisdictionID    = heatJurisdictionIDs.current;
@@ -137,7 +137,7 @@ namespace CopRadio
 		__asm
 		{
 			push eax // copType
-			mov ecx, offset copTypeToCallsigns
+			mov ecx, offset copTypeToCallsignID
 			call HashContainers::CachedVaultMap<Callsigns>::GetValue
 
 			mov dword ptr [esp + 0x28], eax
@@ -210,7 +210,7 @@ namespace CopRadio
 		__asm
 		{
 			push eax // copType
-			mov ecx, offset copTypeToCallsigns
+			mov ecx, offset copTypeToCallsignID
 			call HashContainers::CachedVaultMap<Callsigns>::GetValue
 
 			cmp eax, RHINO
@@ -317,7 +317,7 @@ namespace CopRadio
 				const auto      foundName = nameToCallsigns.find(callsignNames[vehicleID]);
 				const Callsigns callsigns = (foundName != nameToCallsigns.end()) ? foundName->second : Callsigns::UNKNOWN;
 
-				copTypeToCallsigns.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), callsigns);
+				copTypeToCallsignID.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), callsigns);
 			}
 
 			// Code modifications (feature-specific)
@@ -345,13 +345,13 @@ namespace CopRadio
 
 	void Validate()
 	{
-		if (not featureEnabled)         return;
-		if (copTypeToCallsigns.empty()) return;
+		if (not featureEnabled)          return;
+		if (copTypeToCallsignID.empty()) return;
 	
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [RAD] CopRadio");
+			Globals::logger.Log("  CONFIG [RAD] RadioChatter");
 
-		copTypeToCallsigns.Validate
+		copTypeToCallsignID.Validate
 		(
 			"Vehicle-to-callsign",
 			[=](const vault     key)   {return Globals::VehicleClassMatches(key, Globals::Class::CAR);},

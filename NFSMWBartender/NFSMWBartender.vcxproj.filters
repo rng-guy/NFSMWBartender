@@ -109,7 +109,7 @@
     <ClInclude Include="StrategyOverrides.h">
       <Filter>Header Files\Modifications\Advanced</Filter>
     </ClInclude>
-    <ClInclude Include="CopRadio.h">
+    <ClInclude Include="RadioChatter.h">
       <Filter>Header Files\Modifications\Basic</Filter>
     </ClInclude>
     <ClInclude Include="HashContainers.h">

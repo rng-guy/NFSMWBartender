@@ -8,7 +8,7 @@
 #include "HelicopterVision.h"
 #include "InteractiveMusic.h"
 #include "CopDetection.h"
-#include "CopRadio.h"
+#include "RadioChatter.h"
 
 #include "GeneralSettings.h"
 #include "GroundSupports.h"
@@ -45,7 +45,7 @@ namespace StateObserver
 
 			Globals::playerHeatLevelKnown = true;
 
-			CopRadio       ::SetToHeat(playerIsRacing, playerHeatLevel);
+			RadioChatter   ::SetToHeat(playerIsRacing, playerHeatLevel);
 			GeneralSettings::SetToHeat(playerIsRacing, playerHeatLevel);
 			GroundSupports ::SetToHeat(playerIsRacing, playerHeatLevel);
 			PursuitObserver::SetToHeat(playerIsRacing, playerHeatLevel);
@@ -82,7 +82,7 @@ namespace StateObserver
 		}
 
 		CopDetection::Validate();
-		CopRadio    ::Validate();
+		RadioChatter::Validate();
 
 		GroundSupports ::Validate();
 		PursuitObserver::Validate();
