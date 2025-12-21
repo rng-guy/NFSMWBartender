@@ -123,7 +123,7 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **fixes three bugs / issues** automatically:
+The "Advanced" feature set **always fixes three bugs / issues** automatically:
 * non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer disabled in races,
 * early Strategy despawns or cancellations no longer stall the game from making new requests, and
 * the engagement count shown above the pursuit board now always tracks relevant cops accurately.
