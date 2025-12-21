@@ -344,7 +344,6 @@ namespace RadioChatter
 
 	void Validate()
 	{
-		if (not featureEnabled)          return;
 		if (copTypeToCallsignID.empty()) return;
 	
 		if constexpr (Globals::loggingEnabled)

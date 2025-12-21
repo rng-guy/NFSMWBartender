@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.06.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.06.02) │ ■ ────────────────────────────────────────────────────
 
 View THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -26,8 +26,8 @@ The SECTIONS BELOW address these questions in detail:
 ── ■ │ 1 - WHAT DOES THE "BASIC" FEATURE SET DO? │ ■ ──────────────────────────────────────────────
 
 The "Basic" feature set LETS YOU CHANGE (per Heat level)
- • at what time interval you gain passive bounty,
  • whether the cops can start non-player pursuits,
+ • at what time interval you gain passive bounty,
  • the maximum combo-bounty multiplier for destroying cops quickly,
  • how quickly and below what distance from cops the red "BUSTED" bar fills,
  • how quickly the green "EVADE" bar fills once all cops have lost sight of you,
@@ -39,8 +39,9 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • the internal cooldown between non-Strategy roadblock requests,
  • the internal cooldown between Heavy / LeaderStrategy requests,
  • at what distance from racers roadblocks can spawn,
- • under which conditions and to what extent (if at all) roadblock vehicles can join pursuits,
- • whether roadblock vehicles react to racers entering "COOLDOWN" mode and / or hitting spikes,
+ • when and to what extent (if at all) roadblock vehicles can join pursuits,
+ • whether roadblock vehicles react to racers entering "COOLDOWN" mode,
+ • whether roadblock vehicles react to racers hitting their spike strips,
  • whether HeavyStrategy 3 requests interact with roadblock requests and spawns,
  • which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
  • which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4,
@@ -54,7 +55,7 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and
  • the selection, order, and length of interactive themes that play during player pursuits.
 
-The "Basic" feature set FIXES TEN BUGS / ISSUES automatically:
+The "Basic" feature set ALWAYS FIXES TEN BUGS / ISSUES automatically:
  • transitions to Heat levels > 5 now trigger their proper radio announcements,
  • the game no longer skips Heat-level announcements in scripted pursuit events,
  • vehicles joining pursuits from roadblocks no longer ignore spawn limits for cops,
@@ -65,6 +66,10 @@ The "Basic" feature set FIXES TEN BUGS / ISSUES automatically:
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
  • Heat levels > 5 are now shown correctly in menus (requires Binary for missing textures), and
  • you can no longer get busted due to line-of-sight issues while the green "EVADE" bar fills.
+
+The "Basic" feature set CAN FIX TWO BUGS / ISSUES, depending on its configuration:
+ • non-Strategy roadblock requests can no longer be stalled by HeavyStrategy 3 requests, and
+ • HeavyStrategy 3 requests no longer become very rare at Heat levels with frequent roadblocks.
 
 
 
@@ -93,7 +98,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the helicopter can rejoin the pursuit early if it loses you,
  • when exactly (if at all) the helicopter can run out of fuel after each (re)spawn,
  • the internal cooldown between the helicopter's ramming attempts through HeliStrategy 2,
- • below what racer speed HeavyStrategy 3 spawns cancel their ramming attempts early,
+ • below what racer speed HeavyStrategy 3 vehicles cancel their ramming attempts early,
  • when exactly (if at all) LeaderStrategy Cross and / or his henchmen become aggressive,
  • when exactly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
  • when exactly (if at all) the game can request a new Strategy while another is still active.
@@ -101,10 +106,15 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
 The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
-The "Advanced" feature set FIXES THREE BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES THREE BUGS / ISSUES automatically:
  • non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer disabled in races,
  • early Strategy despawns or cancellations no longer stall the game from making new requests, and
  • the engagement count shown above the pursuit board now always tracks relevant cops accurately.
+
+The "Advanced" feature set CAN FIX THREE BUGS / ISSUES, depending on its configuration:
+ • the helicopter can no longer waste its spawn attempts by losing you nearly instantly,
+ • HeavyStrategy 3 vehicles no longer spawn in passive mode without trying to ram anything, and
+ • traffic spawns no longer slow down or stop at Heat levels with many cops / frequent roadblocks.
 
 
 

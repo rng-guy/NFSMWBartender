@@ -99,7 +99,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 * To disable this entire feature set and its fixes, delete all its configuration files.
 
-* As long as this feature set isn't disabled, all its fixes apply automatically.
+* As long as this feature set isn't disabled, all its automatic fixes apply.
 
 * The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd node determines the maximum Heat level (1-10) at Blacklist rival #XY.
 
@@ -197,11 +197,11 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Not every request results in a successful spawn of whatever the game requested.
 
-* Bartender can prevent HeavyStrategy 3 requests from resetting the roadblock cooldown. This avoids the potential issue of roadblocks becoming much rarer than expected.
+* Bartender can prevent HeavyStrategy 3 requests from resetting the roadblock cooldown. Disabling this reset fixes the vanilla issue of non-Strategy roadblock requests being stalled.
 
 * Strategy requests block each other: Whenever there's an active Strategy request, the game won't attempt to make more. You can change this with Bartender's "Advanced" feature set.
 
-* In the vanilla game, active roadblocks of any kind also block new HeavyStrategy 3 requests. Bartender can prevent this blocking, making HeavyStrategy 3 requests much more frequent.
+* In the vanilla game, active roadblocks of any kind also block new HeavyStrategy 3 requests. Disabling this blocking fixes the vanilla issue of HeavyStrategy 3 requests becoming rare.
 
 * Strategy requests end when their "Duration" VltEd parameters expire or their vehicles are gone.
 
@@ -243,7 +243,7 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
 
-* As long as this feature set isn't disabled, all its fixes apply automatically.
+* As long as this feature set isn't disabled, all its automatic fixes apply.
 
 * Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That's because, by default, Bartender's fix makes the engagement count track "Chasers" only, disregarding others.
 
@@ -307,7 +307,7 @@ Regarding **car (de)spawning behaviour** (`BartenderSettings\Advanced\CarSpawns.
 
 * "Chasers" only flee at Heat levels for which you define valid flee-delay values and thresholds. "Chasers" also only flee if they aren't in the current Heat level's "Chasers" spawn table, and if there would be enough active "Chasers" remaining in the pursuit after their retreat.
 
-* Fully independent traffic spawns may sometimes slow down "Chasers" spawns slightly.
+* Fully independent traffic spawns fix the vanilla issue of disappearing traffic in pursuits, but they might interfere with "Chasers" spawns to some degree under the right conditions.
 
 * The number of active vehicles from roadblocks is only limited at Heat levels for which you define a valid limit values. These limits apply to each pursuit separately.
 
@@ -333,6 +333,8 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * Rejoining helicopters don't count towards the total number of helicopters deployed.
 
+* Enabling rejoining prevents the helicopter from wasting spawns if it loses you instantly.
+
 * The helicopter only spawns with limited fuel at Heat levels for which you define valid fuel-time values. Unlimited fuel means the helicopter must either lose you or get wrecked.
 
 * The helicopter also (re)spawns in "COOLDOWN" mode according to its (re)spawn delays.
@@ -351,7 +353,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
-* Defining low racer-speed thresholds for HeavyStrategy 3 spawns fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if the racer's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of higher `CollapseSpeed` values and far more aggressive cops.
+* Defining low racer-speed thresholds for HeavyStrategy 3 vehicles fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if the racer's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of higher `CollapseSpeed` values and far more aggressive cops.
 
 * LeaderStrategy Cross and / or his henchmen only become aggressive at Heat levels for which you define valid aggro-delay values. Henchmen, however, always become aggressive when Cross leaves.
 
