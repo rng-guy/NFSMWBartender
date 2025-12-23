@@ -272,6 +272,23 @@ namespace ConfigParser
 		}
 
 
+		// Seriously, fuck the std::vector<bool> "optimisation"
+		size_t ParseUserParameter
+		(
+			const std::string&        section,
+			std::vector<std::string>& parameterKeys,
+			std::vector<bool>&        parameterValues
+		) {
+			parameterKeys.clear();
+			parameterValues.clear();
+
+			const size_t numTotalReads = inipp::get_value<char, bool>
+				(this->parser.sections[section], parameterKeys, parameterValues);
+
+			return numTotalReads;
+		}
+
+
 		template <typename T>
 		size_t ParseUserParameter
 		(

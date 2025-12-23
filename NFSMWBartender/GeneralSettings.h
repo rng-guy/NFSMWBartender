@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
+#include "HashContainers.h"
 #include "HeatParameters.h"
 
 
@@ -32,6 +33,9 @@ namespace GeneralSettings
 	float bountyFrequency = 1.f / bountyIntervals.current; // seconds
 	float halfEvadeRate   = .5f / evadeTimers.current;     // hertz
 	float bustRate        = 1.f / bustTimers.current;      // hertz
+
+	// Code caves
+	HashContainers::CachedVaultMap<bool> copTypeToIsUnbreakable(false);
 
 
 
@@ -114,6 +118,32 @@ namespace GeneralSettings
 
 			conclusion:
 			jmp dword ptr rivalPursuitExit
+		}
+	}
+
+
+
+	constexpr address breakerCheckEntrance = 0x42E967;
+	constexpr address breakerCheckExit     = 0x42E96C;
+
+	__declspec(naked) void BreakerCheck()
+	{
+		__asm
+		{
+			call dword ptr [eax + 0x7C]
+			test al, al
+			jne conclusion // vehicle destroyed
+
+			mov ecx, ebx
+			call Globals::GetVehicleType
+
+			push eax // copType
+			mov ecx, offset copTypeToIsUnbreakable
+			call HashContainers::CachedVaultMap<bool>::GetValue
+			test al, al
+
+			conclusion:
+			jmp dword ptr breakerCheckExit
 		}
 	}
 
@@ -220,7 +250,22 @@ namespace GeneralSettings
 		HeatParameters::ParseOptional<float>(parser, "Flipping:Time",   {copFlipByTimers,      0.f});
 		HeatParameters::ParseOptional<float>(parser, "Flipping:Reset",  {racerFlipResetDelays, 0.f});
 
-		// Code modifications 
+		// Breaker flags
+		std::vector<std::string> copVehicles;
+		std::vector<bool>        isBreakables;
+
+		const size_t numCopVehicles = parser.ParseUserParameter("Vehicles:Breakers", copVehicles, isBreakables);
+
+		if (numCopVehicles > 0)
+		{
+			for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
+				copTypeToIsUnbreakable.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), (not isBreakables[vehicleID]));
+
+			// Code modifications (feature-specific)
+			MemoryTools::MakeRangeJMP(BreakerCheck, breakerCheckEntrance, breakerCheckExit);
+		}
+
+		// Code modifications (general)
 		MemoryTools::Write<float*>(&bustRate,              {0x40AEDB});
 		MemoryTools::Write<float*>(&halfEvadeRate,         {0x444A3A});
 		MemoryTools::Write<float*>(&(bustTimers.current),  {0x4445CE});
@@ -259,6 +304,23 @@ namespace GeneralSettings
 		copFlipByDamageEnableds.Log("copFlipByDamageEnabled  ");
 		copFlipByTimers        .Log("copFlipByTimer          ");
 		racerFlipResetDelays   .Log("racerFlipResetDelay     ");
+	}
+
+
+
+	void Validate()
+	{
+		if (copTypeToIsUnbreakable.empty()) return;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [GEN] GeneralSettings");
+
+		copTypeToIsUnbreakable.Validate
+		(
+			"Vehicle-to-unbreakability",
+			[=](const vault   key) {return Globals::VehicleClassMatches(key, Globals::Class::ANY);},
+			[=](const bool  value) {return true;}
+		);
 	}
 
 

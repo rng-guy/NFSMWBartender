@@ -45,8 +45,9 @@ namespace Globals
 	const auto GetVehicleType = reinterpret_cast<vault       (__thiscall*)(address)>(0x6880A0);
 	const auto GetVehicleName = reinterpret_cast<const char* (__thiscall*)(address)>(0x688090);
 
-	const auto IsPlayerPursuit    = reinterpret_cast<bool (__thiscall*)(address)>(0x40AD80);
-	const auto IsVehicleDestroyed = reinterpret_cast<bool (__thiscall*)(address)>(0x688170);
+	const auto IsPlayerPursuit     = reinterpret_cast<bool (__thiscall*)(address)>(0x40AD80);
+	const auto IsVehicleDestroyed  = reinterpret_cast<bool (__thiscall*)(address)>(0x688170);
+	const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
 
 	// Common data pointers
 	const float&   simulationTime = *reinterpret_cast<float*>  (0x9885D8);

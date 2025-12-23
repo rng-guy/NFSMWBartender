@@ -6,6 +6,7 @@
 #include "HeatParameters.h"
 
 #include "PursuitFeatures.h"
+#include "CopFleeOverrides.h"
 
 
 
@@ -17,16 +18,10 @@ namespace StrategyOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<float> racerSpeedThresholds(25.f); // kph
-	
 	HeatParameters::OptionalInterval<float> heavy3UnblockDelays;  // seconds
 	HeatParameters::OptionalInterval<float> heavy4UnblockDelays;  // seconds
 	HeatParameters::OptionalInterval<float> leader5UnblockDelays; // seconds
 	HeatParameters::OptionalInterval<float> leader7UnblockDelays; // seconds
-
-	// Conversions
-	float baseSpeedThreshold = racerSpeedThresholds.current / 3.6f; // mps
-	float jerkSpeedThreshold = baseSpeedThreshold * .625f;          // mps
 
 
 
@@ -38,23 +33,15 @@ namespace StrategyOverrides
 	{
 	private:
 
-		int& numStrategyVehicles = *reinterpret_cast<int*>(this->pursuit + 0x18C);
-
 		const float pursuitStartTimestamp = Globals::simulationTime;
 
-		const bool&    isJerk         = *reinterpret_cast<bool*>   (this->pursuit + 0x238);
+		int& numStrategyVehicles = *reinterpret_cast<int*>(this->pursuit + 0x18C);
+	
 		const address& heavyStrategy  = *reinterpret_cast<address*>(this->pursuit + 0x194);
 		const address& leaderStrategy = *reinterpret_cast<address*>(this->pursuit + 0x198);
 
-		address rigidBodyOfTarget      = 0x0;
-		bool    watchingHeavyStrategy3 = false;
-
 		PursuitFeatures::IntervalTimer unblockTimer;
-
-		HashContainers::AddressSet vehiclesOfCurrentStrategy;
-		HashContainers::AddressSet vehiclesOfUnblockedHeavy3;
-
-		inline static const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
+		HashContainers ::AddressSet    vehiclesOfCurrentStrategy;
 
 		inline static HashContainers::AddressMap<StrategyManager*> pursuitToManager;
 
@@ -71,14 +58,6 @@ namespace StrategyOverrides
 
 			this->unblockTimer.Stop();
 
-			if (this->watchingHeavyStrategy3)
-			{
-				for (const address copVehicle : this->vehiclesOfCurrentStrategy)
-					this->vehiclesOfUnblockedHeavy3.insert(copVehicle);
-
-				this->watchingHeavyStrategy3 = false;
-			}
-			
 			this->vehiclesOfCurrentStrategy.clear();
 			this->UpdateNumStrategyVehicles();
 		}
@@ -108,64 +87,10 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[STR] Unblocking active Strategy");
 
-			this->ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
+			Globals::ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
 		}
 
 
-		static void MakeVehiclesBail(HashContainers::AddressSet& copVehicles)
-		{
-			for (const address copVehicle : copVehicles)
-				StrategyManager::MakeVehicleBail(copVehicle);
-
-			copVehicles.clear();
-		}
-
-
-		void RetrieveRigidBodyOfTarget()
-		{
-			const address pursuitTarget = *reinterpret_cast<address*>(this->pursuit + 0x74);
-			const address physicsObject = *reinterpret_cast<address*>(pursuitTarget + 0x1C);
-
-			this->rigidBodyOfTarget = (physicsObject) ? *reinterpret_cast<address*>(physicsObject + 0x4C) : 0x0;
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (not this->rigidBodyOfTarget)
-					Globals::logger.Log("WARNING: [STR] Invalid PhysicsObject for target in", this->pursuit);
-			}
-		}
-
-
-		bool IsSpeedOfTargetBelowThreshold() const
-		{
-			if (not this->rigidBodyOfTarget) return false; // should never happen
-
-			static const auto GetSpeedXZ = reinterpret_cast<float (__thiscall*)(address)>(0x6711F0);
-
-			return (GetSpeedXZ(this->rigidBodyOfTarget) < ((this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold));
-		}
-
-
-		void CheckHeavyStrategy3Vehicles()
-		{
-			if ((not this->watchingHeavyStrategy3) and this->vehiclesOfUnblockedHeavy3.empty()) return;
-
-			if (this->IsSpeedOfTargetBelowThreshold() or this->IsSearchModeActive())
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[STR] Forcing HeavyStrategy3 vehicles to bail");
-
-				this->MakeVehiclesBail(this->vehiclesOfUnblockedHeavy3);
-
-				if (this->watchingHeavyStrategy3)
-				{
-					this->MakeVehiclesBail(this->vehiclesOfCurrentStrategy);
-					this->ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
-				}
-			}
-		}
-		
-		
 		static StrategyManager* FindManager(const address pursuit)
 		{
 			const auto foundManager = StrategyManager::pursuitToManager.find(pursuit);
@@ -203,14 +128,7 @@ namespace StrategyOverrides
 
 		void UpdateOnGameplay() override
 		{
-			this->CheckHeavyStrategy3Vehicles();
 			this->CheckUnblockTimer();
-		}
-
-
-		void UpdateOncePerPursuit() override
-		{
-			this->RetrieveRigidBodyOfTarget();
 		}
 
 
@@ -245,13 +163,11 @@ namespace StrategyOverrides
 			if (this->vehiclesOfCurrentStrategy.erase(copVehicle))
 			{
 				if (this->vehiclesOfCurrentStrategy.empty())
-					this->ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
+					Globals::ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
 
 				else
 					this->UpdateNumStrategyVehicles();
 			}
-			else if (copLabel == CopLabel::HEAVY)
-				this->vehiclesOfUnblockedHeavy3.erase(copVehicle);
 		}
 
 
@@ -275,7 +191,6 @@ namespace StrategyOverrides
 			switch (strategyID)
 			{
 			case 3:
-				manager->watchingHeavyStrategy3 = true;
 				manager->unblockTimer.LoadInterval(heavy3UnblockDelays);
 				break;
 
@@ -554,8 +469,6 @@ namespace StrategyOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::Parse<float>(parser, "Heavy3:Fleeing", {racerSpeedThresholds, 0.f});
-
 		HeatParameters::ParseOptional<float>(parser, "Heavy3:Unblocking",  {heavy3UnblockDelays , 1.f});
 		HeatParameters::ParseOptional<float>(parser, "Heavy4:Unblocking",  {heavy4UnblockDelays , 1.f});
 		HeatParameters::ParseOptional<float>(parser, "Leader5:Unblocking", {leader5UnblockDelays, 1.f});
@@ -590,8 +503,6 @@ namespace StrategyOverrides
 	{
 		Globals::logger.Log("    HEAT [STR] StrategyOverrides");
 
-		racerSpeedThresholds.Log("racerSpeedThreshold     ");
-
 		heavy3UnblockDelays .Log("heavy3UnblockDelay      ");
 		heavy4UnblockDelays .Log("heavy4UnblockDelay      ");
 		leader5UnblockDelays.Log("leader5UnblockDelay     ");
@@ -606,11 +517,6 @@ namespace StrategyOverrides
 		const size_t heatLevel
 	) {
 		if (not featureEnabled) return;
-
-		racerSpeedThresholds.SetToHeat(isRacing, heatLevel);
-
-		baseSpeedThreshold = racerSpeedThresholds.current / 3.6f;
-		jerkSpeedThreshold = baseSpeedThreshold * .625f;
 
 		heavy3UnblockDelays .SetToHeat(isRacing, heatLevel);
 		heavy4UnblockDelays .SetToHeat(isRacing, heatLevel);

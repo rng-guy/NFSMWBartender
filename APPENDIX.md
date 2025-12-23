@@ -181,9 +181,11 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 * The two checks for whether a flipped cop should be destroyed are mutually independent: One check is damage-based, while the other is time-based and disregards vehicle damage.
 
-* The time-based flip check only happens at Heat levels for which you define a valid delay value.
+* The time-based flip check happens only at Heat levels for which you define a valid delay value.
 
-* Resets of flipped racers only happen at Heat levels for which you define a valid delay value.
+* Resets of flipped racers happen only at Heat levels for which you define a valid delay value.
+
+* If you define no breaker flags and no `default`, Bartender disables its pursuit-breaker feature.
 
 &nbsp;
 
@@ -209,7 +211,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before the game can make non-Strategy roadblock and Strategy requests in a given pursuit.
 
-* Time-based joining from roadblocks only happens at Heat levels for which you define valid time values, and has no bearing on other methods through which roadblock vehicles may join. Only the time racers spend near a roadblock counts towards the trigger for this joining method.
+* Time-based joining from roadblocks happens only at Heat levels for which you define valid time values, and has no bearing on other methods through which roadblock vehicles may join. Only the time racers spend near a roadblock counts towards the trigger for this joining method.
 
 * Both the definition of when a racer is "near" a roadblock and how many vehicles join per roadblock apply to all methods through which roadblock vehicles can join pursuits.
 
@@ -297,7 +299,7 @@ Regarding **car (de)spawning behaviour** (`BartenderSettings\Advanced\CarSpawns.
 
 * In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the minimum count.
 
-* The global cop-spawn limit determines whether the game may spawn more "Chasers" at any point. The game may spawn additional "Chasers" as long as the total amount of non-helicopter cops that currently exist across all pursuits is below this global limit. This also means that any active Strategy spawns, roadblocks, or NPC pursuits in general can affect how many more "Chasers" may still spawn in your pursuit (this is vanilla behaviour).
+* The global cop-spawn limit determines whether the game can spawn more "Chasers" at any point. The game can spawn additional "Chasers" as long as the total amount of non-helicopter cops that currently exist across all pursuits is below this global limit. This also means that any active Strategy spawns, roadblocks, or NPC pursuits in general can affect how many more "Chasers" can still spawn in your pursuit (this is vanilla behaviour).
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
@@ -305,13 +307,13 @@ Regarding **car (de)spawning behaviour** (`BartenderSettings\Advanced\CarSpawns.
 
 * Very small spawning clearances for "Chasers" may lead to overly congested roads.
 
-* "Chasers" only flee at Heat levels for which you define valid flee-delay values and thresholds. "Chasers" also only flee if they aren't in the current Heat level's "Chasers" spawn table, and if there would be enough active "Chasers" remaining in the pursuit after their retreat.
+* "Chasers" flee only at Heat levels for which you define valid flee-delay values and thresholds. "Chasers" also only flee if they aren't in the current Heat level's "Chasers" spawn table, and if there would be enough active "Chasers" remaining in the pursuit after their retreat.
 
 * Fully independent traffic spawns fix the vanilla issue of disappearing traffic in pursuits, but they might interfere with "Chasers" spawns to some degree under the right conditions.
 
-* The number of active vehicles from roadblocks is only limited at Heat levels for which you define a valid limit values. These limits apply to each pursuit separately.
+* The number of active vehicles that joined from roadblocks is limited only at Heat levels for which you define a valid limit value. These limits apply to each pursuit separately. If you also make "Chasers" spawns independent, then the global cop-spawn limit no longer applies to vehicles that join from roadblocks, too; they can always join unless you define a limit.
 
-* Joined roadblock vehicles only flee at Heat levels for which you define valid flee-delay values and "Chasers" thresholds. Joined roadblock vehicles only flee if there would be enough active "Chasers" remaining in the pursuit after their retreat.
+* Joined roadblock vehicles flee only at Heat levels for which you define valid flee-delay values and "Chasers" thresholds. Joined roadblock vehicles only flee if there would be enough active "Chasers" remaining in the pursuit after their retreat.
 
 &nbsp;
 
@@ -319,15 +321,15 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * Bartender uses separate, random timers for (re)spawning the helicopter and setting its fuel. Each despawn context (e.g. the helicopter getting wrecked) has its own respawn-delay interval.
 
-* The helicopter only (re)spawns at Heat levels for which you define valid (re)spawn-delay values.
+* The helicopter (re)spawns only at Heat levels for which you define valid (re)spawn-delay values.
 
 * In a given pursuit, the helicopter must have a successful first spawn at some point before context-dependent respawns can happen. Such first spawns carry over across Heat transitions.
  
 * If you don't define valid respawn-delay values for some despawn context (e.g. getting wrecked), then the helicopter won't respawn if that context happens. If a transition to another Heat level with valid respawn-delay values takes place, however, the helicopter may respawn again.
 
-* The helicopter can only rejoin after losing you at Heat levels for which you define valid rejoin-delay and minimum-fuel values. The helicopter can only rejoin if it loses you.
+* The helicopter can rejoin after losing you only at Heat levels for which you define valid rejoin-delay and minimum-fuel values. The helicopter can only rejoin if it loses you.
 
-* The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay. If the helicopter were to rejoin with less fuel than the required minimum, it counts as having run out of fuel and triggers the appropriate respawn delay instead.
+* The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay. If the helicopter were to rejoin with less fuel than the required minimum, it counts as having lost you and triggers the appropriate respawn delay instead.
 
 * Whether an active helicopter may rejoin a given pursuit is unaffected by Heat transitions, as this is locked in as soon as it (re)spawns. This means a rejoining helicopter can keep rejoining your pursuit until it either gets wrecked or runs out of fuel. Its vehicle is also locked in to ensure it rejoins with the same model and overall properties.
 
@@ -335,7 +337,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * Enabling rejoining prevents the helicopter from wasting spawns if it loses you instantly.
 
-* The helicopter only spawns with limited fuel at Heat levels for which you define valid fuel-time values. Unlimited fuel means the helicopter must either lose you or get wrecked.
+* The helicopter spawns with limited fuel only at Heat levels for which you define valid fuel-time values. Unlimited fuel means the helicopter must either lose you or get wrecked.
 
 * The helicopter also (re)spawns in "COOLDOWN" mode according to its (re)spawn delays.
 
@@ -355,7 +357,11 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * Defining low racer-speed thresholds for HeavyStrategy 3 vehicles fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if the racer's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of higher `CollapseSpeed` values and far more aggressive cops.
 
-* LeaderStrategy Cross and / or his henchmen only become aggressive at Heat levels for which you define valid aggro-delay values. Henchmen, however, always become aggressive when Cross leaves.
+* If you use short unblock delays for HeavyStrategy 3 or enable joining from expired HeavyStrategy 3 requests, then you may also [need](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. That's because HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear if their numbers grow too much.
+
+* The number of active vehicles from expired HeavyStrategy 3 requests is limited only at Heat levels for which you define a valid limit value. These limits apply to each pursuit separately.
+
+* LeaderStrategy Cross and / or his henchmen become aggressive only at Heat levels for which you define valid aggro-delay values. Henchmen, however, always become aggressive when Cross leaves.
 
 * Once aggressive, Cross and / or his henchmen act like regular cops and can join formations. Also, neither Cross nor his henchmen can return to being passive again until they despawn.
 
@@ -363,7 +369,7 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * The aggro delays of any active LeaderStrategy are unaffected by Heat transitions, as their values are locked in as soon as the game requests said LeaderStrategy.
 
-* Resets of Cross' spawn flag only happen at Heat levels for which you define valid reset-delay values. The vanilla game never resets this flag if Cross gets wrecked.
+* Resets of Cross' spawn flag happen only at Heat levels for which you define valid reset-delay values. The vanilla game never resets this flag if Cross gets wrecked.
 
 * Once Cross' spawn flag is reset, the game can attempt LeaderStrategy requests again.
 
@@ -371,7 +377,7 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * Bartender can unblock the Strategy-request queue while there is still an active Strategy. Without unblocking, an active Strategy request prevents the game from making a new request. Unblocking allows multiple Strategy requests to spawn at the same time, and they each continue until either their `Duration` VltEd parameters expire or all their vehicles have despawned.
 
-* Bartender only unblocks requests at Heat levels for which you define valid unblock-delay values.
+* Bartender unblocks requests only at Heat levels for which you define valid unblock-delay values.
 
 * Unblock delays longer than a given Strategy's `Duration` VltEd parameter have no effect.
 
@@ -382,5 +388,3 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 * Even with unblocking, no new LeaderStrategy can spawn while a LeaderStrategy Cross is present.
 
 * It's generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
-
-* If you use short unblock delays for HeavyStrategy 3, then you may also need to [install](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. That's because HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear. Using lower (~20 seconds) `Duration` VltEd parameters instead is a safe alternative.

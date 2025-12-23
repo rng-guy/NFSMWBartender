@@ -61,7 +61,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log ("\n SESSION [VER] Bartender v2.06.02");
+			Globals::logger.Log ("\n SESSION [VER] Bartender v2.07.00");
 
 			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
@@ -84,6 +84,7 @@ namespace StateObserver
 		CopDetection::Validate();
 		RadioChatter::Validate();
 
+		GeneralSettings::Validate();
 		GroundSupports ::Validate();
 		PursuitObserver::Validate();
 	}

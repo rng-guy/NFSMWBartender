@@ -51,16 +51,24 @@ namespace PursuitFeatures
 		}
 
 
-		static bool MakeVehicleBail(const address copVehicle)
+		static bool EndSupportGoal(const address copVehicle)
 		{
-			const address pursuitVehicle = PursuitReaction::GetPursuitVehicle(copVehicle);
+			const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
 
-			static const auto StartFlee = reinterpret_cast<void (__thiscall*)(address)>(0x423370);
+			if (copAIVehicle)
+			{
+				static constexpr vault pursuitGoal = 0x492916A2; // "AIGoalPursuit"
 
-			if (pursuitVehicle)
-				StartFlee(pursuitVehicle);
+				static const auto SetSupportGoal = reinterpret_cast<void (__thiscall*)(address, vault)>       (0x409850);
+				static const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault*)>(0x422480);
 
-			return pursuitVehicle;
+				SetSupportGoal(copAIVehicle - 0x4C + 0x758, 0x0);
+				SetVehicleGoal(copAIVehicle - 0x4C, &pursuitGoal);
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
+
+			return copAIVehicle;
 		}
 
 

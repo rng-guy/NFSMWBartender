@@ -55,6 +55,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Basic" feature set **also lets you change** (in general)
+* whether a given cop vehicle is affected by pursuit breakers of any kind;
 * which notification string the game displays whenever you destroy a given cop vehicle;
 * which radio callsigns and chatter a given cop vehicle can trigger in player pursuits;
 * under which conditions (if at all) a given cop vehicle shows up on the radar / mini-map;
@@ -77,7 +78,7 @@ The "Basic" feature set **always fixes ten bugs / issues** automatically:
 
 &nbsp;
 
-The "Basic" feature set **can fix two bugs / issues**, depending on its configuration:
+The "Basic" feature set **can fix two more bugs / issues**, depending on its configuration:
 * non-Strategy roadblock requests can no longer be stalled by HeavyStrategy 3 requests, and
 * HeavyStrategy 3 requests no longer become very rare at Heat levels with frequent roadblocks.
 
@@ -96,6 +97,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * below what total number of active cops in the world the game can spawn new chasing cops,
 * whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
 * whether spawning decisions for traffic cars are independent of those for cops,
+* whether Heat transitions immediately trigger backup to update the engagement count,
 * how far away new chasing cops must spawn from all already active cops,
 * above what count (if at all) no more cops can join the pursuit from roadblocks,
 * when exactly (if at all) and how many cops that joined from roadblocks can flee the pursuit,
@@ -108,11 +110,14 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * when exactly (if at all) the helicopter can first spawn in each player pursuit,
 * when exactly (if at all) the helicopter can respawn if it runs out of fuel,
 * when exactly (if at all) the helicopter can respawn if it gets wrecked,
-* when exactly (if at all) the helicopter can rejoin the pursuit early if it loses you,
+* when exactly (if at all) the helicopter can respawn if it loses you,
+* when exactly (if at all) the helicopter can rejoin instead if it loses you,
 * when exactly (if at all) the helicopter can run out of fuel after each (re)spawn,
 * the internal cooldown between the helicopter's ramming attempts through HeliStrategy 2,
 * below what racer speed HeavyStrategy 3 vehicles cancel their ramming attempts early,
-* when exactly (if at all) LeaderStrategy Cross and / or his henchmen become aggressive,
+* whether HeavyStrategy 3 vehicles can join the pursuit once their requests expire,
+* above what count (if at all) no more cops can join the pursuit from HeavyStrategy 3 requests,
+* when exactly (if at all) LeaderStrategy 5 / 7 Cross and / or his henchmen become aggressive,
 * when exactly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
 * when exactly (if at all) the game can request a new Strategy while another is still active.
 
@@ -130,7 +135,7 @@ The "Advanced" feature set **always fixes three bugs / issues** automatically:
 
 &nbsp;
 
-The "Advanced" feature set **can fix three bugs / issues**, depending on its configuration:
+The "Advanced" feature set **can fix three more bugs / issues**, depending on its configuration:
 * the helicopter can no longer waste its spawn attempts by losing you nearly instantly,
 * HeavyStrategy 3 vehicles no longer spawn in passive mode without trying to ram anything, and
 * traffic spawns no longer slow down or stop at Heat levels with many cops / frequent roadblocks.
@@ -154,7 +159,7 @@ Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-releas
 &nbsp;
 
 Most **other .asi mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
-* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable the `HeatLevelOverride` feature.
+* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable `HeatLevelOverride` and `PursuitActionMode`.
 * In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable the `EnableCopDestroyedStringHook` feature.
 * For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` parameter group.
 * For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#4---what-other-mods-does-bartender-depend-on) below.
@@ -173,6 +178,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 * `[Chasers:Limits]` in `CarSpawns.ini`: You define a global cop-spawn limit > 8.
 * `[Chasers:Independence]` in `CarSpawns.ini`: You enable independent spawns for chasing cops.
 * `[Traffic:Independence]` in `CarSpawns.ini`: You enable independent spawns for traffic.
+* `[Heavy3:Joining]` in `Strategies.ini`: You enable joining from HeavyStrategy 3.
 * `[Heavy3:Unblocking]` in `Strategies.ini`: You define very short unblock delays.
 
 &nbsp;
@@ -204,7 +210,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 **To install** Bartender:
 1. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
-2. copy the `BartenderSettings` folder and .asi file into your game's `scripts` folder;
+2. copy the `BartenderSettings` folder and .asi file to your game's `scripts` folder;
 3. if Bartender's .asi file gets flagged by your antivirus software, whitelist the file; and
 4. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.
 
@@ -220,7 +226,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.06.00, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.07.00, replace all old configuration files.
 
 &nbsp;
 

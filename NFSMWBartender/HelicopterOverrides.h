@@ -26,6 +26,7 @@ namespace HelicopterOverrides
 	HeatParameters::OptionalInterval<float> firstSpawnDelays;   // seconds
 	HeatParameters::OptionalInterval<float> fuelRespawnDelays;  // seconds
 	HeatParameters::OptionalInterval<float> wreckRespawnDelays; // seconds
+	HeatParameters::OptionalInterval<float> lostRespawnDelays;  // seconds
 
 	HeatParameters::OptionalInterval<float> lostRejoinDelays;         // seconds
 	HeatParameters::Pair            <float> minRejoinFuelTimes(10.f); // seconds
@@ -56,7 +57,8 @@ namespace HelicopterOverrides
 			ACTIVE,
 			EXPIRED,
 			WRECKED,
-			LOST
+			LOST,
+			REJOINING
 		};
 
 		Status helicopterStatus = Status::PENDING;
@@ -65,11 +67,11 @@ namespace HelicopterOverrides
 
 		int& numHelicoptersDeployed = *reinterpret_cast<int*>(this->pursuit + 0x150);
 
+		float fuelTimeOnRejoin  = 0.f;  // seconds
+		float minRejoinFuelTime = 10.f; // seconds
+
 		inline static address     helicopterOwner   = 0x0;
 		inline static const char* helicopterVehicle = nullptr;
-
-		inline static float fuelTimeOnRejoin  = 0.f;  // seconds
-		inline static float minRejoinFuelTime = 10.f;
 
 		inline static const address& helicopterObject = *reinterpret_cast<address*>(0x90D61C);
 
@@ -89,7 +91,7 @@ namespace HelicopterOverrides
 		}
 
 
-		void TransferOwnership(const address copVehicle) const
+		void TakeOwnership(const address copVehicle) const
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -112,31 +114,25 @@ namespace HelicopterOverrides
 		}
 
 
-		void LockInRejoinParameters()
+		void ProcessNewHelicopter(const address copVehicle)
 		{
-			if (not this->IsOwner()) return;
+			this->TakeOwnership(copVehicle);
 
-			this->spawnTimer.LoadInterval(lostRejoinDelays);
 			hasLimitedFuel = fuelTimes.isEnableds.current;
 
-			if (this-spawnTimer.IsIntervalEnabled() and hasLimitedFuel)
-			{
-				this->minRejoinFuelTime = minRejoinFuelTimes.current;
-				maxBailoutFuelTime      = std::min<float>(lostRejoinDelays.minValues.current + this->minRejoinFuelTime, 8.f);
-			}
-			else maxBailoutFuelTime = 8.f;
-		}
+			if (hasLimitedFuel)
+				this->SetFuelTime(fuelTimes.GetRandomValue());
 
+			this->spawnTimer.LoadInterval(lostRejoinDelays);
+			this->minRejoinFuelTime = minRejoinFuelTimes.current;
 
-		bool HasSpawnedBefore() const
-		{
-			return (this->helicopterStatus != Status::PENDING);
-		}
+			maxBailoutFuelTime = 8.f;
 
+			if (this->spawnTimer.IsIntervalEnabled())
+				maxBailoutFuelTime = std::min<float>(lostRejoinDelays.minValues.current + this->minRejoinFuelTime, maxBailoutFuelTime);
 
-		bool IsRejoining() const
-		{
-			return (this->helicopterStatus == Status::LOST);
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[HEL] Helicopter", (this->helicopterStatus != Status::PENDING) ? "respawned" : "spawned");
 		}
 
 
@@ -193,54 +189,45 @@ namespace HelicopterOverrides
 		{
 			if (not this->isPlayerPursuit) return;
 
+			const char* timerName = nullptr;
+
 			switch (this->helicopterStatus)
 			{
 			case Status::PENDING:
+				timerName = "First spawn";
 				this->spawnTimer.LoadInterval(firstSpawnDelays);
 				break;
 
 			case Status::EXPIRED:
+				timerName = "Fuel respawn";
 				this->spawnTimer.LoadInterval(fuelRespawnDelays);
 				break;
 
 			case Status::WRECKED:
+				timerName = "Wreck respawn";
 				this->spawnTimer.LoadInterval(wreckRespawnDelays);
 				break;
 
+			case Status::LOST:
+				timerName = "Lost respawn";
+				this->spawnTimer.LoadInterval(lostRespawnDelays);
+				break;
+
 			default:
-				return;
+				return; // e.g. Status::REJOINING
 			}
 
 			if (not this->spawnTimer.IsSet())
 				this->spawnTimer.Start();
 
+			// With logging disabled, the compiler optimises "timerName" away
 			if constexpr (Globals::loggingEnabled)
 			{
-				const char* actionName = nullptr;
+				if (this->spawnTimer.IsIntervalEnabled())
+					Globals::logger.Log(this->pursuit, "[HEL]", timerName, "in", this->spawnTimer.GetTimeLeft());
 
-				switch (this->helicopterStatus)
-				{
-				case Status::PENDING:
-					actionName = "First spawn";
-					break;
-
-				case Status::EXPIRED:
-					actionName = "Fuel respawn";
-					break;
-
-				case Status::WRECKED:
-					actionName = "Wreck respawn";
-				}
-
-				if (actionName)
-				{
-					if (this->spawnTimer.IsIntervalEnabled())
-						Globals::logger.Log(this->pursuit, "[HEL]", actionName, "in", this->spawnTimer.GetTimeLeft());
-
-					else
-						Globals::logger.Log(this->pursuit, "[HEL]", actionName, "suspended");
-				}
-				else Globals::logger.Log("WARNING: [HEL] Invalid status in timer update", this->helicopterStatus, "in", this->pursuit);
+				else
+					Globals::logger.Log(this->pursuit, "[HEL]", timerName, "suspended");
 			}
 		}
 
@@ -294,38 +281,26 @@ namespace HelicopterOverrides
 
 			this->spawnTimer.Stop();
 
-			if (not (this->IsOwner() and this->IsRejoining())) // is new helicopter
+			if (this->helicopterStatus == Status::REJOINING)
 			{
-				this->TransferOwnership(copVehicle);
-
-				if (this->IsRejoining())
+				if (not this->IsOwner())
 				{
-					this->helicopterStatus = Status::EXPIRED;
-
 					if constexpr (Globals::loggingEnabled)
 						Globals::logger.Log("WARNING: [HEL] Expected ownership in", this->pursuit);
+
+					this->ProcessNewHelicopter(copVehicle);
 				}
-				
-				this->LockInRejoinParameters();
+				else
+				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::logger.Log(this->pursuit, "[HEL] Helicopter rejoined");
+
+					this->SetFuelTime(this->fuelTimeOnRejoin);
+					--(this->numHelicoptersDeployed);
+				}
 			}
+			else this->ProcessNewHelicopter(copVehicle);
 			
-			if (this->IsRejoining())
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[HEL] Helicopter rejoined");
-
-				this->SetFuelTime(this->fuelTimeOnRejoin);
-				--(this->numHelicoptersDeployed);
-			}
-			else
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[HEL] Helicopter", (this->HasSpawnedBefore()) ? "respawned" : "spawned");
-
-				if (hasLimitedFuel)
-					this->SetFuelTime(fuelTimes.GetRandomValue());
-			}
-
 			this->helicopterStatus = Status::ACTIVE;
 
 			skipBailoutSpeech = false;
@@ -341,67 +316,64 @@ namespace HelicopterOverrides
 		{
 			if (copLabel != CopLabel::HELICOPTER) return;
 
-			const float* const fuelTime = this->GetFuelTimePointer();
-
-			if (Globals::IsVehicleDestroyed(copVehicle))
+			if (Globals::IsVehicleDestroyed(copVehicle)) // destroyed
 			{
 				this->helicopterStatus = Status::WRECKED;
 				this->RelinquishOwnership();
 			}
-			else if (not (fuelTime and (*fuelTime > 0.f)))
+			else // not destroyed
 			{
-				this->helicopterStatus = Status::EXPIRED;
-				this->RelinquishOwnership();
-			}
-			else
-			{
-				if constexpr (Globals::loggingEnabled)
+				const float* const fuelTime = this->GetFuelTimePointer();
+
+				if (not (fuelTime and (*fuelTime > 0.f))) // expired
 				{
-					if (hasLimitedFuel)
-						Globals::logger.Log(this->pursuit, "[HEL] Fuel at despawn:", *fuelTime);
+					this->helicopterStatus = Status::EXPIRED;
+					this->RelinquishOwnership();
 				}
-
-				this->spawnTimer.Start(); // holds rejoin-delay interval
-
-				if (this->spawnTimer.IsIntervalEnabled())
+				else if (this->spawnTimer.IsIntervalEnabled()) // lost, rejoining enabled
 				{
-					if (hasLimitedFuel)
-					{
-						this->fuelTimeOnRejoin = *fuelTime - this->spawnTimer.GetLength();
-						this->helicopterStatus = (this->fuelTimeOnRejoin >= this->minRejoinFuelTime) ? Status::LOST : Status::EXPIRED;
-					}
-					else
-					{
-						this->fuelTimeOnRejoin = *fuelTime;
-						this->helicopterStatus = Status::LOST;
-					}
-				}
-				else this->helicopterStatus = Status::EXPIRED;
+					this->spawnTimer.Start(); // contains rejoin parameters
 
-				if (this->IsRejoining())
-				{
+					const float rejoinDelay = this->spawnTimer.GetLength();
+					
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (hasLimitedFuel)
-							Globals::logger.Log(this->pursuit, "[HEL] Rejoining in", this->spawnTimer.GetLength(), "for", this->fuelTimeOnRejoin);
-
-						else
-							Globals::logger.Log(this->pursuit, "[HEL] Rejoining in", this->spawnTimer.GetLength());
+							Globals::logger.Log(this->pursuit, "[HEL] Fuel at despawn:", *fuelTime);
 					}
 
-					skipBailoutSpeech = true;
-				}
-				else
-				{
-					if constexpr (Globals::loggingEnabled)
+					this->fuelTimeOnRejoin = *fuelTime;
+
+					if (hasLimitedFuel)
+						this->fuelTimeOnRejoin -= rejoinDelay;
+
+					if (this->fuelTimeOnRejoin >= this->minRejoinFuelTime) // sufficient fuel to rejoin
 					{
-						if (this->spawnTimer.IsIntervalEnabled())
+						this->helicopterStatus = Status::REJOINING;
+
+						if constexpr (Globals::loggingEnabled)
+						{
+							if (hasLimitedFuel)
+								Globals::logger.Log(this->pursuit, "[HEL] Rejoining in", rejoinDelay, "for", this->fuelTimeOnRejoin);
+
+							else
+								Globals::logger.Log(this->pursuit, "[HEL] Rejoining in", rejoinDelay);
+						}
+
+						skipBailoutSpeech = true;
+					}
+					else // insufficient fuel to rejoin
+					{
+						if constexpr (Globals::loggingEnabled)
 							Globals::logger.Log(this->pursuit, "[HEL] Insufficient fuel to rejoin");
 
-						else
-							Globals::logger.Log(this->pursuit, "[HEL] Rejoining disabled");
+						this->helicopterStatus = Status::LOST;
+						this->RelinquishOwnership();
 					}
-
+				}
+				else // lost, rejoining disabled
+				{
+					this->helicopterStatus = Status::LOST;
 					this->RelinquishOwnership();
 				}
 			}
@@ -520,18 +492,18 @@ namespace HelicopterOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini")) return false;
+		parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini");
 
 		// Heat parameters
-		HeatParameters::ParseOptional<float>(parser, "Helicopter:FirstSpawn", {firstSpawnDelays, 1.f});
-		if (not firstSpawnDelays.AnyEnabled()) return false; // no helicopters can ever spawn
-
 		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
 
-		HeatParameters::ParseOptional<float>       (parser, "Helicopter:FuelRespawn",  {fuelRespawnDelays , 1.f});
-		HeatParameters::ParseOptional<float>       (parser, "Helicopter:WreckRespawn", {wreckRespawnDelays, 1.f});
-		HeatParameters::ParseOptional<float, float>(parser, "Helicopter:LostRejoin",   {lostRejoinDelays,   1.f}, {minRejoinFuelTimes, 1.f});
-		HeatParameters::ParseOptional<float>       (parser, "Helicopter:FuelTime",     {fuelTimes,          1.f});
+		HeatParameters::ParseOptional<float>(parser, "Helicopter:FuelTime",     {fuelTimes,          1.f});
+		HeatParameters::ParseOptional<float>(parser, "Helicopter:FirstSpawn",   {firstSpawnDelays,   1.f});
+		HeatParameters::ParseOptional<float>(parser, "Helicopter:FuelRespawn",  {fuelRespawnDelays , 1.f});
+		HeatParameters::ParseOptional<float>(parser, "Helicopter:WreckRespawn", {wreckRespawnDelays, 1.f});
+		HeatParameters::ParseOptional<float>(parser, "Helicopter:LostRespawn",  {lostRespawnDelays,  1.f });
+		
+		HeatParameters::ParseOptional<float, float>(parser, "Helicopter:LostRejoin", {lostRejoinDelays, 1.f}, {minRejoinFuelTimes, 1.f});
 
 		HeatParameters::Parse<float>(parser, "Helicopter:Ramming", {rammingCooldowns, 1.f});
 
@@ -585,17 +557,17 @@ namespace HelicopterOverrides
 			helicopterVehicles.Log("helicopterVehicle       ");
 			rammingCooldowns  .Log("rammingCooldown         ");
 
+			fuelTimes         .Log("fuelTime                ");
 			firstSpawnDelays  .Log("firstSpawnDelay         ");
 			fuelRespawnDelays .Log("fuelRespawnDelays       ");
 			wreckRespawnDelays.Log("wreckRespawnDelay       ");
+			lostRespawnDelays .Log("lostRespawnDelay        ");
 
 			if (lostRejoinDelays.isEnableds.current)
 			{
 				lostRejoinDelays  .Log("lostRejoinDelay         ");
 				minRejoinFuelTimes.Log("minRejoinFuelTime       ");
 			}
-
-			fuelTimes.Log("fuelTime                ");
 		}
 	}
 
@@ -611,13 +583,15 @@ namespace HelicopterOverrides
 		helicopterVehicles.SetToHeat(isRacing, heatLevel);
 		rammingCooldowns  .SetToHeat(isRacing, heatLevel);
 
+		fuelTimes         .SetToHeat(isRacing, heatLevel);
 		firstSpawnDelays  .SetToHeat(isRacing, heatLevel);
 		fuelRespawnDelays .SetToHeat(isRacing, heatLevel);
 		wreckRespawnDelays.SetToHeat(isRacing, heatLevel);
+		lostRespawnDelays .SetToHeat(isRacing, heatLevel);
+
 		lostRejoinDelays  .SetToHeat(isRacing, heatLevel);
 		minRejoinFuelTimes.SetToHeat(isRacing, heatLevel);
-		fuelTimes         .SetToHeat(isRacing, heatLevel);
-
+		
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();
 	}

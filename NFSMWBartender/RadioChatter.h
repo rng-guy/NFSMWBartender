@@ -307,7 +307,7 @@ namespace RadioChatter
 		std::vector<std::string> copVehicles;
 		std::vector<std::string> callsignNames;
 
-		const size_t numCopVehicles = parser.ParseUserParameter("Vehicles:Callsigns", copVehicles, callsignNames);
+		const size_t numCopVehicles = parser.ParseUserParameter<std::string>("Vehicles:Callsigns", copVehicles, callsignNames);
 
 		if (numCopVehicles > 0)
 		{

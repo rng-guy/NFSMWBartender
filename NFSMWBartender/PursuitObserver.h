@@ -14,9 +14,9 @@
 #include "PursuitFeatures.h"
 #include "CopSpawnOverrides.h"
 #include "CopFleeOverrides.h"
-#include "HelicopterOverrides.h"
-#include "StrategyOverrides.h"
 #include "LeaderOverrides.h"
+#include "StrategyOverrides.h"
+#include "HelicopterOverrides.h"
 
 
 
@@ -387,9 +387,9 @@ namespace PursuitObserver
 		// Subheaders
 		CopSpawnOverrides  ::Initialise(parser);
 		CopFleeOverrides   ::Initialise(parser);
-		HelicopterOverrides::Initialise(parser);
-		StrategyOverrides  ::Initialise(parser);
 		LeaderOverrides    ::Initialise(parser);
+		StrategyOverrides  ::Initialise(parser);
+		HelicopterOverrides::Initialise(parser);
 		
 		// Code modifications 
 		MemoryTools::MakeRangeJMP(CopAdded,           copAddedEntrance,           copAddedExit);
