@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.07.00) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.07.01) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -640,3 +640,4 @@ v1.00.00: Initial release
       01: Added crucial compatibility information for "NFSMW LimitAdjuster" to avoid crashes
   
    07:00: Added breaker-immunity feature and expanded "Advanced" feature set some more
+      01: Corrected some minor oversights / leftovers in README and usage notes

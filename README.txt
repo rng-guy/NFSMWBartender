@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.07.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.07.01) │ ■ ────────────────────────────────────────────────────
 
 View THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -102,7 +102,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the helicopter can run out of fuel after each (re)spawn,
  • the internal cooldown between the helicopter's ramming attempts through HeliStrategy 2,
  • below what racer speed HeavyStrategy 3 vehicles cancel their ramming attempts early,
- • whether HeavyStrategy 3 vehicles can join the pursuit once their requests expire,
+ • whether HeavyStrategy 3 vehicles can join the pursuit once their request expires,
  • above what count (if at all) no more cops can join the pursuit from HeavyStrategy 3 requests,
  • when exactly (if at all) LeaderStrategy 5 / 7 Cross and / or his henchmen become aggressive,
  • when exactly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
