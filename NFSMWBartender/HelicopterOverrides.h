@@ -501,7 +501,7 @@ namespace HelicopterOverrides
 		HeatParameters::ParseOptional<float>(parser, "Helicopter:FirstSpawn",   {firstSpawnDelays,   1.f});
 		HeatParameters::ParseOptional<float>(parser, "Helicopter:FuelRespawn",  {fuelRespawnDelays , 1.f});
 		HeatParameters::ParseOptional<float>(parser, "Helicopter:WreckRespawn", {wreckRespawnDelays, 1.f});
-		HeatParameters::ParseOptional<float>(parser, "Helicopter:LostRespawn",  {lostRespawnDelays,  1.f });
+		HeatParameters::ParseOptional<float>(parser, "Helicopter:LostRespawn",  {lostRespawnDelays,  1.f});
 		
 		HeatParameters::ParseOptional<float, float>(parser, "Helicopter:LostRejoin", {lostRejoinDelays, 1.f}, {minRejoinFuelTimes, 1.f});
 
