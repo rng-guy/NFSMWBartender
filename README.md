@@ -177,8 +177,8 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. Specifically, you likely need that mod if you configure Bartender in any of the following ways:
 * `[Chasers:Limits]` in `CarSpawns.ini`: You define a global cop-spawn limit > 8.
 * `[Chasers:Independence]` in `CarSpawns.ini`: You enable independent spawns for chasing cops.
-* `[Traffic:Independence]` in `CarSpawns.ini`: You enable independent spawns for traffic.
-* `[Heavy3:Joining]` in `Strategies.ini`: You enable joining from HeavyStrategy 3.
+* `[Traffic:Independence]` in `CarSpawns.ini`: You enable independent spawns for traffic cars.
+* `[Heavy3:Joining]` in `Strategies.ini`: You enable joining from HeavyStrategy 3 requests.
 * `[Heavy3:Unblocking]` in `Strategies.ini`: You define very short unblock delays.
 
 &nbsp;
