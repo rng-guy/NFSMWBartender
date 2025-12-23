@@ -55,7 +55,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Basic" feature set **also lets you change** (in general)
-* whether a given cop vehicle is affected by pursuit breakers of any kind;
+* whether a given cop vehicle is affected by pursuit-breaker instakills of any kind;
 * which notification string the game displays whenever you destroy a given cop vehicle;
 * which radio callsigns and chatter a given cop vehicle can trigger in player pursuits;
 * under which conditions (if at all) a given cop vehicle shows up on the radar / mini-map;
