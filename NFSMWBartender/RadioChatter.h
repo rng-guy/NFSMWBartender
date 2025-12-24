@@ -17,6 +17,13 @@ namespace RadioChatter
 	bool featureEnabled = false;
 
 	// Data structures
+	enum Jurisdiction // as above
+	{
+		CITY    = 0,
+		STATE   = 1,
+		FEDERAL = 2
+	};
+	
 	enum Callsigns // C-style for ASM
 	{
 		UNKNOWN,
@@ -24,13 +31,6 @@ namespace RadioChatter
 		ELITE,
 		RHINO,
 		CROSS
-	};
-
-	enum Jurisdiction // as above
-	{
-		CITY    = 0,
-		STATE   = 1,
-		FEDERAL = 2
 	};
 
 	// Data pointers
@@ -295,7 +295,7 @@ namespace RadioChatter
 			}
 		}
 
-		// Callsign groups
+		// Callsigns
 		const HashContainers::Map<std::string, Callsigns> nameToCallsigns =
 		{ 
 			{"patrol", Callsigns::PATROL},

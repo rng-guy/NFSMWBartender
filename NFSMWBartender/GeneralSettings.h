@@ -35,7 +35,7 @@ namespace GeneralSettings
 	float bustRate        = 1.f / bustTimers.current;      // hertz
 
 	// Code caves
-	HashContainers::CachedVaultMap<bool> copTypeToIsUnbreakable(false);
+	HashContainers::CachedVaultMap<bool> copTypeToIsUnaffected(false);
 
 
 
@@ -138,7 +138,7 @@ namespace GeneralSettings
 			call Globals::GetVehicleType
 
 			push eax // copType
-			mov ecx, offset copTypeToIsUnbreakable
+			mov ecx, offset copTypeToIsUnaffected
 			call HashContainers::CachedVaultMap<bool>::GetValue
 			test al, al
 
@@ -252,14 +252,14 @@ namespace GeneralSettings
 
 		// Breaker flags
 		std::vector<std::string> copVehicles;
-		std::vector<bool>        isBreakables;
+		std::vector<bool>        isAffecteds;
 
-		const size_t numCopVehicles = parser.ParseUserParameter("Vehicles:Breakers", copVehicles, isBreakables);
+		const size_t numCopVehicles = parser.ParseUserParameter("Vehicles:Breakers", copVehicles, isAffecteds);
 
 		if (numCopVehicles > 0)
 		{
 			for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
-				copTypeToIsUnbreakable.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), (not isBreakables[vehicleID]));
+				copTypeToIsUnaffected.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), (not isAffecteds[vehicleID]));
 
 			// Code modifications (feature-specific)
 			MemoryTools::MakeRangeJMP(BreakerCheck, breakerCheckEntrance, breakerCheckExit);
@@ -310,12 +310,12 @@ namespace GeneralSettings
 
 	void Validate()
 	{
-		if (copTypeToIsUnbreakable.empty()) return;
+		if (copTypeToIsUnaffected.empty()) return;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [GEN] GeneralSettings");
 
-		copTypeToIsUnbreakable.Validate
+		copTypeToIsUnaffected.Validate
 		(
 			"Vehicle-to-unbreakability",
 			[=](const vault   key) {return Globals::VehicleClassMatches(key, Globals::Class::ANY);},
