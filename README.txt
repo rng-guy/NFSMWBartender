@@ -58,7 +58,7 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
 
 The "Basic" feature set ALWAYS FIXES TEN BUGS / ISSUES automatically:
  • transitions to Heat levels > 5 now trigger their proper radio announcements,
- • the game no longer playes each Heat-level announcement just once per session,
+ • the game no longer plays each Heat-level announcement just once per game launch,
  • vehicles joining pursuits from roadblocks no longer ignore spawn limits for cops,
  • the helicopter mini-map icon is now always visible whenever a helicopter is active,
  • the helicopter vision-cone icon now always disappears whenever a helicopter is destroyed,
