@@ -237,4 +237,4 @@ Finally, Bartender wouldn't have seen the light of day without
  • ExOptsTeam, for permitting me to use their Heat-level fixes;
  • Martin Leitner-Ankerl, for his performant hashmap implementation;
  • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a resource; and
- • Orsal, Aven, Astra King79, and MORELLO, for testing and providing feedback.
+ • Orsal, zeta1207, Aven, Astra King79, and MORELLO, for testing and providing feedback.
