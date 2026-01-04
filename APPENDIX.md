@@ -411,6 +411,6 @@ Regarding **Heat gain / loss** (`BartenderSettings\Advanced\Heat.ini`):
 
 * If you define no wrecking Heats and no `default`, Bartender disables its wrecking feature.
 
-* In races, the game doesn't award bonus cost-to-state for hitting / destroying cop vehicles. Damaging / destroying cop vehicles does, however, still add some generic property damage.
+* In races, the game doesn't award bonus cost-to-state for hitting / destroying cop vehicles; damaging / destroying cop vehicles does, however, still add some generic property damage. You can change the former with the `[Pursuits:Races]` parameter group in `General.ini`.
 
 * Due to the limitations of floating-point math, some Heat changes might be slightly off.
