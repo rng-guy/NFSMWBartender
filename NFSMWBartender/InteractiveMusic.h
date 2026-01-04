@@ -27,11 +27,11 @@ namespace InteractiveMusic
 
 	std::array<int, maxNumTracks> playlist = {};
 
-	bool  transitionsEnabled = true;  // flag
+	bool  transitionsEnabled = true; 
 	float lengthPerTrack     = 600.f; // seconds
 
-	bool shuffleFirstTrack = true;  // flag
-	bool shuffleAfterFirst = false; // flag
+	bool shuffleFirstTrack = true; 
+	bool shuffleAfterFirst = false;
 
 	// Code caves
 	size_t currentTrackID = 0;

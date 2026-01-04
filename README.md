@@ -43,6 +43,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the internal cooldown between non-Strategy roadblock requests,
 * the internal cooldown between Heavy / LeaderStrategy requests,
 * at what distance from racers roadblocks can spawn,
+* whether a successful roadblock spawn cancels the current cop formation,
 * when and to what extent (if at all) roadblock vehicles can join pursuits,
 * whether roadblock vehicles react to racers entering "COOLDOWN" mode,
 * whether roadblock vehicles react to racers hitting their spike strips,
@@ -55,6 +56,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Basic" feature set **also lets you change** (in general)
+* which pursuit stats (e.g. pursuit length, bounty) the game also tracks in races;
 * whether a given cop vehicle is affected by pursuit-breaker instakills of any kind;
 * which notification string the game displays whenever you destroy a given cop vehicle;
 * which radio callsigns and chatter a given cop vehicle can trigger in player pursuits;
@@ -64,13 +66,18 @@ The "Basic" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Basic" feature set **always fixes ten bugs / issues** automatically:
+The "Basic" feature set **always fixes fifteen bugs / issues** automatically:
+* the game now always updates the passive bounty increment after races,
+* the mini-map icons for cop vehicles now always flash at the correct pace,
 * transitions to Heat levels > 5 now trigger their proper radio announcements,
 * the game no longer plays each Heat-level announcement just once per game launch,
+* Challenge Series races now use the Heat level limits defined for them in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),
+* the game now reads [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) arrays correctly at each Blacklist rank and Heat level,
 * vehicles joining pursuits from roadblocks no longer ignore spawn limits for cops,
 * the helicopter mini-map icon is now always visible whenever a helicopter is active,
 * the helicopter vision-cone icon now always disappears whenever a helicopter is destroyed,
 * helicopters no longer cast static shadows (like cars do) with incorrect placements,
+* the game now counts spike-strip deployments accurately in cost-to-state calculations,
 * the game is no longer inadvertently biased in how it chooses to make Strategy requests,
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures), and
@@ -78,7 +85,8 @@ The "Basic" feature set **always fixes ten bugs / issues** automatically:
 
 &nbsp;
 
-The "Basic" feature set **can fix two more bugs / issues**, depending on its configuration:
+The "Basic" feature set **can fix three more bugs / issues**, depending on its configuration:
+* the game no longer ignores VltEd settings for roadblocks and Strategies in races,
 * non-Strategy roadblock requests can no longer be stalled by HeavyStrategy 3 requests, and
 * HeavyStrategy 3 requests no longer become very rare at Heat levels with frequent roadblocks.
 
@@ -93,6 +101,9 @@ The "Basic" feature set **can fix two more bugs / issues**, depending on its con
 # 2 - What does the "Advanced" feature set do?
 
 The "Advanced" feature set **lets you change** (per Heat level)
+* whether Heat increases passively whenever racers are being pursued,
+* how much Heat racers gain / lose whenever they assault a cop vehicle,
+* how much Heat racers gain / lose whenever their cost-to-state score increases,
 * how many chasing cops can (re)spawn regardless of the remaining engagement count,
 * below what total number of active cops in the world the game can spawn new chasing cops,
 * whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
@@ -124,12 +135,15 @@ The "Advanced" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Advanced" feature set **also lets you change** (in general)
+* how much Heat racers gain / lose whenever they destroy a given cop vehicle, and
 * which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
 &nbsp;
 
-The "Advanced" feature set **always fixes three bugs / issues** automatically:
-* non-Strategy roadblock and Heavy / LeaderStrategy requests are no longer disabled in races,
+The "Advanced" feature set **always fixes five bugs / issues** automatically:
+* the game no longer ignores VltEd settings for roadblocks and Strategies in races,
+* the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
+* the helicopter AI is no longer crippled whenever a roadblock is present in the pursuit,
 * early Strategy despawns or cancellations no longer stall the game from making new requests, and
 * the engagement count shown above the pursuit board now always tracks relevant cops accurately.
 
@@ -150,7 +164,17 @@ The "Advanced" feature set **can fix three more bugs / issues**, depending on it
 
 # 3 - What mods are (in)compatible with Bartender?
 
-Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations. However, Bartender's "Advanced" feature set overrides some `pursuitlevels` VltEd parameters:
+Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations. 
+
+&nbsp;
+
+Bartender's **"Basic" feature set** changes the way the game accesses some [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) arrays:
+* In `pursuitlevels`, `0x80deb840` now uses the correct value at each Blacklist rank.
+* In `aivehicle`, `RepPointsForDestroying` now uses the correct value at each Heat level.
+
+&nbsp;
+
+Bartender's **"Advanced" feature set** forces the game to no longer ignore the roadblock-related `pursuitlevels` and the Strategy-related `pursuitsupport` [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) settings in race pursuits. The feature set also disables four specific `pursuitlevels` parameters in all pursuits:
 * the `cops` array,
 * `HeliFuelTime`,
 * `TimeBetweenHeliActive`, and
@@ -159,10 +183,10 @@ Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-releas
 &nbsp;
 
 Most **other .asi mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
-* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable `HeatLevelOverride` and `PursuitActionMode`.
-* In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable the `EnableCopDestroyedStringHook` feature.
-* For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` parameter group.
 * For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#4---what-other-mods-does-bartender-depend-on) below.
+* For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` parameter group.
+* In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable the `EnableCopDestroyedStringHook` feature.
+* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable the `HeatLevelOverride`, the `PursuitActionMode`, and the `ZeroBountyFix` feature.
 
 &nbsp;
 
@@ -226,7 +250,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.07.00, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.08.00, replace all old configuration files.
 
 &nbsp;
 

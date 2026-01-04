@@ -33,17 +33,14 @@ namespace RadioChatter
 		CROSS
 	};
 
-	// Data pointers
-	float& lastReportedHeat = *reinterpret_cast<float*>(0x9020A0);
-
 	// Heat parameters
 	HeatParameters::Pair<int> heatJurisdictionIDs(Jurisdiction::CITY);
 
 	// Code caves 
-	HashContainers::CachedVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
-
 	size_t lastReportedHeatLevel = 1;
-	int    lastJurisdictionID    = heatJurisdictionIDs.current;
+	int    lastJurisdictionID    = 0;
+
+	HashContainers::CachedVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
 
 
 
@@ -56,7 +53,7 @@ namespace RadioChatter
 
 	__declspec(naked) void HeatCheck()
 	{
-		static constexpr address heatCheckSkip = 0x71D44D;
+		static constexpr address heatCheckSkip = 0x71D433;
 
 		__asm
 		{
@@ -66,10 +63,6 @@ namespace RadioChatter
 			je skip // already reported
 
 			mov dword ptr lastReportedHeatLevel, ebp
-
-			mov edx, dword ptr lastReportedHeat
-			mov eax, dword ptr [ebx + 0x1C]
-			mov dword ptr [edx], eax
 
 			cmp ebp, 0xA
 			jg skip // new Heat Level > 10
@@ -113,9 +106,6 @@ namespace RadioChatter
 	{
 		__asm
 		{
-			mov eax, dword ptr lastReportedHeat
-			mov dword ptr [eax], 0x3F800000 // 1.f
-
 			mov dword ptr lastReportedHeatLevel, 0x1
 			mov dword ptr lastJurisdictionID, CITY
 
@@ -256,9 +246,8 @@ namespace RadioChatter
 
 	void ApplyFixes()
 	{
-		MemoryTools::Write<byte>(0x1, {0x71D356}); // remove Heat-level 1 skip
-
 		// Fixes radio announcements for Heat levels > 5
+		MemoryTools::MakeRangeNOP(0x71D345, 0x71D370); // Heat-level 1 filter
 		MemoryTools::MakeRangeJMP(HeatCheck,     heatCheckEntrance,     heatCheckExit);
 		MemoryTools::MakeRangeJMP(HeatReport,    heatReportEntrance,    heatReportExit);
 		MemoryTools::MakeRangeJMP(PlayerPursuit, playerPursuitEntrance, playerPursuitExit);

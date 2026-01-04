@@ -128,7 +128,7 @@ namespace HelicopterOverrides
 
 			maxBailoutFuelTime = 8.f;
 
-			if (this->spawnTimer.IsIntervalEnabled())
+			if (this->spawnTimer.IsIntervalEnabled() and hasLimitedFuel)
 				maxBailoutFuelTime = std::min<float>(lostRejoinDelays.minValues.current + this->minRejoinFuelTime, maxBailoutFuelTime);
 
 			if constexpr (Globals::loggingEnabled)
@@ -508,6 +508,8 @@ namespace HelicopterOverrides
 		HeatParameters::Parse<float>(parser, "Helicopter:Ramming", {rammingCooldowns, 1.f});
 
 		// Code modifications 
+		MemoryTools::MakeRangeNOP(0x419160, 0x41916E); // roadblock-induced lobotomy
+
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
 
 		MemoryTools::MakeRangeJMP(FuelUpdate,      fuelUpdateEntrance,      fuelUpdateExit);

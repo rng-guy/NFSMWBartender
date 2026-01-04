@@ -165,6 +165,9 @@
     <None Include="..\BartenderSettings\Advanced\CarSpawns.ini">
       <Filter>Config Files\Advanced</Filter>
     </None>
+    <None Include="..\BartenderSettings\Advanced\Heat.ini">
+      <Filter>Config Files\Advanced</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Thumbnail.jpg">

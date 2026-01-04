@@ -19,7 +19,7 @@ namespace CopFleeOverrides
 
 	// Heat levels
 	HeatParameters::Pair        <float>heavy3SpeedThresholds(25.f);  // kph
-	HeatParameters::Pair        <bool> heavy3JoiningEnableds(false); // flag
+	HeatParameters::Pair        <bool> heavy3JoiningEnableds(false);
 	HeatParameters::OptionalPair<int>  heavy3JoinLimits;             // cars
 
 	HeatParameters::OptionalInterval<float> chaserFleeDelays;           // seconds
@@ -42,11 +42,7 @@ namespace CopFleeOverrides
 	{
 	private:
 
-		const bool&    isJerk         = *reinterpret_cast<bool*>   (this->pursuit + 0x238);
-		const address& heavyStrategy  = *reinterpret_cast<address*>(this->pursuit + 0x194);
-		const address& leaderStrategy = *reinterpret_cast<address*>(this->pursuit + 0x198);
-
-		address rigidBodyOfTarget = 0x0;
+		bool pursuitTargetKnown = false;
 
 		HashContainers::AddressSet chaserVehicles;
 		HashContainers::AddressSet joinedRBVehicles;
@@ -57,6 +53,11 @@ namespace CopFleeOverrides
 
 		HashContainers::AddressMap<float> heavy3VehicleToTimestamp;
 		HashContainers::AddressMap<float> leaderVehicleToTimestamp;
+
+		const bool&    isJerk         = *reinterpret_cast<bool*>   (this->pursuit + 0x238);
+		const address& heavyStrategy  = *reinterpret_cast<address*>(this->pursuit + 0x194);
+		const address& leaderStrategy = *reinterpret_cast<address*>(this->pursuit + 0x198);
+		const address& pursuitTarget  = *reinterpret_cast<address*>(this->pursuit + 0x74);
 
 		inline static HashContainers::AddressMap<MembershipManager*> pursuitToManager;
 
@@ -270,28 +271,40 @@ namespace CopFleeOverrides
 		}
 
 
-		void RetrieveRigidBodyOfTarget()
+		address GetRigidBodyOfTarget() const
 		{
-			const address pursuitTarget = *reinterpret_cast<address*>(this->pursuit + 0x74);
-			const address physicsObject = *reinterpret_cast<address*>(pursuitTarget + 0x1C);
-
-			this->rigidBodyOfTarget = (physicsObject) ? *reinterpret_cast<address*>(physicsObject + 0x4C) : 0x0;
-
-			if constexpr (Globals::loggingEnabled)
+			if (this->pursuitTargetKnown)
 			{
-				if (not this->rigidBodyOfTarget)
-					Globals::logger.Log("WARNING: [FLE] Invalid PhysicsObject for target in", this->pursuit);
+				const address physicsObject     = *reinterpret_cast<address*>(this->pursuitTarget + 0x1C);
+				const address rigidBodyOfTarget = (physicsObject) ? *reinterpret_cast<address*>(physicsObject + 0x4C) : 0x0;
+
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (not rigidBodyOfTarget)
+						Globals::logger.Log("WARNING: [FLE] Invalid PhysicsObject for target in", this->pursuit);
+				}
+
+				return rigidBodyOfTarget;
 			}
+
+			return 0x0;
 		}
 
 
 		bool IsSpeedOfTargetBelowThreshold() const
 		{
-			if (not this->rigidBodyOfTarget) return false; // should never happen
+			const address rigidBodyOfTarget = this->GetRigidBodyOfTarget();
 
-			static const auto GetSpeedXZ = reinterpret_cast<float(__thiscall*)(address)>(0x6711F0);
+			if (rigidBodyOfTarget)
+			{
+				static const auto GetSpeedXZ = reinterpret_cast<float (__thiscall*)(address)>(0x6711F0);
 
-			return (GetSpeedXZ(this->rigidBodyOfTarget) < ((this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold));
+				return (GetSpeedXZ(rigidBodyOfTarget) < ((this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold));
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [FLE] Invalid RigidBody for target", this->pursuitTarget, "in", this->pursuit);
+
+			return false; // should never happen
 		}
 
 
@@ -299,7 +312,7 @@ namespace CopFleeOverrides
 		{
 			if (this->heavy3VehicleToTimestamp.empty()) return;
 
-			if (this->IsSpeedOfTargetBelowThreshold() or this->IsSearchModeActive())
+			if (this->IsSearchModeActive() or this->IsSpeedOfTargetBelowThreshold())
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[FLE] Cancelling HeavyStrategy3");
@@ -353,7 +366,7 @@ namespace CopFleeOverrides
 
 		void UpdateOncePerPursuit() override
 		{
-			this->RetrieveRigidBodyOfTarget();
+			this->pursuitTargetKnown = true;
 		}
 
 

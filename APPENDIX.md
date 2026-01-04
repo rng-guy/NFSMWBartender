@@ -101,6 +101,10 @@ Regarding the "Basic" feature set **as a whole**:
 
 * As long as this feature set isn't disabled, all its automatic fixes apply.
 
+* With this feature set enabled, the game accesses the values of the `0x80deb840` VltEd arrays in `pursuitlevels` correctly: The game now uses the value at `[14]` for Sonny, at `[13]` for Taz, and so on. Before, everyone but Sonny would get an incorrect value: Taz got `[14]`, Vic `[13]`, and so on; the value at `[0]` (intended for Razor) was never used.
+
+* With this feature set enabled, the game accesses the values of the `RepPointsForDestroying` VltEd arrays in `aivehicle` correctly: The game now uses the value at `[0]` for Heat level 1, at `[1]` for Heat level 2, and so on. Before, every Heat level's value was off by one: `[1]` for Heat level 1, `[2]` for Heat level 2, and so on; Heat level 10 wouldn't get any value.
+
 * The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd node determines the maximum Heat level (1-10) at Blacklist rival #XY.
 
 * If you don't install the optional missing textures (`FixMissingTextures.end`), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures doesn't affect the Heat-level reset fix in any way.
@@ -185,6 +189,8 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 * Resets of flipped racers happen only at Heat levels for which you define a valid delay value.
 
+* If you don't define a valid `default` breaker flag, Bartender uses `true` instead.
+
 * If you define no breaker flags and no `default`, Bartender disables its pursuit-breaker feature.
 
 &nbsp;
@@ -218,6 +224,8 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 * Roadblock vehicles can react to racers entering "COOLDOWN" mode and / or spike-strip hits. For the former, some vehicles join the pursuit immediately; for the latter, all of them do.
 
 * Roadblock vehicles are affected by the global cop-spawn limit: they may only join a pursuit if the total number of all non-roadblock vehicles is below this global limit. If you enable independent "Chasers" spawns in the "Advanced" feature set, then this limit no longer takes roadblock vehicles, Strategy vehicles, and vehicles of other pursuits into account.
+
+* All vehicles you define as replacements for HeavyStrategy 3 / 4 spawns should only be used for HeavyStrategy 3 / 4, and all vehicles you define as replacements for LeaderStrategy 5 / 7 spawns should only be used for LeaderStrategy 5 / 7. This is because the game may lose track of how many cops it has currently loaded in memory whenever it tries to recycle a Strategy vehicle as a regular cop (and vice versa). If, for example, you also want to use `copmidsize` as a HeavyStrategy 3 vehicle, then make a copy of its `pvehicle` VltEd node with a different name and use that one for HeavyStrategy 3 instead.
 
 * LeaderStrategy 5 spawns Cross by himself, while LeaderStrategy 7 spawns him with two henchmen.
 
@@ -388,3 +396,21 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 * Even with unblocking, no new LeaderStrategy can spawn while a LeaderStrategy Cross is present.
 
 * It's generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
+
+&nbsp;
+
+Regarding **Heat gain / loss** (`BartenderSettings\Advanced\Heat.ini`):
+
+* The `0x80deb840` VltEd array and the `TimePerHeatLevel` VltEd parameter control the pace at which racers gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a Heat level passively, while the latter multiplies this base amount by whatever number you define for it.
+
+* Both Bartender and the game always respect the minimum and maximum available Heat levels set in VltEd. In Career mode, you can define the maximum Heat level through each rival's `0xe8c24416` VltEd parameter. For Challenge Series events, however, you must use their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters instead.
+
+* For wrecking Heat, Bartender ignores vehicles that don't exist in VltEd. 
+
+* If you don't define a valid `default` wrecking Heat, Bartender uses 0.0 instead.
+
+* If you define no wrecking Heats and no `default`, Bartender disables its wrecking feature.
+
+* In races, the game doesn't award bonus cost-to-state for hitting / destroying cop vehicles. Damaging / destroying cop vehicles does, however, still add some generic property damage.
+
+* Due to the limitations of floating-point math, some Heat changes might be slightly off.

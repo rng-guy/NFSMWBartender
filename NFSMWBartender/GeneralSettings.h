@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "HashContainers.h"
@@ -14,17 +16,26 @@ namespace GeneralSettings
 
 	bool featureEnabled = false;
 
+	// Pursuit behaviour
+	bool trackPursuitLength  = false;
+	bool trackUnitsInPursuit = false;
+	bool trackCopsLost       = false;
+	bool trackCopsHit        = false;
+	bool trackCopsDestroyed  = false;
+	bool trackPassiveBounty  = false;
+	bool trackInfractions    = false;
+
 	// Heat levels
-	HeatParameters::Pair<bool> rivalPursuitsEnableds(true); // flag
+	HeatParameters::Pair<bool> rivalPursuitsEnableds(true);
 
 	HeatParameters::Pair<float> bountyIntervals     (10.f); // seconds
-	HeatParameters::Pair<int>   maxBountyMultipliers(3);    // times
+	HeatParameters::Pair<int>   maxBountyMultipliers(3);    // scale
 
 	HeatParameters::Pair<float> maxBustDistances(15.f); // metres
 	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
 	HeatParameters::Pair<float> bustTimers      (5.f);  // seconds
 
-	HeatParameters::Pair<bool> copFlipByDamageEnableds(true); // flag
+	HeatParameters::Pair<bool> copFlipByDamageEnableds(true);
 
 	HeatParameters::OptionalPair<float> copFlipByTimers;      // seconds
 	HeatParameters::OptionalPair<float> racerFlipResetDelays; // seconds
@@ -35,12 +46,12 @@ namespace GeneralSettings
 	float bustRate        = 1.f / bustTimers.current;      // hertz
 
 	// Code caves
-	HashContainers::CachedVaultMap<bool> copTypeToIsUnaffected(false);
+	HashContainers::CachedVaultMap<bool> copTypeToIsBreakerImmune(false);
 
 
 
 
-
+	
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address copComboEntrance = 0x418FBA;
@@ -60,6 +71,26 @@ namespace GeneralSettings
 			mov dword ptr [esi + 0xF0], ecx
 
 			jmp dword ptr copComboExit
+		}
+	}
+
+
+
+	constexpr address heatUpdateEntrance = 0x443DFD;
+	constexpr address heatUpdateExit     = 0x443E16;
+
+	__declspec(naked) void HeatUpdate()
+	{
+		__asm
+		{
+			je conclusion // Heat level unchanged
+
+			mov dword ptr [esi + 0x104], 0x0
+			mov dword ptr [esi + 0xD8], eax
+			mov byte ptr [esi + 0x254], 0x0
+
+			conclusion:
+			jmp dword ptr heatUpdateExit
 		}
 	}
 
@@ -138,12 +169,37 @@ namespace GeneralSettings
 			call Globals::GetVehicleType
 
 			push eax // copType
-			mov ecx, offset copTypeToIsUnaffected
+			mov ecx, offset copTypeToIsBreakerImmune
 			call HashContainers::CachedVaultMap<bool>::GetValue
 			test al, al
 
 			conclusion:
 			jmp dword ptr breakerCheckExit
+		}
+	}
+
+
+
+	constexpr address spikeCounterEntrance = 0x43E580;
+	constexpr address spikeCounterExit     = 0x43E587;
+
+	__declspec(naked) void SpikeCounter()
+	{
+		__asm
+		{
+			push eax
+
+			mov ecx, dword ptr [esp + 0x4C8]
+			mov edx, dword ptr [ecx]
+			call dword ptr [edx + 0x100]
+
+			pop eax
+
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x30]
+			mov dword ptr [eax + 0x4], ecx
+
+			jmp dword ptr spikeCounterExit
 		}
 	}
 
@@ -202,23 +258,84 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov ecx, 0x890968 // pointer -> 0.f
-			mov edx, offset maxBustDistances.current
-
 			fldz
-			fcomp dword ptr [esi + 0x168] // EVADE state
+			fcom dword ptr [esi + 0x168]
 			fnstsw ax
-			test ah, 0x1
-			cmovne edx, ecx               // LOS broken
+			test ah, 0x5
+			jne conclusion // LOS broken
 
+			fstp st(0)
+			fld dword ptr maxBustDistances.current
+			
 			// Execute original code and resume
+			conclusion:
 			test bl, bl
-			fld dword ptr [edx]
 
 			jmp dword ptr maxBustDistanceExit
 		}
 	}
 	
+
+
+	constexpr address heatEscalationEntrance = 0x443D93;
+	constexpr address heatEscalationExit     = 0x443D9B;
+
+	__declspec(naked) void HeatEscalation()
+	{
+		__asm
+		{
+			xor edx, edx
+
+			dec eax
+			cmovl eax, edx // Blacklist index negative
+
+			jmp dword ptr heatEscalationExit
+		}
+	}
+
+
+
+	constexpr address destructionBountyEntrance = 0x418F5B;
+	constexpr address destructionBountyExit     = 0x418F61;
+
+	__declspec(naked) void DestructionBounty()
+	{
+		static constexpr address destructionBountySkip = 0x418F7A;
+
+		__asm
+		{
+			mov edi, dword ptr [esi + 0x98]
+
+			dec edi
+			jl skip // Heat index negative
+
+			jmp dword ptr destructionBountyExit
+
+			skip:
+			jmp dword ptr destructionBountySkip
+		}
+	}
+
+
+
+
+
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	void ParseTracking
+	(
+		HeatParameters::Parser& parser,
+		const char* const       trackingName,
+		bool&                   isTracked,
+		const address           rangeStart,
+		const address           rangeEnd
+	) {
+		parser.ParseParameter<bool>("Pursuits:Races", trackingName, isTracked);
+
+		if (isTracked) 
+			MemoryTools::MakeRangeNOP(rangeStart, rangeEnd);
+	}
+
 
 
 
@@ -227,15 +344,37 @@ namespace GeneralSettings
 
 	void ApplyFixes()
 	{
+		// Fixes update for passive bounty amount after race pursuits
+		MemoryTools::MakeRangeJMP(HeatUpdate, heatUpdateEntrance, heatUpdateExit);
+
+		// Fixes incorrect spike-strip CTS count
+		MemoryTools::MakeRangeNOP(0x43E654, 0x43E663); // remove old increment call
+		MemoryTools::MakeRangeJMP(SpikeCounter, spikeCounterEntrance, spikeCounterExit);
+
+		// Fixes incorrect array values read from VltEd
+		MemoryTools::MakeRangeJMP(HeatEscalation,    heatEscalationEntrance,    heatEscalationExit);
+		MemoryTools::MakeRangeJMP(DestructionBounty, destructionBountyEntrance, destructionBountyExit);
+
 		// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
 		MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 	}
 
 
-
     bool Initialise(HeatParameters::Parser& parser)
     {
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "General.ini")) return false;
+
+		// Pursuit tracking (and code modifications)
+		ParseTracking(parser, "pursuitLength",  trackPursuitLength,  0x443CBE, 0x443CC8);
+		ParseTracking(parser, "unitsInPursuit", trackUnitsInPursuit, 0x41911B, 0x419125);
+		ParseTracking(parser, "copsLost",       trackCopsLost,       0x42B761, 0x42B76B);
+		ParseTracking(parser, "copsHit",        trackCopsHit,        0x40AF43, 0x40AF4D);
+		ParseTracking(parser, "copsDestroyed",  trackCopsDestroyed,  0x418F33, 0x418F41);
+		ParseTracking(parser, "passiveBounty",  trackPassiveBounty,  0x4094A0, 0x4094AA);
+		ParseTracking(parser, "infractions",    trackInfractions,    0x5FDDDC, 0x5FDDE7);
+
+		if (trackCopsDestroyed)
+			MemoryTools::MakeRangeNOP(0x4094E0, 0x4094EA); // cop bounty
 
 		// Heat parameters
 		HeatParameters::Parse<bool>(parser, "Pursuits:Rivals", {rivalPursuitsEnableds});
@@ -259,7 +398,7 @@ namespace GeneralSettings
 		if (numCopVehicles > 0)
 		{
 			for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
-				copTypeToIsUnaffected.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), (not isAffecteds[vehicleID]));
+				copTypeToIsBreakerImmune.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), (not isAffecteds[vehicleID]));
 
 			// Code modifications (feature-specific)
 			MemoryTools::MakeRangeJMP(BreakerCheck, breakerCheckEntrance, breakerCheckExit);
@@ -310,17 +449,38 @@ namespace GeneralSettings
 
 	void Validate()
 	{
-		if (copTypeToIsUnaffected.empty()) return;
-
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [GEN] GeneralSettings");
+		{
+			if (
+				(not copTypeToIsBreakerImmune.empty())
+				or trackPursuitLength
+				or trackUnitsInPursuit
+				or trackCopsLost
+				or trackCopsHit
+				or trackCopsDestroyed
+				or trackPassiveBounty
+				or trackInfractions
+			   )
+				Globals::logger.Log("  CONFIG [GEN] GeneralSettings");
 
-		copTypeToIsUnaffected.Validate
-		(
-			"Vehicle-to-unbreakability",
-			[=](const vault   key) {return Globals::VehicleClassMatches(key, Globals::Class::ANY);},
-			[=](const bool  value) {return true;}
-		);
+			if (trackPursuitLength)  Globals::logger.LogLongIndent("tracking pursuit length");
+			if (trackUnitsInPursuit) Globals::logger.LogLongIndent("tracking units in pursuit");
+			if (trackCopsLost)       Globals::logger.LogLongIndent("tracking cops lost");
+			if (trackCopsHit)        Globals::logger.LogLongIndent("tracking cops hit");
+			if (trackCopsDestroyed)  Globals::logger.LogLongIndent("tracking cops destroyed");
+			if (trackPassiveBounty)  Globals::logger.LogLongIndent("tracking passive bounty");
+			if (trackInfractions)    Globals::logger.LogLongIndent("tracking infractions");
+		}
+
+		if (not copTypeToIsBreakerImmune.empty())
+		{
+			copTypeToIsBreakerImmune.Validate
+			(
+				"Vehicle-to-immunity",
+				[=](const vault   key) {return Globals::VehicleClassMatches(key, Globals::Class::ANY);},
+				[=](const bool  value) {return true;}
+			);
+		}
 	}
 
 

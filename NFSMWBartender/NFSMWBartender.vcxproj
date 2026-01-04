@@ -70,6 +70,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetExt>.asi</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetExt>.asi</TargetExt>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -107,7 +113,8 @@
       <EnableUAC>false</EnableUAC>
     </Link>
     <PostBuildEvent>
-      <Command>ren $(TargetDir)$(TargetName)$(TargetExt) $(TargetName).asi</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>del $(TargetDir)*.asi</Command>
@@ -150,7 +157,8 @@
       <EnableUAC>false</EnableUAC>
     </Link>
     <PostBuildEvent>
-      <Command>ren $(TargetDir)$(TargetName)$(TargetExt) $(TargetName).asi</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>del $(TargetDir)*.asi</Command>
@@ -191,6 +199,7 @@
     <None Include="..\APPENDIX.md" />
     <None Include="..\BartenderSettings\Advanced\CarSpawns.ini" />
     <None Include="..\BartenderSettings\Advanced\CarTables.ini" />
+    <None Include="..\BartenderSettings\Advanced\Heat.ini" />
     <None Include="..\BartenderSettings\Advanced\Helicopter.ini" />
     <None Include="..\BartenderSettings\Advanced\Strategies.ini" />
     <None Include="..\BartenderSettings\Basic\General.ini" />

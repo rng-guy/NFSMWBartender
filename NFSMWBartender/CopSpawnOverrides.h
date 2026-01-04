@@ -7,6 +7,8 @@
 #include "HashContainers.h"
 #include "HeatParameters.h"
 
+#include "GeneralSettings.h"
+
 #include "CopSpawnTables.h"
 #include "PursuitFeatures.h"
 #include "HelicopterOverrides.h"
@@ -202,21 +204,21 @@ namespace CopSpawnOverrides
 
 	bool featureEnabled = false;
 
+	// Pursuit-board tracking
+	bool trackHeavyVehicles  = false;
+	bool trackLeaderVehicles = false;
+	bool trackJoinedVehicles = false;
+
 	// Heat levels
 	HeatParameters::Interval<int>   activeChaserCounts       (1, 8);  // cars
-	HeatParameters::Pair    <bool>  chasersAreIndependents   (false); // flag
-	HeatParameters::Pair    <bool>  transitionTriggersBackups(false); // flag
+	HeatParameters::Pair    <bool>  chasersAreIndependents   (false);
+	HeatParameters::Pair    <bool>  transitionTriggersBackups(false);
 	HeatParameters::Pair    <float> chaserSpawnClearances    (40.f);  // metres
 
-	HeatParameters::Pair<bool> trafficIgnoresChasers   (false); // flag
-	HeatParameters::Pair<bool> trafficIgnoresRoadblocks(false); // flag
+	HeatParameters::Pair<bool> trafficIgnoresChasers   (false);
+	HeatParameters::Pair<bool> trafficIgnoresRoadblocks(false);
 
 	HeatParameters::OptionalPair<int> roadblockJoinLimits; // cars
-
-	// Pursuit-board tracking
-	bool trackHeavyVehicles  = false; // flag
-	bool trackLeaderVehicles = false; // flag
-	bool trackJoinedVehicles = false; // flag
 
 	// Code caves
 	bool skipScriptedSpawns = true;
@@ -251,10 +253,10 @@ namespace CopSpawnOverrides
 		int& numCopsLostInWave      = *reinterpret_cast<int*>(this->pursuit + 0x14C);
 		int& numCopsToTriggerBackup = *reinterpret_cast<int*>(this->pursuit + 0x148);
 
-		const bool&  isPerpBusted   = *reinterpret_cast<bool*> (this->pursuit + 0xE8);
-		const bool&  bailingPursuit = *reinterpret_cast<bool*> (this->pursuit + 0xE9);
-		const bool&  updateCopsLost = *reinterpret_cast<bool*> (this->pursuit + 0xA8);
-		const float& spawnCooldown  = *reinterpret_cast<float*>(this->pursuit + 0xCC);
+		const bool&  isPerpBusted      = *reinterpret_cast<bool*> (this->pursuit + 0xE8);
+		const bool&  bailingPursuit    = *reinterpret_cast<bool*> (this->pursuit + 0xE9);
+		const bool&  isFreeRoamPursuit = *reinterpret_cast<bool*> (this->pursuit + 0xA8);
+		const float& copSpawnCooldown  = *reinterpret_cast<float*>(this->pursuit + 0xCC);
 
 		Contingent chaserSpawns = Contingent(CopSpawnTables::chaserSpawnTables.current, this->pursuit);
 
@@ -329,9 +331,9 @@ namespace CopSpawnOverrides
 		{
 			if (not Globals::playerHeatLevelKnown) return false;
 
-			if (this->isPerpBusted)        return false;
-			if (this->bailingPursuit)      return false;
-			if (this->spawnCooldown > 0.f) return false;
+			if (this->isPerpBusted)           return false;
+			if (this->bailingPursuit)         return false;
+			if (this->copSpawnCooldown > 0.f) return false;
 
 			if (not this->chaserSpawns.HasAvailableCop()) return false;
 
@@ -477,7 +479,9 @@ namespace CopSpawnOverrides
 			{
 				if (this->chaserSpawns.RemoveVehicle(copVehicle))
 				{
-					if (this->updateCopsLost and this->HasVehicleEngaged(copVehicle))
+					const bool trackCopsLost = (this->isFreeRoamPursuit or GeneralSettings::trackCopsLost);
+
+					if (trackCopsLost and this->HasVehicleEngaged(copVehicle))
 						++(this->numCopsLostInWave);
 
 					else if constexpr (Globals::loggingEnabled)
@@ -1073,10 +1077,11 @@ namespace CopSpawnOverrides
 	{
 		if (not featureEnabled) return;
 
-		Globals::logger.Log("  CONFIG [SPA] CopSpawnOverrides");
+		if (trackHeavyVehicles or trackLeaderVehicles or trackJoinedVehicles)
+			Globals::logger.Log("  CONFIG [SPA] CopSpawnOverrides");
 
-		Globals::logger.LogLongIndent("HeavyStrategy    tracked:", trackHeavyVehicles);
-		Globals::logger.LogLongIndent("LeaderStrategy   tracked:", trackLeaderVehicles);
-		Globals::logger.LogLongIndent("Joined roadblock tracked:", trackJoinedVehicles);
+		if (trackHeavyVehicles)  Globals::logger.LogLongIndent("tracking HeavyStrategy vehicles");
+		if (trackLeaderVehicles) Globals::logger.LogLongIndent("tracking LeaderStrategy vehicles");
+		if (trackJoinedVehicles) Globals::logger.LogLongIndent("tracking roadblock vehicles");
 	}
 }

@@ -5,6 +5,8 @@
 #include "HashContainers.h"
 #include "HeatParameters.h"
 
+#include "GeneralSettings.h"
+
 #include "PursuitFeatures.h"
 #include "CopFleeOverrides.h"
 
@@ -487,10 +489,13 @@ namespace StrategyOverrides
 		MemoryTools::MakeRangeJMP(HeavyStrategy3, heavyStrategy3Entrance, heavyStrategy3Exit);
 		MemoryTools::MakeRangeJMP(HeavyStrategy4, heavyStrategy4Entrance, heavyStrategy4Exit);
 
-		MemoryTools::MakeRangeJMP(MinStrategyDelay,   minStrategyDelayEntrance,   minStrategyDelayExit);
-		MemoryTools::MakeRangeJMP(MinRoadblockDelay,  minRoadblockDelayEntrance,  minRoadblockDelayExit);
-		MemoryTools::MakeRangeJMP(CrossPriorityDelay, crossPriorityDelayEntrance, crossPriorityDelayExit);
-		
+		if (not GeneralSettings::trackPursuitLength)
+		{
+			MemoryTools::MakeRangeJMP(MinStrategyDelay,   minStrategyDelayEntrance,   minStrategyDelayExit);
+			MemoryTools::MakeRangeJMP(MinRoadblockDelay,  minRoadblockDelayEntrance,  minRoadblockDelayExit);
+			MemoryTools::MakeRangeJMP(CrossPriorityDelay, crossPriorityDelayEntrance, crossPriorityDelayExit);
+		}
+
 		// Status flag
 		featureEnabled = true;
 

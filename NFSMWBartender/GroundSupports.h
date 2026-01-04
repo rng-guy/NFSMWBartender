@@ -19,14 +19,16 @@ namespace GroundSupports
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<bool> rivalRoadblockEnableds(true); // flag
-	HeatParameters::Pair<bool> rivalHeavyEnableds    (true); // flag
-	HeatParameters::Pair<bool> rivalLeaderEnableds   (true); // flag
+	HeatParameters::Pair<bool> rivalRoadblockEnableds(true);
+	HeatParameters::Pair<bool> rivalHeavyEnableds    (true);
+	HeatParameters::Pair<bool> rivalLeaderEnableds   (true);
 
 	HeatParameters::Interval<float> roadblockCooldowns     (8.f, 12.f); // seconds
 	HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f);      // seconds
 
 	HeatParameters::Interval<float> roadblockSpawnDistances(250.f, 250.f); // metres
+
+	HeatParameters::Pair<bool> roadblockEndsFormations(true);
 
 	HeatParameters::OptionalPair<float> roadblockJoinTimers; // seconds
 
@@ -34,13 +36,13 @@ namespace GroundSupports
 	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f);  // metres
 	HeatParameters::Pair<int>   maxRBJoinCounts         (1);     // cars
 
-	HeatParameters::Pair<bool> reactToCooldownModes(true); // flag
-	HeatParameters::Pair<bool> reactToSpikesHits   (true); // flag
+	HeatParameters::Pair<bool> reactToCooldownModes(true);
+	HeatParameters::Pair<bool> reactToSpikesHits   (true);
 	
 	HeatParameters::Interval<float> strategyCooldowns(10.f, 10.f); // seconds
 
-	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true); // flag
-	HeatParameters::Pair<bool> heavy3AreBlockables   (true); // flag
+	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
+	HeatParameters::Pair<bool> heavy3AreBlockables   (true);
 
 	HeatParameters::Pair<std::string> heavy3LightVehicles("copsuvl"); // name
 	HeatParameters::Pair<std::string> heavy3HeavyVehicles("copsuv");  // name
@@ -560,6 +562,29 @@ namespace GroundSupports
 
 
 
+	constexpr address roadblockFormationEntrance = 0x40AE5A;
+	constexpr address roadblockFormationExit     = 0x40AE63;
+
+	__declspec(naked) void RoadblockFormation()
+	{
+		__asm
+		{
+			cmp byte ptr roadblockEndsFormations.current, 0x1
+			jne conclusion // keep formation
+
+			// Execute original code and resume
+			mov eax, dword ptr [esi]
+			mov ecx, esi
+			call dword ptr [eax + 0x58]
+			test al, al
+
+			conclusion:
+			jmp dword ptr roadblockFormationExit
+		}
+	}
+
+
+
 	constexpr address roadblockJoinCountEntrance = 0x4443A6;
 	constexpr address roadblockJoinCountExit     = 0x4443AE;
 
@@ -656,9 +681,11 @@ namespace GroundSupports
 		// Heat parameters
 		HeatParameters::Parse<bool, bool, bool>(parser, "Supports:Rivals", {rivalRoadblockEnableds}, {rivalHeavyEnableds}, {rivalLeaderEnableds});
 
-		HeatParameters::Parse        <float, float>(parser, "Roadblocks:Cooldown", {roadblockCooldowns,      1.f}, {roadblockHeavyCooldowns, 1.f});
-		HeatParameters::Parse        <float>       (parser, "Roadblocks:Distance", {roadblockSpawnDistances, 0.f});
-		HeatParameters::ParseOptional<float>       (parser, "Roadblocks:Joining",  {roadblockJoinTimers,     0.f});
+		HeatParameters::Parse<float, float>(parser, "Roadblocks:Cooldown",   {roadblockCooldowns,      1.f}, {roadblockHeavyCooldowns, 1.f});
+		HeatParameters::Parse<float>       (parser, "Roadblocks:Distance",   {roadblockSpawnDistances, 0.f});
+		HeatParameters::Parse<bool>        (parser, "Roadblocks:Formations", {roadblockEndsFormations});
+
+		HeatParameters::ParseOptional<float>(parser, "Roadblocks:Joining", {roadblockJoinTimers, 0.f});
 
 		HeatParameters::Parse<bool, bool> (parser, "Roadblocks:Reactions", {reactToCooldownModes}, {reactToSpikesHits});
 
@@ -699,6 +726,7 @@ namespace GroundSupports
 		MemoryTools::MakeRangeJMP(RoadblockCooldown,    roadblockCooldownEntrance,    roadblockCooldownExit);
 		MemoryTools::MakeRangeJMP(RoadblockDistance,    roadblockDistanceEntrance,    roadblockDistanceExit);
 		MemoryTools::MakeRangeJMP(SpikesHitReaction,    spikesHitReactionEntrance,    spikesHitReactionExit);
+		MemoryTools::MakeRangeJMP(RoadblockFormation,   roadblockFormationEntrance,   roadblockFormationExit);
 		MemoryTools::MakeRangeJMP(RoadblockJoinTimer,   roadblockJoinTimerEntrance,   roadblockJoinTimerExit);
 		MemoryTools::MakeRangeJMP(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
         
@@ -752,6 +780,7 @@ namespace GroundSupports
 		roadblockHeavyCooldowns.Log("roadblockHeavyCooldown  ");
 
 		roadblockSpawnDistances.Log("roadblockSpawnDistance  ");
+		roadblockEndsFormations.Log("roadblockEndsFormation  ");
 
 		if (roadblockJoinTimers.isEnableds.current or reactToCooldownModes.current)
 		{
@@ -797,6 +826,7 @@ namespace GroundSupports
 		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
 
 		roadblockSpawnDistances.SetToHeat(isRacing, heatLevel);
+		roadblockEndsFormations.SetToHeat(isRacing, heatLevel);
 
 		maxRBJoinDistances      .SetToHeat(isRacing, heatLevel);
 		maxRBJoinElevationDeltas.SetToHeat(isRacing, heatLevel);

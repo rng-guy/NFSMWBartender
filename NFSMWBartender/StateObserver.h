@@ -61,7 +61,7 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log ("\n SESSION [VER] Bartender v2.07.01");
+			Globals::logger.Log ("\n SESSION [VER] Bartender v2.08.00");
 
 			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
@@ -346,17 +346,19 @@ namespace StateObserver
 		{
 			mov edi, eax
 
-			mov eax, dword ptr Globals::playerPerpVehicle
-			lea ecx, dword ptr [esp + 0x24]
-			lea edx, dword ptr [eax + 0x1C]
+			mov edx, dword ptr Globals::playerPerpVehicle
+			test edx, edx
+			je conclusion // player vehicle unknown
 
-			test eax, eax
-			cmove edx, ecx // player vehicle unknown
+			cmp edx, esi
+			je conclusion // is player vehicle
 
-			cmp eax, esi
-			cmove edx, ecx // is player vehicle
+			mov eax, dword ptr [edx + 0x1C]
+			mov dword ptr [esp + 0x24], eax
 
-			fld dword ptr [edx]
+			conclusion:
+			// Execute original code and resume
+			fld dword ptr [esp + 0x24]
 
 			jmp dword ptr heatEqualiserExit
 		}

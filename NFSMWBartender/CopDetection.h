@@ -28,6 +28,8 @@ namespace CopDetection
 	};
 
 	// Code caves
+	bool isNewMiniMap = true;
+	
 	HashContainers::CachedVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3), flag
 
 
@@ -114,6 +116,66 @@ namespace CopDetection
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
+	constexpr address colourUpdateEntrance = 0x579E16;
+	constexpr address colourUpdateExit     = 0x579E1C;
+
+	__declspec(naked) void ColourUpdate()
+	{
+		static constexpr float targetFrameTime     = 1.f / 30.f;
+		static float           nextColourTimeStamp = 0.f;
+
+		__asm
+		{
+			mov edx, dword ptr Globals::simulationTime
+			mov ecx, eax
+
+			fld dword ptr [edx]
+
+			cmp byte ptr isNewMiniMap, 0x1
+			je timestamp // new mini-map
+
+			fcom dword ptr nextColourTimeStamp
+			fnstsw ax
+			test ah, 0x5
+			jne conclusion // not yet time
+
+			inc ecx
+
+			timestamp:
+			fadd dword ptr targetFrameTime
+			fst dword ptr nextColourTimeStamp
+
+			mov byte ptr isNewMiniMap, 0x0
+
+			conclusion:
+			fstp st(0)
+			cmp ecx, 0x9
+
+			jmp dword ptr colourUpdateExit
+		}
+	}
+
+
+
+	constexpr address mapConstructorEntrance = 0x59DA9B;
+	constexpr address mapConstructorExit     = 0x59DAA0;
+
+	__declspec(naked) void MapConstructor()
+	{
+		__asm
+		{
+			mov byte ptr isNewMiniMap, 0x1
+
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x1C]
+			pop edi
+
+			jmp dword ptr mapConstructorExit
+		}
+	}
+
+
+
 	constexpr address copVehicleIconEntrance = 0x579EDF;
 	constexpr address copVehicleIconExit     = 0x579EE5;
 
@@ -167,6 +229,28 @@ namespace CopDetection
 
 
 
+	constexpr address destructionCheckEntrance = 0x57A038;
+	constexpr address destructionCheckExit     = 0x57A03D;
+
+	__declspec(naked) void DestructionCheck()
+	{
+		__asm
+		{
+			call dword ptr [edx + 0x14]
+			test al, al
+			je conclusion // not in pursuit
+
+			mov ecx, dword ptr [esi]
+			call Globals::IsVehicleDestroyed
+			cmp al, 0x1
+
+			conclusion:
+			jmp dword ptr destructionCheckExit
+		}
+	}
+
+
+
 
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
@@ -174,8 +258,14 @@ namespace CopDetection
 	void ApplyFixes()
 	{
 		// Also fixes the disappearing helicopter icon
+		MemoryTools::Write<size_t>(0, {0x59D5CA});     // frame-counter initialisation
 		MemoryTools::MakeRangeNOP(0x579EA2, 0x579EAB); // early icon-counter check
-		MemoryTools::MakeRangeJMP(CopVehicleIcon, copVehicleIconEntrance, copVehicleIconExit);
+		MemoryTools::MakeRangeJMP(CopVehicleIcon,   copVehicleIconEntrance,   copVehicleIconExit);
+		MemoryTools::MakeRangeJMP(DestructionCheck, destructionCheckEntrance, destructionCheckExit);
+
+		// Fixes update frequency for cop-icon colours
+		MemoryTools::MakeRangeJMP(ColourUpdate,   colourUpdateEntrance,   colourUpdateExit);
+		MemoryTools::MakeRangeJMP(MapConstructor, mapConstructorEntrance, mapConstructorExit);
 	}
 
 

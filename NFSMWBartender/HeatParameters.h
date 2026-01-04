@@ -217,7 +217,8 @@ namespace HeatParameters
 			const T originalMax
 		) 
 			: minValues(originalMin), maxValues(originalMax) 
-		{}
+		{
+		}
 
 
 		void SetToHeat

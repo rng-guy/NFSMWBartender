@@ -54,10 +54,13 @@ static void ApplyBartender()
         if (not GroundSupports::featureEnabled)
             GroundSupports::ApplyFixes();
 
-        // Helicopter shadow
+        // Remove static helicopter shadow
         MemoryTools::Write<float>(0.f, {0x903660});
 
-        // Heat-level reset (credit: ExOptsTeam)
+        // Correct Heat limits in Challenge Series races
+        MemoryTools::Write<byte>(0xEB, {0x44307F});
+    
+        // Prevent Heat-level resets (credit: ExOptsTeam)
         MemoryTools::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
         MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
     }
