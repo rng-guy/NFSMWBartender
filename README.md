@@ -86,7 +86,7 @@ The "Basic" feature set **always fixes fifteen bugs / issues** automatically:
 &nbsp;
 
 The "Basic" feature set **can fix three more bugs / issues**, depending on its configuration:
-* the game no longer ignores VltEd settings for roadblocks and Strategies in races,
+* the game no longer ignores [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) settings for roadblocks and Strategies in races,
 * non-Strategy roadblock requests can no longer be stalled by HeavyStrategy 3 requests, and
 * HeavyStrategy 3 requests no longer become very rare at Heat levels with frequent roadblocks.
 
@@ -141,7 +141,7 @@ The "Advanced" feature set **also lets you change** (in general)
 &nbsp;
 
 The "Advanced" feature set **always fixes five bugs / issues** automatically:
-* the game no longer ignores VltEd settings for roadblocks and Strategies in races,
+* the game no longer ignores [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) settings for roadblocks and Strategies in races,
 * the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
 * the helicopter AI is no longer crippled whenever a roadblock is present in the pursuit,
 * early Strategy despawns or cancellations no longer stall the game from making new requests, and
