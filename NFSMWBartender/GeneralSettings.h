@@ -49,9 +49,9 @@ namespace GeneralSettings
 	HashContainers::CachedVaultMap<bool> copTypeToIsBreakerImmune(false);
 
 
-
-
 	
+
+
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address copComboEntrance = 0x418FBA;
@@ -351,13 +351,14 @@ namespace GeneralSettings
 		MemoryTools::MakeRangeNOP(0x43E654, 0x43E663); // remove old increment call
 		MemoryTools::MakeRangeJMP(SpikeCounter, spikeCounterEntrance, spikeCounterExit);
 
+		// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
+		MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
+
 		// Fixes incorrect array values read from VltEd
 		MemoryTools::MakeRangeJMP(HeatEscalation,    heatEscalationEntrance,    heatEscalationExit);
 		MemoryTools::MakeRangeJMP(DestructionBounty, destructionBountyEntrance, destructionBountyExit);
-
-		// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
-		MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 	}
+
 
 
     bool Initialise(HeatParameters::Parser& parser)

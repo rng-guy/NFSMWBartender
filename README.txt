@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.08.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.08.01) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -73,7 +73,7 @@ The "Basic" feature set ALWAYS FIXES FIFTEEN BUGS / ISSUES automatically:
  • the game is no longer inadvertently biased in how it chooses to make Strategy requests,
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
  • Heat levels > 5 are now shown correctly in menus (requires Binary for missing textures), and
- • you can no longer get busted due to line-of-sight issues while the green "EVADE" bar fills.
+ • racers can no longer get busted due to line-of-sight issues while their green "EVADE" bar fills.
 
 The "Basic" feature set CAN FIX THREE MORE BUGS / ISSUES, depending on its configuration:
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
@@ -123,12 +123,13 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how much Heat racers gain / lose whenever they destroy a given cop vehicle, and
  • which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
-The "Advanced" feature set ALWAYS FIXES FIVE BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES SIX BUGS / ISSUES automatically:
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
  • the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
  • the helicopter AI is no longer crippled whenever a roadblock is present in the pursuit,
- • early Strategy despawns or cancellations no longer stall the game from making new requests, and
- • the engagement count shown above the pursuit board now always tracks relevant cops accurately.
+ • early Strategy despawns or cancellations no longer stall the game from making new requests,
+ • the engagement count above the pursuit board now always tracks relevant cops accurately, and
+ • the pathfinding of new cop vehicles no longer breaks whenever a race pursuit moves to free-roam.
 
 The "Advanced" feature set CAN FIX THREE MORE BUGS / ISSUES, depending on its configuration:
  • the helicopter can no longer waste its spawn attempts by losing you nearly instantly,

@@ -567,6 +567,14 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	bool IsEventActive()
+	{
+		static const address& raceStatusObject = *reinterpret_cast<address*>(0x91E000);
+		return (raceStatusObject and *reinterpret_cast<int*>(raceStatusObject + 0x1960));
+	}
+
+
+
 	const char* __fastcall GetByClassReplacement(const address caller)
 	{
 		if (Globals::playerHeatLevelKnown)
@@ -864,6 +872,48 @@ namespace CopSpawnOverrides
 
 
 
+	constexpr address copConstructorEntrance = 0x41EE72;
+	constexpr address copConstructorExit     = 0x41EE7C;
+
+	__declspec(naked) void CopConstructor()
+	{
+		__asm
+		{
+			call IsEventActive
+			mov byte ptr [esi + 0xA9], al
+
+			// Execute original code and resume
+			mov eax, dword ptr [esi + 0x54]
+
+			jmp dword ptr copConstructorExit
+		}
+	}
+
+
+
+	constexpr address recyclingCheckEntrance = 0x41ED5D;
+	constexpr address recyclingCheckExit     = 0x41ED66;
+
+	__declspec(naked) void RecyclingCheck()
+	{
+		__asm
+		{
+			// Execute original code first
+			mov ecx, dword ptr [esp + 0x78]
+			add esp, 0x4
+			cmp eax, ecx
+			jne conclusion // type mismatch
+
+			call IsEventActive
+			cmp al, byte ptr [esi + 0xA9]
+
+			conclusion:
+			jmp dword ptr recyclingCheckExit
+		}
+	}
+
+
+
 	constexpr address byNameInterceptorEntrance = 0x41ECEC;
 	constexpr address byNameInterceptorExit     = 0x41ECF2;
 
@@ -999,6 +1049,8 @@ namespace CopSpawnOverrides
 		MemoryTools::MakeRangeJMP(PatrolDespawn,      patrolDespawnEntrance,      patrolDespawnExit);
 		MemoryTools::MakeRangeJMP(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
 		MemoryTools::MakeRangeJMP(TrafficDensity,     trafficDensityEntrance,     trafficDensityExit);
+		MemoryTools::MakeRangeJMP(CopConstructor,     copConstructorEntrance,     copConstructorExit);
+		MemoryTools::MakeRangeJMP(RecyclingCheck,     recyclingCheckEntrance,     recyclingCheckExit);
 		MemoryTools::MakeRangeJMP(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
 		MemoryTools::MakeRangeJMP(ScriptedSpawnReset, scriptedSpawnResetEntrance, scriptedSpawnResetExit);
 		MemoryTools::MakeRangeJMP(ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);

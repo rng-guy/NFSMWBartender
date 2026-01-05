@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.08.00) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.08.01) │ ■ ────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -689,3 +689,4 @@ v1.00.00: Initial release
       01: Corrected some minor oversights / leftovers in README and usage notes
         
    08:00: Added multiple fixes for vanilla bugs / issues, and new Heat-progression features
+      01: Fixed vanilla issue of broken pathfinding when moving a race pursuit to free-roam

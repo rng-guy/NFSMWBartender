@@ -81,7 +81,7 @@ The "Basic" feature set **always fixes fifteen bugs / issues** automatically:
 * the game is no longer inadvertently biased in how it chooses to make Strategy requests,
 * Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
 * Heat levels > 5 are now shown correctly in menus (requires [Binary](https://github.com/SpeedReflect/Binary/releases) for missing textures), and
-* you can no longer get busted due to line-of-sight issues while the green "EVADE" bar fills.
+* racers can no longer get busted due to line-of-sight issues while their green "EVADE" bar fills.
 
 &nbsp;
 
@@ -140,12 +140,13 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **always fixes five bugs / issues** automatically:
+The "Advanced" feature set **always fixes six bugs / issues** automatically:
 * the game no longer ignores [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) settings for roadblocks and Strategies in races,
 * the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
 * the helicopter AI is no longer crippled whenever a roadblock is present in the pursuit,
-* early Strategy despawns or cancellations no longer stall the game from making new requests, and
-* the engagement count shown above the pursuit board now always tracks relevant cops accurately.
+* early Strategy despawns or cancellations no longer stall the game from making new requests,
+* the engagement count above the pursuit board now always tracks relevant cops accurately, and
+* the pathfinding of new cop vehicles no longer breaks whenever a race pursuit moves to free-roam.
 
 &nbsp;
 
