@@ -212,6 +212,7 @@ namespace CopSpawnOverrides
 	// Heat levels
 	HeatParameters::Interval<int>   activeChaserCounts       (1, 8);  // cars
 	HeatParameters::Pair    <bool>  chasersAreIndependents   (false);
+	HeatParameters::Pair    <bool>  onlyDestroyedDecrements  (false);
 	HeatParameters::Pair    <bool>  transitionTriggersBackups(false);
 	HeatParameters::Pair    <float> chaserSpawnClearances    (40.f);  // metres
 
@@ -475,17 +476,24 @@ namespace CopSpawnOverrides
 		) 
 			override
 		{
+			constexpr bool onlyIfDestroyed = true;
+
 			if (copLabel == CopLabel::CHASER)
 			{
 				if (this->chaserSpawns.RemoveVehicle(copVehicle))
 				{
-					const bool trackCopsLost = (this->isFreeRoamPursuit or GeneralSettings::trackCopsLost);
+					if ((not onlyDestroyedDecrements.current) or Globals::IsVehicleDestroyed(copVehicle))
+					{
+						const bool trackCopsLost = (this->isFreeRoamPursuit or GeneralSettings::trackCopsLost);
 
-					if (trackCopsLost and this->HasVehicleEngaged(copVehicle))
-						++(this->numCopsLostInWave);
+						if (trackCopsLost and this->HasVehicleEngaged(copVehicle))
+							++(this->numCopsLostInWave);
 
+						else if constexpr (Globals::loggingEnabled)
+							Globals::logger.Log(this->pursuit, "[SPA] No decrement", (trackCopsLost) ? "(radius)" : "(tracking)");
+					}
 					else if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[SPA] Skipping loss increment");
+						Globals::logger.Log(this->pursuit, "[SPA] No decrement (wreck)");
 				}
 				else if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [SPA] Unknown chaser vehicle", copVehicle, "in", this->pursuit);
@@ -1023,6 +1031,7 @@ namespace CopSpawnOverrides
 		// Heat parameters
 		HeatParameters::Parse<int>  (parser, "Chasers:Limits",       {activeChaserCounts,    0});
 		HeatParameters::Parse<bool> (parser, "Chasers:Independence", {chasersAreIndependents});
+		HeatParameters::Parse<bool> (parser, "Chasers:Decrement",    {onlyDestroyedDecrements});
 		HeatParameters::Parse<bool> (parser, "Chasers:Backup",       {transitionTriggersBackups});
 		HeatParameters::Parse<float>(parser, "Chasers:Clearance",    {chaserSpawnClearances, 0.f});
 
@@ -1069,6 +1078,7 @@ namespace CopSpawnOverrides
 
 		activeChaserCounts       .Log("activeChaserCount       ");
 		chasersAreIndependents   .Log("chasersAreIndependent   ");
+		onlyDestroyedDecrements  .Log("onlyDestroyedDecrement  ");
 		transitionTriggersBackups.Log("transitionTriggersBackup");
 		chaserSpawnClearances    .Log("chaserSpawnClearance    ");
 
@@ -1096,6 +1106,7 @@ namespace CopSpawnOverrides
 
 		activeChaserCounts       .SetToHeat(isRacing, heatLevel);
 		chasersAreIndependents   .SetToHeat(isRacing, heatLevel);
+		onlyDestroyedDecrements  .SetToHeat(isRacing, heatLevel);
 		transitionTriggersBackups.SetToHeat(isRacing, heatLevel);
 		chaserSpawnClearances    .SetToHeat(isRacing, heatLevel);
 

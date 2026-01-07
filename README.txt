@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.08.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.09.00) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -96,6 +96,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • below what total number of active cops in the world the game can spawn new chasing cops,
  • whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
  • whether spawning decisions for traffic cars are independent of those for cops,
+ • whether only chasing cops that have been destroyed can decrement the engagement count,
  • whether Heat transitions immediately trigger backup to update the engagement count,
  • how far away new chasing cops must spawn from all already active cops,
  • above what count (if at all) no more cops can join the pursuit from roadblocks,
@@ -216,7 +217,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v2.08.01, replace all old configuration files.
+If you update from a version older than v2.09.00, replace all old configuration files.
 
 
 

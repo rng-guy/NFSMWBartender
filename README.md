@@ -109,6 +109,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * below what total number of active cops in the world the game can spawn new chasing cops,
 * whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
 * whether spawning decisions for traffic cars are independent of those for cops,
+* whether only chasing cops that have been destroyed can decrement the engagement count,
 * whether Heat transitions immediately trigger backup to update the engagement count,
 * how far away new chasing cops must spawn from all already active cops,
 * above what count (if at all) no more cops can join the pursuit from roadblocks,
@@ -250,7 +251,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.08.01, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.09.00, replace all old configuration files.
 
 &nbsp;
 
