@@ -476,8 +476,6 @@ namespace CopSpawnOverrides
 		) 
 			override
 		{
-			constexpr bool onlyIfDestroyed = true;
-
 			if (copLabel == CopLabel::CHASER)
 			{
 				if (this->chaserSpawns.RemoveVehicle(copVehicle))
