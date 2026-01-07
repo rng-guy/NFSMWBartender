@@ -152,7 +152,7 @@ Bartender's "BASIC" FEATURE SET changes the way the game accesses some VltEd arr
 
 Bartender's "ADVANCED" FEATURE SET forces the game to no longer ignore the roadblock-related
 "pursuitlevels" and the Strategy-related "pursuitsupport" VltEd settings in race pursuits. 
-The feature set also disables four specific "pursuitlevels" parameters in all pursuits:
+The feature set also replaces four specific "pursuitlevels" parameters in all pursuits:
  • the "cops" array,
  • "HeliFuelTime",
  • "TimeBetweenHeliActive", and

@@ -73,7 +73,7 @@ The "Basic" feature set **always fixes fifteen bugs / issues** automatically:
 * transitions to Heat levels > 5 now trigger their proper radio announcements,
 * the game no longer plays each Heat-level announcement just once per game launch,
 * Challenge Series races now use the Heat level limits defined for them in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),
-* the game now reads [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) arrays correctly at each Blacklist rank and Heat level,
+* the game now reads VltEd arrays correctly at each Blacklist rank and Heat level,
 * vehicles joining pursuits from roadblocks no longer ignore spawn limits for cops,
 * the helicopter mini-map icon is now always visible whenever a helicopter is active,
 * the helicopter vision-cone icon now always disappears whenever a helicopter is destroyed,
@@ -87,7 +87,7 @@ The "Basic" feature set **always fixes fifteen bugs / issues** automatically:
 &nbsp;
 
 The "Basic" feature set **can fix three more bugs / issues**, depending on its configuration:
-* the game no longer ignores [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) settings for roadblocks and Strategies in races,
+* the game no longer ignores VltEd settings for roadblocks and Strategies in races,
 * non-Strategy roadblock requests can no longer be stalled by HeavyStrategy 3 requests, and
 * HeavyStrategy 3 requests no longer become very rare at Heat levels with frequent roadblocks.
 
@@ -170,13 +170,13 @@ Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-releas
 
 &nbsp;
 
-Bartender's **"Basic" feature set** changes the way the game accesses some [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) arrays:
+Bartender's **"Basic" feature set** changes the way the game accesses some VltEd arrays:
 * In `pursuitlevels`, `0x80deb840` now uses the correct value at each Blacklist rank.
 * In `aivehicle`, `RepPointsForDestroying` now uses the correct value at each Heat level.
 
 &nbsp;
 
-Bartender's **"Advanced" feature set** forces the game to no longer ignore the roadblock-related `pursuitlevels` and the Strategy-related `pursuitsupport` [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) settings in race pursuits. The feature set also disables four specific `pursuitlevels` parameters in all pursuits:
+Bartender's **"Advanced" feature set** forces the game to no longer ignore the roadblock-related `pursuitlevels` and the Strategy-related `pursuitsupport` VltEd settings in race pursuits. The feature set also replaces four specific `pursuitlevels` parameters in all pursuits:
 * the `cops` array,
 * `HeliFuelTime`,
 * `TimeBetweenHeliActive`, and

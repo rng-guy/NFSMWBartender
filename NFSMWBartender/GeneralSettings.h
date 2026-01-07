@@ -190,13 +190,8 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			push eax
-
-			mov ecx, dword ptr [esp + 0x4C8]
-			mov edx, dword ptr [ecx]
-			call dword ptr [edx + 0x100]
-
-			pop eax
+			mov edx, dword ptr [esp + 0x4C4]
+			inc dword ptr [edx + 0x17C]
 
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x30]
@@ -328,13 +323,9 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			cmp byte ptr carsAffectedByHidings.current, 0x0
-			je conclusion // invisibility disabled
+			mov al, byte ptr carsAffectedByHidings.current
+			test al, byte ptr [edi + 0x2C]
 
-			// Execute original code and resume
-			cmp byte ptr [edi + 0x2C], 0x0
-
-			conclusion:
 			jmp dword ptr hiddenFromCarsExit
 		}
 	}
@@ -348,13 +339,9 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			cmp byte ptr carsAffectedByHidings.current, 0x0
-			je conclusion // invisibility disabled
+			mov al, byte ptr carsAffectedByHidings.current
+			test al, byte ptr [ebp + 0x2C]
 
-			// Execute original code and resume
-			cmp byte ptr [ebp + 0x2C], 0x0
-
-			conclusion:
 			jmp dword ptr hiddenFromRoadblocksExit
 		}
 	}
@@ -362,19 +349,15 @@ namespace GeneralSettings
 
 
 	constexpr address hiddenFromHelicoptersEntrance = 0x417103;
-	constexpr address hiddenFromHelicoptersExit = 0x41710C;
+	constexpr address hiddenFromHelicoptersExit     = 0x41710C;
 
 	__declspec(naked) void HiddenFromHelicopters()
 	{
 		__asm
 		{
-			cmp byte ptr helisAffectedByHidings.current, 0x0
-			je conclusion // invisibility disabled
+			mov al, byte ptr helisAffectedByHidings.current
+			test al, byte ptr [esi + 0x2D]
 
-			// Execute original code and resume
-			cmp byte ptr [esi + 0x2D], 0x0
-
-			conclusion:
 			jmp dword ptr hiddenFromHelicoptersExit
 		}
 	}
