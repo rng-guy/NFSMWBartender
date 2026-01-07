@@ -44,7 +44,7 @@ namespace GeneralSettings
 	HeatParameters::OptionalPair<float> racerFlipResetDelays; // seconds
 
 	// Conversions
-	float bountyFrequency = 1.f / bountyIntervals.current; // seconds
+	float bountyFrequency = 1.f / bountyIntervals.current; // hertz
 	float halfEvadeRate   = .5f / evadeTimers.current;     // hertz
 	float bustRate        = 1.f / bustTimers.current;      // hertz
 
