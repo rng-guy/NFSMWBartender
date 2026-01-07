@@ -44,14 +44,14 @@ namespace GroundSupports
 	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
 	HeatParameters::Pair<bool> heavy3AreBlockables   (true);
 
-	HeatParameters::Pair<std::string> heavy3LightVehicles("copsuvl"); // name
-	HeatParameters::Pair<std::string> heavy3HeavyVehicles("copsuv");  // name
-	HeatParameters::Pair<std::string> heavy4LightVehicles("copsuvl"); // name
-	HeatParameters::Pair<std::string> heavy4HeavyVehicles("copsuv");  // name
+	HeatParameters::Pair<std::string> heavy3LightVehicles("copsuvl");
+	HeatParameters::Pair<std::string> heavy3HeavyVehicles("copsuv");
+	HeatParameters::Pair<std::string> heavy4LightVehicles("copsuvl");
+	HeatParameters::Pair<std::string> heavy4HeavyVehicles("copsuv");
 
-	HeatParameters::Pair<std::string> leader5CrossVehicles   ("copcross");      // name
-	HeatParameters::Pair<std::string> leader7CrossVehicles   ("copcross");      // name
-	HeatParameters::Pair<std::string> leader7HenchmenVehicles("copsporthench"); // name
+	HeatParameters::Pair<std::string> leader5CrossVehicles   ("copcross");
+	HeatParameters::Pair<std::string> leader7CrossVehicles   ("copcross");
+	HeatParameters::Pair<std::string> leader7HenchmenVehicles("copsporthench");
 
 
 

@@ -20,7 +20,7 @@ namespace HelicopterOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<std::string> helicopterVehicles("copheli"); // name
+	HeatParameters::Pair<std::string> helicopterVehicles("copheli");
 	HeatParameters::Pair<float>       rammingCooldowns  (8.f);       // seconds
 
 	HeatParameters::OptionalInterval<float> firstSpawnDelays;   // seconds
