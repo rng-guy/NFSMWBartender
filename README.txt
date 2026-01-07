@@ -31,6 +31,7 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • the maximum combo-bounty multiplier for destroying cops quickly,
  • how quickly and below what distance from cops the red "BUSTED" bar fills,
  • how quickly the green "EVADE" bar fills once all cops have lost sight of you,
+ • whether hiding spots make racers in "COOLDOWN" mode completely invisible to cops,
  • whether player-damaged cop vehicles are destroyed instantly if flipped over,
  • when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
  • when exactly (if at all) racer vehicles are reset if flipped over,
@@ -163,8 +164,8 @@ However, some pursuit-related .asi mods require manual (re)configuration for com
  • For "XNFSMusicPlayer"     by xan1242,    delete Bartender's "[Music:Playlist]" parameter group.
  • In  "NFSMW Unlimiter"     by nlgxzef,    disable the "EnableCopDestroyedStringHook" feature.
  • In  "NFSMW ExtraOptions"  by ExOptsTeam, disable the "HeatLevelOverride",
-                                                    the "PursuitActionMode", and
-                                                    the "ZeroBountyFix", feature.
+                                                        "PursuitActionMode", and
+                                                        "ZeroBountyFix" features.
 
 
 
@@ -182,11 +183,11 @@ Specifically, you likely need that mod if you configure Bartender in any of the 
  • "[Heavy3:Unblocking]"    in "Strategies.ini": You define very short unblock delays.
  
 TO CONFIGURE "NFSMW LimitAdjuster" for optimal compatibility with Bartender:
- 1) • place "NFSMWLimitAdjuster.asi" / ".ini" into the same folder as "speed.exe" (NOT "scripts");
+ 1) • place "NFSMWLimitAdjuster.asi" / ".ini" into the same folder as "speed.exe" (not "scripts");
  2) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature; 
- 3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50 (or higher); 
- 4) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "PursuitCops"      to 255; and
- 5) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "Vehicles_SoftCap" to 255.
+ 3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50 (or higher), 
+                                                         "PursuitCops"      to 255, and
+                                                         "Vehicles_SoftCap" to 255.
 
 
 
@@ -215,7 +216,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v2.08.00, replace all old configuration files.
+If you update from a version older than v2.08.01, replace all old configuration files.
 
 
 
@@ -237,5 +238,5 @@ Finally, Bartender wouldn't have seen the light of day without
  • Matthias C. M. Troffaes, for his configuration-file parser;
  • ExOptsTeam, for permitting me to use their Heat-level fixes;
  • Martin Leitner-Ankerl, for his performant hashmap implementation;
- • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a resource; and
+ • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a learning resource; and
  • Orsal, zeta1207, Aven, Astra King79, and MORELLO, for testing and providing feedback.

@@ -35,6 +35,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the maximum combo-bounty multiplier for destroying cops quickly,
 * how quickly and below what distance from cops the red "BUSTED" bar fills,
 * how quickly the green "EVADE" bar fills once all cops have lost sight of you,
+* whether hiding spots make racers in "COOLDOWN" mode completely invisible to cops,
 * whether player-damaged cop vehicles are destroyed instantly if flipped over,
 * when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
 * when exactly (if at all) racer vehicles are reset if flipped over,
@@ -187,7 +188,7 @@ Most **other .asi mods** should be fully compatible with all Bartender configura
 * For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#4---what-other-mods-does-bartender-depend-on) below.
 * For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` parameter group.
 * In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable the `EnableCopDestroyedStringHook` feature.
-* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable the `HeatLevelOverride`, the `PursuitActionMode`, and the `ZeroBountyFix` feature.
+* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable the `HeatLevelOverride`, `PursuitActionMode`, and `ZeroBountyFix` features.
 
 &nbsp;
 
@@ -211,9 +212,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 **To configure** [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) for optimal compatibility with Bartender:
 1. place `NFSMWLimitAdjuster.asi` / `.ini` into the same folder as `speed.exe` (*not* `scripts`);
 2. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature;
-3. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50 (or higher);
-4. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `PursuitCops` to 255; and
-5. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `Vehicles_SoftCap` to 255.
+3. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50 (or higher), `PursuitCops` to 255, and `Vehicles_SoftCap` to 255.
 
 &nbsp;
 
@@ -251,7 +250,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.08.00, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.08.01, replace all old configuration files.
 
 &nbsp;
 
@@ -276,5 +275,5 @@ Finally, Bartender wouldn't have seen the light of day without
 * **[ExOptsTeam](https://github.com/ExOptsTeam)**, for permitting me to use their Heat-level fixes;
 * **Sebastiano Vigna**, for his [pseudorandom number generators](https://prng.di.unimi.it/);
 * **Martin Leitner-Ankerl**, for his [performant hashmap implementation](https://github.com/martinus/unordered_dense);
-* **trelbutate**, for his [NFSMW Cop Car Healthbars mod](https://github.com/trelbutate/MWHealthbars/) as a resource; and
+* **trelbutate**, for his [NFSMW Cop Car Healthbars mod](https://github.com/trelbutate/MWHealthbars/) as a learning resource; and
 * **[Orsal](https://nfsmods.xyz/usermods/20407)**, **zeta1207**, **[Aven](https://nfsmods.xyz/usermods/1610)**, **Astra King79**, and **[MORELLO](https://nfsmods.xyz/usermods/6960)**, for testing and providing feedback.

@@ -31,9 +31,12 @@ namespace GeneralSettings
 	HeatParameters::Pair<float> bountyIntervals     (10.f); // seconds
 	HeatParameters::Pair<int>   maxBountyMultipliers(3);    // scale
 
+	HeatParameters::Pair<float> bustTimers      (5.f);  // seconds
 	HeatParameters::Pair<float> maxBustDistances(15.f); // metres
 	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
-	HeatParameters::Pair<float> bustTimers      (5.f);  // seconds
+
+	HeatParameters::Pair<bool> carsAffectedByHidings (true);
+	HeatParameters::Pair<bool> helisAffectedByHidings(true);
 
 	HeatParameters::Pair<bool> copFlipByDamageEnableds(true);
 
@@ -318,6 +321,66 @@ namespace GeneralSettings
 
 
 
+	constexpr address hiddenFromCarsEntrance = 0x416571;
+	constexpr address hiddenFromCarsExit     = 0x41657A;
+
+	__declspec(naked) void HiddenFromCars()
+	{
+		__asm
+		{
+			cmp byte ptr carsAffectedByHidings.current, 0x0
+			je conclusion // invisibility disabled
+
+			// Execute original code and resume
+			cmp byte ptr [edi + 0x2C], 0x0
+
+			conclusion:
+			jmp dword ptr hiddenFromCarsExit
+		}
+	}
+
+
+
+	constexpr address hiddenFromRoadblocksEntrance = 0x444329;
+	constexpr address hiddenFromRoadblocksExit     = 0x444333;
+
+	__declspec(naked) void HiddenFromRoadblocks()
+	{
+		__asm
+		{
+			cmp byte ptr carsAffectedByHidings.current, 0x0
+			je conclusion // invisibility disabled
+
+			// Execute original code and resume
+			cmp byte ptr [ebp + 0x2C], 0x0
+
+			conclusion:
+			jmp dword ptr hiddenFromRoadblocksExit
+		}
+	}
+
+
+
+	constexpr address hiddenFromHelicoptersEntrance = 0x417103;
+	constexpr address hiddenFromHelicoptersExit = 0x41710C;
+
+	__declspec(naked) void HiddenFromHelicopters()
+	{
+		__asm
+		{
+			cmp byte ptr helisAffectedByHidings.current, 0x0
+			je conclusion // invisibility disabled
+
+			// Execute original code and resume
+			cmp byte ptr [esi + 0x2D], 0x0
+
+			conclusion:
+			jmp dword ptr hiddenFromHelicoptersExit
+		}
+	}
+
+
+
 
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
@@ -375,7 +438,10 @@ namespace GeneralSettings
 		ParseTracking(parser, "infractions",    trackInfractions,    0x5FDDDC, 0x5FDDE7);
 
 		if (trackCopsDestroyed)
+		{
 			MemoryTools::MakeRangeNOP(0x4094E0, 0x4094EA); // cop bounty
+			MemoryTools::MakeRangeNOP(0x43EA15, 0x43EA19); // total cops destroyed
+		}
 
 		// Heat parameters
 		HeatParameters::Parse<bool>(parser, "Pursuits:Rivals", {rivalPursuitsEnableds});
@@ -385,6 +451,8 @@ namespace GeneralSettings
 		
 		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,  .001f}, {maxBustDistances, 0.f});
 		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers, .001f});
+
+		HeatParameters::Parse<bool, bool>(parser, "Evading:Hiding", {carsAffectedByHidings}, {helisAffectedByHidings});
 
 		HeatParameters::Parse        <bool> (parser, "Flipping:Damage", {copFlipByDamageEnableds});
 		HeatParameters::ParseOptional<float>(parser, "Flipping:Time",   {copFlipByTimers,      0.f});
@@ -412,11 +480,14 @@ namespace GeneralSettings
 		MemoryTools::Write<float*>(&bountyFrequency,       {0x444513, 0x444524});
 		MemoryTools::Write<float*>(&(evadeTimers.current), {0x4448E6, 0x444802, 0x4338F8});
 
-		MemoryTools::MakeRangeJMP(CopCombo,      copComboEntrance,      copComboExit);
-		MemoryTools::MakeRangeJMP(CopFlipping,   copFlippingEntrance,   copFlippingExit);
-		MemoryTools::MakeRangeJMP(RivalPursuit,  rivalPursuitEntrance,  rivalPursuitExit);
-		MemoryTools::MakeRangeJMP(RacerFlipping, racerFlippingEntrance, racerFlippingExit);
-		MemoryTools::MakeRangeJMP(PassiveBounty, passiveBountyEntrance, passiveBountyExit);
+		MemoryTools::MakeRangeJMP(CopCombo,              copComboEntrance,              copComboExit);
+		MemoryTools::MakeRangeJMP(CopFlipping,           copFlippingEntrance,           copFlippingExit);
+		MemoryTools::MakeRangeJMP(RivalPursuit,          rivalPursuitEntrance,          rivalPursuitExit);
+		MemoryTools::MakeRangeJMP(RacerFlipping,         racerFlippingEntrance,         racerFlippingExit);
+		MemoryTools::MakeRangeJMP(PassiveBounty,         passiveBountyEntrance,         passiveBountyExit);
+		MemoryTools::MakeRangeJMP(HiddenFromCars,        hiddenFromCarsEntrance,        hiddenFromCarsExit);
+		MemoryTools::MakeRangeJMP(HiddenFromRoadblocks,  hiddenFromRoadblocksEntrance,  hiddenFromRoadblocksExit);
+		MemoryTools::MakeRangeJMP(HiddenFromHelicopters, hiddenFromHelicoptersEntrance, hiddenFromHelicoptersExit);
 
 		ApplyFixes(); // also contains bust-distance feature
 
@@ -440,6 +511,9 @@ namespace GeneralSettings
 		bustTimers      .Log("bustTimer               ");
 		maxBustDistances.Log("maxBustDistance         ");
 		evadeTimers     .Log("evadeTimer              ");
+
+		carsAffectedByHidings .Log("carsAffectedByHiding    ");
+		helisAffectedByHidings.Log("helisAffectedByHiding   ");
 
 		copFlipByDamageEnableds.Log("copFlipByDamageEnabled  ");
 		copFlipByTimers        .Log("copFlipByTimer          ");
@@ -506,6 +580,9 @@ namespace GeneralSettings
 
 		halfEvadeRate = .5f / evadeTimers.current;
 		bustRate      = 1.f / bustTimers.current;
+
+		carsAffectedByHidings .SetToHeat(isRacing, heatLevel);
+		helisAffectedByHidings.SetToHeat(isRacing, heatLevel);
 
 		copFlipByDamageEnableds.SetToHeat(isRacing, heatLevel);
 		copFlipByTimers        .SetToHeat(isRacing, heatLevel);
