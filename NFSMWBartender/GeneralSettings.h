@@ -298,19 +298,15 @@ namespace GeneralSettings
 
 	__declspec(naked) void DestructionBounty()
 	{
-		static constexpr address destructionBountySkip = 0x418F7A;
-
 		__asm
 		{
 			mov edi, dword ptr [esi + 0x98]
+			xor ecx, ecx
 
 			dec edi
-			jl skip // Heat index negative
+			cmovl edi, ecx // Heat index negative
 
 			jmp dword ptr destructionBountyExit
-
-			skip:
-			jmp dword ptr destructionBountySkip
 		}
 	}
 
