@@ -236,6 +236,7 @@ namespace CopDetection
 	{
 		__asm
 		{
+			// Execute original code first
 			call dword ptr [edx + 0x14]
 			test al, al
 			je conclusion // not in pursuit

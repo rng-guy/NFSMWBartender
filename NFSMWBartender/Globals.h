@@ -29,7 +29,7 @@ namespace Globals
 
 	// Common objects
 	RandomNumbers::Generator prng;
-	BasicLogger::Logger      logger;
+	BasicLogger  ::Logger    logger;
 
 	// Player state
 	address playerPerpVehicle    = 0x0;

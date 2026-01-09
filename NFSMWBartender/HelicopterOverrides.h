@@ -51,6 +51,8 @@ namespace HelicopterOverrides
 		
 		bool isPlayerPursuit = false;
 
+		int& numHelicoptersDeployed = *reinterpret_cast<int*>(this->pursuit + 0x150);
+
 		enum class Status
 		{
 			PENDING,
@@ -64,8 +66,6 @@ namespace HelicopterOverrides
 		Status helicopterStatus = Status::PENDING;
 
 		PursuitFeatures::IntervalTimer spawnTimer;
-
-		int& numHelicoptersDeployed = *reinterpret_cast<int*>(this->pursuit + 0x150);
 
 		float fuelTimeOnRejoin  = 0.f;  // seconds
 		float minRejoinFuelTime = 10.f; // seconds
@@ -81,7 +81,7 @@ namespace HelicopterOverrides
 			this->isPlayerPursuit = Globals::IsPlayerPursuit(this->pursuit);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[HEL]", (this->isPlayerPursuit) ? "Confirmed" : "Not", "player pursuit");
+				Globals::logger.Log(this->pursuit, "[HEL]", (this->isPlayerPursuit) ? "Is" : "Not", "player pursuit");
 		}
 
 
@@ -449,20 +449,22 @@ namespace HelicopterOverrides
 
 	__declspec(naked) void EarlyBailout()
 	{
+		static constexpr address earlyBailoutSkip = 0x717C34;
+
 		__asm
 		{
 			cmp byte ptr skipBailoutSpeech, 0x1
-			jne conclusion // speech enabled
+			je skip // speech disabled
 
-			retn
-
-			conclusion:
 			// Execute original code and resume
 			sub esp, 0x8
 			push esi
 			mov esi, ecx
 
 			jmp dword ptr earlyBailoutExit
+
+			skip:
+			jmp dword ptr earlyBailoutSkip
 		}
 	}
 
@@ -476,8 +478,6 @@ namespace HelicopterOverrides
 		__asm
 		{
 			mov ecx, dword ptr rammingCooldowns.current
-
-			// Execute original code and resume
 			mov dword ptr [esi + 0x64], ecx
 
 			jmp dword ptr rammingCooldownExit

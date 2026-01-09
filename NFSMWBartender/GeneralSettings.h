@@ -88,9 +88,11 @@ namespace GeneralSettings
 		{
 			je conclusion // Heat level unchanged
 
-			mov dword ptr [esi + 0x104], 0x0
+			xor edx, edx
+
+			mov dword ptr [esi + 0x104], edx
 			mov dword ptr [esi + 0xD8], eax
-			mov byte ptr [esi + 0x254], 0x0
+			mov byte ptr [esi + 0x254], dl
 
 			conclusion:
 			jmp dword ptr heatUpdateExit
@@ -157,14 +159,16 @@ namespace GeneralSettings
 
 
 
-	constexpr address breakerCheckEntrance = 0x42E967;
+	constexpr address breakerCheckEntrance = 0x42E963;
 	constexpr address breakerCheckExit     = 0x42E96C;
 
 	__declspec(naked) void BreakerCheck()
 	{
 		__asm
 		{
-			call dword ptr [eax + 0x7C]
+			// Execute original code first
+			mov ecx, ebx
+			call Globals::IsVehicleDestroyed
 			test al, al
 			jne conclusion // vehicle destroyed
 

@@ -137,7 +137,6 @@ namespace HelicopterVision
 			mov eax, dword ptr [esi]
 			mov ecx, dword ptr [eax + 0x54]
 			push ecx
-
 			mov edx, dword ptr [ecx]
 			call dword ptr [edx + 0x64]
 
