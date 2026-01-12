@@ -692,4 +692,4 @@ v1.00.00: Initial release
 
    09.00: Added another vanilla fix, and features for hiding spots and "Chasers" decrements
 
-   10.00: Expanded some existing features and overhauled mod internals for optimal compatibility
+   10.00: Expanded some existing features and overhauled internals for better mod compatibility
