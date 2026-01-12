@@ -73,7 +73,7 @@ namespace MemoryTools
 		const address start,
 		const address end
 	) {
-		WriteToRange(0x90, start, end);
+		WriteToRange(0x90, start, end); // NOP
 	}
 
 
@@ -84,14 +84,15 @@ namespace MemoryTools
 		const address     start,
 		const address     end
 	) {
-		const address jmpEnd = start + sizeof(byte) + sizeof(address);
+		const address targetStart = start       + sizeof(byte);
+		const address jumpEnd     = targetStart + sizeof(address);
 
-		if (end >= jmpEnd)
+		if (end >= jumpEnd)
 		{
 			MakeRangeNOP(start, end);
 			
-			Write<byte>   (0xE9, {start});
-			Write<address>(reinterpret_cast<address>(target) - jmpEnd, {start + sizeof(byte)});
+			Write<byte>   (0xE9, {start}); // jump near, relative
+			Write<address>(reinterpret_cast<address>(target) - jumpEnd, {targetStart});
 		}
 		else ++numCaveErrors;
 	}
@@ -107,7 +108,7 @@ namespace MemoryTools
 
 		const byte opcode = *reinterpret_cast<byte*>(location);
 
-		if (opcode == 0xE8)
+		if (opcode == 0xE8) // call near, relative
 		{
 			const address targetStart = location    + sizeof(byte);
 			const address callEnd     = targetStart + sizeof(address);
