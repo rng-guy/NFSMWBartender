@@ -84,37 +84,42 @@ namespace MemoryTools
 		const address     start,
 		const address     end
 	) {
-		if (end > start + 4)
+		const address jmpEnd = start + sizeof(byte) + sizeof(address);
+
+		if (end >= jmpEnd)
 		{
 			MakeRangeNOP(start, end);
 			
-			// It's necessary to account for the instruction length and offset
 			Write<byte>   (0xE9, {start});
-			Write<address>(reinterpret_cast<address>(target) - (start + 5), {start + 1});
+			Write<address>(reinterpret_cast<address>(target) - jmpEnd, {start + sizeof(byte)});
 		}
 		else ++numCaveErrors;
 	}
 
 
 
-	address MakeHook
+	address MakeCallHook
 	(
 		const void* const function,
 		const address     location
 	) {
+		address replacedTarget = 0x0;
+
 		const byte opcode = *reinterpret_cast<byte*>(location);
 
 		if (opcode == 0xE8)
 		{
-			address oldCallOffset = 0x0;
+			const address targetStart = location    + sizeof(byte);
+			const address callEnd     = targetStart + sizeof(address);
 
-			std::memcpy   (&oldCallOffset, reinterpret_cast<address*>(location + 1), sizeof(address));
-			Write<address>(reinterpret_cast<address>(function) - (location + 5), {location + 1});
+			std::memcpy(&replacedTarget, reinterpret_cast<address*>(targetStart), sizeof(address));
 
-			return (oldCallOffset + (location + 5));
+			replacedTarget += callEnd;
+
+			Write<address>(reinterpret_cast<address>(function) - callEnd, {targetStart});
 		}
 		else ++numHookErrors;
 
-		return 0x0;
+		return replacedTarget;
 	}
 }

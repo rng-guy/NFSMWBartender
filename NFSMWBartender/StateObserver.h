@@ -67,7 +67,6 @@ namespace StateObserver
 		const size_t  numArgs,
 		const address argArray
 	) {
-		// The vanilla game calls "InitializeEverything" at this location
 		const auto OriginalFunction = reinterpret_cast<void (__cdecl*)(size_t, address)>(onGameLoadValidationOriginal);
 
 		// Call original function first
@@ -114,7 +113,6 @@ namespace StateObserver
 
 	void __fastcall OnGameplayUpdates(const address soundAI)
 	{
-		// The vanilla game calls "SoundAI::SyncPursuit" at this location
 		const auto OriginalFunction = reinterpret_cast<void (__thiscall*)(address)>(onGameplayUpdatesOriginal);
 
 		// Apply hooked logic fist
@@ -139,7 +137,6 @@ namespace StateObserver
 
 	void OnWorldLoadUpdates()
 	{
-		// The vanilla game calls "nullsub_174" at this location
 		const auto OriginalFunction = reinterpret_cast<void (*)()>(onWorldLoadUpdatesOriginal);
 
 		// Apply hooked logic fist
@@ -155,7 +152,6 @@ namespace StateObserver
 
 	void OnRestartUpdates()
 	{
-		// The vanilla game calls "World_RestoreProps" at this location
 		const auto OriginalFunction = reinterpret_cast<void (*)()>(onRestartUpdatesOriginal);
 
 		// Apply hooked logic fist
@@ -377,10 +373,10 @@ namespace StateObserver
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		// Code modifications 
-		onGameLoadValidationOriginal = MemoryTools::MakeHook(OnGameLoadValidation, 0x6665B4);
-		onGameplayUpdatesOriginal    = MemoryTools::MakeHook(OnGameplayUpdates,    0x721609);
-		onWorldLoadUpdatesOriginal   = MemoryTools::MakeHook(OnWorldLoadUpdates,   0x662ADC);
-		onRestartUpdatesOriginal     = MemoryTools::MakeHook(OnRestartUpdates,     0x63090B);
+		onGameLoadValidationOriginal = MemoryTools::MakeCallHook(OnGameLoadValidation, 0x6665B4); // InitializeEverything (0x665FC0)
+		onGameplayUpdatesOriginal    = MemoryTools::MakeCallHook(OnGameplayUpdates,    0x721609); // SoundAI::SyncPursuit (0x720850)
+		onWorldLoadUpdatesOriginal   = MemoryTools::MakeCallHook(OnWorldLoadUpdates,   0x662ADC); // nullsub_174          (0x6C39C0)
+		onRestartUpdatesOriginal     = MemoryTools::MakeCallHook(OnRestartUpdates,     0x63090B); // World_RestoreProps   (0x74D320)
 
 		MemoryTools::MakeRangeJMP(HeatEqualiser,         heatEqualiserEntrance,         heatEqualiserExit);
 		MemoryTools::MakeRangeJMP(ResetAIVehicle,        resetAIVehicleEntrance,        resetAIVehicleExit);
