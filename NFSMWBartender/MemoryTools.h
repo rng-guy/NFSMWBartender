@@ -101,7 +101,7 @@ namespace MemoryTools
 
 	address MakeCallHook
 	(
-		const void* const function,
+		const void* const target,
 		const address     location
 	) {
 		address replacedTarget = 0x0;
@@ -117,7 +117,7 @@ namespace MemoryTools
 
 			replacedTarget += callEnd;
 
-			Write<address>(reinterpret_cast<address>(function) - callEnd, {targetStart});
+			Write<address>(reinterpret_cast<address>(target) - callEnd, {targetStart});
 		}
 		else ++numHookErrors;
 
