@@ -29,15 +29,15 @@ namespace PursuitFeatures
 		)
 			const
 		{
-			static const auto GetPursuitNode      = reinterpret_cast<address (__thiscall*)(address)>               (0x418E90);
-			static const auto GetPursuitAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
+			const auto GetPursuitNode      = reinterpret_cast<address (__thiscall*)(address)>               (0x418E90);
+			const auto GetPursuitAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
 
 			const address node = GetPursuitNode(this->pursuit);
 			return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : node;
 		}
 
 
-		static address GetPursuitVehicle(const address copVehicle)
+		static address GetAIVehiclePursuit(const address copVehicle)
 		{
 			const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
 
@@ -59,8 +59,8 @@ namespace PursuitFeatures
 			{
 				static constexpr vault pursuitGoal = 0x492916A2; // "AIGoalPursuit"
 
-				static const auto SetSupportGoal = reinterpret_cast<void (__thiscall*)(address, vault)>       (0x409850);
-				static const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault*)>(0x422480);
+				const auto SetSupportGoal = reinterpret_cast<void (__thiscall*)(address, vault)>       (0x409850);
+				const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault*)>(0x422480);
 
 				SetSupportGoal(copAIVehicle - 0x4C + 0x758, 0x0);
 				SetVehicleGoal(copAIVehicle - 0x4C, &pursuitGoal);
@@ -105,13 +105,13 @@ namespace PursuitFeatures
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
-		) = 0;
+		) {};
 
 		virtual void ReactToRemovedVehicle
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
-		) = 0;
+		) {};
 	};
 
 

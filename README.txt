@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.09.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v2.10.00) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -163,8 +163,8 @@ Most OTHER .ASI MODS should be fully compatible with all Bartender configuration
 However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
  • For "NFSMW LimitAdjuster" by Zolika1351, see the section about dependencies below.
  • For "XNFSMusicPlayer"     by xan1242,    delete Bartender's "[Music:Playlist]" parameter group.
- • In  "NFSMW Unlimiter"     by nlgxzef,    disable the "EnableCopDestroyedStringHook" feature.
- • In  "NFSMW ExtraOptions"  by ExOptsTeam, disable the "HeatLevelOverride",
+ • In  "NFSMW Unlimiter"     by nlgxzef,    disable its "EnableCopDestroyedStringHook" feature.
+ • In  "NFSMW ExtraOptions"  by ExOptsTeam, disable its "HeatLevelOverride",
                                                         "PursuitActionMode", and
                                                         "ZeroBountyFix" features.
 
@@ -217,7 +217,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v2.09.00, replace all old configuration files.
+If you update from a version older than v2.10.00, replace all old configuration files.
 
 
 

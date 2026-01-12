@@ -173,6 +173,7 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="ConfigParser.h" />
     <ClInclude Include="CopFleeOverrides.h" />
+    <ClInclude Include="HeatChangeOverrides.h" />
     <ClInclude Include="HelicopterVision.h" />
     <ClInclude Include="InteractiveMusic.h" />
     <ClInclude Include="LeaderOverrides.h" />

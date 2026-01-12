@@ -20,8 +20,8 @@ namespace HelicopterOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<std::string> helicopterVehicles("copheli");
-	HeatParameters::Pair<float>       rammingCooldowns  (8.f);       // seconds
+	HeatParameters::Pair    <std::string> helicopterVehicles("copheli");
+	HeatParameters::Interval<float>       rammingCooldowns  (8.f, 8.f);  // seconds
 
 	HeatParameters::OptionalInterval<float> firstSpawnDelays;   // seconds
 	HeatParameters::OptionalInterval<float> fuelRespawnDelays;  // seconds
@@ -146,7 +146,7 @@ namespace HelicopterOverrides
 
 			if (Globals::copManager)
 			{ 
-				static const auto SpawnHelicopter = reinterpret_cast<bool (__thiscall*)(address, address)>(0x4269A0);
+				const auto SpawnHelicopter = reinterpret_cast<bool (__thiscall*)(address, address)>(0x4269A0);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[HEL] Requesting helicopter");
@@ -408,6 +408,7 @@ namespace HelicopterOverrides
 	constexpr address fuelUpdateEntrance = 0x423519;
 	constexpr address fuelUpdateExit     = 0x423523;
 
+	// Updates the amount of fuel remaining
 	__declspec(naked) void FuelUpdate()
 	{
 		__asm
@@ -416,8 +417,8 @@ namespace HelicopterOverrides
 			jne conclusion // unlimited fuel
 
 			// Execute original code and resume
-			fsub dword ptr [esp + 0x8]
-			fst dword ptr [esi + 0x7D8]
+			fsub dword ptr [esp + 0x8]  // time delta
+			fst dword ptr [esi + 0x7D8] // helicopter fuel
 
 			conclusion:
 			jmp dword ptr fuelUpdateExit
@@ -429,6 +430,7 @@ namespace HelicopterOverrides
 	constexpr address defaultFuelEntrance = 0x42AD9B;
 	constexpr address defaultFuelExit     = 0x42ADA1;
 
+	// Sets the default helicopter fuel
 	__declspec(naked) void DefaultFuel()
 	{
 		static constexpr float fuelTime = std::numeric_limits<float>::max();
@@ -436,7 +438,7 @@ namespace HelicopterOverrides
 		__asm
 		{
 			mov ecx, dword ptr fuelTime
-			mov dword ptr [esi + 0x34], ecx
+			mov dword ptr [esi + 0x34], ecx // helicopter fuel
 
 			jmp dword ptr defaultFuelExit
 		}
@@ -447,6 +449,7 @@ namespace HelicopterOverrides
 	constexpr address earlyBailoutEntrance = 0x717C00;
 	constexpr address earlyBailoutExit     = 0x717C06;
 
+	// Decides whether to request a bailout announcement over the radio
 	__declspec(naked) void EarlyBailout()
 	{
 		static constexpr address earlyBailoutSkip = 0x717C34;
@@ -473,12 +476,14 @@ namespace HelicopterOverrides
 	constexpr address rammingCooldownEntrance = 0x4128B2;
 	constexpr address rammingCooldownExit     = 0x4128B9;
 
+	// Sets the cooldown for HeliStrategy 2 ramming attempts
 	__declspec(naked) void RammingCooldown()
 	{
 		__asm
 		{
-			mov ecx, dword ptr rammingCooldowns.current
-			mov dword ptr [esi + 0x64], ecx
+			mov ecx, offset rammingCooldowns
+			call HeatParameters::Interval<float>::GetRandomValue
+			fstp dword ptr [esi + 0x64] // HeliStrategy 2 cooldown
 
 			jmp dword ptr rammingCooldownExit
 		}

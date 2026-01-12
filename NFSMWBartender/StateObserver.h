@@ -56,14 +56,30 @@ namespace StateObserver
 
 
 
-	void OnGameStartUpdates()
-	{
+
+
+	// Hooking functions ----------------------------------------------------------------------------------------------------------------------------
+
+	address onGameLoadValidationOriginal = 0x0;
+
+	void __cdecl OnGameLoadValidation
+	(
+		const size_t  numArgs,
+		const address argArray
+	) {
+		// The vanilla game calls "InitializeEverything" at this location
+		const auto OriginalFunction = reinterpret_cast<void (__cdecl*)(size_t, address)>(onGameLoadValidationOriginal);
+
+		// Call original function first
+		OriginalFunction(numArgs, argArray);
+
+		// Apply hooked logic last
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Open("BartenderLog.txt");
-			Globals::logger.Log ("\n SESSION [VER] Bartender v2.09.00");
 
-			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
+			Globals::logger.Log          ("\n SESSION [VER] Bartender v2.10.00");
+			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled) ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
 
 			if (MemoryTools::numRangeErrors > 0)
@@ -71,10 +87,13 @@ namespace StateObserver
 
 			if (MemoryTools::numCaveErrors > 0)
 				Globals::logger.LogLongIndent("[MEM]", static_cast<int>(MemoryTools::numCaveErrors), "CAVE ERRORS!");
+
+			if (MemoryTools::numHookErrors > 0)
+				Globals::logger.LogLongIndent("[MEM]", static_cast<int>(MemoryTools::numHookErrors), "HOOK ERRORS!");
 		}
 
 		DestructionStrings::Validate();
-		
+
 		if constexpr (Globals::loggingEnabled)
 		{
 			HelicopterVision::LogSetupReport();
@@ -91,9 +110,15 @@ namespace StateObserver
 
 
 
-	void OnGameplayUpdates()
+	address onGameplayUpdatesOriginal = 0x0;
+
+	void __fastcall OnGameplayUpdates(const address soundAI)
 	{
-		static const auto IsRacing = reinterpret_cast<bool (__thiscall*)(address)>(0x409500);
+		// The vanilla game calls "SoundAI::SyncPursuit" at this location
+		const auto OriginalFunction = reinterpret_cast<void (__thiscall*)(address)>(onGameplayUpdatesOriginal);
+
+		// Apply hooked logic fist
+		const auto IsRacing = reinterpret_cast<bool (__thiscall*)(address)>(0x409500);
 
 		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
 		{
@@ -101,26 +126,47 @@ namespace StateObserver
 
 			OnHeatLevelUpdates();
 		}
-		
+
 		PursuitObserver::UpdateState();
+
+		// Call original function last
+		OriginalFunction(soundAI);
 	}
 
 
+
+	address onWorldLoadUpdatesOriginal = 0x0;
 
 	void OnWorldLoadUpdates()
 	{
+		// The vanilla game calls "nullsub_174" at this location
+		const auto OriginalFunction = reinterpret_cast<void (*)()>(onWorldLoadUpdatesOriginal);
+
+		// Apply hooked logic fist
 		CopSpawnOverrides::ResetState();
+
+		// Call original function last
+		OriginalFunction();
 	}
 
 
 
-	void OnRetryUpdates()
+	address onRestartUpdatesOriginal = 0x0;
+
+	void OnRestartUpdates()
 	{
-		playerHeatLevel = 0; // forces an update
+		// The vanilla game calls "World_RestoreProps" at this location
+		const auto OriginalFunction = reinterpret_cast<void (*)()>(onRestartUpdatesOriginal);
+
+		// Apply hooked logic fist
+		playerHeatLevel = 0;
 
 		Globals::playerHeatLevelKnown = false;
 
 		CopSpawnOverrides::ResetState();
+
+		// Call original function last
+		OriginalFunction();
 	}
 
 
@@ -129,112 +175,91 @@ namespace StateObserver
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address heatLevelObserverEntrance = 0x4090BE;
-	constexpr address heatLevelObserverExit     = 0x4090C6;
+	constexpr address heatEqualiserEntrance = 0x409084;
+	constexpr address heatEqualiserExit     = 0x40908A;
 
-	// Triggers when loading into areas or during pursuits
-	__declspec(naked) void HeatLevelObserver()
+	// Non-player drivers have the same Heat as the player
+	__declspec(naked) void HeatEqualiser()
 	{
 		__asm
 		{
-			cmp ebp, dword ptr playerHeatLevel
-			je conclusion // Heat unchanged
+			mov edi, eax
 
-			cmp esi, dword ptr Globals::playerPerpVehicle
-			jne conclusion // not player vehicle
+			mov edx, dword ptr Globals::playerPerpVehicle
+			test edx, edx
+			je conclusion // player vehicle unknown
 
-			cmp dword ptr [esp + 0x20], 0x416A75
-			je conclusion // not true Heat
+			cmp edx, esi
+			je conclusion // is player vehicle
 
-			mov dword ptr playerHeatLevel, ebp
-			call OnHeatLevelUpdates
+			mov eax, dword ptr [edx + 0x1C] // player Heat
+			mov dword ptr [esp + 0x24], eax // new perp Heat
 
 			conclusion:
 			// Execute original code and resume
-			cmp bl, byte ptr [esi + 0x2E]
-			setne al
-			cmp ebp, edi
+			fld dword ptr [esp + 0x24] // new perp Heat
 
-			jmp dword ptr heatLevelObserverExit
+			jmp dword ptr heatEqualiserExit
 		}
 	}
 
 
 
-	constexpr address gameStartObserverEntrance = 0x570620;
-	constexpr address gameStartObserverExit     = 0x570626;
+	constexpr address resetAIVehicleEntrance = 0x414D6C;
+	constexpr address resetAIVehicleExit     = 0x414D72;
 
-	// Triggers when entering the main menu screen
-	__declspec(naked) void GameStartObserver()
+	// Resets recycled padding bytes of AIPursuit objects
+	__declspec(naked) void ResetAIVehicle()
 	{
-		static bool gameStartHandled = false;
-
 		__asm
 		{
-			cmp byte ptr gameStartHandled, 0x1
-			je conclusion // already handled
+			// Execute original code first
+			mov byte ptr [esi + 0x80], bl
 
-			push eax
+			mov byte ptr [esi + 0x81], bl // "CopDetection.h"
+			mov byte ptr [esi + 0x82], bl // "CopDetection.h"
+			mov byte ptr [esi + 0x83], bl // "GroundSupports.h"
 
-			mov byte ptr gameStartHandled, 0x1
-			call OnGameStartUpdates
-
-			pop eax
-
-			conclusion:
-			// Execute original code and resume
-			add esp, 0x4
-			mov dword ptr [esp], eax
-
-			jmp dword ptr gameStartObserverExit
+			jmp dword ptr resetAIVehicleExit
 		}
 	}
 
 
 
-	constexpr address worldLoadObserverEntrance = 0x66296C;
-	constexpr address worldLoadObserverExit     = 0x662971;
+	constexpr address gameStateUpdateEntrance = 0x6F6D6D;
+	constexpr address gameStateUpdateExit     = 0x6F6D75;
 
-	// Triggers during world loading screens
-	__declspec(naked) void WorldLoadObserver()
+	// Triggers on event / race resets
+	__declspec(naked) void GameStateUpdate()
 	{
+		static uint32_t ticksOnPause = 0;
+
 		__asm
 		{
-			push eax
+			cmp eax, dword ptr [esi + 0x2C] // game state
+			je conclusion                   // state unchanged
 
-			call OnWorldLoadUpdates
+			mov edx, Globals::gameTicks
+			mov ecx, dword ptr [edx]
 
-			pop eax
+			mov edx, dword ptr [esi + 0x2C]
+			mov dword ptr [esi + 0x2C], eax
 
-			// Execute original code and resume
-			push edi
-			xor edi, edi
-			cmp eax, edi
+			cmp eax, 0x4
+			je paused // game now paused
 
-			jmp dword ptr worldLoadObserverExit
-		}
-	}
+			cmp edx, 0x4
+			jne conclusion // game not just unpaused
 
+			sub ecx, dword ptr ticksOnPause
+			add dword ptr Globals::pausedTicks, ecx
+			jmp conclusion // game was just unpaused
 
-
-	constexpr address playerConstructorEntrance = 0x43F005;
-	constexpr address playerConstructorExit     = 0x43F00F;
-
-	// Stores the player's AIPerpVehicle
-	__declspec(naked) void PlayerConstructor()
-	{
-		__asm
-		{
-			lea eax, dword ptr [esi + 0x758]
-			mov dword ptr [eax], 0x892988
-
-			cmp dword ptr Globals::playerPerpVehicle, 0x0
-			jne conclusion // vehicle already stored
-	
-			mov dword ptr Globals::playerPerpVehicle, eax
+			paused:
+			mov dword ptr ticksOnPause, ecx
 
 			conclusion:
-			jmp dword ptr playerConstructorExit
+			jmp dword ptr gameStateUpdateExit
 		}
 	}
 
@@ -261,9 +286,7 @@ namespace StateObserver
 
 			conclusion:
 			// Execute original code and resume
-			mov edx, dword ptr [eax]
-			mov ecx, eax
-			call dword ptr [edx + 0x4]
+			fld dword ptr [eax + 0x1C] // perp Heat
 
 			jmp dword ptr playerDestructorExit
 		}
@@ -271,96 +294,77 @@ namespace StateObserver
 
 
 
-	constexpr address gameplayObserverEntrance = 0x71D09D;
-	constexpr address gameplayObserverExit     = 0x71D0A5;
+	constexpr address heatLevelObserverEntrance = 0x4090BE;
+	constexpr address heatLevelObserverExit     = 0x4090C6;
 
-	// Triggers during gameplay, but not every frame
-	__declspec(naked) void GameplayObserver()
+	// Triggers on Heat-level changes for the player
+	__declspec(naked) void HeatLevelObserver()
 	{
 		__asm
 		{
-			call OnGameplayUpdates
+			cmp ebp, dword ptr playerHeatLevel
+			je conclusion // Heat unchanged
 
-			// Execute original and resume
-			mov edx, dword ptr [ebx]
-			mov ecx, ebx
-			mov dword ptr [esp + 0x14], ebx
+			cmp esi, dword ptr Globals::playerPerpVehicle
+			jne conclusion // not player vehicle
 
-			jmp dword ptr gameplayObserverExit
+			cmp dword ptr [esp + 0x20], 0x416A75 // caller
+			je conclusion                        // not true Heat
+
+			mov dword ptr playerHeatLevel, ebp
+			call OnHeatLevelUpdates
+
+			conclusion:
+			// Execute original code and resume
+			cmp bl, byte ptr [esi + 0x2E] // previous race status
+			setne al
+			cmp ebp, edi
+
+			jmp dword ptr heatLevelObserverExit
 		}
 	}
 
 
 
-	constexpr address resetInternalsEntrance = 0x416B7A;
-	constexpr address resetInternalsExit     = 0x416B80;
+	constexpr address playerConstructorEntrance = 0x43F005;
+	constexpr address playerConstructorExit     = 0x43F00F;
 
-	__declspec(naked) void ResetInternals()
+	// Stores the player's AIPerpVehicle
+	__declspec(naked) void PlayerConstructor()
+	{
+		__asm
+		{
+			lea eax, dword ptr [esi + 0x758]
+			mov dword ptr [eax], 0x892988
+
+			cmp dword ptr Globals::playerPerpVehicle, 0x0
+			jne conclusion // vehicle already stored
+
+			mov dword ptr Globals::playerPerpVehicle, eax
+
+			conclusion:
+			jmp dword ptr playerConstructorExit
+		}
+	}
+
+
+
+	constexpr address resetAIVehiclePursuitEntrance = 0x416B7A;
+	constexpr address resetAIVehiclePursuitExit     = 0x416B80;
+
+	// Resets recycled padding bytes of AIVehiclePursuit objects
+	__declspec(naked) void ResetAIVehiclePursuit()
 	{
 		__asm
 		{
 			// Execute original code first
 			mov byte ptr [esi + 0x768], al
 
-			mov byte ptr [esi + 0x769], al // "CopDetection.h" & "HelicopterVision.h"
-			mov byte ptr [esi + 0x76A], al // "CopDetection.h" 
+			mov byte ptr [esi + 0x769], al // "HelicopterVision.h"
+			mov byte ptr [esi + 0x76A], al // "HeatChangeOverrides.h"
 			mov byte ptr [esi + 0x76B], al // "CopSpawnOverrides.h"
-			mov byte ptr [esi + 0x77B], al // "GroundSupports.h"
 
-			jmp dword ptr resetInternalsExit
-		}
-	}
-
-
-
-	constexpr address retryObserverEntrance = 0x6F4768;
-	constexpr address retryObserverExit     = 0x6F476D;
-
-	// Triggers on event / race resets
-	__declspec(naked) void RetryObserver()
-	{
-		__asm
-		{
-			push edi
-			mov edi, ecx
-			push eax
-
-			call OnRetryUpdates
-
-			pop eax
-			cmp eax, ebx
-
-			jmp dword ptr retryObserverExit
-		}
-	}
-
-
-
-	constexpr address heatEqualiserEntrance = 0x409084;
-	constexpr address heatEqualiserExit     = 0x40908A;
-
-	// Non-player drivers have the same Heat as the player
-	__declspec(naked) void HeatEqualiser()
-	{
-		__asm
-		{
-			mov edi, eax
-
-			mov edx, dword ptr Globals::playerPerpVehicle
-			test edx, edx
-			je conclusion // player vehicle unknown
-
-			cmp edx, esi
-			je conclusion // is player vehicle
-
-			mov eax, dword ptr [edx + 0x1C]
-			mov dword ptr [esp + 0x24], eax
-
-			conclusion:
-			// Execute original code and resume
-			fld dword ptr [esp + 0x24]
-
-			jmp dword ptr heatEqualiserExit
+			jmp dword ptr resetAIVehiclePursuitExit
 		}
 	}
 
@@ -373,16 +377,19 @@ namespace StateObserver
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		// Code modifications 
-		MemoryTools::MakeRangeJMP(HeatLevelObserver, heatLevelObserverEntrance, heatLevelObserverExit);
-		MemoryTools::MakeRangeJMP(GameStartObserver, gameStartObserverEntrance, gameStartObserverExit);
-		MemoryTools::MakeRangeJMP(WorldLoadObserver, worldLoadObserverEntrance, worldLoadObserverExit);
-		MemoryTools::MakeRangeJMP(PlayerConstructor, playerConstructorEntrance, playerConstructorExit);
-		MemoryTools::MakeRangeJMP(PlayerDestructor,  playerDestructorEntrance,  playerDestructorExit);
-		MemoryTools::MakeRangeJMP(GameplayObserver,  gameplayObserverEntrance,  gameplayObserverExit);
-		MemoryTools::MakeRangeJMP(ResetInternals,    resetInternalsEntrance,    resetInternalsExit);
-		MemoryTools::MakeRangeJMP(RetryObserver,     retryObserverEntrance,     retryObserverExit);
-		MemoryTools::MakeRangeJMP(HeatEqualiser,     heatEqualiserEntrance,     heatEqualiserExit);
+		onGameLoadValidationOriginal = MemoryTools::MakeHook(OnGameLoadValidation, 0x6665B4);
+		onGameplayUpdatesOriginal    = MemoryTools::MakeHook(OnGameplayUpdates,    0x721609);
+		onWorldLoadUpdatesOriginal   = MemoryTools::MakeHook(OnWorldLoadUpdates,   0x662ADC);
+		onRestartUpdatesOriginal     = MemoryTools::MakeHook(OnRestartUpdates,     0x63090B);
 
+		MemoryTools::MakeRangeJMP(HeatEqualiser,         heatEqualiserEntrance,         heatEqualiserExit);
+		MemoryTools::MakeRangeJMP(ResetAIVehicle,        resetAIVehicleEntrance,        resetAIVehicleExit);
+		MemoryTools::MakeRangeJMP(GameStateUpdate,       gameStateUpdateEntrance,       gameStateUpdateExit);
+		MemoryTools::MakeRangeJMP(PlayerDestructor,      playerDestructorEntrance,      playerDestructorExit);
+		MemoryTools::MakeRangeJMP(HeatLevelObserver,     heatLevelObserverEntrance,     heatLevelObserverExit);
+		MemoryTools::MakeRangeJMP(PlayerConstructor,     playerConstructorEntrance,     playerConstructorExit);
+		MemoryTools::MakeRangeJMP(ResetAIVehiclePursuit, resetAIVehiclePursuitEntrance, resetAIVehiclePursuitExit);
+		
 		// Status flag
 		featureEnabled = true;
 

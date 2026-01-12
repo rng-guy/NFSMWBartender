@@ -30,7 +30,7 @@ namespace DestructionStrings
 	constexpr address copDestructionEntrance = 0x595B0D;
 	constexpr address copDestructionExit     = 0x595C37;
 
-	// Looks up Binary key of destroyed vehicle
+	// Looks up notification strings for destroyed cop vehicles
 	__declspec(naked) void CopDestruction()
 	{
 		static constexpr address copDestructionSkip = 0x595CB3;
@@ -97,7 +97,7 @@ namespace DestructionStrings
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [DST] DestructionStrings");
 
-		static const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
+		const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
 
 		copTypeToDestructionKey.Validate
 		(

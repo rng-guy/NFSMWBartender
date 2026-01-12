@@ -51,13 +51,14 @@ namespace RadioChatter
 	constexpr address heatCheckEntrance = 0x71D370;
 	constexpr address heatCheckExit     = 0x71D3AE;
 
+	// Checks whether a new Heat-level announcement is due
 	__declspec(naked) void HeatCheck()
 	{
 		static constexpr address heatCheckSkip = 0x71D433;
 
 		__asm
 		{
-			mov ebp, dword ptr [esi + 0x104]
+			mov ebp, dword ptr [esi + 0x104] // current Heat level
 
 			cmp ebp, dword ptr lastReportedHeatLevel
 			je skip // already reported
@@ -82,11 +83,12 @@ namespace RadioChatter
 	constexpr address heatReportEntrance = 0x71D428;
 	constexpr address heatReportExit     = 0x71D42F;
 
+	// Converts the Heat-level ID into a copspeech offset
 	__declspec(naked) void HeatReport()
 	{
 		__asm
 		{
-			xchg ecx, ebp
+			xchg ecx, ebp // ebp from "HeatCheck"
 
 			mov eax, 0x1
 			shl eax, cl
@@ -102,6 +104,7 @@ namespace RadioChatter
 	constexpr address playerPursuitEntrance = 0x704F70;
 	constexpr address playerPursuitExit     = 0x704F76;
 
+	// Resets transition state whenever the SoundAI gets a new player pursuit
 	__declspec(naked) void PlayerPursuit()
 	{
 		__asm
@@ -121,15 +124,15 @@ namespace RadioChatter
 	constexpr address crossCallsignEntrance = 0x71FB01;
 	constexpr address crossCallsignExit     = 0x71FB06;
 
+	// Checks whether the current vehicle gets Cross' callsign
 	__declspec(naked) void CrossCallsign()
 	{
 		__asm
 		{
-			push eax // copType
+			push eax                        // copType
 			mov ecx, offset copTypeToCallsignID
 			call HashContainers::CachedVaultMap<Callsigns>::GetValue
-
-			mov dword ptr [esp + 0x28], eax
+			mov dword ptr [esp + 0x28], eax // repurposed variable
 			cmp eax, CROSS
 
 			jmp dword ptr crossCallsignExit
@@ -141,13 +144,14 @@ namespace RadioChatter
 	constexpr address firstCallsignEntrance = 0x71FB27;
 	constexpr address firstCallsignExit     = 0x71FB76;
 
+	// The first callsign-specific part of the assignment function
 	__declspec(naked) void FirstCallsign()
 	{
 		static constexpr address firstCallsignSkip = 0x71FB8B;
 
 		__asm
 		{
-			mov edx, dword ptr [esp + 0x28]
+			mov edx, dword ptr [esp + 0x28] // from "CrossCallsign"
 
 			cmp edx, PATROL
 			je conclusion // is "patrol"
@@ -170,12 +174,13 @@ namespace RadioChatter
 	constexpr address secondCallsignEntrance = 0x71FCCD;
 	constexpr address secondCallsignExit     = 0x71FCDD;
 
+	// The second callsign-specific part of the assignment function
 	__declspec(naked) void SecondCallsign()
 	{
 		__asm
 		{
 			mov eax, 0x10
-			mov edx, dword ptr [esp + 0x28]
+			mov edx, dword ptr [esp + 0x28] // from "CrossCallsign"
 
 			mov ecx, -0x1
 			cmp edx, PATROL
@@ -194,6 +199,7 @@ namespace RadioChatter
 	constexpr address collisionCalloutEntrance = 0x71C073;
 	constexpr address collisionCalloutExit     = 0x71C08D;
 
+	// Picks radio callouts in response to collisions with racers
 	__declspec(naked) void CollisionCallout()
 	{
 		__asm
@@ -214,6 +220,7 @@ namespace RadioChatter
 	constexpr address jurisdictionReportEntrance = 0x71D44D;
 	constexpr address jurisdictionReportExit     = 0x71D48F;
 
+	// Decides which jurisdiction to announce after a Heat-level change
 	__declspec(naked) void JurisdictionReport()
 	{
 		static constexpr address jurisdictionReportSkip = 0x71D49A;

@@ -113,13 +113,13 @@ namespace GroundSupports
 		const address         pursuit,
 		std::vector<address>& candidateStrategies
 	) {
-		static const auto GetSupportNode = reinterpret_cast<address (__thiscall*)(address)>(0x418EE0);
-		const address     supportNode    = GetSupportNode(pursuit - 0x48);
+		const auto    GetSupportNode = reinterpret_cast<address (__thiscall*)(address)>(0x418EE0);
+		const address supportNode    = GetSupportNode(pursuit - 0x48);
 
 		if (not supportNode) return; // should never happen
 
-		static const auto GetNumStrategies = reinterpret_cast<size_t  (__thiscall*)(address)>        (getNumStrategies);
-		static const auto GetStrategy      = reinterpret_cast<address (__thiscall*)(address, size_t)>(getStrategy);
+		const auto GetNumStrategies = reinterpret_cast<size_t  (__thiscall*)(address)>        (getNumStrategies);
+		const auto GetStrategy      = reinterpret_cast<address (__thiscall*)(address, size_t)>(getStrategy);
 
 		const size_t numStrategies = GetNumStrategies(supportNode);
 
@@ -263,6 +263,7 @@ namespace GroundSupports
 	constexpr address crossSubEntrance = 0x41F504;
 	constexpr address crossSubExit     = 0x41F50C;
 
+	// Replaces Cross' vehicle
 	__declspec(naked) void CrossSub()
 	{
 		__asm
@@ -271,7 +272,7 @@ namespace GroundSupports
 
 			mov ecx, dword ptr leader5CrossVehicles.current
 			cmovne ecx, dword ptr leader7CrossVehicles.current // not LeaderStrategy 5
-			
+
 			mov dword ptr [esp + 0x24], ecx
 
 			jmp dword ptr crossSubExit
@@ -283,18 +284,19 @@ namespace GroundSupports
 	constexpr address onAttachedEntrance = 0x424036;
 	constexpr address onAttachedExit     = 0x42403C;
 
+	// Updates the Cross flag whenever a Cross replacement joins
 	__declspec(naked) void OnAttached()
 	{
 		__asm
 		{
 			cmp byte ptr LeaderOverrides::featureEnabled, 0x1
-			je conclusion // Cross flag already managed
+			je conclusion // Cross flag managed by "Advanced" feature set
 
-			mov edx, dword ptr [edi + 0x54]
-			cmp byte ptr [edx - 0x4C + 0x77B], 0x1
-			jne conclusion // not Cross' vehicle
+			mov edx, dword ptr [edi + 0x54]       // AIVehicle
+			cmp byte ptr [edx - 0x4C + 0x83], 0x1 // padding byte: Cross flag (car)
+			jne conclusion                        // not Cross' vehicle
 
-			mov dword ptr [esi + 0x174], 0x1
+			mov dword ptr [esi + 0x174], 0x1 // Cross flag (pursuit)
 			
 			conclusion:
 			// Execute original code and resume
@@ -309,6 +311,7 @@ namespace GroundSupports
 	constexpr address onDetachedEntrance = 0x42B5F1;
 	constexpr address onDetachedExit     = 0x42B616;
 
+	// Checks whether a despawning vehicle was a Cross replacement
 	__declspec(naked) void OnDetached()
 	{
 		__asm
@@ -317,8 +320,8 @@ namespace GroundSupports
 			mov ecx, esi
 			mov edx, dword ptr [esi]
 
-			mov eax, dword ptr [esi + 0x54]
-			cmp byte ptr [eax - 0x4C + 0x77B], 0x1
+			mov eax, dword ptr [esi + 0x54]       // AIVehicle
+			cmp byte ptr [eax - 0x4C + 0x83], 0x1 // padding byte: Cross flag (car)
 
 			jmp dword ptr onDetachedExit
 		}
@@ -329,15 +332,16 @@ namespace GroundSupports
 	constexpr address crossSpawnEntrance = 0x41F7D9;
 	constexpr address crossSpawnExit     = 0x41F7E0;
 
+	// Marks Cross' replacement for later identification
 	__declspec(naked) void CrossSpawn()
 	{
 		__asm
 		{
-			mov eax, dword ptr [esp + 0x94]
-			mov edx, dword ptr [eax + 0xC]
+			mov eax, dword ptr [esp + 0x94] // final Strategy vehicle
+			mov edx, dword ptr [eax + 0xC]  // current Strategy vehicle
 
 			cmp ebp, edx
-			sete byte ptr [esi - 0x758 + 0x77B] // is Cross' vehicle
+			sete byte ptr [ebx - 0x4C + 0x83] // padding byte: Cross flag (car)
 
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x90]
@@ -348,9 +352,31 @@ namespace GroundSupports
 
 
 
+	constexpr address spikeCounterEntrance = 0x43E580;
+	constexpr address spikeCounterExit     = 0x43E587;
+
+	// Increments the "spikes deployed" counter correctly
+	__declspec(naked) void SpikeCounter()
+	{
+		__asm
+		{
+			mov edx, dword ptr [esp + 0x4C4] // roadblock pursuit
+			inc dword ptr [edx + 0x17C]      // spike strips deployed
+
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x30]
+			mov dword ptr [eax + 0x4], ecx
+
+			jmp dword ptr spikeCounterExit
+		}
+	}
+
+
+
 	constexpr address henchmenSubEntrance = 0x41F485;
 	constexpr address henchmenSubExit     = 0x41F48A;
 
+	// Replaces henchmen vehicles
 	__declspec(naked) void HenchmenSub()
 	{
 		__asm
@@ -366,19 +392,20 @@ namespace GroundSupports
 	constexpr address rhinoSelectorEntrance = 0x41F1BC;
 	constexpr address rhinoSelectorExit     = 0x41F1C8;
 
+	// Replaces HeavyStrategy vehicles
 	__declspec(naked) void RhinoSelector()
 	{
 		__asm
 		{
 			mov eax, dword ptr heavy3LightVehicles.current
-			cmovl eax, dword ptr heavy3HeavyVehicles.current // is "heavy" variant
+			cmovl eax, dword ptr heavy3HeavyVehicles.current // is "heavy"
 
 			mov edx, dword ptr heavy4LightVehicles.current
-			cmovl edx, dword ptr heavy4HeavyVehicles.current // is "heavy" variant
+			cmovl edx, dword ptr heavy4HeavyVehicles.current // is "heavy"
 
-			mov ecx, dword ptr [esi]
+			mov ecx, dword ptr [esi] // Strategy ID
 			cmp dword ptr [ecx], 0x3
-			cmovne eax, edx // not HeavyStrategy 3
+			cmovne eax, edx          // not HeavyStrategy 3
 
 			jmp dword ptr rhinoSelectorExit
 		}
@@ -389,6 +416,7 @@ namespace GroundSupports
 	constexpr address crossPriorityEntrance = 0x419724;
 	constexpr address crossPriorityExit     = 0x41972A;
 
+	// Can skip the Cross priority request in rival pursuits
 	__declspec(naked) void CrossPriority()
 	{
 		static constexpr address crossPrioritySkip = 0x419780;
@@ -422,6 +450,7 @@ namespace GroundSupports
 	constexpr address rivalRoadblockEntrance = 0x419563;
 	constexpr address rivalRoadblockExit     = 0x419568;
 
+	// Can skip roadblock requests in rival pursuits
 	__declspec(naked) void RivalRoadblock()
 	{
 		static constexpr address rivalRoadblockSkip = 0x4195CD;
@@ -440,7 +469,7 @@ namespace GroundSupports
 
 			conclusion:
 			// Execute original code and resume
-			call dword ptr [edx + 0x28]
+			call dword ptr [edx + 0x28] // AIPursuit::IsPerpInSight
 			cmp al, 0x1
 
 			jmp dword ptr rivalRoadblockExit
@@ -455,13 +484,14 @@ namespace GroundSupports
 	constexpr address requestCooldownEntrance = 0x4196D7;
 	constexpr address requestCooldownExit     = 0x4196E4;
 
+	// Updates the Strategy cooldown after each request
 	__declspec(naked) void RequestCooldown()
 	{
 		__asm
 		{
 			mov ecx, offset strategyCooldowns
 			call HeatParameters::Interval<float>::GetRandomValue
-			fstp dword ptr [esi + 0x210]
+			fstp dword ptr [esi + 0x210] // strategy cooldown
 
 			// Execute original code and resume
 			lea ecx, dword ptr [esi - 0x48]
@@ -475,6 +505,7 @@ namespace GroundSupports
 	constexpr address roadblockCooldownEntrance = 0x419535;
 	constexpr address roadblockCooldownExit     = 0x41954C;
 
+	// Updates the non-Strategy roadblock cooldown after each request
 	__declspec(naked) void RoadblockCooldown()
 	{
 		__asm
@@ -491,6 +522,7 @@ namespace GroundSupports
 	constexpr address roadblockDistanceEntrance = 0x43DE45;
 	constexpr address roadblockDistanceExit     = 0x43DE4A;
 
+	// Changes the distance at which roadblocks can spawn from racers
 	__declspec(naked) void RoadblockDistance()
 	{
 		__asm
@@ -512,6 +544,7 @@ namespace GroundSupports
 	constexpr address strategySelectionEntrance = 0x41978D;
 	constexpr address strategySelectionExit     = 0x41984E;
 
+	// Selects a random available Strategy without any biases
 	__declspec(naked) void StrategySelection()
 	{
 		__asm
@@ -529,9 +562,10 @@ namespace GroundSupports
 
 
 
-	constexpr address spikesHitReactionEntrance = 0x63BB9E;
+	constexpr address spikesHitReactionEntrance = 0x63BB9A;
 	constexpr address spikesHitReactionExit     = 0x63BBA6;
 
+	// Can suppress roadblock reactions to spike-strip hits
 	__declspec(naked) void SpikesHitReaction()
 	{
 		static constexpr float maxJoinRange = 80.f; // metres
@@ -539,16 +573,16 @@ namespace GroundSupports
 		__asm
 		{
 			// Execute original code first
-			call dword ptr [edx + 0xA0]
+			mov eax, dword ptr [eax + 0x70] // roadblock pursuit
 			test eax, eax
-			je conclusion // no pursuit
+			je conclusion                   // no pursuit
 
 			cmp byte ptr reactToSpikesHits.current, 0x0
 			je conclusion // reaction disabled
 
 			mov edx, eax
 
-			fld dword ptr [edx + 0x7C]
+			fld dword ptr [edx + 0x7C] // distance to racer
 			fcomp dword ptr maxJoinRange
 			fnstsw ax
 			test ah, 0x41
@@ -565,6 +599,7 @@ namespace GroundSupports
 	constexpr address roadblockFormationEntrance = 0x40AE5A;
 	constexpr address roadblockFormationExit     = 0x40AE63;
 
+	// Can prevent roadblock spawns from cancelling cop formations
 	__declspec(naked) void RoadblockFormation()
 	{
 		__asm
@@ -575,7 +610,7 @@ namespace GroundSupports
 			// Execute original code and resume
 			mov eax, dword ptr [esi]
 			mov ecx, esi
-			call dword ptr [eax + 0x58]
+			call dword ptr [eax + 0x58] // AIPursuit::IsFinisherActive
 			test al, al
 
 			conclusion:
@@ -588,6 +623,7 @@ namespace GroundSupports
 	constexpr address roadblockJoinCountEntrance = 0x4443A6;
 	constexpr address roadblockJoinCountExit     = 0x4443AE;
 
+	// Enforces the join limit for roadblock vehicles
 	__declspec(naked) void RoadblockJoinCount()
 	{
 		static constexpr address roadblockJoinCountSkip = 0x444400;
@@ -611,6 +647,7 @@ namespace GroundSupports
 	constexpr address roadblockJoinTimerEntrance = 0x42BF09;
 	constexpr address roadblockJoinTimerExit     = 0x42BF14;
 
+	// Checks the timer for joining from roadblocks
 	__declspec(naked) void RoadblockJoinTimer()
 	{
 		__asm
@@ -634,6 +671,7 @@ namespace GroundSupports
 	constexpr address cooldownModeReactionEntrance = 0x42BF16;
 	constexpr address cooldownModeReactionExit     = 0x42BF2B;
 
+	// Can suppress roadblock reactions to "COOLDOWN" mode
 	__declspec(naked) void CooldownModeReaction()
 	{
 		__asm
@@ -642,15 +680,8 @@ namespace GroundSupports
 			jne conclusion // no "COOLDOWN"-mode reaction
 
 			// Execute original code and resume
-			mov edx, dword ptr [ebp]
-			mov ecx, ebp
-			call dword ptr [edx + 0x1C]
-
-			mov edx, dword ptr [eax]
-			mov ecx, eax
-			call dword ptr [edx + 0x114]
-
-			cmp eax, 0x2
+			mov eax, dword ptr [ebp + 0x28]  // roadblock pursuit
+			cmp dword ptr [eax + 0x218], 0x2 // pursuit status
 
 			conclusion:
 			jmp dword ptr cooldownModeReactionExit
@@ -665,6 +696,10 @@ namespace GroundSupports
 
 	void ApplyFixes()
 	{
+		// Fixes incorrect spike-strip CTS count
+		MemoryTools::MakeRangeNOP(0x43E654, 0x43E663); // remove old increment call
+		MemoryTools::MakeRangeJMP(SpikeCounter, spikeCounterEntrance, spikeCounterExit);
+
 		// Also fixes the unintended biases in the Strategy-selection process
 		MemoryTools::MakeRangeJMP(StrategySelection, strategySelectionEntrance, strategySelectionExit);
 

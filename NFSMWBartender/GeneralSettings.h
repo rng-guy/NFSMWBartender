@@ -23,6 +23,7 @@ namespace GeneralSettings
 	bool trackCopsHit        = false;
 	bool trackCopsDestroyed  = false;
 	bool trackPassiveBounty  = false;
+	bool trackPropertyDamage = false;
 	bool trackInfractions    = false;
 
 	// Heat levels
@@ -60,12 +61,13 @@ namespace GeneralSettings
 	constexpr address copComboEntrance = 0x418FBA;
 	constexpr address copComboExit     = 0x418FD2;
 
+	// Updates the combo-bounty counter
 	__declspec(naked) void CopCombo()
 	{
 		__asm
 		{
 			mov ecx, dword ptr maxBountyMultipliers.current
-			mov eax, dword ptr [esi + 0xF0]
+			mov eax, dword ptr [esi + 0xF0] // combo count
 
 			inc eax
 			cmp eax, ecx
@@ -82,6 +84,7 @@ namespace GeneralSettings
 	constexpr address heatUpdateEntrance = 0x443DFD;
 	constexpr address heatUpdateExit     = 0x443E16;
 
+	// The code after this forces unconditional bounty-gain updates after races
 	__declspec(naked) void HeatUpdate()
 	{
 		__asm
@@ -90,9 +93,9 @@ namespace GeneralSettings
 
 			xor edx, edx
 
-			mov dword ptr [esi + 0x104], edx
-			mov dword ptr [esi + 0xD8], eax
-			mov byte ptr [esi + 0x254], dl
+			mov dword ptr [esi + 0x104], edx // formation duration
+			mov dword ptr [esi + 0xD8], eax  // current Heat level
+			mov byte ptr [esi + 0x254], dl   // Cross priority flag
 
 			conclusion:
 			jmp dword ptr heatUpdateExit
@@ -104,6 +107,7 @@ namespace GeneralSettings
 	constexpr address copFlippingEntrance = 0x6B19AE;
 	constexpr address copFlippingExit     = 0x6B19CA;
 
+	// Checks whether flipped cop vehicles should be destroyed
 	__declspec(naked) void CopFlipping()
 	{
 		constexpr static address copFlippingSkip = 0x6B1A0D;
@@ -113,16 +117,16 @@ namespace GeneralSettings
 			cmp byte ptr copFlipByTimers.isEnableds.current, 0x1
 			jne damaged // time check disabled
 
-			fld dword ptr [esi + 0xB8]
+			fld dword ptr [esi + 0xB8] // time spent flipped
 			fcomp dword ptr copFlipByTimers.values.current
 			fnstsw ax
 			test ah, 0x41
-			jne damaged // delay has yet to expire
+			jne damaged                // delay has yet to expire
 
 			mov eax, dword ptr [esi + 0x4C]
 			lea ecx, dword ptr [esi + 0x4C]
-			call dword ptr [eax + 0x1C]
-			jmp conclusion // was destroyed
+			call dword ptr [eax + 0x1C] // DamageVehicle::Destroy
+			jmp conclusion              // cop was destroyed
 
 			damaged:
 			cmp byte ptr copFlipByDamageEnableds.current, 0x1
@@ -141,6 +145,7 @@ namespace GeneralSettings
 	constexpr address rivalPursuitEntrance = 0x426C9C;
 	constexpr address rivalPursuitExit     = 0x426CA4;
 
+	// Decides whether cops can start non-player pursuits
 	__declspec(naked) void RivalPursuit()
 	{
 		__asm
@@ -162,6 +167,7 @@ namespace GeneralSettings
 	constexpr address breakerCheckEntrance = 0x42E963;
 	constexpr address breakerCheckExit     = 0x42E96C;
 
+	// Decides whether cops are affected by any active pursuit breakers
 	__declspec(naked) void BreakerCheck()
 	{
 		__asm
@@ -187,29 +193,10 @@ namespace GeneralSettings
 
 
 
-	constexpr address spikeCounterEntrance = 0x43E580;
-	constexpr address spikeCounterExit     = 0x43E587;
-
-	__declspec(naked) void SpikeCounter()
-	{
-		__asm
-		{
-			mov edx, dword ptr [esp + 0x4C4]
-			inc dword ptr [edx + 0x17C]
-
-			// Execute original code and resume
-			mov ecx, dword ptr [esp + 0x30]
-			mov dword ptr [eax + 0x4], ecx
-
-			jmp dword ptr spikeCounterExit
-		}
-	}
-
-
-
 	constexpr address racerFlippingEntrance = 0x6A45A3;
 	constexpr address racerFlippingExit     = 0x6A45B1;
 
+	// Checks whether flipped racers should be reset
 	__declspec(naked) void RacerFlipping()
 	{
 		__asm
@@ -217,7 +204,7 @@ namespace GeneralSettings
 			cmp byte ptr racerFlipResetDelays.isEnableds.current, 0x1
 			jne conclusion // flipping resets disabled
 
-			fld dword ptr [esi + 0x54]
+			fld dword ptr [esi + 0x54] // time spent flipped
 			fcomp dword ptr racerFlipResetDelays.values.current
 			fnstsw ax
 			test ah, 0x41
@@ -232,19 +219,20 @@ namespace GeneralSettings
 	constexpr address passiveBountyEntrance = 0x44452F;
 	constexpr address passiveBountyExit     = 0x444542;
 
+	// Checks whether passive bounty is due
 	__declspec(naked) void PassiveBounty()
 	{
 		__asm
 		{
-			sub eax, ebx   // accounts for short intervals
-			jle conclusion // below threshold
+			sub eax, ebx
+			jle conclusion // interval incomplete
 
-			imul eax, dword ptr [esi + 0x174]
+			imul eax, dword ptr [esi + 0x174] // bounty increment
 
 			mov edx, dword ptr [ebp]
 			push eax
 			mov ecx, ebp
-			call dword ptr [edx + 0x3C]
+			call dword ptr [edx + 0x3C] // AIPerpVehicle::AddToPendingRepPointsNormal
 
 			conclusion:
 			jmp dword ptr passiveBountyExit
@@ -256,15 +244,16 @@ namespace GeneralSettings
 	constexpr address maxBustDistanceEntrance = 0x444483;
 	constexpr address maxBustDistanceExit     = 0x44448B;
 
+	// Decides at which distance from cops racers can be busted
 	__declspec(naked) void MaxBustDistance()
 	{
 		__asm
 		{
 			fldz
-			fcom dword ptr [esi + 0x168]
+			fcom dword ptr [esi + 0x168] // "EVADE" state
 			fnstsw ax
 			test ah, 0x5
-			jne conclusion // LOS broken
+			jne conclusion               // evading
 
 			fstp st(0)
 			fld dword ptr maxBustDistances.current
@@ -282,6 +271,7 @@ namespace GeneralSettings
 	constexpr address heatEscalationEntrance = 0x443D93;
 	constexpr address heatEscalationExit     = 0x443D9B;
 
+	// Corrects the VltEd array index based on Blacklist rank
 	__declspec(naked) void HeatEscalation()
 	{
 		__asm
@@ -300,11 +290,12 @@ namespace GeneralSettings
 	constexpr address destructionBountyEntrance = 0x418F5B;
 	constexpr address destructionBountyExit     = 0x418F61;
 
+	// Corrects the VltEd array index based on Heat level
 	__declspec(naked) void DestructionBounty()
 	{
 		__asm
 		{
-			mov edi, dword ptr [esi + 0x98]
+			mov edi, dword ptr [esi + 0x98] // current Heat level
 			xor ecx, ecx
 
 			dec edi
@@ -319,12 +310,13 @@ namespace GeneralSettings
 	constexpr address hiddenFromCarsEntrance = 0x416571;
 	constexpr address hiddenFromCarsExit     = 0x41657A;
 
+	// Decides whether racers are invisible to cop cars
 	__declspec(naked) void HiddenFromCars()
 	{
 		__asm
 		{
 			mov al, byte ptr carsAffectedByHidings.current
-			test al, byte ptr [edi + 0x2C]
+			test al, byte ptr [edi + 0x2C] // hidden from cars
 
 			jmp dword ptr hiddenFromCarsExit
 		}
@@ -335,12 +327,13 @@ namespace GeneralSettings
 	constexpr address hiddenFromRoadblocksEntrance = 0x444329;
 	constexpr address hiddenFromRoadblocksExit     = 0x444333;
 
+	// Decides whether racers are invisible to roadblocks
 	__declspec(naked) void HiddenFromRoadblocks()
 	{
 		__asm
 		{
 			mov al, byte ptr carsAffectedByHidings.current
-			test al, byte ptr [ebp + 0x2C]
+			test al, byte ptr [ebp + 0x2C] // hidden from cars
 
 			jmp dword ptr hiddenFromRoadblocksExit
 		}
@@ -351,12 +344,13 @@ namespace GeneralSettings
 	constexpr address hiddenFromHelicoptersEntrance = 0x417103;
 	constexpr address hiddenFromHelicoptersExit     = 0x41710C;
 
+	// Decides whether racers are invisible to helicopters
 	__declspec(naked) void HiddenFromHelicopters()
 	{
 		__asm
 		{
 			mov al, byte ptr helisAffectedByHidings.current
-			test al, byte ptr [esi + 0x2D]
+			test al, byte ptr [esi + 0x2D] // hidden from helicopters
 
 			jmp dword ptr hiddenFromHelicoptersExit
 		}
@@ -393,10 +387,6 @@ namespace GeneralSettings
 		// Fixes update for passive bounty amount after race pursuits
 		MemoryTools::MakeRangeJMP(HeatUpdate, heatUpdateEntrance, heatUpdateExit);
 
-		// Fixes incorrect spike-strip CTS count
-		MemoryTools::MakeRangeNOP(0x43E654, 0x43E663); // remove old increment call
-		MemoryTools::MakeRangeJMP(SpikeCounter, spikeCounterEntrance, spikeCounterExit);
-
 		// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
 		MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
 
@@ -418,8 +408,9 @@ namespace GeneralSettings
 		ParseTracking(parser, "copsHit",        trackCopsHit,        0x40AF43, 0x40AF4D);
 		ParseTracking(parser, "copsDestroyed",  trackCopsDestroyed,  0x418F33, 0x418F41);
 		ParseTracking(parser, "passiveBounty",  trackPassiveBounty,  0x4094A0, 0x4094AA);
+		ParseTracking(parser, "propertyDamage", trackPropertyDamage, 0x409463, 0x409467);
 		ParseTracking(parser, "infractions",    trackInfractions,    0x5FDDDC, 0x5FDDE7);
-
+		
 		if (trackCopsDestroyed)
 		{
 			MemoryTools::MakeRangeNOP(0x4094E0, 0x4094EA); // cop bounty
@@ -517,6 +508,7 @@ namespace GeneralSettings
 				or trackCopsHit
 				or trackCopsDestroyed
 				or trackPassiveBounty
+				or trackPropertyDamage
 				or trackInfractions
 			   )
 				Globals::logger.Log("  CONFIG [GEN] GeneralSettings");
@@ -527,6 +519,7 @@ namespace GeneralSettings
 			if (trackCopsHit)        Globals::logger.LogLongIndent("tracking cops hit");
 			if (trackCopsDestroyed)  Globals::logger.LogLongIndent("tracking cops destroyed");
 			if (trackPassiveBounty)  Globals::logger.LogLongIndent("tracking passive bounty");
+			if (trackPropertyDamage) Globals::logger.LogLongIndent("tracking property damage");
 			if (trackInfractions)    Globals::logger.LogLongIndent("tracking infractions");
 		}
 

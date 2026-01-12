@@ -17,6 +17,7 @@ namespace MemoryTools
 
 	size_t numRangeErrors = 0;
 	size_t numCaveErrors  = 0;
+	size_t numHookErrors  = 0;
 
 
 
@@ -92,5 +93,28 @@ namespace MemoryTools
 			Write<address>(reinterpret_cast<address>(target) - (start + 5), {start + 1});
 		}
 		else ++numCaveErrors;
+	}
+
+
+
+	address MakeHook
+	(
+		const void* const function,
+		const address     location
+	) {
+		const byte opcode = *reinterpret_cast<byte*>(location);
+
+		if (opcode == 0xE8)
+		{
+			address oldCallOffset = 0x0;
+
+			std::memcpy   (&oldCallOffset, reinterpret_cast<address*>(location + 1), sizeof(address));
+			Write<address>(reinterpret_cast<address>(function) - (location + 5), {location + 1});
+
+			return (oldCallOffset + (location + 5));
+		}
+		else ++numHookErrors;
+
+		return 0x0;
 	}
 }

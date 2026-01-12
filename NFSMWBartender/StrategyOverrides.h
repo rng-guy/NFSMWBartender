@@ -283,19 +283,20 @@ namespace StrategyOverrides
 	constexpr address goalResetEntrance = 0x42B475;
 	constexpr address goalResetExit     = 0x42B47A;
 
+	// Prevents some Strategy resets from cancelling Strategy goals
 	__declspec(naked) void GoalReset()
 	{
 		static constexpr address goalResetSkip = 0x42B48E;
 
 		__asm
 		{
-			mov ebx, dword ptr [esp + 0x14]
+			mov ebx, dword ptr [esp + 0x14] // caller
 
 			cmp ebx, 0x443EDA // duration expired
-			je reset
+			je reset          // allow goal reset
 
 			cmp ebx, 0x43311B // pursuit destructor
-			je reset
+			je reset          // allow goal reset
 
 			cmp ebx, 0x4431F4 // pursuit constructor
 			jne skip          // do not reset
@@ -317,18 +318,19 @@ namespace StrategyOverrides
 	constexpr address clearRequestEntrance = 0x42B431;
 	constexpr address clearRequestExit     = 0x42B436;
 
+	// Notifies Strategy managers of cleared requests
 	__declspec(naked) void ClearRequest()
 	{
 		__asm
 		{
 			mov dword ptr [ebp + 0x78], edi
-			mov eax, dword ptr [esp + 0x14]
+			mov eax, dword ptr [esp + 0x14] // caller
 
 			cmp eax, 0x43311B // pursuit destructor
-			je conclusion
+			je conclusion     // skip manager notification
 
 			cmp eax, 0x4431F4 // pursuit constructor
-			je conclusion
+			je conclusion     // skip manager notification
 
 			push ecx
 
@@ -349,6 +351,7 @@ namespace StrategyOverrides
 	constexpr address leaderStrategyEntrance = 0x41F706;
 	constexpr address leaderStrategyExit     = 0x41F70D;
 
+	// Notifies Strategy managers of new LeaderStrategy requests
 	__declspec(naked) void LeaderStrategy()
 	{
 		__asm
@@ -368,6 +371,7 @@ namespace StrategyOverrides
 	constexpr address heavyStrategy3Entrance = 0x41F38F;
 	constexpr address heavyStrategy3Exit     = 0x41F396;
 
+	// Notifies Strategy managers of new HeavyStrategy3 requests
 	__declspec(naked) void HeavyStrategy3()
 	{
 		__asm
@@ -387,6 +391,7 @@ namespace StrategyOverrides
 	constexpr address heavyStrategy4Entrance = 0x43E7DF;
 	constexpr address heavyStrategy4Exit     = 0x43E7E8;
 
+	// Notifies Strategy managers of new HeavyStrategy4 requests
 	__declspec(naked) void HeavyStrategy4()
 	{
 		__asm
@@ -396,7 +401,7 @@ namespace StrategyOverrides
 
 			// Execute original code and resume
 			mov ecx, dword ptr [esi]
-			mov dword ptr [esi + 0x78], 0x2
+			mov dword ptr [esi + 0x78], 0x2 // Strategy request status
 
 			jmp dword ptr heavyStrategy4Exit
 		}
@@ -407,6 +412,7 @@ namespace StrategyOverrides
 	constexpr address minStrategyDelayEntrance = 0x4196F4;
 	constexpr address minStrategyDelayExit     = 0x4196FA;
 
+	// Ensures cops can request available Strategies in races
 	__declspec(naked) void MinStrategyDelay()
 	{
 		__asm
@@ -425,6 +431,7 @@ namespace StrategyOverrides
 	constexpr address minRoadblockDelayEntrance = 0x41950E;
 	constexpr address minRoadblockDelayExit     = 0x419514;
 
+	// Ensures cops can request non-Strategy roadblocks in races
 	__declspec(naked) void MinRoadblockDelay()
 	{
 		__asm
@@ -443,6 +450,7 @@ namespace StrategyOverrides
 	constexpr address crossPriorityDelayEntrance = 0x419740;
 	constexpr address crossPriorityDelayExit     = 0x419746;
 
+	// Ensures cops can issue priority requests for Cross in races
 	__declspec(naked) void CrossPriorityDelay()
 	{
 		__asm

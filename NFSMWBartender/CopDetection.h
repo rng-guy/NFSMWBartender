@@ -42,10 +42,10 @@ namespace CopDetection
 	{
 		const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
 
-		bool& iconIsKept = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x769);
+		bool& iconIsKept = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x81); // padding byte
 		if (iconIsKept) return true; // mini-map icon already kept
 
-		bool& hasBeenInPursuit = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x76A);
+		bool& hasBeenInPursuit = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x82); // padding byte
 
 		if (not hasBeenInPursuit)
 		{
@@ -64,8 +64,8 @@ namespace CopDetection
 
 		if (iconRange > 0.f)
 		{
-			static const auto GetVehiclePosition = reinterpret_cast<address (__thiscall*)(address)>         (0x688340);
-			static const auto GetSquaredDistance = reinterpret_cast<float   (__cdecl*)   (address, address)>(0x401930);
+			const auto GetVehiclePosition = reinterpret_cast<address (__thiscall*)(address)>         (0x688340);
+			const auto GetSquaredDistance = reinterpret_cast<float   (__cdecl*)   (address, address)>(0x401930);
 
 			const address copPosition = GetVehiclePosition(copVehicle);
 			if (not copPosition) return false; // should never happen
@@ -119,22 +119,26 @@ namespace CopDetection
 	constexpr address colourUpdateEntrance = 0x579E16;
 	constexpr address colourUpdateExit     = 0x579E1C;
 
+	// Makes cop icons flash at a framerate-independent pace
 	__declspec(naked) void ColourUpdate()
 	{
-		static constexpr float targetFrameTime     = 1.f / 30.f;
-		static float           nextColourTimeStamp = 0.f;
+		static constexpr float targetFrameTime = 1.f / 30.f; // seconds
+
+		static float switchTimeStamp = 0.f; // seconds
 
 		__asm
 		{
-			mov edx, dword ptr Globals::simulationTime
-			mov ecx, eax
+			push eax
 
-			fld dword ptr [edx]
+			mov cl, 0x1
+			call Globals::GetGameTime // cl: unpaused
+
+			pop ecx
 
 			cmp byte ptr isNewMiniMap, 0x1
 			je timestamp // new mini-map
 
-			fcom dword ptr nextColourTimeStamp
+			fcom dword ptr switchTimeStamp
 			fnstsw ax
 			test ah, 0x5
 			jne conclusion // not yet time
@@ -142,10 +146,10 @@ namespace CopDetection
 			inc ecx
 
 			timestamp:
-			fadd dword ptr targetFrameTime
-			fst dword ptr nextColourTimeStamp
-
 			mov byte ptr isNewMiniMap, 0x0
+
+			fadd dword ptr targetFrameTime
+			fst dword ptr switchTimeStamp
 
 			conclusion:
 			fstp st(0)
@@ -160,6 +164,7 @@ namespace CopDetection
 	constexpr address mapConstructorEntrance = 0x59DA9B;
 	constexpr address mapConstructorExit     = 0x59DAA0;
 
+	// Prepares the cop-icon state when a new mini-map is created
 	__declspec(naked) void MapConstructor()
 	{
 		__asm
@@ -179,6 +184,7 @@ namespace CopDetection
 	constexpr address copVehicleIconEntrance = 0x579EDF;
 	constexpr address copVehicleIconExit     = 0x579EE5;
 
+	// Decides which cop vehicle gets a mini-map icon
 	__declspec(naked) void CopVehicleIcon()
 	{
 		static constexpr address copVehicleIconSkip = 0x57A09F;
@@ -198,8 +204,8 @@ namespace CopDetection
 			je skip              // no icon
 
 			limitation:
-			cmp dword ptr [esp + 0x18], 0x8
-			jge skip // at icon cap
+			cmp dword ptr [esp + 0x18], 0x8 // icon count
+			jge skip                        // at icon cap
 
 			conclusion:
 			jmp dword ptr copVehicleIconExit
@@ -214,6 +220,7 @@ namespace CopDetection
 	constexpr address copVehicleRadarEntrance = 0x6EE206;
 	constexpr address copVehicleRadarExit     = 0x6EE20C;
 
+	// Sets the cop radar's detection range for cop vehicles
 	__declspec(naked) void CopVehicleRadar()
 	{
 		__asm
@@ -229,16 +236,16 @@ namespace CopDetection
 
 
 
-	constexpr address destructionCheckEntrance = 0x57A038;
+	constexpr address destructionCheckEntrance = 0x57A034;
 	constexpr address destructionCheckExit     = 0x57A03D;
 
+	// Ensures destroyed roadblock vehicles get white mini-map icons
 	__declspec(naked) void DestructionCheck()
 	{
 		__asm
 		{
 			// Execute original code first
-			call dword ptr [edx + 0x14]
-			test al, al
+			cmp byte ptr [edi + 0x8], 0x0
 			je conclusion // not in pursuit
 
 			mov ecx, dword ptr [esi]

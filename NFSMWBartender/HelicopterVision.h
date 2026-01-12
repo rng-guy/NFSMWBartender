@@ -50,14 +50,16 @@ namespace HelicopterVision
 		const address heliAIVehicle,
 		const bool    canSeeTarget
 	) {
-		static float currentColourState  = 0.f;
-		static float lastUpdateTimestamp = Globals::simulationTime;
+		static float currentColourState  = 0.f; // ratio
+		static float lastUpdateTimestamp = 0.f; // seconds
 
-		bool& isKnownVehicle = *reinterpret_cast<bool*>(heliAIVehicle - 0x4C + 0x769);
+		const float currentTime = Globals::GetGameTime(true);
+
+		bool& isKnownVehicle = *reinterpret_cast<bool*>(heliAIVehicle - 0x4C + 0x769); // padding byte
 
 		if (isKnownVehicle)
 		{
-			const float timeDelta = Globals::simulationTime - lastUpdateTimestamp;
+			const float timeDelta = currentTime - lastUpdateTimestamp;
 
 			if (canSeeTarget)
 				currentColourState += timeDelta / lengthToEnd;
@@ -73,7 +75,7 @@ namespace HelicopterVision
 			isKnownVehicle     = true;
 		}
 
-		lastUpdateTimestamp = Globals::simulationTime;
+		lastUpdateTimestamp = currentTime;
 
 		return StateToColour(currentColourState);
 	}
@@ -118,9 +120,10 @@ namespace HelicopterVision
 	constexpr address coneIconColourEntrance = 0x579FC6;
 	constexpr address coneIconColourExit     = 0x579FCB;
 
+	// Makes the colour of the helicopter cone-of-vision icon LOS-dependent
 	__declspec(naked) void ConeIconColour()
 	{
-		static constexpr address updateFEngColour = 0x5157E0;
+		static constexpr address FEngSetColour = 0x5157E0;
 
 		__asm
 		{
@@ -135,24 +138,22 @@ namespace HelicopterVision
 			jne colour // cone feature disabled
 
 			mov eax, dword ptr [esi]
-			mov ecx, dword ptr [eax + 0x54]
-			push ecx
-			mov edx, dword ptr [ecx]
-			call dword ptr [edx + 0x64]
+			mov edx, dword ptr [eax + 0x54] // AIVehicle
+			push edx
 
-			push eax
+			push dword ptr [edx + 0x54] // target
 			mov ecx, edi
 			mov edx, dword ptr [ecx]
-			call dword ptr [edx + 0x7C]
+			call dword ptr [edx + 0x7C] // AIVehicleHelicopter::CanSeeTarget
 
 			pop ecx
 			mov dl, al
 			call GetNewColour // ecx: heliAIVehicle, dl: canSeeTarget
 
 			colour:
-			push eax
-			push dword ptr [ebx + 0xCC]
-			call dword ptr updateFEngColour
+			push eax                    // colour
+			push dword ptr [ebx + 0xCC] // vision-code object
+			call dword ptr FEngSetColour
 			add esp, 0x8
 
 			// Execute original code and resume

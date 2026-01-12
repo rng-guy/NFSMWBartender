@@ -27,6 +27,9 @@ namespace Globals
 	bool basicSetEnabled    = false;
 	bool advancedSetEnabled = false;
 
+	// Game timer
+	uint32_t pausedTicks = 0;
+
 	// Common objects
 	RandomNumbers::Generator prng;
 	BasicLogger  ::Logger    logger;
@@ -50,14 +53,29 @@ namespace Globals
 	const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
 
 	// Common data pointers
-	const float&   simulationTime = *reinterpret_cast<float*>  (0x9885D8);
-	const address& copManager     = *reinterpret_cast<address*>(0x989098);
-	
+	const float&    simulationTime = *reinterpret_cast<float*>   (0x9885D8);
+	const address&  copManager     = *reinterpret_cast<address*> (0x989098);
+	const uint32_t& gameTicks      = *reinterpret_cast<uint32_t*>(0x925B14);
+
 
 
 
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	float __fastcall GetGameTime(const bool unpaused)
+	{
+		static const float& ticksToTime = *reinterpret_cast<float*>(0x890984);
+
+		uint32_t ticks = gameTicks;
+
+		if (unpaused)
+			ticks -= pausedTicks;
+
+		return ticksToTime * static_cast<float>(ticks);
+	}
+
+
 
 	address GetFromVault
 	(
@@ -66,8 +84,8 @@ namespace Globals
 		const vault  attributeKey   = 0x0,
 		const size_t attributeIndex = 0
 	) {
-		static const auto GetVaultNode      = reinterpret_cast<address (__cdecl*)   (vault, vault)>          (0x455FD0);
-		static const auto GetVaultAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454190);
+		const auto GetVaultNode      = reinterpret_cast<address (__cdecl*)   (vault, vault)>          (0x455FD0);
+		const auto GetVaultAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454190);
 
 		const address node = GetVaultNode(rootKey, nodeKey);
 		return (node and attributeKey) ? GetVaultAttribute(node, attributeKey, attributeIndex) : node;

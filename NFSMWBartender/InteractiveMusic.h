@@ -74,6 +74,7 @@ namespace InteractiveMusic
 	constexpr address nextTrackEntrance = 0x4E7A0D;
 	constexpr address nextTrackExit     = 0x4E7A17;
 
+	// Picks the next interactive pursuit track
 	__declspec(naked) void NextTrack()
 	{
 		__asm
@@ -89,6 +90,7 @@ namespace InteractiveMusic
 	constexpr address firstTrackEntrance = 0x4F8A5D;
 	constexpr address firstTrackExit     = 0x4F8A6C;
 
+	// Picks the first interactive pursuit track after a loading screen
 	__declspec(naked) void FirstTrack()
 	{
 		__asm
@@ -108,6 +110,7 @@ namespace InteractiveMusic
 	constexpr address mainTransitionEntrance = 0x71B1F4;
 	constexpr address mainTransitionExit     = 0x71B205;
 
+	// First function that checks for theme transitions
 	__declspec(naked) void MainTransition()
 	{
 		__asm
@@ -117,7 +120,7 @@ namespace InteractiveMusic
 			cmp byte ptr transitionsEnabled, 0x1
 			jne conclusion // transitions disabled
 
-			fld dword ptr [esi + 0x48]
+			fld dword ptr [esi + 0x48] // current track time
 			fcomp dword ptr lengthPerTrack
 			fnstsw ax
 			test ah, 0x41
@@ -132,6 +135,7 @@ namespace InteractiveMusic
 	constexpr address otherTransitionEntrance = 0x71B768;
 	constexpr address otherTransitionExit     = 0x71B779;
 
+	// Second function that checks for theme transitions
 	__declspec(naked) void OtherTransition()
 	{
 		__asm
@@ -141,7 +145,7 @@ namespace InteractiveMusic
 			cmp byte ptr transitionsEnabled, 0x1
 			jne conclusion // transitions disabled
 
-			fld dword ptr [esi + 0x48]
+			fld dword ptr [esi + 0x48] // current track time
 			fcomp dword ptr lengthPerTrack
 			fnstsw ax
 			test ah, 0x41

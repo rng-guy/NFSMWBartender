@@ -352,7 +352,7 @@ namespace CopSpawnOverrides
 
 		void ForceTriggerBackup() const
 		{
-			static const auto LockInPursuitAttributes = reinterpret_cast<void (__thiscall*)(address)>(0x40A9B0);
+			const auto LockInPursuitAttributes = reinterpret_cast<void (__thiscall*)(address)>(0x40A9B0);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[SPA] Force-triggering backup");
@@ -366,8 +366,8 @@ namespace CopSpawnOverrides
 
 		static bool HasVehicleEngaged(const address copVehicle)
 		{
-			const address pursuitVehicle = ChasersManager::GetPursuitVehicle(copVehicle);
-			return (pursuitVehicle) ? *reinterpret_cast<bool*>(pursuitVehicle + 0x22) : false;
+			const address copAIVehiclePursuit = ChasersManager::GetAIVehiclePursuit(copVehicle);
+			return (copAIVehiclePursuit) ? *reinterpret_cast<bool*>(copAIVehiclePursuit + 0x22) : false;
 		}
 
 
@@ -532,7 +532,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		static bool __fastcall GetChaserSpawnStatus(const address pursuit)
+		static bool __fastcall IsChaserAvailable(const address pursuit)
 		{
 			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
 			return (manager) ? manager->CanNewChaserSpawn() : false;
@@ -616,12 +616,13 @@ namespace CopSpawnOverrides
 	constexpr address waveResetEntrance = 0x40A9E9;
 	constexpr address waveResetExit     = 0x40A9F3;
 
+	// Notifies "Chasers" managers of backup waves
 	__declspec(naked) void WaveReset()
 	{
 		__asm
 		{
 			// Execute original code first
-			mov dword ptr [esi + 0x14C], 0x0
+			mov dword ptr [esi + 0x14C], 0x0 // blackup flag
 
 			mov ecx, esi
 			call ChasersManager::NotifyOfWaveReset // ecx: pursuit
@@ -635,6 +636,7 @@ namespace CopSpawnOverrides
 	constexpr address copRequestEntrance = 0x42BA50;
 	constexpr address copRequestExit     = 0x42BCED;
 
+	// Asks "Chasers" managers whether new cop vehicles are available
 	__declspec(naked) void CopRequest()
 	{
 		__asm
@@ -650,6 +652,7 @@ namespace CopSpawnOverrides
 	constexpr address patrolSpawnEntrance = 0x430E37;
 	constexpr address patrolSpawnExit     = 0x430E3D;
 
+	// Notifies "Patrols" contingent of successful "Patrols" spawns
 	__declspec(naked) void PatrolSpawn()
 	{
 		__asm
@@ -659,7 +662,7 @@ namespace CopSpawnOverrides
 			call Contingent::AddVehicle
 
 			// Execute original code and resume
-			inc dword ptr [ebp + 0x94]
+			inc dword ptr [ebp + 0x94] // cops loaded
 
 			jmp dword ptr patrolSpawnExit
 		}
@@ -670,6 +673,7 @@ namespace CopSpawnOverrides
 	constexpr address copClearanceEntrance = 0x41A139;
 	constexpr address copClearanceExit     = 0x41A13F;
 
+	// Sets the minimum spawn distance between "Chasers"
 	__declspec(naked) void CopClearance()
 	{
 		__asm
@@ -691,6 +695,7 @@ namespace CopSpawnOverrides
 	constexpr address copSpawnLimitEntrance = 0x43EB84;
 	constexpr address copSpawnLimitExit     = 0x43EB90;
 
+	// Enforces the global cop-spawn limit (if applicable)
 	__declspec(naked) void CopSpawnLimit()
 	{
 		__asm
@@ -711,6 +716,7 @@ namespace CopSpawnOverrides
 	constexpr address scriptedSpawnEntrance = 0x42E8A8;
 	constexpr address scriptedSpawnExit     = 0x42E8AF;
 
+	// Notifies "Scripted" contingent of successful "Scripted" spawns
 	__declspec(naked) void ScriptedSpawn()
 	{
 		__asm
@@ -724,8 +730,8 @@ namespace CopSpawnOverrides
 
 			mov al, 0x1
 
-			mov ecx, dword ptr [esi + 0x54]
-			mov byte ptr [ecx - 0x4C + 0x76B], al
+			mov ecx, dword ptr [esi + 0x54]       // AIVehicle
+			mov byte ptr [ecx - 0x4C + 0x76B], al // padding byte: "Scripted" flag
 
 			conclusion:
 			// Execute original code and resume
@@ -740,6 +746,7 @@ namespace CopSpawnOverrides
 	constexpr address patrolPursuitEntrance = 0x4224B0;
 	constexpr address patrolPursuitExit     = 0x4224B6;
 
+	// Notifies "Patrols" contingent of "Patrols" joining pursuits
 	__declspec(naked) void PatrolPursuit()
 	{
 		__asm
@@ -747,12 +754,12 @@ namespace CopSpawnOverrides
 			cmp eax, 0x9AF1BF40 // AIGoalPatrol
 			jne conclusion      // not patrol goal
 
-			mov eax, dword ptr [edi + 0x4C - 0x4]
-			cmp dword ptr [eax + 0x94], 0x2
-			jne conclusion // not cop
+			mov eax, dword ptr [edi + 0x4C - 0x4] // PVehicle
+			cmp dword ptr [eax + 0x94], 0x2       // driver class
+			jne conclusion                        // not cop
 
-			cmp byte ptr [edi + 0x76B], 0x1
-			je conclusion // "Scripted" cop
+			cmp byte ptr [edi + 0x76B], 0x1 // padding byte: "Scripted" flag
+			je conclusion                   // "Scripted" cop
 
 			push eax // copVehicle
 			mov ecx, offset patrolSpawns
@@ -771,6 +778,7 @@ namespace CopSpawnOverrides
 	constexpr address patrolDespawnEntrance = 0x415E03;
 	constexpr address patrolDespawnExit     = 0x415E08;
 
+	// Notifies "Patrols" contingent of "Patrols" despawns
 	__declspec(naked) void PatrolDespawn()
 	{
 		__asm
@@ -778,12 +786,12 @@ namespace CopSpawnOverrides
 			cmp dword ptr [esi + 0x78], 0x9AF1BF40 // AIGoalPatrol
 			jne conclusion                         // not patrol goal
 
-			mov eax, dword ptr [esi - 0x4]
-			cmp dword ptr [eax + 0x94], 0x2
-			jne conclusion // not cop
+			mov eax, dword ptr [esi - 0x4]  // PVehicle
+			cmp dword ptr [eax + 0x94], 0x2 // driver class
+			jne conclusion                  // not cop
 
-			cmp byte ptr [esi - 0x4C + 0x76B], 0x1
-			je conclusion // "Scripted" cop
+			cmp byte ptr [esi - 0x4C + 0x76B], 0x1 // padding byte: "Scripted" flag
+			je conclusion                          // "Scripted" cop
 
 			push eax // copVehicle
 			mov ecx, offset patrolSpawns
@@ -802,9 +810,10 @@ namespace CopSpawnOverrides
 	constexpr address roadblockSpawnEntrance = 0x43E04F;
 	constexpr address roadblockSpawnExit     = 0x43E06C;
 
+	// Notifies "Roadblocks" contingent of successful "Roadblocks" spawns
 	__declspec(naked) void RoadblockSpawn()
 	{
-		static constexpr address addVehicleToRoadblock = 0x43C4E0;
+		static constexpr address AddVehicleToRoadblock = 0x43C4E0;
 		static constexpr address roadblockSpawnSkip    = 0x43E031;
 
 		__asm
@@ -819,12 +828,12 @@ namespace CopSpawnOverrides
 
 			pop ecx
 			mov edx, dword ptr [ecx]
-			call dword ptr [edx + 0x80]
+			call dword ptr [edx + 0x80] // PVehicle::Activate
 
 			lea eax, dword ptr [esp + 0x1C]
 			push eax
 			lea ecx, dword ptr [esp + 0x48]
-			call dword ptr addVehicleToRoadblock
+			call dword ptr AddVehicleToRoadblock
 
 			conclusion:
 			dec edi
@@ -845,6 +854,7 @@ namespace CopSpawnOverrides
 	constexpr address trafficDensityEntrance = 0x426C4E;
 	constexpr address trafficDensityExit     = 0x426C6A;
 
+	// Decides whether the game may spawn more traffic cars
 	__declspec(naked) void TrafficDensity()
 	{
 		__asm
@@ -855,21 +865,21 @@ namespace CopSpawnOverrides
 			cmp byte ptr chasersAreIndependents.current, 0x1
 			je chasers // "Chasers" independent
 
-			mov eax, dword ptr [ebx - 0x54 + 0x94]
+			mov eax, dword ptr [ebx - 0x54 + 0x94] // cops loaded
 			cmp eax, dword ptr activeChaserCounts.maxValues.current
-			jge roadblock // at or above spawn limit
+			jge roadblock                          // at or above spawn limit
 
 			chasers:
 			mov ecx, edi
-			call ChasersManager::GetChaserSpawnStatus // ecx: pursuit
+			call ChasersManager::IsChaserAvailable // ecx: pursuit
 			test al, al
-			jne conclusion // pending "Chasers" spawn
+			jne conclusion                         // pending "Chasers" spawn
 
 			roadblock:
 			cmp byte ptr trafficIgnoresRoadblocks.current, 0x1
 			je conclusion // roadblocks ignored
 
-			cmp byte ptr [edi + 0x190], 0x0
+			cmp byte ptr [edi + 0x190], 0x0 // roadblock pending
 
 			conclusion:
 			jmp dword ptr trafficDensityExit
@@ -881,12 +891,13 @@ namespace CopSpawnOverrides
 	constexpr address copConstructorEntrance = 0x41EE72;
 	constexpr address copConstructorExit     = 0x41EE7C;
 
+	// Marks cop vehicles created outside of free-roam pursuits
 	__declspec(naked) void CopConstructor()
 	{
 		__asm
 		{
 			call IsEventActive
-			mov byte ptr [esi + 0xA9], al
+			mov byte ptr [esi + 0xA9], al // padding byte: creation context
 
 			// Execute original code and resume
 			mov eax, dword ptr [esi + 0x54]
@@ -900,6 +911,7 @@ namespace CopSpawnOverrides
 	constexpr address recyclingCheckEntrance = 0x41ED5D;
 	constexpr address recyclingCheckExit     = 0x41ED66;
 
+	// Ensures that only free-roam cops can be recycled for free-roam cops (etc.)
 	__declspec(naked) void RecyclingCheck()
 	{
 		__asm
@@ -911,7 +923,7 @@ namespace CopSpawnOverrides
 			jne conclusion // type mismatch
 
 			call IsEventActive
-			cmp al, byte ptr [esi + 0xA9]
+			cmp al, byte ptr [esi + 0xA9] // padding byte: creation context
 
 			conclusion:
 			jmp dword ptr recyclingCheckExit
@@ -920,18 +932,45 @@ namespace CopSpawnOverrides
 
 
 
-	constexpr address byNameInterceptorEntrance = 0x41ECEC;
-	constexpr address byNameInterceptorExit     = 0x41ECF2;
+	constexpr address byClassRequestEntrance = 0x426610;
+	constexpr address byClassRequestExit     = 0x426730;
 
-	__declspec(naked) void ByNameInterceptor()
+	// Intercepts the game's requests for cop vehicles by class
+	__declspec(naked) void ByClassRequest()
+	{
+		static constexpr address GetAvailableCopVehicleByName = 0x41ECD0;
+
+		__asm
+		{
+			mov dword ptr [esp + 0x4], ecx
+
+			mov ecx, dword ptr [esp]
+			call GetByClassReplacement // ecx: caller
+			test eax, eax
+			je conclusion              // no replacement
+
+			push eax
+			mov ecx, dword ptr [esp + 0x8]
+			call dword ptr GetAvailableCopVehicleByName
+
+			conclusion:
+			jmp dword ptr byClassRequestExit
+		}
+	}
+
+
+
+	constexpr address scriptedRequestEntrance = 0x42E718;
+	constexpr address scriptedRequestExit     = 0x42E721;
+
+	// Replaces "Scripted" cop vehicles
+	__declspec(naked) void ScriptedRequest()
 	{
 		__asm
 		{
-			// Execute original code first
-			mov ebp, dword ptr [esp + 0x74]
-
-			cmp dword ptr [esp + 0x70], 0x42E72E
-			jne conclusion // not "Scripted" spawn
+			// execute original code first
+			mov dword ptr [esp + 0x28], eax
+			lea esi, dword ptr [edi + 0x18]
 
 			cmp byte ptr skipScriptedSpawns, 0x0
 			jne conclusion // skip "Scripted" spawn
@@ -941,12 +980,12 @@ namespace CopSpawnOverrides
 
 			mov ecx, offset scriptedSpawns
 			call Contingent::GetNameOfSpawnableCop
-			mov ebp, eax
-
+			mov esi, eax
+			
 			conclusion:
-			test ebp, ebp
+			mov ecx, ebp
 
-			jmp dword ptr byNameInterceptorExit
+			jmp dword ptr scriptedRequestExit
 		}
 	}
 
@@ -955,12 +994,13 @@ namespace CopSpawnOverrides
 	constexpr address scriptedSpawnResetEntrance = 0x42E901;
 	constexpr address scriptedSpawnResetExit     = 0x42E906;
 
+	// Notifies "Scripted" contingent of finished events
 	__declspec(naked) void ScriptedSpawnReset()
 	{
 		__asm
 		{
-			cmp dword ptr [esi + 0x70], 0x1
-			jg conclusion // "Scripted" spawns remain
+			cmp dword ptr [esi + 0x70], 0x1 // "Scripted" cops in queue
+			jg conclusion                   // not final spawn
 
 			push eax
 
@@ -975,37 +1015,6 @@ namespace CopSpawnOverrides
 			mov edx, dword ptr [eax + 0x4]
 
 			jmp dword ptr scriptedSpawnResetExit
-		}
-	}
-
-
-
-	constexpr address byClassInterceptorEntrance = 0x426621;
-	constexpr address byClassInterceptorExit     = 0x42672E;
-
-	__declspec(naked) void ByClassInterceptor()
-	{
-		static constexpr address getPursuitVehicleByName = 0x41ECD0;
-
-		__asm
-		{
-			je failure // spawn intended to fail
-
-			mov ecx, dword ptr [esp + 0x8]
-			call GetByClassReplacement // ecx: caller
-			test eax, eax
-			je conclusion              // skip this spawn
-
-			mov ecx, ebp
-			push eax
-			call dword ptr getPursuitVehicleByName
-			jmp conclusion // cop replaced
-
-			failure:
-			xor eax, eax
-
-			conclusion:
-			jmp dword ptr byClassInterceptorExit
 		}
 	}
 
@@ -1026,7 +1035,7 @@ namespace CopSpawnOverrides
 		parser.ParseParameter<bool>(section, "leaderVehicles", trackLeaderVehicles);
 		parser.ParseParameter<bool>(section, "joinedVehicles", trackJoinedVehicles);
 
-		// Heat parameters
+		// Heat levels
 		HeatParameters::Parse<int>  (parser, "Chasers:Limits",       {activeChaserCounts,    0});
 		HeatParameters::Parse<bool> (parser, "Chasers:Independence", {chasersAreIndependents});
 		HeatParameters::Parse<bool> (parser, "Chasers:Decrement",    {onlyDestroyedDecrements});
@@ -1058,9 +1067,9 @@ namespace CopSpawnOverrides
 		MemoryTools::MakeRangeJMP(TrafficDensity,     trafficDensityEntrance,     trafficDensityExit);
 		MemoryTools::MakeRangeJMP(CopConstructor,     copConstructorEntrance,     copConstructorExit);
 		MemoryTools::MakeRangeJMP(RecyclingCheck,     recyclingCheckEntrance,     recyclingCheckExit);
-		MemoryTools::MakeRangeJMP(ByNameInterceptor,  byNameInterceptorEntrance,  byNameInterceptorExit);
+		MemoryTools::MakeRangeJMP(ByClassRequest,     byClassRequestEntrance,     byClassRequestExit);
+		MemoryTools::MakeRangeJMP(ScriptedRequest,    scriptedRequestEntrance,    scriptedRequestExit);
 		MemoryTools::MakeRangeJMP(ScriptedSpawnReset, scriptedSpawnResetEntrance, scriptedSpawnResetExit);
-		MemoryTools::MakeRangeJMP(ByClassInterceptor, byClassInterceptorEntrance, byClassInterceptorExit);
 		
 		// Status flag
 		featureEnabled = true;

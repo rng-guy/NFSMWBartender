@@ -87,14 +87,14 @@ namespace CopFleeOverrides
 		void ScheduleStrategyVehicle
 		(
 			const address                      copVehicle,
-			const address                      strategy,
+			const address                      activeStrategy,
 			HashContainers::AddressMap<float>& vehicleToTimestamp
 		) 
 			const
 		{
 			if (not Globals::playerHeatLevelKnown) return;
 
-			const float strategyDuration = (strategy) ? *reinterpret_cast<float*>(strategy + 0x8) : 1.f;
+			const float strategyDuration = (activeStrategy) ? *reinterpret_cast<float*>(activeStrategy + 0x8) : 1.f;
 			this->ScheduleVehicle(copVehicle, strategyDuration, vehicleToTimestamp);
 		}
 
@@ -145,60 +145,16 @@ namespace CopFleeOverrides
 		}
 
 
-		bool MayAnotherVolatileFlee(const int chasersThreshold) const
+		static bool MakeVehicleBail(const address copVehicle) 
 		{
-			return (static_cast<int>(this->chaserVehicles.size()) > chasersThreshold);
-		}
+			const auto StartFlee = reinterpret_cast<void (__thiscall*)(address)>(0x423370);
 
+			const address copAIVehiclePursuit = PursuitReaction::GetAIVehiclePursuit(copVehicle);
 
-		static bool MakeVehicleBail(const address copVehicle)
-		{
-			const address pursuitVehicle = PursuitReaction::GetPursuitVehicle(copVehicle);
+			if (copAIVehiclePursuit)
+				StartFlee(copAIVehiclePursuit);
 
-			static const auto StartFlee = reinterpret_cast<void(__thiscall*)(address)>(0x423370);
-
-			if (pursuitVehicle)
-				StartFlee(pursuitVehicle);
-
-			return pursuitVehicle;
-		}
-
-
-		void CheckVolatileVehicles
-		(
-			HashContainers::AddressSet&        vehicles,
-			HashContainers::AddressMap<float>& vehicleToTimestamp,
-			const int                          chasersThreshold
-		) 
-			const
-		{
-			if (vehicleToTimestamp.empty())                         return;
-			if (not this->MayAnotherVolatileFlee(chasersThreshold)) return;
-
-			auto iterator = vehicleToTimestamp.begin();
-
-			while (iterator != vehicleToTimestamp.end())
-			{
-				if (Globals::simulationTime >= iterator->second)
-				{
-					this->MakeVehicleBail(iterator->first);
-					vehicles.erase(iterator->first);
-
-					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[FLE] Volatile vehicle", iterator->first, "expired");
-
-					iterator = vehicleToTimestamp.erase(iterator);
-
-					if (not this->MayAnotherVolatileFlee(chasersThreshold))
-					{
-						if constexpr (Globals::loggingEnabled)
-							Globals::logger.Log(this->pursuit, "[FLE] Fleeing suspended");
-
-						break;
-					}
-				}
-				else ++iterator;
-			}
+			return copAIVehiclePursuit;
 		}
 
 
@@ -211,60 +167,106 @@ namespace CopFleeOverrides
 		}
 
 
-		void MakeHeavy3VehicleBail(const address copVehicle)
+		bool MakeHeavy3VehicleJoin(const address copVehicle)
 		{
 			if (this->MayAnotherHeavyJoin() and this->EndSupportGoal(copVehicle))
 			{
 				this->joinedHeavy3Vehicles.insert(copVehicle);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[FLE] Heavy3 vehicle", copVehicle, "joined");
+					Globals::logger.Log(this->pursuit, "[FLE] Heavy3", copVehicle, "joined");
+
+				return true;
 			}
-			else
+
+			return false;
+		}
+
+
+		void ProcessExpiredVehicle
+		(
+			const address  copVehicle,
+			const CopLabel copLabel
+		) {
+			bool        makeVehicleBail = false;
+			const char* vehicleLabel    = nullptr;
+
+			switch (copLabel)
+			{
+			case CopLabel::HEAVY:
+				makeVehicleBail = (not this->MakeHeavy3VehicleJoin(copVehicle));
+				vehicleLabel    = "Heavy3";
+				break;
+
+			case CopLabel::LEADER:
+				makeVehicleBail = true;
+				vehicleLabel    = "Leader";
+				break;
+
+			case CopLabel::CHASER:
+				makeVehicleBail = true;
+				vehicleLabel    = "Chaser";
+				this->chaserVehicles.erase(copVehicle);
+				break;
+
+			case CopLabel::ROADBLOCK:
+				makeVehicleBail = true;
+				vehicleLabel    = "Joined RB";
+				this->joinedRBVehicles.erase(copVehicle);
+			}
+
+			if (makeVehicleBail)
 			{
 				this->MakeVehicleBail(copVehicle);
 
+				// With logging disabled, the compiler optimises "vehicleLabel" away
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[FLE] Heavy3 vehicle", copVehicle, "expired");
+					Globals::logger.Log(this->pursuit, "[FLE]", vehicleLabel, copVehicle, "now fleeing");
 			}
 		}
 
 
-		void CheckHeavy3Vehicles()
+		bool MayAnotherVehicleFlee(const CopLabel copLabel) const
 		{
-			if (this->heavy3VehicleToTimestamp.empty()) return;
+			const int numActiveChasers = static_cast<int>(this->chaserVehicles.size());
 
-			auto iterator = this->heavy3VehicleToTimestamp.begin();
-
-			while (iterator != this->heavy3VehicleToTimestamp.end())
+			switch (copLabel)
 			{
-				if (Globals::simulationTime >= iterator->second)
-				{
-					this->MakeHeavy3VehicleBail(iterator->first);
+			case CopLabel::HEAVY:
+				[[fallthrough]];
 
-					iterator = this->heavy3VehicleToTimestamp.erase(iterator);
-				}
-				else ++iterator;
+			case CopLabel::LEADER:
+				return true;
+
+			case CopLabel::CHASER:
+				return (numActiveChasers > chaserChasersThresholds.current);
+
+			case CopLabel::ROADBLOCK:
+				return (numActiveChasers > joinedChasersThresholds.current);
 			}
+
+			return false;
 		}
 
 
-		void CheckLeaderVehicles()
-		{
-			if (this->leaderVehicleToTimestamp.empty()) return;
+		void CheckTimestamps
+		(
+			const CopLabel                     copLabel,
+			HashContainers::AddressMap<float>& vehicleToTimestamp
+		) {
+			if (vehicleToTimestamp.empty())                return;
+			if (not this->MayAnotherVehicleFlee(copLabel)) return;
 
-			auto iterator = this->leaderVehicleToTimestamp.begin();
+			auto iterator = vehicleToTimestamp.begin();
 
-			while (iterator != this->leaderVehicleToTimestamp.end())
+			while (iterator != vehicleToTimestamp.end())
 			{
 				if (Globals::simulationTime >= iterator->second)
 				{
-					this->MakeVehicleBail(iterator->first);
+					this->ProcessExpiredVehicle(iterator->first, copLabel);
+					iterator = vehicleToTimestamp.erase(iterator);
 
-					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[FLE] Leader vehicle", iterator->first, "expired");
-
-					iterator = this->leaderVehicleToTimestamp.erase(iterator);
+					if (not this->MayAnotherVehicleFlee(copLabel)) break;
 				}
 				else ++iterator;
 			}
@@ -281,7 +283,7 @@ namespace CopFleeOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (not rigidBodyOfTarget)
-						Globals::logger.Log("WARNING: [FLE] Invalid PhysicsObject for target in", this->pursuit);
+						Globals::logger.Log("WARNING: [FLE] Invalid PhysicsObject for", this->pursuitTarget, "in", this->pursuit);
 				}
 
 				return rigidBodyOfTarget;
@@ -297,12 +299,11 @@ namespace CopFleeOverrides
 
 			if (rigidBodyOfTarget)
 			{
-				static const auto GetSpeedXZ = reinterpret_cast<float (__thiscall*)(address)>(0x6711F0);
-
+				const auto GetSpeedXZ = reinterpret_cast<float (__thiscall*)(address)>(0x6711F0);
 				return (GetSpeedXZ(rigidBodyOfTarget) < ((this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold));
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [FLE] Invalid RigidBody for target", this->pursuitTarget, "in", this->pursuit);
+				Globals::logger.Log("WARNING: [FLE] Invalid RigidBody for", this->pursuitTarget, "in", this->pursuit);
 
 			return false; // should never happen
 		}
@@ -318,7 +319,7 @@ namespace CopFleeOverrides
 					Globals::logger.Log(this->pursuit, "[FLE] Cancelling HeavyStrategy3");
 
 				for (const auto& [copVehicle, fleeTimestamp] : this->heavy3VehicleToTimestamp)
-					this->MakeHeavy3VehicleBail(copVehicle);
+					this->ProcessExpiredVehicle(copVehicle, CopLabel::HEAVY);
 
 				this->heavy3VehicleToTimestamp.clear();
 
@@ -347,13 +348,12 @@ namespace CopFleeOverrides
 
 		void UpdateOnGameplay() override 
 		{
-			this->CheckHeavy3Vehicles();
-			this->CheckLeaderVehicles();
-
 			this->CheckForHeavy3Cancellation();
 
-			this->CheckVolatileVehicles(this->chaserVehicles,   this->chaserVehicleToTimestamp,   chaserChasersThresholds.current);
-			this->CheckVolatileVehicles(this->joinedRBVehicles, this->joinedRBVehicleToTimestamp, joinedChasersThresholds.current);
+			this->CheckTimestamps(CopLabel::HEAVY,     this->heavy3VehicleToTimestamp);
+			this->CheckTimestamps(CopLabel::LEADER,    this->leaderVehicleToTimestamp);
+			this->CheckTimestamps(CopLabel::CHASER,    this->chaserVehicleToTimestamp);
+			this->CheckTimestamps(CopLabel::ROADBLOCK, this->joinedRBVehicleToTimestamp);
 		}
 
 
@@ -438,13 +438,14 @@ namespace CopFleeOverrides
 	constexpr address goalUpdateEntrance = 0x443917;
 	constexpr address goalUpdateExit     = 0x44391C;
 
+	// Prevents formations from overriding flee goals
 	__declspec(naked) void GoalUpdate()
 	{
 		__asm
 		{
 			mov edi, dword ptr [ebp]
 			test edi, edi
-			je conclusion // invalid vehicle
+			je conclusion // invalid AIVehiclePursuit
 
 			cmp dword ptr [edi - 0x758 + 0xC4], 0x88C018A9 // AIGoalFleePursuit
 

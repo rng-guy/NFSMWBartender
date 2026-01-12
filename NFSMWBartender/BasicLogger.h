@@ -47,7 +47,8 @@ namespace BasicLogger
 		template <>
 		void Print<const char*>(const char* const value)
 		{
-			this->file << value;
+			if (value)
+				this->file << value;
 		}
 
 
