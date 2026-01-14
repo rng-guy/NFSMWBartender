@@ -185,7 +185,7 @@ Bartender's **"Advanced" feature set** forces the game to no longer ignore the r
 
 &nbsp;
 
-Most **other .asi mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
+Most **other `.asi` mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
 * For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#4---what-other-mods-does-bartender-depend-on) below.
 * For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` parameter group.
 * In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable its `EnableCopDestroyedStringHook` feature.
@@ -229,20 +229,20 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 1. make sure your original copy of the game wasn't a repack or came pre-modified in any way,
 2. read and understand the two sections about [mod (in)compatibilities](#3---what-mods-are-incompatible-with-bartender) and [dependencies](#4---what-other-mods-does-bartender-depend-on) above,
 3. make sure your game's `speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
-4. install an .asi loader or any mod with one (e.g. the [WideScreenFix](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) mod by ThirteenAG).
+4. install an `.asi` loader or any mod with one (e.g. the [WideScreenFix](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) mod by ThirteenAG).
 
 &nbsp;
 
 **To install** Bartender:
 1. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
-2. copy the `BartenderSettings` folder and .asi file to your game's `scripts` folder;
-3. if Bartender's .asi file gets flagged by your antivirus software, whitelist the file; and
+2. copy the `BartenderSettings` folder and `.asi` file to your game's `scripts` folder;
+3. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file; and
 4. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.
 
 &nbsp;
 
 **After installing** Bartender: 
-1. edit the configuration (.ini) files in the `BartenderSettings` folder to your liking; and
+1. edit the configuration (`.ini`) files in the `BartenderSettings` folder to your liking; and
 2. if you encounter any issues or want more feature details, see the [appendix file](APPENDIX.md).
 
 &nbsp;
@@ -269,7 +269,7 @@ You are free to bundle Bartender and its files with your own pursuit mod, **no c
 
 Finally, Bartender wouldn't have seen the light of day without
 * **DarkByte**, for [Cheat Engine](https://www.cheatengine.org/);
-* **[rx](https://github.com/rxyyy)**, for encouraging me to try .asi modding;
+* **[rx](https://github.com/rxyyy)**, for encouraging me to try `.asi` modding;
 * **[nlgxzef](https://github.com/nlgxzef)**, for the Most Wanted debug symbols;
 * **GuidedHacking**, for their [Cheat Engine tutorials](https://www.youtube.com/playlist?list=PLt9cUwGw6CYFSoQHsf9b12kHWLdgYRhmQ);
 * **Matthias C. M. Troffaes**, for his [configuration-file parser](https://github.com/mcmtroffaes/inipp);

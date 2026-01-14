@@ -153,7 +153,7 @@ namespace GroundSupports
 			const int strategyID = *reinterpret_cast<int*>(strategy);
 
 			if ((strategyID != 3) or heavy3TriggerCooldowns.current)
-				*reinterpret_cast<float*>(pursuit + 0xC8) = roadblockHeavyCooldowns.current; // roadblock CD
+				*reinterpret_cast<float*>(pursuit + 0xC8) = roadblockHeavyCooldowns.current; // roadblock cooldown
 
 			*reinterpret_cast<address*>(pursuit + 0x194) = strategy; // HeavyStrategy
 		}
@@ -268,8 +268,6 @@ namespace GroundSupports
 	{
 		__asm
 		{
-			test eax, eax
-
 			mov ecx, dword ptr leader5CrossVehicles.current
 			cmovne ecx, dword ptr leader7CrossVehicles.current // not LeaderStrategy 5
 
@@ -352,20 +350,31 @@ namespace GroundSupports
 
 
 
-	constexpr address spikeCounterEntrance = 0x43E580;
-	constexpr address spikeCounterExit     = 0x43E587;
+	constexpr address spikeCounterEntrance = 0x43E64D;
+	constexpr address spikeCounterExit     = 0x43E663;
 
 	// Increments the "spikes deployed" counter correctly
 	__declspec(naked) void SpikeCounter()
 	{
 		__asm
 		{
-			mov edx, dword ptr [esp + 0x4C4] // roadblock pursuit
+			push esi
+
+			mov si, word ptr [ebp + 0x32] // spike strips in roadblock
+
+			push ecx                   // position ID
+			push ebx                   // prop
+			mov ecx, ebp
+			call dword ptr [edx + 0x8] // AIRoadblock::AddProp
+
+			cmp si, word ptr [ebp + 0x32]
+			je conclusion // prop not spike strip
+
+			mov edx, dword ptr [esp + 0x4C8] // roadblock pursuit
 			inc dword ptr [edx + 0x17C]      // spike strips deployed
 
-			// Execute original code and resume
-			mov ecx, dword ptr [esp + 0x30]
-			mov dword ptr [eax + 0x4], ecx
+			conclusion:
+			pop esi
 
 			jmp dword ptr spikeCounterExit
 		}
@@ -697,7 +706,6 @@ namespace GroundSupports
 	void ApplyFixes()
 	{
 		// Fixes incorrect spike-strip CTS count
-		MemoryTools::MakeRangeNOP(0x43E654, 0x43E663); // remove old increment call
 		MemoryTools::MakeRangeJMP(SpikeCounter, spikeCounterEntrance, spikeCounterExit);
 
 		// Also fixes the unintended biases in the Strategy-selection process

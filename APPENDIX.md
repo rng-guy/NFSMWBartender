@@ -197,6 +197,10 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
+* Very short spawn distances for roadblocks can cause noticeable pop-in as they spawn.
+
+* Certain formations can cause cops to drive ahead and crash into roadblocks more frequently.
+
 * When the game requests a non-Strategy roadblock, a random roadblock cooldown begins. While this cooldown is active, the game cannot make more non-Strategy roadblock requests.
 
 * When the game requests a Strategy, a fixed-length Strategy cooldown begins. While this cooldown is active, the game cannot make more Strategy requests.
@@ -313,11 +317,13 @@ Regarding **car (de)spawning behaviour** (`BartenderSettings\Advanced\CarSpawns.
 
 * If you want to use global cop-spawn limits > 8 and / or make "Chasers" / traffic spawns independent of other vehicles, you may also [need](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
 
-* Very small spawning clearances for "Chasers" may lead to overly congested roads.
+* Very small spawning clearances for "Chasers" may lead to stacked spawns and congested roads.
 
 * "Chasers" flee only at Heat levels for which you define valid flee-delay values and thresholds. "Chasers" also only flee if they aren't in the current Heat level's "Chasers" spawn table, and if there would be enough active "Chasers" remaining in the pursuit after their retreat.
 
 * Fully independent traffic spawns fix the vanilla issue of disappearing traffic in pursuits, but they might interfere with "Chasers" spawns to some degree under the right conditions.
+
+* Roadblock-independent traffic spawns might cause some roadblock vehicles to spawn misaligned.
 
 * The number of active vehicles that joined from roadblocks is limited only at Heat levels for which you define a valid limit value. These limits apply to each pursuit separately. If you also make "Chasers" spawns independent, then the global cop-spawn limit no longer applies to vehicles that join from roadblocks, too; they can always join unless you define a limit.
 
