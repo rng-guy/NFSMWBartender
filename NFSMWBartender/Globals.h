@@ -65,12 +65,8 @@ namespace Globals
 
 	float __fastcall GetGameTime(const bool unpaused)
 	{
-		static const float& ticksToTime = *reinterpret_cast<float*>(0x890984);
-
-		uint32_t ticks = gameTicks;
-
-		if (unpaused)
-			ticks -= pausedTicks;
+		const float    ticksToTime = *reinterpret_cast<float*>(0x890984);
+		const uint32_t ticks       = (unpaused) ? (gameTicks - pausedTicks) : gameTicks;
 
 		return ticksToTime * static_cast<float>(ticks);
 	}

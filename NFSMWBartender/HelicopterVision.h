@@ -45,7 +45,7 @@ namespace HelicopterVision
 
 
 
-	uint32_t __fastcall GetNewColour
+	uint32_t __fastcall GetConeColour
 	(
 		const address heliAIVehicle,
 		const bool    canSeeTarget
@@ -53,13 +53,13 @@ namespace HelicopterVision
 		static float currentColourState  = 0.f; // ratio
 		static float lastUpdateTimestamp = 0.f; // seconds
 
-		const float currentTime = Globals::GetGameTime(true);
+		const float currentTimestamp = Globals::GetGameTime(true);
 
-		bool& isKnownVehicle = *reinterpret_cast<bool*>(heliAIVehicle - 0x4C + 0x769); // padding byte
+		bool& isKnownHelicopter = *reinterpret_cast<bool*>(heliAIVehicle - 0x4C + 0x769); // padding byte
 
-		if (isKnownVehicle)
+		if (isKnownHelicopter)
 		{
-			const float timeDelta = currentTime - lastUpdateTimestamp;
+			const float timeDelta = currentTimestamp - lastUpdateTimestamp;
 
 			if (canSeeTarget)
 				currentColourState += timeDelta / lengthToEnd;
@@ -71,11 +71,11 @@ namespace HelicopterVision
 		}
 		else
 		{
+			isKnownHelicopter  = true;
 			currentColourState = (canSeeTarget) ? 1.f : 0.f;
-			isKnownVehicle     = true;
 		}
 
-		lastUpdateTimestamp = currentTime;
+		lastUpdateTimestamp = currentTimestamp;
 
 		return StateToColour(currentColourState);
 	}
@@ -143,16 +143,16 @@ namespace HelicopterVision
 
 			push dword ptr [edx + 0x54] // target
 			mov ecx, edi
-			mov edx, dword ptr [ecx]
+			mov edx, dword ptr [edi]
 			call dword ptr [edx + 0x7C] // AIVehicleHelicopter::CanSeeTarget
 
 			pop ecx
 			mov dl, al
-			call GetNewColour // ecx: heliAIVehicle, dl: canSeeTarget
+			call GetConeColour // ecx: heliAIVehicle, dl: canSeeTarget
 
 			colour:
 			push eax                    // colour
-			push dword ptr [ebx + 0xCC] // vision-code object
+			push dword ptr [ebx + 0xCC] // vision-cone object
 			call dword ptr FEngSetColour
 			add esp, 0x8
 

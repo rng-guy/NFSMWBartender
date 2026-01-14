@@ -115,9 +115,9 @@ namespace MemoryTools
 
 			std::memcpy(&replacedTarget, reinterpret_cast<address*>(targetStart), sizeof(address));
 
-			replacedTarget += callEnd;
-
 			Write<address>(reinterpret_cast<address>(target) - callEnd, {targetStart});
+
+			replacedTarget += callEnd;
 		}
 		else ++numHookErrors;
 
