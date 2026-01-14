@@ -350,7 +350,7 @@ namespace GroundSupports
 
 
 
-	constexpr address spikeCounterEntrance = 0x43E64D;
+	constexpr address spikeCounterEntrance = 0x43E654;
 	constexpr address spikeCounterExit     = 0x43E663;
 
 	// Increments the "spikes deployed" counter correctly
@@ -358,24 +358,14 @@ namespace GroundSupports
 	{
 		__asm
 		{
-			push esi
+			mov ecx, dword ptr [esp + 0x10]
+			cmp dword ptr [ecx], 0x3 // prop ID
+			jne conclusion           // prop not spike strip
 
-			mov si, word ptr [ebp + 0x32] // spike strips in roadblock
-
-			push ecx                   // position ID
-			push ebx                   // prop
-			mov ecx, ebp
-			call dword ptr [edx + 0x8] // AIRoadblock::AddProp
-
-			cmp si, word ptr [ebp + 0x32]
-			je conclusion // prop not spike strip
-
-			mov edx, dword ptr [esp + 0x4C8] // roadblock pursuit
+			mov edx, dword ptr [esp + 0x4C4] // roadblock pursuit
 			inc dword ptr [edx + 0x17C]      // spike strips deployed
 
 			conclusion:
-			pop esi
-
 			jmp dword ptr spikeCounterExit
 		}
 	}
