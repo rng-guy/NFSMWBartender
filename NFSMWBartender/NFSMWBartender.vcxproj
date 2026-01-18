@@ -208,9 +208,16 @@
     <None Include="..\BartenderSettings\Basic\General.ini" />
     <None Include="..\BartenderSettings\Basic\Cosmetic.ini" />
     <None Include="..\BartenderSettings\Basic\Supports.ini" />
+    <None Include="..\Binary\FixMissingTextures.end" />
+    <None Include="..\Binary\Modscript.end" />
     <None Include="..\README.md" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\Binary\Textures\HEAT_X10.dds" />
+    <Image Include="..\Binary\Textures\HEAT_X6.dds" />
+    <Image Include="..\Binary\Textures\HEAT_X7.dds" />
+    <Image Include="..\Binary\Textures\HEAT_X8.dds" />
+    <Image Include="..\Binary\Textures\HEAT_X9.dds" />
     <Image Include="..\Thumbnail.jpg" />
   </ItemGroup>
   <ItemGroup>
