@@ -1,9 +1,0 @@
-[VERSN1]
-
-{
-  "Usage"     : "User",
-  "Game"      : "MostWanted",
-  "Directory" : "",
-  "Endscript" : "Textures\Modscript.end",
-  "Files"     : ["FRONTEND\FRONTB.LZC"]
-}

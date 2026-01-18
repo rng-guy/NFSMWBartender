@@ -363,3 +363,9 @@ MigrationBackup/
 FodyWeavers.xsd
 /BartenderSettings/Advanced/Behaviour.ini
 /NFSMWBartender/Miscellaneous.h
+/FixMissingTextures.end
+/Textures/Modscript.end
+/Textures/Missing/HEAT_X6.dds
+/Textures/Missing/HEAT_X7.dds
+/Textures/Missing/HEAT_X8.dds
+/Textures/Missing/HEAT_X9.dds
