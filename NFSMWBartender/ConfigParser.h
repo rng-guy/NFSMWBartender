@@ -119,6 +119,12 @@ namespace ConfigParser
 		}
 
 
+		const auto& GetSections() const
+		{
+			return this->parser.sections;
+		}
+
+
 		// For single values from a string
 		template <typename T>
 		static bool ParseParameterFromString

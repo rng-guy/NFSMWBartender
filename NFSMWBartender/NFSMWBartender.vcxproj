@@ -190,6 +190,7 @@
     <ClInclude Include="CopSpawnOverrides.h" />
     <ClInclude Include="RadioChatter.h" />
     <ClInclude Include="RandomNumbers.h" />
+    <ClInclude Include="RoadblockOverrides.h" />
     <ClInclude Include="StateObserver.h" />
     <ClInclude Include="inipp.h" />
     <ClInclude Include="stl.h" />
@@ -202,6 +203,7 @@
     <None Include="..\BartenderSettings\Advanced\CarTables.ini" />
     <None Include="..\BartenderSettings\Advanced\Heat.ini" />
     <None Include="..\BartenderSettings\Advanced\Helicopter.ini" />
+    <None Include="..\BartenderSettings\Advanced\Roadblocks.ini" />
     <None Include="..\BartenderSettings\Advanced\Strategies.ini" />
     <None Include="..\BartenderSettings\Basic\General.ini" />
     <None Include="..\BartenderSettings\Basic\Cosmetic.ini" />

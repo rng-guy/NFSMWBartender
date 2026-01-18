@@ -21,21 +21,6 @@ namespace PursuitFeatures
 
 		const int& pursuitStatus = *reinterpret_cast<int*>(this->pursuit + 0x218);
 
-		
-		address GetFromPursuitlevel
-		(
-			const vault  attributeKey,
-			const size_t attributeIndex = 0
-		)
-			const
-		{
-			const auto GetPursuitNode      = reinterpret_cast<address (__thiscall*)(address)>               (0x418E90);
-			const auto GetPursuitAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
-
-			const address node = GetPursuitNode(this->pursuit);
-			return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : node;
-		}
-
 
 		static address GetAIVehiclePursuit(const address copVehicle)
 		{

@@ -17,6 +17,7 @@
 #include "StrategyOverrides.h"
 #include "HelicopterOverrides.h"
 #include "HeatChangeOverrides.h"
+#include "RoadblockOverrides.h"
 
 
 
@@ -407,6 +408,7 @@ namespace PursuitObserver
 		StrategyOverrides  ::Initialise(parser);
 		HelicopterOverrides::Initialise(parser);
 		HeatChangeOverrides::Initialise(parser);
+		RoadblockOverrides ::Initialise(parser);
 
 		// Code modifications
 		MemoryTools::MakeRangeJMP(CopAdded,           copAddedEntrance,           copAddedExit);
@@ -451,6 +453,7 @@ namespace PursuitObserver
 		StrategyOverrides  ::SetToHeat(isRacing, heatLevel);
 		LeaderOverrides    ::SetToHeat(isRacing, heatLevel);
 		HeatChangeOverrides::SetToHeat(isRacing, heatLevel);
+		RoadblockOverrides ::SetToHeat(isRacing, heatLevel);
 
 		PursuitObserver::NotifyOfHeatChange();
 	}

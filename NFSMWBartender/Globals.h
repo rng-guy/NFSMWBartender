@@ -89,6 +89,21 @@ namespace Globals
 
 
 
+	address GetFromPursuitlevel
+	(
+		const address pursuit,
+		const vault   attributeKey,
+		const size_t  attributeIndex = 0
+	){
+		const auto GetPursuitNode      = reinterpret_cast<address (__thiscall*)(address)>               (0x418E90);
+		const auto GetPursuitAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
+
+		const address node = GetPursuitNode(pursuit);
+		return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : node;
+	}
+
+
+
 	enum class Class
 	{
 		ANY,

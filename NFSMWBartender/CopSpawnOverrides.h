@@ -118,10 +118,9 @@ namespace CopSpawnOverrides
 		}
 
 
-		void AddVehicle(const address copVehicle)
+		void AddVehicleByType(const vault copType)
 		{
-			const vault copType          = Globals::GetVehicleType(copVehicle);
-			const auto  [pair, wasAdded] = this->copTypeToCurrentCount.try_emplace(copType, 1);
+			const auto [pair, wasAdded] = this->copTypeToCurrentCount.try_emplace(copType, 1);
 
 			if (not wasAdded)
 				++(pair->second);
@@ -137,10 +136,21 @@ namespace CopSpawnOverrides
 		}
 
 
-		bool RemoveVehicle(const address copVehicle)
+		void AddVehicleByName(const char* const copName)
 		{
-			const vault copType   = Globals::GetVehicleType(copVehicle);
-			const auto  foundType = this->copTypeToCurrentCount.find(copType);
+			this->AddVehicleByType(Globals::GetVaultKey(copName));
+		}
+
+
+		void AddVehicle(const address copVehicle)
+		{
+			this->AddVehicleByType(Globals::GetVehicleType(copVehicle));
+		}
+
+
+		bool RemoveVehicleByType(const vault copType)
+		{
+			const auto foundType = this->copTypeToCurrentCount.find(copType);
 
 			if (foundType != this->copTypeToCurrentCount.end())
 			{
@@ -168,6 +178,18 @@ namespace CopSpawnOverrides
 			}
 
 			return false;
+		}
+
+
+		bool RemoveVehicleByName(const char* const copName)
+		{
+			return this->RemoveVehicleByType(Globals::GetVaultKey(copName));
+		}
+
+
+		bool RemoveVehicle(const address copVehicle)
+		{
+			return this->RemoveVehicleByType(Globals::GetVehicleType(copVehicle));
 		}
 
 
@@ -280,7 +302,7 @@ namespace CopSpawnOverrides
 
 		void UpdateNumPatrolCars()
 		{
-			const address attribute = this->GetFromPursuitlevel(0x24F7A1BC); // fetches "NumPatrolCars"
+			const address attribute = Globals::GetFromPursuitlevel(this->pursuit, 0x24F7A1BC); // fetches "NumPatrolCars"
 
 			this->maxNumPatrolCars = (attribute) ? *reinterpret_cast<int*>(attribute) : 0;
 
@@ -628,22 +650,6 @@ namespace CopSpawnOverrides
 			call ChasersManager::NotifyOfWaveReset // ecx: pursuit
 
 			jmp dword ptr waveResetExit
-		}
-	}
-
-
-
-	constexpr address copRequestEntrance = 0x42BA50;
-	constexpr address copRequestExit     = 0x42BCED;
-
-	// Asks "Chasers" managers whether new cop vehicles are available
-	__declspec(naked) void CopRequest()
-	{
-		__asm
-		{
-			call ChasersManager::GetNameOfNewChaser // ecx: pursuit
-
-			jmp dword ptr copRequestExit
 		}
 	}
 
@@ -1054,9 +1060,10 @@ namespace CopSpawnOverrides
 		MemoryTools::MakeRangeNOP(0x57B186, 0x57B189); // helicopter increment
 		MemoryTools::MakeRangeNOP(0x42B74E, 0x42B771); // cops-lost increment
 		MemoryTools::MakeRangeNOP(0x4440D7, 0x4440DF); // membership check
+
+		MemoryTools::MakeRangeJMP(ChasersManager::GetNameOfNewChaser, 0x42BA50, 0x42BCEE);
 		
 		MemoryTools::MakeRangeJMP(WaveReset,          waveResetEntrance,          waveResetExit);
-		MemoryTools::MakeRangeJMP(CopRequest,         copRequestEntrance,         copRequestExit);
 		MemoryTools::MakeRangeJMP(PatrolSpawn,        patrolSpawnEntrance,        patrolSpawnExit);
 		MemoryTools::MakeRangeJMP(CopClearance,       copClearanceEntrance,       copClearanceExit);
 		MemoryTools::MakeRangeJMP(CopSpawnLimit,      copSpawnLimitEntrance,      copSpawnLimitExit);
@@ -1070,7 +1077,7 @@ namespace CopSpawnOverrides
 		MemoryTools::MakeRangeJMP(ByClassRequest,     byClassRequestEntrance,     byClassRequestExit);
 		MemoryTools::MakeRangeJMP(ScriptedRequest,    scriptedRequestEntrance,    scriptedRequestExit);
 		MemoryTools::MakeRangeJMP(ScriptedSpawnReset, scriptedSpawnResetEntrance, scriptedSpawnResetExit);
-		
+
 		// Status flag
 		featureEnabled = true;
 
