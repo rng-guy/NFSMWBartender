@@ -1,0 +1,9 @@
+[VERSN1]
+
+{
+  "Usage"     : "User",
+  "Game"      : "MostWanted",
+  "Directory" : "",
+  "Endscript" : "Assets\Modscript.end",
+  "Files"     : ["FRONTEND\FRONTB.LZC"]
+}

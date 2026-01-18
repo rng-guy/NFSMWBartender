@@ -1,0 +1,11 @@
+[VERSN2]
+// Adds missing Heat-gauge textures for use in menus
+
+version 2.8.3
+unlock_memory all
+
+add_or_replace_texture FRONTEND\FRONTB.LZC TPKBlocks FRONTENDTEXTURES HEAT_X6  HEAT_X6  Textures\HEAT_X6.dds
+add_or_replace_texture FRONTEND\FRONTB.LZC TPKBlocks FRONTENDTEXTURES HEAT_X7  HEAT_X7  Textures\HEAT_X7.dds
+add_or_replace_texture FRONTEND\FRONTB.LZC TPKBlocks FRONTENDTEXTURES HEAT_X8  HEAT_X8  Textures\HEAT_X8.dds
+add_or_replace_texture FRONTEND\FRONTB.LZC TPKBlocks FRONTENDTEXTURES HEAT_X9  HEAT_X9  Textures\HEAT_X9.dds
+add_or_replace_texture FRONTEND\FRONTB.LZC TPKBlocks FRONTENDTEXTURES HEAT_X10 HEAT_X10 Textures\HEAT_X10.dds

@@ -177,31 +177,10 @@
     <None Include="..\BartenderSettings\Advanced\Roadblocks.ini">
       <Filter>Config Files\Advanced</Filter>
     </None>
-    <None Include="..\Textures\Modscript.end">
-      <Filter>Textures\Scripts</Filter>
-    </None>
-    <None Include="..\FixMissingTextures.end">
-      <Filter>Textures\Scripts</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Thumbnail.jpg">
       <Filter>Documentation</Filter>
-    </Image>
-    <Image Include="..\Textures\Missing\HEAT_X6.dds">
-      <Filter>Textures\Assets</Filter>
-    </Image>
-    <Image Include="..\Textures\Missing\HEAT_X7.dds">
-      <Filter>Textures\Assets</Filter>
-    </Image>
-    <Image Include="..\Textures\Missing\HEAT_X8.dds">
-      <Filter>Textures\Assets</Filter>
-    </Image>
-    <Image Include="..\Textures\Missing\HEAT_X9.dds">
-      <Filter>Textures\Assets</Filter>
-    </Image>
-    <Image Include="..\Textures\Missing\HEAT_X10.dds">
-      <Filter>Textures\Assets</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
