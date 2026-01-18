@@ -1,163 +1,166 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Header Files\Modifications">
-      <UniqueIdentifier>{55943e8b-1479-4d97-9d85-045d5a9133f5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Libraries">
-      <UniqueIdentifier>{76ba4780-d613-49c9-8716-a2ce15e72b8f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\General">
-      <UniqueIdentifier>{5a20c96a-326e-491c-ba6b-119f92c1a0a5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Modifications\Basic">
-      <UniqueIdentifier>{d47fbf6b-9b5a-42e7-a3f7-a947a75579ec}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Modifications\Advanced">
-      <UniqueIdentifier>{af4345db-acb4-4116-a6eb-24bb3f5c5760}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Config Files">
-      <UniqueIdentifier>{62493dc3-8065-4ce0-b212-5c8497ef84db}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Config Files\Basic">
-      <UniqueIdentifier>{5a9441b9-fa4a-47ba-855e-bf49158a7ad4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Config Files\Advanced">
-      <UniqueIdentifier>{4a623eac-b257-4798-9d2d-15c127689188}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Documentation">
       <UniqueIdentifier>{b05c5ef2-1c0e-4f92-871d-5caa1ca7ebc0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Textures">
+    <Filter Include="Binary">
       <UniqueIdentifier>{ae9ff621-38ea-459a-a159-9a5fe9168e45}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Textures\Assets">
-      <UniqueIdentifier>{c341b668-3b2d-4609-996f-3da823ae80eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Textures\Scripts">
+    <Filter Include="Binary\Scripts">
       <UniqueIdentifier>{d6f38209-c6ea-4c22-8bd2-17eb24271517}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Roadblocks">
+    <Filter Include="Binary\Textures">
+      <UniqueIdentifier>{c341b668-3b2d-4609-996f-3da823ae80eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Designer">
       <UniqueIdentifier>{71115961-0c9b-459a-a20a-66ee1989d63a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Roadblocks\Assets">
+    <Filter Include="Designer\Images">
       <UniqueIdentifier>{72ece110-376c-4de9-83f0-1d91fb9f744f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Designer\Source">
+      <UniqueIdentifier>{10f575d0-ebf5-4bb8-96c9-4482dd97fa37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configuration">
+      <UniqueIdentifier>{62493dc3-8065-4ce0-b212-5c8497ef84db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configuration\Basic">
+      <UniqueIdentifier>{5a9441b9-fa4a-47ba-855e-bf49158a7ad4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configuration\Advanced">
+      <UniqueIdentifier>{4a623eac-b257-4798-9d2d-15c127689188}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Headers\Modifications">
+      <UniqueIdentifier>{55943e8b-1479-4d97-9d85-045d5a9133f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modifications\Basic">
+      <UniqueIdentifier>{d47fbf6b-9b5a-42e7-a3f7-a947a75579ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Modifications\Advanced">
+      <UniqueIdentifier>{af4345db-acb4-4116-a6eb-24bb3f5c5760}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Libraries">
+      <UniqueIdentifier>{76ba4780-d613-49c9-8716-a2ce15e72b8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\General">
+      <UniqueIdentifier>{5a20c96a-326e-491c-ba6b-119f92c1a0a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inipp.h">
-      <Filter>Header Files\Libraries</Filter>
+      <Filter>Headers\Libraries</Filter>
     </ClInclude>
     <ClInclude Include="Globals.h">
-      <Filter>Header Files\General</Filter>
+      <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="MemoryTools.h">
-      <Filter>Header Files\General</Filter>
+      <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="RandomNumbers.h">
-      <Filter>Header Files\General</Filter>
+      <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="StateObserver.h">
-      <Filter>Header Files\Modifications</Filter>
+      <Filter>Headers\Modifications</Filter>
     </ClInclude>
     <ClInclude Include="ConfigParser.h">
-      <Filter>Header Files\General</Filter>
+      <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="DestructionStrings.h">
-      <Filter>Header Files\Modifications\Basic</Filter>
+      <Filter>Headers\Modifications\Basic</Filter>
     </ClInclude>
     <ClInclude Include="GroundSupports.h">
-      <Filter>Header Files\Modifications\Basic</Filter>
+      <Filter>Headers\Modifications\Basic</Filter>
     </ClInclude>
     <ClInclude Include="GeneralSettings.h">
-      <Filter>Header Files\Modifications\Basic</Filter>
+      <Filter>Headers\Modifications\Basic</Filter>
     </ClInclude>
     <ClInclude Include="CopFleeOverrides.h">
-      <Filter>Header Files\Modifications\Advanced</Filter>
+      <Filter>Headers\Modifications\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="CopSpawnOverrides.h">
-      <Filter>Header Files\Modifications\Advanced</Filter>
+      <Filter>Headers\Modifications\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="CopSpawnTables.h">
-      <Filter>Header Files\Modifications\Advanced</Filter>
+      <Filter>Headers\Modifications\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="HelicopterOverrides.h">
-      <Filter>Header Files\Modifications\Advanced</Filter>
+      <Filter>Headers\Modifications\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="PursuitFeatures.h">
-      <Filter>Header Files\Modifications\Advanced</Filter>
+      <Filter>Headers\Modifications\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="PursuitObserver.h">
-      <Filter>Header Files\Modifications\Advanced</Filter>
+      <Filter>Headers\Modifications\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="HeatParameters.h">
-      <Filter>Header Files\General</Filter>
+      <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="BasicLogger.h">
-      <Filter>Header Files\General</Filter>
+      <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="LeaderOverrides.h">
-      <Filter>Header Files\Modifications\Advanced</Filter>
+      <Filter>Headers\Modifications\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="StrategyOverrides.h">
-      <Filter>Header Files\Modifications\Advanced</Filter>
+      <Filter>Headers\Modifications\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="RadioChatter.h">
-      <Filter>Header Files\Modifications\Basic</Filter>
+      <Filter>Headers\Modifications\Basic</Filter>
     </ClInclude>
     <ClInclude Include="HashContainers.h">
-      <Filter>Header Files\General</Filter>
+      <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="InteractiveMusic.h">
-      <Filter>Header Files\Modifications\Basic</Filter>
+      <Filter>Headers\Modifications\Basic</Filter>
     </ClInclude>
     <ClInclude Include="CopDetection.h">
-      <Filter>Header Files\Modifications\Basic</Filter>
+      <Filter>Headers\Modifications\Basic</Filter>
     </ClInclude>
     <ClInclude Include="unordered_dense.h">
-      <Filter>Header Files\Libraries</Filter>
+      <Filter>Headers\Libraries</Filter>
     </ClInclude>
     <ClInclude Include="stl.h">
-      <Filter>Header Files\Libraries</Filter>
+      <Filter>Headers\Libraries</Filter>
     </ClInclude>
     <ClInclude Include="HelicopterVision.h">
-      <Filter>Header Files\Modifications\Basic</Filter>
+      <Filter>Headers\Modifications\Basic</Filter>
     </ClInclude>
     <ClInclude Include="HeatChangeOverrides.h">
-      <Filter>Header Files\Modifications\Advanced</Filter>
+      <Filter>Headers\Modifications\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="RoadblockOverrides.h">
-      <Filter>Header Files\Modifications\Advanced</Filter>
+      <Filter>Headers\Modifications\Advanced</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Basic\General.ini">
-      <Filter>Config Files\Basic</Filter>
+      <Filter>Configuration\Basic</Filter>
     </None>
     <None Include="..\BartenderSettings\Basic\Cosmetic.ini">
-      <Filter>Config Files\Basic</Filter>
+      <Filter>Configuration\Basic</Filter>
     </None>
     <None Include="..\BartenderSettings\Basic\Supports.ini">
-      <Filter>Config Files\Basic</Filter>
+      <Filter>Configuration\Basic</Filter>
     </None>
     <None Include="..\BartenderSettings\Advanced\CarTables.ini">
-      <Filter>Config Files\Advanced</Filter>
+      <Filter>Configuration\Advanced</Filter>
     </None>
     <None Include="..\BartenderSettings\Advanced\Helicopter.ini">
-      <Filter>Config Files\Advanced</Filter>
+      <Filter>Configuration\Advanced</Filter>
     </None>
     <None Include="..\README.md">
       <Filter>Documentation</Filter>
@@ -166,22 +169,34 @@
       <Filter>Documentation</Filter>
     </None>
     <None Include="..\BartenderSettings\Advanced\Strategies.ini">
-      <Filter>Config Files\Advanced</Filter>
+      <Filter>Configuration\Advanced</Filter>
     </None>
     <None Include="..\BartenderSettings\Advanced\CarSpawns.ini">
-      <Filter>Config Files\Advanced</Filter>
+      <Filter>Configuration\Advanced</Filter>
     </None>
     <None Include="..\BartenderSettings\Advanced\Heat.ini">
-      <Filter>Config Files\Advanced</Filter>
+      <Filter>Configuration\Advanced</Filter>
     </None>
     <None Include="..\BartenderSettings\Advanced\Roadblocks.ini">
-      <Filter>Config Files\Advanced</Filter>
+      <Filter>Configuration\Advanced</Filter>
     </None>
     <None Include="..\Binary\FixMissingTextures.end">
-      <Filter>Textures\Scripts</Filter>
+      <Filter>Binary\Scripts</Filter>
     </None>
     <None Include="..\Binary\Modscript.end">
-      <Filter>Textures\Scripts</Filter>
+      <Filter>Binary\Scripts</Filter>
+    </None>
+    <None Include="..\Designer\Images\barricade.webp">
+      <Filter>Designer\Images</Filter>
+    </None>
+    <None Include="..\Designer\Images\car.webp">
+      <Filter>Designer\Images</Filter>
+    </None>
+    <None Include="..\Designer\Images\spikes.webp">
+      <Filter>Designer\Images</Filter>
+    </None>
+    <None Include="..\Designer\RoadblockDesigner.html">
+      <Filter>Designer\Source</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -189,19 +204,19 @@
       <Filter>Documentation</Filter>
     </Image>
     <Image Include="..\Binary\Textures\HEAT_X6.dds">
-      <Filter>Textures\Assets</Filter>
+      <Filter>Binary\Textures</Filter>
     </Image>
     <Image Include="..\Binary\Textures\HEAT_X7.dds">
-      <Filter>Textures\Assets</Filter>
+      <Filter>Binary\Textures</Filter>
     </Image>
     <Image Include="..\Binary\Textures\HEAT_X8.dds">
-      <Filter>Textures\Assets</Filter>
+      <Filter>Binary\Textures</Filter>
     </Image>
     <Image Include="..\Binary\Textures\HEAT_X9.dds">
-      <Filter>Textures\Assets</Filter>
+      <Filter>Binary\Textures</Filter>
     </Image>
     <Image Include="..\Binary\Textures\HEAT_X10.dds">
-      <Filter>Textures\Assets</Filter>
+      <Filter>Binary\Textures</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
