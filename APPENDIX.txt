@@ -726,4 +726,4 @@ v1.00.00: Initial release
 
    10.00: Expanded some existing features and overhauled internals for better mod compatibility
 
-   11.00: Added feature to add, edit, and remove roadblock patterns for use in pursuits
+   11.00: Added feature to add, edit, and remove roadblock setups for use in pursuits

@@ -69,7 +69,7 @@ The "Basic" feature set **also lets you change** (in general)
 
 The "Basic" feature set **always fixes fifteen bugs / issues** automatically:
 * the game now always updates the passive bounty increment after races,
-* the mini-map icons for cop vehicles now always flash at the correct pace,
+* the (mini-)map icons for cop vehicles now always flash at the correct pace,
 * transitions to Heat levels > 5 now trigger their proper radio announcements,
 * the game no longer plays each Heat-level announcement just once per game launch,
 * Challenge Series races now use the Heat level limits defined for them in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),

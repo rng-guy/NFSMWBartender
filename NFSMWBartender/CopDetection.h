@@ -28,8 +28,11 @@ namespace CopDetection
 	};
 
 	// Code caves
-	bool isNewMiniMap = true;
-	
+	bool isNewMiniMap  = true;
+	bool isNewWorldMap = true;
+
+	bool updateWorldMapColours = false;
+
 	HashContainers::CachedVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3), flag
 
 
@@ -37,6 +40,29 @@ namespace CopDetection
 
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	bool __stdcall ShouldUpdateColours
+	(
+		float&     updateTimestamp,
+		bool&      isFirstQuery,
+		const bool unpaused
+	) {
+		const float gameTime = Globals::GetGameTime(unpaused);
+
+		if (isFirstQuery or (gameTime >= updateTimestamp))
+		{
+			constexpr float targetFrameTime = 1.f / 30.f; // seconds
+
+			updateTimestamp = gameTime + targetFrameTime;
+			isFirstQuery    = false;
+
+			return true;
+		}
+
+		return false;
+	}
+
+
 
 	bool __fastcall GetsMiniMapIcon(const address copVehicle) 
 	{
@@ -116,66 +142,26 @@ namespace CopDetection
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address colourUpdateEntrance = 0x579E16;
-	constexpr address colourUpdateExit     = 0x579E1C;
+	constexpr address worldMapUpdateEntrance = 0x55B770;
+	constexpr address worldMapUpdateExit     = 0x55B776;
 
-	// Makes cop icons flash at a framerate-independent pace
-	__declspec(naked) void ColourUpdate()
+	// Makes cop icons on the world map flash at a consistent pace
+	__declspec(naked) void WorldMapUpdate()
 	{
-		static constexpr float targetFrameTime = 1.f / 30.f; // seconds
-
-		static float switchTimeStamp = 0.f; // seconds
+		static float updateTimestamp = 0.f; // seconds
 
 		__asm
 		{
-			push eax
-
-			mov cl, 0x1
-			call Globals::GetGameTime // cl: unpaused
-
-			pop ecx
-
-			cmp byte ptr isNewMiniMap, 0x1
-			je timestamp // new mini-map
-
-			fcom dword ptr switchTimeStamp
-			fnstsw ax
-			test ah, 0x5
-			jne conclusion // not yet time
-
-			inc ecx
-
-			timestamp:
-			mov byte ptr isNewMiniMap, 0x0
-
-			fadd dword ptr targetFrameTime
-			fst dword ptr switchTimeStamp
-
-			conclusion:
-			fstp st(0)
-			cmp ecx, 0x9
-
-			jmp dword ptr colourUpdateExit
-		}
-	}
-
-
-
-	constexpr address mapConstructorEntrance = 0x59DA9B;
-	constexpr address mapConstructorExit     = 0x59DAA0;
-
-	// Prepares the cop-icon state when a new mini-map is created
-	__declspec(naked) void MapConstructor()
-	{
-		__asm
-		{
-			mov byte ptr isNewMiniMap, 0x1
+			push 0x0                    // unpaused
+			push offset isNewWorldMap   // isFirstQuery
+			push offset updateTimestamp // updateTimestamp
+			call ShouldUpdateColours
+			mov byte ptr updateWorldMapColours, al
 
 			// Execute original code and resume
-			mov ecx, dword ptr [esp + 0x1C]
-			pop edi
+			mov edi, dword ptr [esi + 0x154]
 
-			jmp dword ptr mapConstructorExit
+			jmp dword ptr worldMapUpdateExit
 		}
 	}
 
@@ -259,6 +245,101 @@ namespace CopDetection
 
 
 
+	constexpr address miniMapCopColoursEntrance = 0x579E16;
+	constexpr address miniMapCopColoursExit     = 0x579E1C;
+
+	// Makes cop icons on the mini-map flash at a consistent pace
+	__declspec(naked) void MiniMapCopColours()
+	{
+		static float updateTimestamp = 0.f; // seconds
+
+		__asm
+		{
+			push eax
+
+			push 0x1                    // unpaused
+			push offset isNewMiniMap    // isFirstQuery
+			push offset updateTimestamp // updateTimestamp
+			call ShouldUpdateColours
+			test al, al
+
+			pop ecx
+			je conclusion // not yet time
+
+			inc ecx
+
+			conclusion:
+			cmp ecx, 0x9
+
+			jmp dword ptr miniMapCopColoursExit
+		}
+	}
+
+
+
+	constexpr address worldMapCopColoursEntrance = 0x51F70C;
+	constexpr address worldMapcopColoursExit     = 0x51F712;
+
+	// Makes cop icons on the world map flash at a consistent pace
+	__declspec(naked) void WorldMapCopColours()
+	{
+		__asm
+		{
+			mov ecx, dword ptr [esi + 0x38]
+
+			cmp byte ptr updateWorldMapColours, 0x1
+			jne conclusion // not yet time
+
+			inc ecx
+
+			conclusion:
+			mov eax, ecx
+
+			jmp dword ptr worldMapcopColoursExit
+		}
+	}
+
+
+
+	constexpr address miniMapConstructorEntrance = 0x59DA9B;
+	constexpr address miniMapConstructorExit     = 0x59DAA0;
+
+	// Prepares the cop-icon state when a new mini-map is created
+	__declspec(naked) void MiniMapConstructor()
+	{
+		__asm
+		{
+			mov byte ptr isNewMiniMap, 0x1
+
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x1C]
+			pop edi
+
+			jmp dword ptr miniMapConstructorExit
+		}
+	}
+
+
+
+	constexpr address worldMapConstructorEntrance = 0x5614FF;
+	constexpr address worldMapConstructorExit     = 0x561505;
+
+	// Prepares the cop-icon state when a new world map is created
+	__declspec(naked) void WorldMapConstructor()
+	{
+		__asm
+		{
+			mov byte ptr isNewWorldMap, 0x1
+
+			// Execute original code and resume
+			mov dword ptr [esi + 0x124], eax
+
+			jmp dword ptr worldMapConstructorExit
+		}
+	}
+
+
+
 
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
@@ -266,14 +347,16 @@ namespace CopDetection
 	void ApplyFixes()
 	{
 		// Also fixes the disappearing helicopter icon
-		MemoryTools::Write<size_t>(0, {0x59D5CA});     // frame-counter initialisation
 		MemoryTools::MakeRangeNOP(0x579EA2, 0x579EAB); // early icon-counter check
 		MemoryTools::MakeRangeJMP(CopVehicleIcon,   copVehicleIconEntrance,   copVehicleIconExit);
 		MemoryTools::MakeRangeJMP(DestructionCheck, destructionCheckEntrance, destructionCheckExit);
 
 		// Fixes update frequency for cop-icon colours
-		MemoryTools::MakeRangeJMP(ColourUpdate,   colourUpdateEntrance,   colourUpdateExit);
-		MemoryTools::MakeRangeJMP(MapConstructor, mapConstructorEntrance, mapConstructorExit);
+		MemoryTools::MakeRangeJMP(WorldMapUpdate,      worldMapUpdateEntrance,      worldMapUpdateExit);
+		MemoryTools::MakeRangeJMP(MiniMapCopColours,   miniMapCopColoursEntrance,   miniMapCopColoursExit);
+		MemoryTools::MakeRangeJMP(WorldMapCopColours,  worldMapCopColoursEntrance,  worldMapcopColoursExit);
+		MemoryTools::MakeRangeJMP(MiniMapConstructor,  miniMapConstructorEntrance,  miniMapConstructorExit);
+		MemoryTools::MakeRangeJMP(WorldMapConstructor, worldMapConstructorEntrance, worldMapConstructorExit);
 	}
 
 
