@@ -168,12 +168,12 @@ namespace RoadblockOverrides
             mov dword ptr [esp + 0x18], ecx
             jne conclusion // found suitable setup
 
-            mov edx, dword ptr [esp + 0x54] // AICopManager
+            mov edx, dword ptr [esp + 0x54]  // AICopManager
+            mov eax, dword ptr [esp + 0x4C4] // pursuit
+
             mov dword ptr [edx + 0xBC], ecx // roadblock pursuit
             mov dword ptr [edx + 0xB8], ecx // max. car count
-           
-            mov edx, dword ptr [esp + 0x4C4] // pursuit
-            mov byte ptr [edx + 0x190], cl   // request pending
+            mov byte ptr [eax + 0x190], cl  // request pending
             
             conclusion:
             jmp dword ptr spawnFailureExit
