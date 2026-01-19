@@ -127,7 +127,8 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how much Heat racers gain / lose whenever they destroy a given cop vehicle, and
  • which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
-The "Advanced" feature set ALWAYS FIXES SIX BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES SEVEN BUGS / ISSUES automatically:
+ • failed roadblock spawn attempts can no longer stall spawns for chasing cops,
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
  • the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
  • the helicopter AI is no longer crippled whenever a roadblock is present in the pursuit,

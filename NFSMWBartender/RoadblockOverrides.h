@@ -153,7 +153,46 @@ namespace RoadblockOverrides
 
 
 
+    // Code caves -----------------------------------------------------------------------------------------------------------------------------------
+
+    constexpr address spawnFailureEntrance = 0x43E1DA;
+    constexpr address spawnFailureExit     = 0x43E1E0;
+
+    // Prevents failed roadblock requests from stalling cop spawns
+    __declspec(naked) void SpawnFailure()
+    {
+        __asm
+        {
+            // Execute original code first
+            test ecx, ecx
+            mov dword ptr [esp + 0x18], ecx
+            jne conclusion // found suitable setup
+
+            mov edx, dword ptr [esp + 0x54] // AICopManager
+            mov dword ptr [edx + 0xBC], ecx // roadblock pursuit
+            mov dword ptr [edx + 0xB8], ecx // max. car count
+           
+            mov edx, dword ptr [esp + 0x4C4] // pursuit
+            mov byte ptr [edx + 0x190], cl   // request pending
+            
+            conclusion:
+            jmp dword ptr spawnFailureExit
+        }
+    }
+
+
+
+
+
     // State management -----------------------------------------------------------------------------------------------------------------------------
+
+    void ApplyFixes()
+    {
+        // Fixes cop-spawn stalling due to failed roadblock spawn attempts
+        MemoryTools::MakeRangeJMP(SpawnFailure, spawnFailureEntrance, spawnFailureExit);
+    }
+
+
 
     bool Initialise(HeatParameters::Parser& parser)
     {
@@ -237,6 +276,8 @@ namespace RoadblockOverrides
 
         // Code Changes
         MemoryTools::MakeRangeJMP(SelectRoadblockTable, 0x4063D0, 0x40644A);
+
+        ApplyFixes();
 
         // Status flag
         featureEnabled = true;

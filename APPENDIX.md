@@ -285,11 +285,11 @@ Regarding **cop spawn tables** (`BartenderSettings\Advanced\CarTables.ini`):
 
 * The "Roadblocks" spawn tables don't apply to HeavyStrategy 4 roadblocks.
 
-* Each roadblock / script in the game requests a hard-coded number of vehicles. No roadblock formation in the vanilla game requests more than 5 vehicles, and no scripted event more than 8.
+* Each roadblock / script in the game requests a hard-coded number of vehicles. No roadblock setup in the vanilla game requests more than 6 vehicles, and no scripted event more than 8.
  
 * Bartender temporarily ignores the `count` values in a "Roadblocks" / "Scripted" spawn table whenever a roadblock / script requests more vehicles in total than they would otherwise allow. This ensures the game cannot get stuck trying to spawn a roadblock or start a scripted event.
 
-* Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock formation. This is because the game processes roadblock spawns in a fixed, formation-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This doesn't apply to vehicles with `count` values of at least 5, as no roadblock consists of more than 5 cars.
+* Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock setup. This is because the game processes roadblock spawns in a fixed, setup-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This doesn't apply to vehicles with `count` values of at least 5, as no roadblock consists of more than 5 cars.
 
 * Rarely, vehicles that are not in a "Roadblocks" spawn table may still show up in roadblocks. This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it's processing a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 

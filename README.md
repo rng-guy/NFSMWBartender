@@ -144,7 +144,8 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **always fixes six bugs / issues** automatically:
+The "Advanced" feature set **always fixes seven bugs / issues** automatically:
+* failed roadblock spawn attempts can no longer stall spawns for chasing cops,
 * the game no longer ignores [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) settings for roadblocks and Strategies in races,
 * the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
 * the helicopter AI is no longer crippled whenever a roadblock is present in the pursuit,
