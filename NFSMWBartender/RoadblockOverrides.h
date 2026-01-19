@@ -18,10 +18,10 @@ namespace RoadblockOverrides
 
     bool featureEnabled = false;
 
-    constexpr size_t maxNumEntries = 6;
+    constexpr size_t maxNumParts = 6;
 
     // Data structures
-    enum RBEntryType // C-style for compatibility
+    enum RBPartType // C-style for compatibility
     {
         NONE     = 0,
         CAR      = 1,
@@ -29,13 +29,13 @@ namespace RoadblockOverrides
         SPIKES   = 3
     };
 
-    struct RBEntry
+    struct RBPart
     {
-        RBEntryType partType = RBEntryType::NONE;
+        RBPartType partType = RBPartType::NONE;
 
         float offsetX = 0.f; // metres
         float offsetY = 0.f; // metres
-        float angle   = 0.f; // dimensionless
+        float angle   = 0.f; // revolutions
     };
 
     struct RBTable
@@ -43,7 +43,7 @@ namespace RoadblockOverrides
         float  minRoadWidth    = 0.f; // metres
         size_t numCarsRequired = 0;
 
-        RBEntry entries[maxNumEntries] = {}; // C-style for compatibility
+        RBPart parts[maxNumParts] = {}; // C-style for compatibility
     };
 
     struct RBSetup
@@ -161,10 +161,10 @@ namespace RoadblockOverrides
 
         HeatParameters::Parse<float>(parser, "Roadblocks:Tolerance", {widthTolerances, 0.f});
 
-        std::array<int,   maxNumEntries> partTypes    = {};
-        std::array<float, maxNumEntries> partOffsetsX = {};
-        std::array<float, maxNumEntries> partOffsetsY = {};
-        std::array<float, maxNumEntries> partAngles   = {};
+        std::array<int,   maxNumParts> partTypes    = {};
+        std::array<float, maxNumParts> partOffsetsX = {};
+        std::array<float, maxNumParts> partOffsetsY = {};
+        std::array<float, maxNumParts> partAngles   = {};
 
         const auto&       sections = parser.GetSections();
         const std::string baseName = "Setups:";
@@ -187,28 +187,28 @@ namespace RoadblockOverrides
             (
                 section,
                 "part{:02}",
-                ConfigParser::FormatParameter<int,   maxNumEntries>(partTypes),
-                ConfigParser::FormatParameter<float, maxNumEntries>(partOffsetsX),
-                ConfigParser::FormatParameter<float, maxNumEntries>(partOffsetsY),
-                ConfigParser::FormatParameter<float, maxNumEntries>(partAngles)
+                ConfigParser::FormatParameter<int,   maxNumParts>(partTypes),
+                ConfigParser::FormatParameter<float, maxNumParts>(partOffsetsX),
+                ConfigParser::FormatParameter<float, maxNumParts>(partOffsetsY),
+                ConfigParser::FormatParameter<float, maxNumParts>(partAngles)
             );
 
-            size_t numValidEntries = 0;
+            size_t numValidParts = 0;
 
-            for (size_t partID = 0; partID < maxNumEntries; ++partID)
+            for (size_t partID = 0; partID < maxNumParts; ++partID)
             {
                 if (not isValids[partID]) continue;
 
                 switch (partTypes[partID])
                 {
-                case RBEntryType::CAR:
+                case RBPartType::CAR:
                     ++setup.table.numCarsRequired;
                     break;
 
-                case RBEntryType::BLOCKADE:
+                case RBPartType::BLOCKADE:
                     break;
 
-                case RBEntryType::SPIKES:
+                case RBPartType::SPIKES:
                     setup.hasSpikes = true;
                     break;
 
@@ -216,9 +216,9 @@ namespace RoadblockOverrides
                     continue;
                 }
 
-                setup.table.entries[numValidEntries++] =
+                setup.table.parts[numValidParts++] =
                 {
-                    static_cast<RBEntryType>(partTypes[partID]),
+                    static_cast<RBPartType>(partTypes[partID]),
                     partOffsetsX[partID],
                     partOffsetsY[partID],
                     partAngles  [partID]
@@ -228,7 +228,7 @@ namespace RoadblockOverrides
             if (setup.table.numCarsRequired > 0)
             {
                 setup.name = section.substr(baseName.length());
-                HeatParameters::Parse<int>(parser, setup.name + ":Chance", {setup.chances, 0});
+                HeatParameters::Parse<int>(parser, section, {setup.chances, 0});
             }
             else roadblockSetups.pop_back();
         }
@@ -272,6 +272,7 @@ namespace RoadblockOverrides
             }
         }
 
+        // With logging disabled, the compiler optimises the unsigned integers away
         if constexpr (Globals::loggingEnabled)
         {
             Globals::logger.Log("    HEAT [RBL] RoadblockOverrides");
@@ -281,5 +282,29 @@ namespace RoadblockOverrides
             Globals::logger.LogLongIndent("numRegularRoadblocks:   ", static_cast<int>(numRegularRoadblocks));
             Globals::logger.LogLongIndent("numSpikeRoadblocks:     ", static_cast<int>(numSpikeRoadblocks));
         }
+    }
+
+
+
+    void LogSetupReport()
+    {
+        if (not featureEnabled) return;
+
+        Globals::logger.Log("  CONFIG [RBL] RoadblockOverrides");
+
+        size_t numRegularRoadblocks = 0;
+        size_t numSpikeRoadblocks   = 0;
+
+        for (const RBSetup& setup : roadblockSetups)
+        {
+            if (setup.hasSpikes)
+                ++numSpikeRoadblocks;
+
+            else
+                ++numRegularRoadblocks;
+        }
+
+        Globals::logger.LogLongIndent("Regular roadblocks:", static_cast<int>(numRegularRoadblocks));
+        Globals::logger.LogLongIndent("Spike   roadblocks:", static_cast<int>(numSpikeRoadblocks));
     }
 }

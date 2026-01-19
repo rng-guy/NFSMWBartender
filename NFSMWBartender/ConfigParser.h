@@ -265,7 +265,7 @@ namespace ConfigParser
 			const std::optional<T>    lowerBound       = {},
 			const std::optional<T>    upperBound       = {}
 		) {
-			parameterKeys.clear();
+			parameterKeys  .clear();
 			parameterValues.clear();
 
 			const size_t numTotalReads = inipp::get_value<char, T>
@@ -285,7 +285,7 @@ namespace ConfigParser
 			std::vector<std::string>& parameterKeys,
 			std::vector<bool>&        parameterValues
 		) {
-			parameterKeys.clear();
+			parameterKeys  .clear();
 			parameterValues.clear();
 
 			const size_t numTotalReads = inipp::get_value<char, bool>

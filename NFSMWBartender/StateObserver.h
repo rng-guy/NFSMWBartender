@@ -15,6 +15,7 @@
 
 #include "PursuitObserver.h"
 #include "CopSpawnOverrides.h"
+#include "RoadblockOverrides.h"
 
 
 
@@ -77,8 +78,8 @@ namespace StateObserver
 		{
 			Globals::logger.Open("BartenderLog.txt");
 
-			Globals::logger.Log          ("\n SESSION [VER] Bartender v2.10.01");
-			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled) ? "enabled" : "disabled");
+			Globals::logger.Log          ("\n SESSION [VER] Bartender v2.11.00");
+			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
 
 			if (MemoryTools::numRangeErrors > 0)
@@ -105,6 +106,9 @@ namespace StateObserver
 		GeneralSettings::Validate();
 		GroundSupports ::Validate();
 		PursuitObserver::Validate();
+
+		if constexpr (Globals::loggingEnabled)
+			RoadblockOverrides::LogSetupReport();
 	}
 
 

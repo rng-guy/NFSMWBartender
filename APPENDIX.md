@@ -405,6 +405,20 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 &nbsp;
 
+Regarding **roadblock setups** (`BartenderSettings\Advanced\Roadblocks.ini`):
+
+* If you delete this file or define no roadblock setups, Bartender disables this feature.
+
+* If enabled, the roadblock-setup feature automatically fixes the vanilla issue where the game would never spawn certain roadblock setups. That's because the vanilla doesn't use randomness or width tolerances to select a setup; instead, it just picks the first setup in its table which uses the available width the most, and ignores any other setups that might be equally suitable (i.e. wide). Since the vanilla game has three spike-strip setups with exactly the same width, two of them will never appear in pursuits.
+
+* Read the usage comments in this file's header before you change any of its contents. It's very easy to screw up roadblock setups or encounter unexpected behaviour if you don't fully understand how the game goes about selecting roadblock setups to spawn.
+
+* I highly suggest you use Bartender's `RoadblockDesigner.html` file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
+
+* The width requirements for roadblocks are technically not required to match their actual size; certain vanilla roadblock setups use such mismatched widths to allow for more frequent spawns. If you make a roadblock setup's width requirement lower than its actual size, the game might spawn some parts out of bounds or attempt to reposition them slightly; if you make the width requirement larger than the setup's size, it likely won't cover the entire road.
+
+&nbsp;
+
 Regarding **Heat gain / loss** (`BartenderSettings\Advanced\Heat.ini`):
 
 * The `0x80deb840` VltEd array and the `TimePerHeatLevel` VltEd parameter control the pace at which racers gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a Heat level passively, while the latter multiplies this base amount by whatever number you define for it.

@@ -1,3 +1,20 @@
+<!-- 
+    HERE BE DRAGONS: Genuinely the WORST thing I've ever dared publish.
+
+    I'd rather spend my time reversing game mechanics than refreshing my rusty
+    JavaScript knowledge for a one-off tool, so I used Gemini to draft this mess.
+    Nonetheless, it still took me hours of manual testing and un-fucking of the styling
+    to get this to work as I had envisoned it. I might just rewrite once I get around
+    to it, because I low-key loathe myself for having used generative AI for ANYTHING.
+
+    After experiencing the "joys" of "vibecoding" (I hate that word SO much) for myself, 
+    let me offer you a small piece of advice: Do NOT use generative AI for anything more
+    complicated than basic HTML, CSS, and JS. While functional, this tool is still an 
+    unmaintainable, div-laden mess that nobody should EVER attempt to refactor by hand. 
+    I cannot even begin to imagine how annoying it would be to unfuck AI-generated C++
+    or, god forbid, ASM by hand. My condolences to anyone whose employer mandates AI use.
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +34,7 @@
         .btn-group-left, .btn-group-right { display: flex; gap: 10px; }
         button { padding: 10px 15px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; background: #fcfcfcfc; font-size: 13px; }
         .btn-add { width: 105px; height: 40px; text-align: center; }
-	.btn-misc { height: 40px; text-align: center; }
+	    .btn-misc { height: 40px; text-align: center; }
         button:hover:not(:disabled) { background: #e0e0e0; }
         button:disabled { cursor: not-allowed; opacity: 0.5; background: #ddd; border-color: #ccc; color: #999; }
         .output-container { display: flex; flex-direction: column; width: var(--main-width); }
@@ -58,8 +75,8 @@
     </div>
 
     <script>
-        const IMAGE_RENDER_SCALE = 0.25;
-        const LENGTH_SCALE = 4.5 / (480 * IMAGE_RENDER_SCALE);
+        const IMAGE_RENDER_SCALE = 0.35;
+        const LENGTH_SCALE = 4.5 / (340 * IMAGE_RENDER_SCALE);
         const MAX_RECTS = 6;
         const GRID_SIZE = 10;
         const ROT_FINE = 5 * (Math.PI / 180), ROT_COARSE = 10 * (Math.PI / 180);
