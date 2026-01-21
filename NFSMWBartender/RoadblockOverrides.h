@@ -168,12 +168,26 @@ namespace RoadblockOverrides
             mov dword ptr [esp + 0x18], ecx
             jne conclusion // found suitable setup
 
-            mov edx, dword ptr [esp + 0x54]  // AICopManager
-            mov eax, dword ptr [esp + 0x4C4] // pursuit
+            cmp dword ptr [esp + 0x4C0], 0x43E7D6
+            jne regular // not HeavyStrategy 4
 
+            mov ecx, dword ptr [esp + 0x4C4] // pursuit
+            call Globals::ClearSupportRequest
+            jmp restore
+
+            regular:
+            cmp dword ptr [esp + 0x4C0], 0x43EC3A
+            jne restore // not non-Strategy roadblock
+
+            mov eax, dword ptr [esp + 0x4C4] // pursuit
+            mov edx, dword ptr [esp + 0x54]  // AICopManager
+
+            mov byte ptr [eax + 0x190], cl  // request status
             mov dword ptr [edx + 0xBC], ecx // roadblock pursuit
             mov dword ptr [edx + 0xB8], ecx // max. car count
-            mov byte ptr [eax + 0x190], cl  // request pending
+
+            restore:
+            xor ecx, ecx
             
             conclusion:
             jmp dword ptr spawnFailureExit

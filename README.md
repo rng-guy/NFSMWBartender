@@ -129,6 +129,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * when exactly (if at all) the helicopter can run out of fuel after each (re)spawn,
 * the internal cooldown between the helicopter's ramming attempts through HeliStrategy 2,
 * below what racer speed HeavyStrategy 3 vehicles cancel their ramming attempts early,
+* how many vehicles can spawn through each successful HeavyStrategy 3 request,
 * whether HeavyStrategy 3 vehicles can join the pursuit once their request expires,
 * above what count (if at all) no more cops can join the pursuit from HeavyStrategy 3 requests,
 * when exactly (if at all) LeaderStrategy 5 / 7 Cross and / or his henchmen become aggressive,
@@ -144,7 +145,8 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **always fixes seven bugs / issues** automatically:
+The "Advanced" feature set **always fixes eight bugs / issues** automatically:
+* HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
 * failed roadblock spawn attempts can no longer stall spawns for chasing cops,
 * the game no longer ignores [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) settings for roadblocks and Strategies in races,
 * the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
@@ -209,6 +211,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 * `[Chasers:Limits]` in `CarSpawns.ini`: You define a global cop-spawn limit > 8.
 * `[Chasers:Independence]` in `CarSpawns.ini`: You enable independent spawns for chasing cops.
 * `[Traffic:Independence]` in `CarSpawns.ini`: You enable independent spawns for traffic cars.
+* `[Heavy3:Count]` in `Strategies.ini`: You define a vehicle count > 2 per request.
 * `[Heavy3:Joining]` in `Strategies.ini`: You enable joining from HeavyStrategy 3 requests.
 * `[Heavy3:Unblocking]` in `Strategies.ini`: You define very short unblock delays.
 

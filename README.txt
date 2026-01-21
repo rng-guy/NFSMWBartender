@@ -116,6 +116,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the helicopter can run out of fuel after each (re)spawn,
  • the internal cooldown between the helicopter's ramming attempts through HeliStrategy 2,
  • below what racer speed HeavyStrategy 3 vehicles cancel their ramming attempts early,
+ • how many vehicles can spawn through each successful HeavyStrategy 3 request,
  • whether HeavyStrategy 3 vehicles can join the pursuit once their request expires,
  • above what count (if at all) no more cops can join the pursuit from HeavyStrategy 3 requests,
  • when exactly (if at all) LeaderStrategy 5 / 7 Cross and / or his henchmen become aggressive,
@@ -127,7 +128,8 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how much Heat racers gain / lose whenever they destroy a given cop vehicle, and
  • which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
-The "Advanced" feature set ALWAYS FIXES SEVEN BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES EIGHT BUGS / ISSUES automatically:
+ • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
  • failed roadblock spawn attempts can no longer stall spawns for chasing cops,
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
  • the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
@@ -184,6 +186,7 @@ Specifically, you likely need that mod if you configure Bartender in any of the 
  • "[Chasers:Limits]"       in "CarSpawns.ini" : You define a global cop-spawn limit > 8.
  • "[Chasers:Independence]" in "CarSpawns.ini" : You enable independent spawns for chasing cops.
  • "[Traffic:Independence]" in "CarSpawns.ini" : You enable independent spawns for traffic cars.
+ • "[Heavy3:Count]"         in "Strategies.ini": You define a vehicle count > 2 per request.
  • "[Heavy3:Joining]"       in "Strategies.ini": You enable joining from HeavyStrategy 3 requests.
  • "[Heavy3:Unblocking]"    in "Strategies.ini": You define very short unblock delays.
  

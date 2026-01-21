@@ -130,6 +130,38 @@ namespace HeatParameters
 		}
 
 
+		T GetMinimum() const
+		{
+			T minimum = this->roam[0];
+
+			for (const bool forRaces : {false, true})
+			{
+				const Values<T>& values = this->GetValues(forRaces);
+
+				for (const T value : values)
+					minimum = std::min<T>(minimum, value);
+			}
+
+			return minimum;
+		}
+
+
+		T GetMaximum() const
+		{
+			T maximum = this->roam[0];
+
+			for (const bool forRaces : {false, true})
+			{
+				const Values<T>& values = this->GetValues(forRaces);
+
+				for (const T value : values)
+					maximum = std::max<T>(maximum, value);
+			}
+
+			return maximum;
+		}
+
+
 		void Log(const char* const pairName) const
 		{
 			Globals::logger.LogLongIndent(pairName, this->current);
@@ -228,6 +260,18 @@ namespace HeatParameters
 		) {
 			this->minValues.SetToHeat(forRaces, heatLevel);
 			this->maxValues.SetToHeat(forRaces, heatLevel);
+		}
+
+
+		T GetMinimum() const
+		{
+			return this->minValues.GetMinimum();
+		}
+
+
+		T GetMaximum() const
+		{
+			return this->maxValues.GetMaximum();
 		}
 
 

@@ -61,14 +61,14 @@ namespace StateObserver
 
 	// Hooking functions ----------------------------------------------------------------------------------------------------------------------------
 
-	address onGameLoadValidationOriginal = 0x0;
+	address OnGameLoadValidationOriginal = 0x0;
 
 	void __cdecl OnGameLoadValidation
 	(
 		const size_t  numArgs,
 		const address argArray
 	) {
-		const auto OriginalFunction = reinterpret_cast<void (__cdecl*)(size_t, address)>(onGameLoadValidationOriginal);
+		const auto OriginalFunction = reinterpret_cast<void (__cdecl*)(size_t, address)>(OnGameLoadValidationOriginal);
 
 		// Call original function first
 		OriginalFunction(numArgs, argArray);
@@ -113,11 +113,11 @@ namespace StateObserver
 
 
 
-	address onGameplayUpdatesOriginal = 0x0;
+	address OnGameplayUpdatesOriginal = 0x0;
 
 	void __fastcall OnGameplayUpdates(const address soundAI)
 	{
-		const auto OriginalFunction = reinterpret_cast<void (__thiscall*)(address)>(onGameplayUpdatesOriginal);
+		const auto OriginalFunction = reinterpret_cast<void (__thiscall*)(address)>(OnGameplayUpdatesOriginal);
 
 		// Apply hooked logic fist
 		const auto IsRacing = reinterpret_cast<bool (__thiscall*)(address)>(0x409500);
@@ -137,11 +137,11 @@ namespace StateObserver
 
 
 
-	address onWorldLoadUpdatesOriginal = 0x0;
+	address OnWorldLoadUpdatesOriginal = 0x0;
 
 	void OnWorldLoadUpdates()
 	{
-		const auto OriginalFunction = reinterpret_cast<void (*)()>(onWorldLoadUpdatesOriginal);
+		const auto OriginalFunction = reinterpret_cast<void (*)()>(OnWorldLoadUpdatesOriginal);
 
 		// Apply hooked logic fist
 		CopSpawnOverrides::ResetState();
@@ -152,11 +152,11 @@ namespace StateObserver
 
 
 
-	address onRestartUpdatesOriginal = 0x0;
+	address OnRestartUpdatesOriginal = 0x0;
 
 	void OnRestartUpdates()
 	{
-		const auto OriginalFunction = reinterpret_cast<void (*)()>(onRestartUpdatesOriginal);
+		const auto OriginalFunction = reinterpret_cast<void (*)()>(OnRestartUpdatesOriginal);
 
 		// Apply hooked logic fist
 		playerHeatLevel = 0;
@@ -377,10 +377,10 @@ namespace StateObserver
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		// Code modifications 
-		onGameLoadValidationOriginal = MemoryTools::MakeCallHook(OnGameLoadValidation, 0x6665B4); // InitializeEverything (0x665FC0)
-		onGameplayUpdatesOriginal    = MemoryTools::MakeCallHook(OnGameplayUpdates,    0x721609); // SoundAI::SyncPursuit (0x720850)
-		onWorldLoadUpdatesOriginal   = MemoryTools::MakeCallHook(OnWorldLoadUpdates,   0x662ADC); // nullsub_174          (0x6C39C0)
-		onRestartUpdatesOriginal     = MemoryTools::MakeCallHook(OnRestartUpdates,     0x63090B); // World_RestoreProps   (0x74D320)
+		OnGameLoadValidationOriginal = MemoryTools::MakeCallHook(OnGameLoadValidation, 0x6665B4); // InitializeEverything (0x665FC0)
+		OnGameplayUpdatesOriginal    = MemoryTools::MakeCallHook(OnGameplayUpdates,    0x721609); // SoundAI::SyncPursuit (0x720850)
+		OnWorldLoadUpdatesOriginal   = MemoryTools::MakeCallHook(OnWorldLoadUpdates,   0x662ADC); // nullsub_174          (0x6C39C0)
+		OnRestartUpdatesOriginal     = MemoryTools::MakeCallHook(OnRestartUpdates,     0x63090B); // World_RestoreProps   (0x74D320)
 
 		MemoryTools::MakeRangeJMP(HeatEqualiser,         heatEqualiserEntrance,         heatEqualiserExit);
 		MemoryTools::MakeRangeJMP(ResetAIVehicle,        resetAIVehicleEntrance,        resetAIVehicleExit);

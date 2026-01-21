@@ -24,23 +24,41 @@
     <style>
         :root { --main-width: 700px; --caption-gap: 5px; }
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px; background-color: #D9D9DB; }
-        .workspace { display: flex; flex-direction: column; width: var(--main-width); gap: 15px; }
+        .workspace { display: flex; flex-direction: column; width: var(--main-width); gap: 10px; }
         .caption { font-weight: bold; font-size: 20px; color: #444; margin-bottom: var(--caption-gap); }
         .canvas-container { position: relative; width: var(--main-width); }
         #canvasCounter { position: absolute; top: 40px; left: 10px; background: rgba(0,0,0,0.6); color: #fcfcfcfc; padding: 4px 8px; border-radius: 4px; font-size: 11px; pointer-events: none; z-index: 10; }
-        #canvasOverlay { position: absolute; bottom: 10px; right: 10px; font-size: 12px; color: #666; pointer-events: none; text-align: right; z-index: 5; }
+        #canvasOverlay { position: absolute; bottom: 10px; right: 10px; font-size: 12px; color: #666; pointer-events: none; text-align: right; z-index: 5; transition: color 0.2s; }
         canvas { border: none; background-color: #fcfcfcfc; cursor: crosshair; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: block; width: var(--main-width); outline: none; }
         .bottom-controls { display: flex; justify-content: space-between; align-items: center; width: var(--main-width); margin-bottom: 25px; }
         .btn-group-left, .btn-group-right { display: flex; gap: 10px; }
         button { padding: 10px 15px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; background: #fcfcfcfc; font-size: 13px; }
         .btn-add { width: 105px; height: 40px; text-align: center; }
 	    .btn-misc { height: 40px; text-align: center; }
-        button:hover:not(:disabled) { background: #e0e0e0; }
-        button:disabled { cursor: not-allowed; opacity: 0.5; background: #ddd; border-color: #ccc; color: #999; }
+        button:hover:not(:disabled) { background: #ececec; }
+        button:disabled { cursor: not-allowed; opacity: 0.75; background: #ddd; border-color: #ccc; color: #999; }
         .output-container { display: flex; flex-direction: column; width: var(--main-width); }
         .output-wrapper { position: relative; width: var(--main-width); height: 180px; border: 1px solid #999; box-sizing: border-box; }
         #outputField { width: 100%; height: 100%; padding: 10px; border: none; box-sizing: border-box; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 12px; overflow-y: auto; cursor: pointer; user-select: none; background: #242426; color: #E5E4E7; }
         #outputOverlay { position: absolute; bottom: 10px; right: 10px; font-size: 12px; color: #999999; pointer-events: none; }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: #D9D9DB; padding: 15px; border-radius: 8px; width: 455px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 10px;
+        }
+        .modal-header { font-weight: bold; font-size: 20px; color: #444; margin-bottom: -5px; }
+        .modal-textarea {
+            width: 100%; height: 130px; font-family: 'Courier New', monospace; font-size: 12px;
+            padding: 10px; box-sizing: border-box; resize: none; border: 1px solid #ccc;
+            background: #242426; color: #E5E4E7;
+            outline: none; /* No selection border */
+        }
+	.modal-textarea::placeholder { color: #999 }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
     </style>
 </head>
 <body>
@@ -58,10 +76,11 @@
                 <button id="btnCar" class="btn-add" onclick="handleAction('car')">✚ car</button>
                 <button id="btnSpikes" class="btn-add" onclick="handleAction('spikes')">✚ spikes</button>
                 <button id="btnBarricade" class="btn-add" onclick="handleAction('barricade')">✚ barricade</button>
+                <button id="btnImport" class="btn-misc" onclick="openImportModal()">import</button>
             </div>
             <div class="btn-group-right">
-	        <button id="deleteBtn" class="btn-misc" onclick="deleteSelected()" disabled>remove selected</button>
-                <button id="btnClear" class="btn-misc" onclick="clearCanvas()">reset</button>
+	            <button id="deleteBtn" class="btn-misc" onclick="deleteSelected()" disabled>remove selected</button>
+                <button id="btnClear" class="btn-misc" onclick="clearCanvas()">clear</button>
             </div>
         </div>
 
@@ -74,24 +93,47 @@
         </div>
     </div>
 
+    <div id="importModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">Import from Bartender</div>
+            <textarea id="importInput" class="modal-textarea" placeholder="part01 = typeID, {horizontal, vertical}Offset, orientation
+part02 = typeID, ...
+
+
+
+
+
+(imported vanilla roadblocks may end up slightly misaligned)"></textarea>
+            <div class="modal-footer">
+                <button onclick="closeImportModal()">cancel</button>
+                <button id="btnLoadImport" onclick="loadImportData()" disabled>apply</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const IMAGE_RENDER_SCALE = 0.35;
-        const LENGTH_SCALE = 4.5 / (340 * IMAGE_RENDER_SCALE);
+        // Updated Constants
+        const IMAGE_RENDER_SCALE = 0.25;
+        const LENGTH_SCALE = 5.0 / (400 * IMAGE_RENDER_SCALE);
+        
         const MAX_RECTS = 6;
         const GRID_SIZE = 10;
         const ROT_FINE = 5 * (Math.PI / 180), ROT_COARSE = 10 * (Math.PI / 180);
         const MOVE_FINE = 1, MOVE_COARSE = 10;
         const LAYER_PRIORITY = { barricade: 3, car: 2, spikes: 1 };
         const RECT_CONFIG = {
-            car:       { src: 'Assets/Images/car.webp' },
-            spikes:    { src: 'Assets/Images/spikes.webp' },
-            barricade: { src: 'Assets/Images/barricade.webp' }
+            car:       { src: 'car.webp' },
+            spikes:    { src: 'spikes.webp' },
+            barricade: { src: 'barricade.webp' }
         };
+        const TYPE_MAP = { 1: 'car', 2: 'barricade', 3: 'spikes' };
 
         const images = {};
         let imagesLoaded = 0;
         const canvas = document.getElementById('mainCanvas'), ctx = canvas.getContext('2d');
         const outputField = document.getElementById('outputField'), outputOverlay = document.getElementById('outputOverlay'), counterEl = document.getElementById('canvasCounter');
+        const canvasOverlay = document.getElementById('canvasOverlay');
+        const modal = document.getElementById('importModal'), importInput = document.getElementById('importInput'), btnLoadImport = document.getElementById('btnLoadImport');
         
         let rects = [], selectedIndices = [], isDraggingGroup = false, isBoxSelecting = false;
         let boxStart = { x: 0, y: 0 }, boxEnd = { x: 0, y: 0 }, dragStartData = null, isShiftDown = false, selectionSnapshot = [], layerCounter = 0, clipboard = null;
@@ -104,22 +146,167 @@
 
         function initDefault() { addRect('car'); draw(); }
 
+        function openImportModal() {
+            modal.style.display = 'flex';
+            importInput.value = '';
+            btnLoadImport.disabled = true;
+            importInput.focus();
+        }
+
+        function closeImportModal() {
+            modal.style.display = 'none';
+            canvas.focus();
+        }
+
+        modal.addEventListener('mousedown', (e) => {
+            if (e.target === modal) closeImportModal();
+        });
+
+        function parseImportLines(text) {
+            // Filter: Ignore lines not beginning with "part" (whitespace allowed)
+            return text.split('\n')
+                .map(l => l.trim())
+                .filter(l => l.startsWith('part'));
+        }
+
+        importInput.addEventListener('input', () => {
+            const lines = parseImportLines(importInput.value);
+            
+            let isValid = true;
+            let hasCar = false;
+
+            if (lines.length === 0 || lines.length > MAX_RECTS) isValid = false;
+            else {
+                const regex = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*$/;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const match = line.match(regex);
+                    
+                    if (!match) { isValid = false; break; }
+                    
+                    // Strict Order check on FILTERED lines
+                    const partNum = parseInt(match[1], 10);
+                    if (partNum !== (i + 1)) { isValid = false; break; }
+                    
+                    if (parseInt(match[2]) === 1) hasCar = true;
+                }
+            }
+            btnLoadImport.disabled = !(isValid && hasCar);
+        });
+
+        function loadImportData() {
+            const lines = parseImportLines(importInput.value);
+            const tempRects = [];
+            const regex = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*$/;
+            
+            let localLayerCounter = 0;
+
+            lines.forEach(line => {
+                const match = line.match(regex);
+                const typeCode = parseInt(match[2]);
+                const offX = parseFloat(match[3]);
+                const offY = parseFloat(match[5]);
+                const deg = parseFloat(match[7]);
+
+                const type = TYPE_MAP[typeCode];
+                const img = images[type];
+                
+                // Convert angle from export format
+                let degrees = deg * 360;
+                let rawDeg = (type === 'car') ? degrees : (degrees - 90);
+                let angleRad = (90 - rawDeg) * (Math.PI / 180);
+
+                tempRects.push({
+                    x: (offX / LENGTH_SCALE),
+                    y: -(offY / LENGTH_SCALE),
+                    w: img.width * IMAGE_RENDER_SCALE,
+                    h: img.height * IMAGE_RENDER_SCALE,
+                    img: img,
+                    type: type,
+                    angle: angleRad,
+                    layer: ++localLayerCounter
+                });
+            });
+
+            // Calculate MBB of the imported objects (Using Corners for visual centering)
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            tempRects.forEach(r => {
+                const corners = getLocalCorners(r);
+                corners.forEach(c => {
+                    minX = Math.min(minX, r.x + c.x); maxX = Math.max(maxX, r.x + c.x);
+                    minY = Math.min(minY, r.y + c.y); maxY = Math.max(maxY, r.y + c.y);
+                });
+            });
+
+            const mbbCx = (minX + maxX) / 2;
+            const mbbCy = (minY + maxY) / 2;
+            const canvasCx = canvas.width / 2;
+            const canvasCy = canvas.height / 2;
+
+            // Shift to center on canvas
+            rects = tempRects.map(r => ({
+                ...r,
+                x: r.x - mbbCx + canvasCx,
+                y: r.y - mbbCy + canvasCy
+            }));
+
+            // Check for Out of Bounds after centering
+            let isOutOfBounds = false;
+            rects.forEach(r => {
+                const corners = getLocalCorners(r);
+                corners.forEach(c => {
+                    const gx = r.x + c.x;
+                    const gy = r.y + c.y;
+                    if (gx < 0 || gx > canvas.width || gy < 0 || gy > canvas.height) {
+                        isOutOfBounds = true;
+                    }
+                });
+            });
+
+            layerCounter = localLayerCounter;
+            selectedIndices = [];
+            closeImportModal();
+            updateUI();
+            draw();
+
+            const defaultText = "Left-click to select. Scroll to rotate. Hold Shift to snap.";
+	      
+            if (isOutOfBounds) {
+		canvasOverlay.innerHTML = 'Import <span style="color: #D61E00"><b>out of bounds</b></span>.';
+              }
+	      else
+	      {
+	        canvasOverlay.innerHTML = 'Import <span style="color: #00B553"><b>successful</b></span>.';
+              }
+
+              setTimeout(() => { 
+                    canvasOverlay.innerText = defaultText;
+                    canvasOverlay.style.color = "#666";
+              }, 4000);
+	}
+
         document.addEventListener('mousedown', (e) => {
-            if (e.target !== canvas && e.target.tagName !== 'BUTTON' && e.target !== outputField) { selectedIndices = []; updateUI(); draw(); }
+            if (e.target !== canvas && e.target.tagName !== 'BUTTON' && e.target !== outputField && !modal.contains(e.target) && e.target !== modal) { selectedIndices = []; updateUI(); draw(); }
         });
 
         outputField.addEventListener('click', () => {
             navigator.clipboard.writeText(outputField.innerText).then(() => {
-                outputOverlay.innerHTML = 'Settings <span style="color: #ffd500">copied</span>.';
-                setTimeout(() => { outputOverlay.innerText = "Click to copy settings."; }, 2000);
+                outputOverlay.innerHTML = 'Settings <span style="color: #ffd500"><b>copied</b></span>.';
+                setTimeout(() => { outputOverlay.innerText = "Click to copy settings."; }, 4000);
             });
         });
 
         window.addEventListener('keydown', (e) => { 
+            if (e.key === 'Escape') {
+                if (modal.style.display === 'flex') { closeImportModal(); return; }
+                if (document.activeElement === canvas) { selectedIndices = []; updateUI(); draw(); }
+                return;
+            }
+            if (modal.style.display === 'flex') return;
             const isCanvasActive = (document.activeElement === canvas);
             if(e.key === 'Shift') { isShiftDown = true; updateUI(); draw(); }
             if(e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
-            if(e.key === 'Escape' && isCanvasActive) { selectedIndices = []; updateUI(); draw(); }
             
             if (e.ctrlKey && e.key.toLowerCase() === 'a' && isCanvasActive) { e.preventDefault(); selectedIndices = rects.map((_, i) => i); updateUI(); draw(); }
             if (e.ctrlKey && e.key.toLowerCase() === 'c' && selectedIndices.length > 0) clipboard = selectedIndices.map(i => ({...rects[i]}));
@@ -138,7 +325,6 @@
                 e.preventDefault();
                 const step = isShiftDown ? MOVE_COARSE : MOVE_FINE;
                 let limit = step;
-
                 selectedIndices.forEach(idx => {
                     const r = rects[idx], corners = getLocalCorners(r).map(c => ({ x: c.x + r.x, y: c.y + r.y }));
                     if (e.key === 'ArrowUp') limit = Math.min(limit, Math.min(...corners.map(c => c.y)));
@@ -146,7 +332,6 @@
                     if (e.key === 'ArrowLeft') limit = Math.min(limit, Math.min(...corners.map(c => c.x)));
                     if (e.key === 'ArrowRight') limit = Math.min(limit, canvas.width - Math.max(...corners.map(c => c.x)));
                 });
-
                 if (limit > 0) {
                     selectedIndices.forEach(idx => {
                         if (e.key === 'ArrowUp') rects[idx].y -= limit;
@@ -166,7 +351,6 @@
             let hitIdx = -1;
             const sorted = rects.map((r, i) => ({r, i})).sort((a, b) => (LAYER_PRIORITY[b.r.type] - LAYER_PRIORITY[a.r.type]) || (b.r.layer - a.r.layer));
             for (let item of sorted) { if (isHit(item.r, mx, my)) { hitIdx = item.i; break; } }
-
             if (hitIdx !== -1) {
                 if (!isShiftDown && !selectedIndices.includes(hitIdx)) selectedIndices = [hitIdx];
                 else if (isShiftDown && !selectedIndices.includes(hitIdx)) selectedIndices.push(hitIdx);
@@ -209,8 +393,24 @@
 
         canvas.addEventListener('wheel', (e) => {
             if (selectedIndices.length > 0) {
-                e.preventDefault(); const step = (e.deltaY > 0 ? 1 : -1) * (isShiftDown ? ROT_COARSE : ROT_FINE);
-                if (selectedIndices.every(i => canExistAt(rects[i], rects[i].x, rects[i].y, rects[i].angle + step))) { selectedIndices.forEach(i => rects[i].angle += step); draw(); }
+                e.preventDefault(); 
+                const step = isShiftDown ? ROT_COARSE : ROT_FINE;
+                const direction = e.deltaY > 0 ? 1 : -1;
+                
+                // Rotation Snapping Logic
+                if (selectedIndices.every(idx => {
+                    const r = rects[idx];
+                    let newAngle = r.angle + (direction * step);
+                    // Snap to integer multiple of step
+                    newAngle = Math.round(newAngle / step) * step;
+                    return canExistAt(r, r.x, r.y, newAngle);
+                })) {
+                    selectedIndices.forEach(idx => {
+                        let newAngle = rects[idx].angle + (direction * step);
+                        rects[idx].angle = Math.round(newAngle / step) * step;
+                    });
+                    draw();
+                }
             }
         }, { passive: false });
 
@@ -296,8 +496,19 @@
                 ctx.restore();
             });
             if (isBoxSelecting) { ctx.strokeStyle = '#007bff'; ctx.setLineDash([5,5]); ctx.strokeRect(boxStart.x, boxStart.y, boxEnd.x-boxStart.x, boxEnd.y-boxStart.y); ctx.setLineDash([]); }
+            
+            // Full-extent MBB Calculation (Corners included)
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-            rects.forEach(r => getLocalCorners(r).forEach(p => { minX=Math.min(minX,r.x+p.x); maxX=Math.max(maxX,r.x+p.x); minY=Math.min(minY,r.y+p.y); maxY=Math.max(maxY,r.y+p.y); }));
+            rects.forEach(r => {
+                const corners = getLocalCorners(r);
+                corners.forEach(p => {
+                    minX = Math.min(minX, r.x + p.x);
+                    maxX = Math.max(maxX, r.x + p.x);
+                    minY = Math.min(minY, r.y + p.y);
+                    maxY = Math.max(maxY, r.y + p.y);
+                });
+            });
+
             if (rects.length > 0) {
                 const mbb = { x: minX, y: minY, w: maxX-minX, h: maxY-minY, cx: minX + (maxX-minX)/2, cy: minY + (maxY-minY)/2 };
                 ctx.setLineDash([5, 5]); ctx.strokeStyle = '#666'; ctx.strokeRect(mbb.x, mbb.y, mbb.w, mbb.h); ctx.setLineDash([]);
@@ -319,18 +530,16 @@
                 const ox = ((r.x - mbb.cx) * LENGTH_SCALE).toFixed(2);
                 const oy = ((r.y - mbb.cy) * LENGTH_SCALE).toFixed(2);
                 const rawDeg = (90 - r.angle * 180 / Math.PI) % 360;
-		const disDeg = (r.type === 'car') ? rawDeg : (rawDeg + 90) % 360;
+		        const disDeg = (r.type === 'car') ? rawDeg : (rawDeg + 90) % 360;
                 const ref = (disDeg < 0) ? (360 + disDeg) : disDeg;
 
-		type = 1;
-		if (r.type == 'spikes')
-		    type = 3;
-		else if (r.type == 'barricade')
-		    type = 2;
+                let type = 1;
+                if (r.type == 'spikes') type = 3;
+                else if (r.type == 'barricade') type = 2;
 
-		const firstPad = (ox < 0) ? '' : ' ';
-		const secondPad = (oy > 0) ? '' : ' ';
-		 
+                const firstPad = (ox < 0) ? '' : ' ';
+                const secondPad = (oy > 0) ? '' : ' ';
+                
                 t += `part0${i+1} = ${type}, ${firstPad}${ox}, ${secondPad}${(-oy).toFixed(2)},  ${(ref / 360.0).toFixed(2)}\n`;
             });
 

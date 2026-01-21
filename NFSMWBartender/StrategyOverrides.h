@@ -20,10 +20,20 @@ namespace StrategyOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
+	HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2);
+
 	HeatParameters::OptionalInterval<float> heavy3UnblockDelays;  // seconds
 	HeatParameters::OptionalInterval<float> heavy4UnblockDelays;  // seconds
 	HeatParameters::OptionalInterval<float> leader5UnblockDelays; // seconds
 	HeatParameters::OptionalInterval<float> leader7UnblockDelays; // seconds
+
+	// Code caves
+	constexpr size_t maxNumVehiclesPerHeavy4 = 6;
+
+	std::vector<float> pseudoArray;
+
+	float* firstArray  = nullptr;
+	float* secondArray = nullptr;
 
 
 
@@ -37,6 +47,8 @@ namespace StrategyOverrides
 
 		const float pursuitStartTimestamp = Globals::simulationTime;
 
+		size_t nextHeavy3Count = 2;
+
 		int& numStrategyVehicles = *reinterpret_cast<int*>(this->pursuit + 0x18C);
 	
 		const address& heavyStrategy  = *reinterpret_cast<address*>(this->pursuit + 0x194);
@@ -46,6 +58,15 @@ namespace StrategyOverrides
 		HashContainers ::AddressSet    vehiclesOfCurrentStrategy;
 
 		inline static HashContainers::AddressMap<StrategyManager*> pursuitToManager;
+
+
+		void UpdateNextHeavy3Count()
+		{
+			this->nextHeavy3Count = static_cast<size_t>(numVehiclesPerHeavy3s.GetRandomValue());
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[STR] Next Heavy3 count:", static_cast<int>(this->nextHeavy3Count));
+		}
 
 
 		void UpdateNumStrategyVehicles() const
@@ -110,7 +131,7 @@ namespace StrategyOverrides
 
 	public:
 
-		explicit StrategyManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
+		explicit StrategyManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.LogLongIndent('+', this, "StrategyManager");
@@ -131,6 +152,18 @@ namespace StrategyOverrides
 		void UpdateOnGameplay() override
 		{
 			this->CheckUnblockTimer();
+		}
+
+
+		void UpdateOnHeatChange() override
+		{
+			this->UpdateNextHeavy3Count();
+		}
+
+
+		void UpdateOncePerPursuit() override
+		{
+			this->UpdateNextHeavy3Count();
 		}
 
 
@@ -194,6 +227,7 @@ namespace StrategyOverrides
 			{
 			case 3:
 				manager->unblockTimer.LoadInterval(heavy3UnblockDelays);
+				manager->UpdateNextHeavy3Count();
 				break;
 
 			case 4:
@@ -272,6 +306,13 @@ namespace StrategyOverrides
 			const StrategyManager* const manager = StrategyManager::FindManager(pursuit);
 			return (manager) ? (Globals::simulationTime - manager->pursuitStartTimestamp) : 0.f;
 		}
+
+
+		static size_t __fastcall GetNextHeavy3Count(const address pursuit)
+		{
+			const StrategyManager* const manager = StrategyManager::FindManager(pursuit);
+			return (manager) ? manager->nextHeavy3Count : 2;
+		}
 	};
 
 
@@ -315,6 +356,68 @@ namespace StrategyOverrides
 
 
 
+	constexpr address heavyGoalEntrance = 0x41F21F;
+	constexpr address heavyGoalExit     = 0x41F226;
+
+	// Ensures all HeavyStrategy vehicles have the right goal
+	__declspec(naked) void HeavyGoal()
+	{
+		__asm
+		{
+			mov edx, dword ptr [esp + 0x10]
+			mov eax, dword ptr [edx]
+
+			jmp dword ptr heavyGoalExit
+		}
+	}
+
+
+
+	constexpr address heavy3CountEntrance = 0x41F170;
+	constexpr address heavy3CountExit     = 0x41F17D;
+
+	// Sets how many HeavyStrategy 3 vehicles spawn per request
+	__declspec(naked) void Heavy3Count()
+	{
+		__asm
+		{	
+			mov ebx, ecx
+
+			lea ecx, dword ptr [esi - 0x194]
+			call StrategyManager::GetNextHeavy3Count // ecx: pursuit
+			mov ebp, eax
+
+			mov ecx, ebx
+
+			// Execute original code and resume
+			mov dword ptr [esp + 0x10], 0x8EB1BC
+
+			jmp dword ptr heavy3CountExit
+		}
+	}
+
+
+
+	constexpr address heavy3SetupEntrance = 0x41F314;
+	constexpr address heavy3SetupExit     = 0x41F31C;
+
+	// Makes the game use our substitutes for temporary storage
+	__declspec(naked) void Heavy3Setup()
+	{
+		__asm
+		{
+			mov esi, dword ptr firstArray
+			mov edi, dword ptr secondArray
+
+			add esi, ebx
+			add edi, ebx
+
+			jmp dword ptr heavy3SetupExit
+		}
+	}
+
+
+
 	constexpr address clearRequestEntrance = 0x42B431;
 	constexpr address clearRequestExit     = 0x42B436;
 
@@ -343,6 +446,42 @@ namespace StrategyOverrides
 			test cl, cl
 
 			jmp dword ptr clearRequestExit
+		}
+	}
+
+
+
+	constexpr address heavy3PositionEntrance = 0x41F3C6;
+	constexpr address heavy3PositionExit     = 0x41F40A;
+
+	// Ensures proper accessing of our substitutes
+	__declspec(naked) void Heavy3Position()
+	{
+		__asm
+		{
+			mov edx, dword ptr firstArray
+			xor ecx, ecx
+			add edx, ebp
+
+			mov edi, eax
+
+			negation:
+			fld dword ptr [edx + ecx * 0x4]
+			fchs // original code multiplies by -1.0
+			fstp dword ptr [edx + ecx * 0x4]
+
+			inc ecx
+			cmp ecx, 0x4
+			jl negation // elements remaining
+
+			mov eax, dword ptr secondArray
+			mov ecx, edi
+			add eax, ebp
+
+			push edx
+			push eax
+
+			jmp dword ptr heavy3PositionExit
 		}
 	}
 
@@ -479,20 +618,35 @@ namespace StrategyOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
 		// Heat parameters
+		HeatParameters::Parse<int>(parser, "Heavy3:Count", {numVehiclesPerHeavy3s, 1});
+
 		HeatParameters::ParseOptional<float>(parser, "Heavy3:Unblocking",  {heavy3UnblockDelays , 1.f});
 		HeatParameters::ParseOptional<float>(parser, "Heavy4:Unblocking",  {heavy4UnblockDelays , 1.f});
 		HeatParameters::ParseOptional<float>(parser, "Leader5:Unblocking", {leader5UnblockDelays, 1.f});
 		HeatParameters::ParseOptional<float>(parser, "Leader7:Unblocking", {leader7UnblockDelays, 1.f});
 
+		// Stack replacements to allow removal of HeavyStrategy 3 limit
+		pseudoArray.resize(2 * 4 * std::max<int>(numVehiclesPerHeavy3s.GetMaximum(), maxNumVehiclesPerHeavy4));
+
+		firstArray  = pseudoArray.data();
+		secondArray = firstArray + pseudoArray.size() / 2;
+
 		// Code modifications 
+		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4
+		MemoryTools::Write<byte>  (maxNumVehiclesPerHeavy4, {0x43E7CD}); // car budget for HeavyStrategy 4
+
 		MemoryTools::Write<byte>   (0xE9,  {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
 		MemoryTools::Write<address>(0x2A3, {0x44384B});
-		
+
 		MemoryTools::MakeRangeNOP(0x4240BD, 0x4240C3); // OnAttached increment
 		MemoryTools::MakeRangeNOP(0x42B717, 0x42B72E); // OnDetached decrement
 
 		MemoryTools::MakeRangeJMP(GoalReset,      goalResetEntrance,      goalResetExit);
+		MemoryTools::MakeRangeJMP(HeavyGoal,      heavyGoalEntrance,      heavyGoalExit);
+		MemoryTools::MakeRangeJMP(Heavy3Count,    heavy3CountEntrance,    heavy3CountExit);
+		MemoryTools::MakeRangeJMP(Heavy3Setup,    heavy3SetupEntrance,    heavy3SetupExit);
 		MemoryTools::MakeRangeJMP(ClearRequest,   clearRequestEntrance,   clearRequestExit);
+		MemoryTools::MakeRangeJMP(Heavy3Position, heavy3PositionEntrance, heavy3PositionExit);
 		MemoryTools::MakeRangeJMP(LeaderStrategy, leaderStrategyEntrance, leaderStrategyExit);
 		MemoryTools::MakeRangeJMP(HeavyStrategy3, heavyStrategy3Entrance, heavyStrategy3Exit);
 		MemoryTools::MakeRangeJMP(HeavyStrategy4, heavyStrategy4Entrance, heavyStrategy4Exit);
@@ -516,6 +670,8 @@ namespace StrategyOverrides
 	{
 		Globals::logger.Log("    HEAT [STR] StrategyOverrides");
 
+		numVehiclesPerHeavy3s.Log("numVehiclesPerHeavy3    ");
+
 		heavy3UnblockDelays .Log("heavy3UnblockDelay      ");
 		heavy4UnblockDelays .Log("heavy4UnblockDelay      ");
 		leader5UnblockDelays.Log("leader5UnblockDelay     ");
@@ -530,6 +686,8 @@ namespace StrategyOverrides
 		const size_t heatLevel
 	) {
 		if (not featureEnabled) return;
+
+		numVehiclesPerHeavy3s.SetToHeat(isRacing, heatLevel);
 
 		heavy3UnblockDelays .SetToHeat(isRacing, heatLevel);
 		heavy4UnblockDelays .SetToHeat(isRacing, heatLevel);

@@ -49,9 +49,10 @@ namespace GroundSupports
 	HeatParameters::Pair<std::string> heavy4LightVehicles("copsuvl");
 	HeatParameters::Pair<std::string> heavy4HeavyVehicles("copsuv");
 
-	HeatParameters::Pair<std::string> leader5CrossVehicles   ("copcross");
-	HeatParameters::Pair<std::string> leader7CrossVehicles   ("copcross");
-	HeatParameters::Pair<std::string> leader7HenchmenVehicles("copsporthench");
+	HeatParameters::Pair<std::string> leader5CrossVehicles ("copcross");
+	HeatParameters::Pair<std::string> leader7CrossVehicles ("copcross");
+	HeatParameters::Pair<std::string> leader7Hench1Vehicles("copsporthench");
+	HeatParameters::Pair<std::string> leader7Hench2Vehicles("copsporthench");
 
 
 
@@ -350,6 +351,30 @@ namespace GroundSupports
 
 
 
+	constexpr address henchmenSubEntrance = 0x41F485;
+	constexpr address henchmenSubExit     = 0x41F497;
+
+	// Replaces henchmen vehicles
+	__declspec(naked) void HenchmenSub()
+	{
+		__asm
+		{
+			push esi
+
+			mov eax, dword ptr leader7Hench1Vehicles.current
+			mov edx, dword ptr leader7Hench2Vehicles.current
+
+			mov dword ptr [esp + 0x24], eax
+			mov dword ptr [esp + 0x28], edx
+
+			mov esi, dword ptr [esp + 0x60]
+
+			jmp dword ptr henchmenSubExit
+		}
+	}
+
+
+
 	constexpr address spikeCounterEntrance = 0x43E654;
 	constexpr address spikeCounterExit     = 0x43E663;
 
@@ -372,27 +397,11 @@ namespace GroundSupports
 
 
 
-	constexpr address henchmenSubEntrance = 0x41F485;
-	constexpr address henchmenSubExit     = 0x41F48A;
-
-	// Replaces henchmen vehicles
-	__declspec(naked) void HenchmenSub()
-	{
-		__asm
-		{
-			mov eax, dword ptr leader7HenchmenVehicles.current
-
-			jmp dword ptr henchmenSubExit
-		}
-	}
-
-
-
-	constexpr address rhinoSelectorEntrance = 0x41F1BC;
-	constexpr address rhinoSelectorExit     = 0x41F1C8;
+	constexpr address heavySelectorEntrance = 0x41F1BC;
+	constexpr address heavySelectorExit     = 0x41F1C8;
 
 	// Replaces HeavyStrategy vehicles
-	__declspec(naked) void RhinoSelector()
+	__declspec(naked) void HeavySelector()
 	{
 		__asm
 		{
@@ -406,7 +415,7 @@ namespace GroundSupports
 			cmp dword ptr [ecx], 0x3
 			cmovne eax, edx          // not HeavyStrategy 3
 
-			jmp dword ptr rhinoSelectorExit
+			jmp dword ptr heavySelectorExit
 		}
 	}
 
@@ -737,8 +746,16 @@ namespace GroundSupports
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy3:Vehicles", {heavy3LightVehicles}, {heavy3HeavyVehicles});
 		HeatParameters::Parse<std::string, std::string>(parser, "Heavy4:Vehicles", {heavy4LightVehicles}, {heavy4HeavyVehicles});
 
-		HeatParameters::Parse<std::string>             (parser, "Leader5:Vehicle",  {leader5CrossVehicles});
-		HeatParameters::Parse<std::string, std::string>(parser, "Leader7:Vehicles", {leader7CrossVehicles}, {leader7HenchmenVehicles});
+		HeatParameters::Parse<std::string>(parser, "Leader5:Vehicle", {leader5CrossVehicles});
+
+		HeatParameters::Parse<std::string, std::string, std::string>
+		(
+			parser, 
+			"Leader7:Vehicles", 
+			{leader7CrossVehicles},
+			{leader7Hench1Vehicles}, 
+			{leader7Hench2Vehicles}
+		);
 
 		// Code modifications 
 		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
@@ -752,7 +769,7 @@ namespace GroundSupports
 		MemoryTools::MakeRangeJMP(OnDetached,           onDetachedEntrance,           onDetachedExit);
 		MemoryTools::MakeRangeJMP(CrossSpawn,           crossSpawnEntrance,           crossSpawnExit);
 		MemoryTools::MakeRangeJMP(HenchmenSub,          henchmenSubEntrance,          henchmenSubExit);
-		MemoryTools::MakeRangeJMP(RhinoSelector,        rhinoSelectorEntrance,        rhinoSelectorExit);
+		MemoryTools::MakeRangeJMP(HeavySelector,        heavySelectorEntrance,        heavySelectorExit);
 		MemoryTools::MakeRangeJMP(CrossPriority,        crossPriorityEntrance,        crossPriorityExit);
 		MemoryTools::MakeRangeJMP(RivalRoadblock,       rivalRoadblockEntrance,       rivalRoadblockExit);
 		MemoryTools::MakeRangeJMP(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
@@ -788,9 +805,10 @@ namespace GroundSupports
 		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, light", heavy4LightVehicles, Globals::Class::CAR);
 		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, heavy", heavy4HeavyVehicles, Globals::Class::CAR);
 
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 5, Cross",    leader5CrossVehicles,    Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, Cross",    leader7CrossVehicles,    Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, henchmen", leader7HenchmenVehicles, Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 5, Cross",   leader5CrossVehicles,  Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, Cross",   leader7CrossVehicles,  Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, hench 1", leader7Hench1Vehicles, Globals::Class::CAR);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, hench 2", leader7Hench2Vehicles, Globals::Class::CAR);
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -837,9 +855,10 @@ namespace GroundSupports
 		heavy4LightVehicles.Log("heavy4LightVehicle      ");
 		heavy4HeavyVehicles.Log("heavy4HeavyVehicle      ");
 
-		leader5CrossVehicles   .Log("leader5CrossVehicle     ");
-		leader7CrossVehicles   .Log("leader7CrossVehicle     ");
-		leader7HenchmenVehicles.Log("leader7HenchmenVehicle  ");
+		leader5CrossVehicles .Log("leader5CrossVehicle     ");
+		leader7CrossVehicles .Log("leader7CrossVehicle     ");
+		leader7Hench1Vehicles.Log("leader7Hench1Vehicle    ");
+		leader7Hench2Vehicles.Log("leader7Hench2Vehicle    ");
 	}
 
 
@@ -880,9 +899,10 @@ namespace GroundSupports
 		heavy4LightVehicles.SetToHeat(isRacing, heatLevel);
 		heavy4HeavyVehicles.SetToHeat(isRacing, heatLevel);
 
-		leader5CrossVehicles   .SetToHeat(isRacing, heatLevel);
-		leader7CrossVehicles   .SetToHeat(isRacing, heatLevel);
-		leader7HenchmenVehicles.SetToHeat(isRacing, heatLevel);
+		leader5CrossVehicles .SetToHeat(isRacing, heatLevel);
+		leader7CrossVehicles .SetToHeat(isRacing, heatLevel);
+		leader7Hench1Vehicles.SetToHeat(isRacing, heatLevel);
+		leader7Hench2Vehicles.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();

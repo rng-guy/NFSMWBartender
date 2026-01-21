@@ -371,7 +371,7 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * Defining low racer-speed thresholds for HeavyStrategy 3 vehicles fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if the racer's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of higher `CollapseSpeed` values and far more aggressive cops.
 
-* If you use short unblock delays for HeavyStrategy 3 or enable joining from expired HeavyStrategy 3 requests, then you may also [need](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. That's because HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear if their numbers grow too much.
+* If you allow more than 2 vehicles to spawn per HeavyStrategy 3 request, use short unblock delays for HeavyStrategy 3, or enable joining from expired HeavyStrategy 3 requests, then you may also [need](README.md#4---what-other-mods-does-bartender-depend-on) the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. You may need it because HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear if their numbers grow beyond a certain point.
 
 * The number of active vehicles from expired HeavyStrategy 3 requests is limited only at Heat levels for which you define a valid limit value. These limits apply to each pursuit separately.
 
