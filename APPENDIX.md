@@ -413,7 +413,7 @@ Regarding **roadblock setups** (`BartenderSettings\Advanced\Roadblocks.ini`):
 
 * Read the usage comments in this file's header before you change any of its contents. It's very easy to screw up roadblock setups or encounter unexpected behaviour if you don't fully understand how the game goes about selecting roadblock setups to spawn.
 
-* I highly suggest you use Bartender's `RoadblockDesigner.html` file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
+* I highly suggest you use Bartender's `RoadblockEditor.html` file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
 
 * The width requirements for roadblocks are technically not required to match their actual size; certain vanilla roadblock setups use such mismatched widths to allow for more frequent spawns. If you make a roadblock setup's width requirement lower than its actual size, the game might spawn some parts out of bounds or attempt to reposition them slightly; if you make the width requirement larger than the setup's size, it likely won't cover the entire road.
 

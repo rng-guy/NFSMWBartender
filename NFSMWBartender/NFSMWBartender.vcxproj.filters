@@ -13,15 +13,6 @@
     <Filter Include="Binary\Textures">
       <UniqueIdentifier>{c341b668-3b2d-4609-996f-3da823ae80eb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Designer">
-      <UniqueIdentifier>{71115961-0c9b-459a-a20a-66ee1989d63a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Designer\Images">
-      <UniqueIdentifier>{72ece110-376c-4de9-83f0-1d91fb9f744f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Designer\Source">
-      <UniqueIdentifier>{10f575d0-ebf5-4bb8-96c9-4482dd97fa37}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Configuration">
       <UniqueIdentifier>{62493dc3-8065-4ce0-b212-5c8497ef84db}</UniqueIdentifier>
     </Filter>
@@ -53,6 +44,15 @@
     <Filter Include="Source">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{71115961-0c9b-459a-a20a-66ee1989d63a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Images">
+      <UniqueIdentifier>{72ece110-376c-4de9-83f0-1d91fb9f744f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Source">
+      <UniqueIdentifier>{10f575d0-ebf5-4bb8-96c9-4482dd97fa37}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -187,16 +187,16 @@
       <Filter>Binary\Scripts</Filter>
     </None>
     <None Include="..\Designer\Images\barricade.webp">
-      <Filter>Designer\Images</Filter>
+      <Filter>Editor\Images</Filter>
     </None>
     <None Include="..\Designer\Images\car.webp">
-      <Filter>Designer\Images</Filter>
+      <Filter>Editor\Images</Filter>
     </None>
     <None Include="..\Designer\Images\spikes.webp">
-      <Filter>Designer\Images</Filter>
+      <Filter>Editor\Images</Filter>
     </None>
     <None Include="..\Designer\RoadblockDesigner.html">
-      <Filter>Designer\Source</Filter>
+      <Filter>Editor\Source</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

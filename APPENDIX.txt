@@ -538,7 +538,7 @@ Regarding STRATEGY REQUESTS ("BartenderSettings\Advanced\Strategies.ini"):
    It's very easy to screw up roadblock setups or encounter unexpected behaviour if you
    don't fully understand how the game goes about selecting roadblock setups to spawn.
 
- • I highly suggest you use Bartender's "RoadblockDesigner.html" file to create roadblock setups;
+ • I highly suggest you use Bartender's "RoadblockEditor.html" file to create roadblock setups;
    just open it in any browser, build your roadblock setup, and copy-paste the configuration.
 
  • The width requirements for roadblocks are technically not required to match their actual size;
