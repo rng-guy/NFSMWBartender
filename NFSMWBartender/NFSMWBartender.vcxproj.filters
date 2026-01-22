@@ -186,16 +186,16 @@
     <None Include="..\Binary\Modscript.end">
       <Filter>Binary\Scripts</Filter>
     </None>
-    <None Include="..\Designer\Images\barricade.webp">
+    <None Include="..\Editor\Images\Barricade.webp">
       <Filter>Editor\Images</Filter>
     </None>
-    <None Include="..\Designer\Images\car.webp">
+    <None Include="..\Editor\Images\Car.webp">
       <Filter>Editor\Images</Filter>
     </None>
-    <None Include="..\Designer\Images\spikes.webp">
+    <None Include="..\Editor\Images\Spikes.webp">
       <Filter>Editor\Images</Filter>
     </None>
-    <None Include="..\Designer\RoadblockDesigner.html">
+    <None Include="..\Editor\RoadblockEditor.html">
       <Filter>Editor\Source</Filter>
     </None>
   </ItemGroup>

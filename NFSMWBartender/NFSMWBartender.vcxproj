@@ -210,10 +210,10 @@
     <None Include="..\BartenderSettings\Basic\Supports.ini" />
     <None Include="..\Binary\FixMissingTextures.end" />
     <None Include="..\Binary\Modscript.end" />
-    <None Include="..\Designer\Images\barricade.webp" />
-    <None Include="..\Designer\Images\car.webp" />
-    <None Include="..\Designer\Images\spikes.webp" />
-    <None Include="..\Designer\RoadblockDesigner.html" />
+    <None Include="..\Editor\Images\Barricade.webp" />
+    <None Include="..\Editor\Images\Car.webp" />
+    <None Include="..\Editor\Images\Spikes.webp" />
+    <None Include="..\Editor\RoadblockEditor.html" />
     <None Include="..\README.md" />
   </ItemGroup>
   <ItemGroup>
