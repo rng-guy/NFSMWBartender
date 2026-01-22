@@ -20,7 +20,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFSMW Bartender: Roadblock Editor</title>
+    <title>Roadblock Editor</title>
+    <link rel="icon" type="image/x-icon" href="Assets/Images/Icon.ico">
     <style>
         :root { --main-width: 700px; --caption-gap: 5px; }
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px; background-color: #D9D9DB; }
@@ -39,7 +40,7 @@
         button:disabled { cursor: not-allowed; opacity: 0.75; background: #ddd; border-color: #ccc; color: #999; }
         .output-container { display: flex; flex-direction: column; width: var(--main-width); }
         .output-wrapper { position: relative; width: var(--main-width); height: 180px; border: 1px solid #999; box-sizing: border-box; }
-        #outputField { width: 100%; height: 100%; padding: 10px; border: none; box-sizing: border-box; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 12px; overflow-y: auto; cursor: pointer; user-select: none; background: #242426; color: #E5E4E7; }
+        #outputField { width: 100%; height: 100%; padding: 10px; border: none; box-sizing: border-box; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 12px; overflow-y: auto; cursor: pointer; user-select: none; background: #242426; color: #DEDEDE; }
         #outputOverlay { position: absolute; bottom: 10px; right: 10px; font-size: 12px; color: #999999; pointer-events: none; }
 
         .modal-overlay {
@@ -54,10 +55,10 @@
         .modal-textarea {
             width: 100%; height: 130px; font-family: 'Courier New', monospace; font-size: 12px;
             padding: 10px; box-sizing: border-box; resize: none; border: 1px solid #ccc;
-            background: #242426; color: #E5E4E7;
+            background: #242426; color: #DEDEDE;
             outline: none; /* No selection border */
         }
-	.modal-textarea::placeholder { color: #444 }
+	.modal-textarea::placeholder { color: #DEDEDE4D }
         .modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
     </style>
 </head>

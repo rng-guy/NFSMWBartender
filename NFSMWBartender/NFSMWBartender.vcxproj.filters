@@ -218,6 +218,9 @@
     <Image Include="..\Binary\Textures\HEAT_X10.dds">
       <Filter>Binary\Textures</Filter>
     </Image>
+    <Image Include="..\Editor\Images\Icon.ico">
+      <Filter>Editor\Images</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\README.txt">

@@ -222,6 +222,7 @@
     <Image Include="..\Binary\Textures\HEAT_X7.dds" />
     <Image Include="..\Binary\Textures\HEAT_X8.dds" />
     <Image Include="..\Binary\Textures\HEAT_X9.dds" />
+    <Image Include="..\Editor\Images\Icon.ico" />
     <Image Include="..\Thumbnail.jpg" />
   </ItemGroup>
   <ItemGroup>
