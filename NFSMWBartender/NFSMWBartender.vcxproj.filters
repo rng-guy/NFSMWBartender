@@ -180,12 +180,6 @@
     <None Include="..\BartenderSettings\Advanced\Roadblocks.ini">
       <Filter>Configuration\Advanced</Filter>
     </None>
-    <None Include="..\Binary\FixMissingTextures.end">
-      <Filter>Binary\Source</Filter>
-    </None>
-    <None Include="..\Binary\Modscript.end">
-      <Filter>Binary\Source</Filter>
-    </None>
     <None Include="..\Editor\Images\Barricade.webp">
       <Filter>Editor\Images</Filter>
     </None>

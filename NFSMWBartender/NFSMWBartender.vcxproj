@@ -208,8 +208,6 @@
     <None Include="..\BartenderSettings\Basic\General.ini" />
     <None Include="..\BartenderSettings\Basic\Cosmetic.ini" />
     <None Include="..\BartenderSettings\Basic\Supports.ini" />
-    <None Include="..\Binary\FixMissingTextures.end" />
-    <None Include="..\Binary\Modscript.end" />
     <None Include="..\Binary\Source\FixMissingTextures.end" />
     <None Include="..\Binary\Source\Modscript.end" />
     <None Include="..\Editor\Images\Barricade.webp" />
