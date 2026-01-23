@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Binary/FixMissingTextures.end
+/Binary/Modscript.end
+/Editor/Source/RoadblockEditor.css
+/Editor/Source/RoadblockEditor.js
