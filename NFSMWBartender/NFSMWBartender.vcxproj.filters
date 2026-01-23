@@ -7,9 +7,6 @@
     <Filter Include="Binary">
       <UniqueIdentifier>{ae9ff621-38ea-459a-a159-9a5fe9168e45}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Binary\Scripts">
-      <UniqueIdentifier>{d6f38209-c6ea-4c22-8bd2-17eb24271517}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Binary\Textures">
       <UniqueIdentifier>{c341b668-3b2d-4609-996f-3da823ae80eb}</UniqueIdentifier>
     </Filter>
@@ -53,6 +50,9 @@
     </Filter>
     <Filter Include="Editor\Source">
       <UniqueIdentifier>{10f575d0-ebf5-4bb8-96c9-4482dd97fa37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Binary\Source">
+      <UniqueIdentifier>{d6f38209-c6ea-4c22-8bd2-17eb24271517}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -181,10 +181,10 @@
       <Filter>Configuration\Advanced</Filter>
     </None>
     <None Include="..\Binary\FixMissingTextures.end">
-      <Filter>Binary\Scripts</Filter>
+      <Filter>Binary\Source</Filter>
     </None>
     <None Include="..\Binary\Modscript.end">
-      <Filter>Binary\Scripts</Filter>
+      <Filter>Binary\Source</Filter>
     </None>
     <None Include="..\Editor\Images\Barricade.webp">
       <Filter>Editor\Images</Filter>
@@ -196,6 +196,24 @@
       <Filter>Editor\Images</Filter>
     </None>
     <None Include="..\Editor\RoadblockEditor.html">
+      <Filter>Editor\Source</Filter>
+    </None>
+    <None Include="..\Binary\Source\FixMissingTextures.end">
+      <Filter>Binary\Source</Filter>
+    </None>
+    <None Include="..\Binary\Source\Modscript.end">
+      <Filter>Binary\Source</Filter>
+    </None>
+    <None Include="..\Editor\Source\RoadblockEditor.css">
+      <Filter>Editor\Source</Filter>
+    </None>
+    <None Include="..\Editor\Source\RoadblockEditor.js">
+      <Filter>Editor\Source</Filter>
+    </None>
+    <None Include="..\Editor\Source\Editor.js">
+      <Filter>Editor\Source</Filter>
+    </None>
+    <None Include="..\Editor\Source\Stylesheet.css">
       <Filter>Editor\Source</Filter>
     </None>
   </ItemGroup>
