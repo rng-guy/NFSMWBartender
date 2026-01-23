@@ -216,7 +216,6 @@
     <None Include="..\Editor\RoadblockEditor.html" />
     <None Include="..\Editor\Source\Editor.js" />
     <None Include="..\Editor\Source\Styles.css" />
-    <None Include="..\Editor\Source\Stylesheet.css" />
     <None Include="..\README.md" />
   </ItemGroup>
   <ItemGroup>

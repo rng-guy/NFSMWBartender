@@ -198,9 +198,6 @@
     <None Include="..\Editor\Source\Editor.js">
       <Filter>Editor\Source</Filter>
     </None>
-    <None Include="..\Editor\Source\Stylesheet.css">
-      <Filter>Editor\Source</Filter>
-    </None>
     <None Include="..\Editor\RoadblockEditor.html">
       <Filter>Editor</Filter>
     </None>
