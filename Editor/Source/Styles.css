@@ -1,22 +1,10 @@
 :root {
-    --main-width:       700px;
-    --caption-gap:      5px;
-    --canvas-color:     #fcfcfcfc;
-    --background-color: #D9D9DB;
-}
-
-body {
-    font-family:      sans-serif;
-    display:          flex;
-    flex-direction:   column;
-    align-items:      center;
-    gap:              20px;
-    padding:          20px;
-    background-color: var(--background-color);
+    --main-width:   700px;
+    --caption-gap:  5px;
+    --canvas-color: #fcfcfcfc;
 }
 
 .workspace {
-    display:        flex;
     flex-direction: column;
     width:          var(--main-width);
     gap:            10px;
@@ -154,7 +142,6 @@ button:disabled {
 }
 
 .modal-overlay {
-    display:         none;
     position:        fixed;
     top:             0;
     left:            0;
@@ -167,7 +154,7 @@ button:disabled {
 }
 
 .modal-content {
-    background:     var(--background-color);
+    background:     #D9D9DB;
     padding:        15px;
     border-radius:  8px;
     width:          485px;
@@ -204,11 +191,4 @@ button:disabled {
     display:         flex;
     justify-content: flex-end;
     gap:             10px;
-}
-
-.script-warning {
-    display:     none;
-    font-size:   40px;
-    font-weight: bold;
-    margin-top:  10%;
 }

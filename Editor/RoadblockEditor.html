@@ -22,24 +22,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roadblock Editor</title>
+
     <link rel="icon" type="image/x-icon" href="Assets/Images/Icon.ico">
+
+    <style>
+      body {
+	      background-color: #D9D9DB; 
+	      font-family:      sans-serif;
+	      display:          flex;
+	      flex-direction:   column;
+	      align-items:      center;
+	      gap:              20px;
+	      padding:          20px;
+      }
+      
+      .error-pane {
+	      font-size:   40px;
+	      font-weight: bold;
+	      margin-top:  100px;
+      }
+
+      .workspace, .modal-overlay { display: none; }
+    </style>
+    
     <link rel="stylesheet" href="Assets/Source/Styles.css">
     <script src="Assets/Source/Scripting.js" defer></script>
-    
-    <noscript>
-      <style>
-        .workspace      { display: none; }
-        .script-warning { display: block; }
-      </style>
-    </noscript>
   </head>
 
   <body>
-    <div class="script-warning">
-      Enable <span style="color: #D61E00">JavaScript</span> to use this tool.
+    <div class="error-pane" id="error">
+      <p>Enable <span style="color: #D61E00">JavaScript</span> in order to use this tool.</p>
+      <p>Ensure Bartender's <span style="color: #D61E00">Assets</span> folder is present.</p>
     </div>
     
-    <div class="workspace">
+    <div class="workspace" id="main">
       <div class="canvas-container">
         <div class="caption">Roadblock</div>
         <div id="canvasCounter">Room for 5 more part(s)</div>

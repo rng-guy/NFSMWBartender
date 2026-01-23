@@ -94,6 +94,9 @@ Object.keys(RECT_CONFIG).forEach(key => {
     images[key] = img;
 });
 
+document.getElementById('error').style.display = 'none';
+document.getElementById('main').style.display = 'flex';
+
 
 
 
