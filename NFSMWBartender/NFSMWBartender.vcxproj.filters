@@ -189,9 +189,6 @@
     <None Include="..\Editor\Images\Spikes.webp">
       <Filter>Editor\Images</Filter>
     </None>
-    <None Include="..\Editor\RoadblockEditor.html">
-      <Filter>Editor\Source</Filter>
-    </None>
     <None Include="..\Binary\Source\FixMissingTextures.end">
       <Filter>Binary\Source</Filter>
     </None>
@@ -203,6 +200,9 @@
     </None>
     <None Include="..\Editor\Source\Stylesheet.css">
       <Filter>Editor\Source</Filter>
+    </None>
+    <None Include="..\Editor\RoadblockEditor.html">
+      <Filter>Editor</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
