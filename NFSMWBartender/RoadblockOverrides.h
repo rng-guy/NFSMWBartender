@@ -173,7 +173,7 @@ namespace RoadblockOverrides
 
             mov ecx, dword ptr [esp + 0x4C4] // pursuit
             call Globals::ClearSupportRequest
-            jmp restore
+            jmp restore                      // was HeavyStrategy 4
 
             regular:
             cmp dword ptr [esp + 0x4C0], 0x43EC3A

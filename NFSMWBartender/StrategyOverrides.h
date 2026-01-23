@@ -30,10 +30,11 @@ namespace StrategyOverrides
 	// Code caves
 	constexpr size_t maxNumVehiclesPerHeavy4 = 6;
 
-	std::vector<float> pseudoArray;
+	std::vector<float> spawnVectorStackA;
+	std::vector<float> spawnVectorStackB;
 
-	float* firstArray  = nullptr;
-	float* secondArray = nullptr;
+	float* spawnVectorsA = nullptr;
+	float* spawnVectorsB = nullptr;
 
 
 
@@ -359,7 +360,7 @@ namespace StrategyOverrides
 	constexpr address heavyGoalEntrance = 0x41F21F;
 	constexpr address heavyGoalExit     = 0x41F226;
 
-	// Ensures all HeavyStrategy vehicles have the right goal
+	// Ensures HeavyStrategy vehicles have the right goal
 	__declspec(naked) void HeavyGoal()
 	{
 		__asm
@@ -401,16 +402,16 @@ namespace StrategyOverrides
 	constexpr address heavy3SetupEntrance = 0x41F314;
 	constexpr address heavy3SetupExit     = 0x41F31C;
 
-	// Makes the game use our substitutes for temporary storage
+	// Makes the game use mod-allocated spawn vectors
 	__declspec(naked) void Heavy3Setup()
 	{
 		__asm
 		{
-			mov esi, dword ptr firstArray
-			mov edi, dword ptr secondArray
+			mov esi, dword ptr spawnVectorsA
+			mov edi, dword ptr spawnVectorsB
 
-			add esi, ebx
-			add edi, ebx
+			add esi, ebx // vector offset
+			add edi, ebx // vector offset
 
 			jmp dword ptr heavy3SetupExit
 		}
@@ -454,14 +455,14 @@ namespace StrategyOverrides
 	constexpr address heavy3PositionEntrance = 0x41F3C6;
 	constexpr address heavy3PositionExit     = 0x41F40A;
 
-	// Ensures proper accessing of our substitutes
+	// Ensures proper accessing of mod-allocated spawn vectors
 	__declspec(naked) void Heavy3Position()
 	{
 		__asm
 		{
-			mov edx, dword ptr firstArray
+			mov edx, dword ptr spawnVectorsA
 			xor ecx, ecx
-			add edx, ebp
+			add edx, ebp // vector offset
 
 			mov edi, eax
 
@@ -474,9 +475,9 @@ namespace StrategyOverrides
 			cmp ecx, 0x4
 			jl negation // elements remaining
 
-			mov eax, dword ptr secondArray
+			mov eax, dword ptr spawnVectorsB
 			mov ecx, edi
-			add eax, ebp
+			add eax, ebp // vector offset
 
 			push edx
 			push eax
@@ -625,15 +626,18 @@ namespace StrategyOverrides
 		HeatParameters::ParseOptional<float>(parser, "Leader5:Unblocking", {leader5UnblockDelays, 1.f});
 		HeatParameters::ParseOptional<float>(parser, "Leader7:Unblocking", {leader7UnblockDelays, 1.f});
 
-		// Stack replacements to allow removal of HeavyStrategy 3 limit
-		pseudoArray.resize(2 * 4 * std::max<int>(numVehiclesPerHeavy3s.GetMaximum(), maxNumVehiclesPerHeavy4));
+		// Stack replacements for removal of HeavyStrategy 3 limit
+		const size_t vectorStackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
 
-		firstArray  = pseudoArray.data();
-		secondArray = firstArray + pseudoArray.size() / 2;
+		spawnVectorStackA.resize(vectorStackSize);
+		spawnVectorStackB.resize(vectorStackSize);
+
+		spawnVectorsA = spawnVectorStackA.data();
+		spawnVectorsB = spawnVectorStackB.data();
 
 		// Code modifications 
 		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4
-		MemoryTools::Write<byte>  (maxNumVehiclesPerHeavy4, {0x43E7CD}); // car budget for HeavyStrategy 4
+		MemoryTools::Write<byte>  (maxNumVehiclesPerHeavy4, {0x43E7CD}); // car budget
 
 		MemoryTools::Write<byte>   (0xE9,  {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
 		MemoryTools::Write<address>(0x2A3, {0x44384B});

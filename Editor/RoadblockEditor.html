@@ -66,7 +66,7 @@
 
     <div class="workspace">
         <div class="canvas-container">
-            <div class="caption">Roadblock preview</div>
+            <div class="caption">Roadblock</div>
             <div id="canvasCounter">Room for 5 more part(s)</div>
             <div id="canvasOverlay">Left-click to select. Scroll to rotate. Hold Shift to snap.</div>
             <canvas id="mainCanvas" width="700" height="450" tabindex="0"></canvas>
@@ -278,7 +278,7 @@ part02 = typeID, ...
               }
 	      else
 	      {
-	        canvasOverlay.innerHTML = 'Import <span style="color: #00B553"><b>successful</b></span>.';
+	        canvasOverlay.innerHTML = 'Import <span style="color: #00A34C"><b>successful</b></span>.';
               }
 
               setTimeout(() => { 
@@ -293,7 +293,7 @@ part02 = typeID, ...
 
         outputField.addEventListener('click', () => {
             navigator.clipboard.writeText(outputField.innerText).then(() => {
-                outputOverlay.innerHTML = 'Settings <span style="color: #ffd500"><b>copied</b></span>.';
+                outputOverlay.innerHTML = 'Settings <span style="color: #DEB700"><b>copied</b></span>.';
                 setTimeout(() => { outputOverlay.innerText = "Click to copy settings."; }, 4000);
             });
         });
