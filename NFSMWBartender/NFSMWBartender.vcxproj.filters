@@ -204,6 +204,9 @@
     <None Include="..\Editor\Source\Styles.css">
       <Filter>Editor\Source</Filter>
     </None>
+    <None Include="..\Editor\Source\Scripting.js">
+      <Filter>Editor\Source</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Thumbnail.jpg">
