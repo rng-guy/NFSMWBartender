@@ -23,9 +23,9 @@ Last, there are three **possible causes for in-game issues** you might encounter
 &nbsp;
 
 To help you **solve in-game issues** with Bartender, the sections below address these questions:
-1. [What is there to know about Bartender's file parsing?](#1---what-is-there-to-know-about-bartenders-file-parsing)
-2. [What is there to know about the "Basic" feature set?](#2---what-is-there-to-know-about-the-basic-feature-set)
-3. [What is there to know about the "Advanced" feature set?](#3---what-is-there-to-know-about-the-advanced-feature-set)
+1. [What's there to know about Bartender's file parsing?](#1---whats-there-to-know-about-bartenders-file-parsing)
+2. [What's there to know about the "Basic" feature set?](#2---whats-there-to-know-about-the-basic-feature-set)
+3. [What's there to know about the "Advanced" feature set?](#3---whats-there-to-know-about-the-advanced-feature-set)
 
 &nbsp;
 
@@ -39,7 +39,7 @@ For a detailed **version history** of Bartender, see the plain-text version of t
 
 
 
-# 1 - What is there to know about Bartender's file parsing?
+# 1 - What's there to know about Bartender's file parsing?
 
 Bartender only recognises **Heat levels** from 1 to 10. If you want to use Bartender to customise Heat levels above 10, you need to recompile it with the appropriate `maxHeatLevel` value yourself.
 
@@ -87,7 +87,7 @@ The **class of a vehicle** depends on the `CLASS` VltEd parameter in its `pvehic
 
 
 
-# 2 - What is there to know about the "Basic" feature set?
+# 2 - What's there to know about the "Basic" feature set?
 
 Regarding the "Basic" feature set **as a whole**:
 
@@ -245,7 +245,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 
 
-# 3 - What is there to know about the "Advanced" feature set?
+# 3 - What's there to know about the "Advanced" feature set?
 
 Regarding the "Advanced" feature set **as a whole**:
 

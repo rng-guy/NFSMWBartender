@@ -23,15 +23,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Headers\Modifications">
-      <UniqueIdentifier>{55943e8b-1479-4d97-9d85-045d5a9133f5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Modifications\Basic">
-      <UniqueIdentifier>{d47fbf6b-9b5a-42e7-a3f7-a947a75579ec}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Modifications\Advanced">
-      <UniqueIdentifier>{af4345db-acb4-4116-a6eb-24bb3f5c5760}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Headers\Libraries">
       <UniqueIdentifier>{76ba4780-d613-49c9-8716-a2ce15e72b8f}</UniqueIdentifier>
     </Filter>
@@ -54,6 +45,15 @@
     <Filter Include="Binary\Source">
       <UniqueIdentifier>{d6f38209-c6ea-4c22-8bd2-17eb24271517}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Features">
+      <UniqueIdentifier>{55943e8b-1479-4d97-9d85-045d5a9133f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Features\Basic">
+      <UniqueIdentifier>{d47fbf6b-9b5a-42e7-a3f7-a947a75579ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Features\Advanced">
+      <UniqueIdentifier>{af4345db-acb4-4116-a6eb-24bb3f5c5760}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -74,37 +74,37 @@
       <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="StateObserver.h">
-      <Filter>Headers\Modifications</Filter>
+      <Filter>Headers\Features</Filter>
     </ClInclude>
     <ClInclude Include="ConfigParser.h">
       <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="DestructionStrings.h">
-      <Filter>Headers\Modifications\Basic</Filter>
+      <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="GroundSupports.h">
-      <Filter>Headers\Modifications\Basic</Filter>
+      <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="GeneralSettings.h">
-      <Filter>Headers\Modifications\Basic</Filter>
+      <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="CopFleeOverrides.h">
-      <Filter>Headers\Modifications\Advanced</Filter>
+      <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="CopSpawnOverrides.h">
-      <Filter>Headers\Modifications\Advanced</Filter>
+      <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="CopSpawnTables.h">
-      <Filter>Headers\Modifications\Advanced</Filter>
+      <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="HelicopterOverrides.h">
-      <Filter>Headers\Modifications\Advanced</Filter>
+      <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="PursuitFeatures.h">
-      <Filter>Headers\Modifications\Advanced</Filter>
+      <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="PursuitObserver.h">
-      <Filter>Headers\Modifications\Advanced</Filter>
+      <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="HeatParameters.h">
       <Filter>Headers\General</Filter>
@@ -113,22 +113,22 @@
       <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="LeaderOverrides.h">
-      <Filter>Headers\Modifications\Advanced</Filter>
+      <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="StrategyOverrides.h">
-      <Filter>Headers\Modifications\Advanced</Filter>
+      <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="RadioChatter.h">
-      <Filter>Headers\Modifications\Basic</Filter>
+      <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="HashContainers.h">
       <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="InteractiveMusic.h">
-      <Filter>Headers\Modifications\Basic</Filter>
+      <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="CopDetection.h">
-      <Filter>Headers\Modifications\Basic</Filter>
+      <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="unordered_dense.h">
       <Filter>Headers\Libraries</Filter>
@@ -137,13 +137,13 @@
       <Filter>Headers\Libraries</Filter>
     </ClInclude>
     <ClInclude Include="HelicopterVision.h">
-      <Filter>Headers\Modifications\Basic</Filter>
+      <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="HeatChangeOverrides.h">
-      <Filter>Headers\Modifications\Advanced</Filter>
+      <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="RoadblockOverrides.h">
-      <Filter>Headers\Modifications\Advanced</Filter>
+      <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

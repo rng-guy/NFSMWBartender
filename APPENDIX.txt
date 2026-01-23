@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS APPENDIX ABOUT? (v2.11.00) │ ■ ────────────────────────────────────────────────
+── ■ │ WHAT'S THIS APPENDIX ABOUT? (v2.11.00) │ ■ ─────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -22,9 +22,9 @@ Last, there are three POSSIBLE CAUSES FOR IN-GAME ISSUES you might encounter wit
  • the actual parameter values themselves that you define in Bartender's configuration files.
 
 To help you SOLVE IN-GAME ISSUES with Bartender, the sections below address these questions:
- 1) • What is there to know about Bartender's file parsing?
- 2) • What is there to know about the "Basic" feature set?
- 3) • What is there to know about the "Advanced" feature set?
+ 1) • What's there to know about Bartender's file parsing?
+ 2) • What's there to know about the "Basic" feature set?
+ 3) • What's there to know about the "Advanced" feature set?
  4) • What changed in each version of Bartender?
 
 
@@ -32,7 +32,7 @@ To help you SOLVE IN-GAME ISSUES with Bartender, the sections below address thes
 
 
 
-── ■ 1 - WHAT IS THERE TO KNOW ABOUT BARTENDER'S FILE PARSING? ■ ──────────────────────────────────
+── ■ 1 - WHAT'S THERE TO KNOW ABOUT BARTENDER'S FILE PARSING? ■ ───────────────────────────────────
 
 Bartender only recognises HEAT LEVELS from 1 to 10. If you want to use Bartender to customise
 Heat levels above 10, you need to recompile it with the appropriate "maxHeatLevel" value yourself.
@@ -75,7 +75,7 @@ inherit one from parent nodes instead, but you can add one manually to overwrite
 
 
 
-── ■ 2 - WHAT IS THERE TO KNOW ABOUT THE "BASIC" FEATURE SET? ■ ───────────────────────────────────
+── ■ 2 - WHAT'S THERE TO KNOW ABOUT THE "BASIC" FEATURE SET? ■ ────────────────────────────────────
 
 Regarding the "Basic" feature set AS A WHOLE:
 
@@ -283,7 +283,7 @@ Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
 
 
 
-── ■ 3 - WHAT IS THERE TO KNOW ABOUT THE "ADVANCED" FEATURE SET? ■ ────────────────────────────────
+── ■ 3 - WHAT'S THERE TO KNOW ABOUT THE "ADVANCED" FEATURE SET? ■ ─────────────────────────────────
 
 Regarding the "Advanced" feature set AS A WHOLE:
 
