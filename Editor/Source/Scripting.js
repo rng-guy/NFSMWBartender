@@ -100,14 +100,16 @@ Object.keys(RECT_CONFIG).forEach(key => {
 
 // Functions and listeners  ---------------------------------------------------------------------------------------------------------------------
 
-function initDefault() {
+function initDefault()
+{
     addRect('car');
     draw();
 }
 
 
 
-function openImportModal() {
+function openImportModal()
+{
     modal.style.display    = 'flex';
     btnLoadImport.disabled = true;
     importInput.value      = '';
@@ -116,7 +118,8 @@ function openImportModal() {
 
 
 
-function closeImportModal() {
+function closeImportModal()
+{
     modal.style.display = 'none';
     canvas.focus();
 }
@@ -129,7 +132,8 @@ modal.addEventListener('mousedown', (e) => {
 
 
 
-function parseImportLines(text) {
+function parseImportLines(text) 
+{
     return text.split('\n')
         .map(l => l.trim())
         .filter(l => l.startsWith('part'));
@@ -150,12 +154,12 @@ importInput.addEventListener('input', () => {
         const regex = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*$/;
 	
         for (let i = 0; i < lines.length; i++)
-	{
+	    {
             const line  = lines[i];
             const match = line.match(regex);
 	    
             if (!match)
-	    {
+	        {
                 isValid = false;
                 break;
             }
@@ -163,7 +167,7 @@ importInput.addEventListener('input', () => {
             const partNum = parseInt(match[1], 10);
 	    
             if (partNum !== (i + 1))
-	    {
+	        {
                 isValid = false;
                 break;
             }
@@ -177,7 +181,8 @@ importInput.addEventListener('input', () => {
 
 
 
-function loadImportData() {
+function loadImportData() 
+{
     const regex = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*$/;
 
     const lines     = parseImportLines(importInput.value);
@@ -262,6 +267,7 @@ function loadImportData() {
     
     if (isOutOfBounds)
         canvasOverlay.innerHTML = 'Import <span style="color: #D61E00"><b>out of bounds</b></span>.';
+
     else
         canvasOverlay.innerHTML = 'Import <span style="color: #00A34C"><b>successful</b></span>.';
     
@@ -299,13 +305,13 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape')
     {
         if (modal.style.display === 'flex')
-	{
+	    {
             closeImportModal();
             return;
         }
 	
         if (document.activeElement === canvas)
-	{
+	    {
             selectedIndices = [];
             updateUI();
             draw();
@@ -341,7 +347,7 @@ window.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key.toLowerCase() === 'v' && clipboard)
     {
         if (rects.length + clipboard.length <= MAX_RECTS)
-	{
+	    {
             const next = [];
 	    
             clipboard.forEach(c => {
@@ -391,7 +397,7 @@ window.addEventListener('keydown', (e) => {
         });
 	
         if (limit > 0)
-	{
+	    {
             selectedIndices.forEach(idx => {
                 if (e.key === 'ArrowUp')    rects[idx].y -= limit;
                 if (e.key === 'ArrowDown')  rects[idx].y += limit;
@@ -431,7 +437,7 @@ canvas.addEventListener('mousedown', (e) => {
     for (let item of sorted)
     {
         if (isHit(item.r, mx, my))
-	{
+	    {
             hitIdx = item.i;
             break;
         }
@@ -499,7 +505,7 @@ window.addEventListener('mousemove', (e) => {
         let ty = my - dragStartData.mouseOffsetY;
 	
         if (isShiftDown)
-	{
+	    {
             tx = Math.round(tx / GRID_SIZE) * GRID_SIZE;
             ty = Math.round(ty / GRID_SIZE) * GRID_SIZE;
         }
@@ -581,8 +587,8 @@ canvas.addEventListener('wheel', (e) => {
             let newAngle = r.angle + (direction * step);
             newAngle     = Math.round(newAngle / step) * step;
             return canExistAt(r, r.x, r.y, newAngle);
-	}))
-	{
+	    }))
+	    {
             selectedIndices.forEach(idx => {
                 let newAngle = rects[idx].angle + (direction * step);
                 rects[idx].angle = Math.round(newAngle / step) * step;
@@ -756,13 +762,13 @@ function updateUI()
         const type = c.toLowerCase();
 	
         if (isShiftDown && selectedIndices.length > 0)
-	{
+	    {
             btn.innerText = `↪ ${c.toLowerCase()}`;
             const protIdx = (allY.length > 0 && allY.length === selY.length && type !== 'car') ? selY[0] : -1;
             btn.disabled  = selectedIndices.filter(idx => idx !== protIdx && rects[idx].type !== type).length === 0;
         }
-	else
-	{
+	    else
+	    {
             btn.innerText = `✚ ${c.toLowerCase()}`;
             btn.disabled  = rects.length >= MAX_RECTS;
         }
@@ -787,13 +793,13 @@ function draw()
         ctx.strokeStyle = '#eee';
 	
         for (let x = 0; x <= 700; x += GRID_SIZE)
-	{
+	    {
             ctx.moveTo(x, 0);
             ctx.lineTo(x, 450);
         }
 	
         for (let y = 0; y <= 450; y += GRID_SIZE)
-	{
+	    {
             ctx.moveTo(0, y);
             ctx.lineTo(700, y);
         }
@@ -810,7 +816,7 @@ function draw()
         ctx.drawImage(item.r.img, -item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
 	
         if (selectedIndices.includes(item.i))
-	{
+	    {
             ctx.strokeStyle = '#007bff';
             ctx.lineWidth   = 3;
             ctx.strokeRect(-item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
@@ -860,7 +866,7 @@ function draw()
         ctx.setLineDash([]);
 	
         if (rects.length > 1)
-	{
+	    {
             ctx.beginPath();
             ctx.arc(mbb.cx, mbb.cy, 8, 0, Math.PI * 2);
             ctx.fillStyle = 'white';
@@ -907,11 +913,11 @@ function updateOutput(mbb)
 	
         let type = 1;
 	
-        if (r.type == 'spikes') {
+        if (r.type == 'spikes')
             type = 3;
-        } else if (r.type == 'barricade') {
+
+        else if (r.type == 'barricade')
             type = 2;
-        }
 	
         t += `part0${i+1} = ${type}, ${strPad(ox, firstWidth)}, ${strPad(oy, secondWidth)}, ${(ref / 360.0).toFixed(3)}\n`;
     });
