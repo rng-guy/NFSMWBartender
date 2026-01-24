@@ -276,7 +276,7 @@ namespace RadioChatter
 			{"federal", Jurisdiction::FEDERAL}
 		};
 
-		HeatParameters::Parse(parser, "Heat:Jurisdiction", HeatParameters::ToSetup(jurisdictionNames));
+		HeatParameters::Parse(parser, "Heat:Jurisdiction", jurisdictionNames);
 
 		for (const bool forRaces : {false, true})
 		{
@@ -322,7 +322,6 @@ namespace RadioChatter
 			MemoryTools::MakeRangeJMP(FirstCallsign,    firstCallsignEntrance,    firstCallsignExit);
 			MemoryTools::MakeRangeJMP(SecondCallsign,   secondCallsignEntrance,   secondCallsignExit);
 			MemoryTools::MakeRangeJMP(CollisionCallout, collisionCalloutEntrance, collisionCalloutExit);
-			
 		}
 
 		// Code modifications (general)

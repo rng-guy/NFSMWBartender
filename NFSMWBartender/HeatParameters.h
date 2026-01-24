@@ -3,7 +3,6 @@
 #include <array>
 #include <tuple>
 #include <string>
-#include <variant>
 #include <optional>
 #include <algorithm>
 
@@ -65,7 +64,7 @@ namespace HeatParameters
 
 
 
-	// HeatParameter classes ------------------------------------------------------------------------------------------------------------------------
+	// HeatParameter structs ------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
 	struct BasePair
@@ -102,8 +101,19 @@ namespace HeatParameters
 	{
 		T current;
 
+		const std::optional<T> lowerBound;
+		const std::optional<T> upperBound;
 
-		explicit Pair(const T original) : current(original) {}
+
+		explicit Pair
+		(
+			const T                original, 
+			const std::optional<T> lowerBound = {}, 
+			const std::optional<T> upperBound = {}
+		) 
+			: current(original), lowerBound(lowerBound), upperBound(upperBound) 
+		{
+		}
 
 
 		void SetToHeat
@@ -151,6 +161,52 @@ namespace HeatParameters
 		{
 			Globals::logger.LogLongIndent(pairName, this->current);
 		}
+
+
+		auto ToFormat(const bool forRaces) 
+		{
+			if (forRaces)
+				return std::make_tuple(Format<T>(this->race, {}, this->lowerBound, this->upperBound));
+
+			else
+				return std::make_tuple(Format<T>(this->roam, this->current, this->lowerBound, this->upperBound));
+		}
+	};
+
+
+
+	template <>
+	struct Pair<bool> : public BasePair<bool>
+	{
+		bool current;
+
+
+		explicit Pair(const bool original) : current(original){}
+
+
+		void SetToHeat
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->current = this->GetValues(forRaces)[heatLevel - 1];
+		}
+
+
+		void Log(const char* const pairName) const
+		{
+			Globals::logger.LogLongIndent(pairName, this->current);
+		}
+
+
+		auto ToFormat(const bool forRaces)
+		{
+			if (forRaces)
+				return std::make_tuple(Format<bool>(this->race));
+
+			else
+				return std::make_tuple(Format<bool>(this->roam, this->current));
+		}
 	};
 
 
@@ -194,6 +250,16 @@ namespace HeatParameters
 		{
 			Globals::logger.LogLongIndent(pairName, this->current);
 		}
+
+
+		auto ToFormat(const bool forRaces)
+		{
+			if (forRaces)
+				return std::make_tuple(Format<std::string>(this->race));
+
+			else
+				return std::make_tuple(Format<std::string>(this->roam, this->current));
+		}
 	};
 
 
@@ -204,7 +270,17 @@ namespace HeatParameters
 	{
 		Pair<bool> isEnableds = Pair<bool>(false);
 
-		Pair<T> values = Pair<T>(T());
+		Pair<T> values;
+
+
+		explicit OptionalPair
+		(
+			const std::optional<T> lowerBound = {},
+			const std::optional<T> upperBound = {}
+		)
+			: values(T(), lowerBound, upperBound)
+		{
+		}
 
 
 		void SetToHeat
@@ -234,6 +310,12 @@ namespace HeatParameters
 			if (this->isEnableds.current)
 				Globals::logger.LogLongIndent(optionalName, this->values.current);
 		}
+
+
+		auto ToFormat(const bool forRaces)
+		{
+			return std::make_tuple(Format<T>(this->values.GetValues(forRaces), {}, this->values.lowerBound, this->values.upperBound));
+		}
 	};
 
 
@@ -248,10 +330,13 @@ namespace HeatParameters
 
 		explicit Interval
 		(
-			const T originalMin,
-			const T originalMax
+			const T                originalMin,
+			const T                originalMax,
+			const std::optional<T> lowerBound = {},
+			const std::optional<T> upperBound = {}
 		) 
-			: minValues(originalMin), maxValues(originalMax) 
+			: minValues(originalMin, lowerBound, upperBound), 
+			  maxValues(originalMax, lowerBound, upperBound) 
 		{
 		}
 
@@ -288,6 +373,12 @@ namespace HeatParameters
 		{
 			Globals::logger.LogLongIndent(intervalName, this->minValues.current, "to", this->maxValues.current);
 		}
+
+
+		auto ToFormat(const bool forRaces)
+		{
+			return std::tuple_cat(this->minValues.ToFormat(forRaces), this->maxValues.ToFormat(forRaces));
+		}
 	};
 
 
@@ -298,8 +389,19 @@ namespace HeatParameters
 	{
 		Pair<bool> isEnableds = Pair<bool>(false);
 
-		Pair<T> minValues = Pair<T>(T());
-		Pair<T> maxValues = Pair<T>(T());
+		Pair<T> minValues;
+		Pair<T> maxValues;
+
+
+		explicit OptionalInterval
+		(
+			const std::optional<T> lowerBound = {},
+			const std::optional<T> upperBound = {}
+		)
+			: minValues(T(), lowerBound, upperBound), 
+			  maxValues(T(), lowerBound, upperBound)
+		{
+		}
 
 
 		void SetToHeat
@@ -336,6 +438,16 @@ namespace HeatParameters
 			if (this->isEnableds.current)
 				Globals::logger.LogLongIndent(intervalName, this->minValues.current, "to", this->maxValues.current);
 		}
+
+
+		auto ToFormat(const bool forRaces)
+		{
+			return std::make_tuple
+			(
+				Format<T>(this->minValues.GetValues(forRaces), {}, this->minValues.lowerBound, this->minValues.upperBound),
+				Format<T>(this->maxValues.GetValues(forRaces), {}, this->maxValues.lowerBound, this->maxValues.upperBound)
+			);
+		}
 	};
 
 
@@ -343,24 +455,6 @@ namespace HeatParameters
 
 
 	// Validation functions -------------------------------------------------------------------------------------------------------------------------
-
-	template <typename T>
-	void ValidateIntervals
-	(
-		Pair<T>&       minValues,
-		const Pair<T>& maxValues
-	) {
-		for (const bool forRaces : {false, true})
-		{
-			Values<T>&       lowers = minValues.GetValues(forRaces);
-			const Values<T>& uppers = maxValues.GetValues(forRaces);
-
-			for (const size_t heatLevel : heatLevels)
-				lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
-		}
-	}
-
-
 
 	bool ValidateVehicles
 	(
@@ -407,274 +501,127 @@ namespace HeatParameters
 
 
 
-	// Parsing types and functions ------------------------------------------------------------------------------------------------------------------
+	// Auxiliary parsing functions ------------------------------------------------------------------------------------------------------------------
 
-	template <typename T, typename V>
-	struct ParsingSetup
+	namespace Auxiliary
 	{
-		T&                     values;
-		const std::optional<V> lowerBound = {};
-		const std::optional<V> upperBound = {};
-	};
+
+		template <typename T>
+		void InitialiseRaceValues(T& parameter) {}
+
+
+		template <typename T>
+		void InitialiseRaceValues(Pair<T>& pair)
+		{
+			pair.race = pair.roam;
+		}
+
+
+		void InitialiseRaceValues(PointerPair<std::string>& pair)
+		{
+			pair.race = pair.roam;
+		}
+
+
+		template <typename T>
+		void InitialiseRaceValues(Interval<T>& interval)
+		{
+			interval.minValues.race = interval.minValues.roam;
+			interval.maxValues.race = interval.maxValues.roam;
+		}
 
 
 
-	template <typename T>
-	auto ToRoamFormat(const ParsingSetup<Pair<T>, T>& setup)
-	{
-		return std::make_tuple(HeatParameters::Format<T>{setup.values.roam, setup.values.current, setup.lowerBound, setup.upperBound});
-	}
-
-
-
-	template <typename T>
-	auto ToRoamFormat(const ParsingSetup<PointerPair<std::string>, std::string>& setup)
-	{
-		return std::make_tuple(HeatParameters::Format<std::string>{setup.values.roam, setup.values.current, {}, {}});
-	}
-
-
-
-	template <typename T>
-	auto ToRoamFormat(const ParsingSetup<OptionalPair<T>, T>& setup)
-	{
-		return std::make_tuple(Format<T>{setup.values.values.roam, {}, setup.lowerBound, setup.upperBound});
-	}
-
-
-
-	template <typename T>
-	auto ToRoamFormat(const ParsingSetup<Interval<T>, T>& setup)
-	{
-		return std::make_tuple
+		template <typename T>
+		void CheckIntervals
 		(
-			Format<T>{setup.values.minValues.roam, setup.values.minValues.current, setup.lowerBound, setup.upperBound},
-			Format<T>{setup.values.maxValues.roam, setup.values.maxValues.current, setup.lowerBound, setup.upperBound}
-		);
-	}
-
-
-
-	template <typename T>
-	auto ToRoamFormat(const ParsingSetup<OptionalInterval<T>, T>& setup)
-	{
-		return std::make_tuple
-		(
-			Format<T>{setup.values.minValues.roam, {}, setup.lowerBound, setup.upperBound},
-			Format<T>{setup.values.maxValues.roam, {}, setup.lowerBound, setup.upperBound}
-		);
-	}
-
-
-
-	template <typename T>
-	auto ToRaceFormat(const ParsingSetup<Pair<T>, T>& setup)
-	{
-		return std::make_tuple(HeatParameters::Format<T>(setup.values.race, {}, setup.lowerBound, setup.upperBound));
-	}
-
-
-
-	template <typename T>
-	auto ToRaceFormat(const ParsingSetup<PointerPair<std::string>, std::string>& setup)
-	{
-		return std::make_tuple(HeatParameters::Format<std::string>{setup.values.race, {}, {}, {}});
-	}
-
-
-
-	template <typename T>
-	auto ToRaceFormat(const ParsingSetup<OptionalPair<T>, T>& setup)
-	{
-		return std::make_tuple(Format<T>(setup.values.values.race, {}, setup.lowerBound, setup.upperBound));
-	}
-
-
-
-	template <typename T>
-	auto ToRaceFormat(const ParsingSetup<Interval<T>, T>& setup)
-	{
-		return std::make_tuple
-		(
-			Format<T>(setup.values.minValues.race, {}, setup.lowerBound, setup.upperBound),
-			Format<T>(setup.values.maxValues.race, {}, setup.lowerBound, setup.upperBound)
-		);
-	}
-
-
-
-	template <typename T>
-	auto ToRaceFormat(const ParsingSetup<OptionalInterval<T>, T>& setup)
-	{
-		return std::make_tuple
-		(
-			Format<T>{setup.values.minValues.race, {}, setup.lowerBound, setup.upperBound},
-			Format<T>{setup.values.maxValues.race, {}, setup.lowerBound, setup.upperBound}
-		);
-	}
-
-
-
-	template <typename T>
-	auto ToSetup
-	(
-		Pair<T>&               data, 
-		const std::optional<T> lowerBound = {}, 
-		const std::optional<T> upperBound = {}
-	) {
-		return ParsingSetup<Pair<T>, T>(data, lowerBound, upperBound);
-	}
-
-
-
-	auto ToSetup(PointerPair<std::string>& data) 
-	{
-		return ParsingSetup<PointerPair<std::string>, std::string>(data, {}, {});
-	}
-
-
-
-	template <typename T>
-	auto ToSetup
-	(
-		OptionalPair<T>&       data, 
-		const std::optional<T> lowerBound = {}, 
-		const std::optional<T> upperBound = {}
-	) {
-		return ParsingSetup<OptionalPair<T>, T>(data, lowerBound, upperBound);
-	}
-
-
-
-	template <typename T>
-	auto ToSetup
-	(
-		Interval<T>&           data, 
-		const std::optional<T> lowerBound = {}, 
-		const std::optional<T> upperBound = {}
-	) {
-		return ParsingSetup<Interval<T>, T>(data, lowerBound, upperBound);
-	}
-
-
-
-	template <typename T>
-	auto ToSetup
-	(
-		OptionalInterval<T>&   data,
-		const std::optional<T> lowerBound = {},
-		const std::optional<T> upperBound = {}
-	) {
-		return ParsingSetup<OptionalInterval<T>, T>(data, lowerBound, upperBound);
-	}
-
-
-
-	template <typename T, typename V>
-	void InitialiseRaceValues(const ParsingSetup<T, V>& setup) {}
-
-
-
-	template <typename T, typename V>
-	void InitialiseRaceValues(const ParsingSetup<Pair<V>, V>& setup)
-	{
-		setup.values.race = setup.values.roam;
-	}
-
-
-
-	template <typename T, typename V>
-	void InitialiseRaceValues(const ParsingSetup<PointerPair<std::string>, std::string>& setup)
-	{
-		setup.values.race = setup.values.roam;
-	}
-
-
-
-	template <typename T, typename V>
-	void InitialiseRaceValues(const ParsingSetup<Interval<V>, V>& setup)
-	{
-		setup.values.minValues.race = setup.values.minValues.roam;
-		setup.values.maxValues.race = setup.values.maxValues.roam;
-	}
-
-
-
-	template <typename T, typename V>
-	void FinaliseIntervals
-	(
-		const ParsingSetup<T, V>& setup,
-		const Values<bool>&       isRoamEnableds,
-		const Values<bool>&       isRaceEnableds
-	) 
-	{
-	}
-
-
-
-	template <typename T, typename V>
-	void FinaliseIntervals
-	(
-		const ParsingSetup<Interval<V>, V>& setup, 
-		const Values<bool>&                 isRoamEnableds, 
-		const Values<bool>&                 isRaceEnableds
-	) {
-		ValidateIntervals<V>(setup.values.minValues, setup.values.maxValues);
-	}
-
-
-
-	template <typename T, typename V>
-	void FinaliseIntervals
-	(
-		const ParsingSetup<OptionalInterval<V>, V>& setup,
-		const Values<bool>&                         isRoamEnableds,
-		const Values<bool>&                         isRaceEnableds
-	) {
-		ValidateIntervals<V>(setup.values.minValues, setup.values.maxValues);
-
-		setup.values.isEnableds.roam = isRoamEnableds;
-		setup.values.isEnableds.race = isRaceEnableds;
-	}
-
-
-
-	template <typename ...T, typename ...V>
-	void Parse(
-		Parser&                       parser,
-		const std::string&            section,
-		const ParsingSetup<T, V>&& ...setups
-	) {
-		const auto isRoamEnableds = std::apply
-		(
-			[&](auto&& ...setups) -> Values<bool>
+			Pair<T>&       minValues,
+			const Pair<T>& maxValues
+		) {
+			for (const bool forRaces : {false, true})
 			{
-				return parser.ParseParameterTable
-				(
-					section,
-					configFormatRoam,
-					std::forward<decltype(setups)>(setups)...
-				);
-			}, 
-			std::move(std::tuple_cat(ToRoamFormat<V>(setups)...))
-		);
+				Values<T>&       lowers = minValues.GetValues(forRaces);
+				const Values<T>& uppers = maxValues.GetValues(forRaces);
 
-		(InitialiseRaceValues<T, V>(setups), ...);
+				for (const size_t heatLevel : heatLevels)
+					lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
+			}
+		}
 
-		const auto isRaceEnableds = std::apply
+
+
+		template <typename T>
+		void FinaliseIntervals
 		(
-			[&](auto&& ...setups) -> Values<bool>
-			{
-				return parser.ParseParameterTable
-				(
-					section,
-					configFormatRace,
-					std::forward<decltype(setups)>(setups)...
-				);
-			},
-			std::move(std::tuple_cat(ToRaceFormat<V>(setups)...))
-		);
+			T&                  parameter,
+			const Values<bool>& isRoamEnableds,
+			const Values<bool>& isRaceEnableds
+		) {}
 
-		(FinaliseIntervals<T, V>(setups, isRoamEnableds, isRaceEnableds), ...);
+
+		template <typename T>
+		void FinaliseIntervals
+		(
+			Interval<T>&        interval,
+			const Values<bool>& isRoamEnableds,
+			const Values<bool>& isRaceEnableds
+		) {
+			CheckIntervals<T>(interval.minValues, interval.maxValues);
+		}
+
+
+		template <typename T>
+		void FinaliseIntervals
+		(
+			OptionalInterval<T>& interval,
+			const Values<bool>&  isRoamEnableds,
+			const Values<bool>&  isRaceEnableds
+		) {
+			CheckIntervals<T>(interval.minValues, interval.maxValues);
+
+			interval.isEnableds.roam = isRoamEnableds;
+			interval.isEnableds.race = isRaceEnableds;
+		}
+	}
+
+
+
+
+
+	// Generic parsing function ---------------------------------------------------------------------------------------------------------------------
+
+	template <typename ...T>
+	void Parse
+	(
+		Parser&               parser,
+		const std::string&    section,
+		T&                 ...parameters
+	) {
+		Values<bool> isRoamEnableds = {};
+		Values<bool> isRaceEnableds = {};
+
+		for (const bool forRaces : {false, true})
+		{
+			if (forRaces)
+				(Auxiliary::InitialiseRaceValues(parameters), ...);
+
+			auto& isEnableds = (forRaces) ? isRaceEnableds : isRoamEnableds;
+
+			isEnableds = std::apply
+			(
+				[&](auto&& ...formats) -> Values<bool>
+				{
+					return parser.ParseParameterTable
+					(
+						section,
+						(forRaces) ? configFormatRace : configFormatRoam,
+						std::forward<decltype(formats)>(formats)...
+					);
+				},
+				std::move(std::tuple_cat(parameters.ToFormat(forRaces)...))
+			);
+		}
+
+		(Auxiliary::FinaliseIntervals(parameters, isRoamEnableds, isRaceEnableds), ...);
 	}
 }

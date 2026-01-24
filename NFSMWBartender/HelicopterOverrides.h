@@ -22,17 +22,17 @@ namespace HelicopterOverrides
 	// Heat levels
 	HeatParameters::PointerPair<std::string> helicopterVehicles("copheli");
 
-	HeatParameters::Interval<float>rammingCooldowns  (8.f, 8.f);  // seconds
+	HeatParameters::Interval<float>rammingCooldowns(8.f, 8.f, 1.f);  // seconds
 
-	HeatParameters::OptionalInterval<float> firstSpawnDelays;   // seconds
-	HeatParameters::OptionalInterval<float> fuelRespawnDelays;  // seconds
-	HeatParameters::OptionalInterval<float> wreckRespawnDelays; // seconds
-	HeatParameters::OptionalInterval<float> lostRespawnDelays;  // seconds
+	HeatParameters::OptionalInterval<float> firstSpawnDelays  (1.f); // seconds
+	HeatParameters::OptionalInterval<float> fuelRespawnDelays (1.f); // seconds
+	HeatParameters::OptionalInterval<float> wreckRespawnDelays(1.f); // seconds
+	HeatParameters::OptionalInterval<float> lostRespawnDelays (1.f); // seconds
 
-	HeatParameters::OptionalInterval<float> lostRejoinDelays;         // seconds
-	HeatParameters::Pair            <float> minRejoinFuelTimes(10.f); // seconds
+	HeatParameters::OptionalInterval<float> lostRejoinDelays  (1.f);       // seconds
+	HeatParameters::Pair            <float> minRejoinFuelTimes(10.f, 1.f); // seconds
 
-	HeatParameters::OptionalInterval<float> fuelTimes; // seconds
+	HeatParameters::OptionalInterval<float> fuelTimes(1.f); // seconds
 
 	// Code caves 
 	bool hasLimitedFuel    = false;
@@ -501,22 +501,16 @@ namespace HelicopterOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Helicopter:Vehicle",      HeatParameters::ToSetup(helicopterVehicles));
-		HeatParameters::Parse(parser, "Helicopter:FuelTime",     HeatParameters::ToSetup(fuelTimes,          {1.f}));
-		HeatParameters::Parse(parser, "Helicopter:FirstSpawn",   HeatParameters::ToSetup(firstSpawnDelays,   {1.f}));
-		HeatParameters::Parse(parser, "Helicopter:FuelRespawn",  HeatParameters::ToSetup(fuelRespawnDelays , {1.f}));
-		HeatParameters::Parse(parser, "Helicopter:WreckRespawn", HeatParameters::ToSetup(wreckRespawnDelays, {1.f}));
-		HeatParameters::Parse(parser, "Helicopter:LostRespawn",  HeatParameters::ToSetup(lostRespawnDelays,  {1.f}));
+		HeatParameters::Parse(parser, "Helicopter:Vehicle", helicopterVehicles);
 
-		HeatParameters::Parse
-		(
-			parser, 
-			"Helicopter:LostRejoin", 
-			HeatParameters::ToSetup(lostRejoinDelays,   {1.f}), 
-			HeatParameters::ToSetup(minRejoinFuelTimes, {1.f})
-		);
+		HeatParameters::Parse(parser, "Helicopter:FirstSpawn",   firstSpawnDelays);
+		HeatParameters::Parse(parser, "Helicopter:FuelRespawn",  fuelRespawnDelays);
+		HeatParameters::Parse(parser, "Helicopter:WreckRespawn", wreckRespawnDelays);
+		HeatParameters::Parse(parser, "Helicopter:LostRespawn",  lostRespawnDelays);
+		HeatParameters::Parse(parser, "Helicopter:LostRejoin",   lostRejoinDelays, minRejoinFuelTimes);
+		HeatParameters::Parse(parser, "Helicopter:FuelTime",     fuelTimes);
 
-		HeatParameters::Parse(parser, "Helicopter:Ramming", HeatParameters::ToSetup(rammingCooldowns, {1.f}));
+		HeatParameters::Parse(parser, "Helicopter:Ramming", rammingCooldowns);
 
 		// Code modifications 
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});

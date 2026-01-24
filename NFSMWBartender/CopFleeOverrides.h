@@ -18,15 +18,15 @@ namespace CopFleeOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair        <float>heavy3SpeedThresholds(25.f);  // kph
+	HeatParameters::Pair        <float>heavy3SpeedThresholds(25.f, 0.f); // kph
 	HeatParameters::Pair        <bool> heavy3JoiningEnableds(false);
-	HeatParameters::OptionalPair<int>  heavy3JoinLimits;             // cars
+	HeatParameters::OptionalPair<int>  heavy3JoinLimits     (0);
 
-	HeatParameters::OptionalInterval<float> chaserFleeDelays;           // seconds
-	HeatParameters::Pair            <int>   chaserChasersThresholds(2); // cars
+	HeatParameters::OptionalInterval<float> chaserFleeDelays       (1.f); // seconds
+	HeatParameters::Pair            <int>   chaserChasersThresholds(2, 0);
 
-	HeatParameters::OptionalInterval<float> joinedFleeDelays;           // seconds
-	HeatParameters::Pair            <int>   joinedChasersThresholds(2); // cars
+	HeatParameters::OptionalInterval<float> joinedFleeDelays       (1.f); // seconds
+	HeatParameters::Pair            <int>   joinedChasersThresholds(2, 0);
 
 	// Conversions
 	float baseSpeedThreshold = heavy3SpeedThresholds.current / 3.6f; // mps
@@ -465,28 +465,15 @@ namespace CopFleeOverrides
 		// Heat parameters (first file)
 		parser.LoadFile(HeatParameters::configPathAdvanced + "CarSpawns.ini");
 
-		HeatParameters::Parse
-		(
-			parser, 
-			"Joining:Fleeing", 
-			HeatParameters::ToSetup(joinedFleeDelays,        {1.f}), 
-			HeatParameters::ToSetup(joinedChasersThresholds, {0})
-		);
-
-		HeatParameters::Parse
-		(
-			parser, 
-			"Chasers:Fleeing", 
-			HeatParameters::ToSetup(chaserFleeDelays,        {1.f}), 
-			HeatParameters::ToSetup(chaserChasersThresholds, {0})
-		);
+		HeatParameters::Parse(parser, "Chasers:Fleeing", chaserFleeDelays, chaserChasersThresholds);
+		HeatParameters::Parse(parser, "Joining:Fleeing", joinedFleeDelays, joinedChasersThresholds);
 
 		// Heat parameters (second file)
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
-		HeatParameters::Parse(parser, "Heavy3:Cancellation", HeatParameters::ToSetup(heavy3SpeedThresholds, {0.f}));
-		HeatParameters::Parse(parser, "Heavy3:Joining",      HeatParameters::ToSetup(heavy3JoiningEnableds));
-		HeatParameters::Parse(parser, "Joining:Limit",       HeatParameters::ToSetup(heavy3JoinLimits,      {0}));
+		HeatParameters::Parse(parser, "Heavy3:Cancellation", heavy3SpeedThresholds);
+		HeatParameters::Parse(parser, "Heavy3:Joining",      heavy3JoiningEnableds);
+		HeatParameters::Parse(parser, "Joining:Limit",       heavy3JoinLimits);
 
 		// Code modifications 
 		MemoryTools::MakeRangeJMP(GoalUpdate, goalUpdateEntrance, goalUpdateExit);

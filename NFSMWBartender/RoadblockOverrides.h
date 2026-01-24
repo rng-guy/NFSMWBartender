@@ -53,7 +53,7 @@ namespace RoadblockOverrides
         bool    hasSpikes = false;
         RBTable table     = RBTable();
 
-        HeatParameters::Pair<int> chances = HeatParameters::Pair<int>(100);
+        HeatParameters::Pair<int> chances = HeatParameters::Pair<int>(100, 0);
     };
 
     // Heat levels
@@ -212,7 +212,7 @@ namespace RoadblockOverrides
     {
         if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Roadblocks.ini")) return false;
 
-        HeatParameters::Parse(parser, "Roadblocks:Tolerance", HeatParameters::ToSetup(widthTolerances, {0.f}));
+        HeatParameters::Parse(parser, "Roadblocks:Tolerance", widthTolerances);
 
         std::array<int,   maxNumParts> partTypes    = {};
         std::array<float, maxNumParts> partOffsetsX = {};
@@ -282,7 +282,7 @@ namespace RoadblockOverrides
             {
                 setup.name = section.substr(baseName.length());
 
-                HeatParameters::Parse(parser, section, HeatParameters::ToSetup(setup.chances, {0}));
+                HeatParameters::Parse(parser, section, setup.chances);
             }
             else roadblockSetups.pop_back();
         }

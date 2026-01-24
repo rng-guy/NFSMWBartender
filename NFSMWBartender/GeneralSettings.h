@@ -29,12 +29,12 @@ namespace GeneralSettings
 	// Heat levels
 	HeatParameters::Pair<bool> rivalPursuitsEnableds(true);
 
-	HeatParameters::Pair<float> bountyIntervals     (10.f); // seconds
-	HeatParameters::Pair<int>   maxBountyMultipliers(3);    // scale
+	HeatParameters::Pair<float> bountyIntervals     (10.f, .001f); // seconds
+	HeatParameters::Pair<int>   maxBountyMultipliers(3,    1);     // scale
 
-	HeatParameters::Pair<float> bustTimers      (5.f);  // seconds
-	HeatParameters::Pair<float> maxBustDistances(15.f); // metres
-	HeatParameters::Pair<float> evadeTimers     (7.f);  // seconds
+	HeatParameters::Pair<float> bustTimers      (5.f,  .001f); // seconds
+	HeatParameters::Pair<float> maxBustDistances(15.f, 0.f);   // metres
+	HeatParameters::Pair<float> evadeTimers     (7.f,  .001f); // seconds
 
 	HeatParameters::Pair<bool> carsAffectedByHidings (true);
 	HeatParameters::Pair<bool> helisAffectedByHidings(true);
@@ -418,31 +418,18 @@ namespace GeneralSettings
 		}
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Pursuits:Rivals", HeatParameters::ToSetup(rivalPursuitsEnableds));
-		HeatParameters::Parse(parser, "Bounty:Interval", HeatParameters::ToSetup(bountyIntervals,      {.001f}));
-		HeatParameters::Parse(parser, "Bounty:Combo",    HeatParameters::ToSetup(maxBountyMultipliers, {1}));
+		HeatParameters::Parse(parser, "Pursuits:Rivals", rivalPursuitsEnableds);
 
-		HeatParameters::Parse
-		(
-			parser, 
-			"State:Busting", 
-			HeatParameters::ToSetup(bustTimers,       {.001f}), 
-			HeatParameters::ToSetup(maxBustDistances, {0.f})
-		);
+		HeatParameters::Parse(parser, "Bounty:Interval", bountyIntervals);
+		HeatParameters::Parse(parser, "Bounty:Combo",    maxBountyMultipliers);
 
-		HeatParameters::Parse(parser, "State:Evading", ToSetup(evadeTimers, {.001f}));
+		HeatParameters::Parse(parser, "State:Busting",  bustTimers, maxBustDistances);
+		HeatParameters::Parse(parser, "State:Evading",  evadeTimers);
+		HeatParameters::Parse(parser, "Evading:Hiding", carsAffectedByHidings, helisAffectedByHidings);
 
-		HeatParameters::Parse
-		(
-			parser, 
-			"Evading:Hiding",  
-			ToSetup(carsAffectedByHidings),
-			ToSetup(helisAffectedByHidings)
-		);
-
-		HeatParameters::Parse(parser, "Flipping:Damage", HeatParameters::ToSetup(copFlipByDamageEnableds));
-		HeatParameters::Parse(parser, "Flipping:Time",   HeatParameters::ToSetup(copFlipByTimers,      {0.f}));
-		HeatParameters::Parse(parser, "Flipping:Reset",  HeatParameters::ToSetup(racerFlipResetDelays, {0.f}));
+		HeatParameters::Parse(parser, "Flipping:Damage", copFlipByDamageEnableds);
+		HeatParameters::Parse(parser, "Flipping:Time",   copFlipByTimers);
+		HeatParameters::Parse(parser, "Flipping:Reset",  racerFlipResetDelays);
 
 		// Breaker flags
 		std::vector<std::string> copVehicles;

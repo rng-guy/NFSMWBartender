@@ -20,12 +20,12 @@ namespace StrategyOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2);
+	HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, 1);
 
-	HeatParameters::OptionalInterval<float> heavy3UnblockDelays;  // seconds
-	HeatParameters::OptionalInterval<float> heavy4UnblockDelays;  // seconds
-	HeatParameters::OptionalInterval<float> leader5UnblockDelays; // seconds
-	HeatParameters::OptionalInterval<float> leader7UnblockDelays; // seconds
+	HeatParameters::OptionalInterval<float> heavy3UnblockDelays (1.f); // seconds
+	HeatParameters::OptionalInterval<float> heavy4UnblockDelays (1.f); // seconds
+	HeatParameters::OptionalInterval<float> leader5UnblockDelays(1.f); // seconds
+	HeatParameters::OptionalInterval<float> leader7UnblockDelays(1.f); // seconds
 
 	// Code caves
 	constexpr size_t maxNumVehiclesPerHeavy4 = 6;
@@ -619,11 +619,12 @@ namespace StrategyOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Heavy3:Count",       HeatParameters::ToSetup(numVehiclesPerHeavy3s, {1}));
-		HeatParameters::Parse(parser, "Heavy3:Unblocking",  HeatParameters::ToSetup(heavy3UnblockDelays,   {1.f}));
-		HeatParameters::Parse(parser, "Heavy4:Unblocking",  HeatParameters::ToSetup(heavy4UnblockDelays,   {1.f}));
-		HeatParameters::Parse(parser, "Leader5:Unblocking", HeatParameters::ToSetup(leader5UnblockDelays,  {1.f}));
-		HeatParameters::Parse(parser, "Leader7:Unblocking", HeatParameters::ToSetup(leader7UnblockDelays,  {1.f}));
+		HeatParameters::Parse(parser, "Heavy3:Count", numVehiclesPerHeavy3s);
+
+		HeatParameters::Parse(parser, "Heavy3:Unblocking",  heavy3UnblockDelays);
+		HeatParameters::Parse(parser, "Heavy4:Unblocking",  heavy4UnblockDelays);
+		HeatParameters::Parse(parser, "Leader5:Unblocking", leader5UnblockDelays);
+		HeatParameters::Parse(parser, "Leader7:Unblocking", leader7UnblockDelays);
 
 		// Stack replacements for removal of HeavyStrategy 3 limit
 		const size_t vectorStackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats

@@ -17,16 +17,16 @@ namespace LeaderOverrides
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::OptionalInterval<float> leader5CrossAggroDelays;  // seconds
-	HeatParameters::OptionalInterval<float> leader5ExpireResetDelays; // seconds
-	HeatParameters::OptionalInterval<float> leader5WreckResetDelays;  // seconds
-	HeatParameters::OptionalInterval<float> leader5LostResetDelays;   // seconds
+	HeatParameters::OptionalInterval<float> leader5CrossAggroDelays (1.f); // seconds
+	HeatParameters::OptionalInterval<float> leader5ExpireResetDelays(1.f); // seconds
+	HeatParameters::OptionalInterval<float> leader5WreckResetDelays (1.f); // seconds
+	HeatParameters::OptionalInterval<float> leader5LostResetDelays  (1.f); // seconds
 
-	HeatParameters::OptionalInterval<float> leader7CrossAggroDelays;  // seconds
-	HeatParameters::OptionalInterval<float> leader7HenchAggroDelays;  // seconds
-	HeatParameters::OptionalInterval<float> leader7ExpireResetDelays; // seconds
-	HeatParameters::OptionalInterval<float> leader7WreckResetDelays;  // seconds
-	HeatParameters::OptionalInterval<float> leader7LostResetDelays;   // seconds
+	HeatParameters::OptionalInterval<float> leader7CrossAggroDelays (1.f); // seconds
+	HeatParameters::OptionalInterval<float> leader7HenchAggroDelays (1.f); // seconds
+	HeatParameters::OptionalInterval<float> leader7ExpireResetDelays(1.f); // seconds
+	HeatParameters::OptionalInterval<float> leader7WreckResetDelays (1.f); // seconds
+	HeatParameters::OptionalInterval<float> leader7LostResetDelays  (1.f);  // seconds
 
 
 
@@ -318,15 +318,16 @@ namespace LeaderOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Leader5:CrossAggro",    HeatParameters::ToSetup(leader5CrossAggroDelays,  {1.f}));
-		HeatParameters::Parse(parser, "Leader5:ExpireReset",   HeatParameters::ToSetup(leader5ExpireResetDelays, {1.f}));
-		HeatParameters::Parse(parser, "Leader5:WreckReset",    HeatParameters::ToSetup(leader5WreckResetDelays,  {1.f}));
-		HeatParameters::Parse(parser, "Leader5:LostReset",     HeatParameters::ToSetup(leader5LostResetDelays,   {1.f}));
-		HeatParameters::Parse(parser, "Leader7:CrossAggro",    HeatParameters::ToSetup(leader7CrossAggroDelays,  {1.f}));
-		HeatParameters::Parse(parser, "Leader7:HenchmenAggro", HeatParameters::ToSetup(leader7HenchAggroDelays,  {1.f}));
-		HeatParameters::Parse(parser, "Leader7:ExpireReset",   HeatParameters::ToSetup(leader7ExpireResetDelays, {1.f}));
-		HeatParameters::Parse(parser, "Leader7:WreckReset",    HeatParameters::ToSetup(leader7WreckResetDelays,  {1.f}));
-		HeatParameters::Parse(parser, "Leader7:LostReset",     HeatParameters::ToSetup(leader7LostResetDelays,   {1.f}));
+		HeatParameters::Parse(parser, "Leader5:CrossAggro",  leader5CrossAggroDelays);
+		HeatParameters::Parse(parser, "Leader5:ExpireReset", leader5ExpireResetDelays);
+		HeatParameters::Parse(parser, "Leader5:WreckReset",  leader5WreckResetDelays);
+		HeatParameters::Parse(parser, "Leader5:LostReset",   leader5LostResetDelays);
+
+		HeatParameters::Parse(parser, "Leader7:CrossAggro",    leader7CrossAggroDelays);
+		HeatParameters::Parse(parser, "Leader7:HenchmenAggro", leader7HenchAggroDelays);
+		HeatParameters::Parse(parser, "Leader7:ExpireReset",   leader7ExpireResetDelays);
+		HeatParameters::Parse(parser, "Leader7:WreckReset",    leader7WreckResetDelays);
+		HeatParameters::Parse(parser, "Leader7:LostReset",     leader7LostResetDelays);
 
 		// Code modifications
 		MemoryTools::MakeRangeNOP(0x42B6A2, 0x42B6B4); // Cross flag = 0

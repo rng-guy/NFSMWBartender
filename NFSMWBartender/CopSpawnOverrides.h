@@ -232,16 +232,16 @@ namespace CopSpawnOverrides
 	bool trackJoinedVehicles = false;
 
 	// Heat levels
-	HeatParameters::Interval<int>   activeChaserCounts       (1, 8);  // cars
+	HeatParameters::Interval<int>   activeChaserCounts       (1, 8, 0);  // cars
 	HeatParameters::Pair    <bool>  chasersAreIndependents   (false);
 	HeatParameters::Pair    <bool>  onlyDestroyedDecrements  (false);
 	HeatParameters::Pair    <bool>  transitionTriggersBackups(false);
-	HeatParameters::Pair    <float> chaserSpawnClearances    (40.f);  // metres
+	HeatParameters::Pair    <float> chaserSpawnClearances    (40.f, 0.f);  // metres
 
 	HeatParameters::Pair<bool> trafficIgnoresChasers   (false);
 	HeatParameters::Pair<bool> trafficIgnoresRoadblocks(false);
 
-	HeatParameters::OptionalPair<int> roadblockJoinLimits; // cars
+	HeatParameters::OptionalPair<int> roadblockJoinLimits(0); // cars
 
 	// Code caves
 	bool skipScriptedSpawns = true;
@@ -1042,21 +1042,15 @@ namespace CopSpawnOverrides
 		parser.ParseParameter<bool>(section, "joinedVehicles", trackJoinedVehicles);
 
 		// Heat levels
-		HeatParameters::Parse(parser, "Chasers:Limits",       HeatParameters::ToSetup(activeChaserCounts,    {0}));
-		HeatParameters::Parse(parser, "Chasers:Independence", HeatParameters::ToSetup(chasersAreIndependents));
-		HeatParameters::Parse(parser, "Chasers:Decrement",    HeatParameters::ToSetup(onlyDestroyedDecrements));
-		HeatParameters::Parse(parser, "Chasers:Backup",       HeatParameters::ToSetup(transitionTriggersBackups));
-		HeatParameters::Parse(parser, "Chasers:Clearance",    HeatParameters::ToSetup(chaserSpawnClearances, {0.f}));
+		HeatParameters::Parse(parser, "Chasers:Limits",       activeChaserCounts);
+		HeatParameters::Parse(parser, "Chasers:Independence", chasersAreIndependents);
+		HeatParameters::Parse(parser, "Chasers:Decrement",    onlyDestroyedDecrements);
+		HeatParameters::Parse(parser, "Chasers:Backup",       transitionTriggersBackups);
+		HeatParameters::Parse(parser, "Chasers:Clearance",    chaserSpawnClearances);
 
-		HeatParameters::Parse
-		(
-			parser, 
-			"Traffic:Independence", 
-			HeatParameters::ToSetup(trafficIgnoresChasers), 
-			HeatParameters::ToSetup(trafficIgnoresRoadblocks)
-		);
+		HeatParameters::Parse(parser, "Traffic:Independence", trafficIgnoresChasers, trafficIgnoresRoadblocks);
 
-		HeatParameters::Parse(parser, "Joining:Limit", HeatParameters::ToSetup(roadblockJoinLimits, {0}));
+		HeatParameters::Parse(parser, "Joining:Limit", roadblockJoinLimits);
 
 		// Code modifications 
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count

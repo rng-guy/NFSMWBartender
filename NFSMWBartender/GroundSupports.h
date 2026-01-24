@@ -23,34 +23,36 @@ namespace GroundSupports
 	HeatParameters::Pair<bool> rivalHeavyEnableds    (true);
 	HeatParameters::Pair<bool> rivalLeaderEnableds   (true);
 
-	HeatParameters::Interval<float> roadblockCooldowns     (8.f, 12.f); // seconds
-	HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f);      // seconds
+	HeatParameters::Interval<float> roadblockCooldowns     (8.f,  12.f, 1.f); // seconds
+	HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f, 1.f);       // seconds
 
-	HeatParameters::Interval<float> roadblockSpawnDistances(250.f, 250.f); // metres
+	HeatParameters::Interval<float> roadblockSpawnDistances(250.f, 250.f, 0.f); // metres
 
 	HeatParameters::Pair<bool> roadblockEndsFormations(true);
 
 	HeatParameters::OptionalPair<float> roadblockJoinTimers; // seconds
 
-	HeatParameters::Pair<float> maxRBJoinDistances      (500.f); // metres
-	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f);  // metres
-	HeatParameters::Pair<int>   maxRBJoinCounts         (1);     // cars
+	HeatParameters::Pair<float> maxRBJoinDistances      (500.f, 0.f); // metres
+	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f,  0.f); // metres
+	HeatParameters::Pair<int>   maxRBJoinCounts         (1,     0);   // cars
 
 	HeatParameters::Pair<bool> reactToCooldownModes(true);
 	HeatParameters::Pair<bool> reactToSpikesHits   (true);
 	
-	HeatParameters::Interval<float> strategyCooldowns(10.f, 10.f); // seconds
+	HeatParameters::Interval<float> strategyCooldowns(10.f, 10.f, 1.f); // seconds
 
 	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
 	HeatParameters::Pair<bool> heavy3AreBlockables   (true);
 
 	HeatParameters::PointerPair<std::string> heavy3LightVehicles("copsuvl");
 	HeatParameters::PointerPair<std::string> heavy3HeavyVehicles("copsuv");
+
 	HeatParameters::PointerPair<std::string> heavy4LightVehicles("copsuvl");
 	HeatParameters::PointerPair<std::string> heavy4HeavyVehicles("copsuv");
 
 	HeatParameters::PointerPair<std::string> leader5CrossVehicles ("copcross");
 	HeatParameters::PointerPair<std::string> leader7CrossVehicles ("copcross");
+
 	HeatParameters::PointerPair<std::string> leader7Hench1Vehicles("copsporthench");
 	HeatParameters::PointerPair<std::string> leader7Hench2Vehicles("copsporthench");
 
@@ -721,79 +723,21 @@ namespace GroundSupports
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Supports.ini")) return false;
 
 		// Heat parameters
-		HeatParameters::Parse
-		(
-			parser, 
-			"Supports:Rivals",       
-			HeatParameters::ToSetup(rivalRoadblockEnableds),
-			HeatParameters::ToSetup(rivalHeavyEnableds),
-			HeatParameters::ToSetup(rivalLeaderEnableds)
-		);
+		HeatParameters::Parse(parser, "Supports:Rivals", rivalRoadblockEnableds, rivalHeavyEnableds, rivalLeaderEnableds);
 
-		HeatParameters::Parse
-		(
-			parser, 
-			"Roadblocks:Cooldown",   
-			HeatParameters::ToSetup(roadblockCooldowns,      {1.f}), 
-			HeatParameters::ToSetup(roadblockHeavyCooldowns, {1.f})
-		);
+		HeatParameters::Parse(parser, "Roadblocks:Cooldown",   roadblockCooldowns, roadblockHeavyCooldowns);
+		HeatParameters::Parse(parser, "Roadblocks:Distance",   roadblockSpawnDistances);
+		HeatParameters::Parse(parser, "Roadblocks:Formations", roadblockEndsFormations);
+		HeatParameters::Parse(parser, "Roadblocks:Joining",    roadblockJoinTimers);
+		HeatParameters::Parse(parser, "Roadblocks:Reactions",  reactToCooldownModes, reactToSpikesHits);
+		HeatParameters::Parse(parser, "Joining:Definitions",   maxRBJoinDistances, maxRBJoinElevationDeltas, maxRBJoinCounts);
 
-		HeatParameters::Parse(parser, "Roadblocks:Distance",   HeatParameters::ToSetup(roadblockSpawnDistances, {0.f}));
-		HeatParameters::Parse(parser, "Roadblocks:Formations", HeatParameters::ToSetup(roadblockEndsFormations));
-		HeatParameters::Parse(parser, "Roadblocks:Joining",    HeatParameters::ToSetup(roadblockJoinTimers,     {0.f}));
-
-		HeatParameters::Parse
-		(
-			parser, 
-			"Roadblocks:Reactions", 
-			HeatParameters::ToSetup(reactToCooldownModes), 
-			HeatParameters::ToSetup(reactToSpikesHits)
-		);
-
-		HeatParameters::Parse
-		(
-			parser,
-			"Joining:Definitions",
-			HeatParameters::ToSetup(maxRBJoinDistances,       {0.f}),
-			HeatParameters::ToSetup(maxRBJoinElevationDeltas, {0.f}),
-			HeatParameters::ToSetup(maxRBJoinCounts,          {0})
-		);
-
-		HeatParameters::Parse(parser, "Strategies:Cooldown", HeatParameters::ToSetup(strategyCooldowns, {1.f}));
-
-		HeatParameters::Parse
-		(
-			parser, 
-			"Heavy3:Roadblocks",   
-			HeatParameters::ToSetup(heavy3TriggerCooldowns), 
-			HeatParameters::ToSetup(heavy3AreBlockables)
-		);
-
-		HeatParameters::Parse
-		(
-			parser, "Heavy3:Vehicles", 
-			HeatParameters::ToSetup(heavy3LightVehicles), 
-			HeatParameters::ToSetup(heavy3HeavyVehicles)
-		);
-
-		HeatParameters::Parse
-		(
-			parser, 
-			"Heavy4:Vehicles", 
-			HeatParameters::ToSetup(heavy4LightVehicles), 
-			HeatParameters::ToSetup(heavy4HeavyVehicles)
-		);
-
-		HeatParameters::Parse(parser, "Leader5:Vehicle", HeatParameters::ToSetup(leader5CrossVehicles));
-
-		HeatParameters::Parse
-		(
-			parser, 
-			"Leader7:Vehicles", 
-			HeatParameters::ToSetup(leader7CrossVehicles),
-			HeatParameters::ToSetup(leader7Hench1Vehicles),
-			HeatParameters::ToSetup(leader7Hench2Vehicles)
-		);
+		HeatParameters::Parse(parser, "Strategies:Cooldown", strategyCooldowns);
+		HeatParameters::Parse(parser, "Heavy3:Roadblocks",   heavy3TriggerCooldowns, heavy3AreBlockables);
+		HeatParameters::Parse(parser, "Heavy3:Vehicles",     heavy3LightVehicles, heavy3HeavyVehicles);
+		HeatParameters::Parse(parser, "Heavy4:Vehicles",     heavy4LightVehicles, heavy4HeavyVehicles);
+		HeatParameters::Parse(parser, "Leader5:Vehicle",     leader5CrossVehicles);
+		HeatParameters::Parse(parser, "Leader7:Vehicles",    leader7CrossVehicles, leader7Hench1Vehicles, leader7Hench2Vehicles);
 
 		// Code modifications 
 		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),       {0x42BEBC});
