@@ -721,48 +721,86 @@ namespace GroundSupports
 		if (not parser.LoadFile(HeatParameters::configPathBasic + "Supports.ini")) return false;
 
 		// Heat parameters
-		HeatParameters::Parse<bool, bool, bool>(parser, "Supports:Rivals", {rivalRoadblockEnableds}, {rivalHeavyEnableds}, {rivalLeaderEnableds});
+		HeatParameters::Parse
+		(
+			parser, 
+			"Supports:Rivals",       
+			HeatParameters::ToSetup(rivalRoadblockEnableds),
+			HeatParameters::ToSetup(rivalHeavyEnableds),
+			HeatParameters::ToSetup(rivalLeaderEnableds)
+		);
 
-		HeatParameters::Parse<float, float>(parser, "Roadblocks:Cooldown",   {roadblockCooldowns,      1.f}, {roadblockHeavyCooldowns, 1.f});
-		HeatParameters::Parse<float>       (parser, "Roadblocks:Distance",   {roadblockSpawnDistances, 0.f});
-		HeatParameters::Parse<bool>        (parser, "Roadblocks:Formations", {roadblockEndsFormations});
+		HeatParameters::Parse
+		(
+			parser, 
+			"Roadblocks:Cooldown",   
+			HeatParameters::ToSetup(roadblockCooldowns,      {1.f}), 
+			HeatParameters::ToSetup(roadblockHeavyCooldowns, {1.f})
+		);
 
-		HeatParameters::ParseOptional<float>(parser, "Roadblocks:Joining", {roadblockJoinTimers, 0.f});
+		HeatParameters::Parse(parser, "Roadblocks:Distance",   HeatParameters::ToSetup(roadblockSpawnDistances, {0.f}));
+		HeatParameters::Parse(parser, "Roadblocks:Formations", HeatParameters::ToSetup(roadblockEndsFormations));
+		HeatParameters::Parse(parser, "Roadblocks:Joining",    HeatParameters::ToSetup(roadblockJoinTimers,     {0.f}));
 
-		HeatParameters::Parse<bool, bool> (parser, "Roadblocks:Reactions", {reactToCooldownModes}, {reactToSpikesHits});
+		HeatParameters::Parse
+		(
+			parser, 
+			"Roadblocks:Reactions", 
+			HeatParameters::ToSetup(reactToCooldownModes), 
+			HeatParameters::ToSetup(reactToSpikesHits)
+		);
 
-		HeatParameters::Parse<float, float, int>
+		HeatParameters::Parse
 		(
 			parser,
 			"Joining:Definitions",
-			{maxRBJoinDistances,       0.f},
-			{maxRBJoinElevationDeltas, 0.f},
-			{maxRBJoinCounts,            0}
+			HeatParameters::ToSetup(maxRBJoinDistances,       {0.f}),
+			HeatParameters::ToSetup(maxRBJoinElevationDeltas, {0.f}),
+			HeatParameters::ToSetup(maxRBJoinCounts,          {0})
 		);
 
-		HeatParameters::Parse<float>     (parser, "Strategies:Cooldown", {strategyCooldowns, 1.f});
-		HeatParameters::Parse<bool, bool>(parser, "Heavy3:Roadblocks",   {heavy3TriggerCooldowns}, {heavy3AreBlockables});
-		
-		HeatParameters::Parse<std::string, std::string>(parser, "Heavy3:Vehicles", {heavy3LightVehicles}, {heavy3HeavyVehicles});
-		HeatParameters::Parse<std::string, std::string>(parser, "Heavy4:Vehicles", {heavy4LightVehicles}, {heavy4HeavyVehicles});
+		HeatParameters::Parse(parser, "Strategies:Cooldown", HeatParameters::ToSetup(strategyCooldowns, {1.f}));
 
-		HeatParameters::Parse<std::string>(parser, "Leader5:Vehicle", {leader5CrossVehicles});
+		HeatParameters::Parse
+		(
+			parser, 
+			"Heavy3:Roadblocks",   
+			HeatParameters::ToSetup(heavy3TriggerCooldowns), 
+			HeatParameters::ToSetup(heavy3AreBlockables)
+		);
 
-		HeatParameters::Parse<std::string, std::string, std::string>
+		HeatParameters::Parse
+		(
+			parser, "Heavy3:Vehicles", 
+			HeatParameters::ToSetup(heavy3LightVehicles), 
+			HeatParameters::ToSetup(heavy3HeavyVehicles)
+		);
+
+		HeatParameters::Parse
+		(
+			parser, 
+			"Heavy4:Vehicles", 
+			HeatParameters::ToSetup(heavy4LightVehicles), 
+			HeatParameters::ToSetup(heavy4HeavyVehicles)
+		);
+
+		HeatParameters::Parse(parser, "Leader5:Vehicle", HeatParameters::ToSetup(leader5CrossVehicles));
+
+		HeatParameters::Parse
 		(
 			parser, 
 			"Leader7:Vehicles", 
-			{leader7CrossVehicles},
-			{leader7Hench1Vehicles}, 
-			{leader7Hench2Vehicles}
+			HeatParameters::ToSetup(leader7CrossVehicles),
+			HeatParameters::ToSetup(leader7Hench1Vehicles),
+			HeatParameters::ToSetup(leader7Hench2Vehicles)
 		);
 
 		// Code modifications 
-		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
-		MemoryTools::MakeRangeNOP(0x42402A, 0x424036); // Cross flag = 1
-
 		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),       {0x42BEBC});
 		MemoryTools::Write<float*>(&(maxRBJoinElevationDeltas.current), {0x42BE3A});
+
+		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
+		MemoryTools::MakeRangeNOP(0x42402A, 0x424036); // Cross flag = 1
 
 		MemoryTools::MakeRangeJMP(CrossSub,             crossSubEntrance,             crossSubExit);
 		MemoryTools::MakeRangeJMP(OnAttached,           onAttachedEntrance,           onAttachedExit);

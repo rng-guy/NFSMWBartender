@@ -212,7 +212,7 @@ namespace RoadblockOverrides
     {
         if (not parser.LoadFile(HeatParameters::configPathAdvanced + "Roadblocks.ini")) return false;
 
-        HeatParameters::Parse<float>(parser, "Roadblocks:Tolerance", {widthTolerances, 0.f});
+        HeatParameters::Parse(parser, "Roadblocks:Tolerance", HeatParameters::ToSetup(widthTolerances, {0.f}));
 
         std::array<int,   maxNumParts> partTypes    = {};
         std::array<float, maxNumParts> partOffsetsX = {};
@@ -281,7 +281,8 @@ namespace RoadblockOverrides
             if (setup.table.numCarsRequired > 0)
             {
                 setup.name = section.substr(baseName.length());
-                HeatParameters::Parse<int>(parser, section, {setup.chances, 0});
+
+                HeatParameters::Parse(parser, section, HeatParameters::ToSetup(setup.chances, {0}));
             }
             else roadblockSetups.pop_back();
         }

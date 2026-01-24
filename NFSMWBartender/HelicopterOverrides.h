@@ -500,22 +500,27 @@ namespace HelicopterOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini");
 
 		// Heat parameters
-		HeatParameters::Parse<std::string>(parser, "Helicopter:Vehicle", {helicopterVehicles});
+		HeatParameters::Parse(parser, "Helicopter:Vehicle",      HeatParameters::ToSetup(helicopterVehicles));
+		HeatParameters::Parse(parser, "Helicopter:FuelTime",     HeatParameters::ToSetup(fuelTimes,          {1.f}));
+		HeatParameters::Parse(parser, "Helicopter:FirstSpawn",   HeatParameters::ToSetup(firstSpawnDelays,   {1.f}));
+		HeatParameters::Parse(parser, "Helicopter:FuelRespawn",  HeatParameters::ToSetup(fuelRespawnDelays , {1.f}));
+		HeatParameters::Parse(parser, "Helicopter:WreckRespawn", HeatParameters::ToSetup(wreckRespawnDelays, {1.f}));
+		HeatParameters::Parse(parser, "Helicopter:LostRespawn",  HeatParameters::ToSetup(lostRespawnDelays,  {1.f}));
 
-		HeatParameters::ParseOptional<float>(parser, "Helicopter:FuelTime",     {fuelTimes,          1.f});
-		HeatParameters::ParseOptional<float>(parser, "Helicopter:FirstSpawn",   {firstSpawnDelays,   1.f});
-		HeatParameters::ParseOptional<float>(parser, "Helicopter:FuelRespawn",  {fuelRespawnDelays , 1.f});
-		HeatParameters::ParseOptional<float>(parser, "Helicopter:WreckRespawn", {wreckRespawnDelays, 1.f});
-		HeatParameters::ParseOptional<float>(parser, "Helicopter:LostRespawn",  {lostRespawnDelays,  1.f});
-		
-		HeatParameters::ParseOptional<float, float>(parser, "Helicopter:LostRejoin", {lostRejoinDelays, 1.f}, {minRejoinFuelTimes, 1.f});
+		HeatParameters::Parse
+		(
+			parser, 
+			"Helicopter:LostRejoin", 
+			HeatParameters::ToSetup(lostRejoinDelays,   {1.f}), 
+			HeatParameters::ToSetup(minRejoinFuelTimes, {1.f})
+		);
 
-		HeatParameters::Parse<float>(parser, "Helicopter:Ramming", {rammingCooldowns, 1.f});
+		HeatParameters::Parse(parser, "Helicopter:Ramming", HeatParameters::ToSetup(rammingCooldowns, {1.f}));
 
 		// Code modifications 
-		MemoryTools::MakeRangeNOP(0x419160, 0x41916E); // roadblock-induced lobotomy
-
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
+
+		MemoryTools::MakeRangeNOP(0x419160, 0x41916E); // roadblock-induced lobotomy
 
 		MemoryTools::MakeRangeJMP(FuelUpdate,      fuelUpdateEntrance,      fuelUpdateExit);
 		MemoryTools::MakeRangeJMP(DefaultFuel,     defaultFuelEntrance,     defaultFuelExit);

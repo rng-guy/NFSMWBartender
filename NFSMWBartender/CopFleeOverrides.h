@@ -462,18 +462,31 @@ namespace CopFleeOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		// Heat parameters I
+		// Heat parameters (first file)
 		parser.LoadFile(HeatParameters::configPathAdvanced + "CarSpawns.ini");
 
-		HeatParameters::ParseOptional<float, int>(parser, "Joining:Fleeing", {joinedFleeDelays, 1.f}, {joinedChasersThresholds, 0});
-		HeatParameters::ParseOptional<float, int>(parser, "Chasers:Fleeing", {chaserFleeDelays, 1.f}, {chaserChasersThresholds, 0});
+		HeatParameters::Parse
+		(
+			parser, 
+			"Joining:Fleeing", 
+			HeatParameters::ToSetup(joinedFleeDelays,        {1.f}), 
+			HeatParameters::ToSetup(joinedChasersThresholds, {0})
+		);
 
-		// Heat parameters II
+		HeatParameters::Parse
+		(
+			parser, 
+			"Chasers:Fleeing", 
+			HeatParameters::ToSetup(chaserFleeDelays,        {1.f}), 
+			HeatParameters::ToSetup(chaserChasersThresholds, {0})
+		);
+
+		// Heat parameters (second file)
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
-		HeatParameters::Parse        <float>(parser, "Heavy3:Cancellation", {heavy3SpeedThresholds, 0.f});
-		HeatParameters::Parse        <bool> (parser, "Heavy3:Joining",      {heavy3JoiningEnableds});
-		HeatParameters::ParseOptional<int>  (parser, "Joining:Limit",       {heavy3JoinLimits,      0});
+		HeatParameters::Parse(parser, "Heavy3:Cancellation", HeatParameters::ToSetup(heavy3SpeedThresholds, {0.f}));
+		HeatParameters::Parse(parser, "Heavy3:Joining",      HeatParameters::ToSetup(heavy3JoiningEnableds));
+		HeatParameters::Parse(parser, "Joining:Limit",       HeatParameters::ToSetup(heavy3JoinLimits,      {0}));
 
 		// Code modifications 
 		MemoryTools::MakeRangeJMP(GoalUpdate, goalUpdateEntrance, goalUpdateExit);

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <array>
+#include <tuple>
 #include <string>
+#include <variant>
 #include <optional>
 #include <algorithm>
 
@@ -201,7 +203,8 @@ namespace HeatParameters
 	struct OptionalPair
 	{
 		Pair<bool> isEnableds = Pair<bool>(false);
-		Pair<T>    values     = Pair<T>   (T());
+
+		Pair<T> values = Pair<T>(T());
 
 
 		void SetToHeat
@@ -294,8 +297,9 @@ namespace HeatParameters
 	struct OptionalInterval
 	{
 		Pair<bool> isEnableds = Pair<bool>(false);
-		Pair<T>    minValues  = Pair<T>   (T());
-		Pair<T>    maxValues  = Pair<T>   (T());
+
+		Pair<T> minValues = Pair<T>(T());
+		Pair<T> maxValues = Pair<T>(T());
 
 
 		void SetToHeat
@@ -416,171 +420,230 @@ namespace HeatParameters
 
 
 	template <typename T>
-	void Parse
-	(
-		Parser&                    parser,
-		const std::string&         section,
-		ParsingSetup<Pair<T>, T>&& setup
-	) {
-		parser.ParseFormatParameter<T>
-		(
-			section,
-			configFormatRoam,
-			setup.values.roam,
-			setup.values.current,
-			setup.lowerBound,
-			setup.upperBound
-		);
+	auto ToRoamFormat(const ParsingSetup<Pair<T>, T>& setup)
+	{
+		return std::make_tuple(HeatParameters::Format<T>{setup.values.roam, setup.values.current, setup.lowerBound, setup.upperBound});
+	}
 
+
+
+	template <typename T>
+	auto ToRoamFormat(const ParsingSetup<OptionalPair<T>, T>& setup)
+	{
+		return std::make_tuple(Format<T>{setup.values.values.roam, {}, setup.lowerBound, setup.upperBound});
+	}
+
+
+
+	template <typename T>
+	auto ToRoamFormat(const ParsingSetup<Interval<T>, T>& setup)
+	{
+		return std::make_tuple
+		(
+			Format<T>{setup.values.minValues.roam, setup.values.minValues.current, setup.lowerBound, setup.upperBound},
+			Format<T>{setup.values.maxValues.roam, setup.values.maxValues.current, setup.lowerBound, setup.upperBound}
+		);
+	}
+
+
+
+	template <typename T>
+	auto ToRoamFormat(const ParsingSetup<OptionalInterval<T>, T>& setup)
+	{
+		return std::make_tuple
+		(
+			Format<T>{setup.values.minValues.roam, {}, setup.lowerBound, setup.upperBound},
+			Format<T>{setup.values.maxValues.roam, {}, setup.lowerBound, setup.upperBound}
+		);
+	}
+
+
+
+	template <typename T>
+	auto ToRaceFormat(const ParsingSetup<Pair<T>, T>& setup)
+	{
+		return std::make_tuple(HeatParameters::Format<T>(setup.values.race, {}, setup.lowerBound, setup.upperBound));
+	}
+
+
+
+	template <typename T>
+	auto ToRaceFormat(const ParsingSetup<OptionalPair<T>, T>& setup)
+	{
+		return std::make_tuple(Format<T>(setup.values.values.race, {}, setup.lowerBound, setup.upperBound));
+	}
+
+
+
+	template <typename T>
+	auto ToRaceFormat(const ParsingSetup<Interval<T>, T>& setup)
+	{
+		return std::make_tuple
+		(
+			Format<T>(setup.values.minValues.race, {}, setup.lowerBound, setup.upperBound),
+			Format<T>(setup.values.maxValues.race, {}, setup.lowerBound, setup.upperBound)
+		);
+	}
+
+
+
+	template <typename T>
+	auto ToRaceFormat(const ParsingSetup<OptionalInterval<T>, T>& setup)
+	{
+		return std::make_tuple
+		(
+			Format<T>{setup.values.minValues.race, {}, setup.lowerBound, setup.upperBound},
+			Format<T>{setup.values.maxValues.race, {}, setup.lowerBound, setup.upperBound}
+		);
+	}
+
+
+
+	template <typename T>
+	auto ToSetup
+	(
+		Pair<T>&               data, 
+		const std::optional<T> lowerBound = {}, 
+		const std::optional<T> upperBound = {}
+	) {
+		return ParsingSetup<Pair<T>, T>(data, lowerBound, upperBound);
+	}
+
+
+
+	template <typename T>
+	auto ToSetup
+	(
+		OptionalPair<T>&       data, 
+		const std::optional<T> lowerBound = {}, 
+		const std::optional<T> upperBound = {}
+	) {
+		return ParsingSetup<OptionalPair<T>, T>(data, lowerBound, upperBound);
+	}
+
+
+
+	template <typename T>
+	auto ToSetup
+	(
+		Interval<T>&           data, 
+		const std::optional<T> lowerBound = {}, 
+		const std::optional<T> upperBound = {}
+	) {
+		return ParsingSetup<Interval<T>, T>(data, lowerBound, upperBound);
+	}
+
+
+
+	template <typename T>
+	auto ToSetup
+	(
+		OptionalInterval<T>&   data,
+		const std::optional<T> lowerBound = {},
+		const std::optional<T> upperBound = {}
+	) {
+		return ParsingSetup<OptionalInterval<T>, T>(data, lowerBound, upperBound);
+	}
+
+
+
+	template <typename T, typename V>
+	void InitialiseRaceValues(const ParsingSetup<T, V>& setup) {}
+
+
+
+	template <typename T, typename V>
+	void InitialiseRaceValues(const ParsingSetup<Pair<V>, V>& setup)
+	{
 		setup.values.race = setup.values.roam;
-
-		parser.ParseFormatParameter<T>
-		(
-			section,
-			configFormatRace,
-			setup.values.race,
-			{},
-			setup.lowerBound,
-			setup.upperBound
-		);
 	}
 
 
 
-	template <typename ...T>
-	void Parse
+	template <typename T, typename V>
+	void InitialiseRaceValues(const ParsingSetup<Interval<V>, V>& setup)
+	{
+		setup.values.minValues.race = setup.values.minValues.roam;
+		setup.values.maxValues.race = setup.values.maxValues.roam;
+	}
+
+
+
+	template <typename T, typename V>
+	void FinaliseIntervals
 	(
-		Parser&                        parser,
-		const std::string&             section,
-		ParsingSetup<Pair<T>, T>&&  ...columns
+		const ParsingSetup<T, V>& setup,
+		const Values<bool>& isRoamEnableds,
+		const Values<bool>& isRaceEnableds
+	) 
+	{
+	}
+
+
+
+	template <typename T, typename V>
+	void FinaliseIntervals
+	(
+		const ParsingSetup<Interval<V>, V>& setup, 
+		const Values<bool>&                 isRoamEnableds, 
+		const Values<bool>&                 isRaceEnableds
 	) {
-		parser.ParseParameterTable<T...>
-		(
-			section,
-			configFormatRoam,
-			Format<T>
-			(
-				columns.values.roam,
-				columns.values.current,
-				columns.lowerBound,
-				columns.upperBound
-			)...
-		);
+		ValidateIntervals<V>(setup.values.minValues, setup.values.maxValues);
+	}
 
-		const Values<bool> isValids = parser.ParseParameterTable<T...>
-		(
-			section,
-			configFormatRace,
-			Format<T>
-			(
-				columns.values.race,
-				{},
-				columns.lowerBound,
-				columns.upperBound
-			)...
-		);
 
+
+	template <typename T, typename V>
+	void FinaliseIntervals
+	(
+		const ParsingSetup<OptionalInterval<V>, V>& setup,
+		const Values<bool>&                         isRoamEnableds,
+		const Values<bool>&                         isRaceEnableds
+	) {
+		ValidateIntervals<V>(setup.values.minValues, setup.values.maxValues);
+
+		setup.values.isEnableds.roam = isRoamEnableds;
+		setup.values.isEnableds.race = isRaceEnableds;
+	}
+
+
+
+	template <typename ...T, typename ...V>
+	void Parse(
+		Parser&                       parser,
+		const std::string&            section,
+		const ParsingSetup<T, V>&& ...setups
+	) {
+		const auto isRoamEnableds = std::apply
 		(
-			[&]
+			[&](auto&& ...setups) -> Values<bool>
 			{
-				for (const size_t heatLevel : heatLevels)
-				{
-					if (not isValids[heatLevel - 1])
-						columns.values.race[heatLevel - 1] = columns.values.roam[heatLevel - 1];
-				}
-			}
-		(), ...);
-	}
-
-
-
-	template <typename V, typename ...T>
-	void Parse
-	(
-		Parser&                           parser,
-		const std::string&                section,
-		ParsingSetup<Interval<V>, V>&&    setup,
-		ParsingSetup<Pair    <T>, T>&& ...columns
-	) {
-		Parse<V, V, T...>
-		(
-			parser, 
-			section, 
-			{setup.values.minValues, setup.lowerBound, setup.upperBound},
-			{setup.values.maxValues, setup.lowerBound, setup.upperBound},
-			std::forward<ParsingSetup<Pair<T>, T>>(columns)...
-		);
-
-		ValidateIntervals<V>(setup.values.minValues, setup.values.maxValues);
-	}
-
-
-
-	template <typename ...T>
-	void ParseOptional
-	(
-		Parser&                        parser,
-		const std::string&             section,
-		Pair<bool>&                    isEnableds,
-		ParsingSetup<Pair<T>, T>&&  ...columns
-	) {
-		for (const bool forRaces : {false, true})
-		{
-			isEnableds.GetValues(forRaces) = parser.ParseParameterTable<T...>
-			(
-				section,
-				(forRaces) ? configFormatRace : configFormatRoam,
-				Format<T>
+				return parser.ParseParameterTable
 				(
-					columns.values.GetValues(forRaces),
-					{},
-					columns.lowerBound,
-					columns.upperBound
-				)...
-			);
-		}
-	}
-
-
-
-	template <typename V, typename ...T>
-	void ParseOptional
-	(
-		Parser&                               parser,
-		const std::string&                    section,
-		ParsingSetup<OptionalPair<V>, V>&&    setup,
-		ParsingSetup<Pair        <T>, T>&& ...columns
-	) {
-		ParseOptional<V, T...>
-		(
-			parser,
-			section,
-			setup.values.isEnableds,
-			{setup.values.values, setup.lowerBound, setup.upperBound},
-			std::forward<ParsingSetup<Pair<T>, T>>(columns)...
-		);
-	}
-
-
-
-	template <typename V, typename ...T>
-	void ParseOptional
-	(
-		Parser&                                   parser,
-		const std::string&                        section,
-		ParsingSetup<OptionalInterval<V>, V>&&    setup,
-		ParsingSetup<Pair            <T>, T>&& ...columns
-	) {
-		ParseOptional<V, V, T...>
-		(
-			parser, 
-			section, 
-			setup.values.isEnableds,
-			{setup.values.minValues, setup.lowerBound, setup.upperBound},
-			{setup.values.maxValues, setup.lowerBound, setup.upperBound},
-			std::forward<ParsingSetup<Pair<T>, T>>(columns)...
+					section,
+					configFormatRoam,
+					std::forward<decltype(setups)>(setups)...
+				);
+			}, 
+			std::move(std::tuple_cat(ToRoamFormat<V>(setups)...))
 		);
 
-		ValidateIntervals<V>(setup.values.minValues, setup.values.maxValues);
+		(InitialiseRaceValues<T, V>(setups), ...);
+
+		const auto isRaceEnableds = std::apply
+		(
+			[&](auto&& ...setups) -> Values<bool>
+			{
+				return parser.ParseParameterTable
+				(
+					section,
+					configFormatRace,
+					std::forward<decltype(setups)>(setups)...
+				);
+			},
+			std::move(std::tuple_cat(ToRaceFormat<V>(setups)...))
+		);
+
+		(FinaliseIntervals<T, V>(setups, isRoamEnableds, isRaceEnableds), ...);
 	}
 }

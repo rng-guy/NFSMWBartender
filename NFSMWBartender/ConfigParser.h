@@ -446,7 +446,7 @@ namespace ConfigParser
 			constexpr size_t numColumns = sizeof...(T);
 
 			std::array<std::string, size> tableRows;
-			std::array<bool, size>        isValidRow;
+			std::array<bool,        size> isValidRow;
 
 			std::vector<std::string> columnStrings;
 			std::string              defaultRow;

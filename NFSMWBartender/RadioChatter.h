@@ -276,7 +276,7 @@ namespace RadioChatter
 			{"federal", Jurisdiction::FEDERAL}
 		};
 
-		HeatParameters::Parse<std::string>(parser, "Heat:Jurisdiction", {jurisdictionNames});
+		HeatParameters::Parse(parser, "Heat:Jurisdiction", HeatParameters::ToSetup(jurisdictionNames));
 
 		for (const bool forRaces : {false, true})
 		{

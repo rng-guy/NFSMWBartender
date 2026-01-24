@@ -318,16 +318,15 @@ namespace LeaderOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::ParseOptional<float>(parser, "Leader5:CrossAggro",  {leader5CrossAggroDelays,  1.f});
-		HeatParameters::ParseOptional<float>(parser, "Leader5:ExpireReset", {leader5ExpireResetDelays, 1.f});
-		HeatParameters::ParseOptional<float>(parser, "Leader5:WreckReset",  {leader5WreckResetDelays,  1.f});
-		HeatParameters::ParseOptional<float>(parser, "Leader5:LostReset",   {leader5LostResetDelays,   1.f});
-
-		HeatParameters::ParseOptional<float>(parser, "Leader7:CrossAggro",    {leader7CrossAggroDelays,  1.f});
-		HeatParameters::ParseOptional<float>(parser, "Leader7:HenchmenAggro", {leader7HenchAggroDelays,  1.f});
-		HeatParameters::ParseOptional<float>(parser, "Leader7:ExpireReset",   {leader7ExpireResetDelays, 1.f});
-		HeatParameters::ParseOptional<float>(parser, "Leader7:WreckReset",    {leader7WreckResetDelays,  1.f});
-		HeatParameters::ParseOptional<float>(parser, "Leader7:LostReset",     {leader7LostResetDelays,   1.f});
+		HeatParameters::Parse(parser, "Leader5:CrossAggro",    HeatParameters::ToSetup(leader5CrossAggroDelays,  {1.f}));
+		HeatParameters::Parse(parser, "Leader5:ExpireReset",   HeatParameters::ToSetup(leader5ExpireResetDelays, {1.f}));
+		HeatParameters::Parse(parser, "Leader5:WreckReset",    HeatParameters::ToSetup(leader5WreckResetDelays,  {1.f}));
+		HeatParameters::Parse(parser, "Leader5:LostReset",     HeatParameters::ToSetup(leader5LostResetDelays,   {1.f}));
+		HeatParameters::Parse(parser, "Leader7:CrossAggro",    HeatParameters::ToSetup(leader7CrossAggroDelays,  {1.f}));
+		HeatParameters::Parse(parser, "Leader7:HenchmenAggro", HeatParameters::ToSetup(leader7HenchAggroDelays,  {1.f}));
+		HeatParameters::Parse(parser, "Leader7:ExpireReset",   HeatParameters::ToSetup(leader7ExpireResetDelays, {1.f}));
+		HeatParameters::Parse(parser, "Leader7:WreckReset",    HeatParameters::ToSetup(leader7WreckResetDelays,  {1.f}));
+		HeatParameters::Parse(parser, "Leader7:LostReset",     HeatParameters::ToSetup(leader7LostResetDelays,   {1.f}));
 
 		// Code modifications
 		MemoryTools::MakeRangeNOP(0x42B6A2, 0x42B6B4); // Cross flag = 0

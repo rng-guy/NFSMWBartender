@@ -418,19 +418,31 @@ namespace GeneralSettings
 		}
 
 		// Heat parameters
-		HeatParameters::Parse<bool>(parser, "Pursuits:Rivals", {rivalPursuitsEnableds});
+		HeatParameters::Parse(parser, "Pursuits:Rivals", HeatParameters::ToSetup(rivalPursuitsEnableds));
+		HeatParameters::Parse(parser, "Bounty:Interval", HeatParameters::ToSetup(bountyIntervals,      {.001f}));
+		HeatParameters::Parse(parser, "Bounty:Combo",    HeatParameters::ToSetup(maxBountyMultipliers, {1}));
 
-		HeatParameters::Parse<float>(parser, "Bounty:Interval", {bountyIntervals,      .001f});
-		HeatParameters::Parse<int>  (parser, "Bounty:Combo",    {maxBountyMultipliers,     1});
-		
-		HeatParameters::Parse<float, float>(parser, "State:Busting", {bustTimers,  .001f}, {maxBustDistances, 0.f});
-		HeatParameters::Parse<float>       (parser, "State:Evading", {evadeTimers, .001f});
+		HeatParameters::Parse
+		(
+			parser, 
+			"State:Busting", 
+			HeatParameters::ToSetup(bustTimers,       {.001f}), 
+			HeatParameters::ToSetup(maxBustDistances, {0.f})
+		);
 
-		HeatParameters::Parse<bool, bool>(parser, "Evading:Hiding", {carsAffectedByHidings}, {helisAffectedByHidings});
+		HeatParameters::Parse(parser, "State:Evading", ToSetup(evadeTimers, {.001f}));
 
-		HeatParameters::Parse        <bool> (parser, "Flipping:Damage", {copFlipByDamageEnableds});
-		HeatParameters::ParseOptional<float>(parser, "Flipping:Time",   {copFlipByTimers,      0.f});
-		HeatParameters::ParseOptional<float>(parser, "Flipping:Reset",  {racerFlipResetDelays, 0.f});
+		HeatParameters::Parse
+		(
+			parser, 
+			"Evading:Hiding",  
+			ToSetup(carsAffectedByHidings),
+			ToSetup(helisAffectedByHidings)
+		);
+
+		HeatParameters::Parse(parser, "Flipping:Damage", HeatParameters::ToSetup(copFlipByDamageEnableds));
+		HeatParameters::Parse(parser, "Flipping:Time",   HeatParameters::ToSetup(copFlipByTimers,      {0.f}));
+		HeatParameters::Parse(parser, "Flipping:Reset",  HeatParameters::ToSetup(racerFlipResetDelays, {0.f}));
 
 		// Breaker flags
 		std::vector<std::string> copVehicles;

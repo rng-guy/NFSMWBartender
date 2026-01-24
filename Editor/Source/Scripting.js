@@ -83,26 +83,35 @@ let clipboard         = null;
 
 // Initialisation -------------------------------------------------------------------------------------------------------------------------------
 
-document.getElementById('error').style.display = 'none';
-document.getElementById('main').style.display  = 'flex';
-
 Object.keys(RECT_CONFIG).forEach(key => {
     const img = new Image();
+
+    img.onload = () => {
+        if (++imagesLoaded === 3) initDefault();
+    };
     
     img.src     = RECT_CONFIG[key].src;
     images[key] = img;
 });
-
-addRect('car');
-draw();
-
-canvas.focus();
 
 
 
 
 
 // Functions and listeners  ---------------------------------------------------------------------------------------------------------------------
+
+function initDefault()
+{
+    document.getElementById('error').style.display = 'none';
+    document.getElementById('main').style.display  = 'flex';
+    
+    addRect('car');
+    draw();
+
+    canvas.focus();
+}
+
+
 
 function openImportModal()
 {

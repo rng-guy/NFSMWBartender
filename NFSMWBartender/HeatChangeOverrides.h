@@ -416,18 +416,25 @@ namespace HeatChangeOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Heat.ini");
 
 		// Heat levels
-		HeatParameters::Parse<bool>       (parser, "Heat:Time",    {passiveHeatGainEnableds});
-		HeatParameters::Parse<float, bool>(parser, "Heat:Assault", {heatChangePerAssaults}, {onlyOneAssaultPerCops});
+		HeatParameters::Parse(parser, "Heat:Time", HeatParameters::ToSetup(passiveHeatGainEnableds));
 
-		HeatParameters::Parse<int, int, int, int, int>
+		HeatParameters::Parse
+		(
+			parser, 
+			"Heat:Assault", 
+			HeatParameters::ToSetup(heatChangePerAssaults), 
+			HeatParameters::ToSetup(onlyOneAssaultPerCops)
+		);
+
+		HeatParameters::Parse
 		(
 			parser,
 			"Heat:Cost",
-			{hitCostToHeats},
-			{wreckCostToHeats},
-			{deploymentCostToHeats},
-			{insuranceCostToHeats},
-			{propertyCostToHeats}
+			HeatParameters::ToSetup(hitCostToHeats),
+			HeatParameters::ToSetup(wreckCostToHeats),
+			HeatParameters::ToSetup(deploymentCostToHeats),
+			HeatParameters::ToSetup(insuranceCostToHeats),
+			HeatParameters::ToSetup(propertyCostToHeats)
 		);
 
 		// Destruction Heat gain

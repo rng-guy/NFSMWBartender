@@ -619,12 +619,11 @@ namespace StrategyOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::Parse<int>(parser, "Heavy3:Count", {numVehiclesPerHeavy3s, 1});
-
-		HeatParameters::ParseOptional<float>(parser, "Heavy3:Unblocking",  {heavy3UnblockDelays , 1.f});
-		HeatParameters::ParseOptional<float>(parser, "Heavy4:Unblocking",  {heavy4UnblockDelays , 1.f});
-		HeatParameters::ParseOptional<float>(parser, "Leader5:Unblocking", {leader5UnblockDelays, 1.f});
-		HeatParameters::ParseOptional<float>(parser, "Leader7:Unblocking", {leader7UnblockDelays, 1.f});
+		HeatParameters::Parse(parser, "Heavy3:Count",       HeatParameters::ToSetup(numVehiclesPerHeavy3s, {1}));
+		HeatParameters::Parse(parser, "Heavy3:Unblocking",  HeatParameters::ToSetup(heavy3UnblockDelays,   {1.f}));
+		HeatParameters::Parse(parser, "Heavy4:Unblocking",  HeatParameters::ToSetup(heavy4UnblockDelays,   {1.f}));
+		HeatParameters::Parse(parser, "Leader5:Unblocking", HeatParameters::ToSetup(leader5UnblockDelays,  {1.f}));
+		HeatParameters::Parse(parser, "Leader7:Unblocking", HeatParameters::ToSetup(leader7UnblockDelays,  {1.f}));
 
 		// Stack replacements for removal of HeavyStrategy 3 limit
 		const size_t vectorStackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
