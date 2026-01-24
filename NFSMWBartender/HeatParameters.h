@@ -97,25 +97,8 @@ namespace HeatParameters
 
 
 	template <typename T>
-	struct Pair : public BasePair<T>
-	{
-		const T* current = &(this->roam[0]);
-
-
-		void SetToHeat
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->current = &(this->GetValues(forRaces)[heatLevel - 1]);
-		}
-	};
-
-
-
-	template <typename T>
 	requires std::is_arithmetic_v<T>
-	struct Pair<T> : public BasePair<T>
+	struct Pair : public BasePair<T>
 	{
 		T current;
 
@@ -172,13 +155,30 @@ namespace HeatParameters
 
 
 
+	template <typename T>
+	struct PointerPair : public BasePair<T>
+	{
+		const T* current = &(this->roam[0]);
+
+
+		void SetToHeat
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->current = &(this->GetValues(forRaces)[heatLevel - 1]);
+		}
+	};
+
+
+
 	template <>
-	struct Pair<std::string> : public BasePair<std::string>
+	struct PointerPair<std::string> : public BasePair<std::string>
 	{
 		const char* current;
 
 
-		explicit Pair(const char* const original) : current(original) {}
+		explicit PointerPair(const char* const original) : current(original) {}
 
 
 		void SetToHeat
@@ -364,16 +364,16 @@ namespace HeatParameters
 
 	bool ValidateVehicles
 	(
-		const char* const    pairName,
-		Pair<std::string>&   pair,
-		const Globals::Class vehicleClass
+		const char* const         pairName,
+		PointerPair<std::string>& pointerPair,
+		const Globals::Class      vehicleClass
 	) {
 		size_t numTotalReplaced = 0;
 
 		for (const bool forRaces : {false, true})
 		{
 			size_t numReplaced = 0;
-			auto&  vehicles    = pair.GetValues(forRaces);
+			auto&  vehicles    = pointerPair.GetValues(forRaces);
 
 			for (const size_t heatLevel : heatLevels)
 			{
@@ -388,10 +388,10 @@ namespace HeatParameters
 						if (numReplaced == 0)
 							Globals::logger.LogLongIndent(pairName, (forRaces) ? "(race)" : "(free-roam)");
 
-						Globals::logger.LogLongIndent(' ', static_cast<int>(heatLevel), vehicle, "->", pair.current);
+						Globals::logger.LogLongIndent(' ', static_cast<int>(heatLevel), vehicle, "->", pointerPair.current);
 					}
 
-					vehicle = pair.current;
+					vehicle = pointerPair.current;
 
 					++numReplaced;
 				}
@@ -423,6 +423,14 @@ namespace HeatParameters
 	auto ToRoamFormat(const ParsingSetup<Pair<T>, T>& setup)
 	{
 		return std::make_tuple(HeatParameters::Format<T>{setup.values.roam, setup.values.current, setup.lowerBound, setup.upperBound});
+	}
+
+
+
+	template <typename T>
+	auto ToRoamFormat(const ParsingSetup<PointerPair<std::string>, std::string>& setup)
+	{
+		return std::make_tuple(HeatParameters::Format<std::string>{setup.values.roam, setup.values.current, {}, {}});
 	}
 
 
@@ -468,6 +476,14 @@ namespace HeatParameters
 
 
 	template <typename T>
+	auto ToRaceFormat(const ParsingSetup<PointerPair<std::string>, std::string>& setup)
+	{
+		return std::make_tuple(HeatParameters::Format<std::string>{setup.values.race, {}, {}, {}});
+	}
+
+
+
+	template <typename T>
 	auto ToRaceFormat(const ParsingSetup<OptionalPair<T>, T>& setup)
 	{
 		return std::make_tuple(Format<T>(setup.values.values.race, {}, setup.lowerBound, setup.upperBound));
@@ -507,6 +523,13 @@ namespace HeatParameters
 		const std::optional<T> upperBound = {}
 	) {
 		return ParsingSetup<Pair<T>, T>(data, lowerBound, upperBound);
+	}
+
+
+
+	auto ToSetup(PointerPair<std::string>& data) 
+	{
+		return ParsingSetup<PointerPair<std::string>, std::string>(data, {}, {});
 	}
 
 
@@ -561,6 +584,14 @@ namespace HeatParameters
 
 
 	template <typename T, typename V>
+	void InitialiseRaceValues(const ParsingSetup<PointerPair<std::string>, std::string>& setup)
+	{
+		setup.values.race = setup.values.roam;
+	}
+
+
+
+	template <typename T, typename V>
 	void InitialiseRaceValues(const ParsingSetup<Interval<V>, V>& setup)
 	{
 		setup.values.minValues.race = setup.values.minValues.roam;
@@ -573,8 +604,8 @@ namespace HeatParameters
 	void FinaliseIntervals
 	(
 		const ParsingSetup<T, V>& setup,
-		const Values<bool>& isRoamEnableds,
-		const Values<bool>& isRaceEnableds
+		const Values<bool>&       isRoamEnableds,
+		const Values<bool>&       isRaceEnableds
 	) 
 	{
 	}

@@ -258,10 +258,10 @@ namespace CopSpawnTables
 	bool featureEnabled = false;
 
 	// Heat levels
-	HeatParameters::Pair<SpawnTable> patrolSpawnTables;
-	HeatParameters::Pair<SpawnTable> chaserSpawnTables;
-	HeatParameters::Pair<SpawnTable> scriptedSpawnTables;
-	HeatParameters::Pair<SpawnTable> roadblockSpawnTables;
+	HeatParameters::PointerPair<SpawnTable> patrolSpawnTables;
+	HeatParameters::PointerPair<SpawnTable> chaserSpawnTables;
+	HeatParameters::PointerPair<SpawnTable> scriptedSpawnTables;
+	HeatParameters::PointerPair<SpawnTable> roadblockSpawnTables;
 
 
 

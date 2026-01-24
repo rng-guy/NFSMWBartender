@@ -44,15 +44,15 @@ namespace GroundSupports
 	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
 	HeatParameters::Pair<bool> heavy3AreBlockables   (true);
 
-	HeatParameters::Pair<std::string> heavy3LightVehicles("copsuvl");
-	HeatParameters::Pair<std::string> heavy3HeavyVehicles("copsuv");
-	HeatParameters::Pair<std::string> heavy4LightVehicles("copsuvl");
-	HeatParameters::Pair<std::string> heavy4HeavyVehicles("copsuv");
+	HeatParameters::PointerPair<std::string> heavy3LightVehicles("copsuvl");
+	HeatParameters::PointerPair<std::string> heavy3HeavyVehicles("copsuv");
+	HeatParameters::PointerPair<std::string> heavy4LightVehicles("copsuvl");
+	HeatParameters::PointerPair<std::string> heavy4HeavyVehicles("copsuv");
 
-	HeatParameters::Pair<std::string> leader5CrossVehicles ("copcross");
-	HeatParameters::Pair<std::string> leader7CrossVehicles ("copcross");
-	HeatParameters::Pair<std::string> leader7Hench1Vehicles("copsporthench");
-	HeatParameters::Pair<std::string> leader7Hench2Vehicles("copsporthench");
+	HeatParameters::PointerPair<std::string> leader5CrossVehicles ("copcross");
+	HeatParameters::PointerPair<std::string> leader7CrossVehicles ("copcross");
+	HeatParameters::PointerPair<std::string> leader7Hench1Vehicles("copsporthench");
+	HeatParameters::PointerPair<std::string> leader7Hench2Vehicles("copsporthench");
 
 
 
