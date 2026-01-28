@@ -19,20 +19,20 @@ namespace HelicopterOverrides
 
 	bool featureEnabled = false;
 
-	// Heat levels
+	// Heat parameters
 	HeatParameters::PointerPair<std::string> helicopterVehicles("copheli");
 
-	HeatParameters::Interval<float>rammingCooldowns(8.f, 8.f, 1.f);  // seconds
+	HeatParameters::Interval<float>rammingCooldowns(8.f, 8.f, {1.f});  // seconds
 
-	HeatParameters::OptionalInterval<float> firstSpawnDelays  (1.f); // seconds
-	HeatParameters::OptionalInterval<float> fuelRespawnDelays (1.f); // seconds
-	HeatParameters::OptionalInterval<float> wreckRespawnDelays(1.f); // seconds
-	HeatParameters::OptionalInterval<float> lostRespawnDelays (1.f); // seconds
+	HeatParameters::OptionalInterval<float> firstSpawnDelays  ({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> fuelRespawnDelays ({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> wreckRespawnDelays({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> lostRespawnDelays ({1.f}); // seconds
 
-	HeatParameters::OptionalInterval<float> lostRejoinDelays  (1.f);       // seconds
-	HeatParameters::Pair            <float> minRejoinFuelTimes(10.f, 1.f); // seconds
+	HeatParameters::OptionalInterval<float> lostRejoinDelays  ({1.f});       // seconds
+	HeatParameters::Pair            <float> minRejoinFuelTimes(10.f, {1.f}); // seconds
 
-	HeatParameters::OptionalInterval<float> fuelTimes(1.f); // seconds
+	HeatParameters::OptionalInterval<float> fuelTimes({1.f}); // seconds
 
 	// Code caves 
 	bool hasLimitedFuel    = false;
@@ -498,7 +498,10 @@ namespace HelicopterOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		parser.LoadFile(HeatParameters::configPathAdvanced + "Helicopter.ini");
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [HEL] HelicopterOverrides");
+
+		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Helicopter.ini");
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Helicopter:Vehicle", helicopterVehicles);
@@ -511,6 +514,15 @@ namespace HelicopterOverrides
 		HeatParameters::Parse(parser, "Helicopter:FuelTime",     fuelTimes);
 
 		HeatParameters::Parse(parser, "Helicopter:Ramming", rammingCooldowns);
+
+		// Validation
+		const bool allValid = HeatParameters::ValidateVehicles("Helicopters", helicopterVehicles, Globals::IsVehicleChopper);
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (allValid)
+				Globals::logger.LogLongIndent("All vehicles valid");
+		}
 
 		// Code modifications 
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
@@ -526,25 +538,6 @@ namespace HelicopterOverrides
 		featureEnabled = true;
 
 		return true;
-	}
-
-
-
-	void Validate()
-	{
-		if (not featureEnabled) return;
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [HEL] HelicopterOverrides");
-
-		// With logging disabled, the compiler optimises the boolean and the string literal away
-		const bool allValid = HeatParameters::ValidateVehicles("Helicopters", helicopterVehicles, Globals::Class::CHOPPER);
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (allValid)
-				Globals::logger.LogLongIndent("All vehicles valid");
-		}
 	}
 
 

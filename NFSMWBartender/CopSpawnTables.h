@@ -195,7 +195,7 @@ namespace CopSpawnTables
 
 			while (iterator != this->copTypeToEntry.end())
 			{
-				if (not Globals::VehicleClassMatches(iterator->first, Globals::Class::CAR))
+				if (not Globals::IsVehicleCar(iterator->first))
 				{
 					const Entry& copEntry = iterator->second;
 
@@ -220,20 +220,10 @@ namespace CopSpawnTables
 				else ++iterator;
 			}
 
-			if (this->IsEmpty())
-			{
-				const char* const fillerVehicle = "copmidsize";
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("  +", fillerVehicle, 1, 100);
-
-				this->AddTypeByName(fillerVehicle, 1, 100);
-			}
-
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (numRemoved > 0)
-					Globals::logger.LogLongIndent("  types left:", static_cast<int>(this->copTypeToEntry.size()));
+					Globals::logger.LogLongIndent(' ', static_cast<int>(this->copTypeToEntry.size()), "type(s) left");
 			}
 
 			return (numRemoved == 0);
@@ -257,7 +247,7 @@ namespace CopSpawnTables
 
 	bool featureEnabled = false;
 
-	// Heat levels
+	// Heat parameters
 	HeatParameters::PointerPair<SpawnTable> patrolSpawnTables;
 	HeatParameters::PointerPair<SpawnTable> chaserSpawnTables;
 	HeatParameters::PointerPair<SpawnTable> scriptedSpawnTables;
@@ -286,12 +276,12 @@ namespace CopSpawnTables
 		{
 			section = std::vformat(format + tableName, std::make_format_args(heatLevel));
 
-			const size_t numEntries = parser.ParseParameterTable
+			const size_t numEntries = parser.ParseTable
 			(
 				section,
 				copNames,
-				ConfigParser::UserParameter<int>(copCounts,  1),
-				ConfigParser::UserParameter<int>(copChances, 1)
+				HeatParameters::User<int>(copCounts,  {1}),
+				HeatParameters::User<int>(copChances, {1})
 			);
 
 			for (size_t entryID = 0; entryID < numEntries; ++entryID)
@@ -318,7 +308,10 @@ namespace CopSpawnTables
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		if (not parser.LoadFile(HeatParameters::configPathAdvanced + "CarTables.ini")) return false;
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [TAB] CopSpawnTables");
+
+		if (not parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "CarTables.ini")) return false;
 
 		// Heat parameters
 		for (const bool forRaces : {false, true})
@@ -331,34 +324,7 @@ namespace CopSpawnTables
 			ParseTables(parser, "Roadblocks", format, roadblockSpawnTables.GetValues(forRaces));
 		}
 
-		// Check for and deal with empty tables
-		for (const SpawnTable& table : chaserSpawnTables.roam) 
-			if (table.IsEmpty()) return false;
-
-		ReplaceEmptyTables(patrolSpawnTables.roam,    chaserSpawnTables.roam);
-		ReplaceEmptyTables(scriptedSpawnTables.roam,  chaserSpawnTables.roam);
-		ReplaceEmptyTables(roadblockSpawnTables.roam, chaserSpawnTables.roam);
-
-		ReplaceEmptyTables(patrolSpawnTables.race,    patrolSpawnTables.roam);
-		ReplaceEmptyTables(chaserSpawnTables.race,    chaserSpawnTables.roam);
-		ReplaceEmptyTables(scriptedSpawnTables.race,  scriptedSpawnTables.roam);
-		ReplaceEmptyTables(roadblockSpawnTables.race, roadblockSpawnTables.roam);
-
-		// Status flag
-		featureEnabled = true;
-
-		return true;
-	}
-
-
-
-	void Validate()
-	{
-		if (not featureEnabled) return;
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [TAB] CopSpawnTables");
-
+		// Validation
 		bool allValid = true;
 
 		for (const bool forRaces : {false, true})
@@ -375,6 +341,14 @@ namespace CopSpawnTables
 				allValid &= (chaserTables   [heatLevel - 1]).Validate("Chasers",    forRaces, heatLevel);
 				allValid &= (scriptedTables [heatLevel - 1]).Validate("Scripted",   forRaces, heatLevel);
 				allValid &= (roadblockTables[heatLevel - 1]).Validate("Roadblocks", forRaces, heatLevel);
+
+				if ((not forRaces) and chaserTables[heatLevel - 1].IsEmpty())
+				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::logger.LogLongIndent("No Chasers for Heat level", static_cast<int>(heatLevel));
+
+					return false;
+				}
 			}
 		}
 
@@ -383,6 +357,20 @@ namespace CopSpawnTables
 			if (allValid)
 				Globals::logger.LogLongIndent("All vehicles valid");
 		}
+
+		ReplaceEmptyTables(patrolSpawnTables.roam,    chaserSpawnTables.roam);
+		ReplaceEmptyTables(scriptedSpawnTables.roam,  chaserSpawnTables.roam);
+		ReplaceEmptyTables(roadblockSpawnTables.roam, chaserSpawnTables.roam);
+
+		ReplaceEmptyTables(patrolSpawnTables.race,    patrolSpawnTables.roam);
+		ReplaceEmptyTables(chaserSpawnTables.race,    chaserSpawnTables.roam);
+		ReplaceEmptyTables(scriptedSpawnTables.race,  scriptedSpawnTables.roam);
+		ReplaceEmptyTables(roadblockSpawnTables.race, roadblockSpawnTables.roam);
+
+		// Status flag
+		featureEnabled = true;
+
+		return true;
 	}
 
 

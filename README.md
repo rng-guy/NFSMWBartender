@@ -103,6 +103,7 @@ The "Basic" feature set **can fix three more bugs / issues**, depending on its c
 
 The "Advanced" feature set **lets you change** (per Heat level)
 * which roadblock setups can spawn through roadblock requests,
+* how likely cops are to call out roadblocks / spikes over the radio,
 * whether Heat increases passively whenever racers are being pursued,
 * how much Heat racers gain / lose whenever they assault a cop vehicle,
 * how much Heat racers gain / lose whenever their cost-to-state score increases,
@@ -157,8 +158,9 @@ The "Advanced" feature set **always fixes eight bugs / issues** automatically:
 
 &nbsp;
 
-The "Advanced" feature set **can fix four more bugs / issues**, depending on its configuration:
+The "Advanced" feature set **can fix five more bugs / issues**, depending on its configuration:
 * the game no longer fails to use four of its vanilla roadblock setups in pursuits,
+* the cops no longer stop callling out roadblocks / spikes over the radio sometimes,
 * the helicopter can no longer waste its spawn attempts by losing you nearly instantly,
 * HeavyStrategy 3 vehicles no longer spawn in passive mode without trying to ram anything, and
 * traffic spawns no longer slow down or stop at Heat levels with many cops / frequent roadblocks.
@@ -258,7 +260,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v2.11.00, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v3.00.00, replace all old configuration files.
 
 &nbsp;
 

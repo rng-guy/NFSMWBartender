@@ -18,7 +18,7 @@ namespace HeatChangeOverrides
 
 	bool featureEnabled = false;
 
-	// Heat levels
+	// Heat parameters
 	HeatParameters::Pair<bool>  passiveHeatGainEnableds(true);
 	HeatParameters::Pair<float> heatChangePerAssaults  (0.f);
 	HeatParameters::Pair<bool>  onlyOneAssaultPerCops  (true);
@@ -111,12 +111,12 @@ namespace HeatChangeOverrides
 		int   unitDeploymentCost = 0;
 		float pendingHeatChange  = 0.f;
 
-		CostTracker copsHit         = CostTracker(this->pursuit, 0x15C, 250,  hitCostToHeats);
-		CostTracker copsWrecked     = CostTracker(this->pursuit, 0x13C, 5000, wreckCostToHeats);
-		CostTracker insuranceClaims = CostTracker(this->pursuit, 0x168, 500,  insuranceCostToHeats);
-		CostTracker propertyDamage  = CostTracker(this->pursuit, 0x174, 1,    propertyCostToHeats);
+		CostTracker copsHit        {this->pursuit, 0x15C, 250,  hitCostToHeats};
+		CostTracker copsWrecked    {this->pursuit, 0x13C, 5000, wreckCostToHeats};
+		CostTracker insuranceClaims{this->pursuit, 0x168, 500,  insuranceCostToHeats};
+		CostTracker propertyDamage {this->pursuit, 0x174, 1,    propertyCostToHeats};
 
-		CostTracker unitDeployment = CostTracker(this->unitDeploymentCost, 1, deploymentCostToHeats);
+		CostTracker unitDeployment{this->unitDeploymentCost, 1, deploymentCostToHeats};
 
 		inline static HashContainers::AddressMap<HeatManager*> pursuitToManager;
 
@@ -142,7 +142,7 @@ namespace HeatChangeOverrides
 
 			this->pendingHeatChange += this->unitDeployment.UpdateCost();
 
-			if (this->IsSearchModeActive())
+			if (Globals::IsInCooldownMode(this->pursuit))
 				this->pendingHeatChange = previousPendingHeatChange;
 		}
 
@@ -193,24 +193,29 @@ namespace HeatChangeOverrides
 			const address pursuit,
 			const float   amount
 		) {
+			if (Globals::IsInCooldownMode(pursuit)) return;
+
 			HeatManager* const manager = HeatManager::FindManager(pursuit);
 
-			if (manager and (not manager->IsSearchModeActive()))
+			if (manager)
 				manager->pendingHeatChange += heatScale * amount;
 		}
 
 
 		static float __fastcall GetPendingHeatChange(const address pursuit)
 		{
-			HeatManager* const manager = HeatManager::FindManager(pursuit);
-
-			if (manager and (not manager->IsSearchModeActive()))
+			if (not Globals::IsInCooldownMode(pursuit))
 			{
-				const float pendingHeatChange = manager->pendingHeatChange;
+				HeatManager* const manager = HeatManager::FindManager(pursuit);
 
-				manager->pendingHeatChange = 0.f;
+				if (manager)
+				{
+					const float pendingHeatChange = manager->pendingHeatChange;
 
-				return pendingHeatChange;
+					manager->pendingHeatChange = 0.f;
+
+					return pendingHeatChange;
+				}
 			}
 
 			return 0.f;
@@ -413,9 +418,12 @@ namespace HeatChangeOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		parser.LoadFile(HeatParameters::configPathAdvanced + "Heat.ini");
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [HCH] HeatChangeOverrides");
 
-		// Heat levels
+		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Heat.ini");
+
+		// Heat parameters
 		HeatParameters::Parse(parser, "Heat:Time",    passiveHeatGainEnableds);
 		HeatParameters::Parse(parser, "Heat:Assault", heatChangePerAssaults, onlyOneAssaultPerCops);
 
@@ -434,13 +442,22 @@ namespace HeatChangeOverrides
 		std::vector<std::string> copVehicles;
 		std::vector<float>       heatChanges;
 
-		const size_t numCopVehicles = parser.ParseUserParameter("Heat:Wrecking", copVehicles, heatChanges);
+		parser.ParseUser("Heat:Wrecking", copVehicles, heatChanges);
 
-		if (numCopVehicles > 0)
+		const bool mapIsValid = copTypeToHeatChange.FillFromVectors<std::string, float>
+		(
+			"Vehicle-to-change",
+			HeatParameters::defaultValueHandle,
+			copVehicles,
+			Globals::StringToVaultKey,
+			Globals::DoesVehicleExist,
+			heatChanges,
+			[=](const float change) -> float {return change;},
+			[=](const float change) -> bool  {return true;}
+		);
+
+		if (mapIsValid)
 		{
-			for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
-				copTypeToHeatChange.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), heatChanges[vehicleID]);
-
 			// Code modifications (feature-specific)
 			MemoryTools::MakeRangeJMP(TypeDestruction, typeDestructionEntrance, typeDestructionExit);
 		}
@@ -457,23 +474,6 @@ namespace HeatChangeOverrides
 		featureEnabled = true;
 
 		return true;
-	}
-
-
-
-	void Validate()
-	{
-		if (copTypeToHeatChange.empty()) return;
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [HCH] HeatChangeOverrides");
-
-		copTypeToHeatChange.Validate
-		(
-			"Vehicle-to-change",
-			[=](const vault   key) {return Globals::VehicleClassMatches(key, Globals::Class::ANY);},
-			[=](const float value) {return true; }
-		);
 	}
 
 

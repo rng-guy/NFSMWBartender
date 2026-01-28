@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v2.11.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v3.00.00) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -90,6 +90,7 @@ The "Basic" feature set CAN FIX THREE MORE BUGS / ISSUES, depending on its confi
 
 The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • which roadblock setups can spawn through roadblock requests,
+ • how likely cops are to call out roadblocks / spikes over the radio,
  • whether Heat increases passively whenever racers are being pursued,
  • how much Heat racers gain / lose whenever they assault a cop vehicle,
  • how much Heat racers gain / lose whenever their cost-to-state score increases,
@@ -138,8 +139,9 @@ The "Advanced" feature set ALWAYS FIXES EIGHT BUGS / ISSUES automatically:
  • the engagement count above the pursuit board now always tracks relevant cops accurately, and
  • the pathfinding of new cop vehicles no longer breaks whenever a race pursuit moves to free-roam.
 
-The "Advanced" feature set CAN FIX FOUR MORE BUGS / ISSUES, depending on its configuration:
+The "Advanced" feature set CAN FIX FIVE MORE BUGS / ISSUES, depending on its configuration:
  • the game no longer fails to use four of its vanilla roadblock setups in pursuits,
+ • the cops no longer stop callling out roadblocks / spikes over the radio sometimes,
  • the helicopter can no longer waste its spawn attempts by losing you nearly instantly,
  • HeavyStrategy 3 vehicles no longer spawn in passive mode without trying to ram anything, and
  • traffic spawns no longer slow down or stop at Heat levels with many cops / frequent roadblocks.
@@ -224,7 +226,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v2.11.00, replace all old configuration files.
+If you update from a version older than v3.00.00, replace all old configuration files.
 
 
 

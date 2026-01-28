@@ -26,15 +26,15 @@ namespace GeneralSettings
 	bool trackPropertyDamage = false;
 	bool trackInfractions    = false;
 
-	// Heat levels
+	// Heat parameters
 	HeatParameters::Pair<bool> rivalPursuitsEnableds(true);
 
-	HeatParameters::Pair<float> bountyIntervals     (10.f, .001f); // seconds
-	HeatParameters::Pair<int>   maxBountyMultipliers(3,    1);     // scale
+	HeatParameters::Pair<float> bountyIntervals     (10.f, {.001f}); // seconds
+	HeatParameters::Pair<int>   maxBountyMultipliers(3,    {1});     // scale
 
-	HeatParameters::Pair<float> bustTimers      (5.f,  .001f); // seconds
-	HeatParameters::Pair<float> maxBustDistances(15.f, 0.f);   // metres
-	HeatParameters::Pair<float> evadeTimers     (7.f,  .001f); // seconds
+	HeatParameters::Pair<float> bustTimers      (5.f,  {.001f}); // seconds
+	HeatParameters::Pair<float> maxBustDistances(15.f, {0.f});   // metres
+	HeatParameters::Pair<float> evadeTimers     (7.f,  {.001f}); // seconds
 
 	HeatParameters::Pair<bool> carsAffectedByHidings (true);
 	HeatParameters::Pair<bool> helisAffectedByHidings(true);
@@ -370,10 +370,15 @@ namespace GeneralSettings
 		const address           rangeStart,
 		const address           rangeEnd
 	) {
-		parser.ParseParameter<bool>("Pursuits:Races", trackingName, isTracked);
+		parser.Parse<bool>("Pursuits:Races", trackingName, isTracked);
 
-		if (isTracked) 
+		if (isTracked)
+		{
 			MemoryTools::MakeRangeNOP(rangeStart, rangeEnd);
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent("Tracking", trackingName);
+		}
 	}
 
 
@@ -399,7 +404,10 @@ namespace GeneralSettings
 
     bool Initialise(HeatParameters::Parser& parser)
     {
-		if (not parser.LoadFile(HeatParameters::configPathBasic + "General.ini")) return false;
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [GEN] GeneralSettings");
+
+		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "General.ini")) return false;
 
 		// Pursuit tracking (and code modifications)
 		ParseTracking(parser, "pursuitLength",  trackPursuitLength,  0x443CBE, 0x443CC8);
@@ -435,13 +443,22 @@ namespace GeneralSettings
 		std::vector<std::string> copVehicles;
 		std::vector<bool>        isAffecteds;
 
-		const size_t numCopVehicles = parser.ParseUserParameter("Vehicles:Breakers", copVehicles, isAffecteds);
+		parser.ParseUser("Vehicles:Breakers", copVehicles, isAffecteds);
 
-		if (numCopVehicles > 0)
+		const bool mapIsValid = copTypeToIsBreakerImmune.FillFromVectors<std::string, bool>
+		(
+			"Vehicle-to-immunity",
+			HeatParameters::defaultValueHandle,
+			copVehicles,
+			Globals::StringToVaultKey,
+			Globals::DoesVehicleExist,
+			isAffecteds,
+			[=](const bool isAffected) -> bool {return (not isAffected);},
+			[=](const bool isImmune)   -> bool {return true;}
+		);
+
+		if (mapIsValid)
 		{
-			for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
-				copTypeToIsBreakerImmune.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), (not isAffecteds[vehicleID]));
-
 			// Code modifications (feature-specific)
 			MemoryTools::MakeRangeJMP(BreakerCheck, breakerCheckEntrance, breakerCheckExit);
 		}
@@ -491,46 +508,6 @@ namespace GeneralSettings
 		copFlipByDamageEnableds.Log("copFlipByDamageEnabled  ");
 		copFlipByTimers        .Log("copFlipByTimer          ");
 		racerFlipResetDelays   .Log("racerFlipResetDelay     ");
-	}
-
-
-
-	void Validate()
-	{
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (
-				(not copTypeToIsBreakerImmune.empty())
-				or trackPursuitLength
-				or trackUnitsInPursuit
-				or trackCopsLost
-				or trackCopsHit
-				or trackCopsDestroyed
-				or trackPassiveBounty
-				or trackPropertyDamage
-				or trackInfractions
-			   )
-				Globals::logger.Log("  CONFIG [GEN] GeneralSettings");
-
-			if (trackPursuitLength)  Globals::logger.LogLongIndent("tracking pursuit length");
-			if (trackUnitsInPursuit) Globals::logger.LogLongIndent("tracking units in pursuit");
-			if (trackCopsLost)       Globals::logger.LogLongIndent("tracking cops lost");
-			if (trackCopsHit)        Globals::logger.LogLongIndent("tracking cops hit");
-			if (trackCopsDestroyed)  Globals::logger.LogLongIndent("tracking cops destroyed");
-			if (trackPassiveBounty)  Globals::logger.LogLongIndent("tracking passive bounty");
-			if (trackPropertyDamage) Globals::logger.LogLongIndent("tracking property damage");
-			if (trackInfractions)    Globals::logger.LogLongIndent("tracking infractions");
-		}
-
-		if (not copTypeToIsBreakerImmune.empty())
-		{
-			copTypeToIsBreakerImmune.Validate
-			(
-				"Vehicle-to-immunity",
-				[=](const vault   key) {return Globals::VehicleClassMatches(key, Globals::Class::ANY);},
-				[=](const bool  value) {return true;}
-			);
-		}
 	}
 
 

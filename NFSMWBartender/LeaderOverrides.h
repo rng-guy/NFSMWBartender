@@ -16,17 +16,17 @@ namespace LeaderOverrides
 
 	bool featureEnabled = false;
 
-	// Heat levels
-	HeatParameters::OptionalInterval<float> leader5CrossAggroDelays (1.f); // seconds
-	HeatParameters::OptionalInterval<float> leader5ExpireResetDelays(1.f); // seconds
-	HeatParameters::OptionalInterval<float> leader5WreckResetDelays (1.f); // seconds
-	HeatParameters::OptionalInterval<float> leader5LostResetDelays  (1.f); // seconds
+	// Heat parameters
+	HeatParameters::OptionalInterval<float> leader5CrossAggroDelays ({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> leader5ExpireResetDelays({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> leader5WreckResetDelays ({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> leader5LostResetDelays  ({1.f}); // seconds
 
-	HeatParameters::OptionalInterval<float> leader7CrossAggroDelays (1.f); // seconds
-	HeatParameters::OptionalInterval<float> leader7HenchAggroDelays (1.f); // seconds
-	HeatParameters::OptionalInterval<float> leader7ExpireResetDelays(1.f); // seconds
-	HeatParameters::OptionalInterval<float> leader7WreckResetDelays (1.f); // seconds
-	HeatParameters::OptionalInterval<float> leader7LostResetDelays  (1.f);  // seconds
+	HeatParameters::OptionalInterval<float> leader7CrossAggroDelays ({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> leader7HenchAggroDelays ({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> leader7ExpireResetDelays({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> leader7WreckResetDelays ({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> leader7LostResetDelays  ({1.f}); // seconds
 
 
 
@@ -315,7 +315,10 @@ namespace LeaderOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [LDR] LeaderOverrides");
+
+		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Leader5:CrossAggro",  leader5CrossAggroDelays);

@@ -19,13 +19,13 @@ namespace StrategyOverrides
 
 	bool featureEnabled = false;
 
-	// Heat levels
-	HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, 1);
+	// Heat parameters
+	HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1});
 
-	HeatParameters::OptionalInterval<float> heavy3UnblockDelays (1.f); // seconds
-	HeatParameters::OptionalInterval<float> heavy4UnblockDelays (1.f); // seconds
-	HeatParameters::OptionalInterval<float> leader5UnblockDelays(1.f); // seconds
-	HeatParameters::OptionalInterval<float> leader7UnblockDelays(1.f); // seconds
+	HeatParameters::OptionalInterval<float> heavy3UnblockDelays ({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> heavy4UnblockDelays ({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> leader5UnblockDelays({1.f}); // seconds
+	HeatParameters::OptionalInterval<float> leader7UnblockDelays({1.f}); // seconds
 
 	// Code caves
 	constexpr size_t maxNumVehiclesPerHeavy4 = 6;
@@ -616,7 +616,10 @@ namespace StrategyOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [STR] StrategyOverrides");
+
+		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Heavy3:Count", numVehiclesPerHeavy3s);
@@ -628,6 +631,9 @@ namespace StrategyOverrides
 
 		// Stack replacements for removal of HeavyStrategy 3 limit
 		const size_t vectorStackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.LogLongIndent("New stack size:", static_cast<int>(vectorStackSize), "floats");
 
 		spawnVectorStackA.resize(vectorStackSize);
 		spawnVectorStackB.resize(vectorStackSize);

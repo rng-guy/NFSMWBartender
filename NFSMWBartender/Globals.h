@@ -1,7 +1,5 @@
 #pragma once
 
-#include <concepts>
-
 #include "BasicLogger.h"
 #include "RandomNumbers.h"
 
@@ -63,6 +61,27 @@ namespace Globals
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	bool IsInCooldownMode(const address pursuit)
+	{
+		return (*reinterpret_cast<int*>(pursuit + 0x218) == 2); // pursuitStatus
+	}
+
+
+
+	vault StringToVaultKey(const std::string& string)
+	{
+		return GetVaultKey(string.c_str());
+	}
+
+
+
+	binary StringToBinaryKey(const std::string& string)
+	{
+		return GetBinaryKey(string.c_str());
+	}
+
+
+
 	float __fastcall GetGameTime(const bool unpaused)
 	{
 		const float    ticksToTime = *reinterpret_cast<float*>(0x890984);
@@ -104,24 +123,30 @@ namespace Globals
 
 
 
-	enum class Class
+	vault GetVehicleClass(const vault type)
 	{
-		ANY,
-		CAR,
-		CHOPPER
-	};
+		const address attribute = GetFromVault(0x4A97EC8F, type, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
+		return (attribute) ? *reinterpret_cast<vault*>(attribute + 0x8) : attribute;
+	}
 
-	bool VehicleClassMatches
-	(
-		const vault vehicleType,
-		const Class targetClass
-	) {
-		const address attribute = GetFromVault(0x4A97EC8F, vehicleType, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
-		if ((not attribute) or (targetClass == Class::ANY)) return attribute;
 
-		const vault vehicleClass = *reinterpret_cast<vault*>(attribute + 0x8);
-		const bool  isHelicopter = (vehicleClass == 0xB80933AA); // checks if "CHOPPER"
 
-		return (isHelicopter == (targetClass == Class::CHOPPER));
+	bool DoesVehicleExist(const vault type)
+	{
+		return GetVehicleClass(type);
+	}
+
+
+
+	bool IsVehicleCar(const vault type)
+	{
+		return (GetVehicleClass(type) == 0x336FCACF); // CAR
+	}
+
+
+
+	bool IsVehicleChopper(const vault type)
+	{
+		return (GetVehicleClass(type) == 0xB80933AA); // CHOPPER
 	}
 }

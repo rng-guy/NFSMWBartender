@@ -118,7 +118,16 @@ namespace RandomNumbers
 			const T min,
 			const T max
 		) {
+			// can generate values from [min, max]
 			return std::uniform_int_distribution<T>{min, max}(this->engine);
+		}
+
+
+		template <typename T>
+		requires std::is_integral_v<T>
+		constexpr bool DoTrial(const T chance)
+		{
+			return (this->GenerateNumber<T>(T(0), T(99)) < chance);
 		}
 
 
@@ -129,7 +138,16 @@ namespace RandomNumbers
 			const T min,
 			const T max
 		) {
+			// can generate values from [min, max)
 			return std::uniform_real_distribution<T>{min, max}(this->engine);
+		}
+
+
+		template <typename T>
+		requires std::is_floating_point_v<T>
+		constexpr bool DoTrial(const T chance)
+		{
+			return (this->GenerateNumber<T>(T(0), T(100)) < chance);
 		}
 
 

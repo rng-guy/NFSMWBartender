@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <string>
 #include <vector>
 
@@ -20,12 +19,7 @@ namespace InteractiveMusic
 	bool featureEnabled = false;
 	
 	// General	
-	constexpr size_t maxNumTracks = 20;
-
-	size_t numParsedTracks = 0;
-	size_t numValidTracks  = 0;
-
-	std::array<int, maxNumTracks> playlist = {};
+	std::vector<int> playlist;
 
 	bool  transitionsEnabled = true; 
 	float lengthPerTrack     = 600.f; // seconds
@@ -44,7 +38,7 @@ namespace InteractiveMusic
 
 	int GetFirstTrack()
 	{
-		currentTrackID = (shuffleFirstTrack) ? Globals::prng.GenerateIndex(numValidTracks) : 0;
+		currentTrackID = (shuffleFirstTrack) ? Globals::prng.GenerateIndex(playlist.size()) : 0;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.LogIndent("[MUS] First pursuit theme:", playlist[currentTrackID] + 1);
@@ -56,8 +50,10 @@ namespace InteractiveMusic
 
 	int GetNextTrack()
 	{
-		currentTrackID += (shuffleAfterFirst and (numValidTracks > 2)) ? Globals::prng.GenerateNumber<size_t>(1, numValidTracks - 1) : 1;
-		currentTrackID %= numValidTracks;
+		const size_t numTracks = playlist.size();
+
+		currentTrackID += (shuffleAfterFirst and (numTracks > 2)) ? Globals::prng.GenerateNumber<size_t>(1, numTracks - 1) : 1;
+		currentTrackID %= numTracks;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.LogIndent("[MUS] Next pursuit theme:", playlist[currentTrackID] + 1);
@@ -163,74 +159,71 @@ namespace InteractiveMusic
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [MUS] InteractiveMusic");
+
+		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Playlist
-		std::array<std::string, maxNumTracks> rawPlaylist = {};
+		const auto& sections     = parser.GetSections();
+		const auto  foundSection = sections.find("Music:Playlist");
 
-		numParsedTracks = parser.ParseFormatParameter<std::string, maxNumTracks>("Music:Playlist", "track{:02}", rawPlaylist);
-
-		if (numParsedTracks == 0) return false;
-
-		const HashContainers::Map<std::string, int> nameToIndex =
+		if (foundSection != sections.end())
 		{
-			{"theme1", 0},
-			{"theme2", 1},
-			{"theme3", 2},
-			{"theme4", 3}
-		};
+			const std::string baseName    = "track";
+			const auto&       definitions = foundSection->second;
 
-		for (size_t trackID = 0; trackID < maxNumTracks; ++trackID)
-		{
-			const auto foundName = nameToIndex.find(rawPlaylist[trackID]);
+			const HashContainers::Map<std::string, int> nameToIndex =
+			{
+				{"theme1", 0},
+				{"theme2", 1},
+				{"theme3", 2},
+				{"theme4", 3}
+			};
 
-			if (foundName != nameToIndex.end())
-				playlist[numValidTracks++] = foundName->second;
+			if constexpr (Globals::loggingEnabled)
+			{
+				Globals::logger.LogLongIndent("Playlist parsing:");
+				Globals::logger.LogLongIndent(' ', static_cast<int>(definitions.size()), "track(s) provided");
+			}
+
+			for (const auto& [definition, value] : definitions)
+			{
+				if (definition.find(baseName) == 0)
+				{
+					const auto foundName = nameToIndex.find(value);
+
+					if (foundName != nameToIndex.end())
+						playlist.push_back(foundName->second);
+
+					else if constexpr (Globals::loggingEnabled)
+						Globals::logger.LogLongIndent("  -", definition, "(invalid value)");
+				}
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.LogLongIndent("  -", definition, "(invalid format)");
+			}
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent(' ', static_cast<int>(playlist.size()), "track(s) valid");
 		}
+		else if constexpr (Globals::loggingEnabled)
+			Globals::logger.LogLongIndent("  no track(s) provided");
 
-		if (numValidTracks == 0) return false;
+		if (playlist.empty()) return false;
 
-		// Settings
+		// Playlist settings
 		const std::string section = "Playlist:Settings";
 
-		transitionsEnabled = parser.ParseParameter<float>(section, "lengthPerTrack", lengthPerTrack);
+		transitionsEnabled = parser.Parse<float>(section, "lengthPerTrack", lengthPerTrack);
 
-		parser.ParseParameter<bool>(section, "shuffleFirstTrack", shuffleFirstTrack);
-		parser.ParseParameter<bool>(section, "shuffleAfterFirst", shuffleAfterFirst);
+		parser.Parse<bool>(section, "shuffleFirstTrack", shuffleFirstTrack);
+		parser.Parse<bool>(section, "shuffleAfterFirst", shuffleAfterFirst);
 
-		// Code modifications 
-		MemoryTools::MakeRangeJMP(NextTrack,       nextTrackEntrance,       nextTrackExit);
-		MemoryTools::MakeRangeJMP(FirstTrack,      firstTrackEntrance,      firstTrackExit);
-		MemoryTools::MakeRangeJMP(MainTransition,  mainTransitionEntrance,  mainTransitionExit);
-		MemoryTools::MakeRangeJMP(OtherTransition, otherTransitionEntrance, otherTransitionExit);
-
-		// Status flag
-		featureEnabled = true;
-
-		return true;
-	}
-
-
-
-	void LogSetupReport()
-	{
-		if (numParsedTracks == 0) return;
-
-		Globals::logger.Log("  CONFIG [MUS] InteractiveMusic");
-
-		if (numValidTracks != numParsedTracks)
+		if constexpr (Globals::loggingEnabled)
 		{
-			if (numValidTracks == 0)
-				Globals::logger.LogLongIndent("All", static_cast<int>(numParsedTracks), "tracks invalid");
-				
-			else 
-				Globals::logger.LogLongIndent(static_cast<int>(numValidTracks), '/', static_cast<int>(numParsedTracks), "tracks valid");
-		}
-		else Globals::logger.LogLongIndent("All", static_cast<int>(numParsedTracks), "tracks valid");
+			Globals::logger.LogLongIndent("Playlist:");
 
-		if (featureEnabled) 
-		{
-			for (size_t trackID = 0; trackID < numValidTracks; ++trackID)
+			for (size_t trackID = 0; trackID < playlist.size(); ++trackID)
 				Globals::logger.LogLongIndent("  track", static_cast<int>(trackID + 1), "= theme", playlist[trackID] + 1);
 
 			if (transitionsEnabled)
@@ -242,6 +235,16 @@ namespace InteractiveMusic
 			Globals::logger.LogLongIndent((shuffleFirstTrack) ? "Shuffled" : "Fixed", "first track");
 			Globals::logger.LogLongIndent((shuffleAfterFirst) ? "Shuffled" : "Fixed", "follow-up track(s)");
 		}
-		else Globals::logger.LogLongIndent("Playlist features disabled");
+
+		// Code modifications 
+		MemoryTools::MakeRangeJMP(NextTrack,       nextTrackEntrance,       nextTrackExit);
+		MemoryTools::MakeRangeJMP(FirstTrack,      firstTrackEntrance,      firstTrackExit);
+		MemoryTools::MakeRangeJMP(MainTransition,  mainTransitionEntrance,  mainTransitionExit);
+		MemoryTools::MakeRangeJMP(OtherTransition, otherTransitionEntrance, otherTransitionExit);
+
+		// Status flag
+		featureEnabled = true;
+
+		return true;
 	}
 }

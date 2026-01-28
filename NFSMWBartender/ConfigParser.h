@@ -1,10 +1,14 @@
 #pragma once
 
-#include <fstream>
+#include <tuple>
 #include <string>
 #include <format>
+#include <fstream>
 #include <optional>
+#include <concepts>
+#include <algorithm>
 
+#include "Globals.h"
 #include "inipp.h"
 
 
@@ -15,24 +19,41 @@ namespace ConfigParser
 	// Parameter data structures --------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
-	struct Parameter
+	struct Bounds
 	{
-		T& value;
+		const std::optional<T> lower = {};
+		const std::optional<T> upper = {};
 
-		std::optional<T> lowerBound;
-		std::optional<T> upperBound;
+
+		void Enforce(T& value) const
+		{
+			if (this->lower and (value < this->lower.value()))
+				value = this->lower.value();
+
+			if (this->upper and (value > this->upper.value()))
+				value = this->upper.value();
+		}
 	};
 
 
 
-	template <typename T, size_t size>
+	template <typename T>
+	struct Parameter
+	{
+		T& value;
+
+		const Bounds<T> limits = {};
+	};
+
+
+
+	template <typename T, size_t numRows>
 	struct FormatParameter
 	{
-		std::array<T, size>& values;
+		std::array<T, numRows>& values;
 
-		std::optional<T> defaultValue;
-		std::optional<T> lowerBound;
-		std::optional<T> upperBound;
+		std::optional<T> defaultValue = {};
+		const Bounds<T>  limits       = {};
 	};
 
 
@@ -42,8 +63,7 @@ namespace ConfigParser
 	{
 		std::vector<T>& values;
 
-		std::optional<T> lowerBound;
-		std::optional<T> upperBound;
+		const Bounds<T> limits = {};
 	};
 
 
@@ -56,24 +76,10 @@ namespace ConfigParser
 	{
 	private:
 
+		std::string iniFile;
+
 		inipp::Ini<char> parser;
-		std::string      iniFile;
-
-
-		template <typename T>
-		static void EnforceBounds
-		(
-			T&                      parameterValue,
-			const std::optional<T>& lowerBound      = {},
-			const std::optional<T>& upperBound      = {}
-		) {
-			if (lowerBound and (parameterValue < lowerBound.value())) 
-				parameterValue = lowerBound.value();
-
-			if (upperBound and (parameterValue > upperBound.value())) 
-				parameterValue = upperBound.value();
-		}
-
+		
 
 		void ExtractColumns
 		(
@@ -85,10 +91,10 @@ namespace ConfigParser
 			size_t position;
 			columns.clear();
 
-			while ((position = row.find(this->tableColumnSeparator)) != std::string::npos)
+			while ((position = row.find(this->columnSeparator)) != std::string::npos)
 			{
 				columns.push_back(row.substr(0, position));
-				row.erase(0, position + this->tableColumnSeparator.length());
+				row.erase(0, position + this->columnSeparator.length());
 			}
 
 			columns.push_back(row);
@@ -98,24 +104,44 @@ namespace ConfigParser
 
 	public:
 
-		size_t      formatIndexOffset     = 1;
-		std::string defaultFormatValueKey = "default";
-		std::string tableColumnSeparator  = ",";
+		size_t formatIndexOffset = 1;
 
+		std::string columnSeparator = ",";
+		std::string formatDefaultKey = "default";
+		
 
-		bool LoadFile(const std::string& iniFile)
-		{
-			if (this->iniFile == iniFile) return true;
+		bool LoadFile
+		(
+			const std::string& path,
+			const std::string& file
+		) {
+			const std::string fullPath = path + file;
 
-			std::ifstream fileStream(iniFile);
+			if (this->iniFile == fullPath) return true;
+
+			std::ifstream fileStream(fullPath);
 			if (not fileStream.is_open()) return false;
 
 			this->parser.clear();
-			this->iniFile = iniFile;
+			this->iniFile = fullPath;
 			this->parser.parse(fileStream);
 			this->parser.strip_trailing_comments();
 
 			return true;
+		}
+
+
+		bool LoadFileWithLog
+		(
+			const std::string& path, 
+			const std::string& file
+		) {
+			const bool hasLoaded = this->LoadFile(path, file);
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent((hasLoaded) ? "Loaded:" : "Missing:", file);
+
+			return hasLoaded;
 		}
 
 
@@ -127,15 +153,15 @@ namespace ConfigParser
 
 		// For single values from a string
 		template <typename T>
-		static bool ParseParameterFromString
+		static bool ParseFromString
 		(
-			const std::string&     source,
-			T&                     parameterValue,
-			const std::optional<T> lowerBound      = {},
-			const std::optional<T> upperBound      = {}
+			const std::string& source,
+			T&                 value,
+			const Bounds<T>&   limits  = {}
 		) {
-			const bool readSuccess = inipp::extract<char, T>(source, parameterValue);
-			Parser::EnforceBounds<T>(parameterValue, lowerBound, upperBound);
+			const bool readSuccess = inipp::extract<char, T>(source, value);
+
+			limits.Enforce(value);
 
 			return readSuccess;
 		}
@@ -143,448 +169,265 @@ namespace ConfigParser
 
 		// For single values from parsed file
 		template <typename T>
-		bool ParseParameter
+		bool Parse
 		(
-			const std::string&     section,
-			const std::string&     parameterKey,
-			T&                     parameterValue,
-			const std::optional<T> lowerBound      = {},
-			const std::optional<T> upperBound      = {}
+			const std::string& section,
+			const std::string& key,
+			T&                 value,
+			const Bounds<T>&   limits   = {}
 		) {
-			const bool readSuccess = inipp::get_value<char>
-			(
-				this->parser.sections[section],
-				parameterKey, 
-				parameterValue
-			);
+			const bool readSuccess = inipp::get_value<char>(this->parser.sections[section], key, value);
 
-			this->EnforceBounds<T>
-			(
-				parameterValue, 
-				lowerBound, 
-				upperBound
-			);
+			limits.Enforce(value);
 
 			return readSuccess;
 		}
 
 
 		template <typename T>
-		bool ParseParameter
+		bool Parse
 		(
 			const std::string& section,
-			const std::string& parameterKey,
+			const std::string& key,
 			Parameter<T>&&     parameter
 		) {
-			return this->ParseParameter<T>
-			(
-				section, 
-				parameterKey, 
-				parameter.value, 
-				parameter.lowerBound, 
-				parameter.upperBound
-			);
+			return this->Parse<T>(section, key, parameter.value, parameter.lowerBound, parameter.upperBound);
 		}
 
 
 		// For fixed-format keys from parsed file
-		template <typename T, size_t size>
-		size_t ParseFormatParameter
+		template <typename T, size_t numRows>
+		size_t ParseFormat
 		(
-			const std::string&     section,
-			const std::string&     format,
-			std::array<T, size>&   parameterValues,
-			std::optional<T>       defaultValue     = {},
-			const std::optional<T> lowerBound       = {},
-			const std::optional<T> upperBound       = {}
+			const std::string&      section,
+			const std::string&      format,
+			std::array<T, numRows>& values,
+			std::optional<T>        defaultValue = {},
+			const Bounds<T>&        limits       = {}
 		) {
-			std::string parameterKey;
+			std::string key;
 
-			size_t formatIndex   = this->formatIndexOffset;
-			size_t numTotalReads = 0;
+			size_t numReads    = 0;
+			size_t formatIndex = this->formatIndexOffset;
 
 			if (defaultValue)
-				this->ParseParameter<T>
-				(
-					section,
-					this->defaultFormatValueKey,
-					defaultValue.value(),
-					lowerBound,
-					upperBound
-				);
+				this->Parse<T>(section, this->formatDefaultKey, defaultValue.value(), limits);
 
-			for (auto& parameterValue : parameterValues)
+			for (auto& value : values)
 			{
 				if (defaultValue) 
-					parameterValue = defaultValue.value();
+					value = defaultValue.value();
 
-				parameterKey = std::vformat(format, std::make_format_args(formatIndex));
-
-				numTotalReads += this->ParseParameter<T>
-				(
-					section,
-					parameterKey,
-					parameterValue,
-					lowerBound,
-					upperBound
-				);
+				key       = std::vformat(format, std::make_format_args(formatIndex));
+				numReads += this->Parse<T>(section, key, value, limits);
 
 				++formatIndex;
 			}
 
-			return numTotalReads;
+			return numReads;
 		}
 
 
-		template <typename T, size_t size>
-		size_t ParseFormatParameter
+		template <typename T, size_t numRows>
+		size_t ParseFormat
 		(
-			const std::string&         section,
-			const std::string&         format,
-			FormatParameter<T, size>&& parameter
+			const std::string&            section,
+			const std::string&            format,
+			FormatParameter<T, numRows>&& parameter
 		) {
-			return this->ParseFormatParameter<T, size>
-			(
-				section,
-				format,
-				parameter.values,
-				parameter.defaultValue,
-				parameter.lowerBound,
-				parameter.upperBound
-			);
+			return this->ParseFormat<T, numRows>(section, format, parameter.values,parameter.defaultValue, parameter.limits);
 		}
 
 
 		// For user-defined keys from parsed file
 		template <typename T>
-		size_t ParseUserParameter
+		size_t ParseUser
 		(
 			const std::string&        section,
-			std::vector<std::string>& parameterKeys,
-			std::vector<T>&           parameterValues,
-			const std::optional<T>    lowerBound       = {},
-			const std::optional<T>    upperBound       = {}
+			std::vector<std::string>& keys,
+			std::vector<T>&           values,
+			const Bounds<T>&          limits   = {}
 		) {
-			parameterKeys  .clear();
-			parameterValues.clear();
+			keys  .clear();
+			values.clear();
 
-			const size_t numTotalReads = inipp::get_value<char, T>
-				(this->parser.sections[section], parameterKeys, parameterValues);
+			const size_t numReads = inipp::get_value<char, T>(this->parser.sections[section], keys, values);
 
-			for (auto& parameterValue : parameterValues)
-				this->EnforceBounds<T>(parameterValue, lowerBound, upperBound);
+			// Fuck the std::vector<bool> specialisation
+			if constexpr (not std::is_same_v<T, bool>)
+			{
+				for (T& value : values)
+					limits.Enforce(value);
+			}
 
-			return numTotalReads;
-		}
-
-
-		// Seriously, fuck the std::vector<bool> "optimisation"
-		size_t ParseUserParameter
-		(
-			const std::string&        section,
-			std::vector<std::string>& parameterKeys,
-			std::vector<bool>&        parameterValues
-		) {
-			parameterKeys  .clear();
-			parameterValues.clear();
-
-			const size_t numTotalReads = inipp::get_value<char, bool>
-				(this->parser.sections[section], parameterKeys, parameterValues);
-
-			return numTotalReads;
+			return numReads;
 		}
 
 
 		template <typename T>
-		size_t ParseUserParameter
+		size_t ParseUser
 		(
 			const std::string&        section,
-			std::vector<std::string>& parameterKeys,
+			std::vector<std::string>& keys,
 			UserParameter<T>&&        parameter
 		) {
-			return this->ParseUserParameter<T>
-			(
-				section,
-				parameterKeys,
-				parameter.values,
-				parameter.lowerBound,
-				parameter.upperBound
-			);
+			return this->ParseUser<T>(section, keys, parameter.values, parameter.limits);
 		}
 
 
 		// For single parameter rows
 		template <typename ...T>
-		bool ParseParameterRow
+		bool ParseRow
 		(
 			const std::string&    section,
-			const std::string&    parameterKey,
+			const std::string&    key,
 			Parameter<T>&&     ...parameters
 		) {
 			constexpr size_t numColumns = sizeof...(T);
 
-			std::string              rowString;
-			std::vector<std::string> columnStrings;
+			std::string              row;
+			std::vector<std::string> columns;
 
-			this->ParseParameter<std::string>(section, parameterKey, rowString);
-			this->ExtractColumns(rowString, columnStrings);
+			this->Parse<std::string>(section, key, row);
+			this->ExtractColumns(row, columns);
 
-			if (columnStrings.size() != numColumns) return false;
+			bool isValid = false;
 
-			size_t columnID   = 0;
-			bool   isValidRow = true;
-
-			(
-				[&]
+			if (columns.size() == numColumns)
+			{
+				[&]<size_t... columnIDs>(std::index_sequence<columnIDs...>)
 				{
-					if (isValidRow)
-					{
-						isValidRow &= this->ParseParameterFromString<T>
-						(
-							columnStrings[columnID++],
-							parameters.value,
-							parameters.lowerBound,
-							parameters.upperBound
-						);
-					}
+					isValid = (this->ParseFromString<T>(columns[columnIDs], parameters.value, parameters.limits) and ...);
 				}
-			(), ...);
+				(std::make_index_sequence<numColumns>{});
+			}
 
-			return isValidRow;
+			return isValid;
 		}
 
 
 		// For user-defined tables from parsed file
 		template <typename ...T>
-		size_t ParseParameterTable
+		size_t ParseTable
 		(
 			const std::string&           section,
-			std::vector<std::string>&    parameterKeys,
+			std::vector<std::string>&    keys,
 			UserParameter<T>&&        ...parameters
 		) {
 			constexpr size_t numColumns = sizeof...(T);
 
-			std::array<bool, numColumns> pushedValue = {};
+			std::vector<std::string> rows;
+			std::vector<std::string> columns;
+			std::vector<std::string> rawKeys;
 
-			std::vector<std::string> unverifiedKeys;
-			std::vector<std::string> tableRows;
-			std::vector<std::string> columnStrings;
+			this->ParseUser<std::string>(section, rawKeys, rows);
 
-			bool isValidRow = true;
+			keys.clear();
+			(parameters.values.clear(), ...);
+
+			for (size_t rowID = 0; rowID < rows.size(); ++rowID)
+			{
+				this->ExtractColumns(rows[rowID], columns);
+
+				if (columns.size() != numColumns) continue;
+
+				size_t columnID   = 0;
+				bool   isValidRow = true;
+
+				(
+					[&]
+					{
+						T value = T();
+
+						isValidRow &= this->ParseFromString<T>(columns[columnID], value, parameters.limits);
+
+						parameters.values.push_back(std::move(value));
+					}
+				(), ...);
+
+				if (isValidRow)
+					keys.push_back(rawKeys[rowID]);
 			
-			this->ParseUserParameter<std::string>(section, unverifiedKeys, tableRows);
-
-			parameterKeys.clear();
-			([&]{parameters.values.clear();}(), ...);
-
-			for (size_t rowID = 0; rowID < tableRows.size(); ++rowID)
-			{
-				this->ExtractColumns(tableRows[rowID], columnStrings);
-				if (columnStrings.size() != numColumns) continue;
-
-				const bool wasValidRow = isValidRow;
-				size_t     columnID    = 0;
-
-				isValidRow = true;
-
-				(
-					[&]
-					{
-						if ((not wasValidRow) and pushedValue[columnID]) 
-							parameters.values.pop_back();
-
-						if (isValidRow)
-						{
-							T parameterValue = T();
-
-							isValidRow &= this->ParseParameterFromString<T>
-							(
-								columnStrings[columnID],
-								parameterValue,
-								parameters.lowerBound,
-								parameters.upperBound
-							);
-
-							if (isValidRow)
-								parameters.values.push_back(parameterValue);
-						}
-
-						pushedValue[columnID++] = isValidRow;
-					}
-				(), ...);
-
-				if (isValidRow) 
-					parameterKeys.push_back(unverifiedKeys[rowID]);
+				else 
+					(parameters.values.pop_back(), ...);	
 			}
 
-			// Check final row separately
-			if (not isValidRow)
-			{
-				size_t columnID = 0;
-
-				(
-					[&]
-					{
-						if (pushedValue[columnID++])
-							parameters.values.pop_back();
-					}
-				(), ...);
-			}
-
-			return parameterKeys.size();
+			return keys.size();
 		}
 
 
 		// For fixed-format tables from parsed file
-		template <typename ...T, size_t size>
-		std::array<bool, size> ParseParameterTable
+		template <size_t numRows, typename ...T>
+		std::array<bool, numRows> ParseTable
 		(
-			const std::string&            section,
-			const std::string&            format,
-			FormatParameter<T, size>&& ...parameters
+			const std::string&               section,
+			const std::string&               format,
+			FormatParameter<T, numRows>&& ...parameters
 		) {
 			constexpr size_t numColumns = sizeof...(T);
 
-			std::array<std::string, size> tableRows;
-			std::array<bool,        size> isValidRow;
+			std::array<std::string, numRows> tableRows;
+			std::array<bool,        numRows> isValidRow;
 
-			std::vector<std::string> columnStrings;
-			std::string              defaultRow;
-
-			size_t numDefaultValues = 0;
-	
-			(
-				[&]
-				{
-					if (parameters.defaultValue)
-						++numDefaultValues;
-				}
-			(), ...);
-
-			if (numDefaultValues == numColumns)
-			{
-				// Attempt to read new defaults from file
-				bool isValidDefaultRow = this->ParseParameter<std::string>
-				(
-					section,
-					this->defaultFormatValueKey,
-					defaultRow
-				);
-
-				if (isValidDefaultRow) // new defaults in file
-				{
-					this->ExtractColumns(defaultRow, columnStrings);
-
-					size_t columnID = 0;
-
-					// Check new defaults for validity
-					(
-						[&]
-						{
-							if (isValidDefaultRow)
-							{
-								T dummyDefaultValue = T();
-
-								isValidDefaultRow &= this->ParseParameterFromString<T>
-								(
-									columnStrings[columnID], 
-									dummyDefaultValue
-								);
-							}
-						
-							++columnID;
-						}
-					(), ...);
-				}
-
-				if (isValidDefaultRow) // new defaults are valid
-				{
-					size_t columnID = 0;
-
-					// Overwrite old defaults with new ones
-					(
-						[&]
-						{
-							this->ParseParameterFromString<T>
-							(
-								columnStrings[columnID],
-								parameters.defaultValue.value(),
-								parameters.lowerBound,
-								parameters.upperBound
-							);
-
-							++columnID;
-						}
-					(), ...);
-				}
-				else // new defaults either invalid or not in file
-				{
-					size_t columnID = 0;
-
-					defaultRow = std::string();
-
-					(
-						[&]
-						{
-							this->EnforceBounds<T>
-							(
-								parameters.defaultValue.value(),
-								parameters.lowerBound,
-								parameters.upperBound
-							);
-
-							if (columnID > 0) 
-								defaultRow.append(this->tableColumnSeparator);
-
-							if constexpr (std::is_convertible_v<T, std::string>)
-								defaultRow.append(parameters.defaultValue.value());
-
-							else
-								defaultRow.append(std::to_string(parameters.defaultValue.value()));
-
-							++columnID;
-						}
-					(), ...);
-				}
-
-				this->ParseFormatParameter<std::string>(section, format, tableRows, defaultRow);
-			}
-			else this->ParseFormatParameter<std::string>(section, format, tableRows);
-
-			for (size_t rowID = 0; rowID < size; ++rowID)
-			{
-				this->ExtractColumns(tableRows[rowID], columnStrings);
-				isValidRow[rowID] = (columnStrings.size() == numColumns);
-				if (not isValidRow[rowID]) continue;
-
-				size_t columnID = 0;
+			std::vector<std::string> columns;
 			
-				(
-					[&]
-					{
-						if (isValidRow[rowID])
-						{
-							isValidRow[rowID] &= this->ParseParameterFromString<T>
-							(
-								columnStrings[columnID],
-								parameters.values[rowID],
-								parameters.lowerBound,
-								parameters.upperBound
-							);
-						}
+			// Parse parameters without defaults first
+			this->ParseFormat<std::string>(section, format, tableRows);
 
-						++columnID;
+			for (size_t rowID = 0; rowID < numRows; ++rowID)
+			{
+				this->ExtractColumns(tableRows[rowID], columns);
+
+				isValidRow[rowID] = (columns.size() == numColumns);
+
+				if (isValidRow[rowID])
+				{
+					[&]<size_t... columnIDs>(std::index_sequence<columnIDs...>)
+					{
+						isValidRow[rowID] = (this->ParseFromString<T>(columns[columnIDs], parameters.values[rowID], parameters.limits) and ...);
 					}
-				(), ...);
+					(std::make_index_sequence<numColumns>{});
+				}
 			}
 
+			const size_t numDefaultValues = (static_cast<bool>(parameters.defaultValue) + ...);
+	
 			if (numDefaultValues == numColumns)
 			{
-				for (size_t rowID = 0; rowID < size; ++rowID)
+				std::string defaults;
+
+				bool defaultsValid = this->Parse<std::string>(section, this->formatDefaultKey, defaults);
+
+				if (defaultsValid)
+				{
+					std::tuple<T...> newValues;
+
+					this->ExtractColumns(defaults, columns);
+
+					// Attempt to read custom defaults
+					[&]<size_t... columnIDs>(std::index_sequence<columnIDs...>)
+					{
+						defaultsValid = (this->ParseFromString<T>(columns[columnIDs], std::get<columnIDs>(newValues), parameters.limits) and ...);
+					}
+					(std::make_index_sequence<numColumns>{});
+
+					// Update defaults
+					if (defaultsValid)
+					{
+						[&]<size_t... columnIDs>(std::index_sequence<columnIDs...>)
+						{
+							((parameters.defaultValue.value() = std::move(std::get<columnIDs>(newValues))), ...);
+						}
+						(std::make_index_sequence<numColumns>{});
+					}
+				}
+
+				// Apply defaults
+				for (size_t rowID = 0; rowID < numRows; ++rowID)
 				{
 					if (not isValidRow[rowID])
 					{
-						([&]{parameters.values[rowID] = parameters.defaultValue.value();}(), ...);
+						((parameters.values[rowID] = parameters.defaultValue.value()), ...);
 
 						isValidRow[rowID] = true;
 					}

@@ -113,16 +113,15 @@ namespace inipp {
 	// Not part of the original file; added by my sorry ass in order to extract keys from sections
 	template <typename CharT, typename T>
 	inline size_t get_value(const std::map<std::basic_string<CharT>, std::basic_string<CharT>>& sec, std::vector<std::string>& keys, std::vector<T>& dst) {
-		size_t reads = 0;
-		T value;
-		for (auto const& pair : sec) {
-			if (get_value(sec, pair.first, value)) {
-				keys.push_back(pair.first);
-				dst.push_back(value);
-				reads += 1;
-			}
+		keys.reserve(sec.size());
+		dst.reserve(sec.size());
+		T value = T();
+		for (auto const& [key,val] : sec) {
+			extract(val, value);
+			keys.push_back(key);
+			dst.push_back(value);
 		}
-		return reads;
+		return sec.size();
 	}
 
 	template<class CharT>

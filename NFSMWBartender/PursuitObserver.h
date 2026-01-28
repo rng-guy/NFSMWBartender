@@ -427,21 +427,6 @@ namespace PursuitObserver
 
 
 
-	void Validate()
-	{
-		if (not featureEnabled) return;
-
-		CopSpawnTables::Validate();
-
-		if constexpr (Globals::loggingEnabled)
-			CopSpawnOverrides::LogSetupReport();
-
-		HelicopterOverrides::Validate();
-		HeatChangeOverrides::Validate();
-	}
-
-
-
 	void SetToHeat
 	(
 		const bool   isRacing,

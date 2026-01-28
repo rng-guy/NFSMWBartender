@@ -18,28 +18,28 @@ namespace GroundSupports
 
 	bool featureEnabled = false;
 
-	// Heat levels
+	// Heat parameters
 	HeatParameters::Pair<bool> rivalRoadblockEnableds(true);
 	HeatParameters::Pair<bool> rivalHeavyEnableds    (true);
 	HeatParameters::Pair<bool> rivalLeaderEnableds   (true);
 
-	HeatParameters::Interval<float> roadblockCooldowns     (8.f,  12.f, 1.f); // seconds
-	HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f, 1.f);       // seconds
+	HeatParameters::Interval<float> roadblockCooldowns     (8.f,  12.f, {1.f}); // seconds
+	HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f, {1.f});       // seconds
 
-	HeatParameters::Interval<float> roadblockSpawnDistances(250.f, 250.f, 0.f); // metres
+	HeatParameters::Interval<float> roadblockSpawnDistances(250.f, 250.f, {0.f}); // metres
 
 	HeatParameters::Pair<bool> roadblockEndsFormations(true);
 
 	HeatParameters::OptionalPair<float> roadblockJoinTimers; // seconds
 
-	HeatParameters::Pair<float> maxRBJoinDistances      (500.f, 0.f); // metres
-	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f,  0.f); // metres
-	HeatParameters::Pair<int>   maxRBJoinCounts         (1,     0);   // cars
+	HeatParameters::Pair<float> maxRBJoinDistances      (500.f, {0.f}); // metres
+	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f,  {0.f}); // metres
+	HeatParameters::Pair<int>   maxRBJoinCounts         (1,     {0});   // cars
 
 	HeatParameters::Pair<bool> reactToCooldownModes(true);
 	HeatParameters::Pair<bool> reactToSpikesHits   (true);
 	
-	HeatParameters::Interval<float> strategyCooldowns(10.f, 10.f, 1.f); // seconds
+	HeatParameters::Interval<float> strategyCooldowns(10.f, 10.f, {1.f}); // seconds
 
 	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
 	HeatParameters::Pair<bool> heavy3AreBlockables   (true);
@@ -50,8 +50,8 @@ namespace GroundSupports
 	HeatParameters::PointerPair<std::string> heavy4LightVehicles("copsuvl");
 	HeatParameters::PointerPair<std::string> heavy4HeavyVehicles("copsuv");
 
-	HeatParameters::PointerPair<std::string> leader5CrossVehicles ("copcross");
-	HeatParameters::PointerPair<std::string> leader7CrossVehicles ("copcross");
+	HeatParameters::PointerPair<std::string> leader5CrossVehicles("copcross");
+	HeatParameters::PointerPair<std::string> leader7CrossVehicles("copcross");
 
 	HeatParameters::PointerPair<std::string> leader7Hench1Vehicles("copsporthench");
 	HeatParameters::PointerPair<std::string> leader7Hench2Vehicles("copsporthench");
@@ -133,7 +133,7 @@ namespace GroundSupports
 
 			const int chance = *reinterpret_cast<int*>(strategy + 0x4);
 
-			if (Globals::prng.GenerateNumber<int>(1, 100) <= chance)
+			if (Globals::prng.DoTrial<int>(chance))
 				candidateStrategies.push_back(strategy);
 		}
 	}
@@ -720,7 +720,10 @@ namespace GroundSupports
 
     bool Initialise(HeatParameters::Parser& parser)
     {
-		if (not parser.LoadFile(HeatParameters::configPathBasic + "Supports.ini")) return false;
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [SUP] GroundSupports");
+
+		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Supports.ini")) return false;
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Supports:Rivals", rivalRoadblockEnableds, rivalHeavyEnableds, rivalLeaderEnableds);
@@ -738,6 +741,25 @@ namespace GroundSupports
 		HeatParameters::Parse(parser, "Heavy4:Vehicles",     heavy4LightVehicles, heavy4HeavyVehicles);
 		HeatParameters::Parse(parser, "Leader5:Vehicle",     leader5CrossVehicles);
 		HeatParameters::Parse(parser, "Leader7:Vehicles",    leader7CrossVehicles, leader7Hench1Vehicles, leader7Hench2Vehicles);
+
+		// Validation
+		bool allValid = true;
+		
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, light", heavy3LightVehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, light", heavy4LightVehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleCar);
+
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleCar);
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (allValid)
+				Globals::logger.LogLongIndent("All vehicles valid");
+		}
 
 		// Code modifications 
 		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),       {0x42BEBC});
@@ -769,35 +791,6 @@ namespace GroundSupports
 
 		return true;
     }
-
-
-
-	void Validate()
-	{
-		if (not featureEnabled) return;
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [SUP] GroundSupports");
-
-		// With logging disabled, the compiler optimises the boolean and the string literals away
-		bool allValid = true;
-
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, light", heavy3LightVehicles, Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, heavy", heavy3HeavyVehicles, Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, light", heavy4LightVehicles, Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, heavy", heavy4HeavyVehicles, Globals::Class::CAR);
-
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 5, Cross",   leader5CrossVehicles,  Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, Cross",   leader7CrossVehicles,  Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, hench 1", leader7Hench1Vehicles, Globals::Class::CAR);
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, hench 2", leader7Hench2Vehicles, Globals::Class::CAR);
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (allValid)
-				Globals::logger.LogLongIndent("All vehicles valid");
-		}
-	}
 
 
 

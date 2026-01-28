@@ -19,8 +19,6 @@ namespace PursuitFeatures
 
 		const address pursuit;
 
-		const int& pursuitStatus = *reinterpret_cast<int*>(this->pursuit + 0x218);
-
 
 		static address GetAIVehiclePursuit(const address copVehicle)
 		{
@@ -54,12 +52,6 @@ namespace PursuitFeatures
 				Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
 
 			return copAIVehicle;
-		}
-
-
-		bool IsSearchModeActive() const
-		{
-			return (this->pursuitStatus == 2);
 		}
 
 

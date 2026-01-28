@@ -17,16 +17,17 @@ namespace CopFleeOverrides
 
 	bool featureEnabled = false;
 
-	// Heat levels
-	HeatParameters::Pair        <float>heavy3SpeedThresholds(25.f, 0.f); // kph
-	HeatParameters::Pair        <bool> heavy3JoiningEnableds(false);
-	HeatParameters::OptionalPair<int>  heavy3JoinLimits     (0);
+	// Heat parameters
+	HeatParameters::Pair<float> heavy3SpeedThresholds(25.f, {0.f}); // kph
+	HeatParameters::Pair<bool>  heavy3JoiningEnableds(false);
 
-	HeatParameters::OptionalInterval<float> chaserFleeDelays       (1.f); // seconds
-	HeatParameters::Pair            <int>   chaserChasersThresholds(2, 0);
+	HeatParameters::OptionalPair<int> heavy3JoinLimits({0});
 
-	HeatParameters::OptionalInterval<float> joinedFleeDelays       (1.f); // seconds
-	HeatParameters::Pair            <int>   joinedChasersThresholds(2, 0);
+	HeatParameters::OptionalInterval<float> chaserFleeDelays       ({1.f});  // seconds
+	HeatParameters::Pair            <int>   chaserChasersThresholds(2, {0});
+
+	HeatParameters::OptionalInterval<float> joinedFleeDelays       ({1.f});  // seconds
+	HeatParameters::Pair            <int>   joinedChasersThresholds(2, {0});
 
 	// Conversions
 	float baseSpeedThreshold = heavy3SpeedThresholds.current / 3.6f; // mps
@@ -313,7 +314,7 @@ namespace CopFleeOverrides
 		{
 			if (this->heavy3VehicleToTimestamp.empty()) return;
 
-			if (this->IsSearchModeActive() or this->IsSpeedOfTargetBelowThreshold())
+			if (Globals::IsInCooldownMode(this->pursuit) or this->IsSpeedOfTargetBelowThreshold())
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[FLE] Cancelling HeavyStrategy3");
@@ -462,14 +463,17 @@ namespace CopFleeOverrides
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [FLE] CopFleeOverrides");
+
 		// Heat parameters (first file)
-		parser.LoadFile(HeatParameters::configPathAdvanced + "CarSpawns.ini");
+		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "CarSpawns.ini");
 
 		HeatParameters::Parse(parser, "Chasers:Fleeing", chaserFleeDelays, chaserChasersThresholds);
 		HeatParameters::Parse(parser, "Joining:Fleeing", joinedFleeDelays, joinedChasersThresholds);
 
 		// Heat parameters (second file)
-		parser.LoadFile(HeatParameters::configPathAdvanced + "Strategies.ini");
+		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		HeatParameters::Parse(parser, "Heavy3:Cancellation", heavy3SpeedThresholds);
 		HeatParameters::Parse(parser, "Heavy3:Joining",      heavy3JoiningEnableds);

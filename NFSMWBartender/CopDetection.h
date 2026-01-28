@@ -363,8 +363,12 @@ namespace CopDetection
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [DET] CopDetection");
 
+		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+
+		// Detection settings
 		std::vector<std::string> copVehicles;
 
 		std::vector<float> radarRanges;
@@ -372,29 +376,42 @@ namespace CopDetection
 		std::vector<float> pursuitIconRanges;
 		std::vector<bool>  keepsIcons;
 
-		const size_t numCopVehicles = parser.ParseParameterTable<float, float, float, bool>
+		const size_t numCopVehicles = parser.ParseTable<float, float, float, bool>
 		(
 			"Vehicles:Detection", 
 			copVehicles, 
-			{radarRanges,       0.f},
-			{patrolIconRanges,  0.f},
-			{pursuitIconRanges, 0.f},
+			{radarRanges,       {0.f}},
+			{patrolIconRanges,  {0.f}},
+			{pursuitIconRanges, {0.f}},
 			{keepsIcons}
 		);
 
-		if (numCopVehicles == 0) return false;
-
+		std::vector<Settings> settings(numCopVehicles);
+	
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
 		{
-			copTypeToSettings.try_emplace
-			(
-				Globals::GetVaultKey(copVehicles[vehicleID].c_str()), 
-				radarRanges      [vehicleID], 
-				patrolIconRanges [vehicleID], 
-				pursuitIconRanges[vehicleID], 
+			settings[vehicleID] =
+			{
+				radarRanges      [vehicleID],
+				patrolIconRanges [vehicleID],
+				pursuitIconRanges[vehicleID],
 				keepsIcons       [vehicleID]
-			);
+			};
 		}
+
+		const bool mapIsValid = copTypeToSettings.FillFromVectors<std::string, Settings>
+		(
+			"Vehicle-to-settings",
+			HeatParameters::defaultValueHandle,
+			copVehicles,
+			Globals::StringToVaultKey,
+			Globals::IsVehicleCar,
+			settings,
+			[=](const Settings& settings) -> Settings {return settings;},
+			[=](const Settings& settings) -> bool     {return true;}
+		);
+
+		if (not mapIsValid) return false;
 
 		// Code modifications
 		MemoryTools::MakeRangeNOP(0x579E33, 0x579E69); // pursuit check
@@ -410,22 +427,5 @@ namespace CopDetection
 		featureEnabled = true;
 
 		return true;
-	}
-
-
-
-	void Validate()
-	{
-		if (not featureEnabled) return;
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [DET] CopDetection");
-
-		copTypeToSettings.Validate
-		(
-			"Vehicle-to-settings",
-			[=](const vault     key)   {return Globals::VehicleClassMatches(key, Globals::Class::CAR);},
-			[=](const Settings& value) {return true;}
-		);
 	}
 }

@@ -264,7 +264,10 @@ namespace RadioChatter
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [RAD] CopRadio");
+
+		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Jurisdictions
 		HeatParameters::PointerPair<std::string> jurisdictionNames("city");
@@ -277,46 +280,56 @@ namespace RadioChatter
 		};
 
 		HeatParameters::Parse(parser, "Heat:Jurisdiction", jurisdictionNames);
-
+	
 		for (const bool forRaces : {false, true})
 		{
-			auto&       jurisdictionIDs = heatJurisdictionIDs.GetValues(forRaces);
-			const auto& names           = jurisdictionNames  .GetValues(forRaces);
+			auto&       jurisIDs   = heatJurisdictionIDs.GetValues(forRaces);
+			const auto& jurisNames = jurisdictionNames  .GetValues(forRaces);
 
 			for (const size_t heatLevel : HeatParameters::heatLevels)
 			{
-				const auto foundName = nameToJurisdiction.find(names[heatLevel - 1]);
+				const auto foundName = nameToJurisdiction.find(jurisNames[heatLevel - 1]);
 
-				jurisdictionIDs[heatLevel - 1] = (foundName != nameToJurisdiction.end()) ? foundName->second : heatJurisdictionIDs.current;
+				jurisIDs[heatLevel - 1] = (foundName != nameToJurisdiction.end()) ? foundName->second : heatJurisdictionIDs.current;
 			}
 		}
 
 		// Callsigns
+		std::vector<std::string> copVehicles;
+		std::vector<std::string> callsignNames;
+
+		parser.ParseUser<std::string>("Vehicles:Callsigns", copVehicles, callsignNames);
+
 		const HashContainers::Map<std::string, Callsigns> nameToCallsigns =
-		{ 
+		{
 			{"patrol", Callsigns::PATROL},
 			{"elite",  Callsigns::ELITE},
 			{"rhino",  Callsigns::RHINO},
 			{"cross",  Callsigns::CROSS}
 		};
 
-		std::vector<std::string> copVehicles;
-		std::vector<std::string> callsignNames;
-
-		const size_t numCopVehicles = parser.ParseUserParameter<std::string>("Vehicles:Callsigns", copVehicles, callsignNames);
-
-		if (numCopVehicles > 0)
+		const auto StringToCallsign = [&](const std::string& rawValue) -> Callsigns
 		{
-			for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
-			{
-				const auto      foundName = nameToCallsigns.find(callsignNames[vehicleID]);
-				const Callsigns callsigns = (foundName != nameToCallsigns.end()) ? foundName->second : Callsigns::UNKNOWN;
+			const auto foundName = nameToCallsigns.find(rawValue);
+			return (foundName != nameToCallsigns.end()) ? foundName->second : Callsigns::UNKNOWN;
+		};
 
-				copTypeToCallsignID.try_emplace(Globals::GetVaultKey(copVehicles[vehicleID].c_str()), callsigns);
-			}
+		const bool mapIsValid = copTypeToCallsignID.FillFromVectors<std::string, std::string>
+		(
+			"Vehicle-to-callsign",
+			HeatParameters::defaultValueHandle,
+			copVehicles,
+			Globals::StringToVaultKey,
+			Globals::IsVehicleCar,
+			callsignNames,
+			StringToCallsign,
+			[=](const Callsigns value) -> bool {return (value != Callsigns::UNKNOWN);}
+		);
 
+		if (mapIsValid)
+		{
 			// Code modifications (feature-specific)
-			MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up superfluous stack variable
+			MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up stack variable
 
 			MemoryTools::MakeRangeJMP(CrossCallsign,    crossCallsignEntrance,    crossCallsignExit);
 			MemoryTools::MakeRangeJMP(FirstCallsign,    firstCallsignEntrance,    firstCallsignExit);
@@ -333,23 +346,6 @@ namespace RadioChatter
 		featureEnabled = true;
 
 		return true;
-	}
-
-
-
-	void Validate()
-	{
-		if (copTypeToCallsignID.empty()) return;
-	
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [RAD] RadioChatter");
-
-		copTypeToCallsignID.Validate
-		(
-			"Vehicle-to-callsign",
-			[=](const vault     key)   {return Globals::VehicleClassMatches(key, Globals::Class::CAR);},
-			[=](const Callsigns value) {return (value != Callsigns::UNKNOWN);}
-		);
 	}
 
 

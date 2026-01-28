@@ -1,6 +1,10 @@
 
 // Global parameters ----------------------------------------------------------------------------------------------------------------------------
 
+const IMPORT_REGEX = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*$/;
+
+const WIDTH_THRESHOLDS = [6.0, 10.0, 15.0, 22.0, 28.0];
+
 const IMAGE_RENDER_SCALE = 0.25;
 const LENGTH_SCALE       = 5.0 / (400 * IMAGE_RENDER_SCALE);
 
@@ -30,14 +34,21 @@ const TYPE_MAP = {
     3: 'spikes'
 };
 
+const ID_MAP = {
+    'car'      : 1,
+    'barricade': 2,
+    'spikes'   : 3
+};
 
 
 
 
-// Global objects -------------------------------------------------------------------------------------------------------------------------------
 
-const canvas        = document.getElementById('mainCanvas');
-const ctx           = canvas.getContext('2d');
+// Global elements ------------------------------------------------------------------------------------------------------------------------------
+
+const canvas  = document.getElementById('mainCanvas');
+const context = canvas.getContext('2d');
+
 const outputField   = document.getElementById('outputField');
 const outputOverlay = document.getElementById('outputOverlay');
 const counterEl     = document.getElementById('canvasCounter');
@@ -52,7 +63,8 @@ const btnLoadImport = document.getElementById('btnLoadImport');
 
 // Global state ---------------------------------------------------------------------------------------------------------------------------------
 
-const images     = {};
+const images = {};
+
 let imagesLoaded = 0;
 
 let rects           = [];
@@ -71,11 +83,12 @@ let boxEnd = {
     y: 0
 };
 
+let clipboard         = null;
 let dragStartData     = null;
 let isShiftDown       = false;
-let selectionSnapshot = [];
+
 let layerCounter      = 0;
-let clipboard         = null;
+let selectionSnapshot = [];
 
 
 
@@ -148,6 +161,7 @@ function parseImportLines(text)
 
 importInput.addEventListener('input', () => {
     const lines = parseImportLines(importInput.value);
+
     let isValid = true;
     let hasCar  = false;
     
@@ -156,12 +170,10 @@ importInput.addEventListener('input', () => {
     
     else
     {
-        const regex = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*$/;
-	
         for (let i = 0; i < lines.length; i++)
 	    {
             const line  = lines[i];
-            const match = line.match(regex);
+            const match = line.match(IMPORT_REGEX);
 	    
             if (!match)
 	        {
@@ -188,35 +200,33 @@ importInput.addEventListener('input', () => {
 
 function loadImportData() 
 {
-    const regex = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*$/;
+    const lines = parseImportLines(importInput.value);
 
-    const lines     = parseImportLines(importInput.value);
     const tempRects = [];
     
     let localLayerCounter = 0;
     
     lines.forEach(line => {
-        const match = line.match(regex);
+        const match = line.match(IMPORT_REGEX);
 	
-        const typeCode = parseInt(match[2]);
-        const offX     = parseFloat(match[3]);
-        const offY     = parseFloat(match[5]);
-        const deg      = parseFloat(match[7]);
-        const type     = TYPE_MAP[typeCode];
-        const img      = images[type];
+        const typeID      = parseInt(match[2]);
+        const offsetX     = parseFloat(match[3]);
+        const offsetY     = parseFloat(match[5]);
+        const orientation = parseFloat(match[7]);
+
+        const type = TYPE_MAP[typeID];
+        const img  = images[type];
 	
-        let degrees  = deg * 360;
-        let rawDeg   = (type === 'car') ? degrees : (degrees - 90);
-        let angleRad = (90 - rawDeg) * (Math.PI / 180);
-	
+        const angleDeg = (0.25 - ((type === 'car') ? orientation : (orientation - 0.25))) * 360;
+
         tempRects.push({
-            x:     (offX / LENGTH_SCALE),
-            y:     -(offY / LENGTH_SCALE),
-            w:     img.width * IMAGE_RENDER_SCALE,
+            x:     (offsetX / LENGTH_SCALE),
+            y:     -(offsetY / LENGTH_SCALE),
+            w:     img.width  * IMAGE_RENDER_SCALE,
             h:     img.height * IMAGE_RENDER_SCALE,
             img:   img,
             type:  type,
-            angle: angleRad,
+            angle: angleDeg * (Math.PI / 180),
             layer: ++localLayerCounter
         });
     });
@@ -239,7 +249,7 @@ function loadImportData()
     
     const mbbCx    = (minX + maxX) / 2;
     const mbbCy    = (minY + maxY) / 2;
-    const canvasCx = canvas.width / 2;
+    const canvasCx = canvas.width  / 2;
     const canvasCy = canvas.height / 2;
     
     rects = tempRects.map(r => ({
@@ -365,7 +375,8 @@ window.addEventListener('keydown', (e) => {
                     layer: layerCounter
                 };
 		
-                if (!canExistAt(nr, nr.x, nr.y, nr.angle)) {
+                if (!canExistAt(nr, nr.x, nr.y, nr.angle))
+		        {
                     nr.x = canvas.width / 2;
                     nr.y = canvas.height / 2;
                 }
@@ -385,6 +396,7 @@ window.addEventListener('keydown', (e) => {
         e.preventDefault();
 	
         const step = isShiftDown ? MOVE_COARSE : MOVE_FINE;
+
         let limit  = step;
 	
         selectedIndices.forEach(idx => {
@@ -790,52 +802,52 @@ function updateUI()
 
 function draw()	    
 {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, canvas.width, canvas.height);
     
     if (isShiftDown && selectedIndices.length > 0)
     {
-        ctx.beginPath();
-        ctx.strokeStyle = '#eee';
+        context.beginPath();
+        context.strokeStyle = '#eee';
 	
         for (let x = 0; x <= 700; x += GRID_SIZE)
 	    {
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, 450);
+            context.moveTo(x, 0);
+            context.lineTo(x, 450);
         }
 	
         for (let y = 0; y <= 450; y += GRID_SIZE)
 	    {
-            ctx.moveTo(0, y);
-            ctx.lineTo(700, y);
+            context.moveTo(0, y);
+            context.lineTo(700, y);
         }
 	
-        ctx.stroke();
+        context.stroke();
     }
     
     const queue = rects.map((r, i) => ({r,i})).sort((a, b) => (LAYER_PRIORITY[a.r.type] - LAYER_PRIORITY[b.r.type]) || (a.r.layer - b.r.layer));
     
     queue.forEach(item => {
-        ctx.save();
-        ctx.translate(item.r.x, item.r.y);
-        ctx.rotate(item.r.angle);
-        ctx.drawImage(item.r.img, -item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
+        context.save();
+        context.translate(item.r.x, item.r.y);
+        context.rotate(item.r.angle);
+        context.drawImage(item.r.img, -item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
 	
         if (selectedIndices.includes(item.i))
 	    {
-            ctx.strokeStyle = '#007bff';
-            ctx.lineWidth   = 3;
-            ctx.strokeRect(-item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
+            context.strokeStyle = '#007bff';
+            context.lineWidth   = 3;
+            context.strokeRect(-item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
         }
 	
-        ctx.restore();
+        context.restore();
     });
     
     if (isBoxSelecting)
     {
-        ctx.strokeStyle = '#007bff';
-        ctx.setLineDash([5, 5]);
-        ctx.strokeRect(boxStart.x, boxStart.y, boxEnd.x - boxStart.x, boxEnd.y - boxStart.y);
-        ctx.setLineDash([]);
+        context.strokeStyle = '#007bff';
+        context.setLineDash([5, 5]);
+        context.strokeRect(boxStart.x, boxStart.y, boxEnd.x - boxStart.x, boxEnd.y - boxStart.y);
+        context.setLineDash([]);
     }
     
     let minX = Infinity;
@@ -865,22 +877,22 @@ function draw()
             cy: minY + (maxY - minY) / 2
         };
 	
-        ctx.setLineDash([5, 5]);
-        ctx.strokeStyle = '#666';
-        ctx.strokeRect(mbb.x, mbb.y, mbb.w, mbb.h);
-        ctx.setLineDash([]);
+        context.setLineDash([5, 5]);
+        context.strokeStyle = '#666';
+        context.strokeRect(mbb.x, mbb.y, mbb.w, mbb.h);
+        context.setLineDash([]);
 	
         if (rects.length > 1)
 	    {
-            ctx.beginPath();
-            ctx.arc(mbb.cx, mbb.cy, 8, 0, Math.PI * 2);
-            ctx.fillStyle = 'white';
-            ctx.fill();
+            context.beginPath();
+            context.arc(mbb.cx, mbb.cy, 8, 0, Math.PI * 2);
+            context.fillStyle = 'white';
+            context.fill();
 	    
-            ctx.beginPath();
-            ctx.arc(mbb.cx, mbb.cy, 5, 0, Math.PI * 2);
-            ctx.fillStyle = 'magenta';
-            ctx.fill();
+            context.beginPath();
+            context.arc(mbb.cx, mbb.cy, 5, 0, Math.PI * 2);
+            context.fillStyle = 'magenta';
+            context.fill();
         }
 	
         updateOutput(mbb);
@@ -891,40 +903,58 @@ function draw()
 
 
 
-function updateOutput(mbb)	    
+function getMaxWidth(minWidth)
 {
+    for (const maxWidth of WIDTH_THRESHOLDS)
+    {
+	    if (maxWidth > minWidth + 1) return maxWidth;
+    }
+
+    return 50;
+}
+
+
+
+function updateOutput(mbb)	    
+{    
     const strPad = (num, places) => String(num).padStart(places, ' ');
-    const width  = (mbb.w * LENGTH_SCALE).toFixed(2);
+
+    let hasSpikes = false;
     
-    let t           = `minRoadWidth = ${width}\n\n`;
     let firstWidth  = 0;
     let secondWidth = 0;
-    
-    rects.forEach((r, i) => {
-        const ox = ((r.x - mbb.cx) * LENGTH_SCALE).toFixed(2);
-        const oy = ((mbb.cy - r.y) * LENGTH_SCALE).toFixed(2);
-	
-        if (ox.length > firstWidth)  firstWidth = ox.length;
-        if (oy.length > secondWidth) secondWidth = oy.length;
-    });
-    
-    rects.forEach((r, i) => {
-        const ox = ((r.x - mbb.cx) * LENGTH_SCALE).toFixed(2);
-        const oy = ((mbb.cy - r.y) * LENGTH_SCALE).toFixed(2);
-	
-        const rawDeg = (90 - r.angle * 180 / Math.PI) % 360;
-        const disDeg = (r.type === 'car') ? rawDeg : (rawDeg + 90) % 360;
-        const ref    = (disDeg < 0) ? (360 + disDeg) : disDeg;
-	
-        let type = 1;
-	
-        if (r.type == 'spikes')
-            type = 3;
 
-        else if (r.type == 'barricade')
-            type = 2;
+    for (const rect of rects)
+    {
+	    if (rect.type === 'spikes')
+	        hasSpikes = true;
+
+        const ox = ((rect.x - mbb.cx) * LENGTH_SCALE).toFixed(2);
+        const oy = ((mbb.cy - rect.y) * LENGTH_SCALE).toFixed(2);
 	
-        t += `part0${i+1} = ${type}, ${strPad(ox, firstWidth)}, ${strPad(oy, secondWidth)}, ${(ref / 360.0).toFixed(3)}\n`;
+        if (ox.length > firstWidth)  firstWidth  = ox.length;
+        if (oy.length > secondWidth) secondWidth = oy.length;	
+    }
+
+    const minWidth = (mbb.w * LENGTH_SCALE).toFixed(2);
+    const maxWidth = getMaxWidth(parseFloat(minWidth));
+
+    let t = `extent = ${minWidth}, ${maxWidth.toFixed(2)}\n\n`;
+
+    rects.forEach((r, i) => {
+        const ox = ((r.x - mbb.cx) * LENGTH_SCALE).toFixed(2);
+        const oy = ((mbb.cy - r.y) * LENGTH_SCALE).toFixed(2);
+
+	    let orientation = 90 - r.angle * 180 / Math.PI;
+	
+	    if (r.type != 'car') orientation += 90;
+	
+	    orientation %= 360;	
+	    orientation /= 360;
+
+	    if (orientation < 0) orientation += 1;
+        
+        t += `part0${i+1} = ${ID_MAP[r.type]}, ${strPad(ox, firstWidth)}, ${strPad(oy, secondWidth)}, ${orientation.toFixed(3)}\n`;
     });
     
     outputField.innerText = t;

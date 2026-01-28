@@ -4,10 +4,6 @@
 #include "MemoryTools.h"
 #include "HeatParameters.h"
 
-#include "DestructionStrings.h"
-#include "HelicopterVision.h"
-#include "InteractiveMusic.h"
-#include "CopDetection.h"
 #include "RadioChatter.h"
 
 #include "GeneralSettings.h"
@@ -15,7 +11,6 @@
 
 #include "PursuitObserver.h"
 #include "CopSpawnOverrides.h"
-#include "RoadblockOverrides.h"
 
 
 
@@ -60,58 +55,6 @@ namespace StateObserver
 
 
 	// Hooking functions ----------------------------------------------------------------------------------------------------------------------------
-
-	address OnGameLoadValidationOriginal = 0x0;
-
-	void __cdecl OnGameLoadValidation
-	(
-		const size_t  numArgs,
-		const address argArray
-	) {
-		const auto OriginalFunction = reinterpret_cast<void (__cdecl*)(size_t, address)>(OnGameLoadValidationOriginal);
-
-		// Call original function first
-		OriginalFunction(numArgs, argArray);
-
-		// Apply hooked logic last
-		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Open("BartenderLog.txt");
-
-			Globals::logger.Log          ("\n SESSION [VER] Bartender v2.11.00");
-			Globals::logger.LogLongIndent("Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
-			Globals::logger.LogLongIndent("Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
-
-			if (MemoryTools::numRangeErrors > 0)
-				Globals::logger.LogLongIndent("[MEM]", static_cast<int>(MemoryTools::numRangeErrors), "RANGE ERRORS!");
-
-			if (MemoryTools::numCaveErrors > 0)
-				Globals::logger.LogLongIndent("[MEM]", static_cast<int>(MemoryTools::numCaveErrors), "CAVE ERRORS!");
-
-			if (MemoryTools::numHookErrors > 0)
-				Globals::logger.LogLongIndent("[MEM]", static_cast<int>(MemoryTools::numHookErrors), "HOOK ERRORS!");
-		}
-
-		DestructionStrings::Validate();
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			HelicopterVision::LogSetupReport();
-			InteractiveMusic::LogSetupReport();
-		}
-
-		CopDetection::Validate();
-		RadioChatter::Validate();
-
-		GeneralSettings::Validate();
-		GroundSupports ::Validate();
-		PursuitObserver::Validate();
-
-		if constexpr (Globals::loggingEnabled)
-			RoadblockOverrides::LogSetupReport();
-	}
-
-
 
 	address OnGameplayUpdatesOriginal = 0x0;
 
@@ -377,10 +320,9 @@ namespace StateObserver
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		// Code modifications 
-		OnGameLoadValidationOriginal = MemoryTools::MakeCallHook(OnGameLoadValidation, 0x6665B4); // InitializeEverything (0x665FC0)
-		OnGameplayUpdatesOriginal    = MemoryTools::MakeCallHook(OnGameplayUpdates,    0x721609); // SoundAI::SyncPursuit (0x720850)
-		OnWorldLoadUpdatesOriginal   = MemoryTools::MakeCallHook(OnWorldLoadUpdates,   0x662ADC); // nullsub_174          (0x6C39C0)
-		OnRestartUpdatesOriginal     = MemoryTools::MakeCallHook(OnRestartUpdates,     0x63090B); // World_RestoreProps   (0x74D320)
+		OnGameplayUpdatesOriginal  = MemoryTools::MakeCallHook(OnGameplayUpdates,  0x721609); // SoundAI::SyncPursuit (0x720850)
+		OnWorldLoadUpdatesOriginal = MemoryTools::MakeCallHook(OnWorldLoadUpdates, 0x662ADC); // nullsub_174          (0x6C39C0)
+		OnRestartUpdatesOriginal   = MemoryTools::MakeCallHook(OnRestartUpdates,   0x63090B); // World_RestoreProps   (0x74D320)
 
 		MemoryTools::MakeRangeJMP(HeatEqualiser,         heatEqualiserEntrance,         heatEqualiserExit);
 		MemoryTools::MakeRangeJMP(ResetAIVehicle,        resetAIVehicleEntrance,        resetAIVehicleExit);

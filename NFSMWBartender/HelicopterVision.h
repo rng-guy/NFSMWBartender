@@ -91,15 +91,17 @@ namespace HelicopterVision
 	) {
 		BGRA<int> rawColour = {};
 
-		const bool isValid = parser.ParseParameterRow<int, int, int, int, float>
+		const HeatParameters::Bounds<int> limits(0, 255);
+
+		const bool isValid = parser.ParseRow<int, int, int, int, float>
 		(
 			"Helicopter:Vision",
 			colourName,
-			{rawColour[2], 0, 255}, // red
-			{rawColour[1], 0, 255}, // green
-			{rawColour[0], 0, 255}, // blue
-			{rawColour[3], 0, 255}, // alpha
-			{length, .001f}
+			{rawColour[2], limits}, // red
+			{rawColour[1], limits}, // green
+			{rawColour[0], limits}, // blue
+			{rawColour[3], limits}, // alpha
+			{length, {.001f}}
 		);
 
 		if (isValid)
@@ -179,13 +181,36 @@ namespace HelicopterVision
 
 	bool Initialise(HeatParameters::Parser& parser)
 	{
-		if (not parser.LoadFile(HeatParameters::configPathBasic + "Cosmetic.ini")) return false;
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("  CONFIG [VIS] HelicopterVision");
 
-		if (not ParseColour(parser, "withinSightColour", colourRange, lengthToEnd))  return false;
-		if (not ParseColour(parser, "outOfSightColour",  baseColour,  lengthToBase)) return false;
+		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+
+		// Colour data
+		if (not ParseColour(parser, "withinSightColour", colourRange, lengthToEnd))
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent("Invalid within-sight colour");
+
+			return false;
+		}
+
+		if (not ParseColour(parser, "outOfSightColour",  baseColour,  lengthToBase))
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent("Invalid out-of-sight colour");
+
+			return false;
+		}
 
 		for (size_t channelID = 0; channelID < 4; ++channelID)
 			colourRange[channelID] -= baseColour[channelID];
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::logger.LogLongIndent("Within sight:", StateToColour(1.f), lengthToEnd);
+			Globals::logger.LogLongIndent("Out of sight:", StateToColour(0.f), lengthToBase);
+		}
 
 		// Code modifications
 		ApplyFixes(); // also contains vision-cone feature
@@ -194,17 +219,5 @@ namespace HelicopterVision
 		featureEnabled = true;
 
 		return true;
-	}
-
-
-
-	void LogSetupReport()
-	{
-		if (not featureEnabled) return;
-
-		Globals::logger.Log("  CONFIG [VIS] HelicopterVision");
-
-		Globals::logger.LogLongIndent("Within sight:", StateToColour(1.f), lengthToEnd);
-		Globals::logger.LogLongIndent("Out of sight:", StateToColour(0.f), lengthToBase);
 	}
 }

@@ -121,7 +121,7 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * If you don't define a valid `default` string, string-less vehicles won't trigger notifications.
 
-* If you define no vehicle strings and no `default`, Bartender disables its string feature.
+* If you define no valid vehicle strings and no `default`, Bartender disables its string feature.
 
 * You might hear cops use callsigns you didn't assign to them. This is vanilla behaviour: The game maintains a pool of "actors" that it constantly shuffles between all active vehicles. This is also the reason why you may still hear Cross or helicopter lines even if they are gone, and why dispatch may sometimes refer to Cross by the callsign of another unrelated vehicle.
 
@@ -131,7 +131,7 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * If you don't define valid `default` callsigns, Bartender uses `patrol` instead.
 
-* If you define no vehicle callsigns and no `default`, Bartender disables its callsign feature.
+* If you define no valid callsigns and no `default`, Bartender disables its callsign feature.
 
 * You might see cop vehicles get or lose their icons when they shouldn't. This happens because the game only draws the mini-map icons of the first 8 currently flagged cops in its memory, so some of them may suddenly (dis)appear if any cops before them get or lose their flags.
 
@@ -191,7 +191,7 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 * If you don't define a valid `default` breaker flag, Bartender uses `true` instead.
 
-* If you define no breaker flags and no `default`, Bartender disables its pursuit-breaker feature.
+* If you define no valid breaker flags and no `default`, Bartender disables its breaker feature.
 
 &nbsp;
 
@@ -255,7 +255,7 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * To disable this entire feature set and its fixes, delete all of its configuration files.
 
-* Bartender disables this feature set if you leave any free-roam "Chasers" spawn table empty.
+* Bartender disables this feature set if any free-roam "Chasers" spawn table has no valid cars.
 
 * As long as this feature set isn't disabled, all its automatic fixes apply.
 
@@ -272,8 +272,6 @@ Regarding **cop spawn tables** (`BartenderSettings\Advanced\CarTables.ini`):
 * Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
 
 * Bartender ignores vehicles that are helicopters or don't exist in VltEd.
-
-* Bartender adds a `copmidsize` to each non-empty table that contains only ignored vehicles.
 
 * The `chance` values are weights (like in VltEd), not percentages. The actual spawn chance of a vehicle is its `chance` value divided by the sum of the `chance` values of all vehicles in the same spawn table. Whenever a vehicle reaches its `count` value (i.e. spawn cap), Bartender treats its `chance` value as 0 until there is room for further spawns of that vehicle again.
 
@@ -415,7 +413,9 @@ Regarding **roadblock setups** (`BartenderSettings\Advanced\Roadblocks.ini`):
 
 * I highly suggest you use Bartender's `RoadblockEditor.html` file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
 
-* The width requirements for roadblocks are technically not required to match their actual size; certain vanilla roadblock setups use such mismatched widths to allow for more frequent spawns. If you make a roadblock setup's width requirement lower than its actual size, the game might spawn some parts out of bounds or attempt to reposition them slightly; if you make the width requirement larger than the setup's size, it likely won't cover the entire road.
+* You can safely hand-adjust the maximum road width for each roadblock as you see fit. Higher values allow a roadblock to spawn in more locations, but it might not be able to cover the entire road if the maximum width is much greater than its actual width.
+
+* To avoid clipping issues, you shouldn't adjust any roadblock parameters other than the maximum road width by hand. Vanilla roadblocks tend to use hand-adjusted values, probably because BlackBox couldn't be bothered to make an accurate setup editor.
 
 &nbsp;
 

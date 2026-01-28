@@ -3,7 +3,7 @@
 #include <array>
 #include <tuple>
 #include <string>
-#include <optional>
+#include <utility>
 #include <algorithm>
 
 #include "Globals.h"
@@ -16,14 +16,16 @@ namespace HeatParameters
 	
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	// Heat levels
+	// Heat parameters
 	constexpr size_t maxHeatLevel = 10;
 	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
 
 	// Configuration files
+	const std::string defaultValueHandle = "default";
+
 	const std::string configFormatRoam   = "heat{:02}";
 	const std::string configFormatRace   = "race{:02}";
-	const std::string configPathMain     = "BartenderSettings/";
+	const std::string configPathMain     = "scripts/BartenderSettings/";
 	const std::string configPathBasic    = configPathMain + "Basic/";
 	const std::string configPathAdvanced = configPathMain + "Advanced/";
 
@@ -36,10 +38,16 @@ namespace HeatParameters
 	using Parser = ConfigParser::Parser;
 
 	template <typename T>
+	using Bounds = ConfigParser::Bounds<T>;
+
+	template <typename T>
 	using Values = std::array<T, maxHeatLevel>;
 
 	template <typename T>
 	using Format = ConfigParser::FormatParameter<T, maxHeatLevel>;
+
+	template <typename T>
+	using User = ConfigParser::UserParameter<T>;
 
 
 
@@ -101,17 +109,15 @@ namespace HeatParameters
 	{
 		T current;
 
-		const std::optional<T> lowerBound;
-		const std::optional<T> upperBound;
+		const Bounds<T> limits;
 
 
 		explicit Pair
 		(
-			const T                original, 
-			const std::optional<T> lowerBound = {}, 
-			const std::optional<T> upperBound = {}
+			const T          original, 
+			const Bounds<T>& limits    = {}
 		) 
-			: current(original), lowerBound(lowerBound), upperBound(upperBound) 
+			: current(original), limits(limits)
 		{
 		}
 
@@ -166,10 +172,10 @@ namespace HeatParameters
 		auto ToFormat(const bool forRaces) 
 		{
 			if (forRaces)
-				return std::make_tuple(Format<T>(this->race, {}, this->lowerBound, this->upperBound));
+				return std::make_tuple(Format<T>(this->race, {}, this->limits));
 
 			else
-				return std::make_tuple(Format<T>(this->roam, this->current, this->lowerBound, this->upperBound));
+				return std::make_tuple(Format<T>(this->roam, this->current, this->limits));
 		}
 	};
 
@@ -181,7 +187,7 @@ namespace HeatParameters
 		bool current;
 
 
-		explicit Pair(const bool original) : current(original){}
+		explicit Pair(const bool original) : current(original) {}
 
 
 		void SetToHeat
@@ -273,14 +279,7 @@ namespace HeatParameters
 		Pair<T> values;
 
 
-		explicit OptionalPair
-		(
-			const std::optional<T> lowerBound = {},
-			const std::optional<T> upperBound = {}
-		)
-			: values(T(), lowerBound, upperBound)
-		{
-		}
+		explicit OptionalPair(const Bounds<T>& limits = {}) : values(T(), limits) {}
 
 
 		void SetToHeat
@@ -314,7 +313,7 @@ namespace HeatParameters
 
 		auto ToFormat(const bool forRaces)
 		{
-			return std::make_tuple(Format<T>(this->values.GetValues(forRaces), {}, this->values.lowerBound, this->values.upperBound));
+			return std::make_tuple(Format<T>(this->values.GetValues(forRaces), {}, this->values.limits));
 		}
 	};
 
@@ -330,13 +329,12 @@ namespace HeatParameters
 
 		explicit Interval
 		(
-			const T                originalMin,
-			const T                originalMax,
-			const std::optional<T> lowerBound = {},
-			const std::optional<T> upperBound = {}
+			const T          originalMin,
+			const T          originalMax,
+			const Bounds<T>& limits       = {}
 		) 
-			: minValues(originalMin, lowerBound, upperBound), 
-			  maxValues(originalMax, lowerBound, upperBound) 
+			: minValues(originalMin, limits),
+			  maxValues(originalMax, limits)
 		{
 		}
 
@@ -393,15 +391,7 @@ namespace HeatParameters
 		Pair<T> maxValues;
 
 
-		explicit OptionalInterval
-		(
-			const std::optional<T> lowerBound = {},
-			const std::optional<T> upperBound = {}
-		)
-			: minValues(T(), lowerBound, upperBound), 
-			  maxValues(T(), lowerBound, upperBound)
-		{
-		}
+		explicit OptionalInterval(const Bounds<T>& limits = {}) : minValues(T(), limits), maxValues(T(), limits) {}
 
 
 		void SetToHeat
@@ -444,8 +434,8 @@ namespace HeatParameters
 		{
 			return std::make_tuple
 			(
-				Format<T>(this->minValues.GetValues(forRaces), {}, this->minValues.lowerBound, this->minValues.upperBound),
-				Format<T>(this->maxValues.GetValues(forRaces), {}, this->maxValues.lowerBound, this->maxValues.upperBound)
+				Format<T>(this->minValues.GetValues(forRaces), {}, this->minValues.limits),
+				Format<T>(this->maxValues.GetValues(forRaces), {}, this->maxValues.limits)
 			);
 		}
 	};
@@ -460,7 +450,7 @@ namespace HeatParameters
 	(
 		const char* const         pairName,
 		PointerPair<std::string>& pointerPair,
-		const Globals::Class      vehicleClass
+		const auto&               IsVehicleValid
 	) {
 		size_t numTotalReplaced = 0;
 
@@ -472,9 +462,8 @@ namespace HeatParameters
 			for (const size_t heatLevel : heatLevels)
 			{
 				std::string& vehicle = vehicles[heatLevel - 1];
-				const vault  copType = Globals::GetVaultKey(vehicle.c_str());
 
-				if (not Globals::VehicleClassMatches(copType, vehicleClass))
+				if (not IsVehicleValid(Globals::StringToVaultKey(vehicle)))
 				{
 					// With logging disabled, the compiler optimises "pairName" away
 					if constexpr (Globals::loggingEnabled)
@@ -611,7 +600,7 @@ namespace HeatParameters
 			(
 				[&](auto&& ...formats) -> Values<bool>
 				{
-					return parser.ParseParameterTable
+					return parser.ParseTable<maxHeatLevel>
 					(
 						section,
 						(forRaces) ? configFormatRace : configFormatRoam,

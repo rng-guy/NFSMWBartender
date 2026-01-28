@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 #include <concepts>
 
 #include "Globals.h"
@@ -76,64 +77,74 @@ namespace HashContainers
 
 	public:
 
-		void Validate
+		template <typename T, typename U>
+		bool FillFromVectors
 		(
-			const char* const mapName,
-			const auto&       IsValidKey,
-			const auto&       IsValidValue
+			const char* const     mapName,
+			const T&              rawDefaultHandle,
+			const std::vector<T>& rawKeys,
+			const auto&           RawToKey,
+			const auto&           IsValidKey,
+			const std::vector<U>& rawValues,
+			const auto&           RawToValue,
+			const auto&           IsValidValue			
 		) {
-			// Extract "default" key if provided (and valid)
-			const auto foundPair = this->find(Globals::GetVaultKey("default"));
+			bool mapIsValid = false;
 
-			if (foundPair != this->end())
+			// With logging disabled, the compiler optimises "mapName" away
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent(mapName, "map:");
+
+			if ((not rawKeys.empty() and (rawKeys.size() == rawValues.size())))
 			{
-				if (IsValidValue(foundPair->second))
-				{
-					this->defaultValue = foundPair->second;
+				bool defaultProvided = false;
 
-					if constexpr (Globals::loggingEnabled)
-						Globals::logger.LogLongIndent("Valid default value:", this->defaultValue);
+				const size_t numPairs = rawKeys.size();
+
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.LogLongIndent(' ', static_cast<int>(numPairs), "pair(s) provided");
+
+				for (size_t pairID = 0; pairID < numPairs; ++pairID)
+				{
+					const T& rawKey = rawKeys[pairID];
+					const V  value  = RawToValue(rawValues[pairID]);
+
+					if (IsValidValue(value))
+					{
+						const K key = RawToKey(rawKey);
+
+						if (rawKey == rawDefaultHandle)
+						{
+							defaultProvided    = true;
+							this->defaultValue = value;;
+						}
+						else if (IsValidKey(key))
+							this->try_emplace(std::move(key), std::move(value));
+
+						else if constexpr (Globals::loggingEnabled)
+							Globals::logger.LogLongIndent("  -", rawKey, "(invalid key)");
+					}
+					else if constexpr (Globals::loggingEnabled)
+						Globals::logger.LogLongIndent("  -", rawKey, "(invalid value)");
 				}
-				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("Invalid default value, using", this->defaultValue);
 
-				this->erase(foundPair);
-			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent("No default value, using", this->defaultValue);
-
-			// Remove any invalid pairs
-			auto   iterator   = this->begin();
-			size_t numRemoved = 0;
-
-			while (iterator != this->end())
-			{
-				if (not (IsValidKey(iterator->first) and IsValidValue(iterator->second)))
+				if (defaultProvided or (not this->empty()))
 				{
-					// With logging disabled, the compiler optimises the string literal away
+					mapIsValid = true;
+
 					if constexpr (Globals::loggingEnabled)
 					{
-						if (numRemoved == 0)
-							Globals::logger.LogLongIndent(mapName, "map");
-
-						Globals::logger.LogLongIndent("  -", iterator->first, iterator->second);
+						Globals::logger.LogLongIndent(' ', static_cast<int>(this->size()) + defaultProvided, "pair(s) valid");
+						Globals::logger.LogLongIndent("  default value:", this->defaultValue);
 					}
-
-					iterator = this->erase(iterator);
-
-					++numRemoved;
 				}
-				else ++iterator;
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.LogLongIndent("  no valid pair(s)");
 			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.LogLongIndent("  no pair(s) provided");
 
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (numRemoved > 0)
-					Globals::logger.LogLongIndent("  pairs left:", static_cast<int>(this->size()));
-
-				else
-					Globals::logger.LogLongIndent(mapName, "pairs:", static_cast<int>(this->size()));
-			}
+			return mapIsValid;
 		}
 	};
 
