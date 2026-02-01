@@ -1,8 +1,10 @@
 #pragma once
 
+#include <string>
 #include <memory>
 #include <utility>
 #include <concepts>
+#include <optional>
 
 #include "Globals.h"
 #include "unordered_dense.h"
@@ -48,13 +50,13 @@ namespace HashContainers
 	using AddressMap = FastMap<address, V>;
 
 	template <typename V>
-	using SafeAddressMap = AddressMap<std::unique_ptr<V>>;
+	using StableAddressMap = AddressMap<std::unique_ptr<V>>;
 
 	template <typename V>
 	using VaultMap = FastMap<vault, V>;
 
 	template <typename V>
-	using SafeVaultMap = VaultMap<std::unique_ptr<V>>;
+	using StableVaultMap = VaultMap<std::unique_ptr<V>>;
 
 
 
@@ -63,37 +65,43 @@ namespace HashContainers
 	// HashContainer classes ------------------------------------------------------------------------------------------------------------------------
 
 	template <typename K, typename V>
-	class BaseCachedMap : public FastMap<K, V>
+	class BaseCachedMap
 	{
 	protected:
 
-		K cachedKey    = K();
-		V defaultValue = V();
+		V defaultValue;
+
+		std::optional<K> cachedKey;
 
 
-		explicit BaseCachedMap() = default;
+		explicit BaseCachedMap(const V& defaultValue) : defaultValue(defaultValue) {}
 
 
 
 	public:
 
+		FastMap<K, V> map;
+
+
 		template <typename T, typename U>
 		bool FillFromVectors
 		(
-			const char* const     mapName,
+			const std::string&    mapName,
 			const T&              rawDefaultHandle,
 			const std::vector<T>& rawKeys,
 			const auto&           RawToKey,
 			const auto&           IsValidKey,
 			const std::vector<U>& rawValues,
 			const auto&           RawToValue,
-			const auto&           IsValidValue			
+			const auto&           IsValidValue
 		) {
+			this->map.clear();
+
 			bool mapIsValid = false;
 
 			// With logging disabled, the compiler optimises "mapName" away
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent(mapName, "map:");
+				Globals::logger.Log<2>(mapName, "map:");
 
 			if ((not rawKeys.empty() and (rawKeys.size() == rawValues.size())))
 			{
@@ -102,7 +110,7 @@ namespace HashContainers
 				const size_t numPairs = rawKeys.size();
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent(' ', static_cast<int>(numPairs), "pair(s) provided");
+					Globals::logger.Log<3>(static_cast<int>(numPairs), "pair(s) provided");
 
 				for (size_t pairID = 0; pairID < numPairs; ++pairID)
 				{
@@ -115,34 +123,35 @@ namespace HashContainers
 
 						if (rawKey == rawDefaultHandle)
 						{
-							defaultProvided    = true;
-							this->defaultValue = value;;
+							defaultProvided = true;
+
+							this->defaultValue = std::move(value);
 						}
 						else if (IsValidKey(key))
-							this->try_emplace(std::move(key), std::move(value));
+							this->map.try_emplace(std::move(key), std::move(value));
 
 						else if constexpr (Globals::loggingEnabled)
-							Globals::logger.LogLongIndent("  -", rawKey, "(invalid key)");
+							Globals::logger.Log<3>('-', rawKey, "(invalid key)");
 					}
 					else if constexpr (Globals::loggingEnabled)
-						Globals::logger.LogLongIndent("  -", rawKey, "(invalid value)");
+						Globals::logger.Log<3>('-', rawKey, "(invalid value)");
 				}
 
-				if (defaultProvided or (not this->empty()))
+				if (defaultProvided or (not this->map.empty()))
 				{
 					mapIsValid = true;
 
 					if constexpr (Globals::loggingEnabled)
 					{
-						Globals::logger.LogLongIndent(' ', static_cast<int>(this->size()) + defaultProvided, "pair(s) valid");
-						Globals::logger.LogLongIndent("  default value:", this->defaultValue);
+						Globals::logger.Log<3>(static_cast<int>(this->map.size()) + defaultProvided, "pair(s) valid");
+						Globals::logger.Log<3>("default value:", this->defaultValue);
 					}
 				}
 				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("  no valid pair(s)");
+					Globals::logger.Log<3>("no pair(s) valid");
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent("  no pair(s) provided");
+				Globals::logger.Log<3>("no pair(s) provided");
 
 			return mapIsValid;
 		}
@@ -151,7 +160,7 @@ namespace HashContainers
 
 
 	template <typename K, typename V>
-	class CachedMap : public BaseCachedMap<K, V>
+	class CachedPointerMap : public BaseCachedMap<K, V>
 	{
 	private:
 
@@ -161,20 +170,18 @@ namespace HashContainers
 
 	public:
 
-		explicit CachedMap(const V& defaultValue)
-		{
-			this->defaultValue = defaultValue;
-		}
+		explicit CachedPointerMap(const V& defaultValue) : BaseCachedMap<K, V>(defaultValue) {}
 
 
 		const V* GetValue(const K key)
 		{
-			if (key != this->cachedKey)
+			if ((not this->cachedKey) or (key != *(this->cachedKey)))
 			{
-				const auto foundPair = this->find(key);
+				this->cachedKey = key;
 
-				this->cachedKey   = key;
-				this->cachedValue = &((foundPair != this->end()) ? foundPair->second : this->defaultValue);
+				const auto foundPair = this->map.find(key);
+
+				this->cachedValue = &((foundPair != this->map.end()) ? foundPair->second : this->defaultValue);
 			}
 
 			return this->cachedValue;
@@ -184,31 +191,28 @@ namespace HashContainers
 
 
 	template <typename K, typename V>
-	requires (std::is_trivially_copyable_v<V> and (sizeof(V) <= sizeof(uint32_t)))
-	class CachedMap<K, V> : public BaseCachedMap<K, V>
+	class CachedCopyMap : public BaseCachedMap<K, V>
 	{
 	private:
 
-		V cachedValue;
+		V cachedValue = this->defaultValue;
 
 
 
 	public:
 
-		explicit CachedMap(const V defaultValue) : cachedValue(defaultValue)
-		{
-			this->defaultValue = defaultValue;
-		}
+		explicit CachedCopyMap(const V defaultValue) : BaseCachedMap<K, V>(defaultValue) {}
 
 
 		V GetValue(const K key)
 		{
-			if (key != this->cachedKey)
+			if ((not this->cachedKey) or (key != *(this->cachedKey)))
 			{
-				const auto foundPair = this->find(key);
+				this->cachedKey = key;
 
-				this->cachedKey   = key;
-				this->cachedValue = (foundPair != this->end()) ? foundPair->second : this->defaultValue;
+				const auto foundPair = this->map.find(key);
+
+				this->cachedValue = (foundPair != this->map.end()) ? foundPair->second : this->defaultValue;
 			}
 			
 			return this->cachedValue;
@@ -222,8 +226,14 @@ namespace HashContainers
 	// Derived (scoped) aliases ---------------------------------------------------------------------------------------------------------------------
 
 	template <typename V>
-	using CachedAddressMap = CachedMap<address, V>;
+	using CachedPointerAddressMap = CachedPointerMap<address, V>;
 
 	template <typename V>
-	using CachedVaultMap = CachedMap<vault, V>;
+	using CachedCopyAddressMap = CachedCopyMap<address, V>;
+
+	template <typename V>
+	using CachedPointerVaultMap = CachedPointerMap<vault, V>;
+
+	template <typename V>
+	using CachedCopyVaultMap = CachedCopyMap<vault, V>;
 }

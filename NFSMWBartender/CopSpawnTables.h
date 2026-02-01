@@ -35,7 +35,7 @@ namespace CopSpawnTables
 
 		HashContainers::VaultMap<Entry> copTypeToEntry;
 
-		inline static HashContainers::SafeVaultMap<std::string> copTypeToName;
+		inline static HashContainers::StableVaultMap<std::string> copTypeToName;
 		
 
 		static auto RegisterName(const std::string& copName)
@@ -186,9 +186,9 @@ namespace CopSpawnTables
 
 		bool Validate
 		(
-			const char* const tableName,
-			const bool        forRaces,
-			const size_t      heatLevel
+			const std::string& tableName,
+			const bool         forRaces,
+			const size_t       heatLevel
 		) {
 			size_t numRemoved = 0;
 			auto   iterator   = this->copTypeToEntry.begin();
@@ -203,9 +203,9 @@ namespace CopSpawnTables
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (numRemoved == 0)
-							Globals::logger.LogLongIndent(tableName, static_cast<int>(heatLevel), (forRaces) ? "(race)" : "(free-roam)");
+							Globals::logger.Log<2>(tableName, static_cast<int>(heatLevel), (forRaces) ? "(race)" : "(roam)");
 
-						Globals::logger.LogLongIndent("  -", copEntry.name, copEntry.capacity, copEntry.chance);
+						Globals::logger.Log<3>('-', copEntry.name, copEntry.capacity, copEntry.chance);
 					}
 
 					this->totalCopCount -= copEntry.count;
@@ -223,19 +223,19 @@ namespace CopSpawnTables
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (numRemoved > 0)
-					Globals::logger.LogLongIndent(' ', static_cast<int>(this->copTypeToEntry.size()), "type(s) left");
+					Globals::logger.Log<3>(static_cast<int>(this->copTypeToEntry.size()), "type(s) left");
 			}
 
 			return (numRemoved == 0);
 		}
 
 
-		void Log(const char* const tableName) const
+		void Log(const std::string& tableName) const
 		{
-			Globals::logger.LogLongIndent(tableName, this->totalCopCount);
+			Globals::logger.Log<2>(tableName, this->totalCopCount);
 
 			for (const auto& [copType, copEntry] : this->copTypeToEntry)
-				Globals::logger.LogLongIndent(std::format("  {:22}", copEntry.name), copEntry.capacity, copEntry.chance);
+				Globals::logger.Log<3>(std::format("{:22}", copEntry.name), copEntry.capacity, copEntry.chance);
 		}
 	};
 
@@ -267,8 +267,9 @@ namespace CopSpawnTables
 		HeatParameters::Values<SpawnTable>& spawnTables
 	) {
 		std::vector<std::string> copNames;
-		std::vector<int>         copCounts;
-		std::vector<int>         copChances;
+
+		std::vector<int> copCounts;
+		std::vector<int> copChances;
 
 		std::string section;
 
@@ -276,13 +277,7 @@ namespace CopSpawnTables
 		{
 			section = std::vformat(format + tableName, std::make_format_args(heatLevel));
 
-			const size_t numEntries = parser.ParseTable
-			(
-				section,
-				copNames,
-				HeatParameters::User<int>(copCounts,  {1}),
-				HeatParameters::User<int>(copChances, {1})
-			);
+			const size_t numEntries = parser.ParseUser<int, int>(section, copNames, {copCounts, {1}}, {copChances, {1}});
 
 			for (size_t entryID = 0; entryID < numEntries; ++entryID)
 				spawnTables[heatLevel - 1].AddTypeByName(copNames[entryID], copCounts[entryID], copChances[entryID]);
@@ -311,7 +306,7 @@ namespace CopSpawnTables
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [TAB] CopSpawnTables");
 
-		if (not parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "CarTables.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathAdvanced, "CarTables.ini")) return false;
 
 		// Heat parameters
 		for (const bool forRaces : {false, true})
@@ -345,7 +340,7 @@ namespace CopSpawnTables
 				if ((not forRaces) and chaserTables[heatLevel - 1].IsEmpty())
 				{
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.LogLongIndent("No Chasers for Heat level", static_cast<int>(heatLevel));
+						Globals::logger.Log<2>("No Chasers for Heat level", static_cast<int>(heatLevel));
 
 					return false;
 				}
@@ -355,7 +350,7 @@ namespace CopSpawnTables
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (allValid)
-				Globals::logger.LogLongIndent("All vehicles valid");
+				Globals::logger.Log<2>("All vehicles valid");
 		}
 
 		ReplaceEmptyTables(patrolSpawnTables.roam,    chaserSpawnTables.roam);

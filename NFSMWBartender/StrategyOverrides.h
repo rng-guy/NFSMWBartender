@@ -50,10 +50,10 @@ namespace StrategyOverrides
 
 		size_t nextHeavy3Count = 2;
 
-		int& numStrategyVehicles = *reinterpret_cast<int*>(this->pursuit + 0x18C);
+		volatile int& numStrategyVehicles = *reinterpret_cast<volatile int*>(this->pursuit + 0x18C);
 	
-		const address& heavyStrategy  = *reinterpret_cast<address*>(this->pursuit + 0x194);
-		const address& leaderStrategy = *reinterpret_cast<address*>(this->pursuit + 0x198);
+		const volatile address& heavyStrategy  = *reinterpret_cast<volatile address*>(this->pursuit + 0x194);
+		const volatile address& leaderStrategy = *reinterpret_cast<volatile address*>(this->pursuit + 0x198);
 
 		PursuitFeatures::IntervalTimer unblockTimer;
 		HashContainers ::AddressSet    vehiclesOfCurrentStrategy;
@@ -135,7 +135,7 @@ namespace StrategyOverrides
 		explicit StrategyManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('+', this, "StrategyManager");
+				Globals::logger.Log<2>('+', this, "StrategyManager");
 			
 			this->pursuitToManager.try_emplace(this->pursuit, this);
 		}
@@ -144,7 +144,7 @@ namespace StrategyOverrides
 		~StrategyManager() override
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('-', this, "StrategyManager");
+				Globals::logger.Log<2>('-', this, "StrategyManager");
 
 			this->pursuitToManager.erase(this->pursuit);
 		}
@@ -222,7 +222,7 @@ namespace StrategyOverrides
 				return; // should never happen
 			}
 
-			const int strategyID = *reinterpret_cast<int*>(manager->heavyStrategy);
+			const int strategyID = *reinterpret_cast<volatile int*>(manager->heavyStrategy);
 
 			switch (strategyID)
 			{
@@ -264,7 +264,7 @@ namespace StrategyOverrides
 				return; // should never happen
 			}
 
-			const int strategyID = *reinterpret_cast<int*>(manager->leaderStrategy);
+			const int strategyID = *reinterpret_cast<volatile int*>(manager->leaderStrategy);
 
 			switch (strategyID)
 			{
@@ -619,7 +619,7 @@ namespace StrategyOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [STR] StrategyOverrides");
 
-		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Strategies.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Heavy3:Count", numVehiclesPerHeavy3s);
@@ -633,7 +633,7 @@ namespace StrategyOverrides
 		const size_t vectorStackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent("New stack size:", static_cast<int>(vectorStackSize), "floats");
+			Globals::logger.Log<2>("New stack size:", static_cast<int>(vectorStackSize), "floats");
 
 		spawnVectorStackA.resize(vectorStackSize);
 		spawnVectorStackB.resize(vectorStackSize);

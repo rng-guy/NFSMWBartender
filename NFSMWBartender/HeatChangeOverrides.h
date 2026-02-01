@@ -32,7 +32,7 @@ namespace HeatChangeOverrides
 	// Code caves
 	constexpr float heatScale = 1.f + static_cast<float>(1e-6);
 
-	HashContainers::CachedVaultMap<float> copTypeToHeatChange(0.f);
+	HashContainers::CachedCopyVaultMap<float> copTypeToHeatChange(0.f);
 
 	size_t lastAnimatedHeatLevel = 0;
 	float  animationEndTimestamp = 0.f;
@@ -52,8 +52,8 @@ namespace HeatChangeOverrides
 
 			int cost = 0;
 
-			const int& count;
-			const int  scale;
+			const int           scale;
+			const volatile int& count;
 
 			const HeatParameters::Pair<int>& costToHeats;
 
@@ -75,13 +75,20 @@ namespace HeatChangeOverrides
 			explicit CostTracker
 			(
 				const address                    pursuit,
-				const int                        countOffset,
+				const int                        offset,
 				const int                        scale,
 				const HeatParameters::Pair<int>& costToHeats
 			)
-				: count(*reinterpret_cast<int*>(pursuit + countOffset)), scale(scale), costToHeats(costToHeats)
+				: count(*reinterpret_cast<volatile int*>(pursuit + offset)), scale(scale), costToHeats(costToHeats)
 			{
 			}
+
+
+			explicit CostTracker(const CostTracker&)   = delete;
+			CostTracker& operator=(const CostTracker&) = delete;
+
+			explicit CostTracker(CostTracker&&)   = delete;
+			CostTracker& operator=(CostTracker&&) = delete;
 
 
 			float UpdateCost()
@@ -155,7 +162,7 @@ namespace HeatChangeOverrides
 				return foundManager->second;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [HCH] No manager for pursuit", pursuit);
+				Globals::logger.Log("WARNING: [CNG] No manager for pursuit", pursuit);
 
 			return nullptr;
 		}
@@ -167,7 +174,7 @@ namespace HeatChangeOverrides
 		explicit HeatManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('+', this, "HeatManager");
+				Globals::logger.Log<2>('+', this, "HeatManager");
 
 			this->pursuitToManager.try_emplace(this->pursuit, this);
 		}
@@ -176,7 +183,7 @@ namespace HeatChangeOverrides
 		~HeatManager() override
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('-', this, "HeatManager");
+				Globals::logger.Log<2>('-', this, "HeatManager");
 
 			this->pursuitToManager.erase(this->pursuit);
 		}
@@ -399,7 +406,7 @@ namespace HeatChangeOverrides
 
 			push eax // copType
 			mov ecx, offset copTypeToHeatChange
-			call HashContainers::CachedVaultMap<float>::GetValue
+			call HashContainers::CachedCopyVaultMap<float>::GetValue
 
 			push eax // amount
 			fstp dword ptr [esp]
@@ -419,9 +426,9 @@ namespace HeatChangeOverrides
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [HCH] HeatChangeOverrides");
+			Globals::logger.Log("  CONFIG [CNG] HeatChangeOverrides");
 
-		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Heat.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced, "Heat.ini");
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Heat:Time",    passiveHeatGainEnableds);
@@ -442,8 +449,9 @@ namespace HeatChangeOverrides
 		std::vector<std::string> copVehicles;
 		std::vector<float>       heatChanges;
 
-		parser.ParseUser("Heat:Wrecking", copVehicles, heatChanges);
+		parser.ParseUser<float>("Heat:Wrecking", copVehicles, {heatChanges});
 
+		// Populate destruction Heat-gain map
 		const bool mapIsValid = copTypeToHeatChange.FillFromVectors<std::string, float>
 		(
 			"Vehicle-to-change",
@@ -452,8 +460,8 @@ namespace HeatChangeOverrides
 			Globals::StringToVaultKey,
 			Globals::DoesVehicleExist,
 			heatChanges,
-			[=](const float change) -> float {return change;},
-			[=](const float change) -> bool  {return true;}
+			[](const float change) -> float {return change;},
+			[](const float change) -> bool  {return true;}
 		);
 
 		if (mapIsValid)
@@ -480,7 +488,7 @@ namespace HeatChangeOverrides
 
 	void LogHeatReport()
 	{
-		Globals::logger.Log("    HEAT [HCH] HeatChangeOverrides");
+		Globals::logger.Log("    HEAT [CNG] HeatChangeOverrides");
 
 		passiveHeatGainEnableds.Log("passiveHeatGainEnabled  ");
 		heatChangePerAssaults  .Log("heatChangePerAssault    ");

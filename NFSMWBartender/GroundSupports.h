@@ -67,16 +67,16 @@ namespace GroundSupports
 		const address pursuit,
 		const address strategy
 	) {
-		const int     strategyID      = *reinterpret_cast<int*>    (strategy);
-		const address activeRoadblock = *reinterpret_cast<address*>(pursuit + 0x84);
+		const int  strategyID   = *reinterpret_cast<volatile int*>    (strategy);
+		const bool hasRoadblock = *reinterpret_cast<volatile address*>(pursuit + 0x84);
 
 		switch (strategyID)
 		{
 		case 3:
-			return (not (activeRoadblock and heavy3AreBlockables.current));
+			return (not (hasRoadblock and heavy3AreBlockables.current));
 
 		case 4:
-			return (not activeRoadblock);
+			return (not hasRoadblock);
 		}
 
 		return false;
@@ -89,11 +89,11 @@ namespace GroundSupports
 		const address pursuit,
 		const address strategy
 	) {
-		const int crossFlag = *reinterpret_cast<int*>(pursuit + 0x164);
+		const int crossFlag = *reinterpret_cast<volatile int*>(pursuit + 0x164);
 
 		if (crossFlag == 0)
 		{
-			const int strategyID = *reinterpret_cast<int*>(strategy);
+			const int strategyID = *reinterpret_cast<volatile int*>(strategy);
 
 			switch (strategyID)
 			{
@@ -114,7 +114,7 @@ namespace GroundSupports
 	void MarshalStrategies
 	(
 		const address         pursuit,
-		std::vector<address>& candidateStrategies
+		std::vector<address>& candidates
 	) {
 		const auto    GetSupportNode = reinterpret_cast<address (__thiscall*)(address)>(0x418EE0);
 		const address supportNode    = GetSupportNode(pursuit - 0x48);
@@ -131,10 +131,10 @@ namespace GroundSupports
 			const address strategy = GetStrategy(supportNode, strategyID);
 			if (not IsStrategyAvailable(pursuit, strategy)) continue;
 
-			const int chance = *reinterpret_cast<int*>(strategy + 0x4);
+			const int chance = *reinterpret_cast<volatile int*>(strategy + 0x4);
 
 			if (Globals::prng.DoTrial<int>(chance))
-				candidateStrategies.push_back(strategy);
+				candidates.push_back(strategy);
 		}
 	}
 
@@ -146,56 +146,59 @@ namespace GroundSupports
 		const address strategy,
 		const bool    isHeavyStrategy
 	) {
-		const float duration = *reinterpret_cast<float*>(strategy + 0x8);
+		const float duration = *reinterpret_cast<volatile float*>(strategy + 0x8);
 
-		*reinterpret_cast<float*>(pursuit + 0x208) = duration; // strategy duration
-		*reinterpret_cast<int*>  (pursuit + 0x20C) = 1;        // request flag
+		*reinterpret_cast<volatile float*>(pursuit + 0x208) = duration; // strategy duration
+		*reinterpret_cast<volatile int*>  (pursuit + 0x20C) = 1;        // request flag
 
 		if (isHeavyStrategy)
 		{
-			const int strategyID = *reinterpret_cast<int*>(strategy);
+			const int strategyID = *reinterpret_cast<volatile int*>(strategy);
 
 			if ((strategyID != 3) or heavy3TriggerCooldowns.current)
-				*reinterpret_cast<float*>(pursuit + 0xC8) = roadblockHeavyCooldowns.current; // roadblock cooldown
+				*reinterpret_cast<volatile float*>(pursuit + 0xC8) = roadblockHeavyCooldowns.current; // roadblock cooldown
 
-			*reinterpret_cast<address*>(pursuit + 0x194) = strategy; // HeavyStrategy
+			*reinterpret_cast<volatile address*>(pursuit + 0x194) = strategy; // HeavyStrategy
 		}
-		else *reinterpret_cast<address*>(pursuit + 0x198) = strategy; // LeaderStrategy
+		else *reinterpret_cast<volatile address*>(pursuit + 0x198) = strategy; // LeaderStrategy
 	}
 
 
 
 	bool __fastcall SetRandomStrategy(const address pursuit) 
 	{
-		static std::vector<address> candidateStrategies;
+		static std::vector<address> candidates;
 
+		// Marshal all currently eligible Strategies
 		const bool isPlayerPursuit = Globals::IsPlayerPursuit(pursuit);
 
 		if (isPlayerPursuit or rivalHeavyEnableds.current)
-			MarshalStrategies<0x403600, 0x4035E0, IsHeavyStrategyAvailable>(pursuit, candidateStrategies);
+			MarshalStrategies<0x403600, 0x4035E0, IsHeavyStrategyAvailable>(pursuit, candidates);
 
-		const size_t numHeavyStrategies = candidateStrategies.size();
+		const size_t numHeavyStrategies = candidates.size();
 
 		if (isPlayerPursuit or rivalLeaderEnableds.current)
-			MarshalStrategies<0x403680, 0x403660, IsLeaderStrategyAvailable>(pursuit, candidateStrategies);
+			MarshalStrategies<0x403680, 0x403660, IsLeaderStrategyAvailable>(pursuit, candidates);
 
-		if (not candidateStrategies.empty())
+		// Attempt to select an eligible Strategy at random
+		if (not candidates.empty())
 		{
-			const size_t  index           = Globals::prng.GenerateIndex(candidateStrategies.size());
-			const address randomStrategy  = candidateStrategies[index];
+			const size_t index = Globals::prng.GenerateIndex(candidates.size());
+
+			const address randomStrategy  = candidates[index];
 			const bool    isHeavyStrategy = (index < numHeavyStrategies);
 
 			SetStrategy(pursuit, randomStrategy, isHeavyStrategy);
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				const int strategyID = *reinterpret_cast<int*>(randomStrategy);
+				const int strategyID = *reinterpret_cast<volatile int*>(randomStrategy);
 
 				Globals::logger.Log(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
-				Globals::logger.Log(pursuit, "[SUP] Candidate", static_cast<int>(index + 1), '/', static_cast<int>(candidateStrategies.size()));
+				Globals::logger.Log(pursuit, "[SUP] Candidate", static_cast<int>(index + 1), '/', static_cast<int>(candidates.size()));
 			}
 
-			candidateStrategies.clear();
+			candidates.clear();
 
 			return true;
 		}
@@ -212,12 +215,13 @@ namespace GroundSupports
 
 	bool __fastcall AcceptsRoadblockVehicles(const address pursuit)
 	{
-		const int numVehiclesJoined = *reinterpret_cast<int*>(pursuit + 0x23C);
+		const int numVehiclesJoined = *reinterpret_cast<volatile int*>(pursuit + 0x23C);
 		if (numVehiclesJoined >= maxRBJoinCounts.current) return false;
 
-		const float distanceToRoadblock = *reinterpret_cast<float*>(pursuit + 0x7C);
+		const float distanceToRoadblock = *reinterpret_cast<volatile float*>(pursuit + 0x7C);
 		if (distanceToRoadblock > maxRBJoinDistances.current) return false;
 
+		// Consult ChasersManager for cop capacity (if available)
 		if (CopSpawnOverrides::featureEnabled)
 		{
 			if (not CopSpawnOverrides::ChasersManager::HasJoinCapacity(pursuit)) 
@@ -227,33 +231,37 @@ namespace GroundSupports
 				return true;
 		}
 
+		// Fall back to counting cop capacity manually
 		int numNonRoadblockVehicles = 0;
 
 		if (Globals::copManager)
 		{
-			numNonRoadblockVehicles = *reinterpret_cast<int*>(Globals::copManager + 0x94);
+			numNonRoadblockVehicles = *reinterpret_cast<volatile int*>(Globals::copManager + 0x94); // cops loaded
 
-			const address finalPursuitListEntry   = *reinterpret_cast<address*>(Globals::copManager + 0x128);
-			address       currentPursuitListEntry = *reinterpret_cast<address*>(finalPursuitListEntry);
+			const address finalPursuitListEntry   = *reinterpret_cast<volatile address*>(Globals::copManager + 0x128);
+			address       currentPursuitListEntry = *reinterpret_cast<volatile address*>(finalPursuitListEntry);
 
+			// Check each active pursuit for roadblock(s)
 			while (currentPursuitListEntry != finalPursuitListEntry)
 			{
-				const address pursuit   = *reinterpret_cast<address*>(currentPursuitListEntry + 0x8);
-				const address roadblock = *reinterpret_cast<address*>(pursuit + 0x84);
+				const address pursuit   = *reinterpret_cast<volatile address*>(currentPursuitListEntry + 0x8);
+				const address roadblock = *reinterpret_cast<volatile address*>(pursuit + 0x84);
 
 				if (roadblock)
 				{
-					const address firstVehiclePointer = *reinterpret_cast<address*>(roadblock + 0xC);
-					const address lastVehiclePointer  = *reinterpret_cast<address*>(roadblock + 0x10);
+					const address firstVehiclePointer = *reinterpret_cast<volatile address*>(roadblock + 0xC);
+					const address lastVehiclePointer  = *reinterpret_cast<volatile address*>(roadblock + 0x10);
 
+					// Subtract roadblock-vehicle count
 					if (lastVehiclePointer > firstVehiclePointer)
 						numNonRoadblockVehicles -= (lastVehiclePointer - firstVehiclePointer) / sizeof(address);
 				}
 
-				currentPursuitListEntry = *reinterpret_cast<address*>(currentPursuitListEntry);
+				currentPursuitListEntry = *reinterpret_cast<volatile address*>(currentPursuitListEntry);
 			}
 		}
 
+		// Contains vanilla limit if ChasersManager is disabled
 		return (numNonRoadblockVehicles < CopSpawnOverrides::activeChaserCounts.maxValues.current);
 	}
 
@@ -723,7 +731,7 @@ namespace GroundSupports
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [SUP] GroundSupports");
 
-		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Supports.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic, "Supports.ini")) return false;
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Supports:Rivals", rivalRoadblockEnableds, rivalHeavyEnableds, rivalLeaderEnableds);
@@ -742,23 +750,23 @@ namespace GroundSupports
 		HeatParameters::Parse(parser, "Leader5:Vehicle",     leader5CrossVehicles);
 		HeatParameters::Parse(parser, "Leader7:Vehicles",    leader7CrossVehicles, leader7Hench1Vehicles, leader7Hench2Vehicles);
 
-		// Validation
+		// Check whether vehicles are cars
 		bool allValid = true;
 		
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, light", heavy3LightVehicles, Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, light", heavy4LightVehicles, Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("HeavyStrategy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("Heavy 3, light", heavy3LightVehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("Heavy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("Heavy 4, light", heavy4LightVehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("Heavy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleCar);
 
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("LeaderStrategy 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("Leader 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("Leader 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("Leader 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicles("Leader 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleCar);
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (allValid)
-				Globals::logger.LogLongIndent("All vehicles valid");
+				Globals::logger.Log<2>("All vehicles valid");
 		}
 
 		// Code modifications 

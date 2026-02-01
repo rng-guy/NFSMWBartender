@@ -910,7 +910,7 @@ function getMaxWidth(minWidth)
 	    if (maxWidth > minWidth + 1) return maxWidth;
     }
 
-    return 50;
+    return Math.max(minWidth + 5, 50);
 }
 
 

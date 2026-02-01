@@ -33,7 +33,7 @@ namespace CopDetection
 
 	bool updateWorldMapColours = false;
 
-	HashContainers::CachedVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3), flag
+	HashContainers::CachedPointerVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
 
 
 
@@ -66,21 +66,23 @@ namespace CopDetection
 
 	bool __fastcall GetsMiniMapIcon(const address copVehicle) 
 	{
-		const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
+		const address copAIVehicle = *reinterpret_cast<volatile address*>(copVehicle + 0x54);
 
-		bool& iconIsKept = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x81); // padding byte
+		volatile bool& iconIsKept = *reinterpret_cast<volatile bool*>(copAIVehicle - 0x4C + 0x81); // padding byte
 		if (iconIsKept) return true; // mini-map icon already kept
 
+		// Update whether the vehicle's been in a pursuit before
 		bool& hasBeenInPursuit = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x82); // padding byte
 
 		if (not hasBeenInPursuit)
 		{
-			const bool hasPursuit  = *reinterpret_cast<address*>(copAIVehicle + 0x70);
-			const bool isRoadblock = *reinterpret_cast<address*>(copAIVehicle + 0x74);
+			const bool hasPursuit  = *reinterpret_cast<volatile address*>(copAIVehicle + 0x70);
+			const bool isRoadblock = *reinterpret_cast<volatile address*>(copAIVehicle + 0x74);
 
 			hasBeenInPursuit = (hasPursuit or isRoadblock);
 		}
 
+		// Fetch icon-range data for vehicle type
 		if (not Globals::playerPerpVehicle) return false; // should never happen
 
 		const Settings* const settings = copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle));
@@ -88,6 +90,7 @@ namespace CopDetection
 
 		const float iconRange = (hasBeenInPursuit) ? settings->pursuitIconRange : settings->patrolIconRange;
 
+		// Check whether vehicle is in icon range
 		if (iconRange > 0.f)
 		{
 			const auto GetVehiclePosition = reinterpret_cast<address (__thiscall*)(address)>         (0x688340);
@@ -96,7 +99,7 @@ namespace CopDetection
 			const address copPosition = GetVehiclePosition(copVehicle);
 			if (not copPosition) return false; // should never happen
 
-			const address playerVehicle  = *reinterpret_cast<address*>(Globals::playerPerpVehicle - 0x758 + 0x4C - 0x4);
+			const address playerVehicle  = *reinterpret_cast<volatile address*>(Globals::playerPerpVehicle - 0x758 + 0x4C - 0x4);
 			const address playerPosition = GetVehiclePosition(playerVehicle);
 			if (not playerPosition) return false; // should never happen
 
@@ -126,7 +129,7 @@ namespace CopDetection
 		std::fstream&   stream,
 		const Settings& copSettings
 	) {
-		const char* const delimiter = ", ";
+		const std::string delimiter = ", ";
 
 		stream << copSettings.radarRange;
 		stream << delimiter << copSettings.patrolIconRange;
@@ -366,7 +369,7 @@ namespace CopDetection
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [DET] CopDetection");
 
-		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Detection settings
 		std::vector<std::string> copVehicles;
@@ -376,7 +379,7 @@ namespace CopDetection
 		std::vector<float> pursuitIconRanges;
 		std::vector<bool>  keepsIcons;
 
-		const size_t numCopVehicles = parser.ParseTable<float, float, float, bool>
+		const size_t numCopVehicles = parser.ParseUser<float, float, float, bool>
 		(
 			"Vehicles:Detection", 
 			copVehicles, 
@@ -399,6 +402,7 @@ namespace CopDetection
 			};
 		}
 
+		// Populate detection-settings map
 		const bool mapIsValid = copTypeToSettings.FillFromVectors<std::string, Settings>
 		(
 			"Vehicle-to-settings",
@@ -407,8 +411,8 @@ namespace CopDetection
 			Globals::StringToVaultKey,
 			Globals::IsVehicleCar,
 			settings,
-			[=](const Settings& settings) -> Settings {return settings;},
-			[=](const Settings& settings) -> bool     {return true;}
+			[](const Settings& settings) -> Settings {return settings;},
+			[](const Settings& settings) -> bool     {return true;}
 		);
 
 		if (not mapIsValid) return false;

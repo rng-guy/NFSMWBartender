@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "HashContainers.h"
@@ -54,10 +56,10 @@ namespace LeaderOverrides
 
 		float expirationTimestamp = Globals::simulationTime;
 
-		int&  crossFlag    = *reinterpret_cast<int*> (this->pursuit + 0x164);
-		bool& skipPriority = *reinterpret_cast<bool*>(this->pursuit + 0x214);
+		volatile int&  crossFlag    = *reinterpret_cast<volatile int*> (this->pursuit + 0x164);
+		volatile bool& skipPriority = *reinterpret_cast<volatile bool*>(this->pursuit + 0x214);
 
-		const address& leaderStrategy = *reinterpret_cast<address*>(this->pursuit + 0x198);
+		const volatile address& leaderStrategy = *reinterpret_cast<volatile address*>(this->pursuit + 0x198);
 
 		HashContainers::AddressSet passiveHenchmenVehicles;
 
@@ -68,7 +70,7 @@ namespace LeaderOverrides
 
 		void SetCrossStatus(const Status status)
 		{
-			const char* statusName = nullptr;
+			std::string statusName;
 
 			switch (status)
 			{
@@ -106,8 +108,9 @@ namespace LeaderOverrides
 
 		void UpdateFlagResetTimer()
 		{
-			const char* statusName = nullptr;
-			const bool  isLeader7  = (this->lastStrategyID == 7);
+			std::string statusName;
+
+			const bool isLeader7 = (this->lastStrategyID == 7);
 
 			switch (this->crossStatus)
 			{
@@ -183,7 +186,7 @@ namespace LeaderOverrides
 			this->expirationTimestamp = Globals::simulationTime;
 
 			if (this->leaderStrategy)
-				this->expirationTimestamp += *reinterpret_cast<float*>(this->leaderStrategy + 0x8);
+				this->expirationTimestamp += *reinterpret_cast<volatile float*>(this->leaderStrategy + 0x8);
 
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [LDR] Invalid duration pointer in", this->pursuit);
@@ -196,14 +199,14 @@ namespace LeaderOverrides
 		explicit LeaderManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('+', this, "LeaderManager");
+				Globals::logger.Log<2>('+', this, "LeaderManager");
 		}
 
 
 		~LeaderManager() override
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('-', this, "LeaderManager");
+				Globals::logger.Log<2>('-', this, "LeaderManager");
 		}
 
 
@@ -240,7 +243,7 @@ namespace LeaderOverrides
 				this->UpdateExpirationTimestamp();
 				this->SetCrossStatus(Status::ACTIVE);
 
-				this->lastStrategyID = (this->leaderStrategy) ? *reinterpret_cast<int*>(this->leaderStrategy) : 5;
+				this->lastStrategyID = (this->leaderStrategy) ? *reinterpret_cast<volatile int*>(this->leaderStrategy) : 5;
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[LDR] Strategy ID now", this->lastStrategyID);
@@ -318,7 +321,7 @@ namespace LeaderOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [LDR] LeaderOverrides");
 
-		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Strategies.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Leader5:CrossAggro",  leader5CrossAggroDelays);

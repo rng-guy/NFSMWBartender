@@ -68,9 +68,16 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.LogLongIndent('+', this, "Contingent");
+					Globals::logger.Log<2>('+', this, "Contingent");
 			}
 		}
+
+
+		explicit Contingent(const Contingent&)   = delete;
+		Contingent& operator=(const Contingent&) = delete;
+
+		explicit Contingent(Contingent&&)   = delete;
+		Contingent& operator=(Contingent&&) = delete;
 
 
 		~Contingent()
@@ -78,7 +85,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.LogLongIndent('-', this, "Contingent");
+					Globals::logger.Log<2>('-', this, "Contingent");
 			}
 		}
 
@@ -269,17 +276,17 @@ namespace CopSpawnOverrides
 		int numActiveNonChasers        = 0;
 		int numJoinedRoadblockVehicles = 0;
 
-		int&   pursuitStatus = *reinterpret_cast<int*>  (this->pursuit + 0x218);
-		float& backupTimer   = *reinterpret_cast<float*>(this->pursuit + 0x21C);
+		volatile int&   pursuitStatus = *reinterpret_cast<volatile int*>  (this->pursuit + 0x218);
+		volatile float& backupTimer   = *reinterpret_cast<volatile float*>(this->pursuit + 0x21C);
 
-		int& fullWaveCapacity       = *reinterpret_cast<int*>(this->pursuit + 0x144);
-		int& numCopsLostInWave      = *reinterpret_cast<int*>(this->pursuit + 0x14C);
-		int& numCopsToTriggerBackup = *reinterpret_cast<int*>(this->pursuit + 0x148);
+		volatile int& fullWaveCapacity       = *reinterpret_cast<volatile int*>(this->pursuit + 0x144);
+		volatile int& numCopsLostInWave      = *reinterpret_cast<volatile int*>(this->pursuit + 0x14C);
+		volatile int& numCopsToTriggerBackup = *reinterpret_cast<volatile int*>(this->pursuit + 0x148);
 
-		const bool&  isPerpBusted      = *reinterpret_cast<bool*> (this->pursuit + 0xE8);
-		const bool&  bailingPursuit    = *reinterpret_cast<bool*> (this->pursuit + 0xE9);
-		const bool&  isFreeRoamPursuit = *reinterpret_cast<bool*> (this->pursuit + 0xA8);
-		const float& copSpawnCooldown  = *reinterpret_cast<float*>(this->pursuit + 0xCC);
+		const volatile bool&  isPerpBusted      = *reinterpret_cast<volatile bool*> (this->pursuit + 0xE8);
+		const volatile bool&  bailingPursuit    = *reinterpret_cast<volatile bool*> (this->pursuit + 0xE9);
+		const volatile bool&  isFreeRoamPursuit = *reinterpret_cast<volatile bool*> (this->pursuit + 0xA8);
+		const volatile float& copSpawnCooldown  = *reinterpret_cast<volatile float*>(this->pursuit + 0xCC);
 
 		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTables.current, this->pursuit};
 
@@ -304,7 +311,7 @@ namespace CopSpawnOverrides
 		{
 			const address attribute = Globals::GetFromPursuitlevel(this->pursuit, 0x24F7A1BC); // fetches "NumPatrolCars"
 
-			this->maxNumPatrolCars = (attribute) ? *reinterpret_cast<int*>(attribute) : 0;
+			this->maxNumPatrolCars = (attribute) ? *reinterpret_cast<volatile int*>(attribute) : 0;
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -398,7 +405,7 @@ namespace CopSpawnOverrides
 		static bool HasVehicleEngaged(const address copVehicle)
 		{
 			const address copAIVehiclePursuit = ChasersManager::GetAIVehiclePursuit(copVehicle);
-			return (copAIVehiclePursuit) ? *reinterpret_cast<bool*>(copAIVehiclePursuit + 0x22) : false;
+			return (copAIVehiclePursuit) ? *reinterpret_cast<volatile bool*>(copAIVehiclePursuit + 0x22) : false;
 		}
 
 
@@ -440,7 +447,7 @@ namespace CopSpawnOverrides
 		explicit ChasersManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('+', this, "ChasersManager");
+				Globals::logger.Log<2>('+', this, "ChasersManager");
 
 			this->pursuitToManager.try_emplace(this->pursuit, this);
 		}
@@ -449,7 +456,7 @@ namespace CopSpawnOverrides
 		~ChasersManager() override
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('-', this, "ChasersManager");
+				Globals::logger.Log<2>('-', this, "ChasersManager");
 
 			this->pursuitToManager.erase(this->pursuit);
 		}
@@ -606,8 +613,8 @@ namespace CopSpawnOverrides
 
 	bool IsEventActive()
 	{
-		static const address& raceStatusObject = *reinterpret_cast<address*>(0x91E000);
-		return (raceStatusObject and *reinterpret_cast<int*>(raceStatusObject + 0x1960));
+		const address raceStatusObject = *reinterpret_cast<volatile address*>(0x91E000);
+		return (raceStatusObject and *reinterpret_cast<volatile int*>(raceStatusObject + 0x1960));
 	}
 
 
@@ -1044,20 +1051,20 @@ namespace CopSpawnOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [SPA] CopSpawnOverrides");
 
-		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "CarSpawns.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
 
 		// Pursuit-board tracking
 		const std::string section = "Board:Tracking";
 
-		parser.Parse<bool>(section, "heavyVehicles",  trackHeavyVehicles);
-		parser.Parse<bool>(section, "leaderVehicles", trackLeaderVehicles);
-		parser.Parse<bool>(section, "joinedVehicles", trackJoinedVehicles);
+		parser.ParseFromFile<bool>(section, "heavyVehicles",  {trackHeavyVehicles});
+		parser.ParseFromFile<bool>(section, "leaderVehicles", {trackLeaderVehicles});
+		parser.ParseFromFile<bool>(section, "joinedVehicles", {trackJoinedVehicles});
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			if (trackHeavyVehicles)  Globals::logger.LogLongIndent("Tracking HeavyStrategy vehicles");
-			if (trackLeaderVehicles) Globals::logger.LogLongIndent("Tracking LeaderStrategy vehicles");
-			if (trackJoinedVehicles) Globals::logger.LogLongIndent("Tracking roadblock vehicles");
+			if (trackHeavyVehicles)  Globals::logger.Log<2>("Tracking HeavyStrategy vehicles");
+			if (trackLeaderVehicles) Globals::logger.Log<2>("Tracking LeaderStrategy vehicles");
+			if (trackJoinedVehicles) Globals::logger.Log<2>("Tracking roadblock vehicles");
 		}
 
 		// Heat parameters

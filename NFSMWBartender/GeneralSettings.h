@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <algorithm>
 
 #include "Globals.h"
@@ -50,7 +51,7 @@ namespace GeneralSettings
 	float bustRate        = 1.f / bustTimers.current;      // hertz
 
 	// Code caves
-	HashContainers::CachedVaultMap<bool> copTypeToIsBreakerImmune(false);
+	HashContainers::CachedCopyVaultMap<bool> copTypeToIsBreakerImmune(false);
 
 
 	
@@ -183,7 +184,7 @@ namespace GeneralSettings
 
 			push eax // copType
 			mov ecx, offset copTypeToIsBreakerImmune
-			call HashContainers::CachedVaultMap<bool>::GetValue
+			call HashContainers::CachedCopyVaultMap<bool>::GetValue
 			test al, al
 
 			conclusion:
@@ -365,19 +366,19 @@ namespace GeneralSettings
 	void ParseTracking
 	(
 		HeatParameters::Parser& parser,
-		const char* const       trackingName,
+		const std::string&      trackingName,
 		bool&                   isTracked,
 		const address           rangeStart,
 		const address           rangeEnd
 	) {
-		parser.Parse<bool>("Pursuits:Races", trackingName, isTracked);
+		parser.ParseFromFile<bool>("Pursuits:Races", trackingName, {isTracked});
 
 		if (isTracked)
 		{
 			MemoryTools::MakeRangeNOP(rangeStart, rangeEnd);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent("Tracking", trackingName);
+				Globals::logger.Log<2>("Tracking", trackingName);
 		}
 	}
 
@@ -407,7 +408,7 @@ namespace GeneralSettings
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [GEN] GeneralSettings");
 
-		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "General.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic, "General.ini")) return false;
 
 		// Pursuit tracking (and code modifications)
 		ParseTracking(parser, "pursuitLength",  trackPursuitLength,  0x443CBE, 0x443CC8);
@@ -435,16 +436,17 @@ namespace GeneralSettings
 		HeatParameters::Parse(parser, "State:Evading",  evadeTimers);
 		HeatParameters::Parse(parser, "Evading:Hiding", carsAffectedByHidings, helisAffectedByHidings);
 
-		HeatParameters::Parse(parser, "Flipping:Damage", copFlipByDamageEnableds);
-		HeatParameters::Parse(parser, "Flipping:Time",   copFlipByTimers);
-		HeatParameters::Parse(parser, "Flipping:Reset",  racerFlipResetDelays);
+		HeatParameters::Parse(parser, "Flipping:Damaged", copFlipByDamageEnableds);
+		HeatParameters::Parse(parser, "Flipping:Time",    copFlipByTimers);
+		HeatParameters::Parse(parser, "Flipping:Reset",   racerFlipResetDelays);
 
 		// Breaker flags
 		std::vector<std::string> copVehicles;
 		std::vector<bool>        isAffecteds;
 
-		parser.ParseUser("Vehicles:Breakers", copVehicles, isAffecteds);
+		parser.ParseUser<bool>("Vehicles:Breakers", copVehicles, {isAffecteds});
 
+		// Populate breaker-immunity map
 		const bool mapIsValid = copTypeToIsBreakerImmune.FillFromVectors<std::string, bool>
 		(
 			"Vehicle-to-immunity",
@@ -453,8 +455,8 @@ namespace GeneralSettings
 			Globals::StringToVaultKey,
 			Globals::DoesVehicleExist,
 			isAffecteds,
-			[=](const bool isAffected) -> bool {return (not isAffected);},
-			[=](const bool isImmune)   -> bool {return true;}
+			[](const bool isAffected) -> bool {return (not isAffected);},
+			[](const bool isImmune)   -> bool {return true;}
 		);
 
 		if (mapIsValid)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "HashContainers.h"
@@ -21,13 +23,13 @@ namespace CopFleeOverrides
 	HeatParameters::Pair<float> heavy3SpeedThresholds(25.f, {0.f}); // kph
 	HeatParameters::Pair<bool>  heavy3JoiningEnableds(false);
 
-	HeatParameters::OptionalPair<int> heavy3JoinLimits({0});
+	HeatParameters::OptionalPair<int> heavy3JoinLimits({0}); // cars
 
-	HeatParameters::OptionalInterval<float> chaserFleeDelays       ({1.f});  // seconds
-	HeatParameters::Pair            <int>   chaserChasersThresholds(2, {0});
+	HeatParameters::OptionalInterval<float> chaserFleeDelays       ({1.f}); // seconds
+	HeatParameters::OptionalPair    <int>   chaserChasersThresholds({0});   // cars
 
-	HeatParameters::OptionalInterval<float> joinedFleeDelays       ({1.f});  // seconds
-	HeatParameters::Pair            <int>   joinedChasersThresholds(2, {0});
+	HeatParameters::OptionalInterval<float> joinedFleeDelays       ({1.f}); // seconds
+	HeatParameters::OptionalPair    <int>   joinedChasersThresholds({0});   // cars
 
 	// Conversions
 	float baseSpeedThreshold = heavy3SpeedThresholds.current / 3.6f; // mps
@@ -55,10 +57,10 @@ namespace CopFleeOverrides
 		HashContainers::AddressMap<float> heavy3VehicleToTimestamp;
 		HashContainers::AddressMap<float> leaderVehicleToTimestamp;
 
-		const bool&    isJerk         = *reinterpret_cast<bool*>   (this->pursuit + 0x238);
-		const address& heavyStrategy  = *reinterpret_cast<address*>(this->pursuit + 0x194);
-		const address& leaderStrategy = *reinterpret_cast<address*>(this->pursuit + 0x198);
-		const address& pursuitTarget  = *reinterpret_cast<address*>(this->pursuit + 0x74);
+		const volatile bool&    isJerk         = *reinterpret_cast<volatile bool*>   (this->pursuit + 0x238);
+		const volatile address& heavyStrategy  = *reinterpret_cast<volatile address*>(this->pursuit + 0x194);
+		const volatile address& leaderStrategy = *reinterpret_cast<volatile address*>(this->pursuit + 0x198);
+		const volatile address& pursuitTarget  = *reinterpret_cast<volatile address*>(this->pursuit + 0x74);
 
 		inline static HashContainers::AddressMap<MembershipManager*> pursuitToManager;
 
@@ -95,7 +97,7 @@ namespace CopFleeOverrides
 		{
 			if (not Globals::playerHeatLevelKnown) return;
 
-			const float strategyDuration = (activeStrategy) ? *reinterpret_cast<float*>(activeStrategy + 0x8) : 1.f;
+			const float strategyDuration = (activeStrategy) ? *reinterpret_cast<volatile float*>(activeStrategy + 0x8) : 1.f;
 			this->ScheduleVehicle(copVehicle, strategyDuration, vehicleToTimestamp);
 		}
 
@@ -189,9 +191,10 @@ namespace CopFleeOverrides
 			const address  copVehicle,
 			const CopLabel copLabel
 		) {
-			bool        makeVehicleBail = false;
-			const char* vehicleLabel    = nullptr;
+			std::string vehicleLabel;
 
+			bool makeVehicleBail = false;
+			
 			switch (copLabel)
 			{
 			case CopLabel::HEAVY:
@@ -240,10 +243,12 @@ namespace CopFleeOverrides
 				return true;
 
 			case CopLabel::CHASER:
-				return (numActiveChasers > chaserChasersThresholds.current);
+				if (not chaserChasersThresholds.isEnableds.current) return true;
+				return (numActiveChasers > chaserChasersThresholds.values.current);
 
 			case CopLabel::ROADBLOCK:
-				return (numActiveChasers > joinedChasersThresholds.current);
+				if (not joinedChasersThresholds.isEnableds.current) return true;
+				return (numActiveChasers > joinedChasersThresholds.values.current);
 			}
 
 			return false;
@@ -276,21 +281,20 @@ namespace CopFleeOverrides
 
 		address GetRigidBodyOfTarget() const
 		{
+			address rigidBodyOfTarget = 0x0;
+
 			if (this->pursuitTargetKnown)
 			{
-				const address physicsObject     = *reinterpret_cast<address*>(this->pursuitTarget + 0x1C);
-				const address rigidBodyOfTarget = (physicsObject) ? *reinterpret_cast<address*>(physicsObject + 0x4C) : 0x0;
+				const address physicsObject = *reinterpret_cast<volatile address*>(this->pursuitTarget + 0x1C);
+				
+				if (physicsObject)
+					rigidBodyOfTarget = *reinterpret_cast<volatile address*>(physicsObject + 0x4C);
 
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (not rigidBodyOfTarget)
-						Globals::logger.Log("WARNING: [FLE] Invalid PhysicsObject for", this->pursuitTarget, "in", this->pursuit);
-				}
-
-				return rigidBodyOfTarget;
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log("WARNING: [FLE] Invalid PhysicsObject for", this->pursuitTarget, "in", this->pursuit);
 			}
 
-			return 0x0;
+			return rigidBodyOfTarget;
 		}
 
 
@@ -301,6 +305,7 @@ namespace CopFleeOverrides
 			if (rigidBodyOfTarget)
 			{
 				const auto GetSpeedXZ = reinterpret_cast<float (__thiscall*)(address)>(0x6711F0);
+
 				return (GetSpeedXZ(rigidBodyOfTarget) < ((this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold));
 			}
 			else if constexpr (Globals::loggingEnabled)
@@ -336,14 +341,14 @@ namespace CopFleeOverrides
 		explicit MembershipManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('+', this, "MembershipManager");
+				Globals::logger.Log<2>('+', this, "MembershipManager");
 		}
 
 
 		~MembershipManager() override
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('-', this, "MembershipManager");
+				Globals::logger.Log<2>('-', this, "MembershipManager");
 		}
 
 
@@ -467,13 +472,13 @@ namespace CopFleeOverrides
 			Globals::logger.Log("  CONFIG [FLE] CopFleeOverrides");
 
 		// Heat parameters (first file)
-		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "CarSpawns.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
 
 		HeatParameters::Parse(parser, "Chasers:Fleeing", chaserFleeDelays, chaserChasersThresholds);
 		HeatParameters::Parse(parser, "Joining:Fleeing", joinedFleeDelays, joinedChasersThresholds);
 
 		// Heat parameters (second file)
-		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Strategies.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		HeatParameters::Parse(parser, "Heavy3:Cancellation", heavy3SpeedThresholds);
 		HeatParameters::Parse(parser, "Heavy3:Joining",      heavy3JoiningEnableds);
@@ -502,17 +507,11 @@ namespace CopFleeOverrides
 		if (heavy3JoiningEnableds.current)
 			heavy3JoinLimits.Log("heavy3JoinLimit         ");
 
-		if (chaserFleeDelays.isEnableds.current)
-		{
-			chaserFleeDelays       .Log("chaserFleeDelay         ");
-			chaserChasersThresholds.Log("chaserChasersThreshold  ");
-		}
+		chaserFleeDelays       .Log("chaserFleeDelay         ");
+		chaserChasersThresholds.Log("chaserChasersThreshold  ");
 
-		if (joinedFleeDelays.isEnableds.current)
-		{
-			joinedFleeDelays       .Log("joinedFleeDelay         ");
-			joinedChasersThresholds.Log("joinedChasersThreshold  ");
-		}
+		joinedFleeDelays       .Log("joinedFleeDelay         ");
+		joinedChasersThresholds.Log("joinedChasersThreshold  ");
 	}
 
 

@@ -19,7 +19,7 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves 
-	HashContainers::CachedVaultMap<binary> copTypeToDestructionKey(0x0);
+	HashContainers::CachedCopyVaultMap<binary> copTypeToDestructionKey(0x0);
 
 
 	
@@ -39,7 +39,7 @@ namespace DestructionStrings
 		{
 			push dword ptr [esp + 0x54] // copType
 			mov ecx, offset copTypeToDestructionKey
-			call HashContainers::CachedVaultMap<binary>::GetValue
+			call HashContainers::CachedCopyVaultMap<binary>::GetValue
 			test eax, eax
 			je skip                     // string invalid
 
@@ -63,14 +63,15 @@ namespace DestructionStrings
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [DST] DestructionStrings");
 
-		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Binary labels
 		std::vector<std::string> copVehicles;
 		std::vector<std::string> binaryLabels;
 
-		parser.ParseUser<std::string>("Vehicles:Strings", copVehicles, binaryLabels);
+		parser.ParseUser<std::string>("Vehicles:Strings", copVehicles, {binaryLabels});
 
+		// Populate label map
 		const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
 
 		const bool mapIsValid = copTypeToDestructionKey.FillFromVectors<std::string, std::string>

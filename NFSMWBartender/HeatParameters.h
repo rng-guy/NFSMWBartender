@@ -4,6 +4,7 @@
 #include <tuple>
 #include <string>
 #include <utility>
+#include <optional>
 #include <algorithm>
 
 #include "Globals.h"
@@ -44,10 +45,7 @@ namespace HeatParameters
 	using Values = std::array<T, maxHeatLevel>;
 
 	template <typename T>
-	using Format = ConfigParser::FormatParameter<T, maxHeatLevel>;
-
-	template <typename T>
-	using User = ConfigParser::UserParameter<T>;
+	using Format = ConfigParser::Format<T, maxHeatLevel>;
 
 
 
@@ -109,13 +107,13 @@ namespace HeatParameters
 	{
 		T current;
 
-		const Bounds<T> limits;
+		Bounds<T> limits;
 
 
 		explicit Pair
 		(
 			const T          original, 
-			const Bounds<T>& limits    = {}
+			const Bounds<T>& limits = {}
 		) 
 			: current(original), limits(limits)
 		{
@@ -163,19 +161,9 @@ namespace HeatParameters
 		}
 
 
-		void Log(const char* const pairName) const
+		void Log(const std::string& pairName) const
 		{
-			Globals::logger.LogLongIndent(pairName, this->current);
-		}
-
-
-		auto ToFormat(const bool forRaces) 
-		{
-			if (forRaces)
-				return std::make_tuple(Format<T>(this->race, {}, this->limits));
-
-			else
-				return std::make_tuple(Format<T>(this->roam, this->current, this->limits));
+			Globals::logger.Log<2>(pairName, this->current);
 		}
 	};
 
@@ -199,19 +187,9 @@ namespace HeatParameters
 		}
 
 
-		void Log(const char* const pairName) const
+		void Log(const std::string& pairName) const
 		{
-			Globals::logger.LogLongIndent(pairName, this->current);
-		}
-
-
-		auto ToFormat(const bool forRaces)
-		{
-			if (forRaces)
-				return std::make_tuple(Format<bool>(this->race));
-
-			else
-				return std::make_tuple(Format<bool>(this->roam, this->current));
+			Globals::logger.Log<2>(pairName, this->current);
 		}
 	};
 
@@ -252,19 +230,9 @@ namespace HeatParameters
 		}
 
 
-		void Log(const char* const pairName) const
+		void Log(const std::string& pairName) const
 		{
-			Globals::logger.LogLongIndent(pairName, this->current);
-		}
-
-
-		auto ToFormat(const bool forRaces)
-		{
-			if (forRaces)
-				return std::make_tuple(Format<std::string>(this->race));
-
-			else
-				return std::make_tuple(Format<std::string>(this->roam, this->current));
+			Globals::logger.Log<2>(pairName, this->current);
 		}
 	};
 
@@ -274,7 +242,7 @@ namespace HeatParameters
 	requires std::is_arithmetic_v<T>
 	struct OptionalPair
 	{
-		Pair<bool> isEnableds = Pair<bool>(false);
+		Pair<bool> isEnableds{false};
 
 		Pair<T> values;
 
@@ -292,35 +260,91 @@ namespace HeatParameters
 		}
 
 
-		bool AnyEnabled() const
-		{
-			for (const bool forRaces : {false, true})
-			{
-				for (const T value : this->isEnableds.GetValues(forRaces))
-					if (value) return true;
-			}
-
-			return false;
-		}
-
-
-		void Log(const char* const optionalName) const
+		void Log(const std::string& optionalName) const
 		{
 			if (this->isEnableds.current)
-				Globals::logger.LogLongIndent(optionalName, this->values.current);
+				Globals::logger.Log<2>(optionalName, this->values.current);
+		}
+	};
+
+
+
+	template <>
+	struct OptionalPair<bool>
+	{
+		Pair<bool> isEnableds{false};
+
+		Pair<bool> values{false};
+
+
+		void SetToHeat
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->isEnableds.SetToHeat(forRaces, heatLevel);
+			this->values    .SetToHeat(forRaces, heatLevel);
 		}
 
 
-		auto ToFormat(const bool forRaces)
+		void Log(const std::string& optionalName) const
 		{
-			return std::make_tuple(Format<T>(this->values.GetValues(forRaces), {}, this->values.limits));
+			if (this->isEnableds.current)
+				Globals::logger.Log<2>(optionalName, this->values.current);
 		}
 	};
 
 
 
 	template <typename T>
-	requires std::is_arithmetic_v<T>
+	struct OptionalPointerPair
+	{
+		Pair<bool> isEnableds{false};
+
+		PointerPair<T> values;
+
+
+		void SetToHeat
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->isEnableds.SetToHeat(forRaces, heatLevel);
+			this->values    .SetToHeat(forRaces, heatLevel);
+		}
+	};
+
+
+
+	template <>
+	struct OptionalPointerPair<std::string>
+	{
+		Pair<bool> isEnableds{false};
+
+		PointerPair<std::string> values{nullptr};
+
+
+		void SetToHeat
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->isEnableds.SetToHeat(forRaces, heatLevel);
+			this->values    .SetToHeat(forRaces, heatLevel);
+		}
+
+
+		void Log(const std::string& optionalName) const
+		{
+			if (this->isEnableds.current)
+				Globals::logger.Log<2>(optionalName, this->values.current);
+		}
+	};
+
+
+
+	template <typename T>
+	requires (std::is_arithmetic_v<T> and (not std::is_same_v<T, bool>))
 	struct Interval
 	{
 		Pair<T> minValues;
@@ -331,7 +355,7 @@ namespace HeatParameters
 		(
 			const T          originalMin,
 			const T          originalMax,
-			const Bounds<T>& limits       = {}
+			const Bounds<T>& limits = {}
 		) 
 			: minValues(originalMin, limits),
 			  maxValues(originalMax, limits)
@@ -367,25 +391,19 @@ namespace HeatParameters
 		}
 
 
-		void Log(const char* const intervalName) const
+		void Log(const std::string& intervalName) const
 		{
-			Globals::logger.LogLongIndent(intervalName, this->minValues.current, "to", this->maxValues.current);
-		}
-
-
-		auto ToFormat(const bool forRaces)
-		{
-			return std::tuple_cat(this->minValues.ToFormat(forRaces), this->maxValues.ToFormat(forRaces));
+			Globals::logger.Log<2>(intervalName, this->minValues.current, "to", this->maxValues.current);
 		}
 	};
 
 
 
 	template <typename T>
-	requires std::is_arithmetic_v<T>
+	requires (std::is_arithmetic_v<T> and (not std::is_same_v<T, bool>))
 	struct OptionalInterval
 	{
-		Pair<bool> isEnableds = Pair<bool>(false);
+		Pair<bool> isEnableds{false};
 
 		Pair<T> minValues;
 		Pair<T> maxValues;
@@ -411,32 +429,10 @@ namespace HeatParameters
 		}
 
 
-		bool AnyEnabled() const
-		{
-			for (const bool forRaces : {false, true})
-			{
-				for (const T value : this->isEnableds.GetValues(forRaces))
-					if (value) return true;
-			}
-
-			return false;
-		}
-
-
-		void Log(const char* const intervalName) const
+		void Log(const std::string& intervalName) const
 		{
 			if (this->isEnableds.current)
-				Globals::logger.LogLongIndent(intervalName, this->minValues.current, "to", this->maxValues.current);
-		}
-
-
-		auto ToFormat(const bool forRaces)
-		{
-			return std::make_tuple
-			(
-				Format<T>(this->minValues.GetValues(forRaces), {}, this->minValues.limits),
-				Format<T>(this->maxValues.GetValues(forRaces), {}, this->maxValues.limits)
-			);
+				Globals::logger.Log<2>(intervalName, this->minValues.current, "to", this->maxValues.current);
 		}
 	};
 
@@ -448,7 +444,7 @@ namespace HeatParameters
 
 	bool ValidateVehicles
 	(
-		const char* const         pairName,
+		const std::string&        pairName,
 		PointerPair<std::string>& pointerPair,
 		const auto&               IsVehicleValid
 	) {
@@ -457,7 +453,8 @@ namespace HeatParameters
 		for (const bool forRaces : {false, true})
 		{
 			size_t numReplaced = 0;
-			auto&  vehicles    = pointerPair.GetValues(forRaces);
+
+			auto& vehicles = pointerPair.GetValues(forRaces);
 
 			for (const size_t heatLevel : heatLevels)
 			{
@@ -469,9 +466,9 @@ namespace HeatParameters
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (numReplaced == 0)
-							Globals::logger.LogLongIndent(pairName, (forRaces) ? "(race)" : "(free-roam)");
+							Globals::logger.Log<2>(pairName, (forRaces) ? "(race)" : "(roam)");
 
-						Globals::logger.LogLongIndent(' ', static_cast<int>(heatLevel), vehicle, "->", pointerPair.current);
+						Globals::logger.Log<3>(static_cast<int>(heatLevel), vehicle, "->", pointerPair.current);
 					}
 
 					vehicle = pointerPair.current;
@@ -490,33 +487,154 @@ namespace HeatParameters
 
 
 
-	// Auxiliary parsing functions ------------------------------------------------------------------------------------------------------------------
+	// Auxiliary parsing structs / functions --------------------------------------------------------------------------------------------------------
 
-	namespace Auxiliary
+	namespace Details
 	{
 
+		template <typename T> struct IsRegular                 : std::false_type {};
+		template <typename T> struct IsRegular<Interval   <T>> : std::true_type  {};
+		template <typename T> struct IsRegular<PointerPair<T>> : std::true_type  {};
+		template <typename T> struct IsRegular<Pair       <T>> : std::true_type  {};
+
+		template <typename T> struct IsOptional                         : std::false_type {};
+		template <typename T> struct IsOptional<OptionalInterval   <T>> : std::true_type  {};
+		template <typename T> struct IsOptional<OptionalPointerPair<T>> : std::true_type  {};
+		template <typename T> struct IsOptional<OptionalPair       <T>> : std::true_type  {};
+
+
+
 		template <typename T>
-		void InitialiseRaceValues(T& parameter) {}
+		auto MakeFormatTuple
+		(
+			const bool forRaces,
+			Pair<T>&   pair
+		) {
+			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(pair.current);
+
+			return std::tuple(Format<T>(pair.GetValues(forRaces), std::move(defaultValue), pair.limits));
+		}
+
+
+		template <>
+		auto MakeFormatTuple<bool>
+		(
+			const bool  forRaces,
+			Pair<bool>& pair
+		) {
+			auto defaultValue = (forRaces) ? std::nullopt : std::optional<bool>(pair.current);
+
+			return std::tuple(Format<bool>(pair.GetValues(forRaces), std::move(defaultValue)));
+		}
 
 
 		template <typename T>
-		void InitialiseRaceValues(Pair<T>& pair)
+		auto MakeFormatTuple
+		(
+			const bool      forRaces,
+			PointerPair<T>& pair
+		) {
+			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(pair.current);
+
+			return std::tuple(Format<T>(pair.GetValues(forRaces), std::move(defaultValue)));
+		}
+
+
+		template <typename T>
+		auto MakeFormatTuple
+		(
+			const bool   forRaces,
+			Interval<T>& interval
+		) {
+			return std::tuple_cat
+			(
+				MakeFormatTuple<T>(forRaces, interval.minValues), 
+				MakeFormatTuple<T>(forRaces, interval.maxValues)
+			);
+		}
+
+
+		template <typename T>
+		auto MakeFormatTuple
+		(
+			const bool       forRaces,
+			OptionalPair<T>& pair
+		) {
+			return std::tuple(Format<T>(pair.values.GetValues(forRaces), std::nullopt, pair.values.limits));
+		}
+
+
+		template <>
+		auto MakeFormatTuple<bool>
+		(
+			const bool          forRaces,
+			OptionalPair<bool>& pair
+		) {
+			return std::tuple(Format<bool>(pair.values.GetValues(forRaces), std::nullopt));
+		}
+
+
+		template <typename T>
+		auto MakeFormatTuple
+		(
+			const bool              forRaces,
+			OptionalPointerPair<T>& pair
+		) {
+			return std::tuple(Format<T>(pair.values.GetValues(forRaces), std::nullopt));
+		}
+
+
+		template <typename T>
+		auto MakeFormatTuple
+		(
+			const bool           forRaces,
+			OptionalInterval<T>& interval
+		) {
+			return std::tuple
+			(
+				Format<T>(interval.minValues.GetValues(forRaces), std::nullopt, interval.minValues.limits),
+				Format<T>(interval.maxValues.GetValues(forRaces), std::nullopt, interval.maxValues.limits)
+			);
+		}
+
+
+
+		template <typename T>
+		void CopyRoamToRaceValues(T& pair)
 		{
 			pair.race = pair.roam;
 		}
 
 
-		void InitialiseRaceValues(PointerPair<std::string>& pair)
-		{
-			pair.race = pair.roam;
-		}
-
-
 		template <typename T>
-		void InitialiseRaceValues(Interval<T>& interval)
+		void CopyRoamToRaceValues(Interval<T>& interval)
 		{
 			interval.minValues.race = interval.minValues.roam;
 			interval.maxValues.race = interval.maxValues.roam;
+		}
+
+
+
+		template <typename ...T>
+		Values<bool> ParsePartial
+		(
+			const bool            forRaces,
+			Parser&               parser,
+			const std::string&    section,
+			T&                 ...parameters
+		) {
+			auto formats = std::tuple_cat(MakeFormatTuple(forRaces, parameters)...);
+
+			return [&]<size_t... formatIDs>(std::index_sequence<formatIDs...>) -> Values<bool>
+			{
+				return parser.ParseFormat<maxHeatLevel>
+				(
+					section,
+					(forRaces) ? configFormatRace : configFormatRoam,
+					std::move(std::get<formatIDs>(formats))...
+				);
+			}
+			(std::make_index_sequence<std::tuple_size_v<decltype(formats)>>{});
 		}
 
 
@@ -540,36 +658,20 @@ namespace HeatParameters
 
 
 		template <typename T>
-		void FinaliseIntervals
-		(
-			T&                  parameter,
-			const Values<bool>& isRoamEnableds,
-			const Values<bool>& isRaceEnableds
-		) {}
+		void FinaliseIntervals(const T& pair) {}
 
 
 		template <typename T>
-		void FinaliseIntervals
-		(
-			Interval<T>&        interval,
-			const Values<bool>& isRoamEnableds,
-			const Values<bool>& isRaceEnableds
-		) {
+		void FinaliseIntervals(Interval<T>& interval)
+		{
 			CheckIntervals<T>(interval.minValues, interval.maxValues);
 		}
 
 
 		template <typename T>
-		void FinaliseIntervals
-		(
-			OptionalInterval<T>& interval,
-			const Values<bool>&  isRoamEnableds,
-			const Values<bool>&  isRaceEnableds
-		) {
+		void FinaliseIntervals(OptionalInterval<T>& interval)
+		{
 			CheckIntervals<T>(interval.minValues, interval.maxValues);
-
-			interval.isEnableds.roam = isRoamEnableds;
-			interval.isEnableds.race = isRaceEnableds;
 		}
 	}
 
@@ -580,37 +682,41 @@ namespace HeatParameters
 	// Generic parsing function ---------------------------------------------------------------------------------------------------------------------
 
 	template <typename ...T>
+	requires (Details::IsRegular<T>::value and ...)
 	void Parse
 	(
 		Parser&               parser,
 		const std::string&    section,
 		T&                 ...parameters
 	) {
-		Values<bool> isRoamEnableds = {};
-		Values<bool> isRaceEnableds = {};
-
 		for (const bool forRaces : {false, true})
 		{
 			if (forRaces)
-				(Auxiliary::InitialiseRaceValues(parameters), ...);
+				(..., Details::CopyRoamToRaceValues(parameters));
 
-			auto& isEnableds = (forRaces) ? isRaceEnableds : isRoamEnableds;
+			Details::ParsePartial<T...>(forRaces, parser, section, parameters...);
+		}
+			
+		(..., Details::FinaliseIntervals(parameters));
+	}
 
-			isEnableds = std::apply
-			(
-				[&](auto&& ...formats) -> Values<bool>
-				{
-					return parser.ParseTable<maxHeatLevel>
-					(
-						section,
-						(forRaces) ? configFormatRace : configFormatRoam,
-						std::forward<decltype(formats)>(formats)...
-					);
-				},
-				std::move(std::tuple_cat(parameters.ToFormat(forRaces)...))
-			);
+
+
+	template <typename ...T>
+	requires (Details::IsOptional<T>::value and ...)
+	void Parse
+	(
+		Parser&               parser,
+		const std::string&    section,
+		T&                 ...parameters
+	) {
+		for (const bool forRaces : {false, true})
+		{
+			const auto isEnableds = Details::ParsePartial<T...>(forRaces, parser, section, parameters...);
+
+			(..., (parameters.isEnableds.GetValues(forRaces) = isEnableds));
 		}
 
-		(Auxiliary::FinaliseIntervals(parameters, isRoamEnableds, isRaceEnableds), ...);
+		(..., Details::FinaliseIntervals(parameters));
 	}
 }

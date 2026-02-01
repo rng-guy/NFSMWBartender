@@ -28,16 +28,16 @@ namespace Globals
 	// Game timer
 	uint32_t pausedTicks = 0;
 
-	// Common objects
+	// Random-number generator
 	RandomNumbers::Generator prng;
-	BasicLogger  ::Logger    logger;
 
 	// Player state
 	address playerPerpVehicle    = 0x0;
 	bool    playerHeatLevelKnown = false;
 
-	// Logging flag
+	// Logging
 	constexpr bool loggingEnabled = false;
+	BasicLogger::Logger logger(9, 15, 17);
 
 	// Common function pointers
 	const auto GetVaultKey  = reinterpret_cast<vault  (__cdecl*)(const char*)>(0x5CC240);
@@ -51,9 +51,9 @@ namespace Globals
 	const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
 
 	// Common data pointers
-	const float&    simulationTime = *reinterpret_cast<float*>   (0x9885D8);
-	const address&  copManager     = *reinterpret_cast<address*> (0x989098);
-	const uint32_t& gameTicks      = *reinterpret_cast<uint32_t*>(0x925B14);
+	const volatile float&    simulationTime = *reinterpret_cast<volatile float*>   (0x9885D8);
+	const volatile address&  copManager     = *reinterpret_cast<volatile address*> (0x989098);
+	const volatile uint32_t& gameTicks      = *reinterpret_cast<volatile uint32_t*>(0x925B14);
 
 
 
@@ -63,7 +63,7 @@ namespace Globals
 
 	bool IsInCooldownMode(const address pursuit)
 	{
-		return (*reinterpret_cast<int*>(pursuit + 0x218) == 2); // pursuitStatus
+		return (*reinterpret_cast<volatile int*>(pursuit + 0x218) == 2); // pursuitStatus
 	}
 
 
@@ -84,7 +84,7 @@ namespace Globals
 
 	float __fastcall GetGameTime(const bool unpaused)
 	{
-		const float    ticksToTime = *reinterpret_cast<float*>(0x890984);
+		const float    ticksToTime = *reinterpret_cast<volatile float*>(0x890984);
 		const uint32_t ticks       = (unpaused) ? (gameTicks - pausedTicks) : gameTicks;
 
 		return ticksToTime * static_cast<float>(ticks);
@@ -113,7 +113,7 @@ namespace Globals
 		const address pursuit,
 		const vault   attributeKey,
 		const size_t  attributeIndex = 0
-	){
+	) {
 		const auto GetPursuitNode      = reinterpret_cast<address (__thiscall*)(address)>               (0x418E90);
 		const auto GetPursuitAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
 
@@ -126,7 +126,7 @@ namespace Globals
 	vault GetVehicleClass(const vault type)
 	{
 		const address attribute = GetFromVault(0x4A97EC8F, type, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
-		return (attribute) ? *reinterpret_cast<vault*>(attribute + 0x8) : attribute;
+		return (attribute) ? *reinterpret_cast<volatile vault*>(attribute + 0x8) : attribute;
 	}
 
 

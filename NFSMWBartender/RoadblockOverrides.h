@@ -7,7 +7,6 @@
 
 #include "Globals.h"
 #include "HeatParameters.h"
-#include "ConfigParser.h"
 
 
 
@@ -38,7 +37,7 @@ namespace RoadblockOverrides
 		float angle   = 0.f; // revolutions
 	};
 
-	struct RBTable // same layout as vanilla object
+	struct RBTable // matches vanilla layout
 	{
 		float  minRoadWidth    = 0.f; // metres
 		size_t numCarsRequired = 0;
@@ -59,8 +58,8 @@ namespace RoadblockOverrides
 	};
 
 	// Heat parameters
-	HeatParameters::Pair<float> spawnCalloutChances(100.f, {0.f, 100.f});
-	HeatParameters::Pair<float> spikeCalloutChances(50.f,  {0.f, 100.f});
+	HeatParameters::Pair<int> spawnCalloutChances(100, {0, 100});
+	HeatParameters::Pair<int> spikeCalloutChances(50,  {0, 100});
 	
 	// Code caves
 	std::vector<RBSetup> roadblockSetups;
@@ -79,29 +78,29 @@ namespace RoadblockOverrides
 		if (Globals::IsInCooldownMode(pursuit))    return;
 		if (not Globals::IsPlayerPursuit(pursuit)) return;
 
-		if (Globals::prng.DoTrial<float>(spawnCalloutChances.current))
+		if (Globals::prng.DoTrial<int>(spawnCalloutChances.current))
 		{
-			if (hasSpikes and Globals::prng.DoTrial<float>(spikeCalloutChances.current))
+			if (hasSpikes and Globals::prng.DoTrial<int>(spikeCalloutChances.current))
 			{
-				const auto AnnounceSpikes = reinterpret_cast<void (__cdecl*)(int)>(0x71DAC0);
+				const auto CallOutSpikes = reinterpret_cast<void (__cdecl*)(int)>(0x71DAC0);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("Spikes announcement");
+					Globals::logger.Log<2>("Spikes callout");
 
-				AnnounceSpikes(spikeLane);
+				CallOutSpikes(spikeLane);
 			}
 			else
 			{
-				const auto AnnounceRegular = reinterpret_cast<void (*)()>(0x71DAA0);
+				const auto CallOutRegular = reinterpret_cast<void (*)()>(0x71DAA0);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("Regular announcement");
+					Globals::logger.Log<2>("Regular callout");
 
-				AnnounceRegular();
+				CallOutRegular();
 			}
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent("No announcement");
+			Globals::logger.Log<2>("No callout");
 	}
 
 
@@ -120,12 +119,12 @@ namespace RoadblockOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogIndent("[RBL] Roadblock request", (needsSpikes) ? "(spikes)" : "(regular)");
-
-			Globals::logger.LogLongIndent("Max. cars:", static_cast<int>(maxNumCars));
-			Globals::logger.LogLongIndent("Road width:", roadWidth);
+			Globals::logger.Log<1>("[RBL] Roadblock request", (needsSpikes) ? "(spikes)" : "(regular)");
+			Globals::logger.Log<2>("Max. cars:", static_cast<int>(maxNumCars));
+			Globals::logger.Log<2>("Road width:", roadWidth);
 		}
 
+		// Find all eligible setups, and the best-fitting one as backup
 		int totalChance = 0;
 
 		const RBSetup* bestFit = nullptr;
@@ -147,13 +146,14 @@ namespace RoadblockOverrides
 				bestFit = &setup;
 		}
 
+		// Attempt to select an eligible setup at random
 		if (not candidates.empty())
 		{
 			int       cumulativeChance = 0;
 			const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, totalChance);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent(static_cast<int>(candidates.size()), "candidate(s)");
+				Globals::logger.Log<2>(static_cast<int>(candidates.size()), "candidate(s)");
 
 			for (const RBSetup* const setup : candidates)
 			{
@@ -164,7 +164,7 @@ namespace RoadblockOverrides
 					candidates.clear();
 
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.LogLongIndent("Setup:", setup->name);
+						Globals::logger.Log<2>("Setup:", setup->name);
 
 					return &(setup->table);
 				}
@@ -176,20 +176,21 @@ namespace RoadblockOverrides
 			candidates.clear();
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent("No candidate(s)");
+			Globals::logger.Log<2>("No candidate(s)");
 
+		// Fall back to best-fitting setup (if available)
 		if (bestFit)
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::logger.LogLongIndent("Best width:", bestFit->table.minRoadWidth);
-				Globals::logger.LogLongIndent("Setup:",      bestFit->name);
+				Globals::logger.Log<2>("Best width:", bestFit->table.minRoadWidth);
+				Globals::logger.Log<2>("Setup:",      bestFit->name);
 			}
 
 			return &(bestFit->table);
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent("No best fit");
+			Globals::logger.Log<2>("No best fit");
 
 		return nullptr;
 	}
@@ -306,14 +307,14 @@ namespace RoadblockOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [RBL] RoadblockOverrides");
 
-		if (not parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Roadblocks.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini")) return false;
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Roadblocks:Radio", spawnCalloutChances, spikeCalloutChances);
 
 		// Roadblock setups
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent("Roadblock setups:");
+			Globals::logger.Log<2>("Roadblock setups:");
 
 		const auto&       sections = parser.GetSections();
 		const std::string baseName = "Setups:";
@@ -323,68 +324,78 @@ namespace RoadblockOverrides
 		for (const auto& [section, contents] : sections)
 			if (section.find(baseName) == 0) ++maxNumSetups;
 
+		// Check if there are any setups
 		if (maxNumSetups == 0)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent("  no setup(s) provided");
+				Globals::logger.Log<3>("no setup(s) provided");
 
 			return false;
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent(' ', static_cast<int>(maxNumSetups), "setup(s) provided");
+			Globals::logger.Log<3>(static_cast<int>(maxNumSetups), "setup(s) provided");
 
 		roadblockSetups.reserve(maxNumSetups);
+
+		std::array<bool, maxNumParts> isValids = {};
 
 		std::array<int,   maxNumParts> partTypes    = {};
 		std::array<float, maxNumParts> partOffsetsX = {};
 		std::array<float, maxNumParts> partOffsetsY = {};
-		std::array<float, maxNumParts> partAngles   = {};
+		std::array<float, maxNumParts> orientations = {};
+
+		const std::string partFormat = "part{:02}";
 
 		size_t numRegularRoadblocks = 0;
 		size_t numSpikeRoadblocks   = 0;
 
 		std::string name;
 
+		// Attempt to parse each setup
 		for (const auto& [section, contents] : sections)
 		{
 			if (section.find(baseName) > 0) continue;
 
-			name = section.substr(baseName.length());
-
 			float minRoadWidth = 0.f;
 			float maxRoadWidth = 0.f;
 
-			if (not parser.ParseRow<float, float>(section, "extent", {minRoadWidth, {0.f}}, {maxRoadWidth, {0.f}}))
+			name = section.substr(baseName.length());
+
+			// Check if "extent" is provided
+			if (not parser.ParseFromFile<float, float>(section, "extent", {minRoadWidth, {0.f}}, {maxRoadWidth, {0.f}}))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("  -", name, "(missing extent)");
+					Globals::logger.Log<3>('-', name, "(missing extent)");
 
 				continue;
 			}
 
+			// Check if "extent" is valid
 			if (maxRoadWidth <= minRoadWidth)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("  -", name, "(invalid extent)");
+					Globals::logger.Log<3>('-', name, "(invalid extent)");
 
 				continue;
 			}
 
+			// Parse roadblock parts
 			RBSetup& setup = roadblockSetups.emplace_back();
 
 			setup.table.minRoadWidth = minRoadWidth;
 			setup.maxRoadWidth       = maxRoadWidth;
 
-			const auto isValids = parser.ParseTable
+			isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
 			(
 				section,
-				"part{:02}",
-				ConfigParser::FormatParameter<int,   maxNumParts>(partTypes),
-				ConfigParser::FormatParameter<float, maxNumParts>(partOffsetsX),
-				ConfigParser::FormatParameter<float, maxNumParts>(partOffsetsY),
-				ConfigParser::FormatParameter<float, maxNumParts>(partAngles)
+				partFormat,
+				{partTypes},
+				{partOffsetsX},
+				{partOffsetsY},
+				{orientations}
 			);
 
+			// Validate roadblock parts
 			size_t numValidParts = 0;
 
 			for (size_t partID = 0; partID < maxNumParts; ++partID)
@@ -394,7 +405,7 @@ namespace RoadblockOverrides
 				switch (partTypes[partID])
 				{
 				case RBPartType::CAR:
-					++setup.table.numCarsRequired;
+					++(setup.table.numCarsRequired);
 					break;
 
 				case RBPartType::BLOCKADE:
@@ -413,10 +424,11 @@ namespace RoadblockOverrides
 					static_cast<RBPartType>(partTypes[partID]),
 					partOffsetsX[partID],
 					partOffsetsY[partID],
-					partAngles  [partID]
+					orientations[partID]
 				};
 			}
 			
+			// Add or discard setup depending on validity
 			if (setup.table.numCarsRequired > 0)
 			{
 				setup.name = name;
@@ -435,7 +447,7 @@ namespace RoadblockOverrides
 			else
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("  -", name, "(no car(s))");
+					Globals::logger.Log<3>('-', name, "(no car(s))");
 
 				roadblockSetups.pop_back();
 			}
@@ -444,16 +456,16 @@ namespace RoadblockOverrides
 		if (roadblockSetups.empty())
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent("  no valid setup(s)");
+				Globals::logger.Log<3>("no setup(s) valid");
 
 			return false;
 		}
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogLongIndent(' ', static_cast<int>(roadblockSetups.size()), "setup(s) valid");
-			Globals::logger.LogLongIndent(' ', static_cast<int>(numRegularRoadblocks),   "regular");
-			Globals::logger.LogLongIndent(' ', static_cast<int>(numSpikeRoadblocks),     "spikes");
+			Globals::logger.Log<3>(static_cast<int>(roadblockSetups.size()), "setup(s) valid");
+			Globals::logger.Log<3>(static_cast<int>(numRegularRoadblocks),   "regular");
+			Globals::logger.Log<3>(static_cast<int>(numSpikeRoadblocks),     "spikes");
 		}
 
 		// Code Changes
@@ -512,8 +524,8 @@ namespace RoadblockOverrides
 			spawnCalloutChances.Log("spawnCalloutChance      ");
 			spikeCalloutChances.Log("spikeCalloutChance      ");
 
-			Globals::logger.LogLongIndent("numRegularRoadblocks:   ", static_cast<int>(numRegularRoadblocks));
-			Globals::logger.LogLongIndent("numSpikeRoadblocks:     ", static_cast<int>(numSpikeRoadblocks));
+			Globals::logger.Log<2>("numRegularRoadblocks:   ", static_cast<int>(numRegularRoadblocks));
+			Globals::logger.Log<2>("numSpikeRoadblocks:     ", static_cast<int>(numSpikeRoadblocks));
 		}
 	}
 }

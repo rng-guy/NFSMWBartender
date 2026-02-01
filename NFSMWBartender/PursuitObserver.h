@@ -52,7 +52,7 @@ namespace PursuitObserver
 		HashContainers::AddressMap<CopLabel>          copVehicleToLabel;
 		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
 
-		inline static HashContainers::SafeAddressMap<PursuitObserver> pursuitToObserver;
+		inline static HashContainers::StableAddressMap<PursuitObserver> pursuitToObserver;
 
 
 		static CopLabel LabelAddVehicleCall(const address caller)
@@ -159,7 +159,7 @@ namespace PursuitObserver
 		explicit PursuitObserver(const address pursuit) : pursuit(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('+', this, "PursuitObserver");
+				Globals::logger.Log<2>('+', this, "PursuitObserver");
 
 			this->pursuitReactions.reserve(6);
 
@@ -183,6 +183,13 @@ namespace PursuitObserver
 		}
 
 
+		explicit PursuitObserver(const PursuitObserver&)   = delete;
+		PursuitObserver& operator=(const PursuitObserver&) = delete;
+
+		explicit PursuitObserver(PursuitObserver&&)   = delete;
+		PursuitObserver& operator=(PursuitObserver&&) = delete;
+
+
 		static void __fastcall AddPursuit(const address pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
@@ -201,7 +208,7 @@ namespace PursuitObserver
 		~PursuitObserver()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('-', this, "PursuitObserver");
+				Globals::logger.Log<2>('-', this, "PursuitObserver");
 		}
 
 

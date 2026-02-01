@@ -37,7 +37,7 @@ namespace StateObserver
 		if ((playerHeatLevel >= 1) and (playerHeatLevel <= HeatParameters::maxHeatLevel))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("    HEAT [STA] Heat level now", static_cast<int>(playerHeatLevel), (playerIsRacing) ? "(race)" : "(free-roam)");
+				Globals::logger.Log("    HEAT [STA] Heat level now", static_cast<int>(playerHeatLevel), (playerIsRacing) ? "(race)" : "(roam)");
 
 			Globals::playerHeatLevelKnown = true;
 
@@ -47,7 +47,7 @@ namespace StateObserver
 			PursuitObserver::SetToHeat(playerIsRacing, playerHeatLevel);
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("WARNING: [STA] Invalid Heat level", static_cast<int>(playerHeatLevel), (playerIsRacing) ? "(race)" : "(free-roam)");
+			Globals::logger.Log("WARNING: [STA] Invalid Heat level", static_cast<int>(playerHeatLevel), (playerIsRacing) ? "(race)" : "(roam)");
 	}
 
 
@@ -151,7 +151,7 @@ namespace StateObserver
 	constexpr address resetAIVehicleEntrance = 0x414D6C;
 	constexpr address resetAIVehicleExit     = 0x414D72;
 
-	// Resets recycled padding bytes of AIPursuit objects
+	// Resets repurposed padding bytes of AIPursuit objects
 	__declspec(naked) void ResetAIVehicle()
 	{
 		__asm
@@ -182,7 +182,7 @@ namespace StateObserver
 			cmp eax, dword ptr [esi + 0x2C] // game state
 			je conclusion                   // state unchanged
 
-			mov edx, Globals::gameTicks
+			mov edx, dword ptr Globals::gameTicks
 			mov ecx, dword ptr [edx]
 
 			mov edx, dword ptr [esi + 0x2C]
@@ -295,7 +295,7 @@ namespace StateObserver
 	constexpr address resetAIVehiclePursuitEntrance = 0x416B7A;
 	constexpr address resetAIVehiclePursuitExit     = 0x416B80;
 
-	// Resets recycled padding bytes of AIVehiclePursuit objects
+	// Resets repurposed padding bytes of AIVehiclePursuit objects
 	__declspec(naked) void ResetAIVehiclePursuit()
 	{
 		__asm

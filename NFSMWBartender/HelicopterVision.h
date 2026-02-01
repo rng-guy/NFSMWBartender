@@ -55,7 +55,7 @@ namespace HelicopterVision
 
 		const float currentTimestamp = Globals::GetGameTime(true);
 
-		bool& isKnownHelicopter = *reinterpret_cast<bool*>(heliAIVehicle - 0x4C + 0x769); // padding byte
+		volatile bool& isKnownHelicopter = *reinterpret_cast<volatile bool*>(heliAIVehicle - 0x4C + 0x769); // padding byte
 
 		if (isKnownHelicopter)
 		{
@@ -85,7 +85,7 @@ namespace HelicopterVision
 	bool ParseColour
 	(
 		HeatParameters::Parser& parser,
-		const char* const       colourName,
+		const std::string&      colourName,
 		BGRA<float>&            colour,
 		float&                  length
 	) {
@@ -93,7 +93,7 @@ namespace HelicopterVision
 
 		const HeatParameters::Bounds<int> limits(0, 255);
 
-		const bool isValid = parser.ParseRow<int, int, int, int, float>
+		const bool isValid = parser.ParseFromFile<int, int, int, int, float>
 		(
 			"Helicopter:Vision",
 			colourName,
@@ -184,21 +184,22 @@ namespace HelicopterVision
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [VIS] HelicopterVision");
 
-		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
-		// Colour data
+		// Parse and check in-sight colour
 		if (not ParseColour(parser, "withinSightColour", colourRange, lengthToEnd))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent("Invalid within-sight colour");
+				Globals::logger.Log<2>("Invalid within-sight colour");
 
 			return false;
 		}
 
+		// Parse and check out-of-sight colour
 		if (not ParseColour(parser, "outOfSightColour",  baseColour,  lengthToBase))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent("Invalid out-of-sight colour");
+				Globals::logger.Log<2>("Invalid out-of-sight colour");
 
 			return false;
 		}
@@ -208,8 +209,8 @@ namespace HelicopterVision
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogLongIndent("Within sight:", StateToColour(1.f), lengthToEnd);
-			Globals::logger.LogLongIndent("Out of sight:", StateToColour(0.f), lengthToBase);
+			Globals::logger.Log<2>("Within sight:", StateToColour(1.f), lengthToEnd);
+			Globals::logger.Log<2>("Out of sight:", StateToColour(0.f), lengthToBase);
 		}
 
 		// Code modifications

@@ -22,7 +22,7 @@ namespace PursuitFeatures
 
 		static address GetAIVehiclePursuit(const address copVehicle)
 		{
-			const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
+			const address copAIVehicle = *reinterpret_cast<volatile address*>(copVehicle + 0x54);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -36,7 +36,7 @@ namespace PursuitFeatures
 
 		static bool EndSupportGoal(const address copVehicle)
 		{
-			const address copAIVehicle = *reinterpret_cast<address*>(copVehicle + 0x54);
+			const address copAIVehicle = *reinterpret_cast<volatile address*>(copVehicle + 0x54);
 
 			if (copAIVehicle)
 			{
@@ -60,7 +60,14 @@ namespace PursuitFeatures
 
 		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {};
 
+		explicit PursuitReaction(const PursuitReaction&)   = delete;
+		PursuitReaction& operator=(const PursuitReaction&) = delete;
+
+		explicit PursuitReaction(PursuitReaction&&)   = delete;
+		PursuitReaction& operator=(PursuitReaction&&) = delete;
+
 		virtual ~PursuitReaction() = default;
+
 
 		virtual void UpdateOnGameplay()       {}
 		virtual void UpdateOnHeatChange()     {}

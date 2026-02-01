@@ -40,7 +40,7 @@ namespace RadioChatter
 	size_t lastReportedHeatLevel = 1;
 	int    lastJurisdictionID    = 0;
 
-	HashContainers::CachedVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
+	HashContainers::CachedCopyVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
 
 
 
@@ -131,7 +131,7 @@ namespace RadioChatter
 		{
 			push eax                        // copType
 			mov ecx, offset copTypeToCallsignID
-			call HashContainers::CachedVaultMap<Callsigns>::GetValue
+			call HashContainers::CachedCopyVaultMap<Callsigns>::GetValue
 			mov dword ptr [esp + 0x28], eax // repurposed variable
 			cmp eax, CROSS
 
@@ -206,7 +206,7 @@ namespace RadioChatter
 		{
 			push eax // copType
 			mov ecx, offset copTypeToCallsignID
-			call HashContainers::CachedVaultMap<Callsigns>::GetValue
+			call HashContainers::CachedCopyVaultMap<Callsigns>::GetValue
 
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B] // is "rhino"
@@ -267,7 +267,7 @@ namespace RadioChatter
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [RAD] CopRadio");
 
-		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Jurisdictions
 		HeatParameters::PointerPair<std::string> jurisdictionNames("city");
@@ -281,6 +281,7 @@ namespace RadioChatter
 
 		HeatParameters::Parse(parser, "Heat:Jurisdiction", jurisdictionNames);
 	
+		// Validate and convert to jurisdiction IDs
 		for (const bool forRaces : {false, true})
 		{
 			auto&       jurisIDs   = heatJurisdictionIDs.GetValues(forRaces);
@@ -298,7 +299,7 @@ namespace RadioChatter
 		std::vector<std::string> copVehicles;
 		std::vector<std::string> callsignNames;
 
-		parser.ParseUser<std::string>("Vehicles:Callsigns", copVehicles, callsignNames);
+		parser.ParseUser<std::string>("Vehicles:Callsigns", copVehicles, {callsignNames});
 
 		const HashContainers::Map<std::string, Callsigns> nameToCallsigns =
 		{
@@ -308,6 +309,7 @@ namespace RadioChatter
 			{"cross",  Callsigns::CROSS}
 		};
 
+		// Populate callsign map
 		const auto StringToCallsign = [&](const std::string& rawValue) -> Callsigns
 		{
 			const auto foundName = nameToCallsigns.find(rawValue);
@@ -323,7 +325,7 @@ namespace RadioChatter
 			Globals::IsVehicleCar,
 			callsignNames,
 			StringToCallsign,
-			[=](const Callsigns value) -> bool {return (value != Callsigns::UNKNOWN);}
+			[](const Callsigns value) -> bool {return (value != Callsigns::UNKNOWN);}
 		);
 
 		if (mapIsValid)

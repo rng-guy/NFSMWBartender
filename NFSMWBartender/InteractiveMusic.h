@@ -41,7 +41,7 @@ namespace InteractiveMusic
 		currentTrackID = (shuffleFirstTrack) ? Globals::prng.GenerateIndex(playlist.size()) : 0;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogIndent("[MUS] First pursuit theme:", playlist[currentTrackID] + 1);
+			Globals::logger.Log<1>("[MUS] First pursuit theme:", playlist[currentTrackID] + 1);
 
 		return playlist[currentTrackID];
 	}
@@ -56,7 +56,7 @@ namespace InteractiveMusic
 		currentTrackID %= numTracks;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogIndent("[MUS] Next pursuit theme:", playlist[currentTrackID] + 1);
+			Globals::logger.Log<1>("[MUS] Next pursuit theme:", playlist[currentTrackID] + 1);
 
 		return playlist[currentTrackID];
 	}
@@ -162,7 +162,7 @@ namespace InteractiveMusic
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [MUS] InteractiveMusic");
 
-		if (not parser.LoadFileWithLog(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Playlist
 		const auto& sections     = parser.GetSections();
@@ -183,10 +183,11 @@ namespace InteractiveMusic
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::logger.LogLongIndent("Playlist parsing:");
-				Globals::logger.LogLongIndent(' ', static_cast<int>(definitions.size()), "track(s) provided");
+				Globals::logger.Log<2>("Playlist parsing:");
+				Globals::logger.Log<3>(static_cast<int>(definitions.size()), "track(s) provided");
 			}
 
+			// Add track IDs if names are valid
 			for (const auto& [definition, value] : definitions)
 			{
 				if (definition.find(baseName) == 0)
@@ -197,43 +198,43 @@ namespace InteractiveMusic
 						playlist.push_back(foundName->second);
 
 					else if constexpr (Globals::loggingEnabled)
-						Globals::logger.LogLongIndent("  -", definition, "(invalid value)");
+						Globals::logger.Log<3>('-', definition, "(invalid value)");
 				}
 				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.LogLongIndent("  -", definition, "(invalid format)");
+					Globals::logger.Log<3>('-', definition, "(invalid format)");
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent(' ', static_cast<int>(playlist.size()), "track(s) valid");
+				Globals::logger.Log<3>(static_cast<int>(playlist.size()), "track(s) valid");
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.LogLongIndent("  no track(s) provided");
+			Globals::logger.Log<3>("no track(s) provided");
 
 		if (playlist.empty()) return false;
 
 		// Playlist settings
 		const std::string section = "Playlist:Settings";
 
-		transitionsEnabled = parser.Parse<float>(section, "lengthPerTrack", lengthPerTrack);
+		transitionsEnabled = parser.ParseFromFile<float>(section, "lengthPerTrack", {lengthPerTrack});
 
-		parser.Parse<bool>(section, "shuffleFirstTrack", shuffleFirstTrack);
-		parser.Parse<bool>(section, "shuffleAfterFirst", shuffleAfterFirst);
+		parser.ParseFromFile<bool>(section, "shuffleFirstTrack", {shuffleFirstTrack});
+		parser.ParseFromFile<bool>(section, "shuffleAfterFirst", {shuffleAfterFirst});
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.LogLongIndent("Playlist:");
+			Globals::logger.Log<2>("Playlist:");
 
 			for (size_t trackID = 0; trackID < playlist.size(); ++trackID)
-				Globals::logger.LogLongIndent("  track", static_cast<int>(trackID + 1), "= theme", playlist[trackID] + 1);
+				Globals::logger.Log<3>("track", static_cast<int>(trackID + 1), "= theme", playlist[trackID] + 1);
 
 			if (transitionsEnabled)
-				Globals::logger.LogLongIndent("Length per track:", lengthPerTrack);
+				Globals::logger.Log<2>("Length per track:", lengthPerTrack);
 
 			else
-				Globals::logger.LogLongIndent("Transitions disabled");
+				Globals::logger.Log<2>("Transitions disabled");
 
-			Globals::logger.LogLongIndent((shuffleFirstTrack) ? "Shuffled" : "Fixed", "first track");
-			Globals::logger.LogLongIndent((shuffleAfterFirst) ? "Shuffled" : "Fixed", "follow-up track(s)");
+			Globals::logger.Log<2>((shuffleFirstTrack) ? "Shuffled" : "Fixed", "first track");
+			Globals::logger.Log<2>((shuffleAfterFirst) ? "Shuffled" : "Fixed", "follow-up track(s)");
 		}
 
 		// Code modifications 

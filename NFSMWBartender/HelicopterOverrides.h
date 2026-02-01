@@ -29,8 +29,8 @@ namespace HelicopterOverrides
 	HeatParameters::OptionalInterval<float> wreckRespawnDelays({1.f}); // seconds
 	HeatParameters::OptionalInterval<float> lostRespawnDelays ({1.f}); // seconds
 
-	HeatParameters::OptionalInterval<float> lostRejoinDelays  ({1.f});       // seconds
-	HeatParameters::Pair            <float> minRejoinFuelTimes(10.f, {1.f}); // seconds
+	HeatParameters::OptionalInterval<float> lostRejoinDelays  ({1.f}); // seconds
+	HeatParameters::OptionalPair    <float> minRejoinFuelTimes({1.f}); // seconds
 
 	HeatParameters::OptionalInterval<float> fuelTimes({1.f}); // seconds
 
@@ -52,8 +52,6 @@ namespace HelicopterOverrides
 		
 		bool isPlayerPursuit = false;
 
-		int& numHelicoptersDeployed = *reinterpret_cast<int*>(this->pursuit + 0x150);
-
 		enum class Status
 		{
 			PENDING,
@@ -71,10 +69,12 @@ namespace HelicopterOverrides
 		float fuelTimeOnRejoin  = 0.f;  // seconds
 		float minRejoinFuelTime = 10.f; // seconds
 
+		volatile int& numHelicoptersDeployed = *reinterpret_cast<volatile int*>(this->pursuit + 0x150);
+
 		inline static address     helicopterOwner   = 0x0;
 		inline static const char* helicopterVehicle = nullptr;
 
-		inline static const address& helicopterObject = *reinterpret_cast<address*>(0x90D61C);
+		inline static const volatile address& helicopterObject = *reinterpret_cast<volatile address*>(0x90D61C);
 
 
 		void VerifyPursuit()
@@ -125,9 +125,10 @@ namespace HelicopterOverrides
 				this->SetFuelTime(fuelTimes.GetRandomValue());
 
 			this->spawnTimer.LoadInterval(lostRejoinDelays);
-			this->minRejoinFuelTime = minRejoinFuelTimes.current;
 
-			maxBailoutFuelTime = 8.f;
+			this->minRejoinFuelTime = (minRejoinFuelTimes.isEnableds.current) ? minRejoinFuelTimes.values.current : 0.f;
+
+			maxBailoutFuelTime = 8.f; // vanilla value
 
 			if (this->spawnTimer.IsIntervalEnabled() and hasLimitedFuel)
 				maxBailoutFuelTime = std::min<float>(lostRejoinDelays.minValues.current + this->minRejoinFuelTime, maxBailoutFuelTime);
@@ -159,9 +160,9 @@ namespace HelicopterOverrides
 		}
 
 
-		static float* GetFuelTimePointer()
+		static volatile float* GetFuelTimePointer()
 		{ 
-			return (HelicopterManager::helicopterObject) ? reinterpret_cast<float*>(HelicopterManager::helicopterObject + 0x7D8) : nullptr;
+			return (HelicopterManager::helicopterObject) ? reinterpret_cast<volatile float*>(HelicopterManager::helicopterObject + 0x7D8) : nullptr;
 		}
 
 
@@ -169,7 +170,7 @@ namespace HelicopterOverrides
 		{
 			if (not this->IsOwner()) return;
 
-			float* const fuelTime = this->GetFuelTimePointer();
+			volatile float* const fuelTime = this->GetFuelTimePointer();
 
 			if (fuelTime)
 			{
@@ -190,7 +191,7 @@ namespace HelicopterOverrides
 		{
 			if (not this->isPlayerPursuit) return;
 
-			const char* timerName = nullptr;
+			std::string timerName;
 
 			switch (this->helicopterStatus)
 			{
@@ -239,14 +240,14 @@ namespace HelicopterOverrides
 		explicit HelicopterManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('+', this, "HelicopterManager");
+				Globals::logger.Log<2>('+', this, "HelicopterManager");
 		}
 
 
 		~HelicopterManager() override
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.LogLongIndent('-', this, "HelicopterManager");
+				Globals::logger.Log<2>('-', this, "HelicopterManager");
 
 			this->RelinquishOwnership();
 		}
@@ -324,7 +325,7 @@ namespace HelicopterOverrides
 			}
 			else // not destroyed
 			{
-				const float* const fuelTime = this->GetFuelTimePointer();
+				const volatile float* const fuelTime = this->GetFuelTimePointer();
 
 				if (not (fuelTime and (*fuelTime > 0.f))) // expired
 				{
@@ -501,7 +502,7 @@ namespace HelicopterOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [HEL] HelicopterOverrides");
 
-		parser.LoadFileWithLog(HeatParameters::configPathAdvanced, "Helicopter.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced, "Helicopter.ini");
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Helicopter:Vehicle", helicopterVehicles);
@@ -521,7 +522,7 @@ namespace HelicopterOverrides
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (allValid)
-				Globals::logger.LogLongIndent("All vehicles valid");
+				Globals::logger.Log<2>("All vehicles valid");
 		}
 
 		// Code modifications 
@@ -563,11 +564,8 @@ namespace HelicopterOverrides
 			wreckRespawnDelays.Log("wreckRespawnDelay       ");
 			lostRespawnDelays .Log("lostRespawnDelay        ");
 
-			if (lostRejoinDelays.isEnableds.current)
-			{
-				lostRejoinDelays  .Log("lostRejoinDelay         ");
-				minRejoinFuelTimes.Log("minRejoinFuelTime       ");
-			}
+			lostRejoinDelays  .Log("lostRejoinDelay         ");
+			minRejoinFuelTimes.Log("minRejoinFuelTime       ");
 		}
 	}
 

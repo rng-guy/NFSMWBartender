@@ -53,7 +53,7 @@ namespace RandomNumbers
 
 	public:
 
-		explicit constexpr Xoshiro256ss(uint64_t seed = 0x0)
+		explicit Xoshiro256ss(uint64_t seed = 0x0)
 		{
 			if (not seed)
 			{
@@ -66,7 +66,7 @@ namespace RandomNumbers
 		}
 
 
-		constexpr uint64_t operator()()
+		uint64_t operator()()
 		{
 			const uint64_t result = this->Rotate(this->state[1] * 5, 7) * 9;
 			const uint64_t t      = this->state[1] << 17;
@@ -101,11 +101,12 @@ namespace RandomNumbers
 
 	// Generator wrapper class ----------------------------------------------------------------------------------------------------------------------
 
+	template <typename T = Xoshiro256ss>
 	class Generator
 	{
 	private:
 
-		Xoshiro256ss engine;
+		T engine;
 		
 
 
@@ -113,7 +114,7 @@ namespace RandomNumbers
 
 		template <typename T>
 		requires std::is_integral_v<T>
-		constexpr T GenerateNumber
+		T GenerateNumber
 		(
 			const T min,
 			const T max
@@ -125,7 +126,7 @@ namespace RandomNumbers
 
 		template <typename T>
 		requires std::is_integral_v<T>
-		constexpr bool DoTrial(const T chance)
+		bool DoTrial(const T chance)
 		{
 			return (this->GenerateNumber<T>(T(0), T(99)) < chance);
 		}
@@ -133,7 +134,7 @@ namespace RandomNumbers
 
 		template <typename T>
 		requires std::is_floating_point_v<T>
-		constexpr T GenerateNumber
+		T GenerateNumber
 		(
 			const T min,
 			const T max
@@ -145,13 +146,13 @@ namespace RandomNumbers
 
 		template <typename T>
 		requires std::is_floating_point_v<T>
-		constexpr bool DoTrial(const T chance)
+		bool DoTrial(const T chance)
 		{
 			return (this->GenerateNumber<T>(T(0), T(100)) < chance);
 		}
 
 
-		constexpr size_t GenerateIndex(const size_t size)
+		size_t GenerateIndex(const size_t size)
 		{
 			return (size > 1) ? this->GenerateNumber<size_t>(0, size - 1) : 0;
 		}

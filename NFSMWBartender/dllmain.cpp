@@ -90,7 +90,7 @@ static void __cdecl InitialiseBartender
     // General Heat and state observer
     if constexpr (Globals::loggingEnabled)
     {
-        Globals::logger.Log(" FEATURE [INI] Basic feature set   ", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
+        Globals::logger.Log(" FEATURE [INI] Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
         Globals::logger.Log(" FEATURE [INI] Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
     }
 
