@@ -406,7 +406,7 @@ namespace RoadblockOverrides
 		for (const auto& [section, contents] : sections)
 			if (section.find(baseName) == 0) ++maxNumSetups;
 
-		// Check if there are any setups
+		// Validate setup count
 		if (maxNumSetups == 0)
 		{
 			if constexpr (Globals::loggingEnabled)
@@ -417,6 +417,7 @@ namespace RoadblockOverrides
 		else if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<3>(static_cast<int>(maxNumSetups), "setup(s) provided");
 
+		// Prepare setup-parsing containers and data
 		roadblockSetups.reserve(maxNumSetups);
 
 		std::array<bool, maxNumParts> isValids = {};
