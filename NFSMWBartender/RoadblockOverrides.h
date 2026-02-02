@@ -568,6 +568,7 @@ namespace RoadblockOverrides
 				counter.CountSetup(setup);
 		}
 
+		// Validate actual setup count
 		if (roadblockSetups.empty())
 		{
 			if constexpr (Globals::loggingEnabled)
