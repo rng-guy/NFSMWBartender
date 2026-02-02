@@ -100,6 +100,7 @@ namespace ConfigParser
 			{
 				if (columnID < numColumns)
 				{
+					// Despite the bounds check, static analysis may throw a warning
 					columns[columnID++] = row.substr(start, end - start);
 					start = end + this->columnSeparator.length();
 				}
