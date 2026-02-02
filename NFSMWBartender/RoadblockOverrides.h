@@ -440,7 +440,7 @@ namespace RoadblockOverrides
 
 			name = section.substr(baseName.length());
 
-			// Validate extent values
+			// Parse and validate width values
 			if (not parser.ParseFromFile<float, float>(section, "extent", {minRoadWidth, {0.f}}, {maxRoadWidth, {0.f}}))
 			{
 				if constexpr (Globals::loggingEnabled)
@@ -524,7 +524,7 @@ namespace RoadblockOverrides
 				continue; // invalid setup; parse next
 			}
 
-			// Parse optional parameters
+			// Parse and validate optional parameters
 			parser.ParseFromFile<float>(section, "mirrored", {setup.mirrorChance, {0.f, 100.f}});
 
 			HeatParameters::Parse(parser, section, setup.chances);
