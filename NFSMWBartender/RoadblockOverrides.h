@@ -604,6 +604,21 @@ namespace RoadblockOverrides
 
 
 
+	void LogHeatReport()
+	{
+		Globals::logger.Log("    HEAT [RBL] RoadblockOverrides");
+
+		spawnCalloutChances.Log("spawnCalloutChance      ");
+		spikeCalloutChances.Log("spikeCalloutChance      ");
+
+		Globals::logger.Log<2>("numRegularRoadblocks:   ", static_cast<int>(counter.numRegular), static_cast<int>(counter.numMirrorRegular));
+		Globals::logger.Log<2>("numSpikeRoadblocks:     ", static_cast<int>(counter.numSpike),   static_cast<int>(counter.numMirrorSpikes));
+
+		counter.ResetCounts();
+	}
+
+
+
 	void SetToHeat
 	(
 		const bool   isRacing,
@@ -627,18 +642,7 @@ namespace RoadblockOverrides
 			}
 		}
 
-		// With logging disabled, the compiler optimises the counters away
 		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Log("    HEAT [RBL] RoadblockOverrides");
-
-			spawnCalloutChances.Log("spawnCalloutChance      ");
-			spikeCalloutChances.Log("spikeCalloutChance      ");
-
-			Globals::logger.Log<2>("numRegularRoadblocks:   ", static_cast<int>(counter.numRegular), static_cast<int>(counter.numMirrorRegular));
-			Globals::logger.Log<2>("numSpikeRoadblocks:     ", static_cast<int>(counter.numSpike),   static_cast<int>(counter.numMirrorSpikes));
-
-			counter.ResetCounts();
-		}
+			LogHeatReport();
 	}
 }
