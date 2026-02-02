@@ -405,7 +405,7 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 Regarding **roadblock setups** (`BartenderSettings\Advanced\Roadblocks.ini`):
 
-* If you delete this file or define no roadblock setups, Bartender disables this feature.
+* If you delete this file or define no valid roadblock setup(s), Bartender disables this feature.
 
 * If enabled, the roadblock-setup feature automatically fixes the vanilla issue where the game would never spawn certain roadblock setups. That's because the vanilla doesn't use randomness or width tolerances to select a setup; instead, it just picks the first setup in its table which uses the available width the most, and ignores any other setups that might be equally suitable (i.e. wide). Since the vanilla game has three spike-strip setups with exactly the same width, two of them will never appear in pursuits.
 
