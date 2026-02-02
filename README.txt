@@ -26,8 +26,8 @@ The SECTIONS BELOW address these questions in detail:
 ── ■ │ 1 - WHAT DOES THE "BASIC" FEATURE SET DO? │ ■ ──────────────────────────────────────────────
 
 The "Basic" feature set LETS YOU CHANGE (per Heat level)
- • whether the cops can start non-player pursuits,
  • at what time interval you gain passive bounty,
+ • whether the cops can start non-player pursuits,
  • the maximum combo-bounty multiplier for destroying cops quickly,
  • how quickly and below what distance from cops the red "BUSTED" bar fills,
  • how quickly the green "EVADE" bar fills once all cops have lost sight of you,
@@ -125,8 +125,9 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the game can request a new Strategy while another is still active.
 
 The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
- • what each roadblock setup available for requests consists of and looks like,
- • how much Heat racers gain / lose whenever they destroy a given cop vehicle, and
+ • what combination and arrangement of parts makes up a given roadblock setup,
+ • how likely each roadblock setup is to spawn with vertically mirrored parts instead,
+ • how much Heat racers gain / lose whenever they destroy a cop vehicle of a given type, and
  • which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
 The "Advanced" feature set ALWAYS FIXES EIGHT BUGS / ISSUES automatically:
