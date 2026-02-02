@@ -198,7 +198,7 @@ namespace PursuitObserver
 			const auto [pair, wasAdded] = PursuitObserver::pursuitToObserver.try_emplace(pursuit, nullptr);
 
 			if (wasAdded)
-				pair->second = std::make_unique<PursuitObserver>(pursuit);
+				pair->second = std::make_unique<PursuitObserver>(pursuit); // deferred allocation
 			
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);

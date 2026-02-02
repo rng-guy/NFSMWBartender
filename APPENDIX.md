@@ -409,13 +409,17 @@ Regarding **roadblock setups** (`BartenderSettings\Advanced\Roadblocks.ini`):
 
 * If enabled, the roadblock-setup feature automatically fixes the vanilla issue where the game would never spawn certain roadblock setups. That's because the vanilla doesn't use randomness or width tolerances to select a setup; instead, it just picks the first setup in its table which uses the available width the most, and ignores any other setups that might be equally suitable (i.e. wide). Since the vanilla game has three spike-strip setups with exactly the same width, two of them will never appear in pursuits.
 
+* If enabled, this feature automatically fixes the vanilla issue where cops may stop calling out new roadblock spawns or spike strips. This happens due to the game's speech manager reaching a locked state sometimes, which suppresses some callouts.
+
 * Read the usage comments in this file's header before you change any of its contents. It's very easy to screw up roadblock setups or encounter unexpected behaviour if you don't fully understand how the game goes about selecting roadblock setups to spawn.
 
 * I highly suggest you use Bartender's `RoadblockEditor.html` file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
 
 * You can safely hand-adjust the maximum road width for each roadblock as you see fit. Higher values allow a roadblock to spawn in more locations, but it might not be able to cover the entire road if the maximum width is much greater than its actual width.
 
-* To avoid clipping issues, you shouldn't adjust any roadblock parameters other than the maximum road width by hand. Vanilla roadblocks tend to use hand-adjusted values, probably because BlackBox couldn't be bothered to make an accurate setup editor.
+* Mirrored roadblock spawns have their part(s) flipped width-wise, adding some variety.
+
+* To avoid clipping issues, you shouldn't adjust any roadblock parameters other than the maximum road width, mirror probability, and `chance` values by hand. Vanilla roadblocks use hand-adjusted values, likely because they didn't have an editor.
 
 &nbsp;
 

@@ -269,7 +269,7 @@ namespace RadioChatter
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
-		// Jurisdictions
+		// Jurisdiction names
 		HeatParameters::PointerPair<std::string> jurisdictionNames("city");
 
 		const HashContainers::Map<std::string, Jurisdiction> nameToJurisdiction =

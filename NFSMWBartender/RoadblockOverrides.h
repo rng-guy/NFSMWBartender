@@ -13,14 +13,10 @@
 namespace RoadblockOverrides
 {
 
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Roadblock (part) structs ---------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
-
-	constexpr size_t maxNumParts = 6;
-
-	// Data structures
-	enum RBPartType // C-style for compatibility
+	// Parts (matches vanilla layout)
+	enum RBPartType
 	{
 		NONE     = 0,
 		CAR      = 1,
@@ -30,36 +26,82 @@ namespace RoadblockOverrides
 
 	struct RBPart
 	{
-		RBPartType partType = RBPartType::NONE;
+		RBPartType type = RBPartType::NONE;
 
-		float offsetX = 0.f; // metres
-		float offsetY = 0.f; // metres
-		float angle   = 0.f; // revolutions
+		float offsetX     = 0.f; // metres
+		float offsetY     = 0.f; // metres
+		float orientation = 0.f; // full rotations
 	};
 
-	struct RBTable // matches vanilla layout
+	static_assert(sizeof(RBPart) == 16, "Part size mismatch");
+
+
+
+	// Tables (matches vanilla layout)
+	constexpr size_t maxNumParts = 6;
+
+	struct RBTable
 	{
 		float  minRoadWidth    = 0.f; // metres
-		size_t numCarsRequired = 0;
+		size_t numCarsRequired = 0;   // cars
 
-		RBPart parts[maxNumParts] = {}; // C-style for compatibility
+		RBPart parts[maxNumParts];
 	};
 
+	static_assert(sizeof(RBTable) == 104, "Table size mismatch");
+
+
+
+	// Setups (mod-specific)
 	struct RBSetup
 	{
+		RBTable standard;
+		RBTable mirrored;
+
 		std::string name;
 
-		float maxRoadWidth = 0.f;
-		bool  hasSpikes    = false;
+		bool hasSpikes = false;
 
-		RBTable table = RBTable();
+		float maxRoadWidth = 0.f; // metres
+		float mirrorChance = 0.f; // percent
 
-		HeatParameters::Pair<int> chances{100, {0}};
+		HeatParameters::Pair<int> chances{100, {0}}; // percent
+
+
+		const RBTable* GetRandomTable() const
+		{
+			const bool isMirrored = Globals::prng.DoTrial<float>(this->mirrorChance);
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (isMirrored)
+					Globals::logger.Log<2>("Setup:", this->name, "(mirrored)");
+
+				else
+					Globals::logger.Log<2>("Setup:", this->name);
+			}
+
+			return &((isMirrored) ? this->mirrored : this->standard);
+		}
+
+
+		bool MirrorEnabled() const
+		{
+			return (this->mirrorChance > 0.f);
+		}
 	};
 
+
+
+
+
+	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+
+	bool featureEnabled = false;
+
 	// Heat parameters
-	HeatParameters::Pair<int> spawnCalloutChances(100, {0, 100});
-	HeatParameters::Pair<int> spikeCalloutChances(50,  {0, 100});
+	HeatParameters::Pair<float> spawnCalloutChances(100.f, {0.f, 100.f});
+	HeatParameters::Pair<float> spikeCalloutChances(50.f,  {0.f, 100.f});
 	
 	// Code caves
 	std::vector<RBSetup> roadblockSetups;
@@ -78,9 +120,9 @@ namespace RoadblockOverrides
 		if (Globals::IsInCooldownMode(pursuit))    return;
 		if (not Globals::IsPlayerPursuit(pursuit)) return;
 
-		if (Globals::prng.DoTrial<int>(spawnCalloutChances.current))
+		if (Globals::prng.DoTrial<float>(spawnCalloutChances.current))
 		{
-			if (hasSpikes and Globals::prng.DoTrial<int>(spikeCalloutChances.current))
+			if (hasSpikes and Globals::prng.DoTrial<float>(spikeCalloutChances.current))
 			{
 				const auto CallOutSpikes = reinterpret_cast<void (__cdecl*)(int)>(0x71DAC0);
 
@@ -124,17 +166,18 @@ namespace RoadblockOverrides
 			Globals::logger.Log<2>("Road width:", roadWidth);
 		}
 
-		// Find all eligible setups, and the best-fitting one as backup
+		// Use both the modded and vanilla methods to find eligible setups
 		int totalChance = 0;
 
-		const RBSetup* bestFit = nullptr;
+		const RBSetup* vanillaResult = nullptr;
 
 		for (const RBSetup& setup : roadblockSetups)
 		{
-			if (setup.chances.current < 1)                continue;
-			if (setup.hasSpikes != needsSpikes)           continue;
-			if (setup.table.minRoadWidth > roadWidth)     continue;
-			if (setup.table.numCarsRequired > maxNumCars) continue;
+			// Standard / mirrored setups share constraints
+			if (setup.chances.current < 1)                   continue;
+			if (setup.hasSpikes != needsSpikes)              continue;
+			if (setup.standard.minRoadWidth > roadWidth)     continue;
+			if (setup.standard.numCarsRequired > maxNumCars) continue;
 
 			if (setup.maxRoadWidth > roadWidth)
 			{
@@ -142,11 +185,12 @@ namespace RoadblockOverrides
 				candidates.push_back(&setup);
 			}
 			
-			if ((not bestFit) or (setup.table.minRoadWidth > bestFit->table.minRoadWidth))
-				bestFit = &setup;
+			// The vanilla game picks the setup that fills the road's width the most, ignoring ties
+			if ((not vanillaResult) or (setup.standard.minRoadWidth > vanillaResult->standard.minRoadWidth))
+				vanillaResult = &setup;
 		}
 
-		// Attempt to select an eligible setup at random
+		// Attempt to select a random eligible setup
 		if (not candidates.empty())
 		{
 			int       cumulativeChance = 0;
@@ -161,12 +205,9 @@ namespace RoadblockOverrides
 
 				if (cumulativeChance >= chanceThreshold)
 				{
-					candidates.clear();
+					candidates.clear(); // safe due to immediate return
 
-					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log<2>("Setup:", setup->name);
-
-					return &(setup->table);
+					return setup->GetRandomTable();
 				}
 			}
 
@@ -178,16 +219,13 @@ namespace RoadblockOverrides
 		else if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<2>("No candidate(s)");
 
-		// Fall back to best-fitting setup (if available)
-		if (bestFit)
+		// Fall back to vanilla result (if available)
+		if (vanillaResult)
 		{
 			if constexpr (Globals::loggingEnabled)
-			{
-				Globals::logger.Log<2>("Best width:", bestFit->table.minRoadWidth);
-				Globals::logger.Log<2>("Setup:",      bestFit->name);
-			}
+				Globals::logger.Log<2>("Best width:", vanillaResult->standard.minRoadWidth);
 
-			return &(bestFit->table);
+			return vanillaResult->GetRandomTable();
 		}
 		else if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<2>("No best fit");
@@ -330,7 +368,7 @@ namespace RoadblockOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<3>("no setup(s) provided");
 
-			return false;
+			return false; // no setups; disable feature
 		}
 		else if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<3>(static_cast<int>(maxNumSetups), "setup(s) provided");
@@ -349,12 +387,15 @@ namespace RoadblockOverrides
 		size_t numRegularRoadblocks = 0;
 		size_t numSpikeRoadblocks   = 0;
 
+		size_t numMirroredRegular = 0;
+		size_t numMirroredSpikes  = 0;
+
 		std::string name;
 
 		// Attempt to parse each setup
 		for (const auto& [section, contents] : sections)
 		{
-			if (section.find(baseName) > 0) continue;
+			if (section.find(baseName) > 0) continue; // not setup; parse next
 
 			float minRoadWidth = 0.f;
 			float maxRoadWidth = 0.f;
@@ -367,7 +408,7 @@ namespace RoadblockOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<3>('-', name, "(missing extent)");
 
-				continue;
+				continue; // invalid setup; parse next
 			}
 
 			// Check if "extent" is valid
@@ -376,15 +417,16 @@ namespace RoadblockOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<3>('-', name, "(invalid extent)");
 
-				continue;
+				continue; // invalid setup; parse next
 			}
 
-			// Parse roadblock parts
+			// Create and initialise global setup object
 			RBSetup& setup = roadblockSetups.emplace_back();
 
-			setup.table.minRoadWidth = minRoadWidth;
-			setup.maxRoadWidth       = maxRoadWidth;
+			setup.standard.minRoadWidth = minRoadWidth;
+			setup.maxRoadWidth          = maxRoadWidth;
 
+			// Parse roadblock-part parameters
 			isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
 			(
 				section,
@@ -395,17 +437,17 @@ namespace RoadblockOverrides
 				{orientations}
 			);
 
-			// Validate roadblock parts
+			// Process roadblock parts
 			size_t numValidParts = 0;
 
 			for (size_t partID = 0; partID < maxNumParts; ++partID)
 			{
-				if (not isValids[partID]) continue;
+				if (not isValids[partID]) continue; // invalid part; process next
 
 				switch (partTypes[partID])
 				{
 				case RBPartType::CAR:
-					++(setup.table.numCarsRequired);
+					++(setup.standard.numCarsRequired);
 					break;
 
 				case RBPartType::BLOCKADE:
@@ -416,10 +458,17 @@ namespace RoadblockOverrides
 					break;
 
 				default:
-					continue;
+					continue; // invalid part; process next
 				}
 
-				setup.table.parts[numValidParts++] =
+				// Remove redundant rotations
+				orientations[partID] -= static_cast<int>(orientations[partID]);
+
+				if (orientations[partID] < 0.f)
+					orientations[partID] += 1.f;
+
+				// Update part parameters
+				setup.standard.parts[numValidParts++] =
 				{
 					static_cast<RBPartType>(partTypes[partID]),
 					partOffsetsX[partID],
@@ -428,29 +477,63 @@ namespace RoadblockOverrides
 				};
 			}
 			
-			// Add or discard setup depending on validity
-			if (setup.table.numCarsRequired > 0)
+			// Finalise setup if (still) valid
+			if (setup.standard.numCarsRequired > 0)
 			{
-				setup.name = name;
+				setup.name = std::move(name);
+
+				// Create mirrored variant
+				setup.mirrored = setup.standard;
+
+				for (size_t partID = 0; partID < maxNumParts; ++partID)
+				{
+					RBPart& part = setup.mirrored.parts[partID];
+
+					if (part.type == RBPartType::NONE) break; // no more parts
+
+					part.offsetX     = -part.offsetX;
+					part.orientation = 1.f - part.orientation;
+					
+					// Mirror spike-strip pattern direction
+					if (part.type == RBPartType::SPIKES)
+					{
+						if (part.orientation > .5f)
+							part.orientation -= .5f; // clockwise
+
+						else
+							part.orientation += .5f; // counter-clockwise
+					}
+				}
+
+				// Parse optional parameters and increment logging counters
+				parser.ParseFromFile<float>(section, "mirrored", {setup.mirrorChance, {0.f, 100.f}});
+
+				HeatParameters::Parse(parser, section, setup.chances);
 
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (setup.hasSpikes)
+					{
 						++numSpikeRoadblocks;
-
+						
+						if (setup.MirrorEnabled())
+							++numMirroredSpikes;
+					}
 					else
+					{
 						++numRegularRoadblocks;
+
+						if (setup.MirrorEnabled())
+							++numMirroredRegular;
+					}
 				}
 
-				HeatParameters::Parse(parser, section, setup.chances);
+				continue; // valid setup, parse next
 			}
-			else
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<3>('-', name, "(no car(s))");
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<3>('-', name, "(no car(s))");
 
-				roadblockSetups.pop_back();
-			}
+			roadblockSetups.pop_back(); // invalid setup; discard and parse next
 		}
 
 		if (roadblockSetups.empty())
@@ -458,14 +541,14 @@ namespace RoadblockOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<3>("no setup(s) valid");
 
-			return false;
+			return false; // no valid setups; disable feature
 		}
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Log<3>(static_cast<int>(roadblockSetups.size()), "setup(s) valid");
-			Globals::logger.Log<3>(static_cast<int>(numRegularRoadblocks),   "regular");
-			Globals::logger.Log<3>(static_cast<int>(numSpikeRoadblocks),     "spikes");
+			Globals::logger.Log<3>(static_cast<int>(numRegularRoadblocks),   "regular,", static_cast<int>(numMirroredRegular), "mirrored");
+			Globals::logger.Log<3>(static_cast<int>(numSpikeRoadblocks),     "spikes,",  static_cast<int>(numMirroredSpikes),  "mirrored");
 		}
 
 		// Code Changes
@@ -502,21 +585,36 @@ namespace RoadblockOverrides
 		size_t numRegularRoadblocks = 0;
 		size_t numSpikeRoadblocks   = 0;
 
+		size_t numMirroredRegular = 0;
+		size_t numMirroredSpikes  = 0;
+
 		for (RBSetup& setup : roadblockSetups)
 		{
 			setup.chances.SetToHeat(isRacing, heatLevel);
 
-			if (setup.chances.current > 0)
+			if constexpr (Globals::loggingEnabled)
 			{
-				if (setup.hasSpikes)
-					++numSpikeRoadblocks;
+				if (setup.chances.current > 0)
+				{
+					if (setup.hasSpikes)
+					{
+						++numSpikeRoadblocks;
 
-				else 
-					++numRegularRoadblocks;
+						if (setup.MirrorEnabled())
+							++numMirroredSpikes;
+					}
+					else
+					{
+						++numRegularRoadblocks;
+
+						if (setup.MirrorEnabled())
+							++numMirroredRegular;
+					}
+				}
 			}
 		}
 
-		// With logging disabled, the compiler optimises the unsigned integers away
+		// With logging disabled, the compiler optimises the counters away
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Log("    HEAT [RBL] RoadblockOverrides");
@@ -524,8 +622,8 @@ namespace RoadblockOverrides
 			spawnCalloutChances.Log("spawnCalloutChance      ");
 			spikeCalloutChances.Log("spikeCalloutChance      ");
 
-			Globals::logger.Log<2>("numRegularRoadblocks:   ", static_cast<int>(numRegularRoadblocks));
-			Globals::logger.Log<2>("numSpikeRoadblocks:     ", static_cast<int>(numSpikeRoadblocks));
+			Globals::logger.Log<2>("numRegularRoadblocks:   ", static_cast<int>(numRegularRoadblocks), static_cast<int>(numMirroredRegular));
+			Globals::logger.Log<2>("numSpikeRoadblocks:     ", static_cast<int>(numSpikeRoadblocks),   static_cast<int>(numMirroredSpikes));
 		}
 	}
 }

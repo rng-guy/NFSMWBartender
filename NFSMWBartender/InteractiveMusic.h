@@ -168,6 +168,7 @@ namespace InteractiveMusic
 		const auto& sections     = parser.GetSections();
 		const auto  foundSection = sections.find("Music:Playlist");
 
+		// Parse track IDs if playlist section exists
 		if (foundSection != sections.end())
 		{
 			const std::string baseName    = "track";
@@ -187,7 +188,7 @@ namespace InteractiveMusic
 				Globals::logger.Log<3>(static_cast<int>(definitions.size()), "track(s) provided");
 			}
 
-			// Add track IDs if names are valid
+			// Validate and add track IDs
 			for (const auto& [definition, value] : definitions)
 			{
 				if (definition.find(baseName) == 0)
@@ -210,7 +211,7 @@ namespace InteractiveMusic
 		else if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<3>("no track(s) provided");
 
-		if (playlist.empty()) return false;
+		if (playlist.empty()) return false; // no valid theme(s); disable feature
 
 		// Playlist settings
 		const std::string section = "Playlist:Settings";

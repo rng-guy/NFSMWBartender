@@ -24,12 +24,13 @@ namespace CopSpawnOverrides
 	{
 	private:
 
-		const CopSpawnTables::SpawnTable* const& source;
-		const address                            pursuit;
-
 		int numActiveCops = 0;
 
-		CopSpawnTables::SpawnTable table = *(this->source);
+		const address pursuit;
+
+		const CopSpawnTables::TablePair& source;
+		
+		CopSpawnTables::SpawnTable table = *(this->source.current);
 
 		HashContainers::VaultMap<int> copTypeToCurrentCount;
 
@@ -60,8 +61,8 @@ namespace CopSpawnOverrides
 
 		explicit Contingent
 		(
-			const CopSpawnTables::SpawnTable* const& source,
-			const address                            pursuit = 0x0
+			const CopSpawnTables::TablePair& source,
+			const address                    pursuit = 0x0
 		) 
 			: source(source), pursuit(pursuit)
 		{
@@ -92,7 +93,7 @@ namespace CopSpawnOverrides
 
 		void UpdateSpawnTable()
 		{
-			this->table = *(this->source);
+			this->table = *(this->source.current);
 
 			for (const auto& pair : this->copTypeToCurrentCount)
 			{
@@ -221,7 +222,7 @@ namespace CopSpawnOverrides
 		const char* GetNameOfSpawnableCop() const
 		{
 			const char* const copName = this->GetNameOfAvailableCop();
-			return (copName) ? copName : this->source->GetRandomAvailableCop();
+			return (copName) ? copName : this->source.current->GetRandomAvailableCop();
 		}
 	};
 
@@ -253,9 +254,9 @@ namespace CopSpawnOverrides
 	// Code caves
 	bool skipScriptedSpawns = true;
 	
-	Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTables.current);
-	Contingent scriptedSpawns (CopSpawnTables::scriptedSpawnTables.current);
-	Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTables.current);
+	Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTables);
+	Contingent scriptedSpawns (CopSpawnTables::scriptedSpawnTables);
+	Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTables);
 
 	// Conversions
 	float squaredChaserSpawnClearance = chaserSpawnClearances.current * chaserSpawnClearances.current; // sq. metres
@@ -288,7 +289,7 @@ namespace CopSpawnOverrides
 		const volatile bool&  isFreeRoamPursuit = *reinterpret_cast<volatile bool*> (this->pursuit + 0xA8);
 		const volatile float& copSpawnCooldown  = *reinterpret_cast<volatile float*>(this->pursuit + 0xCC);
 
-		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTables.current, this->pursuit};
+		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTables, this->pursuit};
 
 		inline static HashContainers::AddressMap<ChasersManager*> pursuitToManager;
 

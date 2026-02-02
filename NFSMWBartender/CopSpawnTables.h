@@ -35,16 +35,16 @@ namespace CopSpawnTables
 
 		HashContainers::VaultMap<Entry> copTypeToEntry;
 
-		inline static HashContainers::StableVaultMap<std::string> copTypeToName;
+		inline static HashContainers::StableVaultMap<const std::string> copTypeToName;
 		
 
 		static auto RegisterName(const std::string& copName)
 		{
-			const vault copType          = Globals::GetVaultKey(copName.c_str());
+			const vault copType          = Globals::StringToVaultKey(copName);
 			const auto  [pair, wasAdded] = SpawnTable::copTypeToName.try_emplace(copType, nullptr);
 
 			if (wasAdded)
-				pair->second = std::make_unique<std::string>(copName);
+				pair->second = std::make_unique<std::string>(copName); // deferred allocation
 
 			return pair;
 		}
@@ -80,7 +80,7 @@ namespace CopSpawnTables
 			const auto [pair, wasAdded] = this->copTypeToEntry.try_emplace
 			(
 				registration->first,
-				registration->second->c_str(),
+				registration->second->c_str(), // safe due to stable map
 				copCount, 
 				copChance, 
 				copCount
@@ -243,28 +243,37 @@ namespace CopSpawnTables
 
 
 
+	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
+
+	using Tables    = HeatParameters::Values<SpawnTable>;
+	using TablePair = HeatParameters::PointerPair<SpawnTable>;
+
+
+
+
+
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::PointerPair<SpawnTable> patrolSpawnTables;
-	HeatParameters::PointerPair<SpawnTable> chaserSpawnTables;
-	HeatParameters::PointerPair<SpawnTable> scriptedSpawnTables;
-	HeatParameters::PointerPair<SpawnTable> roadblockSpawnTables;
+	TablePair patrolSpawnTables;
+	TablePair chaserSpawnTables;
+	TablePair scriptedSpawnTables;
+	TablePair roadblockSpawnTables;
 
 
 
 
 
-	// Auxiliary functinos --------------------------------------------------------------------------------------------------------------------------
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
 	void ParseTables
 	(
-		HeatParameters::Parser&             parser,
-		const std::string&                  tableName,
-		const std::string&                  format,
-		HeatParameters::Values<SpawnTable>& spawnTables
+		HeatParameters::Parser& parser,
+		const std::string&      tableName,
+		const std::string&      format,
+		Tables&                 tables
 	) {
 		std::vector<std::string> copNames;
 
@@ -280,7 +289,7 @@ namespace CopSpawnTables
 			const size_t numEntries = parser.ParseUser<int, int>(section, copNames, {copCounts, {1}}, {copChances, {1}});
 
 			for (size_t entryID = 0; entryID < numEntries; ++entryID)
-				spawnTables[heatLevel - 1].AddTypeByName(copNames[entryID], copCounts[entryID], copChances[entryID]);
+				(tables[heatLevel - 1]).AddTypeByName(copNames[entryID], copCounts[entryID], copChances[entryID]);
 		}
 	}
 
@@ -288,11 +297,11 @@ namespace CopSpawnTables
 
 	void ReplaceEmptyTables
 	(
-		HeatParameters::Values<SpawnTable>&       tables,
-		const HeatParameters::Values<SpawnTable>& replacements
+		Tables&       tables,
+		const Tables& replacements
 	) {
 		for (const size_t heatLevel : HeatParameters::heatLevels)
-			if (tables[heatLevel - 1].IsEmpty()) tables[heatLevel - 1] = replacements[heatLevel - 1];
+			if ((tables[heatLevel - 1]).IsEmpty()) tables[heatLevel - 1] = replacements[heatLevel - 1];
 	}
 
 
@@ -342,7 +351,7 @@ namespace CopSpawnTables
 					if constexpr (Globals::loggingEnabled)
 						Globals::logger.Log<2>("No Chasers for Heat level", static_cast<int>(heatLevel));
 
-					return false;
+					return false; // empty free-roam "Chasers" table; disable feature
 				}
 			}
 		}
