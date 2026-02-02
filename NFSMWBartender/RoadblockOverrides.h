@@ -539,7 +539,7 @@ namespace RoadblockOverrides
 				continue; // unused setup; parse next
 			}
 			
-			// Create mirrored variant (not worth skipping)
+			// Create mirrored variant (not worth skipping if disabled)
 			setup.mirrored = setup.standard;
 
 			for (size_t partID = 0; partID < maxNumParts; ++partID)
