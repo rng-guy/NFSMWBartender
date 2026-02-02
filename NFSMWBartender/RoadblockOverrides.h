@@ -532,7 +532,7 @@ namespace RoadblockOverrides
 			if (setup.chances.GetMaximum() < 1)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<3>('-', setup.name, "(0 chance)");
+					Globals::logger.Log<3>('-', setup.name, "(unused)");
 
 				roadblockSetups.pop_back(); // safe due to immediate continue
 
