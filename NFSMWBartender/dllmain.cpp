@@ -146,7 +146,8 @@ BOOL WINAPI DllMain
 
             return FALSE;
         }
-        else InitialiseBartenderOriginal = MemoryTools::MakeCallHook(InitialiseBartender, 0x6665B4); // InitializeEverything (0x665FC0)
+
+        InitialiseBartenderOriginal = MemoryTools::MakeCallHook(InitialiseBartender, 0x6665B4); // InitializeEverything (0x665FC0)
     }   
 
     return TRUE;
