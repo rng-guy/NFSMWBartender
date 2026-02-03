@@ -20,7 +20,7 @@ namespace RoadblockOverrides
 	{
 		NONE     = 0,
 		CAR      = 1,
-		BLOCKADE = 2,
+		SAWHORSE = 2,
 		SPIKES   = 3
 	};
 
@@ -488,7 +488,7 @@ namespace RoadblockOverrides
 					++(setup.standard.numCarsRequired);
 					break;
 
-				case RBPartType::BLOCKADE:
+				case RBPartType::SAWHORSE:
 					break;
 
 				case RBPartType::SPIKES:

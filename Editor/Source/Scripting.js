@@ -3,6 +3,11 @@
 
 const IMPORT_REGEX = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*$/;
 
+const SELECTION_COLOUR = '#258CF4';
+const CONTRAST_COLOUR  = '#EB47EB';
+
+const ANIMATION_TIMER = 2000; /* ms */
+
 const WIDTH_THRESHOLDS = [6.0, 10.0, 15.0, 22.0, 28.0];
 
 const IMAGE_RENDER_SCALE = 0.25;
@@ -17,27 +22,27 @@ const MOVE_FINE   = 1;
 const MOVE_COARSE = 10;
 
 const LAYER_PRIORITY = {
-    barricade: 3,
-    car:       2,
-    spikes:    1
+    sawhorse: 3,
+    car:      2,
+    spikes:   1
 };
 
 const RECT_CONFIG = {
-    car:       { src: 'Assets/Images/Car.webp' },
-    spikes:    { src: 'Assets/Images/Spikes.webp' },
-    barricade: { src: 'Assets/Images/Barricade.webp' }
+    car:      { src: 'Assets/Images/Car.webp' },
+    spikes:   { src: 'Assets/Images/Spikes.webp' },
+    sawhorse: { src: 'Assets/Images/Sawhorse.webp' }
 };
 
 const TYPE_MAP = {
     1: 'car',
-    2: 'barricade',
+    2: 'sawhorse',
     3: 'spikes'
 };
 
 const ID_MAP = {
-    'car'      : 1,
-    'barricade': 2,
-    'spikes'   : 3
+    'car'     : 1,
+    'sawhorse': 2,
+    'spikes'  : 3
 };
 
 
@@ -56,6 +61,7 @@ const canvasOverlay = document.getElementById('canvasOverlay');
 const modal         = document.getElementById('importModal');
 const importInput   = document.getElementById('importInput');
 const btnLoadImport = document.getElementById('btnLoadImport');
+const btnMirror     = document.getElementById('btnMirror');
 
 
 
@@ -83,9 +89,12 @@ let boxEnd = {
     y: 0
 };
 
-let clipboard         = null;
-let dragStartData     = null;
-let isShiftDown       = false;
+let clipboard     = null;
+let dragStartData = null;
+
+let isShiftDown      = false;
+let isMirrorHover    = false;
+let clipboardEnabled = true;
 
 let layerCounter      = 0;
 let selectionSnapshot = [];
@@ -289,7 +298,7 @@ function loadImportData()
     setTimeout(() => {
         canvasOverlay.innerText   = defaultText;
         canvasOverlay.style.color = "#666";
-    }, 4000);
+    }, ANIMATION_TIMER);
 }
 
 
@@ -306,11 +315,16 @@ document.addEventListener('mousedown', (e) => {
 
 
 outputField.addEventListener('click', () => {
+    if (!clipboardEnabled) return;
     navigator.clipboard.writeText(outputField.innerText).then(() => {
         outputOverlay.innerHTML = 'Settings <span style="color: #DEB700"><b>copied</b></span>.';
+	    outputField.classList.remove('flash');
+	    clipboardEnabled = false;
         setTimeout(() => {
-            outputOverlay.innerText = "Click to copy settings.";
-        }, 4000);
+            outputOverlay.innerHTML = '<span class="emph">Click</span> to copy settings.';
+	        outputField.classList.add('flash');
+	        clipboardEnabled = true;
+        }, ANIMATION_TIMER);
     });
 });
 
@@ -338,6 +352,13 @@ window.addEventListener('keydown', (e) => {
     if (modal.style.display === 'flex') return;
     
     const isCanvasActive = (document.activeElement === canvas);
+
+    if (e.key.toLowerCase() === 'm' && isCanvasActive)
+    {
+        e.preventDefault();
+        mirrorRects();
+        return;
+    }
     
     if (e.key === 'Shift')
     {
@@ -774,7 +795,7 @@ function updateUI()
     const allY = rects.reduce((acc, r, i) => (r.type === 'car' ? acc.concat(i) : acc), []);
     const selY = selectedIndices.filter(i => rects[i].type === 'car');
     
-    ['Car', 'Spikes', 'Barricade'].forEach(c => {
+    ['Car', 'Spikes', 'Sawhorse'].forEach(c => {
         const btn  = document.getElementById('btn' + c);
         const type = c.toLowerCase();
 	
@@ -802,8 +823,10 @@ function updateUI()
 
 function draw()	    
 {
+    context.lineWidth = 1;
     context.clearRect(0, 0, canvas.width, canvas.height);
-    
+   
+    // Grid
     if (isShiftDown && selectedIndices.length > 0)
     {
         context.beginPath();
@@ -823,33 +846,8 @@ function draw()
 	
         context.stroke();
     }
-    
-    const queue = rects.map((r, i) => ({r,i})).sort((a, b) => (LAYER_PRIORITY[a.r.type] - LAYER_PRIORITY[b.r.type]) || (a.r.layer - b.r.layer));
-    
-    queue.forEach(item => {
-        context.save();
-        context.translate(item.r.x, item.r.y);
-        context.rotate(item.r.angle);
-        context.drawImage(item.r.img, -item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
-	
-        if (selectedIndices.includes(item.i))
-	    {
-            context.strokeStyle = '#007bff';
-            context.lineWidth   = 3;
-            context.strokeRect(-item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
-        }
-	
-        context.restore();
-    });
-    
-    if (isBoxSelecting)
-    {
-        context.strokeStyle = '#007bff';
-        context.setLineDash([5, 5]);
-        context.strokeRect(boxStart.x, boxStart.y, boxEnd.x - boxStart.x, boxEnd.y - boxStart.y);
-        context.setLineDash([]);
-    }
-    
+
+    // Minimal bounding-box
     let minX = Infinity;
     let maxX = -Infinity;
     let minY = Infinity;
@@ -865,39 +863,102 @@ function draw()
             maxY = Math.max(maxY, r.y + p.y);
         });
     });
+
+    let mbb = null;
     
     if (rects.length > 0)
     {
-        const mbb = {
-            x:  minX,
-            y:  minY,
-            w:  maxX - minX,
-            h:  maxY - minY,
+        mbb = {
+            x:  Math.floor(minX) + 0.5,
+            y:  Math.floor(minY) + 0.5,
+            w:  Math.floor(maxX - minX),
+            h:  Math.floor(maxY - minY),
             cx: minX + (maxX - minX) / 2,
             cy: minY + (maxY - minY) / 2
         };
 	
         context.setLineDash([5, 5]);
-        context.strokeStyle = '#666';
+        context.strokeStyle = '#BBB';
         context.strokeRect(mbb.x, mbb.y, mbb.w, mbb.h);
         context.setLineDash([]);
-	
-        if (rects.length > 1)
-	    {
-            context.beginPath();
-            context.arc(mbb.cx, mbb.cy, 8, 0, Math.PI * 2);
-            context.fillStyle = 'white';
-            context.fill();
-	    
-            context.beginPath();
-            context.arc(mbb.cx, mbb.cy, 5, 0, Math.PI * 2);
-            context.fillStyle = 'magenta';
-            context.fill();
-        }
-	
+		
         updateOutput(mbb);
     }
     
+    // Selection markers
+    const queue = rects.map((r, i) => ({r,i})).sort((a, b) => (LAYER_PRIORITY[a.r.type] - LAYER_PRIORITY[b.r.type]) || (a.r.layer - b.r.layer));
+    
+    queue.forEach(item => {
+        context.save();
+        context.translate(item.r.x, item.r.y);
+        context.rotate(item.r.angle);
+        context.drawImage(item.r.img, -item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
+	
+        if (selectedIndices.includes(item.i))
+	    {
+            context.strokeStyle = SELECTION_COLOUR;
+	        context.lineWidth   = 3;
+		
+	        context.strokeRect(-item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
+        }
+	
+        context.restore();
+    });
+
+    // Selection area
+    if (isBoxSelecting)
+    {
+        context.strokeStyle = SELECTION_COLOUR;
+	
+        context.strokeRect
+	    (
+	        Math.floor(boxStart.x) + 0.5,
+	        Math.floor(boxStart.y) + 0.5,
+	        Math.floor(boxEnd.x - boxStart.x),
+	        Math.floor(boxEnd.y - boxStart.y)
+	    );
+	
+        context.setLineDash([]);
+    }
+
+    // Mirror indicator
+    if (isMirrorHover && rects.length > 1)
+    {
+        const pivotX = Math.floor((minX + maxX) / 2) + 0.5;
+
+        context.beginPath();
+	    context.moveTo(pivotX, minY);
+	    context.lineTo(pivotX, maxY);
+
+        context.strokeStyle = 'white';
+        context.lineWidth   = 7;
+
+	    context.stroke();
+	
+        context.beginPath();
+	    context.moveTo(pivotX, minY);
+	    context.lineTo(pivotX, maxY);
+
+        context.strokeStyle = CONTRAST_COLOUR;
+        context.lineWidth   = 1;
+
+	    context.stroke();
+    }
+
+    // Centre point
+    if (rects.length > 1)
+    {
+        context.beginPath();
+        context.arc(mbb.cx, mbb.cy, 8, 0, Math.PI * 2);
+        context.fillStyle = 'white';
+        context.fill();
+	
+        context.beginPath();
+        context.arc(mbb.cx, mbb.cy, 5, 0, Math.PI * 2);
+        context.fillStyle = CONTRAST_COLOUR;
+        context.fill();
+    }
+        
     counterEl.innerText = `Room for ${MAX_RECTS - rects.length} more part(s)`;
 }
 
@@ -968,6 +1029,37 @@ function clearCanvas()
     selectedIndices = [];
     addRect('car');
     updateUI();
+
+    draw();
+    canvas.focus();
+}
+
+
+
+btnMirror.addEventListener('mouseenter', () => {isMirrorHover = true;  draw();});
+btnMirror.addEventListener('mouseleave', () => {isMirrorHover = false; draw();});
+
+function mirrorRects()
+{
+    if (rects.length === 0) return;
+    
+    let minX = Infinity;
+    let maxX = -Infinity;
+    
+    rects.forEach(r => {
+        getLocalCorners(r).forEach(p => {
+            minX = Math.min(minX, r.x + p.x);
+            maxX = Math.max(maxX, r.x + p.x);
+        });
+    });
+    
+    const pivotX = (minX + maxX) / 2;
+    
+    rects.forEach(r => {
+        r.x     = (2 * pivotX) - r.x;
+        r.angle = ((r.type === 'sawhorse') ? (2 * Math.PI) : Math.PI) - r.angle;
+    });
+    
     draw();
     canvas.focus();
 }

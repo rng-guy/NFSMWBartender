@@ -244,7 +244,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 &nbsp;
 
 **To install** Bartender:
-1. download and unzip the `NfSMW_Bartender_v3.00.1.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/tag/v3.00.01);
+1. download and unzip the `NfSMW_Bartender_v3.00.2.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/tag/v3.00.02);
 2. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
 3. copy the `BartenderSettings` folder and `.asi` file to your game's `scripts` folder;
 4. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file; and
@@ -287,5 +287,5 @@ Finally, Bartender wouldn't have seen the light of day without
 * **[ExOptsTeam](https://github.com/ExOptsTeam)**, for permitting me to use their Heat-level fixes;
 * **Sebastiano Vigna**, for his [pseudorandom number generators](https://prng.di.unimi.it/);
 * **Martin Leitner-Ankerl**, for his [performant hashmap implementation](https://github.com/martinus/unordered_dense);
-* **trelbutate**, for his [NFSMW Cop Car Healthbars mod](https://github.com/trelbutate/MWHealthbars/) as a learning resource; and
+* **trelbutate**, for his [NFSMW Cop Car Healthbars](https://github.com/trelbutate/MWHealthbars/) mod as a learning resource; and
 * **[Orsal](https://nfsmods.xyz/usermods/20407)**, **zeta1207**, **[Aven](https://nfsmods.xyz/usermods/1610)**, **Astra King79**, and **[MORELLO](https://nfsmods.xyz/usermods/6960)**, for testing and providing feedback.

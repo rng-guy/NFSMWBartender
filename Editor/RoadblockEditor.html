@@ -52,7 +52,7 @@
   <body>
     <div class="error-pane" id="error">
       <p>Enable <span style="color: #D61E00">JavaScript</span> in order to use this tool.</p>
-      <p>Ensure Bartender's <span style="color: #D61E00">Assets</span> folder is present.</p>
+      <p>Ensure Bartender&rsquo;s <span style="color: #D61E00">Assets</span> folder is present.</p>
     </div>
     
     <div class="workspace" id="main">
@@ -66,12 +66,13 @@
       <div class="bottom-controls">
         <div class="btn-group-left">
           <button id="btnCar" class="btn-add" onclick="handleAction('car')">✚ car</button>
+	      <button id="btnSawhorse" class="btn-add" onclick="handleAction('sawhorse')">✚ sawhorse</button>
           <button id="btnSpikes" class="btn-add" onclick="handleAction('spikes')">✚ spikes</button>
-          <button id="btnBarricade" class="btn-add" onclick="handleAction('barricade')">✚ barricade</button>
-          <button id="btnImport" class="btn-misc" onclick="openImportModal()">import</button>
+	      <button id="btnMirror" class="btn-misc btn-symbol" onclick="mirrorRects()">⇆</button>	  
         </div>
         <div class="btn-group-right">
-          <button id="deleteBtn" class="btn-misc" onclick="deleteSelected()" disabled>remove selected</button>
+          <button id="deleteBtn" class="btn-misc" onclick="deleteSelected()" disabled>remove</button>
+          <button id="btnImport" class="btn-misc" onclick="openImportModal()">import</button>	  
           <button id="btnClear" class="btn-misc" onclick="clearCanvas()">clear</button>
         </div>
       </div>
@@ -79,8 +80,8 @@
       <div class="output-container">
         <div class="caption">Bartender settings</div>
         <div class="output-wrapper">
-          <div id="outputField"></div>
-          <div id="outputOverlay">Click to copy settings.</div>
+          <div id="outputField" class="output flash"></div>
+          <div id="outputOverlay"><span class="emph">Click</span> to copy settings.</div>
         </div>
       </div>
     </div>
@@ -97,7 +98,8 @@ part02 = typeID, ...
 
 
 
-(roadblocks not from this editor may end up slightly misaligned)"
+
+(roadblocks not from this editor may be slightly misaligned)"
 ></textarea>
         <div class="modal-footer">
           <button id="btnLoadImport" onclick="loadImportData()" disabled>apply</button>
