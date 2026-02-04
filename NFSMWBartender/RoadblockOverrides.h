@@ -437,8 +437,10 @@ namespace RoadblockOverrides
 
 			RBSetup setup(section.substr(baseName.length()));
 
+			RBTable& table = setup.standard;
+
 			// Parse and validate width values
-			if (not parser.ParseFromFile<float, float>(section, "extent", {setup.standard.minRoadWidth, {0.f}}, {setup.maxRoadWidth, {0.f}}))
+			if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {0.f}}, {setup.maxRoadWidth, {0.f}}))
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<3>('-', setup.name, "(no extent)");
@@ -446,7 +448,7 @@ namespace RoadblockOverrides
 				continue; // invalid setup; parse next
 			}
 
-			if (setup.standard.minRoadWidth >= setup.maxRoadWidth)
+			if (table.minRoadWidth >= setup.maxRoadWidth)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<3>('-', setup.name, "(invalid extent)");
@@ -475,7 +477,7 @@ namespace RoadblockOverrides
 				switch (partTypes[partID])
 				{
 				case RBPartType::CAR:
-					++(setup.standard.numCarsRequired);
+					++(table.numCarsRequired);
 					break;
 
 				case RBPartType::SAWHORSE:
@@ -496,7 +498,7 @@ namespace RoadblockOverrides
 					orientations[partID] += 1.f;
 
 				// Update part parameters
-				setup.standard.parts[numValidParts++] =
+				table.parts[numValidParts++] =
 				{
 					static_cast<RBPartType>(partTypes[partID]),
 					partOffsetsX[partID],
@@ -505,7 +507,7 @@ namespace RoadblockOverrides
 				};
 			}
 
-			if (setup.standard.numCarsRequired == 0)
+			if (table.numCarsRequired == 0)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<3>('-', setup.name, "(no car(s))");
@@ -527,7 +529,7 @@ namespace RoadblockOverrides
 			}
 			
 			// Create mirrored variant (not worth skipping if disabled)
-			setup.mirrored = setup.standard;
+			setup.mirrored = table;
 
 			for (size_t partID = 0; partID < maxNumParts; ++partID)
 			{

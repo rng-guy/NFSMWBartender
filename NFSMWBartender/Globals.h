@@ -140,7 +140,16 @@ namespace Globals
 
 	bool IsVehicleCar(const vault type)
 	{
-		return (GetVehicleClass(type) == 0x336FCACF); // CAR
+		switch (GetVehicleClass(type))
+		{
+		case 0x336FCACF: // CAR
+			[[fallthrough]];
+
+		case 0x89E87652: // TRACTOR
+			return true;
+		}
+
+		return false;
 	}
 
 
