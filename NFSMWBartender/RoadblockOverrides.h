@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <array>
 #include <vector>
 #include <string>
@@ -37,7 +38,7 @@ namespace RoadblockOverrides
 
 
 
-	// Tables (matches vanilla layout)
+	// Table (matches vanilla layout)
 	constexpr size_t maxNumParts = 6;
 
 	struct RBTable
@@ -52,7 +53,7 @@ namespace RoadblockOverrides
 
 
 
-	// Setups (mod-specific)
+	// Setup (mod-specific)
 	struct RBSetup
 	{
 		std::string name;
@@ -100,7 +101,7 @@ namespace RoadblockOverrides
 		size_t numSpike   = 0;
 
 		size_t numMirrorRegular = 0;
-		size_t numMirrorSpikes  = 0;
+		size_t numMirrorSpike  = 0;
 
 
 		void ResetCounts()
@@ -109,7 +110,7 @@ namespace RoadblockOverrides
 			this->numSpike   = 0;
 
 			this->numMirrorRegular = 0;
-			this->numMirrorSpikes  = 0;
+			this->numMirrorSpike  = 0;
 		}
 
 
@@ -120,7 +121,7 @@ namespace RoadblockOverrides
 				++numSpike;
 
 				if (setup.MirrorEnabled())
-					++numMirrorSpikes;
+					++numMirrorSpike;
 			}
 			else
 			{
@@ -499,8 +500,8 @@ namespace RoadblockOverrides
 					continue; // invalid part; process next
 				}
 
-				// Remove redundant rotations
-				orientations[partID] -= static_cast<int>(orientations[partID]);
+				// Remove redundant (i.e. full) rotations for consistency
+				orientations[partID] -= std::trunc(orientations[partID]);
 
 				if (orientations[partID] < 0.f)
 					orientations[partID] += 1.f;
@@ -582,7 +583,7 @@ namespace RoadblockOverrides
 			Globals::logger.Log<3>(static_cast<int>(roadblockSetups.size()), "setup(s) valid");
 
 			Globals::logger.Log<3>(static_cast<int>(counter.numRegular), "regular,", static_cast<int>(counter.numMirrorRegular), "mirrored");
-			Globals::logger.Log<3>(static_cast<int>(counter.numSpike),   "spikes,",  static_cast<int>(counter.numMirrorSpikes),  "mirrored");
+			Globals::logger.Log<3>(static_cast<int>(counter.numSpike),   "spikes,",  static_cast<int>(counter.numMirrorSpike),   "mirrored");
 
 			counter.ResetCounts();
 		}
@@ -614,7 +615,7 @@ namespace RoadblockOverrides
 		spikeCalloutChances.Log("spikeCalloutChance      ");
 
 		Globals::logger.Log<2>("numRegularRoadblocks:   ", static_cast<int>(counter.numRegular), static_cast<int>(counter.numMirrorRegular));
-		Globals::logger.Log<2>("numSpikeRoadblocks:     ", static_cast<int>(counter.numSpike),   static_cast<int>(counter.numMirrorSpikes));
+		Globals::logger.Log<2>("numSpikeRoadblocks:     ", static_cast<int>(counter.numSpike),   static_cast<int>(counter.numMirrorSpike));
 
 		counter.ResetCounts();
 	}
