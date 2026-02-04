@@ -430,40 +430,29 @@ namespace RoadblockOverrides
 
 		const std::string partFormat = "part{:02}";
 
-		std::string name;
-
 		// Attempt to parse each setup
 		for (const auto& [section, contents] : sections)
 		{
 			if (section.find(baseName) > 0) continue; // not setup; parse next
 
-			float minRoadWidth = 0.f;
-			float maxRoadWidth = 0.f;
-
-			name = section.substr(baseName.length());
+			RBSetup setup(section.substr(baseName.length()));
 
 			// Parse and validate width values
-			if (not parser.ParseFromFile<float, float>(section, "extent", {minRoadWidth, {0.f}}, {maxRoadWidth, {0.f}}))
+			if (not parser.ParseFromFile<float, float>(section, "extent", {setup.standard.minRoadWidth, {0.f}}, {setup.maxRoadWidth, {0.f}}))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<3>('-', name, "(no extent)");
+					Globals::logger.Log<3>('-', setup.name, "(no extent)");
 
 				continue; // invalid setup; parse next
 			}
 
-			if (minRoadWidth >= maxRoadWidth)
+			if (setup.standard.minRoadWidth >= setup.maxRoadWidth)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<3>('-', name, "(invalid extent)");
+					Globals::logger.Log<3>('-', setup.name, "(invalid extent)");
 
 				continue; // invalid setup; parse next
 			}
-
-			// Create and initialise global setup object
-			RBSetup& setup = roadblockSetups.emplace_back(std::move(name));
-
-			setup.standard.minRoadWidth = minRoadWidth;
-			setup.maxRoadWidth          = maxRoadWidth;
 
 			// Parse roadblock-part parameters
 			isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
@@ -521,8 +510,6 @@ namespace RoadblockOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<3>('-', setup.name, "(no car(s))");
 
-				roadblockSetups.pop_back(); // safe due to immediate continue
-
 				continue; // invalid setup; parse next
 			}
 
@@ -535,8 +522,6 @@ namespace RoadblockOverrides
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<3>('-', setup.name, "(unused)");
-
-				roadblockSetups.pop_back(); // safe due to immediate continue
 
 				continue; // unused setup; parse next
 			}
@@ -564,9 +549,11 @@ namespace RoadblockOverrides
 				}
 			}
 
-			// Increment logging counters
+			// Increment logging counters and save setup
 			if constexpr (Globals::loggingEnabled)
 				counter.CountSetup(setup);
+
+			roadblockSetups.push_back(std::move(setup));
 		}
 
 		// Validate actual setup count

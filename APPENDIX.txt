@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT'S THIS APPENDIX ABOUT? (v3.00.02) │ ■ ─────────────────────────────────────────────────
+── ■ │ WHAT'S THIS APPENDIX ABOUT? (v3.00.03) │ ■ ─────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -736,3 +736,4 @@ v1.00.00: Initial release
  3.00.00: Added feature / editor for custom roadblocks and overhauled most mod internals
       01: Improved roadblock-parsing logic and expanded documentation in places
       02: Added mirroring and some general UX improvements to roadblock editor
+      03: Further improved and simplified internal roadblock-parsing logic
