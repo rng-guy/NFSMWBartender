@@ -415,7 +415,7 @@ Regarding **roadblock setups** (`BartenderSettings\Advanced\Roadblocks.ini`):
 
 * I highly suggest you use Bartender's `RoadblockEditor.html` file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
 
-* The game may re-scale horizontal offsets in roadblocks. The degree of change depends on the spawn location, its width, and the (relative) width of the roadblock setup itself.
+* The game may re-scale horizontal offsets in roadblocks. The degree of change depends on the spawn location, its width, and the (relative) width of the roadblock setup itself; the resulting scaling coefficient is, however, always between 1.0 and 1.14 (inclusive).
 
 * You can safely hand-adjust the maximum road width for each roadblock as you see fit. Higher values allow a roadblock to spawn in more locations, but it might not be able to cover the entire road if the maximum width is much greater than its actual width.
 
