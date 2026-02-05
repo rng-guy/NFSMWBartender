@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT'S THIS APPENDIX ABOUT? (v3.00.03) │ ■ ─────────────────────────────────────────────────
+── ■ │ WHAT'S THIS APPENDIX ABOUT? (v3.00.04) │ ■ ─────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -159,7 +159,7 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
  • The playlist feature is incompatible with the "XNFSMusicPlayer" mod by xan1242. If you want to
    use that mod, you must delete Bartender's "[Music:Playlist]" parameter group or leave it empty.
 
- • You can define a playlist of up to 20 tracks using the game's four interactive pursuit themes. 
+ • You can define a custom playlist of tracks using the game's four interactive pursuit themes.
    By default, Bartender loops through this custom playlist from top to bottom in each pursuit.
 
  • For the pursuit-theme playlist, Bartender ignores themes that don't exist in the game.
@@ -543,6 +543,9 @@ Regarding STRATEGY REQUESTS ("BartenderSettings\Advanced\Strategies.ini"):
  • I highly suggest you use Bartender's "RoadblockEditor.html" file to create roadblock setups;
    just open it in any browser, build your roadblock setup, and copy-paste the configuration.
 
+ • The game may re-scale horizontal offsets in roadblocks. The degree of change depends on 
+   the spawn location, its width, and the (relative) width of the roadblock setup itself.
+
  • You can safely hand-adjust the maximum road width for each roadblock as you see fit.
    Higher values allow a roadblock to spawn in more locations, but it might not be able 
    to cover the entire road if the maximum width is much greater than its actual width.
@@ -737,3 +740,4 @@ v1.00.00: Initial release
       01: Improved roadblock-parsing logic and expanded documentation in places
       02: Added mirroring and some general UX improvements to roadblock editor
       03: Further improved and simplified internal roadblock-parsing logic
+      04: Improved spike-strip scale accuracy in roadblock editor
