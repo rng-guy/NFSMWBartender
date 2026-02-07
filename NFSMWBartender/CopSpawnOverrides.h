@@ -583,19 +583,12 @@ namespace CopSpawnOverrides
 			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
 			if (not manager) return false; // should never happen
 
-			const bool joiningAtLimit = (manager->numJoinedRoadblockVehicles >= roadblockJoinLimits.values.current);;
+			const bool hasCapacity = (chasersAreIndependents.current or (manager->GetNumPersistentCops() < activeChaserCounts.maxValues.current));
 
-			if (not chasersAreIndependents.current)
-			{
-				const bool hasGeneralCapacity = (manager->GetNumPersistentCops() < activeChaserCounts.maxValues.current);
+			if (roadblockJoinLimits.isEnableds.current)
+				return (hasCapacity and (manager->numJoinedRoadblockVehicles < roadblockJoinLimits.values.current));
 
-				if (roadblockJoinLimits.isEnableds.current)
-					return (hasGeneralCapacity and (not joiningAtLimit));
-
-				return hasGeneralCapacity;
-			}
-			
-			return (not (roadblockJoinLimits.isEnableds.current and joiningAtLimit));
+			return hasCapacity;
 		}
 
 

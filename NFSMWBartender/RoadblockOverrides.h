@@ -61,7 +61,8 @@ namespace RoadblockOverrides
 		RBTable standard;
 		RBTable mirrored;
 
-		bool hasSpikes = false;
+		bool hasSpikes  = false;
+		bool canStretch = true;
 
 		float maxRoadWidth = 0.f; // metres
 		float mirrorChance = 0.f; // percent
@@ -86,6 +87,12 @@ namespace RoadblockOverrides
 		}
 
 
+		float GetMaxStretchScale() const
+		{
+			return (this->canStretch) ? 1.14f : 1.f;
+		}
+
+
 		bool MirrorEnabled() const
 		{
 			return (this->mirrorChance > 0.f);
@@ -101,7 +108,7 @@ namespace RoadblockOverrides
 		size_t numSpike   = 0;
 
 		size_t numMirrorRegular = 0;
-		size_t numMirrorSpike  = 0;
+		size_t numMirrorSpike   = 0;
 
 
 		void ResetCounts()
@@ -110,7 +117,7 @@ namespace RoadblockOverrides
 			this->numSpike   = 0;
 
 			this->numMirrorRegular = 0;
-			this->numMirrorSpike  = 0;
+			this->numMirrorSpike   = 0;
 		}
 
 
@@ -142,11 +149,13 @@ namespace RoadblockOverrides
 	bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::Pair<float> spawnCalloutChances(100.f, {0.f, 100.f});
-	HeatParameters::Pair<float> spikeCalloutChances(50.f,  {0.f, 100.f});
+	HeatParameters::Pair<float> spawnCalloutChances(100.f, {0.f, 100.f}); // percent
+	HeatParameters::Pair<float> spikeCalloutChances(50.f,  {0.f, 100.f}); // percent
 	
 	// Code caves
 	std::vector<RBSetup> roadblockSetups;
+
+	float maxStretchScale = 1.14f;
 
 	bool hasSpikes = false;
 	int  spikeLane = 0;
@@ -252,6 +261,8 @@ namespace RoadblockOverrides
 				{
 					candidates.clear(); // safe due to immediate return
 
+					maxStretchScale = setup->GetMaxStretchScale();
+
 					return setup->GetRandomTable();
 				}
 			}
@@ -270,6 +281,8 @@ namespace RoadblockOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("Best width:", vanillaResult->standard.minRoadWidth);
 
+			maxStretchScale = vanillaResult->GetMaxStretchScale();
+
 			return vanillaResult->GetRandomTable();
 		}
 		else if constexpr (Globals::loggingEnabled)
@@ -284,11 +297,11 @@ namespace RoadblockOverrides
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address spikesLaneEntrance = 0x43E574;
-	constexpr address spikesLaneExit     = 0x43E57B;
+	constexpr address spikeLaneEntrance = 0x43E574;
+	constexpr address spikeLaneExit     = 0x43E57B;
 
 	// Records the last spike-strip position
-	__declspec(naked) void SpikesLane()
+	__declspec(naked) void SpikeLane()
 	{
 		__asm
 		{
@@ -298,7 +311,24 @@ namespace RoadblockOverrides
 			// Execute original code and resume
 			lea ecx, dword ptr [esp + 0xA4]
 
-			jmp dword ptr spikesLaneExit
+			jmp dword ptr spikeLaneExit
+		}
+	}
+
+
+
+	constexpr address scaleLimitEntrance = 0x43E345;
+	constexpr address scaleLimitExit     = 0x43E34D;
+
+	// Enforces the maximum stretch-scale for roadblocks
+	__declspec(naked) void ScaleLimit()
+	{
+		__asm
+		{
+			mov eax, dword ptr maxStretchScale
+			mov dword ptr [esp + 0x2C], eax
+
+			jmp dword ptr scaleLimitExit
 		}
 	}
 
@@ -516,7 +546,8 @@ namespace RoadblockOverrides
 			}
 
 			// Parse and validate optional parameters
-			parser.ParseFromFile<float>(section, "mirrored", {setup.mirrorChance, {0.f, 100.f}});
+			parser.ParseFromFile<bool> (section, "stretch", {setup.canStretch});
+			parser.ParseFromFile<float>(section, "mirror",  {setup.mirrorChance, {0.f, 100.f}});
 
 			HeatParameters::Parse(parser, section, setup.chances);
 
@@ -527,7 +558,7 @@ namespace RoadblockOverrides
 
 				continue; // unused setup; parse next
 			}
-			
+
 			// Create mirrored variant (not worth skipping if disabled)
 			setup.mirrored = table;
 
@@ -578,12 +609,15 @@ namespace RoadblockOverrides
 		}
 
 		// Code Changes
+		MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
+
 		MemoryTools::MakeRangeNOP(0x71F184, 0x71F19F); // regular callout
 		MemoryTools::MakeRangeNOP(0x71F091, 0x71F096); // spikes  callout
 
 		MemoryTools::MakeRangeJMP(SelectRoadblockTable, 0x4063D0, 0x40644A);
 
-		MemoryTools::MakeRangeJMP(SpikesLane,   spikesLaneEntrance,   spikesLaneExit);
+		MemoryTools::MakeRangeJMP(SpikeLane,    spikeLaneEntrance,    spikeLaneExit);
+		MemoryTools::MakeRangeJMP(ScaleLimit,   scaleLimitEntrance,   scaleLimitExit);
 		MemoryTools::MakeRangeJMP(RadioRequest, radioRequestEntrance, radioRequestExit);
 
 		ApplyFixes();

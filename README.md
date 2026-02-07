@@ -244,7 +244,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 &nbsp;
 
 **To install** Bartender:
-1. download and unzip the `NfSMW_Bartender_v3.00.6.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/tag/v3.00.06);
+1. download and unzip the `NfSMW_Bartender_v3.01.0.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/tag/v3.01.00);
 2. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
 3. copy the `BartenderSettings` folder and `.asi` file to your game's `scripts` folder;
 4. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file; and
@@ -262,7 +262,7 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v3.00.00, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v3.01.00, replace all old configuration files.
 
 &nbsp;
 

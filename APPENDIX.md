@@ -1,5 +1,5 @@
 
-![POV: You hit the RESET button by accident, and it did not fix your game's issues.](Thumbnail.jpg "I'm far too lazy to make another thumbnail for this.")
+![POV: You hit the RESET button by accident.](Thumbnail.jpg "I'm far too lazy to make another thumbnail for this.")
 
 This document contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](README.md/#3---what-mods-are-incompatible-with-bartender).
 
@@ -45,7 +45,7 @@ Bartender only recognises **Heat levels** from 1 to 10. If you want to use Barte
 
 &nbsp;
 
-Bartender parses its configuration (.ini) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure in the configuration files. Each group allows you to define values, either in relation to Heat levels or vehicles.
+Bartender parses its configuration (`.ini`) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure in the configuration files. Each group allows you to define values, either in relation to Heat levels or vehicles.
 
 &nbsp;
 
@@ -91,7 +91,7 @@ The **class of a vehicle** depends on the `CLASS` VltEd parameter in its `pvehic
 
 Regarding the "Basic" feature set **as a whole**:
 
-* The configuration (.ini) files for this feature set are located in `BartenderSettings\Basic`.
+* The configuration (`.ini`) files for this feature set are located in `BartenderSettings\Basic`.
 
 * The unedited configuration files for this feature set mostly match the game's vanilla values.
 
@@ -249,7 +249,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 Regarding the "Advanced" feature set **as a whole**:
 
-* The configuration (.ini) files for this feature set are located in `BartenderSettings\Advanced`.
+* The configuration (`.ini`) files for this feature set are located in `BartenderSettings\Advanced`.
 
 * The unedited configuration files for this feature set resemble the game's vanilla values.
 
@@ -415,13 +415,13 @@ Regarding **roadblock setups** (`BartenderSettings\Advanced\Roadblocks.ini`):
 
 * I highly suggest you use Bartender's `RoadblockEditor.html` file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
 
-* The game may re-scale horizontal offsets in roadblocks. The degree of change depends on the spawn location, its width, and the (relative) width of the roadblock setup itself; the resulting scaling coefficient is, however, always between 1.0 and 1.14 (inclusive).
+* The game may re-scale horizontal offsets in roadblocks. The degree of change depends on the spawn location, its width, and the (relative) width of the roadblock setup itself; the resulting scaling coefficient is, however, always between 1.0 and 1.14 (inclusive). Disabling stretching ensures a given setup always spawns exactly as you designed it.
 
 * You can safely hand-adjust the maximum road width for each roadblock as you see fit. Higher values allow a roadblock to spawn in more locations, but it might not be able to cover the entire road if the maximum width is much greater than its actual width.
 
 * Mirrored roadblock spawns have their part(s) flipped width-wise, adding some variety.
 
-* To avoid clipping issues, you shouldn't adjust any roadblock parameters other than the maximum road width, mirror probability, and `chance` values by hand. Vanilla roadblocks use hand-adjusted values, likely because they didn't have an editor.
+* To avoid clipping issues, you shouldn't adjust any roadblock parameters other than the maximum road width, stretching flag, mirror probability, and `chance` values by hand. Vanilla roadblocks use hand-adjusted values, likely because they didn't have an editor.
 
 &nbsp;
 

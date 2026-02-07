@@ -121,20 +121,39 @@ namespace HelicopterOverrides
 
 			hasLimitedFuel = fuelTimes.isEnableds.current;
 
+			this->spawnTimer.LoadInterval(lostRejoinDelays);
+
 			if (hasLimitedFuel)
 				this->SetFuelTime(fuelTimes.GetRandomValue());
 
-			this->spawnTimer.LoadInterval(lostRejoinDelays);
+			maxBailoutFuelTime = 8.f; // seconds; vanilla value
 
-			this->minRejoinFuelTime = (minRejoinFuelTimes.isEnableds.current) ? minRejoinFuelTimes.values.current : 0.f;
+			if (this->spawnTimer.IsIntervalEnabled()) // rejoining enabled
+			{
+				this->minRejoinFuelTime = minRejoinFuelTimes.values.current;
 
-			maxBailoutFuelTime = 8.f; // vanilla value
-
-			if (this->spawnTimer.IsIntervalEnabled() and hasLimitedFuel)
-				maxBailoutFuelTime = std::min<float>(lostRejoinDelays.minValues.current + this->minRejoinFuelTime, maxBailoutFuelTime);
+				if (hasLimitedFuel)
+					maxBailoutFuelTime = std::min<float>(lostRejoinDelays.minValues.current + this->minRejoinFuelTime, maxBailoutFuelTime);
+			}
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[HEL] Helicopter", (this->helicopterStatus != Status::PENDING) ? "respawned" : "spawned");
+		}
+
+
+		void CallOutHelicopterSpawn() const
+		{
+			if (not Globals::IsInCooldownMode(this->pursuit)) return;
+
+			const address soundAI = *reinterpret_cast<volatile address*>(0x993CC8);
+			if (not soundAI) return; // should never happen
+
+			const address helicopterActor = *reinterpret_cast<volatile address*>(soundAI + 0xE0);
+			if (not helicopterActor) return; // should never happen
+
+			const auto CallOutSweep = reinterpret_cast<void (__thiscall*)(address)>(0x717D40);
+
+			CallOutSweep(helicopterActor);
 		}
 
 
@@ -153,7 +172,8 @@ namespace HelicopterOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[HEL] Requesting helicopter");
 
-				SpawnHelicopter(Globals::copManager, this->pursuit); // usually takes 1-2 attempts to succeed
+				if (SpawnHelicopter(Globals::copManager, this->pursuit))
+					this->CallOutHelicopterSpawn();
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [HEL] Invalid AICopManager pointer");
