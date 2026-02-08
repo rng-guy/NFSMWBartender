@@ -404,7 +404,7 @@ namespace HelicopterOverrides
 		}
 
 
-		static const char* GetHelicopterVehicle()
+		static const char* GetHelicopterName()
 		{
 			if (not featureEnabled) return nullptr;
 
@@ -414,7 +414,7 @@ namespace HelicopterOverrides
 					return HelicopterManager::helicopterVehicle;
 
 				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [HEL] Invalid vehicle pointer");
+					Globals::logger.Log("WARNING: [HEL] Invalid name pointer");
 			}
 
 			return helicopterVehicles.current;

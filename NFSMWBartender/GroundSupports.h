@@ -30,7 +30,8 @@ namespace GroundSupports
 
 	HeatParameters::Pair<bool> roadblockEndsFormations(true);
 
-	HeatParameters::OptionalPair<float> roadblockJoinTimers; // seconds
+	HeatParameters::OptionalPair<float> regularRBJoinTimers; // seconds
+	HeatParameters::OptionalPair<float> backupRBJoinTimers;  // seconds
 
 	HeatParameters::Pair<float> maxRBJoinDistances      (500.f, {0.f}); // metres
 	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f,  {0.f}); // metres
@@ -263,6 +264,28 @@ namespace GroundSupports
 
 		// Contains vanilla limit if ChasersManager is disabled
 		return (numNonRoadblockVehicles < CopSpawnOverrides::activeChaserCounts.maxValues.current);
+	}
+
+
+
+	bool __fastcall MayDetachCops(const address roadblock)
+	{
+		const address pursuit   = *reinterpret_cast<volatile address*>(roadblock + 0x28);
+		const float   joinTimer = *reinterpret_cast<volatile float*>  (roadblock + 0x58);
+
+		switch (*reinterpret_cast<volatile int*>(pursuit + 0x218)) // pursuit status
+		{
+		case 0: // regular pursuit state
+			return (regularRBJoinTimers.isEnableds.current and (joinTimer > regularRBJoinTimers.values.current));
+
+		case 1: // active "Backup" timer
+			return (backupRBJoinTimers.isEnableds.current and (joinTimer > backupRBJoinTimers.values.current));
+
+		case 2: // "COOLDOWN" mode
+			return reactToCooldownModes.current;
+		}
+
+		return false;
 	}
 
 
@@ -662,47 +685,21 @@ namespace GroundSupports
 
 
 
-	constexpr address roadblockJoinTimerEntrance = 0x42BF09;
-	constexpr address roadblockJoinTimerExit     = 0x42BF14;
+	constexpr address roadblockJoinTimerEntrance = 0x42BF06;
+	constexpr address roadblockJoinTimerExit     = 0x42BF2B;
 
 	// Checks the timer for joining from roadblocks
 	__declspec(naked) void RoadblockJoinTimer()
 	{
 		__asm
 		{
-			cmp byte ptr roadblockJoinTimers.isEnableds.current, 0x1
-			jne conclusion // time-based joining disabled
+			fstp dword ptr [ebp + 0x58]
 
-			fcom dword ptr roadblockJoinTimers.values.current
-			fnstsw ax
-			test ah, 0x41
-
-			conclusion:
-			fstp st(0)
+			mov ecx, ebp
+			call MayDetachCops // ecx: roadblock
+			cmp al, 0x1
 
 			jmp dword ptr roadblockJoinTimerExit
-		}
-	}
-
-
-
-	constexpr address cooldownModeReactionEntrance = 0x42BF16;
-	constexpr address cooldownModeReactionExit     = 0x42BF2B;
-
-	// Can suppress roadblock reactions to "COOLDOWN" mode
-	__declspec(naked) void CooldownModeReaction()
-	{
-		__asm
-		{
-			cmp byte ptr reactToCooldownModes.current, 0x1
-			jne conclusion // no "COOLDOWN"-mode reaction
-
-			// Execute original code and resume
-			mov eax, dword ptr [ebp + 0x28]  // roadblock pursuit
-			cmp dword ptr [eax + 0x218], 0x2 // pursuit status
-
-			conclusion:
-			jmp dword ptr cooldownModeReactionExit
 		}
 	}
 
@@ -739,7 +736,7 @@ namespace GroundSupports
 		HeatParameters::Parse(parser, "Roadblocks:Cooldown",   roadblockCooldowns, roadblockHeavyCooldowns);
 		HeatParameters::Parse(parser, "Roadblocks:Distance",   roadblockSpawnDistances);
 		HeatParameters::Parse(parser, "Roadblocks:Formations", roadblockEndsFormations);
-		HeatParameters::Parse(parser, "Roadblocks:Joining",    roadblockJoinTimers);
+		HeatParameters::Parse(parser, "Roadblocks:Joining",    regularRBJoinTimers, backupRBJoinTimers);
 		HeatParameters::Parse(parser, "Roadblocks:Reactions",  reactToCooldownModes, reactToSpikesHits);
 		HeatParameters::Parse(parser, "Joining:Definitions",   maxRBJoinDistances, maxRBJoinElevationDeltas, maxRBJoinCounts);
 
@@ -776,21 +773,20 @@ namespace GroundSupports
 		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
 		MemoryTools::MakeRangeNOP(0x42402A, 0x424036); // Cross flag = 1
 
-		MemoryTools::MakeRangeJMP(CrossSub,             crossSubEntrance,             crossSubExit);
-		MemoryTools::MakeRangeJMP(OnAttached,           onAttachedEntrance,           onAttachedExit);
-		MemoryTools::MakeRangeJMP(OnDetached,           onDetachedEntrance,           onDetachedExit);
-		MemoryTools::MakeRangeJMP(CrossSpawn,           crossSpawnEntrance,           crossSpawnExit);
-		MemoryTools::MakeRangeJMP(HenchmenSub,          henchmenSubEntrance,          henchmenSubExit);
-		MemoryTools::MakeRangeJMP(HeavySelector,        heavySelectorEntrance,        heavySelectorExit);
-		MemoryTools::MakeRangeJMP(CrossPriority,        crossPriorityEntrance,        crossPriorityExit);
-		MemoryTools::MakeRangeJMP(RivalRoadblock,       rivalRoadblockEntrance,       rivalRoadblockExit);
-		MemoryTools::MakeRangeJMP(RequestCooldown,      requestCooldownEntrance,      requestCooldownExit);
-		MemoryTools::MakeRangeJMP(RoadblockCooldown,    roadblockCooldownEntrance,    roadblockCooldownExit);
-		MemoryTools::MakeRangeJMP(RoadblockDistance,    roadblockDistanceEntrance,    roadblockDistanceExit);
-		MemoryTools::MakeRangeJMP(SpikesHitReaction,    spikesHitReactionEntrance,    spikesHitReactionExit);
-		MemoryTools::MakeRangeJMP(RoadblockFormation,   roadblockFormationEntrance,   roadblockFormationExit);
-		MemoryTools::MakeRangeJMP(RoadblockJoinTimer,   roadblockJoinTimerEntrance,   roadblockJoinTimerExit);
-		MemoryTools::MakeRangeJMP(CooldownModeReaction, cooldownModeReactionEntrance, cooldownModeReactionExit);
+		MemoryTools::MakeRangeJMP(CrossSub,           crossSubEntrance,           crossSubExit);
+		MemoryTools::MakeRangeJMP(OnAttached,         onAttachedEntrance,         onAttachedExit);
+		MemoryTools::MakeRangeJMP(OnDetached,         onDetachedEntrance,         onDetachedExit);
+		MemoryTools::MakeRangeJMP(CrossSpawn,         crossSpawnEntrance,         crossSpawnExit);
+		MemoryTools::MakeRangeJMP(HenchmenSub,        henchmenSubEntrance,        henchmenSubExit);
+		MemoryTools::MakeRangeJMP(HeavySelector,      heavySelectorEntrance,      heavySelectorExit);
+		MemoryTools::MakeRangeJMP(CrossPriority,      crossPriorityEntrance,      crossPriorityExit);
+		MemoryTools::MakeRangeJMP(RivalRoadblock,     rivalRoadblockEntrance,     rivalRoadblockExit);
+		MemoryTools::MakeRangeJMP(RequestCooldown,    requestCooldownEntrance,    requestCooldownExit);
+		MemoryTools::MakeRangeJMP(RoadblockCooldown,  roadblockCooldownEntrance,  roadblockCooldownExit);
+		MemoryTools::MakeRangeJMP(RoadblockDistance,  roadblockDistanceEntrance,  roadblockDistanceExit);
+		MemoryTools::MakeRangeJMP(SpikesHitReaction,  spikesHitReactionEntrance,  spikesHitReactionExit);
+		MemoryTools::MakeRangeJMP(RoadblockFormation, roadblockFormationEntrance, roadblockFormationExit);
+		MemoryTools::MakeRangeJMP(RoadblockJoinTimer, roadblockJoinTimerEntrance, roadblockJoinTimerExit);
         
 		ApplyFixes(); // also contains Strategy-selection and roadblock-joining features
         
@@ -816,14 +812,15 @@ namespace GroundSupports
 		roadblockSpawnDistances.Log("roadblockSpawnDistance  ");
 		roadblockEndsFormations.Log("roadblockEndsFormation  ");
 
-		if (roadblockJoinTimers.isEnableds.current or reactToCooldownModes.current)
+		if (regularRBJoinTimers.isEnableds.current or backupRBJoinTimers.isEnableds.current or reactToCooldownModes.current)
 		{
 			maxRBJoinDistances      .Log("maxRBJoinDistance       ");
 			maxRBJoinElevationDeltas.Log("maxRBJoinElevationDeltas");
 			maxRBJoinCounts         .Log("maxRBJoinCount          ");
 		}
 
-		roadblockJoinTimers.Log("roadblockJoinTimer      ");
+		regularRBJoinTimers.Log("regularRBJoinTimer      ");
+		backupRBJoinTimers .Log("backupRBJoinTimer       ");
 
 		reactToCooldownModes.Log("reactToCooldownMode     ");
 		reactToSpikesHits   .Log("reactToSpikesHit        ");
@@ -867,7 +864,8 @@ namespace GroundSupports
 		maxRBJoinElevationDeltas.SetToHeat(isRacing, heatLevel);
 		maxRBJoinCounts         .SetToHeat(isRacing, heatLevel);
 
-		roadblockJoinTimers.SetToHeat(isRacing, heatLevel);
+		regularRBJoinTimers.SetToHeat(isRacing, heatLevel);
+		backupRBJoinTimers .SetToHeat(isRacing, heatLevel);
 
 		reactToCooldownModes.SetToHeat(isRacing, heatLevel);
 		reactToSpikesHits   .SetToHeat(isRacing, heatLevel);

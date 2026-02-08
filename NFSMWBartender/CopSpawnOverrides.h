@@ -215,14 +215,14 @@ namespace CopSpawnOverrides
 
 		const char* GetNameOfAvailableCop() const
 		{
-			return this->table.GetRandomAvailableCop();
+			return this->table.GetNameOfAvailableCop();
 		}
 
 
-		const char* GetNameOfSpawnableCop() const
+		const char* GetSureNameOfAvailableCop() const
 		{
 			const char* const copName = this->GetNameOfAvailableCop();
-			return (copName) ? copName : this->source.current->GetRandomAvailableCop();
+			return (copName) ? copName : this->source.current->GetNameOfAvailableCop();
 		}
 	};
 
@@ -240,11 +240,13 @@ namespace CopSpawnOverrides
 	bool trackJoinedVehicles = false;
 
 	// Heat parameters
-	HeatParameters::Interval<int>   activeChaserCounts       (1, 8, {0});   // cars
-	HeatParameters::Pair    <bool>  chasersAreIndependents   (false);
-	HeatParameters::Pair    <bool>  onlyDestroyedDecrements  (false);
-	HeatParameters::Pair    <bool>  transitionTriggersBackups(false);
-	HeatParameters::Pair    <float> chaserSpawnClearances    (40.f, {0.f}); // metres
+	HeatParameters::Interval<int>activeChaserCounts(1, 8, {0}); // cars
+
+	HeatParameters::Pair<bool> chasersAreIndependents   (false);
+	HeatParameters::Pair<bool> onlyDestroyedDecrements  (false);
+	HeatParameters::Pair<bool> transitionTriggersBackups(false);
+
+	HeatParameters::Pair<float> chaserSpawnClearances (40.f, {0.f}); // metres
 
 	HeatParameters::Pair<bool> trafficIgnoresChasers   (false);
 	HeatParameters::Pair<bool> trafficIgnoresRoadblocks(false);
@@ -613,23 +615,23 @@ namespace CopSpawnOverrides
 
 
 
-	const char* __fastcall GetByClassReplacement(const address caller)
+	const char* __fastcall GetNameOfNewNonChaser(const address caller)
 	{
 		if (Globals::playerHeatLevelKnown)
 		{
 			switch (caller)
 			{
 			case 0x4269E6: // helicopter
-				return HelicopterOverrides::HelicopterManager::GetHelicopterVehicle();
+				return HelicopterOverrides::HelicopterManager::GetHelicopterName();
 
 			case 0x42EAAD: // first cop of milestone / bounty pursuit
-				return CopSpawnTables::patrolSpawnTables.current->GetRandomAvailableCop();
+				return patrolSpawns.GetSureNameOfAvailableCop();
 
 			case 0x430DAD: // free patrol
 				return patrolSpawns.GetNameOfAvailableCop();
 				
 			case 0x43E049: // roadblock
-				return roadblockSpawns.GetNameOfSpawnableCop();
+				return roadblockSpawns.GetSureNameOfAvailableCop();
 			}
 
 			if constexpr (Globals::loggingEnabled)
@@ -961,7 +963,7 @@ namespace CopSpawnOverrides
 			mov dword ptr [esp + 0x4], ecx
 
 			mov ecx, dword ptr [esp]
-			call GetByClassReplacement // ecx: caller
+			call GetNameOfNewNonChaser // ecx: caller
 			test eax, eax
 			je conclusion              // no replacement
 
@@ -995,7 +997,7 @@ namespace CopSpawnOverrides
 			jne conclusion // Heat level unknown
 
 			mov ecx, offset scriptedSpawns
-			call Contingent::GetNameOfSpawnableCop
+			call Contingent::GetSureNameOfAvailableCop
 			mov esi, eax
 			
 			conclusion:
@@ -1016,7 +1018,7 @@ namespace CopSpawnOverrides
 		__asm
 		{
 			cmp dword ptr [esi + 0x70], 0x1 // "Scripted" cops in queue
-			jg conclusion                   // not final spawn
+			jg conclusion                   // was not final spawn
 
 			push eax
 
@@ -1061,7 +1063,7 @@ namespace CopSpawnOverrides
 			if (trackJoinedVehicles) Globals::logger.Log<2>("Tracking roadblock vehicles");
 		}
 
-		// Heat parameters
+		// Heat parameters (first file)
 		HeatParameters::Parse(parser, "Chasers:Limits",       activeChaserCounts);
 		HeatParameters::Parse(parser, "Chasers:Independence", chasersAreIndependents);
 		HeatParameters::Parse(parser, "Chasers:Decrement",    onlyDestroyedDecrements);
@@ -1069,6 +1071,9 @@ namespace CopSpawnOverrides
 		HeatParameters::Parse(parser, "Chasers:Clearance",    chaserSpawnClearances);
 
 		HeatParameters::Parse(parser, "Traffic:Independence", trafficIgnoresChasers, trafficIgnoresRoadblocks);
+
+		// Heat parameters (second file)
+		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
 
 		HeatParameters::Parse(parser, "Joining:Limit", roadblockJoinLimits);
 

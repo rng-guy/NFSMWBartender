@@ -410,12 +410,12 @@ namespace PursuitObserver
 
 		// Subheaders
 		CopSpawnOverrides  ::Initialise(parser);
+		RoadblockOverrides ::Initialise(parser);
 		CopFleeOverrides   ::Initialise(parser);
 		LeaderOverrides    ::Initialise(parser);
 		StrategyOverrides  ::Initialise(parser);
 		HelicopterOverrides::Initialise(parser);
 		HeatChangeOverrides::Initialise(parser);
-		RoadblockOverrides ::Initialise(parser);
 
 		// Code modifications
 		if (not RoadblockOverrides::featureEnabled)

@@ -158,7 +158,7 @@ namespace CopSpawnTables
 		}
 
 
-		const char* GetRandomAvailableCop() const
+		const char* GetNameOfAvailableCop() const
 		{
 			if (this->HasCapacity())
 			{

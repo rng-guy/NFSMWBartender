@@ -243,12 +243,10 @@ namespace CopFleeOverrides
 				return true;
 
 			case CopLabel::CHASER:
-				if (not chaserChasersThresholds.isEnableds.current) return true;
-				return (numActiveChasers > chaserChasersThresholds.values.current);
+				return ((not chaserChasersThresholds.isEnableds.current) or (numActiveChasers > chaserChasersThresholds.values.current));
 
 			case CopLabel::ROADBLOCK:
-				if (not joinedChasersThresholds.isEnableds.current) return true;
-				return (numActiveChasers > joinedChasersThresholds.values.current);
+				return ((not joinedChasersThresholds.isEnableds.current) or (numActiveChasers > joinedChasersThresholds.values.current));
 			}
 
 			return false;
@@ -472,12 +470,16 @@ namespace CopFleeOverrides
 			Globals::logger.Log("  CONFIG [FLE] CopFleeOverrides");
 
 		// Heat parameters (first file)
-		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
+		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
 
-		HeatParameters::Parse(parser, "Chasers:Fleeing", chaserFleeDelays, chaserChasersThresholds);
 		HeatParameters::Parse(parser, "Joining:Fleeing", joinedFleeDelays, joinedChasersThresholds);
 
 		// Heat parameters (second file)
+		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
+
+		HeatParameters::Parse(parser, "Chasers:Fleeing", chaserFleeDelays, chaserChasersThresholds);
+		
+		// Heat parameters (third file)
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		HeatParameters::Parse(parser, "Heavy3:Cancellation", heavy3SpeedThresholds);
