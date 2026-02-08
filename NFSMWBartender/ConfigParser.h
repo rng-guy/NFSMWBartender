@@ -78,11 +78,11 @@ namespace ConfigParser
 	{
 	private:
 
-		std::string openedFile;
-
 		inipp::Ini<char> parser;
+
+		std::string currentFullPath;
 		
-		std::map<std::string, decltype(parser.sections)> fileToSections;
+		std::map<std::string, decltype(parser.sections)> fullPathToSections;
 		
 
 		template <size_t numColumns>
@@ -136,7 +136,7 @@ namespace ConfigParser
 			const std::string fullPath = path + file;
 
 			// Check current file
-			if (this->openedFile == fullPath)
+			if (this->currentFullPath == fullPath)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Keep:", file);
@@ -144,15 +144,15 @@ namespace ConfigParser
 				return true;
 			}
 
+			this->parser.clear();
+			this->currentFullPath = fullPath;
+
 			// Attempt to create new cache entry
-			const auto& [pair, wasAdded] = this->fileToSections.try_emplace(fullPath);
+			const auto& [pair, wasAdded] = this->fullPathToSections.try_emplace(fullPath);
 
 			// Check cached files
 			if (not wasAdded)
 			{
-				this->parser.clear();
-
-				this->openedFile      = pair->first;
 				this->parser.sections = pair->second;
 				
 				if constexpr (Globals::loggingEnabled)
@@ -162,17 +162,14 @@ namespace ConfigParser
 			}
 
 			// Attempt to open new file
-			std::ifstream fileStream(pair->first);
+			std::ifstream fileStream(fullPath);
 
 			if (fileStream.is_open())
 			{
-				this->parser.clear();
-
 				this->parser.parse(fileStream);
 				this->parser.strip_trailing_comments();
 
-				this->openedFile = pair->first;
-				pair->second     = this->parser.sections;
+				pair->second = this->parser.sections;
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Open:", file);
@@ -180,10 +177,8 @@ namespace ConfigParser
 				return true;
 			}
 
-			this->fileToSections.erase(pair);
-
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Missing:", file);
+				Globals::logger.Log<2>("Skip:", file);
 
 			return false;
 		}
@@ -195,9 +190,9 @@ namespace ConfigParser
 		}
 
 
-		void ClearCachedFiles()
+		void ClearCachedFilePaths()
 		{
-			this->fileToSections.clear();
+			this->fullPathToSections.clear();
 		}
 
 

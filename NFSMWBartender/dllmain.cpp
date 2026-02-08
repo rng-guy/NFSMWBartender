@@ -3,18 +3,17 @@
 #include "MemoryTools.h"
 #include "HeatParameters.h"
 
-#include "StateObserver.h"
-
-#include "DestructionStrings.h"
+#include "RadioChatter.h"
+#include "CopDetection.h"
+#include "GroundSupports.h"
+#include "GeneralSettings.h"
 #include "HelicopterVision.h"
 #include "InteractiveMusic.h"
-#include "CopDetection.h"
-#include "RadioChatter.h"
-
-#include "GeneralSettings.h"
-#include "GroundSupports.h"
+#include "DestructionStrings.h"
 
 #include "PursuitObserver.h"
+
+#include "StateObserver.h"
 
 
 
@@ -47,25 +46,26 @@ static void __cdecl InitialiseBartender
     parser.formatDefaultKey = HeatParameters::defaultValueHandle;
 
     Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
+    Globals::basicSetEnabled |= RadioChatter      ::Initialise(parser);
+    Globals::basicSetEnabled |= CopDetection      ::Initialise(parser);
     Globals::basicSetEnabled |= HelicopterVision  ::Initialise(parser);
     Globals::basicSetEnabled |= InteractiveMusic  ::Initialise(parser);
-    Globals::basicSetEnabled |= CopDetection      ::Initialise(parser);
-    Globals::basicSetEnabled |= RadioChatter      ::Initialise(parser);
+    Globals::basicSetEnabled |= GeneralSettings   ::Initialise(parser);
+    Globals::basicSetEnabled |= GroundSupports    ::Initialise(parser);
 
-    Globals::basicSetEnabled |= GeneralSettings::Initialise(parser);
-    Globals::basicSetEnabled |= GroundSupports ::Initialise(parser);
+    parser.ClearCachedFilePaths();
 
     if (Globals::basicSetEnabled)
     {
         // Feature-linked fixes
-        if (not HelicopterVision::featureEnabled)
-            HelicopterVision::ApplyFixes();
+        if (not RadioChatter::featureEnabled)
+            RadioChatter::ApplyFixes();
 
         if (not CopDetection::featureEnabled)
             CopDetection::ApplyFixes();
 
-        if (not RadioChatter::featureEnabled)
-            RadioChatter::ApplyFixes();
+        if (not HelicopterVision::featureEnabled)
+            HelicopterVision::ApplyFixes();
 
         if (not GeneralSettings::featureEnabled)
             GeneralSettings::ApplyFixes();
