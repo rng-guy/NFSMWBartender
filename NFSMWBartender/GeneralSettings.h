@@ -42,8 +42,8 @@ namespace GeneralSettings
 
 	HeatParameters::Pair<bool> copFlipByDamageEnableds(true);
 
-	HeatParameters::OptionalPair<float> copFlipByTimers;      // seconds
-	HeatParameters::OptionalPair<float> racerFlipResetDelays; // seconds
+	HeatParameters::OptionalPair<float> copFlipByTimers     ({0.f}); // seconds
+	HeatParameters::OptionalPair<float> racerFlipResetDelays({0.f}); // seconds
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current; // hertz

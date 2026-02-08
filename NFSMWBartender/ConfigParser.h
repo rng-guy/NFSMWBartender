@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <tuple>
 #include <string>
 #include <format>
@@ -81,6 +82,8 @@ namespace ConfigParser
 
 		inipp::Ini<char> parser;
 		
+		std::map<std::string, decltype(parser.sections)> fileToSections;
+		
 
 		template <size_t numColumns>
 		bool ExtractColumns
@@ -132,31 +135,52 @@ namespace ConfigParser
 		) {
 			const std::string fullPath = path + file;
 
-			// Check parsed file
+			// Check current file
 			if (this->openedFile == fullPath)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("Cached:", file);
+					Globals::logger.Log<2>("Keep:", file);
 
 				return true;
 			}
 
-			// Attempt to load file
-			std::ifstream fileStream(fullPath);
+			// Attempt to create new cache entry
+			const auto& [pair, wasAdded] = this->fileToSections.try_emplace(fullPath);
+
+			// Check cached files
+			if (not wasAdded)
+			{
+				this->parser.clear();
+
+				this->openedFile      = pair->first;
+				this->parser.sections = pair->second;
+				
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log<2>("Load:", file);
+
+				return true;
+			}
+
+			// Attempt to open new file
+			std::ifstream fileStream(pair->first);
 
 			if (fileStream.is_open())
 			{
-				this->openedFile = fullPath;
-
 				this->parser.clear();
+
 				this->parser.parse(fileStream);
 				this->parser.strip_trailing_comments();
 
+				this->openedFile = pair->first;
+				pair->second     = this->parser.sections;
+
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("Loaded:", file);
+					Globals::logger.Log<2>("Open:", file);
 
 				return true;
 			}
+
+			this->fileToSections.erase(pair);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("Missing:", file);
@@ -168,6 +192,12 @@ namespace ConfigParser
 		const auto& GetSections() const
 		{
 			return this->parser.sections;
+		}
+
+
+		void ClearCachedFiles()
+		{
+			this->fileToSections.clear();
 		}
 
 

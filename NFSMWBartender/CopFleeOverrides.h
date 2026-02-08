@@ -20,16 +20,16 @@ namespace CopFleeOverrides
 	bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::Pair<float> heavy3SpeedThresholds(25.f, {0.f}); // kph
-	HeatParameters::Pair<bool>  heavy3JoiningEnableds(false);
-
-	HeatParameters::OptionalPair<int> heavy3JoinLimits({0}); // cars
-
 	HeatParameters::OptionalInterval<float> chaserFleeDelays       ({1.f}); // seconds
 	HeatParameters::OptionalPair    <int>   chaserChasersThresholds({0});   // cars
 
 	HeatParameters::OptionalInterval<float> joinedFleeDelays       ({1.f}); // seconds
 	HeatParameters::OptionalPair    <int>   joinedChasersThresholds({0});   // cars
+
+	HeatParameters::Pair<float> heavy3SpeedThresholds(25.f, {0.f}); // kph
+	HeatParameters::Pair<bool>  heavy3JoiningEnableds(false);
+
+	HeatParameters::OptionalPair<int> heavy3JoinLimits({0}); // cars
 
 	// Conversions
 	float baseSpeedThreshold = heavy3SpeedThresholds.current / 3.6f; // mps
@@ -470,15 +470,15 @@ namespace CopFleeOverrides
 			Globals::logger.Log("  CONFIG [FLE] CopFleeOverrides");
 
 		// Heat parameters (first file)
+		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
+
+		HeatParameters::Parse(parser, "Chasers:Fleeing", chaserFleeDelays, chaserChasersThresholds);
+
+		// Heat parameters (second file)
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
 
 		HeatParameters::Parse(parser, "Joining:Fleeing", joinedFleeDelays, joinedChasersThresholds);
 
-		// Heat parameters (second file)
-		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
-
-		HeatParameters::Parse(parser, "Chasers:Fleeing", chaserFleeDelays, chaserChasersThresholds);
-		
 		// Heat parameters (third file)
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
@@ -503,17 +503,17 @@ namespace CopFleeOverrides
 
 		Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
 
-		heavy3SpeedThresholds.Log("heay3SpeedThreshold     ");
-		heavy3JoiningEnableds.Log("heavy3JoiningEnabled    ");
-
-		if (heavy3JoiningEnableds.current)
-			heavy3JoinLimits.Log("heavy3JoinLimit         ");
-
 		chaserFleeDelays       .Log("chaserFleeDelay         ");
 		chaserChasersThresholds.Log("chaserChasersThreshold  ");
 
 		joinedFleeDelays       .Log("joinedFleeDelay         ");
 		joinedChasersThresholds.Log("joinedChasersThreshold  ");
+
+		heavy3SpeedThresholds.Log("heay3SpeedThreshold     ");
+		heavy3JoiningEnableds.Log("heavy3JoiningEnabled    ");
+
+		if (heavy3JoiningEnableds.current)
+			heavy3JoinLimits.Log("heavy3JoinLimit         ");
 	}
 
 
@@ -525,18 +525,18 @@ namespace CopFleeOverrides
 	) {
 		if (not featureEnabled) return;
 
+		chaserFleeDelays       .SetToHeat(isRacing, heatLevel);
+		chaserChasersThresholds.SetToHeat(isRacing, heatLevel);
+
+		joinedFleeDelays       .SetToHeat(isRacing, heatLevel);
+		joinedChasersThresholds.SetToHeat(isRacing, heatLevel);
+
 		heavy3SpeedThresholds.SetToHeat(isRacing, heatLevel);
 		heavy3JoiningEnableds.SetToHeat(isRacing, heatLevel);
 		heavy3JoinLimits     .SetToHeat(isRacing, heatLevel);
 
 		baseSpeedThreshold = heavy3SpeedThresholds.current / 3.6f;
 		jerkSpeedThreshold = baseSpeedThreshold * .625f;
-
-		chaserFleeDelays       .SetToHeat(isRacing, heatLevel);
-		chaserChasersThresholds.SetToHeat(isRacing, heatLevel);
-
-		joinedFleeDelays       .SetToHeat(isRacing, heatLevel);
-		joinedChasersThresholds.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();

@@ -30,8 +30,8 @@ namespace GroundSupports
 
 	HeatParameters::Pair<bool> roadblockEndsFormations(true);
 
-	HeatParameters::OptionalPair<float> regularRBJoinTimers; // seconds
-	HeatParameters::OptionalPair<float> backupRBJoinTimers;  // seconds
+	HeatParameters::OptionalPair<float> regularRBJoinTimers({0.f}); // seconds
+	HeatParameters::OptionalPair<float> backupRBJoinTimers ({0.f}); // seconds
 
 	HeatParameters::Pair<float> maxRBJoinDistances      (500.f, {0.f}); // metres
 	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f,  {0.f}); // metres
