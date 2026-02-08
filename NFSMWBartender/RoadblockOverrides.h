@@ -521,7 +521,7 @@ namespace RoadblockOverrides
 					continue; // invalid part; process next
 				}
 
-				// Remove redundant (i.e. full) rotations for consistency
+				// Remove full rotations and convert to positive orientation
 				orientations[partID] -= std::trunc(orientations[partID]);
 
 				if (orientations[partID] < 0.f)
@@ -545,10 +545,7 @@ namespace RoadblockOverrides
 				continue; // invalid setup; parse next
 			}
 
-			// Parse and validate optional parameters
-			parser.ParseFromFile<bool> (section, "stretch", {setup.canStretch});
-			parser.ParseFromFile<float>(section, "mirror",  {setup.mirrorChance, {0.f, 100.f}});
-
+			// Parse and validate "chance" parameter(s)
 			HeatParameters::Parse(parser, section, setup.chances);
 
 			if (setup.chances.GetMaximum() < 1)
@@ -558,6 +555,10 @@ namespace RoadblockOverrides
 
 				continue; // unused setup; parse next
 			}
+
+			// Parse other optional parameters
+			parser.ParseFromFile<bool> (section, "stretch", {setup.canStretch});
+			parser.ParseFromFile<float>(section, "mirror",  {setup.mirrorChance, {0.f, 100.f}});
 
 			// Create mirrored variant (not worth skipping if disabled)
 			setup.mirrored = table;
