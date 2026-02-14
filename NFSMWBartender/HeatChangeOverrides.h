@@ -458,7 +458,7 @@ namespace HeatChangeOverrides
 			HeatParameters::defaultValueHandle,
 			copVehicles,
 			Globals::StringToVaultKey,
-			Globals::DoesVehicleExist,
+			Globals::DoesVehicleTypeExist,
 			heatChanges,
 			[](const float change) -> float {return change;},
 			[](const float change) -> bool  {return true;}

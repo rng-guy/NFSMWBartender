@@ -746,4 +746,4 @@ v1.00.00: Initial release
       05: Corrected and expanded roadblock-setup documentation
       06: Fixed some minor oversights in documentation (sigh)
 
-   01.00: Restored a helicopter callout and expanded roadblock features some more
+   01.00: Restored a helicopter callout, expanded roadblock features, and revised some files

@@ -195,7 +195,7 @@ namespace CopSpawnTables
 
 			while (iterator != this->copTypeToEntry.end())
 			{
-				if (not Globals::IsVehicleCar(iterator->first))
+				if (not Globals::IsVehicleTypeCar(iterator->first))
 				{
 					const Entry& copEntry = iterator->second;
 

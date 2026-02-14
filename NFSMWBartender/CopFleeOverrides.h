@@ -150,14 +150,14 @@ namespace CopFleeOverrides
 
 		static bool MakeVehicleBail(const address copVehicle) 
 		{
+			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
+			if (not copAIVehiclePursuit) return false; // should never happen
+
 			const auto StartFlee = reinterpret_cast<void (__thiscall*)(address)>(0x423370);
 
-			const address copAIVehiclePursuit = PursuitReaction::GetAIVehiclePursuit(copVehicle);
+			StartFlee(copAIVehiclePursuit);
 
-			if (copAIVehiclePursuit)
-				StartFlee(copAIVehiclePursuit);
-
-			return copAIVehiclePursuit;
+			return true;
 		}
 
 
@@ -172,7 +172,7 @@ namespace CopFleeOverrides
 
 		bool MakeHeavy3VehicleJoin(const address copVehicle)
 		{
-			if (this->MayAnotherHeavyJoin() and this->EndSupportGoal(copVehicle))
+			if (this->MayAnotherHeavyJoin() and Globals::EndSupportGoal(copVehicle))
 			{
 				this->joinedHeavy3Vehicles.insert(copVehicle);
 
@@ -328,7 +328,12 @@ namespace CopFleeOverrides
 				this->heavy3VehicleToTimestamp.clear();
 
 				if (this->heavyStrategy)
-					Globals::ClearSupportRequest(this->pursuit);
+				{
+					const int strategyID = *reinterpret_cast<volatile int*>(this->heavyStrategy);
+
+					if (strategyID == 3) // ramming SUVs
+						Globals::ClearSupportRequest(this->pursuit);
+				}
 			}
 		}
 

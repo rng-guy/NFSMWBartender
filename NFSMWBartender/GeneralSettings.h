@@ -35,7 +35,8 @@ namespace GeneralSettings
 
 	HeatParameters::Pair<float> bustTimers      (5.f,  {.001f}); // seconds
 	HeatParameters::Pair<float> maxBustDistances(15.f, {0.f});   // metres
-	HeatParameters::Pair<float> evadeTimers     (7.f,  {.001f}); // seconds
+
+	HeatParameters::Pair<float> evadeTimers(7.f, {.001f}); // seconds
 
 	HeatParameters::Pair<bool> carsAffectedByHidings (true);
 	HeatParameters::Pair<bool> helisAffectedByHidings(true);
@@ -47,8 +48,12 @@ namespace GeneralSettings
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current; // hertz
-	float halfEvadeRate   = .5f / evadeTimers.current;     // hertz
-	float bustRate        = 1.f / bustTimers.current;      // hertz
+	
+	float bustRate          = 1.f / bustTimers.current; // hertz
+	float resetBustScale    = std::max<float>(bustTimers.current / 1.25f, 1.f);
+	float recoveryBustDelta = -.25f * std::max<float>(bustTimers.current / 2.5f, 1.f);
+
+	float halfEvadeRate = .5f / evadeTimers.current; // hertz
 
 	// Code caves
 	HashContainers::CachedCopyVaultMap<bool> copTypeToIsBreakerImmune(false);
@@ -453,7 +458,7 @@ namespace GeneralSettings
 			HeatParameters::defaultValueHandle,
 			copVehicles,
 			Globals::StringToVaultKey,
-			Globals::DoesVehicleExist,
+			Globals::DoesVehicleTypeExist,
 			isAffecteds,
 			[](const bool isAffected) -> bool {return (not isAffected);},
 			[](const bool isImmune)   -> bool {return true;}
@@ -466,10 +471,14 @@ namespace GeneralSettings
 		}
 
 		// Code modifications (general)
-		MemoryTools::Write<float*>(&bustRate,              {0x40AEDB});
+		MemoryTools::Write<float*>(&bountyFrequency, {0x444513, 0x444524});
+
+		MemoryTools::Write<float*>(&bustRate,             {0x40AEDB});
+		MemoryTools::Write<float*>(&resetBustScale,       {0x4444D2});
+		MemoryTools::Write<float*>(&recoveryBustDelta,    {0x4444E6});
+		MemoryTools::Write<float*>(&(bustTimers.current), {0x4445CE});
+		
 		MemoryTools::Write<float*>(&halfEvadeRate,         {0x444A3A});
-		MemoryTools::Write<float*>(&(bustTimers.current),  {0x4445CE});
-		MemoryTools::Write<float*>(&bountyFrequency,       {0x444513, 0x444524});
 		MemoryTools::Write<float*>(&(evadeTimers.current), {0x4448E6, 0x444802, 0x4338F8});
 
 		MemoryTools::MakeRangeJMP(CopCombo,              copComboEntrance,              copComboExit);
@@ -530,10 +539,14 @@ namespace GeneralSettings
 
 		bustTimers      .SetToHeat(isRacing, heatLevel);
 		maxBustDistances.SetToHeat(isRacing, heatLevel);
-		evadeTimers     .SetToHeat(isRacing, heatLevel);
+
+		bustRate          = 1.f / bustTimers.current;
+		resetBustScale    = std::max<float>(bustTimers.current / 1.25f, 1.f);
+		recoveryBustDelta = -.25f * std::max<float>(bustTimers.current / 2.5f, 1.f);
+
+		evadeTimers.SetToHeat(isRacing, heatLevel);
 
 		halfEvadeRate = .5f / evadeTimers.current;
-		bustRate      = 1.f / bustTimers.current;
 
 		carsAffectedByHidings .SetToHeat(isRacing, heatLevel);
 		helisAffectedByHidings.SetToHeat(isRacing, heatLevel);

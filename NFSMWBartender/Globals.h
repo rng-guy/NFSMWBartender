@@ -59,14 +59,7 @@ namespace Globals
 
 
 
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	bool IsInCooldownMode(const address pursuit)
-	{
-		return (*reinterpret_cast<volatile int*>(pursuit + 0x218) == 2); // pursuitStatus
-	}
-
-
+	// Conversion functions -------------------------------------------------------------------------------------------------------------------------
 
 	vault StringToVaultKey(const std::string& string)
 	{
@@ -82,6 +75,17 @@ namespace Globals
 
 
 
+
+
+	// State functions ------------------------------------------------------------------------------------------------------------------------------
+
+	bool IsInCooldownMode(const address pursuit)
+	{
+		return (*reinterpret_cast<volatile int*>(pursuit + 0x218) == 2); // pursuitStatus
+	}
+
+
+
 	float __fastcall GetGameTime(const bool unpaused)
 	{
 		const float    ticksToTime = *reinterpret_cast<volatile float*>(0x890984);
@@ -91,6 +95,10 @@ namespace Globals
 	}
 
 
+
+
+
+	// Vault functions ------------------------------------------------------------------------------------------------------------------------------
 
 	address GetFromVault
 	(
@@ -121,9 +129,13 @@ namespace Globals
 		return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : node;
 	}
 
+	
 
 
-	vault GetVehicleClass(const vault type)
+
+	// Vehicle-type functions -----------------------------------------------------------------------------------------------------------------------
+
+	vault GetVehicleTypeClass(const vault type)
 	{
 		const address attribute = GetFromVault(0x4A97EC8F, type, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
 		return (attribute) ? *reinterpret_cast<volatile vault*>(attribute + 0x8) : attribute;
@@ -131,16 +143,16 @@ namespace Globals
 
 
 
-	bool DoesVehicleExist(const vault type)
+	bool DoesVehicleTypeExist(const vault type)
 	{
-		return GetVehicleClass(type);
+		return GetVehicleTypeClass(type);
 	}
 
 
 
-	bool IsVehicleCar(const vault type)
+	bool IsVehicleTypeCar(const vault type)
 	{
-		switch (GetVehicleClass(type))
+		switch (GetVehicleTypeClass(type))
 		{
 		case 0x336FCACF: // CAR
 			[[fallthrough]];
@@ -154,8 +166,48 @@ namespace Globals
 
 
 
-	bool IsVehicleChopper(const vault type)
+	bool IsVehicleTypeChopper(const vault type)
 	{
-		return (GetVehicleClass(type) == 0xB80933AA); // CHOPPER
+		return (GetVehicleTypeClass(type) == 0xB80933AA); // CHOPPER
+	}
+
+
+
+
+
+	// Vehicle-object functions ---------------------------------------------------------------------------------------------------------------------
+
+	address GetAIVehicle(const address vehicle)
+	{
+		return *reinterpret_cast<volatile address*>(vehicle + 0x54);
+	}
+
+
+
+	address GetAIVehiclePursuit(const address copVehicle)
+	{
+		const address copAIVehicle = GetAIVehicle(copVehicle);
+		return (copAIVehicle) ? (copAIVehicle - 0x4C + 0x758) : copAIVehicle;
+	}
+
+
+
+	bool EndSupportGoal(const address copVehicle)
+	{
+		const address copAIVehicle = GetAIVehicle(copVehicle);
+		if (not copAIVehicle) return false; // should never happen
+
+		const address copAIVehiclePursuit = GetAIVehiclePursuit(copVehicle);
+		if (not copAIVehiclePursuit) return false; // should never happen
+
+		const auto SetSupportGoal = reinterpret_cast<void (__thiscall*)(address, vault)>       (0x409850);
+		const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault*)>(0x422480);
+
+		constexpr vault pursuitGoal = 0x492916A2; // "AIGoalPursuit"
+
+		SetSupportGoal(copAIVehiclePursuit, 0x0);
+		SetVehicleGoal(copAIVehicle - 0x4C, &pursuitGoal);
+
+		return true;
 	}
 }

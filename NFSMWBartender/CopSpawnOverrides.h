@@ -407,12 +407,12 @@ namespace CopSpawnOverrides
 
 		static bool HasVehicleEngaged(const address copVehicle)
 		{
-			const address copAIVehiclePursuit = ChasersManager::GetAIVehiclePursuit(copVehicle);
-			return (copAIVehiclePursuit) ? *reinterpret_cast<volatile bool*>(copAIVehiclePursuit + 0x22) : false;
+			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
+			return (copAIVehiclePursuit and *reinterpret_cast<volatile bool*>(copAIVehiclePursuit + 0x22));
 		}
 
 
-		static bool IsTrackedOnPursuitBoard(const CopLabel copLabel)
+		static bool IsAlsoTrackedOnBoard(const CopLabel copLabel)
 		{
 			switch (copLabel)
 			{
@@ -430,6 +430,35 @@ namespace CopSpawnOverrides
 		}
 
 
+		void ProcessAddedChaser(const address copVehicle)
+		{
+			this->chaserSpawns.AddVehicle(copVehicle);
+			this->CorrectWaveCapacity();
+		}
+
+
+		void ProcessRemovedChaser(const address copVehicle)
+		{
+			if (this->chaserSpawns.RemoveVehicle(copVehicle))
+			{
+				if ((not onlyDestroyedDecrements.current) or Globals::IsVehicleDestroyed(copVehicle))
+				{
+					const bool trackCopsLost = (this->isFreeRoamPursuit or GeneralSettings::trackCopsLost);
+
+					if (trackCopsLost and this->HasVehicleEngaged(copVehicle))
+						++(this->numCopsLostInWave);
+
+					else if constexpr (Globals::loggingEnabled)
+						Globals::logger.Log(this->pursuit, "[SPA] No decrement", (trackCopsLost) ? "(radius)" : "(tracking)");
+				}
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log(this->pursuit, "[SPA] No decrement (wreck)");
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [SPA] Unknown chaser", copVehicle, "in", this->pursuit);
+		}
+
+
 		static ChasersManager* FindManager(const address pursuit)
 		{
 			const auto foundManager = ChasersManager::pursuitToManager.find(pursuit);
@@ -437,7 +466,7 @@ namespace CopSpawnOverrides
 			if (foundManager != ChasersManager::pursuitToManager.end())
 				return foundManager->second;
 
-			if constexpr (Globals::loggingEnabled)
+			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [SPA] No manager for pursuit", pursuit);
 
 			return nullptr;
@@ -489,24 +518,28 @@ namespace CopSpawnOverrides
 		{
 			skipScriptedSpawns = false;
 
-			if (copLabel == CopLabel::CHASER)
+			switch (copLabel)
 			{
-				this->chaserSpawns.AddVehicle(copVehicle);
-				this->CorrectWaveCapacity();
-			}
-			else if (this->IsTrackedOnPursuitBoard(copLabel))
-			{
-				++(this->numActiveNonChasers);
+			case CopLabel::CHASER:
+				this->ProcessAddedChaser(copVehicle);
+				break;
 
-				if (this->waveParametersKnown)
+			case CopLabel::ROADBLOCK:
+				++(this->numJoinedRoadblockVehicles);
+				[[fallthrough]];
+
+			default:
+				if (this->IsAlsoTrackedOnBoard(copLabel))
 				{
-					++(this->fullWaveCapacity);
-					++(this->numCopsToTriggerBackup);
+					++(this->numActiveNonChasers);
+
+					if (this->waveParametersKnown)
+					{
+						++(this->fullWaveCapacity);
+						++(this->numCopsToTriggerBackup);
+					}
 				}
 			}
-
-			if (copLabel == CopLabel::ROADBLOCK)
-				++(this->numJoinedRoadblockVehicles);
 		}
 
 
@@ -517,39 +550,28 @@ namespace CopSpawnOverrides
 		) 
 			override
 		{
-			if (copLabel == CopLabel::CHASER)
+			switch (copLabel)
 			{
-				if (this->chaserSpawns.RemoveVehicle(copVehicle))
-				{
-					if ((not onlyDestroyedDecrements.current) or Globals::IsVehicleDestroyed(copVehicle))
-					{
-						const bool trackCopsLost = (this->isFreeRoamPursuit or GeneralSettings::trackCopsLost);
+			case CopLabel::CHASER:
+				this->ProcessRemovedChaser(copVehicle);
+				break;
 
-						if (trackCopsLost and this->HasVehicleEngaged(copVehicle))
-							++(this->numCopsLostInWave);
-
-						else if constexpr (Globals::loggingEnabled)
-							Globals::logger.Log(this->pursuit, "[SPA] No decrement", (trackCopsLost) ? "(radius)" : "(tracking)");
-					}
-					else if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[SPA] No decrement (wreck)");
-				}
-				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [SPA] Unknown chaser vehicle", copVehicle, "in", this->pursuit);
-			}
-			else if (this->IsTrackedOnPursuitBoard(copLabel))
-			{
-				--(this->numActiveNonChasers);
-
-				if (this->waveParametersKnown)
-				{
-					--(this->fullWaveCapacity);
-					--(this->numCopsToTriggerBackup);
-				}		
-			}
-
-			if (copLabel == CopLabel::ROADBLOCK)
+			case CopLabel::ROADBLOCK:
 				--(this->numJoinedRoadblockVehicles);
+				[[fallthrough]];
+
+			default:
+				if (this->IsAlsoTrackedOnBoard(copLabel))
+				{
+					--(this->numActiveNonChasers);
+
+					if (this->waveParametersKnown)
+					{
+						--(this->fullWaveCapacity);
+						--(this->numCopsToTriggerBackup);
+					}
+				}
+			}
 		}
 
 
@@ -576,7 +598,7 @@ namespace CopSpawnOverrides
 		static bool __fastcall IsChaserAvailable(const address pursuit)
 		{
 			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
-			return (manager) ? manager->CanNewChaserSpawn() : false;
+			return (manager and manager->CanNewChaserSpawn());
 		}
 
 

@@ -28,15 +28,15 @@ namespace MemoryTools
 	template <typename T>
 	void Write
 	(
-		const T&                              data,
-		const std::initializer_list<address>& locations
+		const T                              data,
+		const std::initializer_list<address> locations
 	) {
 		constexpr size_t numBytes = sizeof(T);
 
 		for (const address location : locations)
 		{
 			DWORD previousSetting = 0x0;
-			auto  memoryLocation  = reinterpret_cast<void*>(location);
+			void* memoryLocation  = reinterpret_cast<void*>(location);
 
 			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE,  &previousSetting);
 			std::memcpy   (memoryLocation, &data,    numBytes);
@@ -57,7 +57,7 @@ namespace MemoryTools
 			const size_t numBytes = end - start;
 
 			DWORD previousSetting = 0x0;
-			auto  memoryLocation  = reinterpret_cast<void*>(start);
+			void* memoryLocation  = reinterpret_cast<void*>(start);
 
 			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE, &previousSetting);
 			std::memset   (memoryLocation, value,    numBytes);

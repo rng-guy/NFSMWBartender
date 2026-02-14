@@ -73,10 +73,10 @@ namespace GroundSupports
 
 		switch (strategyID)
 		{
-		case 3:
+		case 3: // ramming SUVs
 			return (not (hasRoadblock and heavy3AreBlockables.current));
 
-		case 4:
+		case 4: // SUV roadblock
 			return (not hasRoadblock);
 		}
 
@@ -98,10 +98,10 @@ namespace GroundSupports
 
 			switch (strategyID)
 			{
-			case 5:
+			case 5: // Cross only
 				[[fallthrough]];
 
-			case 7:
+			case 7: // Cross with henchmen
 				return true;
 			}
 		}
@@ -195,8 +195,8 @@ namespace GroundSupports
 			{
 				const int strategyID = *reinterpret_cast<volatile int*>(randomStrategy);
 
-				Globals::logger.Log(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
-				Globals::logger.Log(pursuit, "[SUP] Candidate", static_cast<int>(index + 1), '/', static_cast<int>(candidates.size()));
+				Globals::logger.Log<0>(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
+				Globals::logger.Log<2>("Candidate", static_cast<int>(index + 1), '/', static_cast<int>(candidates.size()));
 			}
 
 			candidates.clear();
@@ -214,7 +214,40 @@ namespace GroundSupports
 
 
 
-	bool __fastcall AcceptsRoadblockVehicles(const address pursuit)
+	int GetGlobalNumPersistentCops()
+	{
+		if (not Globals::copManager) return 0;
+
+		int numPersistentVehicles = *reinterpret_cast<volatile int*>(Globals::copManager + 0x94); // cops loaded
+
+		const address finalPursuitEntry   = *reinterpret_cast<volatile address*>(Globals::copManager + 0x128);
+		address       currentPursuitEntry = *reinterpret_cast<volatile address*>(finalPursuitEntry);
+
+		// Check each active pursuit for roadblock(s)
+		while (currentPursuitEntry != finalPursuitEntry)
+		{
+			const address pursuit   = *reinterpret_cast<volatile address*>(currentPursuitEntry + 0x8);
+			const address roadblock = *reinterpret_cast<volatile address*>(pursuit + 0x84);
+
+			// Subtract roadblock-vehicle count
+			if (roadblock)
+			{
+				const address firstVehicleEntry = *reinterpret_cast<volatile address*>(roadblock + 0xC);
+				const address lastVehicleEntry  = *reinterpret_cast<volatile address*>(roadblock + 0x10);
+
+				if (lastVehicleEntry > firstVehicleEntry)
+					numPersistentVehicles -= (lastVehicleEntry - firstVehicleEntry) / sizeof(address);
+			}
+
+			currentPursuitEntry = *reinterpret_cast<volatile address*>(currentPursuitEntry);
+		}
+
+		return numPersistentVehicles;
+	}
+
+
+
+	bool __fastcall PursuitHasJoinCapacity(const address pursuit)
 	{
 		const int numVehiclesJoined = *reinterpret_cast<volatile int*>(pursuit + 0x23C);
 		if (numVehiclesJoined >= maxRBJoinCounts.current) return false;
@@ -232,50 +265,20 @@ namespace GroundSupports
 				return true;
 		}
 
-		// Fall back to counting cop capacity manually
-		int numNonRoadblockVehicles = 0;
-
-		if (Globals::copManager)
-		{
-			numNonRoadblockVehicles = *reinterpret_cast<volatile int*>(Globals::copManager + 0x94); // cops loaded
-
-			const address finalPursuitListEntry   = *reinterpret_cast<volatile address*>(Globals::copManager + 0x128);
-			address       currentPursuitListEntry = *reinterpret_cast<volatile address*>(finalPursuitListEntry);
-
-			// Check each active pursuit for roadblock(s)
-			while (currentPursuitListEntry != finalPursuitListEntry)
-			{
-				const address pursuit   = *reinterpret_cast<volatile address*>(currentPursuitListEntry + 0x8);
-				const address roadblock = *reinterpret_cast<volatile address*>(pursuit + 0x84);
-
-				if (roadblock)
-				{
-					const address firstVehiclePointer = *reinterpret_cast<volatile address*>(roadblock + 0xC);
-					const address lastVehiclePointer  = *reinterpret_cast<volatile address*>(roadblock + 0x10);
-
-					// Subtract roadblock-vehicle count
-					if (lastVehiclePointer > firstVehiclePointer)
-						numNonRoadblockVehicles -= (lastVehiclePointer - firstVehiclePointer) / sizeof(address);
-				}
-
-				currentPursuitListEntry = *reinterpret_cast<volatile address*>(currentPursuitListEntry);
-			}
-		}
-
-		// Contains vanilla limit if ChasersManager is disabled
-		return (numNonRoadblockVehicles < CopSpawnOverrides::activeChaserCounts.maxValues.current);
+		// Struct contains vanilla global cop-spawn limit if CopSpawnOverrides feature is disabled
+		return (GetGlobalNumPersistentCops() < CopSpawnOverrides::activeChaserCounts.maxValues.current);
 	}
 
 
 
-	bool __fastcall MayDetachCops(const address roadblock)
+	bool __fastcall RoadblockMayDetachCops(const address roadblock)
 	{
 		const address pursuit   = *reinterpret_cast<volatile address*>(roadblock + 0x28);
 		const float   joinTimer = *reinterpret_cast<volatile float*>  (roadblock + 0x58);
 
 		switch (*reinterpret_cast<volatile int*>(pursuit + 0x218)) // pursuit status
 		{
-		case 0: // regular pursuit state
+		case 0: // default pursuit state
 			return (regularRBJoinTimers.isEnableds.current and (joinTimer > regularRBJoinTimers.values.current));
 
 		case 1: // active "Backup" timer
@@ -672,9 +675,9 @@ namespace GroundSupports
 		__asm
 		{
 			lea ecx, dword ptr [esi + 0x40]
-			call AcceptsRoadblockVehicles // ecx: pursuit
+			call PursuitHasJoinCapacity // ecx: pursuit
 			test al, al
-			je skip                       // may not join
+			je skip                     // may not join
 
 			jmp dword ptr roadblockJoinCountExit
 
@@ -696,7 +699,7 @@ namespace GroundSupports
 			fstp dword ptr [ebp + 0x58]
 
 			mov ecx, ebp
-			call MayDetachCops // ecx: roadblock
+			call RoadblockMayDetachCops // ecx: roadblock
 			cmp al, 0x1
 
 			jmp dword ptr roadblockJoinTimerExit
@@ -750,15 +753,15 @@ namespace GroundSupports
 		// Check whether vehicles are cars
 		bool allValid = true;
 		
-		allValid &= HeatParameters::ValidateVehicles("Heavy 3, light", heavy3LightVehicles, Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("Heavy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("Heavy 4, light", heavy4LightVehicles, Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("Heavy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 3, light", heavy3LightVehicles, Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 4, light", heavy4LightVehicles, Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleTypeCar);
 
-		allValid &= HeatParameters::ValidateVehicles("Leader 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("Leader 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("Leader 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleCar);
-		allValid &= HeatParameters::ValidateVehicles("Leader 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Leader 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleTypeCar);
 
 		if constexpr (Globals::loggingEnabled)
 		{

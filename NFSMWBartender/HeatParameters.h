@@ -442,11 +442,11 @@ namespace HeatParameters
 
 	// Validation functions -------------------------------------------------------------------------------------------------------------------------
 
-	bool ValidateVehicles
+	bool ValidateVehicleTypes
 	(
 		const std::string&        pairName,
 		PointerPair<std::string>& pointerPair,
-		const auto&               IsVehicleValid
+		const auto&               IsVehicleTypeValid
 	) {
 		size_t numTotalReplaced = 0;
 
@@ -460,7 +460,7 @@ namespace HeatParameters
 			{
 				std::string& vehicle = vehicles[heatLevel - 1];
 
-				if (not IsVehicleValid(Globals::StringToVaultKey(vehicle)))
+				if (not IsVehicleTypeValid(Globals::StringToVaultKey(vehicle)))
 				{
 					// With logging disabled, the compiler optimises "pairName" away
 					if constexpr (Globals::loggingEnabled)

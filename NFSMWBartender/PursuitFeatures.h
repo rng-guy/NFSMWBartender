@@ -20,45 +20,11 @@ namespace PursuitFeatures
 		const address pursuit;
 
 
-		static address GetAIVehiclePursuit(const address copVehicle)
-		{
-			const address copAIVehicle = *reinterpret_cast<volatile address*>(copVehicle + 0x54);
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (not copAIVehicle)
-					Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
-			}
-
-			return (copAIVehicle) ? (copAIVehicle - 0x4C + 0x758) : 0x0;
-		}
-
-
-		static bool EndSupportGoal(const address copVehicle)
-		{
-			const address copAIVehicle = *reinterpret_cast<volatile address*>(copVehicle + 0x54);
-
-			if (copAIVehicle)
-			{
-				static constexpr vault pursuitGoal = 0x492916A2; // "AIGoalPursuit"
-
-				const auto SetSupportGoal = reinterpret_cast<void (__thiscall*)(address, vault)>       (0x409850);
-				const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault*)>(0x422480);
-
-				SetSupportGoal(copAIVehicle - 0x4C + 0x758, 0x0);
-				SetVehicleGoal(copAIVehicle - 0x4C, &pursuitGoal);
-			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PFT] Invalid AIVehicle pointer for", copVehicle);
-
-			return copAIVehicle;
-		}
+		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {};
 
 
 
 	public:
-
-		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {};
 
 		explicit PursuitReaction(const PursuitReaction&)   = delete;
 		PursuitReaction& operator=(const PursuitReaction&) = delete;

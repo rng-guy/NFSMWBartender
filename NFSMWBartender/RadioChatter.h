@@ -104,7 +104,7 @@ namespace RadioChatter
 	constexpr address playerPursuitEntrance = 0x704F70;
 	constexpr address playerPursuitExit     = 0x704F76;
 
-	// Resets transition state whenever the SoundAI gets a new player pursuit
+	// Resets transition state whenever a new player pursuit begins
 	__declspec(naked) void PlayerPursuit()
 	{
 		__asm
@@ -129,11 +129,12 @@ namespace RadioChatter
 	{
 		__asm
 		{
-			push eax                        // copType
+			push eax // copType
 			mov ecx, offset copTypeToCallsignID
 			call HashContainers::CachedCopyVaultMap<Callsigns>::GetValue
-			mov dword ptr [esp + 0x28], eax // repurposed variable
 			cmp eax, CROSS
+
+			mov dword ptr [esp + 0x28], eax // repurposed variable
 
 			jmp dword ptr crossCallsignExit
 		}
@@ -204,10 +205,9 @@ namespace RadioChatter
 	{
 		__asm
 		{
-			push eax // copType
+			push eax                   // copType
 			mov ecx, offset copTypeToCallsignID
 			call HashContainers::CachedCopyVaultMap<Callsigns>::GetValue
-
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B] // is "rhino"
 
@@ -310,7 +310,7 @@ namespace RadioChatter
 		};
 
 		// Populate callsign map
-		const auto StringToCallsign = [&](const std::string& rawValue) -> Callsigns
+		const auto StringToCallsigns = [&](const std::string& rawValue) -> Callsigns
 		{
 			const auto foundName = nameToCallsigns.find(rawValue);
 			return (foundName != nameToCallsigns.end()) ? foundName->second : Callsigns::UNKNOWN;
@@ -322,9 +322,9 @@ namespace RadioChatter
 			HeatParameters::defaultValueHandle,
 			copVehicles,
 			Globals::StringToVaultKey,
-			Globals::IsVehicleCar,
+			Globals::IsVehicleTypeCar,
 			callsignNames,
-			StringToCallsign,
+			StringToCallsigns,
 			[](const Callsigns value) -> bool {return (value != Callsigns::UNKNOWN);}
 		);
 

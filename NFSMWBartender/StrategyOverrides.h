@@ -28,13 +28,13 @@ namespace StrategyOverrides
 	HeatParameters::OptionalInterval<float> leader7UnblockDelays({1.f}); // seconds
 
 	// Code caves
-	constexpr size_t maxNumVehiclesPerHeavy4 = 6;
+	constexpr size_t maxNumVehiclesPerHeavy4 = 6; // cars
 
-	std::vector<float> spawnVectorStackA;
-	std::vector<float> spawnVectorStackB;
+	std::vector<float> spawnVectorStackOne;
+	std::vector<float> spawnVectorStackTwo;
 
-	float* spawnVectorsA = nullptr;
-	float* spawnVectorsB = nullptr;
+	float* spawnVectorsOne = nullptr;
+	float* spawnVectorsTwo = nullptr;
 
 
 
@@ -122,7 +122,7 @@ namespace StrategyOverrides
 			if (foundManager != StrategyManager::pursuitToManager.end())
 				return foundManager->second;
 
-			if constexpr (Globals::loggingEnabled)
+			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [STR] No manager for pursuit", pursuit);
 
 			return nullptr;
@@ -226,12 +226,12 @@ namespace StrategyOverrides
 
 			switch (strategyID)
 			{
-			case 3:
-				manager->unblockTimer.LoadInterval(heavy3UnblockDelays);
+			case 3: // ramming SUVs
 				manager->UpdateNextHeavy3Count();
+				manager->unblockTimer.LoadInterval(heavy3UnblockDelays);
 				break;
 
-			case 4:
+			case 4: // SUV roadblock
 				manager->unblockTimer.LoadInterval(heavy4UnblockDelays);
 				break;
 
@@ -268,11 +268,11 @@ namespace StrategyOverrides
 
 			switch (strategyID)
 			{
-			case 5:
+			case 5: // Cross only
 				manager->unblockTimer.LoadInterval(leader5UnblockDelays);
 				break;
 
-			case 7:
+			case 7: // Cross with henchmen
 				manager->unblockTimer.LoadInterval(leader7UnblockDelays);
 				break;
 
@@ -407,8 +407,8 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov esi, dword ptr spawnVectorsA
-			mov edi, dword ptr spawnVectorsB
+			mov esi, dword ptr spawnVectorsOne
+			mov edi, dword ptr spawnVectorsTwo
 
 			add esi, ebx // vector offset
 			add edi, ebx // vector offset
@@ -460,22 +460,23 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov edx, dword ptr spawnVectorsA
-			xor ecx, ecx
+			mov edx, dword ptr spawnVectorsOne
+
+			mov ecx, 0x3 // max. vector index
 			add edx, ebp // vector offset
 
 			mov edi, eax
 
 			negation:
 			fld dword ptr [edx + ecx * 0x4]
-			fchs // original code multiplies by -1.0
+			fchs // original multiplies by -1.0
 			fstp dword ptr [edx + ecx * 0x4]
 
-			inc ecx
-			cmp ecx, 0x4
-			jl negation // elements remaining
+			dec ecx
+			jnl negation // elements remaining
 
-			mov eax, dword ptr spawnVectorsB
+			mov eax, dword ptr spawnVectorsTwo
+
 			mov ecx, edi
 			add eax, ebp // vector offset
 
@@ -629,17 +630,17 @@ namespace StrategyOverrides
 		HeatParameters::Parse(parser, "Leader5:Unblocking", leader5UnblockDelays);
 		HeatParameters::Parse(parser, "Leader7:Unblocking", leader7UnblockDelays);
 
-		// Stack replacements for removal of HeavyStrategy 3 limit
-		const size_t vectorStackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
+		// Stack replacements for removal of HeavyStrategy 3 limit (4D float vectors)
+		const size_t stackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("New stack size:", static_cast<int>(vectorStackSize), "floats");
+			Globals::logger.Log<2>("New stack size:", static_cast<int>(stackSize), "floats");
 
-		spawnVectorStackA.resize(vectorStackSize);
-		spawnVectorStackB.resize(vectorStackSize);
+		spawnVectorStackOne.resize(stackSize);
+		spawnVectorStackTwo.resize(stackSize);
 
-		spawnVectorsA = spawnVectorStackA.data();
-		spawnVectorsB = spawnVectorStackB.data();
+		spawnVectorsOne = spawnVectorStackOne.data();
+		spawnVectorsTwo = spawnVectorStackTwo.data();
 
 		// Code modifications 
 		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4

@@ -146,7 +146,7 @@ namespace PursuitObserver
 			if (foundObserver != PursuitObserver::pursuitToObserver.end())
 				return foundObserver->second.get();
 
-			if constexpr (Globals::loggingEnabled)
+			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [OBS] No observer for pursuit", pursuit);
 
 			return nullptr;

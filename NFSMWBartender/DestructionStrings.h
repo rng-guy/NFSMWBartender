@@ -80,7 +80,7 @@ namespace DestructionStrings
 			HeatParameters::defaultValueHandle,
 			copVehicles,
 			Globals::StringToVaultKey,
-			Globals::DoesVehicleExist,
+			Globals::DoesVehicleTypeExist,
 			binaryLabels,
 			Globals::StringToBinaryKey,
 			[=](const binary key) -> bool {return GetBinaryString(0, key);}

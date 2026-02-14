@@ -66,7 +66,8 @@ namespace CopDetection
 
 	bool __fastcall GetsMiniMapIcon(const address copVehicle) 
 	{
-		const address copAIVehicle = *reinterpret_cast<volatile address*>(copVehicle + 0x54);
+		const address copAIVehicle = Globals::GetAIVehicle(copVehicle);
+		if (not copAIVehicle) return false; // should never happen
 
 		volatile bool& iconIsKept = *reinterpret_cast<volatile bool*>(copAIVehicle - 0x4C + 0x81); // padding byte
 		if (iconIsKept) return true; // mini-map icon already kept
@@ -409,7 +410,7 @@ namespace CopDetection
 			HeatParameters::defaultValueHandle,
 			copVehicles,
 			Globals::StringToVaultKey,
-			Globals::IsVehicleCar,
+			Globals::IsVehicleTypeCar,
 			settings,
 			[](const Settings& settings) -> Settings {return settings;},
 			[](const Settings& settings) -> bool     {return true;}

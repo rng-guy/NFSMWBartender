@@ -537,7 +537,7 @@ namespace HelicopterOverrides
 		HeatParameters::Parse(parser, "Helicopter:Ramming", rammingCooldowns);
 
 		// Validation
-		const bool allValid = HeatParameters::ValidateVehicles("Helicopters", helicopterVehicles, Globals::IsVehicleChopper);
+		const bool allValid = HeatParameters::ValidateVehicleTypes("Helicopters", helicopterVehicles, Globals::IsVehicleTypeChopper);
 
 		if constexpr (Globals::loggingEnabled)
 		{

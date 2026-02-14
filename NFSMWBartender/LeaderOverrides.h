@@ -153,7 +153,7 @@ namespace LeaderOverrides
 			this->henchmenAggroTimer.Stop();
 
 			for (const address copVehicle : this->passiveHenchmenVehicles)
-				this->EndSupportGoal(copVehicle);
+				Globals::EndSupportGoal(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -170,7 +170,8 @@ namespace LeaderOverrides
 			if (this->crossAggroTimer.HasExpired())
 			{
 				this->crossAggroTimer.Stop();
-				this->EndSupportGoal(this->crossVehicle);
+
+				Globals::EndSupportGoal(this->crossVehicle);
 				
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[LDR] Cross now aggressive");
