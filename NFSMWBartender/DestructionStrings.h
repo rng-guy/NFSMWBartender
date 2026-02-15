@@ -77,7 +77,7 @@ namespace DestructionStrings
 		const bool mapIsValid = copTypeToDestructionKey.FillFromVectors<std::string, std::string>
 		(
 			"Vehicle-to-label",
-			HeatParameters::defaultValueHandle,
+			HeatParameters::configDefaultHandle,
 			copVehicles,
 			Globals::StringToVaultKey,
 			Globals::DoesVehicleTypeExist,

@@ -455,7 +455,7 @@ namespace HeatChangeOverrides
 		const bool mapIsValid = copTypeToHeatChange.FillFromVectors<std::string, float>
 		(
 			"Vehicle-to-change",
-			HeatParameters::defaultValueHandle,
+			HeatParameters::configDefaultHandle,
 			copVehicles,
 			Globals::StringToVaultKey,
 			Globals::DoesVehicleTypeExist,

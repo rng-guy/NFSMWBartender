@@ -3,7 +3,10 @@
 #include <map>
 #include <tuple>
 #include <string>
+#include <ranges>
 #include <format>
+#include <cctype>
+#include <utility>
 #include <fstream>
 #include <optional>
 #include <concepts>
@@ -85,37 +88,45 @@ namespace ConfigParser
 		std::map<std::string, decltype(parser.sections)> fullPathToSections;
 		
 
-		template <size_t numColumns>
-		bool ExtractColumns
-		(
-			const std::string&                   row, 
-			std::array<std::string, numColumns>& columns
-		) 
-			const
+		static std::string Trim(std::string&& string) 
 		{
-			if (this->columnSeparator.empty()) return false;
+			// Force conversion to unsigned char to avoid potential UB with certain characters
+			const auto IsSpace = [](const unsigned char c) -> bool {return std::isspace(c);};
 
-			size_t end      = 0;
-			size_t start    = 0;
+			// Remove leading whitespace
+			string.erase(string.begin(), std::ranges::find_if_not(string, IsSpace));
+
+			// Remove trailing whitespace using reversed iterator
+			string.erase(std::ranges::find_if_not(string | std::views::reverse, IsSpace).base(), string.end());
+
+			return std::move(string);
+		}
+
+
+		template <size_t numColumns>
+		std::optional<std::array<std::string, numColumns>> ParseColumns(const std::string& row) const
+		{
 			size_t columnID = 0;
 
-			while ((end = row.find(this->columnSeparator, start)) != std::string::npos) 
+			std::array<std::string, numColumns> columns;
+
+			auto splits = row | std::views::split(this->columnSeparator);
+
+			for (const auto& subrange : splits)
 			{
 				if (columnID < numColumns)
 				{
-					// Despite the bounds check, static analysis may throw a warning
-					columns[columnID++] = row.substr(start, end - start);
-					start = end + this->columnSeparator.length();
+					// Convert to regular iterator for string construction
+					const auto iterator = subrange | std::views::common;
+
+					columns[columnID++] = this->Trim(std::string(iterator.begin(), iterator.end()));
 				}
-				else return false;
+				else return std::nullopt;
 			}
 
-			if (columnID < numColumns)
-			{
-				columns[columnID++] = row.substr(start);
-				return (columnID == numColumns);
-			}
-			else return false;
+			if (columnID != numColumns) return std::nullopt;
+
+			return columns;
 		}
 
 
@@ -130,10 +141,10 @@ namespace ConfigParser
 
 		bool LoadFile
 		(
-			const std::string& path,
-			const std::string& file
+			const std::string_view path,
+			const std::string_view file
 		) {
-			const std::string fullPath = path + file;
+			const std::string fullPath = std::format("{}/{}", path, file);
 
 			// Check current file
 			if (this->currentFullPath == fullPath)
@@ -222,13 +233,12 @@ namespace ConfigParser
 			bool isValid = false;
 
 			constexpr size_t numColumns = sizeof...(T);
-			std::array<std::string, numColumns> columns;
-
-			if (this->ExtractColumns<numColumns>(source, columns))
+	
+			if (const auto columns = this->ParseColumns<numColumns>(source))
 			{
 				[&]<size_t... columnIDs>(std::index_sequence<columnIDs...>)
 				{
-					isValid = (this->ParseFromString<T>(columns[columnIDs], std::move(parameters)) and ...);
+					isValid = (this->ParseFromString<T>((*columns)[columnIDs], std::move(parameters)) and ...);
 				}
 				(std::make_index_sequence<numColumns>{});
 			}
@@ -329,13 +339,10 @@ namespace ConfigParser
 		) {
 			bool hasInvalidRows = false;
 
-			constexpr size_t numColumns = sizeof...(T);
-
-			std::array<std::string, numRows>    rows    = {};
-			std::array<std::string, numColumns> columns = {};
+			std::array<std::string, numRows> rows;
 
 			// Parse parameters as-is first
-			auto isValidRows = this->ParseFormat<numRows, std::string>(section, format, {rows});
+			std::array<bool, numRows> isValidRows = this->ParseFormat<numRows, std::string>(section, format, {rows});
 
 			for (size_t rowID = 0; rowID < numRows; ++rowID)
 			{
@@ -411,21 +418,26 @@ namespace ConfigParser
 			std::vector<std::string> rows;
 			std::vector<std::string> allKeys;
 
-			if (this->ParseUser<std::string>(section, allKeys, {rows}) > 0)
+			const size_t numRows = this->ParseUser<std::string>(section, allKeys, {rows});
+
+			if (numRows > 0)
 			{
+				keys.reserve(numRows);
+				(..., parameters.values.reserve(numRows));
+
 				constexpr size_t numColumns = sizeof...(T);
 
 				[&]<size_t ...columnIDs>(std::index_sequence<columnIDs...>)
 				{
 					std::tuple<T...> candidates;
 
-					for (size_t rowID = 0; rowID < rows.size(); ++rowID)
+					for (size_t rowID = 0; rowID < numRows; ++rowID)
 					{
 						if (this->ParseFromString<T...>(rows[rowID], {std::get<columnIDs>(candidates), parameters.limits}...))
 						{
-							(..., parameters.values.push_back(std::get<columnIDs>(candidates)));
+							(..., parameters.values.push_back(std::move(std::get<columnIDs>(candidates))));
 
-							keys.push_back(allKeys[rowID]);
+							keys.push_back(std::move(allKeys[rowID]));
 						}
 					}
 				}

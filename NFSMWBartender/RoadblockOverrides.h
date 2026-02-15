@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <format>
+#include <utility>
 #include <optional>
 
 #include "Globals.h"
@@ -590,9 +591,7 @@ namespace RoadblockOverrides
 
 		for (const auto& [section, contents] : sections)
 		{
-			std::optional<RBSetup> setup = ParseSetup(parser, section, baseName);
-
-			if (setup)
+			if (auto setup = ParseSetup(parser, section, baseName))
 			{
 				if constexpr (Globals::loggingEnabled)
 					counter.CountSetup(*setup);

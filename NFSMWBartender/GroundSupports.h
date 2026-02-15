@@ -271,7 +271,7 @@ namespace GroundSupports
 
 
 
-	bool __fastcall RoadblockMayDetachCops(const address roadblock)
+	bool __fastcall MayRoadblockDetachCops(const address roadblock)
 	{
 		const address pursuit   = *reinterpret_cast<volatile address*>(roadblock + 0x28);
 		const float   joinTimer = *reinterpret_cast<volatile float*>  (roadblock + 0x58);
@@ -696,10 +696,10 @@ namespace GroundSupports
 	{
 		__asm
 		{
-			fstp dword ptr [ebp + 0x58]
+			fstp dword ptr [ebp + 0x58] // join timer
 
 			mov ecx, ebp
-			call RoadblockMayDetachCops // ecx: roadblock
+			call MayRoadblockDetachCops // ecx: roadblock
 			cmp al, 0x1
 
 			jmp dword ptr roadblockJoinTimerExit

@@ -5,6 +5,7 @@
 #include <utility>
 #include <concepts>
 #include <optional>
+#include <string_view>
 
 #include "Globals.h"
 #include "unordered_dense.h"
@@ -83,23 +84,22 @@ namespace HashContainers
 		FastMap<K, V> map;
 
 
-		template <typename T, typename U>
+		template <typename KR, typename VR>
 		bool FillFromVectors
 		(
-			const std::string&    mapName,
-			const T&              rawDefaultHandle,
-			const std::vector<T>& rawKeys,
-			const auto&           RawToKey,
-			const auto&           IsValidKey,
-			const std::vector<U>& rawValues,
-			const auto&           RawToValue,
-			const auto&           IsValidValue
+			const std::string_view mapName,
+			const KR&              rawDefaultHandle,
+			const std::vector<KR>& rawKeys,
+			const auto&            RawToKey,
+			const auto&            IsValidKey,
+			const std::vector<VR>& rawValues,
+			const auto&            RawToValue,
+			const auto&            IsValidValue
 		) {
 			this->map.clear();
 
 			bool mapIsValid = false;
 
-			// With logging disabled, the compiler optimises "mapName" away
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>(mapName, "map:");
 
@@ -114,8 +114,8 @@ namespace HashContainers
 
 				for (size_t pairID = 0; pairID < numPairs; ++pairID)
 				{
-					const T& rawKey = rawKeys[pairID];
-					const V  value  = RawToValue(rawValues[pairID]);
+					const KR& rawKey = rawKeys[pairID];
+					const V   value  = RawToValue(rawValues[pairID]);
 
 					if (IsValidValue(value))
 					{

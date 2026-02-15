@@ -50,8 +50,8 @@ namespace GeneralSettings
 	float bountyFrequency = 1.f / bountyIntervals.current; // hertz
 	
 	float bustRate          = 1.f / bustTimers.current; // hertz
-	float resetBustScale    = std::max<float>(bustTimers.current / 1.25f, 1.f);
-	float recoveryBustDelta = -.25f * std::max<float>(bustTimers.current / 2.5f, 1.f);
+	float resetBustScale    = std::max<float>(bustTimers.current / 1.25f, 4.f);
+	float recoveryBustDelta = -.25f * std::max<float>(bustTimers.current / 2.5f, 2.f);
 
 	float halfEvadeRate = .5f / evadeTimers.current; // hertz
 
@@ -455,7 +455,7 @@ namespace GeneralSettings
 		const bool mapIsValid = copTypeToIsBreakerImmune.FillFromVectors<std::string, bool>
 		(
 			"Vehicle-to-immunity",
-			HeatParameters::defaultValueHandle,
+			HeatParameters::configDefaultHandle,
 			copVehicles,
 			Globals::StringToVaultKey,
 			Globals::DoesVehicleTypeExist,
@@ -541,8 +541,8 @@ namespace GeneralSettings
 		maxBustDistances.SetToHeat(isRacing, heatLevel);
 
 		bustRate          = 1.f / bustTimers.current;
-		resetBustScale    = std::max<float>(bustTimers.current / 1.25f, 1.f);
-		recoveryBustDelta = -.25f * std::max<float>(bustTimers.current / 2.5f, 1.f);
+		resetBustScale    = std::max<float>(bustTimers.current / 1.25f, 4.f);
+		recoveryBustDelta = -.25f * std::max<float>(bustTimers.current / 2.5f, 2.f);
 
 		evadeTimers.SetToHeat(isRacing, heatLevel);
 

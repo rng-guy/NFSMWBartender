@@ -3,6 +3,7 @@
 #include <string>
 #include <limits>
 #include <algorithm>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -211,7 +212,7 @@ namespace HelicopterOverrides
 		{
 			if (not this->isPlayerPursuit) return;
 
-			std::string timerName;
+			std::string_view timerName;
 
 			switch (this->helicopterStatus)
 			{
@@ -242,7 +243,6 @@ namespace HelicopterOverrides
 			if (not this->spawnTimer.IsSet())
 				this->spawnTimer.Start();
 
-			// With logging disabled, the compiler optimises "timerName" away
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->spawnTimer.IsIntervalEnabled())

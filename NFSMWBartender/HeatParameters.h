@@ -6,6 +6,7 @@
 #include <utility>
 #include <optional>
 #include <algorithm>
+#include <string_view>
 
 #include "Globals.h"
 #include "ConfigParser.h"
@@ -22,13 +23,14 @@ namespace HeatParameters
 	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
 
 	// Configuration files
-	const std::string defaultValueHandle = "default";
+	const std::string configDefaultHandle = "default";
 
-	const std::string configFormatRoam   = "heat{:02}";
-	const std::string configFormatRace   = "race{:02}";
-	const std::string configPathMain     = "scripts/BartenderSettings/";
-	const std::string configPathBasic    = configPathMain + "Basic/";
-	const std::string configPathAdvanced = configPathMain + "Advanced/";
+	const std::string configFormatRoam = "heat{:02}";
+	const std::string configFormatRace = "race{:02}";
+
+	const std::string configPathMain     = "scripts/BartenderSettings";
+	const std::string configPathBasic    = configPathMain + "/Basic";
+	const std::string configPathAdvanced = configPathMain + "/Advanced";
 
 
 
@@ -161,7 +163,7 @@ namespace HeatParameters
 		}
 
 
-		void Log(const std::string& pairName) const
+		void Log(const std::string_view pairName) const
 		{
 			Globals::logger.Log<2>(pairName, this->current);
 		}
@@ -187,7 +189,7 @@ namespace HeatParameters
 		}
 
 
-		void Log(const std::string& pairName) const
+		void Log(const std::string_view pairName) const
 		{
 			Globals::logger.Log<2>(pairName, this->current);
 		}
@@ -230,7 +232,7 @@ namespace HeatParameters
 		}
 
 
-		void Log(const std::string& pairName) const
+		void Log(const std::string_view pairName) const
 		{
 			Globals::logger.Log<2>(pairName, this->current);
 		}
@@ -260,7 +262,7 @@ namespace HeatParameters
 		}
 
 
-		void Log(const std::string& optionalName) const
+		void Log(const std::string_view optionalName) const
 		{
 			if (this->isEnableds.current)
 				Globals::logger.Log<2>(optionalName, this->values.current);
@@ -287,7 +289,7 @@ namespace HeatParameters
 		}
 
 
-		void Log(const std::string& optionalName) const
+		void Log(const std::string_view optionalName) const
 		{
 			if (this->isEnableds.current)
 				Globals::logger.Log<2>(optionalName, this->values.current);
@@ -334,7 +336,7 @@ namespace HeatParameters
 		}
 
 
-		void Log(const std::string& optionalName) const
+		void Log(const std::string_view optionalName) const
 		{
 			if (this->isEnableds.current)
 				Globals::logger.Log<2>(optionalName, this->values.current);
@@ -391,7 +393,7 @@ namespace HeatParameters
 		}
 
 
-		void Log(const std::string& intervalName) const
+		void Log(const std::string_view intervalName) const
 		{
 			Globals::logger.Log<2>(intervalName, this->minValues.current, "to", this->maxValues.current);
 		}
@@ -429,7 +431,7 @@ namespace HeatParameters
 		}
 
 
-		void Log(const std::string& intervalName) const
+		void Log(const std::string_view intervalName) const
 		{
 			if (this->isEnableds.current)
 				Globals::logger.Log<2>(intervalName, this->minValues.current, "to", this->maxValues.current);
@@ -444,7 +446,7 @@ namespace HeatParameters
 
 	bool ValidateVehicleTypes
 	(
-		const std::string&        pairName,
+		const std::string_view    pairName,
 		PointerPair<std::string>& pointerPair,
 		const auto&               IsVehicleTypeValid
 	) {
@@ -462,7 +464,6 @@ namespace HeatParameters
 
 				if (not IsVehicleTypeValid(Globals::StringToVaultKey(vehicle)))
 				{
-					// With logging disabled, the compiler optimises "pairName" away
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (numReplaced == 0)

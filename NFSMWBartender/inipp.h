@@ -36,6 +36,7 @@ SOFTWARE.
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 
 namespace inipp {
 
@@ -84,7 +85,7 @@ namespace inipp {
 		std::basic_istringstream<CharT> is{ value };
 		T result;
 		if ((is >> std::boolalpha >> result) && !(is >> c)) {
-			dst = result;
+			dst = std::move(result); // modified
 			return true;
 		}
 		else {
@@ -115,11 +116,12 @@ namespace inipp {
 	inline size_t get_value(const std::map<std::basic_string<CharT>, std::basic_string<CharT>>& sec, std::vector<std::string>& keys, std::vector<T>& dst) {
 		keys.reserve(sec.size());
 		dst.reserve(sec.size());
-		T value = T();
+		T value;
 		for (auto const& [key,val] : sec) {
-			extract(val, value);
-			keys.push_back(key);
-			dst.push_back(value);
+			if (extract(val, value)) {
+				keys.push_back(key);
+				dst.push_back(std::move(value));
+			}
 		}
 		return sec.size();
 	}

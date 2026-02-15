@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -70,7 +70,7 @@ namespace LeaderOverrides
 
 		void SetCrossStatus(const Status status)
 		{
-			std::string statusName;
+			std::string_view statusName;
 
 			switch (status)
 			{
@@ -91,7 +91,6 @@ namespace LeaderOverrides
 
 			this->crossStatus = status;
 
-			// With logging disabled, the compiler optimises "statusName" away
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[LDR] Cross flag now", this->crossFlag, statusName);
 		}
@@ -108,7 +107,7 @@ namespace LeaderOverrides
 
 		void UpdateFlagResetTimer()
 		{
-			std::string statusName;
+			std::string_view statusName;
 
 			const bool isLeader7 = (this->lastStrategyID == 7);
 
@@ -136,7 +135,6 @@ namespace LeaderOverrides
 			if (not flagResetTimer.IsSet())
 				this->flagResetTimer.Start();
 
-			// With logging disabled, the compiler optimises "statusName" away
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->flagResetTimer.IsIntervalEnabled())

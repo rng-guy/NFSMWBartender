@@ -319,7 +319,7 @@ namespace RadioChatter
 		const bool mapIsValid = copTypeToCallsignID.FillFromVectors<std::string, std::string>
 		(
 			"Vehicle-to-callsign",
-			HeatParameters::defaultValueHandle,
+			HeatParameters::configDefaultHandle,
 			copVehicles,
 			Globals::StringToVaultKey,
 			Globals::IsVehicleTypeCar,

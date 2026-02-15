@@ -41,7 +41,7 @@ For a detailed **version history** of Bartender, see the plain-text version of t
 
 # 1 - What's there to know about Bartender's file parsing?
 
-Bartender only recognises **Heat levels** from 1 to 10. If you want to use Bartender to customise Heat levels above 10, you need to recompile it with the appropriate `maxHeatLevel` value yourself.
+Bartender only recognises **Heat levels** from 1 to 10 (inclusive). If you want Bartender to recognise Heat levels > 10, you need to compile it with the desired `maxHeatLevel` parameter value yourself; you can find this parameter at the very top of Bartender's `HeatParameters.h` source file.
 
 &nbsp;
 

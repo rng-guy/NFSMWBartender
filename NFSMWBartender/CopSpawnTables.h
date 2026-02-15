@@ -4,6 +4,7 @@
 #include <string>
 #include <format>
 #include <vector>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -186,9 +187,9 @@ namespace CopSpawnTables
 
 		bool Validate
 		(
-			const std::string& tableName,
-			const bool         forRaces,
-			const size_t       heatLevel
+			const std::string_view tableName,
+			const bool             forRaces,
+			const size_t           heatLevel
 		) {
 			size_t numRemoved = 0;
 			auto   iterator   = this->copTypeToEntry.begin();
@@ -199,7 +200,6 @@ namespace CopSpawnTables
 				{
 					const Entry& copEntry = iterator->second;
 
-					// With logging disabled, the compiler optimises all parameters away
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (numRemoved == 0)
@@ -230,12 +230,12 @@ namespace CopSpawnTables
 		}
 
 
-		void Log(const std::string& tableName) const
+		void Log(const std::string_view tableName) const
 		{
 			Globals::logger.Log<2>(tableName, this->totalCopCount);
 
 			for (const auto& [copType, copEntry] : this->copTypeToEntry)
-				Globals::logger.Log<3>(std::format("{:22}", copEntry.name), copEntry.capacity, copEntry.chance);
+				Globals::logger.Log<3>(std::format("{:22}", copEntry.name), copEntry.capacity, '/', copEntry.chance);
 		}
 	};
 

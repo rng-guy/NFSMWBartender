@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -130,7 +131,7 @@ namespace CopDetection
 		std::fstream&   stream,
 		const Settings& copSettings
 	) {
-		const std::string delimiter = ", ";
+		const std::string_view delimiter = ", ";
 
 		stream << copSettings.radarRange;
 		stream << delimiter << copSettings.patrolIconRange;
@@ -407,7 +408,7 @@ namespace CopDetection
 		const bool mapIsValid = copTypeToSettings.FillFromVectors<std::string, Settings>
 		(
 			"Vehicle-to-settings",
-			HeatParameters::defaultValueHandle,
+			HeatParameters::configDefaultHandle,
 			copVehicles,
 			Globals::StringToVaultKey,
 			Globals::IsVehicleTypeCar,
