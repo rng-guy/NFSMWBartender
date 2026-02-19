@@ -173,6 +173,44 @@ namespace HelicopterVision
 
 
 
+	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+
+	bool ParseColours(HeatParameters::Parser& parser)
+	{
+		// In-sight colour
+		if (not ParseColour(parser, "withinSightColour", colourRange, lengthToEnd))
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Invalid within-sight colour");
+
+			return false; // missing colour
+		}
+
+		// Out-of-sight colour
+		if (not ParseColour(parser, "outOfSightColour", baseColour, lengthToBase))
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Invalid out-of-sight colour");
+
+			return false; // missing colour
+		}
+
+		for (size_t channelID = 0; channelID < numChannels; ++channelID)
+			colourRange[channelID] -= baseColour[channelID];
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::logger.Log<2>("Within sight:", StateToColour(1.f), lengthToEnd);
+			Globals::logger.Log<2>("Out of sight:", StateToColour(0.f), lengthToBase);
+		}
+
+		return true;
+	}
+
+
+
+
+
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
 	void ApplyFixes()
@@ -190,32 +228,8 @@ namespace HelicopterVision
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
-		// In-sight colour
-		if (not ParseColour(parser, "withinSightColour", colourRange, lengthToEnd))
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Invalid within-sight colour");
-
-			return false; // missing colour; disable feature
-		}
-
-		// Out-of-sight colour
-		if (not ParseColour(parser, "outOfSightColour",  baseColour,  lengthToBase))
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Invalid out-of-sight colour");
-
-			return false; // missing colour; disable feature
-		}
-
-		for (size_t channelID = 0; channelID < numChannels; ++channelID)
-			colourRange[channelID] -= baseColour[channelID];
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Log<2>("Within sight:", StateToColour(1.f), lengthToEnd);
-			Globals::logger.Log<2>("Out of sight:", StateToColour(0.f), lengthToBase);
-		}
+		// Cone colours
+		if (not ParseColours(parser)) return false; // invalid colours; disable feature
 
 		// Code modifications
 		ApplyFixes(); // also contains vision-cone feature

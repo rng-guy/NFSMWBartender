@@ -295,29 +295,6 @@ namespace GroundSupports
 
 
 
-	void ValidateVehicleTypes()
-	{
-		bool allTypesCars = true;
-
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 3, light", heavy3LightVehicles, Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 4, light", heavy4LightVehicles, Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleTypeCar);
-
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleTypeCar);
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (allTypesCars)
-				Globals::logger.Log<2>("All vehicles valid");
-		}
-	}
-
-
-
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
@@ -735,7 +712,34 @@ namespace GroundSupports
 
 
 
-    // State management -----------------------------------------------------------------------------------------------------------------------------
+	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+
+	void ValidateVehicleTypes()
+	{
+		bool allTypesCars = true;
+
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 3, light", heavy3LightVehicles, Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 4, light", heavy4LightVehicles, Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleTypeCar);
+
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleTypeCar);
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (allTypesCars)
+				Globals::logger.Log<2>("All vehicles valid");
+		}
+	}
+
+
+
+
+
+	// State management -----------------------------------------------------------------------------------------------------------------------------
 
 	void ApplyFixes()
 	{

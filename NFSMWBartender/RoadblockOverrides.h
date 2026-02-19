@@ -207,198 +207,6 @@ namespace RoadblockOverrides
 
 
 
-	std::optional<RBSetup> ParseRoadblockSetup
-	(
-		HeatParameters::Parser& parser,
-		const std::string_view  section
-	) {
-		if (section.find(baseSetupName) > 0) return std::nullopt; // not setup
-
-		RBSetup setup(std::string(section.substr(baseSetupName.length())));
-
-		RBTable& table = setup.standard;
-
-		// Parse and validate width values
-		if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {0.f}}, {setup.maxRoadWidth, {0.f}}))
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name, "(no extent)");
-
-			return std::nullopt; // invalid setup
-		}
-
-		if (table.minRoadWidth >= setup.maxRoadWidth)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name, "(invalid extent)");
-
-			return std::nullopt; // invalid setup
-		}
-
-		// Parse roadblock-part parameters
-		std::array<int,   maxNumParts> partTypeIDs  = {};
-		std::array<float, maxNumParts> partOffsetsX = {};
-		std::array<float, maxNumParts> partOffsetsY = {};
-		std::array<float, maxNumParts> orientations = {};
-
-		const auto isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
-		(
-			section,
-			"part{:02}",
-			{partTypeIDs},
-			{partOffsetsX},
-			{partOffsetsY},
-			{orientations}
-		);
-
-		// Process roadblock parts
-		size_t numValidParts = 0;
-
-		for (size_t partID = 0; partID < maxNumParts; ++partID)
-		{
-			if (not isValids[partID]) continue; // invalid part; process next
-
-			switch (partTypeIDs[partID])
-			{
-			case RBPartType::CAR:
-				++(table.numCarsRequired);
-				break;
-
-			case RBPartType::SAWHORSE:
-				break;
-
-			case RBPartType::SPIKES:
-				setup.hasSpikes = true;
-				break;
-
-			default:
-				continue; // invalid part; process next
-			}
-
-			// Remove full rotations and convert to positive orientation
-			orientations[partID] -= std::trunc(orientations[partID]);
-
-			if (orientations[partID] < 0.f)
-				orientations[partID] += 1.f;
-
-			// Update part parameters
-			table.parts[numValidParts++] =
-			{
-				static_cast<RBPartType>(partTypeIDs[partID]),
-				partOffsetsX[partID],
-				partOffsetsY[partID],
-				orientations[partID]
-			};
-		}
-
-		if (table.numCarsRequired == 0)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name, "(no car(s))");
-
-			return std::nullopt; // invalid setup
-		}
-
-		// Parse and validate "chance" parameter(s)
-		HeatParameters::Parse(parser, section, setup.chances);
-
-		if (setup.chances.GetMaximum() < 1)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name, "(unused)");
-
-			return std::nullopt; // unused setup
-		}
-
-		// Parse other optional parameters
-		parser.ParseFromFile<bool> (section, "stretch", {setup.canStretch});
-		parser.ParseFromFile<float>(section, "mirror",  {setup.mirrorChance, {0.f, 100.f}});
-
-		// Create mirrored variant (not worth skipping if disabled)
-		setup.mirrored = table;
-
-		for (size_t partID = 0; partID < maxNumParts; ++partID)
-		{
-			RBPart& part = setup.mirrored.parts[partID];
-
-			if (part.type == RBPartType::NONE) break; // no more parts
-
-			part.offsetX     = -part.offsetX;
-			part.orientation = 1.f - part.orientation;
-
-			// Mirror spike-strip pattern direction
-			if (part.type == RBPartType::SPIKES)
-			{
-				if (part.orientation > .5f)
-					part.orientation -= .5f; // clockwise
-
-				else
-					part.orientation += .5f; // counter-clockwise
-			}
-		}
-
-		return setup;
-	}
-
-
-
-	bool ParseRoadblockSetups(HeatParameters::Parser& parser)
-	{
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("Roadblock setups:");
-
-		const auto& sections = parser.GetSections();
-
-		// Check (potential) setup count
-		size_t maxNumSetups = 0;
-
-		for (const auto& [section, contents] : sections)
-			if (section.find(baseSetupName) == 0) ++maxNumSetups;
-
-		if (maxNumSetups == 0)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>("no setup(s) provided");
-
-			return false; // no setups; disable feature
-		}
-		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<3>(static_cast<int>(maxNumSetups), "setup(s) provided");
-
-		// Parse and validate setups
-		roadblockSetups.reserve(maxNumSetups);
-
-		for (const auto& [section, contents] : sections)
-		{
-			if (auto setup = ParseRoadblockSetup(parser, section))
-			{
-				if constexpr (Globals::loggingEnabled)
-					counter.CountSetup(*setup);
-
-				roadblockSetups.push_back(std::move(*setup));
-			}
-		}
-
-		// Log parsing result(s)
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (not roadblockSetups.empty())
-			{
-				Globals::logger.Log<3>(static_cast<int>(roadblockSetups.size()), "setup(s) valid");
-
-				Globals::logger.Log<3>(static_cast<int>(counter.numRegular), "regular,", static_cast<int>(counter.numMirrorRegular), "mirrored");
-				Globals::logger.Log<3>(static_cast<int>(counter.numSpike),   "spikes, ", static_cast<int>(counter.numMirrorSpike),   "mirrored");
-
-				counter.ResetCounts();
-			}
-			else Globals::logger.Log<3>("no setup(s) valid");
-		}
-
-		return (not roadblockSetups.empty());
-	}
-
-
-
 
 
 	// Replacement functions ------------------------------------------------------------------------------------------------------------------------
@@ -598,6 +406,201 @@ namespace RoadblockOverrides
 
 			jmp dword ptr spawnFailureExit
 		}
+	}
+
+
+
+
+	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+
+	std::optional<RBSetup> ParseRoadblockSetup
+	(
+		HeatParameters::Parser& parser,
+		const std::string_view  section
+	) {
+		if (section.find(baseSetupName) > 0) return std::nullopt; // not setup
+
+		RBSetup setup(std::string(section.substr(baseSetupName.length())));
+
+		RBTable& table = setup.standard;
+
+		// Parse and validate width values
+		if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {0.f}}, {setup.maxRoadWidth, {0.f}}))
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<3>('-', setup.name, "(no extent)");
+
+			return std::nullopt; // invalid setup
+		}
+
+		if (table.minRoadWidth >= setup.maxRoadWidth)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<3>('-', setup.name, "(invalid extent)");
+
+			return std::nullopt; // invalid setup
+		}
+
+		// Parse roadblock-part parameters
+		std::array<int,   maxNumParts> partTypeIDs  = {};
+		std::array<float, maxNumParts> partOffsetsX = {};
+		std::array<float, maxNumParts> partOffsetsY = {};
+		std::array<float, maxNumParts> orientations = {};
+
+		const auto isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
+			(
+				section,
+				"part{:02}",
+				{partTypeIDs},
+				{partOffsetsX},
+				{partOffsetsY},
+				{orientations}
+			);
+
+		// Process roadblock parts
+		size_t numValidParts = 0;
+
+		for (size_t partID = 0; partID < maxNumParts; ++partID)
+		{
+			if (not isValids[partID]) continue; // invalid part; process next
+
+			switch (partTypeIDs[partID])
+			{
+			case RBPartType::CAR:
+				++(table.numCarsRequired);
+				break;
+
+			case RBPartType::SAWHORSE:
+				break;
+
+			case RBPartType::SPIKES:
+				setup.hasSpikes = true;
+				break;
+
+			default:
+				continue; // invalid part; process next
+			}
+
+			// Remove full rotations and convert to positive orientation
+			orientations[partID] -= std::trunc(orientations[partID]);
+
+			if (orientations[partID] < 0.f)
+				orientations[partID] += 1.f;
+
+			// Update part parameters
+			table.parts[numValidParts++] =
+			{
+				static_cast<RBPartType>(partTypeIDs[partID]),
+				partOffsetsX[partID],
+				partOffsetsY[partID],
+				orientations[partID]
+			};
+		}
+
+		if (table.numCarsRequired == 0)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<3>('-', setup.name, "(no car(s))");
+
+			return std::nullopt; // invalid setup
+		}
+
+		// Parse and validate "chance" parameter(s)
+		HeatParameters::Parse(parser, section, setup.chances);
+
+		if (setup.chances.GetMaximum() < 1)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<3>('-', setup.name, "(unused)");
+
+			return std::nullopt; // unused setup
+		}
+
+		// Parse other optional parameters
+		parser.ParseFromFile<bool>(section, "stretch", {setup.canStretch});
+		parser.ParseFromFile<float>(section, "mirror", {setup.mirrorChance, {0.f, 100.f}});
+
+		// Create mirrored variant (not worth skipping if disabled)
+		setup.mirrored = table;
+
+		for (size_t partID = 0; partID < maxNumParts; ++partID)
+		{
+			RBPart& part = setup.mirrored.parts[partID];
+
+			if (part.type == RBPartType::NONE) break; // no more parts
+
+			part.offsetX = -part.offsetX;
+			part.orientation = 1.f - part.orientation;
+
+			// Mirror spike-strip pattern direction
+			if (part.type == RBPartType::SPIKES)
+			{
+				if (part.orientation > .5f)
+					part.orientation -= .5f; // clockwise
+
+				else
+					part.orientation += .5f; // counter-clockwise
+			}
+		}
+
+		return setup;
+	}
+
+
+
+	bool ParseRoadblockSetups(HeatParameters::Parser& parser)
+	{
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<2>("Roadblock setups:");
+
+		const auto& sections = parser.GetSections();
+
+		// Check (potential) setup count
+		size_t maxNumSetups = 0;
+
+		for (const auto& [section, contents] : sections)
+			if (section.find(baseSetupName) == 0) ++maxNumSetups;
+
+		if (maxNumSetups == 0)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<3>("no setup(s) provided");
+
+			return false; // no setups; disable feature
+		}
+		else if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<3>(static_cast<int>(maxNumSetups), "setup(s) provided");
+
+		// Parse and validate setups
+		roadblockSetups.reserve(maxNumSetups);
+
+		for (const auto& [section, contents] : sections)
+		{
+			if (auto setup = ParseRoadblockSetup(parser, section))
+			{
+				if constexpr (Globals::loggingEnabled)
+					counter.CountSetup(*setup);
+
+				roadblockSetups.push_back(std::move(*setup));
+			}
+		}
+
+		// Log parsing result(s)
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (not roadblockSetups.empty())
+			{
+				Globals::logger.Log<3>(static_cast<int>(roadblockSetups.size()), "setup(s) valid");
+
+				Globals::logger.Log<3>(static_cast<int>(counter.numRegular), "regular,", static_cast<int>(counter.numMirrorRegular), "mirrored");
+				Globals::logger.Log<3>(static_cast<int>(counter.numSpike),   "spikes, ", static_cast<int>(counter.numMirrorSpike),   "mirrored");
+
+				counter.ResetCounts();
+			}
+			else Globals::logger.Log<3>("no setup(s) valid");
+		}
+
+		return (not roadblockSetups.empty());
 	}
 
 

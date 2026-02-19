@@ -320,26 +320,6 @@ namespace StrategyOverrides
 
 
 
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	void UpdateHeavy3StackVectors()
-	{
-		const size_t stackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("New stack size:", static_cast<int>(stackSize), "floats");
-
-		spawnVectorStackOne.resize(stackSize);
-		spawnVectorStackTwo.resize(stackSize);
-
-		spawnVectorsOne = spawnVectorStackOne.data();
-		spawnVectorsTwo = spawnVectorStackTwo.data();
-	}
-
-
-
-
-
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address goalResetEntrance = 0x42B475;
@@ -627,6 +607,26 @@ namespace StrategyOverrides
 
 			jmp dword ptr crossPriorityDelayExit
 		}
+	}
+
+
+
+
+
+	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+
+	void UpdateHeavy3StackVectors()
+	{
+		const size_t stackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<2>("New stack size:", static_cast<int>(stackSize), "floats");
+
+		spawnVectorStackOne.resize(stackSize);
+		spawnVectorStackTwo.resize(stackSize);
+
+		spawnVectorsOne = spawnVectorStackOne.data();
+		spawnVectorsTwo = spawnVectorStackTwo.data();
 	}
 
 

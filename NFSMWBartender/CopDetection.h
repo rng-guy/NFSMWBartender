@@ -143,49 +143,6 @@ namespace CopDetection
 
 
 
-	bool ParseDetectionSettings(HeatParameters::Parser& parser)
-	{
-		std::vector<std::string> copVehicles;
-
-		std::vector<float> radarRanges;
-		std::vector<float> patrolIconRanges;
-		std::vector<float> pursuitIconRanges;
-		std::vector<bool>  keepsIcons;
-
-		const size_t numCopVehicles = parser.ParseUser<float, float, float, bool>
-		(
-			"Vehicles:Detection",
-			copVehicles,
-			{radarRanges,       {0.f}},
-			{patrolIconRanges,  {0.f}},
-			{pursuitIconRanges, {0.f}},
-			{keepsIcons}
-		);
-
-		std::vector<Settings> settings(numCopVehicles);
-
-		for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
-		{
-			settings[vehicleID] =
-			{
-				radarRanges[vehicleID],
-				patrolIconRanges[vehicleID],
-				pursuitIconRanges[vehicleID],
-				keepsIcons[vehicleID]
-			};
-		}
-
-		return copTypeToSettings.FillFromVectors
-		(
-			"Vehicle-to-settings",
-			HeatParameters::configDefaultHandle,
-			HashContainers::FillSetup(copVehicles, Globals::StringToVaultKey, Globals::IsVehicleTypeCar),
-			HashContainers::FillSetup(settings)
-		);
-	}
-
-
-
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
@@ -384,6 +341,53 @@ namespace CopDetection
 
 			jmp dword ptr worldMapConstructorExit
 		}
+	}
+
+
+
+
+
+	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+
+	bool ParseDetectionSettings(HeatParameters::Parser& parser)
+	{
+		std::vector<std::string> copVehicles;
+
+		std::vector<float> radarRanges;
+		std::vector<float> patrolIconRanges;
+		std::vector<float> pursuitIconRanges;
+		std::vector<bool>  keepsIcons;
+
+		const size_t numCopVehicles = parser.ParseUser<float, float, float, bool>
+		(
+			"Vehicles:Detection",
+			copVehicles,
+			{radarRanges,       {0.f}},
+			{patrolIconRanges,  {0.f}},
+			{pursuitIconRanges, {0.f}},
+			{keepsIcons}
+		);
+
+		std::vector<Settings> settings(numCopVehicles);
+
+		for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
+		{
+			settings[vehicleID] =
+			{
+				radarRanges      [vehicleID],
+				patrolIconRanges [vehicleID],
+				pursuitIconRanges[vehicleID],
+				keepsIcons       [vehicleID]
+			};
+		}
+
+		return copTypeToSettings.FillFromVectors
+		(
+			"Vehicle-to-settings",
+			HeatParameters::configDefaultHandle,
+			HashContainers::FillSetup(copVehicles, Globals::StringToVaultKey, Globals::IsVehicleTypeCar),
+			HashContainers::FillSetup(settings)
+		);
 	}
 
 

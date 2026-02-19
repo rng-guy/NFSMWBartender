@@ -233,28 +233,6 @@ namespace HeatChangeOverrides
 
 
 
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	bool ParseWreckingChanges(HeatParameters::Parser& parser)
-	{
-		std::vector<std::string> copVehicles;
-		std::vector<float>       heatChanges;
-
-		parser.ParseUser<float>("Heat:Wrecking", copVehicles, {heatChanges});
-
-		return copTypeToHeatChange.FillFromVectors
-		(
-			"Vehicle-to-change",
-			HeatParameters::configDefaultHandle,
-			HashContainers::FillSetup(copVehicles, Globals::StringToVaultKey, Globals::DoesVehicleTypeExist),
-			HashContainers::FillSetup(heatChanges)
-		);
-	}
-
-
-
-
-
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address passiveHeatEntrance = 0x443D4A;
@@ -437,6 +415,28 @@ namespace HeatChangeOverrides
 
 			jmp dword ptr typeDestructionExit
 		}
+	}
+
+
+
+
+
+	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+
+	bool ParseWreckingChanges(HeatParameters::Parser& parser)
+	{
+		std::vector<std::string> copVehicles;
+		std::vector<float>       heatChanges;
+
+		parser.ParseUser<float>("Heat:Wrecking", copVehicles, {heatChanges});
+
+		return copTypeToHeatChange.FillFromVectors
+		(
+			"Vehicle-to-change",
+			HeatParameters::configDefaultHandle,
+			HashContainers::FillSetup(copVehicles, Globals::StringToVaultKey, Globals::DoesVehicleTypeExist),
+			HashContainers::FillSetup(heatChanges)
+		);
 	}
 
 

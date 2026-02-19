@@ -425,24 +425,6 @@ namespace HelicopterOverrides
 
 
 
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	void ValidateVehicleTypes()
-	{
-		const bool allValid = HeatParameters::ValidateVehicleTypes("Helicopters", helicopterVehicles, Globals::IsVehicleTypeChopper);
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (allValid)
-				Globals::logger.Log<2>("All vehicles valid");
-		}
-
-	}
-
-
-
-
-
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address fuelUpdateEntrance = 0x423519;
@@ -527,6 +509,24 @@ namespace HelicopterOverrides
 
 			jmp dword ptr rammingCooldownExit
 		}
+	}
+
+
+
+
+
+	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+
+	void ValidateVehicleTypes()
+	{
+		const bool allValid = HeatParameters::ValidateVehicleTypes("Helicopters", helicopterVehicles, Globals::IsVehicleTypeChopper);
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (allValid)
+				Globals::logger.Log<2>("All vehicles valid");
+		}
+
 	}
 
 

@@ -25,34 +25,6 @@ namespace DestructionStrings
 	
 
 
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	bool ParseDestructionKeys(HeatParameters::Parser& parser)
-	{
-		std::vector<std::string> copVehicles;
-		std::vector<std::string> binaryLabels;
-
-		parser.ParseUser<std::string>("Vehicles:Strings", copVehicles, {binaryLabels});
-
-		const auto IsBinaryKeyValid = [](const binary key) -> bool
-		{
-			const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
-			return GetBinaryString(0, key); // first argument is unused placeholder value
-		};
-
-		return copTypeToDestructionKey.FillFromVectors
-		(
-			"Vehicle-to-label",
-			HeatParameters::configDefaultHandle,
-			HashContainers::FillSetup(copVehicles,  Globals::StringToVaultKey,  Globals::DoesVehicleTypeExist),
-			HashContainers::FillSetup(binaryLabels, Globals::StringToBinaryKey, IsBinaryKeyValid)
-		);
-	}
-
-
-
-
-
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address copDestructionEntrance = 0x595B0D;
@@ -78,6 +50,34 @@ namespace DestructionStrings
 			skip:
 			jmp dword ptr copDestructionSkip
 		}
+	}
+
+
+
+
+
+	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+
+	bool ParseDestructionKeys(HeatParameters::Parser& parser)
+	{
+		std::vector<std::string> copVehicles;
+		std::vector<std::string> binaryLabels;
+
+		parser.ParseUser<std::string>("Vehicles:Strings", copVehicles, {binaryLabels});
+
+		const auto IsBinaryKeyValid = [](const binary key) -> bool
+			{
+				const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
+				return GetBinaryString(0, key); // first argument is unused placeholder value
+			};
+
+		return copTypeToDestructionKey.FillFromVectors
+		(
+			"Vehicle-to-label",
+			HeatParameters::configDefaultHandle,
+			HashContainers::FillSetup(copVehicles,  Globals::StringToVaultKey,  Globals::DoesVehicleTypeExist),
+			HashContainers::FillSetup(binaryLabels, Globals::StringToBinaryKey, IsBinaryKeyValid)
+		);
 	}
 
 
