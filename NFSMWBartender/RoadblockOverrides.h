@@ -7,6 +7,7 @@
 #include <format>
 #include <utility>
 #include <optional>
+#include <string_view>
 
 #include "Globals.h"
 #include "HeatParameters.h"
@@ -74,7 +75,7 @@ namespace RoadblockOverrides
 
 		const RBTable* GetRandomTable() const
 		{
-			const bool isMirrored = Globals::prng.DoTrial<float>(this->mirrorChance);
+			const bool isMirrored = Globals::prng.DoPercentTrial<float>(this->mirrorChance);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -153,6 +154,9 @@ namespace RoadblockOverrides
 	// Heat parameters
 	HeatParameters::Pair<float> spawnCalloutChances(100.f, {0.f, 100.f}); // percent
 	HeatParameters::Pair<float> spikeCalloutChances(50.f,  {0.f, 100.f}); // percent
+
+	// Setup parsing
+	constexpr std::string_view baseSetupName = "Setups:";
 	
 	// Code caves
 	std::vector<RBSetup> roadblockSetups;
@@ -176,9 +180,9 @@ namespace RoadblockOverrides
 		if (Globals::IsInCooldownMode(pursuit))    return;
 		if (not Globals::IsPlayerPursuit(pursuit)) return;
 
-		if (Globals::prng.DoTrial<float>(spawnCalloutChances.current))
+		if (Globals::prng.DoPercentTrial<float>(spawnCalloutChances.current))
 		{
-			if (hasSpikes and Globals::prng.DoTrial<float>(spikeCalloutChances.current))
+			if (hasSpikes and Globals::prng.DoPercentTrial<float>(spikeCalloutChances.current))
 			{
 				const auto CallOutSpikes = reinterpret_cast<void (__cdecl*)(int)>(0x71DAC0);
 
@@ -203,15 +207,14 @@ namespace RoadblockOverrides
 
 
 
-	std::optional<RBSetup> ParseSetup
+	std::optional<RBSetup> ParseRoadblockSetup
 	(
 		HeatParameters::Parser& parser,
-		const std::string&      section,
-		const std::string&      baseName
+		const std::string_view  section
 	) {
-		if (section.find(baseName) > 0) return std::nullopt; // not setup
+		if (section.find(baseSetupName) > 0) return std::nullopt; // not setup
 
-		RBSetup setup(section.substr(baseName.length()));
+		RBSetup setup(std::string(section.substr(baseSetupName.length())));
 
 		RBTable& table = setup.standard;
 
@@ -339,6 +342,63 @@ namespace RoadblockOverrides
 
 
 
+	bool ParseRoadblockSetups(HeatParameters::Parser& parser)
+	{
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<2>("Roadblock setups:");
+
+		const auto& sections = parser.GetSections();
+
+		// Check (potential) setup count
+		size_t maxNumSetups = 0;
+
+		for (const auto& [section, contents] : sections)
+			if (section.find(baseSetupName) == 0) ++maxNumSetups;
+
+		if (maxNumSetups == 0)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<3>("no setup(s) provided");
+
+			return false; // no setups; disable feature
+		}
+		else if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<3>(static_cast<int>(maxNumSetups), "setup(s) provided");
+
+		// Parse and validate setups
+		roadblockSetups.reserve(maxNumSetups);
+
+		for (const auto& [section, contents] : sections)
+		{
+			if (auto setup = ParseRoadblockSetup(parser, section))
+			{
+				if constexpr (Globals::loggingEnabled)
+					counter.CountSetup(*setup);
+
+				roadblockSetups.push_back(std::move(*setup));
+			}
+		}
+
+		// Log parsing result(s)
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (not roadblockSetups.empty())
+			{
+				Globals::logger.Log<3>(static_cast<int>(roadblockSetups.size()), "setup(s) valid");
+
+				Globals::logger.Log<3>(static_cast<int>(counter.numRegular), "regular,", static_cast<int>(counter.numMirrorRegular), "mirrored");
+				Globals::logger.Log<3>(static_cast<int>(counter.numSpike),   "spikes, ", static_cast<int>(counter.numMirrorSpike),   "mirrored");
+
+				counter.ResetCounts();
+			}
+			else Globals::logger.Log<3>("no setup(s) valid");
+		}
+
+		return (not roadblockSetups.empty());
+	}
+
+
+
 
 
 	// Replacement functions ------------------------------------------------------------------------------------------------------------------------
@@ -385,8 +445,9 @@ namespace RoadblockOverrides
 		// Attempt to select a random eligible setup
 		if (not candidates.empty())
 		{
-			int       cumulativeChance = 0;
-			const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, totalChance);
+			int cumulativeChance = 0;
+
+			const int chanceThreshold = Globals::prng.GenerateNumber<int>(1, totalChance);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>(static_cast<int>(candidates.size()), "candidate(s)");
@@ -564,59 +625,7 @@ namespace RoadblockOverrides
 		HeatParameters::Parse(parser, "Roadblocks:Radio", spawnCalloutChances, spikeCalloutChances);
 
 		// Roadblock setups
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("Roadblock setups:");
-
-		const auto&       sections = parser.GetSections();
-		const std::string baseName = "Setups:";
-
-		// Check (potential) setup count
-		size_t maxNumSetups = 0;
-
-		for (const auto& [section, contents] : sections)
-			if (section.find(baseName) == 0) ++maxNumSetups;
-
-		if (maxNumSetups == 0)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>("no setup(s) provided");
-
-			return false; // no setups; disable feature
-		}
-		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<3>(static_cast<int>(maxNumSetups), "setup(s) provided");
-
-		// Parse and validate setups
-		roadblockSetups.reserve(maxNumSetups);
-
-		for (const auto& [section, contents] : sections)
-		{
-			if (auto setup = ParseSetup(parser, section, baseName))
-			{
-				if constexpr (Globals::loggingEnabled)
-					counter.CountSetup(*setup);
-
-				roadblockSetups.push_back(std::move(*setup));
-			}
-		}
-
-		if (roadblockSetups.empty())
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>("no setup(s) valid");
-
-			return false; // no valid setups; disable feature
-		}
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Log<3>(static_cast<int>(roadblockSetups.size()), "setup(s) valid");
-
-			Globals::logger.Log<3>(static_cast<int>(counter.numRegular), "regular,", static_cast<int>(counter.numMirrorRegular), "mirrored");
-			Globals::logger.Log<3>(static_cast<int>(counter.numSpike),   "spikes, ", static_cast<int>(counter.numMirrorSpike),   "mirrored");
-
-			counter.ResetCounts();
-		}
+		if (not ParseRoadblockSetups(parser)) return false; // no valid setups; disable feature
 
 		// Code Changes
 		MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <string>
 #include <vector>
+#include <string>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -59,6 +60,87 @@ namespace InteractiveMusic
 			Globals::logger.Log<1>("[MUS] Next pursuit theme:", playlist[currentTrackID] + 1);
 
 		return playlist[currentTrackID];
+	}
+
+
+
+	bool ParsePlaylist(HeatParameters::Parser& parser)
+	{
+		const auto& sections     = parser.GetSections();
+		const auto  foundSection = sections.find("Music:Playlist");
+
+		// Parse track IDs if playlist section exists
+		if (foundSection != sections.end())
+		{
+			const HashContainers::Map<std::string, int> nameToIndex =
+			{
+				{"theme1", 0},
+				{"theme2", 1},
+				{"theme3", 2},
+				{"theme4", 3}
+			};
+
+			const auto& pairs = foundSection->second;
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				Globals::logger.Log<2>("Playlist parsing:");
+				Globals::logger.Log<3>(static_cast<int>(pairs.size()), "track(s) provided");
+			}
+
+			// Validate and add track IDs
+			for (const auto& [key, value] : pairs)
+			{
+				if (key.find("track") == 0)
+				{
+					const auto foundName = nameToIndex.find(value);
+
+					if (foundName != nameToIndex.end())
+						playlist.push_back(foundName->second);
+
+					else if constexpr (Globals::loggingEnabled)
+						Globals::logger.Log<3>('-', key, "(invalid value)");
+				}
+				else if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log<3>('-', key, "(invalid format)");
+			}
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<3>(static_cast<int>(playlist.size()), "track(s) valid");
+		}
+		else if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<3>("no track(s) provided");
+
+		return (not playlist.empty());
+	}
+
+
+
+	void ParseSettings(HeatParameters::Parser& parser)
+	{
+		constexpr std::string_view section = "Playlist:Settings";
+
+		transitionsEnabled = parser.ParseFromFile<float>(section, "lengthPerTrack", {lengthPerTrack});
+
+		parser.ParseFromFile<bool>(section, "shuffleFirstTrack", {shuffleFirstTrack});
+		parser.ParseFromFile<bool>(section, "shuffleAfterFirst", {shuffleAfterFirst});
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::logger.Log<2>("Playlist:");
+
+			for (size_t trackID = 0; trackID < playlist.size(); ++trackID)
+				Globals::logger.Log<3>("track", static_cast<int>(trackID + 1), "= theme", playlist[trackID] + 1);
+
+			if (transitionsEnabled)
+				Globals::logger.Log<2>("Length per track:", lengthPerTrack);
+
+			else
+				Globals::logger.Log<2>("Transitions disabled");
+
+			Globals::logger.Log<2>((shuffleFirstTrack) ? "Shuffled" : "Fixed", "first track");
+			Globals::logger.Log<2>((shuffleAfterFirst) ? "Shuffled" : "Fixed", "follow-up track(s)");
+		}
 	}
 
 
@@ -164,79 +246,10 @@ namespace InteractiveMusic
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
-		// Playlist
-		const auto& sections     = parser.GetSections();
-		const auto  foundSection = sections.find("Music:Playlist");
+		// Theme playlist
+		if (not ParsePlaylist(parser)) return false; // no valid theme(s); disable feature
 
-		// Parse track IDs if playlist section exists
-		if (foundSection != sections.end())
-		{
-			const std::string baseName    = "track";
-			const auto&       definitions = foundSection->second;
-
-			const HashContainers::Map<std::string, int> nameToIndex =
-			{
-				{"theme1", 0},
-				{"theme2", 1},
-				{"theme3", 2},
-				{"theme4", 3}
-			};
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				Globals::logger.Log<2>("Playlist parsing:");
-				Globals::logger.Log<3>(static_cast<int>(definitions.size()), "track(s) provided");
-			}
-
-			// Validate and add track IDs
-			for (const auto& [definition, value] : definitions)
-			{
-				if (definition.find(baseName) == 0)
-				{
-					const auto foundName = nameToIndex.find(value);
-
-					if (foundName != nameToIndex.end())
-						playlist.push_back(foundName->second);
-
-					else if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log<3>('-', definition, "(invalid value)");
-				}
-				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<3>('-', definition, "(invalid format)");
-			}
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>(static_cast<int>(playlist.size()), "track(s) valid");
-		}
-		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<3>("no track(s) provided");
-
-		if (playlist.empty()) return false; // no valid theme(s); disable feature
-
-		// Playlist settings
-		const std::string section = "Playlist:Settings";
-
-		transitionsEnabled = parser.ParseFromFile<float>(section, "lengthPerTrack", {lengthPerTrack});
-
-		parser.ParseFromFile<bool>(section, "shuffleFirstTrack", {shuffleFirstTrack});
-		parser.ParseFromFile<bool>(section, "shuffleAfterFirst", {shuffleAfterFirst});
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger.Log<2>("Playlist:");
-
-			for (size_t trackID = 0; trackID < playlist.size(); ++trackID)
-				Globals::logger.Log<3>("track", static_cast<int>(trackID + 1), "= theme", playlist[trackID] + 1);
-
-			if (transitionsEnabled)
-				Globals::logger.Log<2>("Length per track:", lengthPerTrack);
-
-			else
-				Globals::logger.Log<2>("Transitions disabled");
-
-			Globals::logger.Log<2>((shuffleFirstTrack) ? "Shuffled" : "Fixed", "first track");
-			Globals::logger.Log<2>((shuffleAfterFirst) ? "Shuffled" : "Fixed", "follow-up track(s)");
-		}
+		ParseSettings(parser);
 
 		// Code modifications 
 		MemoryTools::MakeRangeJMP(NextTrack,       nextTrackEntrance,       nextTrackExit);

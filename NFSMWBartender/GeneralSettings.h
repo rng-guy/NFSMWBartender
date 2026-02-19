@@ -2,6 +2,7 @@
 
 #include <string>
 #include <algorithm>
+#include <functional>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -389,6 +390,24 @@ namespace GeneralSettings
 
 
 
+	bool ParseBreakerImmunities(HeatParameters::Parser& parser)
+	{
+		std::vector<std::string> copVehicles;
+		std::vector<bool>        isAffecteds;
+
+		parser.ParseUser<bool>("Vehicles:Breakers", copVehicles, {isAffecteds});
+
+		return copTypeToIsBreakerImmune.FillFromVectors
+		(
+			"Vehicle-to-immunity",
+			HeatParameters::configDefaultHandle,
+			HashContainers::FillSetup(copVehicles, Globals::StringToVaultKey, Globals::DoesVehicleTypeExist),
+			HashContainers::FillSetup(isAffecteds, std::logical_not<bool>{})
+		);
+	}
+
+
+
 
 
     // State management -----------------------------------------------------------------------------------------------------------------------------
@@ -437,7 +456,7 @@ namespace GeneralSettings
 		HeatParameters::Parse(parser, "Bounty:Interval", bountyIntervals);
 		HeatParameters::Parse(parser, "Bounty:Combo",    maxBountyMultipliers);
 
-		HeatParameters::Parse(parser, "State:Busting",  bustTimers, maxBustDistances);
+		HeatParameters::Parse(parser, "State:Busting",  bustTimers,            maxBustDistances);
 		HeatParameters::Parse(parser, "State:Evading",  evadeTimers);
 		HeatParameters::Parse(parser, "Evading:Hiding", carsAffectedByHidings, helisAffectedByHidings);
 
@@ -446,25 +465,7 @@ namespace GeneralSettings
 		HeatParameters::Parse(parser, "Flipping:Reset",   racerFlipResetDelays);
 
 		// Breaker flags
-		std::vector<std::string> copVehicles;
-		std::vector<bool>        isAffecteds;
-
-		parser.ParseUser<bool>("Vehicles:Breakers", copVehicles, {isAffecteds});
-
-		// Populate breaker-immunity map
-		const bool mapIsValid = copTypeToIsBreakerImmune.FillFromVectors<std::string, bool>
-		(
-			"Vehicle-to-immunity",
-			HeatParameters::configDefaultHandle,
-			copVehicles,
-			Globals::StringToVaultKey,
-			Globals::DoesVehicleTypeExist,
-			isAffecteds,
-			[](const bool isAffected) -> bool {return (not isAffected);},
-			[](const bool isImmune)   -> bool {return true;}
-		);
-
-		if (mapIsValid)
+		if (ParseBreakerImmunities(parser))
 		{
 			// Code modifications (feature-specific)
 			MemoryTools::MakeRangeJMP(BreakerCheck, breakerCheckEntrance, breakerCheckExit);

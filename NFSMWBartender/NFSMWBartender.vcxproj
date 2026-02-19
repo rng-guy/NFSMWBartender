@@ -179,6 +179,7 @@
     <ClInclude Include="CopFleeOverrides.h" />
     <ClInclude Include="HeatChangeOverrides.h" />
     <ClInclude Include="HelicopterVision.h" />
+    <ClInclude Include="inipp.h" />
     <ClInclude Include="InteractiveMusic.h" />
     <ClInclude Include="LeaderOverrides.h" />
     <ClInclude Include="CopDetection.h" />
@@ -196,7 +197,6 @@
     <ClInclude Include="RandomNumbers.h" />
     <ClInclude Include="RoadblockOverrides.h" />
     <ClInclude Include="StateObserver.h" />
-    <ClInclude Include="inipp.h" />
     <ClInclude Include="stl.h" />
     <ClInclude Include="StrategyOverrides.h" />
     <ClInclude Include="unordered_dense.h" />

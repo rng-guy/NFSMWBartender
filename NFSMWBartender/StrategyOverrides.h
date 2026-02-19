@@ -320,6 +320,26 @@ namespace StrategyOverrides
 
 
 
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	void UpdateHeavy3StackVectors()
+	{
+		const size_t stackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<2>("New stack size:", static_cast<int>(stackSize), "floats");
+
+		spawnVectorStackOne.resize(stackSize);
+		spawnVectorStackTwo.resize(stackSize);
+
+		spawnVectorsOne = spawnVectorStackOne.data();
+		spawnVectorsTwo = spawnVectorStackTwo.data();
+	}
+
+
+
+
+
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address goalResetEntrance = 0x42B475;
@@ -630,19 +650,10 @@ namespace StrategyOverrides
 		HeatParameters::Parse(parser, "Leader5:Unblocking", leader5UnblockDelays);
 		HeatParameters::Parse(parser, "Leader7:Unblocking", leader7UnblockDelays);
 
-		// Stack replacements for removal of HeavyStrategy 3 limit (4D float vectors)
-		const size_t stackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
+		// Stack replacements
+		UpdateHeavy3StackVectors();
 
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("New stack size:", static_cast<int>(stackSize), "floats");
-
-		spawnVectorStackOne.resize(stackSize);
-		spawnVectorStackTwo.resize(stackSize);
-
-		spawnVectorsOne = spawnVectorStackOne.data();
-		spawnVectorsTwo = spawnVectorStackTwo.data();
-
-		// Code modifications 
+		// Code modifications (general)
 		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4
 		MemoryTools::Write<byte>  (maxNumVehiclesPerHeavy4, {0x43E7CD}); // car budget
 
@@ -662,6 +673,7 @@ namespace StrategyOverrides
 		MemoryTools::MakeRangeJMP(HeavyStrategy3, heavyStrategy3Entrance, heavyStrategy3Exit);
 		MemoryTools::MakeRangeJMP(HeavyStrategy4, heavyStrategy4Entrance, heavyStrategy4Exit);
 
+		// Code modifications (feature-specific)
 		if (not GeneralSettings::trackPursuitLength)
 		{
 			MemoryTools::MakeRangeJMP(MinStrategyDelay,   minStrategyDelayEntrance,   minStrategyDelayExit);

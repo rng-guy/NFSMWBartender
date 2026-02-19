@@ -101,12 +101,12 @@ namespace RandomNumbers
 
 	// Generator wrapper class ----------------------------------------------------------------------------------------------------------------------
 
-	template <typename T = Xoshiro256ss>
+	template <class Engine = Xoshiro256ss>
 	class Generator
 	{
 	private:
 
-		T engine;
+		Engine engine;
 		
 
 
@@ -119,16 +119,16 @@ namespace RandomNumbers
 			const T min,
 			const T max
 		) {
-			// can generate values from [min, max]
+			// ...can generate values from [min, max]
 			return std::uniform_int_distribution<T>{min, max}(this->engine);
 		}
 
 
 		template <typename T>
 		requires std::is_integral_v<T>
-		bool DoTrial(const T chance)
+		bool DoPercentTrial(const T chance)
 		{
-			return (this->GenerateNumber<T>(T(0), T(99)) < chance);
+			return (this->GenerateNumber<T>(static_cast<T>(1), static_cast<T>(100)) <= chance);
 		}
 
 
@@ -139,16 +139,16 @@ namespace RandomNumbers
 			const T min,
 			const T max
 		) {
-			// can generate values from [min, max)
+			// ...can generate values from [min, max)
 			return std::uniform_real_distribution<T>{min, max}(this->engine);
 		}
 
 
 		template <typename T>
 		requires std::is_floating_point_v<T>
-		bool DoTrial(const T chance)
+		bool DoPercentTrial(const T chance)
 		{
-			return (this->GenerateNumber<T>(T(0), T(100)) < chance);
+			return (this->GenerateNumber<T>(static_cast<T>(0), static_cast<T>(100)) < chance);
 		}
 
 

@@ -531,7 +531,7 @@ namespace HelicopterOverrides
 		HeatParameters::Parse(parser, "Helicopter:FuelRespawn",  fuelRespawnDelays);
 		HeatParameters::Parse(parser, "Helicopter:WreckRespawn", wreckRespawnDelays);
 		HeatParameters::Parse(parser, "Helicopter:LostRespawn",  lostRespawnDelays);
-		HeatParameters::Parse(parser, "Helicopter:LostRejoin",   lostRejoinDelays, minRejoinFuelTimes);
+		HeatParameters::Parse(parser, "Helicopter:LostRejoin",   lostRejoinDelays,    minRejoinFuelTimes);
 		HeatParameters::Parse(parser, "Helicopter:FuelTime",     fuelTimes);
 
 		HeatParameters::Parse(parser, "Helicopter:Ramming", rammingCooldowns);

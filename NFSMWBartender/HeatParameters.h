@@ -6,6 +6,7 @@
 #include <utility>
 #include <optional>
 #include <algorithm>
+#include <filesystem>
 #include <string_view>
 
 #include "Globals.h"
@@ -25,12 +26,12 @@ namespace HeatParameters
 	// Configuration files
 	const std::string configDefaultHandle = "default";
 
-	const std::string configFormatRoam = "heat{:02}";
-	const std::string configFormatRace = "race{:02}";
+	constexpr std::string_view configFormatRoam = "heat{:02}";
+	constexpr std::string_view configFormatRace = "race{:02}";
 
-	const std::string configPathMain     = "scripts/BartenderSettings";
-	const std::string configPathBasic    = configPathMain + "/Basic";
-	const std::string configPathAdvanced = configPathMain + "/Advanced";
+	const std::filesystem::path configPathMain     = "scripts/BartenderSettings";
+	const std::filesystem::path configPathBasic    = configPathMain / "Basic";
+	const std::filesystem::path configPathAdvanced = configPathMain / "Advanced";
 
 
 
@@ -57,11 +58,10 @@ namespace HeatParameters
 
 	constexpr Values<size_t> GenerateHeatLevels()
 	{
-		Values<size_t> heatLevels   = {};
-		size_t         currentLevel = 1;
+		Values<size_t> heatLevels = {};
 
-		for (size_t& heatLevel : heatLevels)
-			heatLevel = currentLevel++;
+		for (size_t heatID = 0; heatID < maxHeatLevel; ++heatID)
+			heatLevels[heatID] = heatID + 1;
 
 		return heatLevels;
 	}
@@ -600,8 +600,8 @@ namespace HeatParameters
 
 
 
-		template <typename T>
-		void CopyRoamToRaceValues(T& pair)
+		template <class HeatParameter>
+		void CopyRoamToRaceValues(HeatParameter& pair)
 		{
 			pair.race = pair.roam;
 		}
@@ -616,13 +616,13 @@ namespace HeatParameters
 
 
 
-		template <typename ...T>
+		template <class ...HeatParameters>
 		Values<bool> ParsePartial
 		(
-			const bool            forRaces,
-			Parser&               parser,
-			const std::string&    section,
-			T&                 ...parameters
+			const bool                forRaces,
+			Parser&                   parser,
+			const std::string_view    section,
+			HeatParameters&        ...parameters
 		) {
 			auto formats = std::tuple_cat(MakeFormatTuple(forRaces, parameters)...);
 
@@ -658,8 +658,8 @@ namespace HeatParameters
 
 
 
-		template <typename T>
-		void FinaliseIntervals(const T& pair) {}
+		template <class HeatParameter>
+		void FinaliseIntervals(const HeatParameter& pair) {}
 
 
 		template <typename T>
@@ -682,20 +682,20 @@ namespace HeatParameters
 
 	// Generic parsing function ---------------------------------------------------------------------------------------------------------------------
 
-	template <typename ...T>
-	requires (Details::IsRegular<T>::value and ...)
+	template <class ...HeatParameters>
+	requires (Details::IsRegular<HeatParameters>::value and ...)
 	void Parse
 	(
-		Parser&               parser,
-		const std::string&    section,
-		T&                 ...parameters
+		Parser&                   parser,
+		const std::string_view    section,
+		HeatParameters&        ...parameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
 			if (forRaces)
 				(..., Details::CopyRoamToRaceValues(parameters));
 
-			Details::ParsePartial<T...>(forRaces, parser, section, parameters...);
+			Details::ParsePartial<HeatParameters...>(forRaces, parser, section, parameters...);
 		}
 			
 		(..., Details::FinaliseIntervals(parameters));
@@ -703,17 +703,17 @@ namespace HeatParameters
 
 
 
-	template <typename ...T>
-	requires (Details::IsOptional<T>::value and ...)
+	template <class ...HeatParameters>
+	requires (Details::IsOptional<HeatParameters>::value and ...)
 	void Parse
 	(
-		Parser&               parser,
-		const std::string&    section,
-		T&                 ...parameters
+		Parser&                   parser,
+		const std::string_view    section,
+		HeatParameters&        ...parameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
-			const auto isEnableds = Details::ParsePartial<T...>(forRaces, parser, section, parameters...);
+			const auto isEnableds = Details::ParsePartial<HeatParameters...>(forRaces, parser, section, parameters...);
 
 			(..., (parameters.isEnableds.GetValues(forRaces) = isEnableds));
 		}

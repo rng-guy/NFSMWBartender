@@ -5,6 +5,7 @@
 #include <utility>
 #include <concepts>
 #include <optional>
+#include <functional>
 #include <string_view>
 
 #include "Globals.h"
@@ -65,6 +66,27 @@ namespace HashContainers
 
 	// HashContainer classes ------------------------------------------------------------------------------------------------------------------------
 
+	struct AlwaysTrue
+	{
+		constexpr bool operator()(const auto&) const noexcept 
+		{
+			return true; 
+		}
+	};
+
+
+
+	template <typename T, class Converter = std::identity, class Validator = AlwaysTrue>
+	struct FillSetup
+	{
+		const std::vector<T>& rawValues;
+
+		Converter RawToValue   = {};
+		Validator IsValidValue = {};
+	};
+
+
+
 	template <typename K, typename V>
 	class BaseCachedMap
 	{
@@ -84,17 +106,13 @@ namespace HashContainers
 		FastMap<K, V> map;
 
 
-		template <typename KR, typename VR>
+		template <typename RawK, class ConK, class ValK, typename RawV, class ConV, class ValV>
 		bool FillFromVectors
 		(
-			const std::string_view mapName,
-			const KR&              rawDefaultHandle,
-			const std::vector<KR>& rawKeys,
-			const auto&            RawToKey,
-			const auto&            IsValidKey,
-			const std::vector<VR>& rawValues,
-			const auto&            RawToValue,
-			const auto&            IsValidValue
+			const std::string_view              mapName,
+			const RawK&                         defaultHandle,
+			const FillSetup<RawK, ConK, ValK>&& keySetup,
+			const FillSetup<RawV, ConV, ValV>&& valueSetup
 		) {
 			this->map.clear();
 
@@ -102,6 +120,9 @@ namespace HashContainers
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>(mapName, "map:");
+
+			const auto& rawKeys   = keySetup  .rawValues;
+			const auto& rawValues = valueSetup.rawValues;
 
 			if ((not rawKeys.empty() and (rawKeys.size() == rawValues.size())))
 			{
@@ -114,20 +135,20 @@ namespace HashContainers
 
 				for (size_t pairID = 0; pairID < numPairs; ++pairID)
 				{
-					const KR& rawKey = rawKeys[pairID];
-					const V   value  = RawToValue(rawValues[pairID]);
+					const RawK& rawKey = rawKeys[pairID];
+					const V     value  = valueSetup.RawToValue(rawValues[pairID]);
 
-					if (IsValidValue(value))
+					if (valueSetup.IsValidValue(value))
 					{
-						const K key = RawToKey(rawKey);
+						const K key = keySetup.RawToValue(rawKey);
 
-						if (rawKey == rawDefaultHandle)
+						if (rawKey == defaultHandle)
 						{
 							defaultProvided = true;
 
 							this->defaultValue = std::move(value);
 						}
-						else if (IsValidKey(key))
+						else if (keySetup.IsValidValue(key))
 							this->map.try_emplace(std::move(key), std::move(value));
 
 						else if constexpr (Globals::loggingEnabled)

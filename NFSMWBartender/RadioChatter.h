@@ -46,6 +46,74 @@ namespace RadioChatter
 
 
 
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	void ParseJurisdictions(HeatParameters::Parser& parser)
+	{
+		HeatParameters::PointerPair<std::string> jurisdictionNames("city");
+
+		const HashContainers::Map<std::string, Jurisdiction> nameToJurisdiction =
+		{
+			{"city",    Jurisdiction::CITY},
+			{"state",   Jurisdiction::STATE},
+			{"federal", Jurisdiction::FEDERAL}
+		};
+
+		HeatParameters::Parse(parser, "Heat:Jurisdiction", jurisdictionNames);
+
+		// Validate and convert to jurisdiction IDs
+		for (const bool forRaces : {false, true})
+		{
+			auto& jurisIDs         = heatJurisdictionIDs.GetValues(forRaces);
+			const auto& jurisNames = jurisdictionNames.GetValues(forRaces);
+
+			for (const size_t heatLevel : HeatParameters::heatLevels)
+			{
+				const auto foundName = nameToJurisdiction.find(jurisNames[heatLevel - 1]);
+				jurisIDs[heatLevel - 1] = (foundName != nameToJurisdiction.end()) ? foundName->second : heatJurisdictionIDs.current;
+			}
+		}
+	}
+
+
+
+	bool ParseCallsigns(HeatParameters::Parser& parser)
+	{
+		std::vector<std::string> copVehicles;
+		std::vector<std::string> callsignNames;
+
+		parser.ParseUser<std::string>("Vehicles:Callsigns", copVehicles, {callsignNames});
+
+		const HashContainers::Map<std::string, Callsigns> nameToCallsigns =
+		{
+			{"patrol", Callsigns::PATROL},
+			{"elite",  Callsigns::ELITE},
+			{"rhino",  Callsigns::RHINO},
+			{"cross",  Callsigns::CROSS}
+		};
+
+		// Populate callsign map
+		const auto RawValueToCallsigns = [&](const std::string& rawValue) -> Callsigns
+		{
+			const auto foundName = nameToCallsigns.find(rawValue);
+			return (foundName != nameToCallsigns.end()) ? foundName->second : Callsigns::UNKNOWN;
+		};
+
+		constexpr auto AreCallsignsValid = [](const Callsigns value) -> bool {return (value != Callsigns::UNKNOWN);};
+
+		return copTypeToCallsignID.FillFromVectors
+		(
+			"Vehicle-to-callsign",
+			HeatParameters::configDefaultHandle,
+			HashContainers::FillSetup(copVehicles,   Globals::StringToVaultKey, Globals::IsVehicleTypeCar),
+			HashContainers::FillSetup(callsignNames, RawValueToCallsigns,       AreCallsignsValid)
+		);
+	}
+
+
+
+
+
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address heatCheckEntrance = 0x71D370;
@@ -269,66 +337,11 @@ namespace RadioChatter
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
-		// Jurisdiction names
-		HeatParameters::PointerPair<std::string> jurisdictionNames("city");
-
-		const HashContainers::Map<std::string, Jurisdiction> nameToJurisdiction =
-		{
-			{"city",    Jurisdiction::CITY},
-			{"state",   Jurisdiction::STATE},
-			{"federal", Jurisdiction::FEDERAL}
-		};
-
-		HeatParameters::Parse(parser, "Heat:Jurisdiction", jurisdictionNames);
-	
-		// Validate and convert to jurisdiction IDs
-		for (const bool forRaces : {false, true})
-		{
-			auto&       jurisIDs   = heatJurisdictionIDs.GetValues(forRaces);
-			const auto& jurisNames = jurisdictionNames  .GetValues(forRaces);
-
-			for (const size_t heatLevel : HeatParameters::heatLevels)
-			{
-				const auto foundName = nameToJurisdiction.find(jurisNames[heatLevel - 1]);
-
-				jurisIDs[heatLevel - 1] = (foundName != nameToJurisdiction.end()) ? foundName->second : heatJurisdictionIDs.current;
-			}
-		}
+		// Jurisdictions
+		ParseJurisdictions(parser);
 
 		// Callsigns
-		std::vector<std::string> copVehicles;
-		std::vector<std::string> callsignNames;
-
-		parser.ParseUser<std::string>("Vehicles:Callsigns", copVehicles, {callsignNames});
-
-		const HashContainers::Map<std::string, Callsigns> nameToCallsigns =
-		{
-			{"patrol", Callsigns::PATROL},
-			{"elite",  Callsigns::ELITE},
-			{"rhino",  Callsigns::RHINO},
-			{"cross",  Callsigns::CROSS}
-		};
-
-		// Populate callsign map
-		const auto StringToCallsigns = [&](const std::string& rawValue) -> Callsigns
-		{
-			const auto foundName = nameToCallsigns.find(rawValue);
-			return (foundName != nameToCallsigns.end()) ? foundName->second : Callsigns::UNKNOWN;
-		};
-
-		const bool mapIsValid = copTypeToCallsignID.FillFromVectors<std::string, std::string>
-		(
-			"Vehicle-to-callsign",
-			HeatParameters::configDefaultHandle,
-			copVehicles,
-			Globals::StringToVaultKey,
-			Globals::IsVehicleTypeCar,
-			callsignNames,
-			StringToCallsigns,
-			[](const Callsigns value) -> bool {return (value != Callsigns::UNKNOWN);}
-		);
-
-		if (mapIsValid)
+		if (ParseCallsigns(parser))
 		{
 			// Code modifications (feature-specific)
 			MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up stack variable

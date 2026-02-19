@@ -61,9 +61,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inipp.h">
-      <Filter>Headers\Libraries</Filter>
-    </ClInclude>
     <ClInclude Include="Globals.h">
       <Filter>Headers\General</Filter>
     </ClInclude>
@@ -144,6 +141,9 @@
     </ClInclude>
     <ClInclude Include="RoadblockOverrides.h">
       <Filter>Headers\Features\Advanced</Filter>
+    </ClInclude>
+    <ClInclude Include="inipp.h">
+      <Filter>Headers\Libraries</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

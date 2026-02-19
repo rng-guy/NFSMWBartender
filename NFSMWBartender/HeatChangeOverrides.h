@@ -233,6 +233,28 @@ namespace HeatChangeOverrides
 
 
 
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	bool ParseWreckingChanges(HeatParameters::Parser& parser)
+	{
+		std::vector<std::string> copVehicles;
+		std::vector<float>       heatChanges;
+
+		parser.ParseUser<float>("Heat:Wrecking", copVehicles, {heatChanges});
+
+		return copTypeToHeatChange.FillFromVectors
+		(
+			"Vehicle-to-change",
+			HeatParameters::configDefaultHandle,
+			HashContainers::FillSetup(copVehicles, Globals::StringToVaultKey, Globals::DoesVehicleTypeExist),
+			HashContainers::FillSetup(heatChanges)
+		);
+	}
+
+
+
+
+
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address passiveHeatEntrance = 0x443D4A;
@@ -432,7 +454,7 @@ namespace HeatChangeOverrides
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Heat:Time",    passiveHeatGainEnableds);
-		HeatParameters::Parse(parser, "Heat:Assault", heatChangePerAssaults, onlyOneAssaultPerCops);
+		HeatParameters::Parse(parser, "Heat:Assault", heatChangePerAssaults,    onlyOneAssaultPerCops);
 
 		HeatParameters::Parse
 		(
@@ -445,26 +467,8 @@ namespace HeatChangeOverrides
 			propertyCostToHeats
 		);
 
-		// Destruction Heat gain
-		std::vector<std::string> copVehicles;
-		std::vector<float>       heatChanges;
-
-		parser.ParseUser<float>("Heat:Wrecking", copVehicles, {heatChanges});
-
-		// Populate destruction Heat-gain map
-		const bool mapIsValid = copTypeToHeatChange.FillFromVectors<std::string, float>
-		(
-			"Vehicle-to-change",
-			HeatParameters::configDefaultHandle,
-			copVehicles,
-			Globals::StringToVaultKey,
-			Globals::DoesVehicleTypeExist,
-			heatChanges,
-			[](const float change) -> float {return change;},
-			[](const float change) -> bool  {return true;}
-		);
-
-		if (mapIsValid)
+		// Destruction Heat changes
+		if (ParseWreckingChanges(parser))
 		{
 			// Code modifications (feature-specific)
 			MemoryTools::MakeRangeJMP(TypeDestruction, typeDestructionEntrance, typeDestructionExit);

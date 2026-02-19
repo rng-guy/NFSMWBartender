@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <concepts>
+#include <string_view>
 #include <type_traits>
 
 
@@ -84,15 +85,15 @@ namespace BasicLogger
 		}
 
 
-		template <typename T, typename ...V>
+		template <typename T, typename ...Ts>
 		void PrintLine
 		(
-			const T    first,
-			const V ...rest
+			const T     first,
+			const Ts ...rest
 		) {
 			this->Print<T>(first);
 
-			(..., (this->file << ' ', this->Print<V>(rest)));
+			(..., (this->file << ' ', this->Print<Ts>(rest)));
 
 			this->file << std::endl; // for debugging
 		}
@@ -101,16 +102,16 @@ namespace BasicLogger
 
 	public:
 
-		template <typename ...T>
-		requires ((sizeof...(T) == numIndents) and ... and std::convertible_to<T, size_t>)
-		explicit Logger(const T ...numSpaces) : indents(std::string(numSpaces, ' ')...) {}
+		template <typename ...Ts>
+		requires ((sizeof...(Ts) == numIndents) and ... and std::convertible_to<Ts, size_t>)
+		explicit Logger(const Ts ...numSpaces) : indents(std::string(numSpaces, ' ')...) {}
 
 
-		bool Open(const std::string& fullPath)
+		bool Open(const std::string_view path)
 		{
 			if (this->file.is_open()) return false;
 
-			this->file.open(fullPath, std::ios::app);
+			this->file.open(path, std::ios::app);
 
 			return this->file.is_open();
 		}
@@ -126,8 +127,8 @@ namespace BasicLogger
 		}
 
 
-		template <size_t indentLevel = 0, typename ...T>
-		void Log(const T ...segments)
+		template <size_t indentLevel = 0, typename ...Ts>
+		void Log(const Ts ...parts)
 		{
 			if (this->file.is_open())
 			{
@@ -137,7 +138,7 @@ namespace BasicLogger
 					this->Print((this->indents[indentLevel - 1]).c_str());
 				}
 
-				this->PrintLine<T...>(segments...);
+				this->PrintLine<Ts...>(parts...);
 			}
 		}
 	};
@@ -145,6 +146,6 @@ namespace BasicLogger
 
 
 	// Deduction guide
-	template <typename ...T>
-	Logger(T...) -> Logger<sizeof...(T)>;
+	template <typename ...Ts>
+	Logger(Ts...) -> Logger<sizeof...(Ts)>;
 }

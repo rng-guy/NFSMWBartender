@@ -4,6 +4,7 @@
 #include <string>
 #include <format>
 #include <vector>
+#include <utility>
 #include <string_view>
 
 #include "Globals.h"
@@ -39,13 +40,12 @@ namespace CopSpawnTables
 		inline static HashContainers::StableVaultMap<const std::string> copTypeToName;
 		
 
-		static auto RegisterName(const std::string& copName)
+		static auto RegisterName(std::string&& copName)
 		{
-			const vault copType          = Globals::StringToVaultKey(copName);
-			const auto  [pair, wasAdded] = SpawnTable::copTypeToName.try_emplace(copType, nullptr);
+			const auto [pair, wasAdded] = SpawnTable::copTypeToName.try_emplace(Globals::StringToVaultKey(copName), nullptr);
 
 			if (wasAdded)
-				pair->second = std::make_unique<std::string>(copName); // deferred allocation
+				pair->second = std::make_unique<const std::string>(std::move(copName)); // deferred allocation
 
 			return pair;
 		}
@@ -69,14 +69,14 @@ namespace CopSpawnTables
 
 		bool AddTypeByName
 		(
-			const std::string& copName,
-			const int          copCount, 
-			const int          copChance
+			std::string&& copName,
+			const int     copCount, 
+			const int     copChance
 		) {
 			if (copCount  < 1) return false;
 			if (copChance < 1) return false;
 			
-			const auto registration = this->RegisterName(copName);
+			const auto registration = this->RegisterName(std::move(copName));
 
 			const auto [pair, wasAdded] = this->copTypeToEntry.try_emplace
 			(
@@ -163,8 +163,9 @@ namespace CopSpawnTables
 		{
 			if (this->HasCapacity())
 			{
-				int       cumulativeChance = 0;
-				const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, this->currentTotalCopChance);
+				int cumulativeChance = 0;
+
+				const int chanceThreshold = Globals::prng.GenerateNumber<int>(1, this->currentTotalCopChance);
 
 				for (const auto& [copType, copEntry] : this->copTypeToEntry)
 				{
@@ -192,7 +193,8 @@ namespace CopSpawnTables
 			const size_t           heatLevel
 		) {
 			size_t numRemoved = 0;
-			auto   iterator   = this->copTypeToEntry.begin();
+
+			auto iterator = this->copTypeToEntry.begin();
 
 			while (iterator != this->copTypeToEntry.end())
 			{
@@ -271,26 +273,67 @@ namespace CopSpawnTables
 	void ParseTables
 	(
 		HeatParameters::Parser& parser,
-		const std::string&      tableName,
-		const std::string&      format,
+		const std::string_view  tableName,
+		const std::string_view  baseFormat,
 		Tables&                 tables
 	) {
+		std::string section;
+
 		std::vector<std::string> copNames;
 
 		std::vector<int> copCounts;
 		std::vector<int> copChances;
 
-		std::string section;
+		const std::string format = std::format("{}:{}", baseFormat, tableName);
 
 		for (const size_t heatLevel : HeatParameters::heatLevels)
 		{
-			section = std::vformat(format + tableName, std::make_format_args(heatLevel));
+			section = std::vformat(format, std::make_format_args(heatLevel));
 
-			const size_t numEntries = parser.ParseUser<int, int>(section, copNames, {copCounts, {1}}, {copChances, {1}});
+			const size_t numEntries = parser.ParseUser<int, int>(section, copNames, {copCounts, {0}}, {copChances, {0}});
 
 			for (size_t entryID = 0; entryID < numEntries; ++entryID)
-				(tables[heatLevel - 1]).AddTypeByName(copNames[entryID], copCounts[entryID], copChances[entryID]);
+				(tables[heatLevel - 1]).AddTypeByName(std::move(copNames[entryID]), copCounts[entryID], copChances[entryID]);
 		}
+	}
+
+
+
+	bool ValidateTablePairs()
+	{
+		bool noVehiclesRemoved = true;
+
+		for (const bool forRaces : {false, true})
+		{
+			Tables& patrolTables    = patrolSpawnTables   .GetValues(forRaces);
+			Tables& chaserTables    = chaserSpawnTables   .GetValues(forRaces);
+			Tables& scriptedTables  = scriptedSpawnTables .GetValues(forRaces);
+			Tables& roadblockTables = roadblockSpawnTables.GetValues(forRaces);
+
+			for (const size_t heatLevel : HeatParameters::heatLevels)
+			{
+				noVehiclesRemoved &= patrolTables   [heatLevel - 1].Validate("Patrols",    forRaces, heatLevel);
+				noVehiclesRemoved &= chaserTables   [heatLevel - 1].Validate("Chasers",    forRaces, heatLevel);
+				noVehiclesRemoved &= scriptedTables [heatLevel - 1].Validate("Scripted",   forRaces, heatLevel);
+				noVehiclesRemoved &= roadblockTables[heatLevel - 1].Validate("Roadblocks", forRaces, heatLevel);
+
+				if ((not forRaces) and chaserTables[heatLevel - 1].IsEmpty())
+				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::logger.Log<2>("No Chasers for Heat level", static_cast<int>(heatLevel));
+
+					return false; // empty free-roam "Chasers" table
+				}
+			}
+		}
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (noVehiclesRemoved)
+				Globals::logger.Log<2>("All vehicles valid");
+		}
+
+		return true;
 	}
 
 
@@ -320,7 +363,7 @@ namespace CopSpawnTables
 		// Heat parameters
 		for (const bool forRaces : {false, true})
 		{
-			const std::string format = (forRaces) ? "Race{:02}:" : "Heat{:02}:";
+			const std::string_view format = (forRaces) ? "Race{:02}" : "Heat{:02}";
 
 			ParseTables(parser, "Patrols",    format, patrolSpawnTables   .GetValues(forRaces));
 			ParseTables(parser, "Chasers",    format, chaserSpawnTables   .GetValues(forRaces));
@@ -328,39 +371,7 @@ namespace CopSpawnTables
 			ParseTables(parser, "Roadblocks", format, roadblockSpawnTables.GetValues(forRaces));
 		}
 
-		// Validation
-		bool allValid = true;
-
-		for (const bool forRaces : {false, true})
-		{
-			auto& patrolTables    = patrolSpawnTables   .GetValues(forRaces);
-			auto& chaserTables    = chaserSpawnTables   .GetValues(forRaces);
-			auto& scriptedTables  = scriptedSpawnTables .GetValues(forRaces);
-			auto& roadblockTables = roadblockSpawnTables.GetValues(forRaces);
-
-			for (const size_t heatLevel : HeatParameters::heatLevels)
-			{
-				// With logging disabled, the compiler optimises the boolean and all arguments away
-				allValid &= (patrolTables   [heatLevel - 1]).Validate("Patrols",    forRaces, heatLevel);
-				allValid &= (chaserTables   [heatLevel - 1]).Validate("Chasers",    forRaces, heatLevel);
-				allValid &= (scriptedTables [heatLevel - 1]).Validate("Scripted",   forRaces, heatLevel);
-				allValid &= (roadblockTables[heatLevel - 1]).Validate("Roadblocks", forRaces, heatLevel);
-
-				if ((not forRaces) and chaserTables[heatLevel - 1].IsEmpty())
-				{
-					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log<2>("No Chasers for Heat level", static_cast<int>(heatLevel));
-
-					return false; // empty free-roam "Chasers" table; disable feature
-				}
-			}
-		}
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (allValid)
-				Globals::logger.Log<2>("All vehicles valid");
-		}
+		if (not ValidateTablePairs()) return false; // empty free-roam "Chasers" table; disable feature
 
 		ReplaceEmptyTables(patrolSpawnTables.roam,    chaserSpawnTables.roam);
 		ReplaceEmptyTables(scriptedSpawnTables.roam,  chaserSpawnTables.roam);

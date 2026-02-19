@@ -25,6 +25,34 @@ namespace DestructionStrings
 	
 
 
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	bool ParseDestructionKeys(HeatParameters::Parser& parser)
+	{
+		std::vector<std::string> copVehicles;
+		std::vector<std::string> binaryLabels;
+
+		parser.ParseUser<std::string>("Vehicles:Strings", copVehicles, {binaryLabels});
+
+		const auto IsBinaryKeyValid = [](const binary key) -> bool
+		{
+			const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
+			return GetBinaryString(0, key); // first argument is unused placeholder value
+		};
+
+		return copTypeToDestructionKey.FillFromVectors
+		(
+			"Vehicle-to-label",
+			HeatParameters::configDefaultHandle,
+			HashContainers::FillSetup(copVehicles,  Globals::StringToVaultKey,  Globals::DoesVehicleTypeExist),
+			HashContainers::FillSetup(binaryLabels, Globals::StringToBinaryKey, IsBinaryKeyValid)
+		);
+	}
+
+
+
+
+
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address copDestructionEntrance = 0x595B0D;
@@ -65,28 +93,8 @@ namespace DestructionStrings
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
-		// Binary labels
-		std::vector<std::string> copVehicles;
-		std::vector<std::string> binaryLabels;
-
-		parser.ParseUser<std::string>("Vehicles:Strings", copVehicles, {binaryLabels});
-
-		// Populate label map
-		const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
-
-		const bool mapIsValid = copTypeToDestructionKey.FillFromVectors<std::string, std::string>
-		(
-			"Vehicle-to-label",
-			HeatParameters::configDefaultHandle,
-			copVehicles,
-			Globals::StringToVaultKey,
-			Globals::DoesVehicleTypeExist,
-			binaryLabels,
-			Globals::StringToBinaryKey,
-			[=](const binary key) -> bool {return GetBinaryString(0, key);}
-		);
-
-		if (not mapIsValid) return false;
+		// Destruction (binary) keys
+		if (not ParseDestructionKeys(parser)) return false; // no valid keys; disable feature
 	
 		// Code modifications 
 		MemoryTools::MakeRangeJMP(CopDestruction, copDestructionEntrance, copDestructionExit);

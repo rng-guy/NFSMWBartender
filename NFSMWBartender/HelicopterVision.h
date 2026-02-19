@@ -17,8 +17,10 @@ namespace HelicopterVision
 	bool featureEnabled = false;
 
 	// Data structures
+	constexpr size_t numChannels = 4;
+
 	template <typename T>
-	using BGRA = std::array<T, 4>; // blue, green, red, alpha
+	using BGRA = std::array<T, numChannels>; // blue, green, red, alpha
 
 	// Code caves
 	float lengthToBase = .2f; // seconds
@@ -37,7 +39,7 @@ namespace HelicopterVision
 	{
 		uint32_t colour = 0x0;
 
-		for (size_t channelID = 0; channelID < 4; ++channelID)
+		for (size_t channelID = 0; channelID < numChannels; ++channelID)
 			colour |= static_cast<byte>(baseColour[channelID] + state * colourRange[channelID]) << (8 * channelID);
 	
 		return colour;
@@ -45,15 +47,17 @@ namespace HelicopterVision
 
 
 
-	uint32_t __fastcall GetConeColour
+	uint32_t __fastcall UpdateColourState
 	(
 		const address heliAIVehicle,
 		const bool    canSeeTarget
 	) {
+		constexpr bool useUnpausedTime = true;
+
 		static float currentColourState  = 0.f; // ratio
 		static float lastUpdateTimestamp = 0.f; // seconds
 
-		const float currentTimestamp = Globals::GetGameTime(true);
+		const float currentTimestamp = Globals::GetGameTime(useUnpausedTime);
 
 		volatile bool& isKnownHelicopter = *reinterpret_cast<volatile bool*>(heliAIVehicle - 0x4C + 0x769); // padding byte
 
@@ -91,7 +95,7 @@ namespace HelicopterVision
 	) {
 		BGRA<int> rawColour = {};
 
-		const HeatParameters::Bounds<int> limits(0, 255);
+		constexpr HeatParameters::Bounds<int> limits(0, 255);
 
 		const bool isValid = parser.ParseFromFile<int, int, int, int, float>
 		(
@@ -106,7 +110,7 @@ namespace HelicopterVision
 
 		if (isValid)
 		{
-			for (size_t channelID = 0; channelID < 4; ++channelID)
+			for (size_t channelID = 0; channelID < numChannels; ++channelID)
 				colour[channelID] = static_cast<float>(rawColour[channelID]);
 		}
 
@@ -150,7 +154,7 @@ namespace HelicopterVision
 
 			pop ecx
 			mov dl, al
-			call GetConeColour // ecx: heliAIVehicle, dl: canSeeTarget
+			call UpdateColourState // ecx: heliAIVehicle, dl: canSeeTarget
 
 			colour:
 			push eax                    // colour
@@ -186,25 +190,25 @@ namespace HelicopterVision
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
-		// Parse and check in-sight colour
+		// In-sight colour
 		if (not ParseColour(parser, "withinSightColour", colourRange, lengthToEnd))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("Invalid within-sight colour");
 
-			return false;
+			return false; // missing colour; disable feature
 		}
 
-		// Parse and check out-of-sight colour
+		// Out-of-sight colour
 		if (not ParseColour(parser, "outOfSightColour",  baseColour,  lengthToBase))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("Invalid out-of-sight colour");
 
-			return false;
+			return false; // missing colour; disable feature
 		}
 
-		for (size_t channelID = 0; channelID < 4; ++channelID)
+		for (size_t channelID = 0; channelID < numChannels; ++channelID)
 			colourRange[channelID] -= baseColour[channelID];
 
 		if constexpr (Globals::loggingEnabled)

@@ -61,7 +61,7 @@ namespace GroundSupports
 
 
 
-	// Auxiliary functions -----------------------------------------------------------------------------------------------------------------------------
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
 	bool IsHeavyStrategyAvailable
 	(
@@ -111,7 +111,7 @@ namespace GroundSupports
 
 
 
-	template <address getNumStrategies, address getStrategy, auto IsStrategyAvailable>
+	template <address CountFunction, address RetrievalFunction, auto IsStrategyAvailable>
 	void MarshalStrategies
 	(
 		const address         pursuit,
@@ -122,8 +122,8 @@ namespace GroundSupports
 
 		if (not supportNode) return; // should never happen
 
-		const auto GetNumStrategies = reinterpret_cast<size_t  (__thiscall*)(address)>        (getNumStrategies);
-		const auto GetStrategy      = reinterpret_cast<address (__thiscall*)(address, size_t)>(getStrategy);
+		const auto GetNumStrategies = reinterpret_cast<size_t  (__thiscall*)(address)>        (CountFunction);
+		const auto GetStrategy      = reinterpret_cast<address (__thiscall*)(address, size_t)>(RetrievalFunction);
 
 		const size_t numStrategies = GetNumStrategies(supportNode);
 
@@ -134,7 +134,7 @@ namespace GroundSupports
 
 			const int chance = *reinterpret_cast<volatile int*>(strategy + 0x4);
 
-			if (Globals::prng.DoTrial<int>(chance))
+			if (Globals::prng.DoPercentTrial<int>(chance))
 				candidates.push_back(strategy);
 		}
 	}
@@ -181,35 +181,37 @@ namespace GroundSupports
 		if (isPlayerPursuit or rivalLeaderEnableds.current)
 			MarshalStrategies<0x403680, 0x403660, IsLeaderStrategyAvailable>(pursuit, candidates);
 
-		// Attempt to select an eligible Strategy at random
-		if (not candidates.empty())
+		// Check candidate count
+		if (candidates.empty())
 		{
-			const size_t index = Globals::prng.GenerateIndex(candidates.size());
-
-			const address randomStrategy  = candidates[index];
-			const bool    isHeavyStrategy = (index < numHeavyStrategies);
-
-			SetStrategy(pursuit, randomStrategy, isHeavyStrategy);
-
 			if constexpr (Globals::loggingEnabled)
 			{
-				const int strategyID = *reinterpret_cast<volatile int*>(randomStrategy);
-
-				Globals::logger.Log<0>(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
-				Globals::logger.Log<2>("Candidate", static_cast<int>(index + 1), '/', static_cast<int>(candidates.size()));
+				const bool canMakeRequest = (isPlayerPursuit or rivalHeavyEnableds.current or rivalLeaderEnableds.current);
+				Globals::logger.Log(pursuit, "[SUP] Strategy request failed", (canMakeRequest) ? "(chance)" : "(blocked)");
 			}
 
-			candidates.clear();
-
-			return true;
+			return false;
 		}
-		else if constexpr (Globals::loggingEnabled)
+
+		// Select an eligible Strategy at random
+		const size_t index = Globals::prng.GenerateIndex(candidates.size());
+
+		const address randomStrategy  = candidates[index];
+		const bool    isHeavyStrategy = (index < numHeavyStrategies);
+
+		SetStrategy(pursuit, randomStrategy, isHeavyStrategy);
+
+		if constexpr (Globals::loggingEnabled)
 		{
-			const bool canMakeRequest = (isPlayerPursuit or rivalHeavyEnableds.current or rivalLeaderEnableds.current);
-			Globals::logger.Log(pursuit, "[SUP] Strategy request failed", (canMakeRequest) ? "(chance)" : "(blocked)");
+			const int strategyID = *reinterpret_cast<volatile int*>(randomStrategy);
+
+			Globals::logger.Log<0>(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
+			Globals::logger.Log<2>("Candidate", static_cast<int>(index + 1), '/', static_cast<int>(candidates.size()));
 		}
 
-		return false;
+		candidates.clear();
+
+		return true;
 	}
 
 
@@ -247,7 +249,7 @@ namespace GroundSupports
 
 
 
-	bool __fastcall PursuitHasJoinCapacity(const address pursuit)
+	bool __fastcall HasJoinCapacity(const address pursuit)
 	{
 		const int numVehiclesJoined = *reinterpret_cast<volatile int*>(pursuit + 0x23C);
 		if (numVehiclesJoined >= maxRBJoinCounts.current) return false;
@@ -255,7 +257,7 @@ namespace GroundSupports
 		const float distanceToRoadblock = *reinterpret_cast<volatile float*>(pursuit + 0x7C);
 		if (distanceToRoadblock > maxRBJoinDistances.current) return false;
 
-		// Consult ChasersManager for cop capacity (if available)
+		// Consult ChasersManager for cop capacity (if enabled)
 		if (CopSpawnOverrides::featureEnabled)
 		{
 			if (not CopSpawnOverrides::ChasersManager::HasJoinCapacity(pursuit)) 
@@ -271,7 +273,7 @@ namespace GroundSupports
 
 
 
-	bool __fastcall MayRoadblockDetachCops(const address roadblock)
+	bool __fastcall MayDetachCops(const address roadblock)
 	{
 		const address pursuit   = *reinterpret_cast<volatile address*>(roadblock + 0x28);
 		const float   joinTimer = *reinterpret_cast<volatile float*>  (roadblock + 0x58);
@@ -675,9 +677,9 @@ namespace GroundSupports
 		__asm
 		{
 			lea ecx, dword ptr [esi + 0x40]
-			call PursuitHasJoinCapacity // ecx: pursuit
+			call HasJoinCapacity // ecx: pursuit
 			test al, al
-			je skip                     // may not join
+			je skip              // may not join
 
 			jmp dword ptr roadblockJoinCountExit
 
@@ -699,7 +701,7 @@ namespace GroundSupports
 			fstp dword ptr [ebp + 0x58] // join timer
 
 			mov ecx, ebp
-			call MayRoadblockDetachCops // ecx: roadblock
+			call MayDetachCops // ecx: roadblock
 			cmp al, 0x1
 
 			jmp dword ptr roadblockJoinTimerExit
@@ -736,36 +738,36 @@ namespace GroundSupports
 		// Heat parameters
 		HeatParameters::Parse(parser, "Supports:Rivals", rivalRoadblockEnableds, rivalHeavyEnableds, rivalLeaderEnableds);
 
-		HeatParameters::Parse(parser, "Roadblocks:Cooldown",   roadblockCooldowns, roadblockHeavyCooldowns);
+		HeatParameters::Parse(parser, "Roadblocks:Cooldown",   roadblockCooldowns,       roadblockHeavyCooldowns);
 		HeatParameters::Parse(parser, "Roadblocks:Distance",   roadblockSpawnDistances);
 		HeatParameters::Parse(parser, "Roadblocks:Formations", roadblockEndsFormations);
-		HeatParameters::Parse(parser, "Roadblocks:Joining",    regularRBJoinTimers, backupRBJoinTimers);
-		HeatParameters::Parse(parser, "Roadblocks:Reactions",  reactToCooldownModes, reactToSpikesHits);
-		HeatParameters::Parse(parser, "Joining:Definitions",   maxRBJoinDistances, maxRBJoinElevationDeltas, maxRBJoinCounts);
+		HeatParameters::Parse(parser, "Roadblocks:Joining",    regularRBJoinTimers,      backupRBJoinTimers);
+		HeatParameters::Parse(parser, "Roadblocks:Reactions",  reactToCooldownModes,     reactToSpikesHits);
+		HeatParameters::Parse(parser, "Joining:Definitions",   maxRBJoinDistances,       maxRBJoinElevationDeltas, maxRBJoinCounts);
 
 		HeatParameters::Parse(parser, "Strategies:Cooldown", strategyCooldowns);
 		HeatParameters::Parse(parser, "Heavy3:Roadblocks",   heavy3TriggerCooldowns, heavy3AreBlockables);
-		HeatParameters::Parse(parser, "Heavy3:Vehicles",     heavy3LightVehicles, heavy3HeavyVehicles);
-		HeatParameters::Parse(parser, "Heavy4:Vehicles",     heavy4LightVehicles, heavy4HeavyVehicles);
+		HeatParameters::Parse(parser, "Heavy3:Vehicles",     heavy3LightVehicles,    heavy3HeavyVehicles);
+		HeatParameters::Parse(parser, "Heavy4:Vehicles",     heavy4LightVehicles,    heavy4HeavyVehicles);
 		HeatParameters::Parse(parser, "Leader5:Vehicle",     leader5CrossVehicles);
-		HeatParameters::Parse(parser, "Leader7:Vehicles",    leader7CrossVehicles, leader7Hench1Vehicles, leader7Hench2Vehicles);
+		HeatParameters::Parse(parser, "Leader7:Vehicles",    leader7CrossVehicles,   leader7Hench1Vehicles, leader7Hench2Vehicles);
 
 		// Check whether vehicles are cars
-		bool allValid = true;
-		
-		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 3, light", heavy3LightVehicles, Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 4, light", heavy4LightVehicles, Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleTypeCar);
+		bool allTypesCars = true;
 
-		allValid &= HeatParameters::ValidateVehicleTypes("Leader 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 3, light", heavy3LightVehicles, Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 4, light", heavy4LightVehicles, Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleTypeCar);
+
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleTypeCar);
+		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleTypeCar);
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			if (allValid)
+			if (allTypesCars)
 				Globals::logger.Log<2>("All vehicles valid");
 		}
 

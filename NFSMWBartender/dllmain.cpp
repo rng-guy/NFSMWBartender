@@ -53,7 +53,7 @@ static void __cdecl InitialiseBartender
     Globals::basicSetEnabled |= GeneralSettings   ::Initialise(parser);
     Globals::basicSetEnabled |= GroundSupports    ::Initialise(parser);
 
-    parser.ClearCachedFilePaths();
+    parser.ClearCachedPaths();
 
     if (Globals::basicSetEnabled)
     {

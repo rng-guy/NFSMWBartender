@@ -11,6 +11,7 @@
 #include <optional>
 #include <concepts>
 #include <algorithm>
+#include <filesystem>
 
 #include "Globals.h"
 #include "inipp.h"
@@ -81,23 +82,17 @@ namespace ConfigParser
 	{
 	private:
 
-		inipp::Ini<char> parser;
+		inipp::Ini parser;
 
-		std::string currentFullPath;
+		std::filesystem::path currentPath;
 		
-		std::map<std::string, decltype(parser.sections)> fullPathToSections;
-		
+		std::map<std::filesystem::path, inipp::Ini::Sections> pathToSections;
 
-		static std::string Trim(std::string&& string) 
+
+		static std::string Trim(std::string&& string)
 		{
-			// Force conversion to unsigned char to avoid potential UB with certain characters
-			const auto IsSpace = [](const unsigned char c) -> bool {return std::isspace(c);};
-
-			// Remove leading whitespace
-			string.erase(string.begin(), std::ranges::find_if_not(string, IsSpace));
-
-			// Remove trailing whitespace using reversed iterator
-			string.erase(std::ranges::find_if_not(string | std::views::reverse, IsSpace).base(), string.end());
+			inipp::TrimLeft (string);
+			inipp::TrimRight(string);
 
 			return std::move(string);
 		}
@@ -119,6 +114,7 @@ namespace ConfigParser
 					// Convert to regular iterator for string construction
 					const auto iterator = subrange | std::views::common;
 
+					// The static analyser likes to complain here, even though this is perfectly safe
 					columns[columnID++] = this->Trim(std::string(iterator.begin(), iterator.end()));
 				}
 				else return std::nullopt;
@@ -127,6 +123,20 @@ namespace ConfigParser
 			if (columnID != numColumns) return std::nullopt;
 
 			return columns;
+		}
+
+
+		bool UpdatePath
+		(
+			const std::filesystem::path& root,
+			const std::string_view       file
+		) {
+			std::filesystem::path newPath = root / file;
+			if (this->currentPath == newPath) return false;
+
+			this->currentPath = std::move(newPath);
+
+			return true;
 		}
 
 
@@ -141,13 +151,11 @@ namespace ConfigParser
 
 		bool LoadFile
 		(
-			const std::string_view path,
-			const std::string_view file
+			const std::filesystem::path& root,
+			const std::string_view       file
 		) {
-			const std::string fullPath = std::format("{}/{}", path, file);
-
-			// Check current file
-			if (this->currentFullPath == fullPath)
+			// Check against current path
+			if (not this->UpdatePath(root, file))
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Keep:", file);
@@ -155,13 +163,12 @@ namespace ConfigParser
 				return true;
 			}
 
-			this->parser.clear();
-			this->currentFullPath = fullPath;
+			this->parser.Clear();
 
 			// Attempt to create new cache entry
-			const auto& [pair, wasAdded] = this->fullPathToSections.try_emplace(fullPath);
+			const auto& [pair, wasAdded] = this->pathToSections.try_emplace(this->currentPath);
 
-			// Check cached files
+			// Check against cached paths
 			if (not wasAdded)
 			{
 				this->parser.sections = pair->second;
@@ -173,13 +180,11 @@ namespace ConfigParser
 			}
 
 			// Attempt to open new file
-			std::ifstream fileStream(fullPath);
+			std::ifstream fileStream(this->currentPath);
 
 			if (fileStream.is_open())
 			{
-				this->parser.parse(fileStream);
-				this->parser.strip_trailing_comments();
-
+				this->parser.ParseStream(fileStream);
 				pair->second = this->parser.sections;
 
 				if constexpr (Globals::loggingEnabled)
@@ -201,9 +206,9 @@ namespace ConfigParser
 		}
 
 
-		void ClearCachedFilePaths()
+		void ClearCachedPaths()
 		{
-			this->fullPathToSections.clear();
+			this->pathToSections.clear();
 		}
 
 
@@ -214,7 +219,7 @@ namespace ConfigParser
 			const std::string& source,
 			Parameter<T>&&     parameter
 		) {
-			const bool isValid = inipp::extract<char, T>(source, parameter.value);
+			const bool isValid = inipp::ExtractFromString<T>(source, parameter.value);
 
 			parameter.limits.Enforce(parameter.value);
 
@@ -223,22 +228,22 @@ namespace ConfigParser
 
 
 		// Multiple values from delimited string
-		template <typename ...T>
-		requires (sizeof...(T) > 1)
+		template <typename ...Ts>
+		requires (sizeof...(Ts) > 1)
 		bool ParseFromString
 		(
 			const std::string&    source,
-			Parameter<T>&&     ...parameters
+			Parameter<Ts>&&    ...parameters
 		) {
 			bool isValid = false;
 
-			constexpr size_t numColumns = sizeof...(T);
+			constexpr size_t numColumns = sizeof...(Ts);
 	
 			if (const auto columns = this->ParseColumns<numColumns>(source))
 			{
 				[&]<size_t... columnIDs>(std::index_sequence<columnIDs...>)
 				{
-					isValid = (this->ParseFromString<T>((*columns)[columnIDs], std::move(parameters)) and ...);
+					isValid = (this->ParseFromString<Ts>((*columns)[columnIDs], std::move(parameters)) and ...);
 				}
 				(std::make_index_sequence<numColumns>{});
 			}
@@ -251,9 +256,9 @@ namespace ConfigParser
 		template <typename T>
 		bool ParseFromFile
 		(
-			const std::string& section,
-			const std::string& key,
-			Parameter<T>&&     parameter
+			const std::string_view section,
+			const std::string_view key,
+			Parameter<T>&&         parameter
 		) {
 			bool isValid = false;
 
@@ -261,7 +266,7 @@ namespace ConfigParser
 			const auto  foundSection = sections.find(section);
 
 			if (foundSection != sections.end())
-				isValid = inipp::get_value<char>(foundSection->second, key, parameter.value);
+				isValid = this->parser.ExtractByKey<T>(foundSection->second, key, parameter.value);
 
 			parameter.limits.Enforce(parameter.value);
 
@@ -270,18 +275,18 @@ namespace ConfigParser
 
 
 		// Multi-value row from parsed file
-		template <typename ...T>
-		requires (sizeof...(T) > 1)
+		template <typename ...Ts>
+		requires (sizeof...(Ts) > 1)
 		bool ParseFromFile
 		(
-			const std::string&    section,
-			const std::string&    key,
-			Parameter<T>&&     ...parameters
+			const std::string_view    section,
+			const std::string_view    key,
+			Parameter<Ts>&&        ...parameters
 		) {
 			std::string row;
 
 			if (this->ParseFromFile<std::string>(section, key, {row}))
-				return this->ParseFromString<T...>(row, std::move(parameters)...);
+				return this->ParseFromString<Ts...>(row, std::move(parameters)...);
 
 			return false;
 		}
@@ -291,9 +296,9 @@ namespace ConfigParser
 		template <size_t numRows, typename T>
 		std::array<bool, numRows> ParseFormat
 		(
-			const std::string&   section,
-			const std::string&   format,
-			Format<T, numRows>&& parameter
+			const std::string_view section,
+			const std::string_view format,
+			Format<T, numRows>&&   parameter
 		) {
 			std::array<bool, numRows> isValids = {};
 
@@ -329,13 +334,13 @@ namespace ConfigParser
 
 
 		// Multi-column, fixed-format values from parsed file
-		template <size_t numRows, typename ...T>
-		requires (sizeof...(T) > 1)
+		template <size_t numRows, typename ...Ts>
+		requires (sizeof...(Ts) > 1)
 		std::array<bool, numRows> ParseFormat
 		(
-			const std::string&      section,
-			const std::string&      format,
-			Format<T, numRows>&& ...parameters
+			const std::string_view    section,
+			const std::string_view    format,
+			Format<Ts, numRows>&&  ...parameters
 		) {
 			bool hasInvalidRows = false;
 
@@ -347,7 +352,7 @@ namespace ConfigParser
 			for (size_t rowID = 0; rowID < numRows; ++rowID)
 			{
 				if (isValidRows[rowID])
-					isValidRows[rowID] = this->ParseFromString<T...>(rows[rowID], {parameters.values[rowID], parameters.limits}...);
+					isValidRows[rowID] = this->ParseFromString<Ts...>(rows[rowID], {parameters.values[rowID], parameters.limits}...);
 
 				hasInvalidRows |= (not isValidRows[rowID]);
 			}
@@ -355,7 +360,7 @@ namespace ConfigParser
 			// Parse and apply defaults if necessary (and available)
 			if ((hasInvalidRows and ... and parameters.defaultValue))
 			{
-				this->ParseFromFile<T...>(section, this->formatDefaultKey, {*(parameters.defaultValue), parameters.limits}...);
+				this->ParseFromFile<Ts...>(section, this->formatDefaultKey, {*(parameters.defaultValue), parameters.limits}...);
 
 				// Apply defaults to invalid rows
 				for (size_t rowID = 0; rowID < numRows; ++rowID)
@@ -377,7 +382,7 @@ namespace ConfigParser
 		template <typename T>
 		size_t ParseUser
 		(
-			const std::string&        section,
+			const std::string_view    section,
 			std::vector<std::string>& keys,
 			User<T>&&                 parameter
 		) {
@@ -389,7 +394,7 @@ namespace ConfigParser
 
 			if (foundSection != sections.end())
 			{
-				inipp::get_value<char, T>(foundSection->second, keys, parameter.values);
+				this->parser.ExtractContents<T>(foundSection->second, keys, parameter.values);
 
 				// Fuck the std::vector<bool> specialisation
 				if constexpr (not std::is_same_v<T, bool>)
@@ -404,13 +409,13 @@ namespace ConfigParser
 
 
 		// Multi-column, user-defined key-value pairs from parsed file
-		template <typename ...T>
-		requires (sizeof...(T) > 1)
+		template <typename ...Ts>
+		requires (sizeof...(Ts) > 1)
 		size_t ParseUser
 		(
-			const std::string&           section,
+			const std::string_view       section,
 			std::vector<std::string>&    keys,
-			User<T>&&                 ...parameters
+			User<Ts>&&                ...parameters
 		) {
 			keys.clear();
 			(..., parameters.values.clear());
@@ -425,15 +430,15 @@ namespace ConfigParser
 				keys.reserve(numRows);
 				(..., parameters.values.reserve(numRows));
 
-				constexpr size_t numColumns = sizeof...(T);
+				constexpr size_t numColumns = sizeof...(Ts);
 
 				[&]<size_t ...columnIDs>(std::index_sequence<columnIDs...>)
 				{
-					std::tuple<T...> candidates;
+					std::tuple<Ts...> candidates;
 
 					for (size_t rowID = 0; rowID < numRows; ++rowID)
 					{
-						if (this->ParseFromString<T...>(rows[rowID], {std::get<columnIDs>(candidates), parameters.limits}...))
+						if (this->ParseFromString<Ts...>(rows[rowID], {std::get<columnIDs>(candidates), parameters.limits}...))
 						{
 							(..., parameters.values.push_back(std::move(std::get<columnIDs>(candidates))));
 
