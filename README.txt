@@ -186,6 +186,7 @@ However, some pursuit-related .asi mods require manual (re)configuration for com
 
 Under certain conditions, Bartender MAY REQUIRE the "NFSMW LimitAdjuster" mod by Zolika1351.
 Specifically, you likely need that mod if you configure Bartender in any of the following ways:
+ • cop-vehicle spawn tables in "CarTables.ini" : You define > 3 vehicle types for any Heat level.
  • "[Chasers:Limits]"       in "CarSpawns.ini" : You define a global cop-spawn limit > 8.
  • "[Chasers:Independence]" in "CarSpawns.ini" : You enable independent spawns for chasing cops.
  • "[Traffic:Independence]" in "CarSpawns.ini" : You enable independent spawns for traffic cars.

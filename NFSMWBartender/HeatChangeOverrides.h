@@ -211,21 +211,27 @@ namespace HeatChangeOverrides
 
 		static float __fastcall GetPendingHeatChange(const address pursuit)
 		{
+			float pendingHeatChange = 0.f;
+
 			if (not Globals::IsInCooldownMode(pursuit))
 			{
 				HeatManager* const manager = HeatManager::FindManager(pursuit);
 
 				if (manager)
 				{
-					const float pendingHeatChange = manager->pendingHeatChange;
+					pendingHeatChange = manager->pendingHeatChange;
+
+					if constexpr (Globals::loggingEnabled)
+					{
+						if (pendingHeatChange != 0.f)
+							Globals::logger.Log<0>(pursuit, "[CNG] Heat change:", pendingHeatChange);
+					}
 
 					manager->pendingHeatChange = 0.f;
-
-					return pendingHeatChange;
 				}
 			}
 
-			return 0.f;
+			return pendingHeatChange;
 		}
 	};
 
