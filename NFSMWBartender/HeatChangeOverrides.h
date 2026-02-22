@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+#include <limits>
 #include <vector>
 
 #include "Globals.h"
@@ -19,9 +21,10 @@ namespace HeatChangeOverrides
 	bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::Pair<bool>  passiveHeatGainEnableds(true);
-	HeatParameters::Pair<float> heatChangePerAssaults  (0.f);
-	HeatParameters::Pair<bool>  onlyOneAssaultPerCops  (true);
+	HeatParameters::Pair<bool> passiveHeatGainEnableds(true);
+
+	HeatParameters::Pair<float> heatChangePerAssaults(0.f);
+	HeatParameters::Pair<bool>  onlyOneAssaultPerCops(true);
 
 	HeatParameters::Pair<int> hitCostToHeats       (0);
 	HeatParameters::Pair<int> wreckCostToHeats     (0);
@@ -32,10 +35,10 @@ namespace HeatChangeOverrides
 	// Code caves
 	constexpr float heatScale = 1.f + static_cast<float>(1e-6);
 
-	HashContainers::CachedCopyVaultMap<float> copTypeToHeatChange(0.f);
-
 	size_t lastAnimatedHeatLevel = 0;
 	float  animationEndTimestamp = 0.f;
+
+	HashContainers::CachedCopyVaultMap<float> copTypeToHeatChange(0.f);
 
 
 
@@ -203,33 +206,28 @@ namespace HeatChangeOverrides
 			if (Globals::IsInCooldownMode(pursuit)) return;
 
 			HeatManager* const manager = HeatManager::FindManager(pursuit);
+			if (not manager) return; // should never happen
 
-			if (manager)
-				manager->pendingHeatChange += heatScale * amount;
+			manager->pendingHeatChange += heatScale * amount;
 		}
 
 
 		static float __fastcall GetPendingHeatChange(const address pursuit)
 		{
-			float pendingHeatChange = 0.f;
+			if (Globals::IsInCooldownMode(pursuit)) return 0.f;
 
-			if (not Globals::IsInCooldownMode(pursuit))
+			HeatManager* const manager = HeatManager::FindManager(pursuit);
+			if (not manager) return 0.f; // should never happen
+
+			const float pendingHeatChange = manager->pendingHeatChange;
+
+			if constexpr (Globals::loggingEnabled)
 			{
-				HeatManager* const manager = HeatManager::FindManager(pursuit);
-
-				if (manager)
-				{
-					pendingHeatChange = manager->pendingHeatChange;
-
-					if constexpr (Globals::loggingEnabled)
-					{
-						if (pendingHeatChange != 0.f)
-							Globals::logger.Log<0>(pursuit, "[CNG] Heat change:", pendingHeatChange);
-					}
-
-					manager->pendingHeatChange = 0.f;
-				}
+				if (pendingHeatChange != 0.f)
+					Globals::logger.Log<0>(pursuit, "[CNG] Heat change:", pendingHeatChange);
 			}
+
+			manager->pendingHeatChange = 0.f;
 
 			return pendingHeatChange;
 		}
@@ -501,8 +499,9 @@ namespace HeatChangeOverrides
 		Globals::logger.Log("    HEAT [CNG] HeatChangeOverrides");
 
 		passiveHeatGainEnableds.Log("passiveHeatGainEnabled  ");
-		heatChangePerAssaults  .Log("heatChangePerAssault    ");
-		onlyOneAssaultPerCops  .Log("onlyOneAssaultPerCop    ");
+
+		heatChangePerAssaults.Log("heatChangePerAssault    ");
+		onlyOneAssaultPerCops.Log("onlyOneAssaultPerCop    ");
 
 		hitCostToHeats       .Log("hitsCostToHeat          ");
 		wreckCostToHeats     .Log("wrecksCostToHeat        ");
@@ -521,8 +520,9 @@ namespace HeatChangeOverrides
 		if (not featureEnabled) return;
 
 		passiveHeatGainEnableds.SetToHeat(isRacing, heatLevel);
-		heatChangePerAssaults  .SetToHeat(isRacing, heatLevel);
-		onlyOneAssaultPerCops  .SetToHeat(isRacing, heatLevel);
+
+		heatChangePerAssaults.SetToHeat(isRacing, heatLevel);
+		onlyOneAssaultPerCops.SetToHeat(isRacing, heatLevel);
 
 		hitCostToHeats       .SetToHeat(isRacing, heatLevel);
 		wreckCostToHeats     .SetToHeat(isRacing, heatLevel);
