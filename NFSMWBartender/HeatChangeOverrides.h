@@ -66,7 +66,7 @@ namespace HeatChangeOverrides
 
 			explicit CostTracker
 			(
-				const int& count,
+				const int&                       count,
 				const int                        scale,
 				const HeatParameters::Pair<int>& costToHeats
 			)
@@ -164,7 +164,7 @@ namespace HeatChangeOverrides
 			if (foundManager != HeatManager::pursuitToManager.end())
 				return foundManager->second;
 
-			if constexpr (Globals::loggingEnabled)
+			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [CNG] No manager for pursuit", pursuit);
 
 			return nullptr;
