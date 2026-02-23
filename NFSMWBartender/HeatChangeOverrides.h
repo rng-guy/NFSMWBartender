@@ -269,29 +269,29 @@ namespace HeatChangeOverrides
 		const bool    racerIsAtFault
 	) {
 		volatile bool& damagedByRacer = *reinterpret_cast<volatile bool*>(copAIVehiclePursuit + 0xB);
-		const bool     alreadyDamaged = damagedByRacer;
 
-		damagedByRacer = true;
-
-		if (not pursuit) return false;
-
-		if (not alreadyDamaged)
+		if (not damagedByRacer)
 		{
-			const auto NotifyCopDamaged = reinterpret_cast<void (__thiscall*)(address, address)>(0x40AF40);
+			damagedByRacer = true;
 
-			NotifyCopDamaged(pursuit, copAIVehicle);
+			if (pursuit)
+			{
+				const auto NotifyCopDamaged = reinterpret_cast<void (__thiscall*)(address, address)>(0x40AF40);
+
+				NotifyCopDamaged(pursuit, copAIVehicle);
+			}		
 		}
 
 		if (not racerIsAtFault) return false;
 
 		volatile bool& assaultedByRacer = *reinterpret_cast<volatile bool*>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
 
-		if (not (onlyOneAssaultPerCops.current and assaultedByRacer))
+		if (pursuit and (not (onlyOneAssaultPerCops.current and assaultedByRacer)))
 			HeatManager::AddToPendingHeatChange(pursuit, heatChangePerAssaults.current);
 
 		assaultedByRacer = true;
 
-		return Globals::IsPlayerPursuit(pursuit);
+		return (pursuit and Globals::IsPlayerPursuit(pursuit));
 	}
 
 
