@@ -3,6 +3,7 @@
 #include <cmath>
 #include <limits>
 #include <vector>
+#include <algorithm>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -237,7 +238,89 @@ namespace HeatChangeOverrides
 
 
 
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	float GetClampedHeat(const float heatLimit)
+	{
+		return std::clamp<float>(heatLimit, 1.f, HeatParameters::maxHeat);
+	}
+
+
+
+	void __fastcall ClampHeatLimits(const address pursuit)
+	{
+		volatile float& minHeat = *reinterpret_cast<volatile float*>(pursuit + 0x9C);
+		volatile float& maxHeat = *reinterpret_cast<volatile float*>(pursuit + 0xA0);
+
+		minHeat = GetClampedHeat(minHeat);
+		maxHeat = GetClampedHeat(maxHeat);
+
+		if (minHeat > maxHeat)
+			minHeat = maxHeat;
+	}
+
+
+
+	bool __stdcall ProcessCollision
+	(
+		const address pursuit,
+		const address copAIVehicle,
+		const address copAIVehiclePursuit,
+		const bool    racerIsAtFault
+	) {
+		volatile bool& damagedByRacer = *reinterpret_cast<volatile bool*>(copAIVehiclePursuit + 0xB);
+		const bool     alreadyDamaged = damagedByRacer;
+
+		damagedByRacer = true;
+
+		if (not pursuit) return false;
+
+		if (not alreadyDamaged)
+		{
+			const auto NotifyCopDamaged = reinterpret_cast<void (__thiscall*)(address, address)>(0x40AF40);
+
+			NotifyCopDamaged(pursuit, copAIVehicle);
+		}
+
+		if (not racerIsAtFault) return false;
+
+		volatile bool& assaultedByRacer = *reinterpret_cast<volatile bool*>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
+
+		if (not (onlyOneAssaultPerCops.current and assaultedByRacer))
+			HeatManager::AddToPendingHeatChange(pursuit, heatChangePerAssaults.current);
+
+		assaultedByRacer = true;
+
+		return Globals::IsPlayerPursuit(pursuit);
+	}
+
+
+
+
+
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+
+	constexpr address heatLimitsEntrance = 0x443171;
+	constexpr address heatLimitsExit     = 0x44317A;
+
+	// Ensures the Heat limits of pursuits are valid
+	__declspec(naked) void HeatLimits()
+	{
+		__asm
+		{
+			lea ecx, dword ptr [esi + 0x48]
+			call ClampHeatLimits // ecx: pursuit
+
+			// Execute original code and resume
+			push ebx
+			mov ecx, esi
+			mov dword ptr [esi + 0xE0], ebx
+			
+			jmp dword ptr heatLimitsExit
+		}
+	}
+
+
 
 	constexpr address passiveHeatEntrance = 0x443D4A;
 	constexpr address passiveHeatExit     = 0x443D50;
@@ -272,40 +355,15 @@ namespace HeatChangeOverrides
 	{
 		__asm
 		{
+			movzx eax, byte ptr [esp + 0x13]
 			mov ebx, dword ptr [esp + 0x14]
-
-			test ebx, ebx
-			je conclusion // invalid pursuit
-
-			cmp byte ptr [esi + 0xB], 0x1 // damaged by collision with racer
-			je fault                      // already damaged
-
-			push edi
-			mov ecx, ebx
-			mov edx, dword ptr [ebx]
-			call dword ptr [edx + 0xF0] // AIPursuit::NotifyCopDamaged
-
-			fault:
-			cmp byte ptr [esp + 0x13], 0x0
-			je conclusion // perp not at fault
-
-			mov al, byte ptr [esi - 0x758 + 0x76A] // padding byte: assaulted by racer
-			test al, byte ptr onlyOneAssaultPerCops.current
-			jne infraction                         // only one assault per cop
-
-			push dword ptr heatChangePerAssaults.current // amount
-			push ebx                                     // pursuit
-			call HeatManager::AddToPendingHeatChange
-
-			infraction:
-			mov byte ptr [esi - 0x758 + 0x76A], 0x1 // padding byte: assaulted by racer
-
-			mov ecx, ebx
-			call Globals::IsPlayerPursuit
+			
+			push eax // racerIsAtFault
+			push esi // copAIVehiclePursuit
+			push edi // copAIVehicle
+			push ebx // pursuit
+			call ProcessCollision
 			test al, al
-
-			conclusion:
-			mov byte ptr [esi + 0xB], 0x1 // damaged by collision with racer
 
 			jmp dword ptr perpCollisionExit
 		}
@@ -479,8 +537,11 @@ namespace HeatChangeOverrides
 		}
 
 		// Code modifications (general)
+		MemoryTools::Write<byte>(0xEB, {0x44307F}); // Heat limits in Challenge Series events
+
 		MemoryTools::MakeRangeNOP(0x429C74, 0x429C7F); // first perp-damage check
 
+		MemoryTools::MakeRangeJMP(HeatLimits,      heatLimitsEntrance,      heatLimitsExit);
 		MemoryTools::MakeRangeJMP(PassiveHeat,     passiveHeatEntrance,     passiveHeatExit);
 		MemoryTools::MakeRangeJMP(PerpCollision,   perpCollisionEntrance,   perpCollisionExit);
 		MemoryTools::MakeRangeJMP(HeatMeterReset,  heatMeterResetEntrance,  heatMeterResetExit);

@@ -59,12 +59,11 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and
  • the selection, order, and length of interactive themes that play during player pursuits.
 
-The "Basic" feature set ALWAYS FIXES FIFTEEN BUGS / ISSUES automatically:
+The "Basic" feature set ALWAYS FIXES FOURTEEN BUGS / ISSUES automatically:
  • the game now always updates the passive bounty increment after races,
  • the (mini-)map icons for cop vehicles now always flash at the correct pace,
  • transitions to Heat levels > 5 now trigger their proper radio announcements,
  • the game no longer plays each Heat-level announcement just once per game launch,
- • Challenge Series races now use the Heat level limits defined for them in VltEd,
  • the game now reads VltEd arrays correctly at each Blacklist rank and Heat level,
  • vehicles joining pursuits from roadblocks no longer ignore spawn limits for cops,
  • the helicopter mini-map icon is now always visible whenever a helicopter is active,
@@ -130,9 +129,10 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how much Heat racers gain / lose whenever they destroy a cop vehicle of a given type, and
  • which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
-The "Advanced" feature set ALWAYS FIXES EIGHT BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES NINE BUGS / ISSUES automatically:
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
  • failed roadblock spawn attempts can no longer stall spawns for chasing cops,
+ • Challenge Series events now use the Heat level limits defined for them in VltEd,
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
  • the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
  • the helicopter AI is no longer crippled whenever a roadblock is present in the pursuit,

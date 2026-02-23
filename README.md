@@ -67,13 +67,12 @@ The "Basic" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Basic" feature set **always fixes fifteen bugs / issues** automatically:
+The "Basic" feature set **always fixes fourteen bugs / issues** automatically:
 * the game now always updates the passive bounty increment after races,
 * the (mini-)map icons for cop vehicles now always flash at the correct pace,
 * transitions to Heat levels > 5 now trigger their proper radio announcements,
 * the game no longer plays each Heat-level announcement just once per game launch,
-* Challenge Series races now use the Heat level limits defined for them in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),
-* the game now reads VltEd arrays correctly at each Blacklist rank and Heat level,
+* the game now reads [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) arrays correctly at each Blacklist rank and Heat level,
 * vehicles joining pursuits from roadblocks no longer ignore spawn limits for cops,
 * the helicopter mini-map icon is now always visible whenever a helicopter is active,
 * the helicopter vision-cone icon now always disappears whenever a helicopter is destroyed,
@@ -147,10 +146,11 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **always fixes eight bugs / issues** automatically:
+The "Advanced" feature set **always fixes nine bugs / issues** automatically:
 * HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
 * failed roadblock spawn attempts can no longer stall spawns for chasing cops,
-* the game no longer ignores [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) settings for roadblocks and Strategies in races,
+* Challenge Series races now use the Heat level limits defined for them in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),
+* the game no longer ignores VltEd settings for roadblocks and Strategies in races,
 * the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
 * the helicopter AI is no longer crippled whenever a roadblock is present in the pursuit,
 * early Strategy despawns or cancellations no longer stall the game from making new requests,
