@@ -264,10 +264,12 @@ namespace HeatChangeOverrides
 	bool __stdcall ProcessCollision
 	(
 		const address pursuit,
-		const address copAIVehicle,
-		const address copAIVehiclePursuit,
-		const bool    racerCausedCollision
+		const address copVehicle,
+		const bool    racerAtFault
 	) {
+		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
+		if (not copAIVehiclePursuit) return false; // should never happen
+
 		volatile bool& damagedByRacer = *reinterpret_cast<volatile bool*>(copAIVehiclePursuit + 0xB);
 
 		if (not damagedByRacer)
@@ -278,11 +280,11 @@ namespace HeatChangeOverrides
 			{
 				const auto NotifyCopDamaged = reinterpret_cast<void (__thiscall*)(address, address)>(0x40AF40);
 
-				NotifyCopDamaged(pursuit, copAIVehicle);
+				NotifyCopDamaged(pursuit, copVehicle);
 			}		
 		}
 
-		if (not racerCausedCollision) return false;
+		if (not racerAtFault) return false;
 
 		volatile bool& assaultedByRacer = *reinterpret_cast<volatile bool*>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
 
@@ -358,9 +360,8 @@ namespace HeatChangeOverrides
 			movzx eax, byte ptr [esp + 0x13]
 			mov ebx, dword ptr [esp + 0x14]
 			
-			push eax // racerCausedCollision
-			push esi // copAIVehiclePursuit
-			push edi // copAIVehicle
+			push eax // racerAtFault
+			push edi // copVehicle
 			push ebx // pursuit
 			call ProcessCollision
 			test al, al

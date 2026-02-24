@@ -186,6 +186,14 @@ namespace inipp
 		}
 
 
+		explicit Ini() = default;
+
+		Ini(std::istream& fileStream)
+		{
+			this->ParseStream(fileStream);
+		}
+
+
 		template <typename T>
 		static bool ExtractByKey
 		(
