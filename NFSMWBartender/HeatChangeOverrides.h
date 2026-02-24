@@ -266,7 +266,7 @@ namespace HeatChangeOverrides
 		const address pursuit,
 		const address copAIVehicle,
 		const address copAIVehiclePursuit,
-		const bool    racerIsAtFault
+		const bool    racerCausedCollision
 	) {
 		volatile bool& damagedByRacer = *reinterpret_cast<volatile bool*>(copAIVehiclePursuit + 0xB);
 
@@ -282,7 +282,7 @@ namespace HeatChangeOverrides
 			}		
 		}
 
-		if (not racerIsAtFault) return false;
+		if (not racerCausedCollision) return false;
 
 		volatile bool& assaultedByRacer = *reinterpret_cast<volatile bool*>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
 
@@ -358,7 +358,7 @@ namespace HeatChangeOverrides
 			movzx eax, byte ptr [esp + 0x13]
 			mov ebx, dword ptr [esp + 0x14]
 			
-			push eax // racerIsAtFault
+			push eax // racerCausedCollision
 			push esi // copAIVehiclePursuit
 			push edi // copAIVehicle
 			push ebx // pursuit

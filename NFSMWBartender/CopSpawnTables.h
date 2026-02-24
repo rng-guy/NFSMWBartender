@@ -27,9 +27,9 @@ namespace CopSpawnTables
 		{
 			const char* name;
 
-			int count;
-			int chance;
-			int capacity;
+			int count;    // max. cars
+			int chance;   // relative
+			int capacity; // available cars
 		};
 
 		int totalCopCount         = 0;

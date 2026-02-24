@@ -49,7 +49,7 @@ namespace RoadblockOverrides
 		float  minRoadWidth    = 0.f; // metres
 		size_t numCarsRequired = 0;   // cars
 
-		RBPart parts[maxNumParts];
+		RBPart parts[maxNumParts]; // default-initialised
 	};
 
 	static_assert(sizeof(RBTable) == 104, "Table size mismatch");
@@ -70,7 +70,7 @@ namespace RoadblockOverrides
 		float maxRoadWidth = 0.f; // metres
 		float mirrorChance = 0.f; // percent
 
-		HeatParameters::Pair<int> chances{100, {0}}; // percent
+		HeatParameters::Pair<int> chances{100, {0}}; // relative
 
 
 		const RBTable* GetRandomTable() const
