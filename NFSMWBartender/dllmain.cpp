@@ -21,7 +21,7 @@
 
 // Initialisation and injection ---------------------------------------------------------------------------------------------------------------------
 
-address InitialiseBartenderOriginal = 0x0;
+constinit address InitialiseBartenderOriginal = 0x0;
 
 static void __cdecl InitialiseBartender
 (

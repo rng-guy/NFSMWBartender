@@ -149,25 +149,25 @@ namespace RoadblockOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::Pair<float> spawnCalloutChances(100.f, {0.f, 100.f}); // percent
-	HeatParameters::Pair<float> spikeCalloutChances(50.f,  {0.f, 100.f}); // percent
+	constinit HeatParameters::Pair<float> spawnCalloutChances(100.f, {0.f, 100.f}); // percent
+	constinit HeatParameters::Pair<float> spikeCalloutChances(50.f,  {0.f, 100.f}); // percent
 
 	// Setup parsing
 	constexpr std::string_view baseSetupName = "Setups:";
 	
 	// Code caves
-	std::vector<RBSetup> roadblockSetups;
+	constinit std::vector<RBSetup> roadblockSetups;
 
-	float maxStretchScale = 1.14f;
+	constinit float maxStretchScale = 1.14f;
 
-	bool hasSpikes = false;
-	int  spikeLane = 0;
+	constinit bool hasSpikes = false;
+	constinit int  spikeLane = 0;
 
 	// Logging
-	SetupCounter counter;
+	constinit SetupCounter counter;
 
 
 
@@ -217,7 +217,7 @@ namespace RoadblockOverrides
 		const size_t maxNumCars, 
 		const bool   needsSpikes
 	) {
-		static std::vector<const RBSetup*> candidates;
+		static constinit std::vector<const RBSetup*> candidates;
 
 		if constexpr (Globals::loggingEnabled)
 		{

@@ -232,29 +232,29 @@ namespace CopSpawnOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Pursuit-board tracking
-	bool trackHeavyVehicles  = false;
-	bool trackLeaderVehicles = false;
-	bool trackJoinedVehicles = false;
+	constinit bool trackHeavyVehicles  = false;
+	constinit bool trackLeaderVehicles = false;
+	constinit bool trackJoinedVehicles = false;
 
 	// Heat parameters
-	HeatParameters::Interval<int>activeChaserCounts(1, 8, {0}); // cars
+	constinit HeatParameters::Interval<int>activeChaserCounts(1, 8, {0}); // cars
 
-	HeatParameters::Pair<bool> chasersAreIndependents   (false);
-	HeatParameters::Pair<bool> onlyDestroyedDecrements  (false);
-	HeatParameters::Pair<bool> transitionTriggersBackups(false);
+	constinit HeatParameters::Pair<bool> chasersAreIndependents   (false);
+	constinit HeatParameters::Pair<bool> onlyDestroyedDecrements  (false);
+	constinit HeatParameters::Pair<bool> transitionTriggersBackups(false);
 
-	HeatParameters::Pair<float> chaserSpawnClearances (40.f, {0.f}); // metres
+	constinit HeatParameters::Pair<float> chaserSpawnClearances(40.f, {0.f}); // metres
 
-	HeatParameters::Pair<bool> trafficIgnoresChasers   (false);
-	HeatParameters::Pair<bool> trafficIgnoresRoadblocks(false);
+	constinit HeatParameters::Pair<bool> trafficIgnoresChasers   (false);
+	constinit HeatParameters::Pair<bool> trafficIgnoresRoadblocks(false);
 
-	HeatParameters::OptionalPair<int> roadblockJoinLimits({0}); // cars
+	constinit HeatParameters::OptionalPair<int> roadblockJoinLimits({0}); // cars
 
 	// Code caves
-	bool skipScriptedSpawns = true;
+	constinit bool skipScriptedSpawns = true;
 	
 	Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTables);
 	Contingent scriptedSpawns (CopSpawnTables::scriptedSpawnTables);

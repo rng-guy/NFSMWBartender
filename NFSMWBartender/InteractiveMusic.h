@@ -17,19 +17,19 @@ namespace InteractiveMusic
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 	
 	// General	
-	std::vector<int> playlist;
+	constinit std::vector<int> playlist;
 
-	bool  transitionsEnabled = true; 
-	float lengthPerTrack     = 600.f; // seconds
+	constinit bool  transitionsEnabled = true;
+	constinit float lengthPerTrack     = 600.f; // seconds
 
-	bool shuffleFirstTrack = true; 
-	bool shuffleAfterFirst = false;
+	constinit bool shuffleFirstTrack = true;
+	constinit bool shuffleAfterFirst = false;
 
 	// Code caves
-	size_t currentTrackID = 0;
+	constinit size_t currentTrackID = 0;
 
 
 

@@ -17,7 +17,7 @@ namespace CopDetection
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Data structures
 	struct Settings
@@ -29,10 +29,10 @@ namespace CopDetection
 	};
 
 	// Code caves
-	bool isNewMiniMap  = true;
-	bool isNewWorldMap = true;
+	constinit bool isNewMiniMap  = true;
+	constinit bool isNewWorldMap = true;
 
-	bool updateWorldMapColours = false;
+	constinit bool updateWorldMapColours = false;
 
 	HashContainers::CachedPointerVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
 
@@ -153,7 +153,7 @@ namespace CopDetection
 	// Makes cop icons on the world map flash at a consistent pace
 	__declspec(naked) void WorldMapUpdate()
 	{
-		static float updateTimestamp = 0.f; // seconds
+		static constinit float updateTimestamp = 0.f; // seconds
 
 		__asm
 		{
@@ -256,7 +256,7 @@ namespace CopDetection
 	// Makes cop icons on the mini-map flash at a consistent pace
 	__declspec(naked) void MiniMapCopColours()
 	{
-		static float updateTimestamp = 0.f; // seconds
+		static constinit float updateTimestamp = 0.f; // seconds
 
 		__asm
 		{

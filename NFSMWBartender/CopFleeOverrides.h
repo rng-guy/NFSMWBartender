@@ -17,19 +17,19 @@ namespace CopFleeOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::OptionalInterval<float> chaserFleeDelays       ({1.f}); // seconds
-	HeatParameters::OptionalPair    <int>   chaserChasersThresholds({0});   // cars
+	constinit HeatParameters::OptionalInterval<float> chaserFleeDelays       ({1.f}); // seconds
+	constinit HeatParameters::OptionalPair    <int>   chaserChasersThresholds({0});   // cars
 
-	HeatParameters::OptionalInterval<float> joinedFleeDelays       ({1.f}); // seconds
-	HeatParameters::OptionalPair    <int>   joinedChasersThresholds({0});   // cars
+	constinit HeatParameters::OptionalInterval<float> joinedFleeDelays       ({1.f}); // seconds
+	constinit HeatParameters::OptionalPair    <int>   joinedChasersThresholds({0});   // cars
 
-	HeatParameters::Pair<float> heavy3SpeedThresholds(25.f, {0.f}); // kph
-	HeatParameters::Pair<bool>  heavy3JoiningEnableds(false);
+	constinit HeatParameters::Pair<float> heavy3SpeedThresholds(25.f, {0.f}); // kph
+	constinit HeatParameters::Pair<bool>  heavy3JoiningEnableds(false);
 
-	HeatParameters::OptionalPair<int> heavy3JoinLimits({0}); // cars
+	constinit HeatParameters::OptionalPair<int> heavy3JoinLimits({0}); // cars
 
 	// Conversions
 	float baseSpeedThreshold = heavy3SpeedThresholds.current / 3.6f; // mps

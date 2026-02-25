@@ -56,7 +56,7 @@ namespace HeatParameters
 
 	// Heat-level indices ---------------------------------------------------------------------------------------------------------------------------
 
-	constexpr Values<size_t> GenerateHeatLevels()
+	consteval Values<size_t> GenerateHeatLevels()
 	{
 		Values<size_t> heatLevels = {};
 
@@ -79,7 +79,7 @@ namespace HeatParameters
 	{
 	protected:
 
-		explicit BasePair() = default;
+		explicit constexpr BasePair() = default;
 
 
 
@@ -112,7 +112,7 @@ namespace HeatParameters
 		Bounds<T> limits;
 
 
-		explicit Pair
+		explicit constexpr Pair
 		(
 			const T          original, 
 			const Bounds<T>& limits = {}
@@ -177,7 +177,7 @@ namespace HeatParameters
 		bool current;
 
 
-		explicit Pair(const bool original) : current(original) {}
+		explicit constexpr Pair(const bool original) : current(original) {}
 
 
 		void SetToHeat
@@ -220,7 +220,7 @@ namespace HeatParameters
 		const char* current;
 
 
-		explicit PointerPair(const char* const original) : current(original) {}
+		explicit constexpr PointerPair(const char* const original) : current(original) {}
 
 
 		void SetToHeat
@@ -249,7 +249,7 @@ namespace HeatParameters
 		Pair<T> values;
 
 
-		explicit OptionalPair(const Bounds<T>& limits = {}) : values(T(), limits) {}
+		explicit constexpr OptionalPair(const Bounds<T>& limits = {}) : values(T(), limits) {}
 
 
 		void SetToHeat
@@ -353,7 +353,7 @@ namespace HeatParameters
 		Pair<T> maxValues;
 
 
-		explicit Interval
+		explicit constexpr Interval
 		(
 			const T          originalMin,
 			const T          originalMax,
@@ -411,7 +411,7 @@ namespace HeatParameters
 		Pair<T> maxValues;
 
 
-		explicit OptionalInterval(const Bounds<T>& limits = {}) : minValues(T(), limits), maxValues(T(), limits) {}
+		explicit constexpr OptionalInterval(const Bounds<T>& limits = {}) : minValues(T(), limits), maxValues(T(), limits) {}
 
 
 		void SetToHeat

@@ -17,24 +17,24 @@ namespace StrategyOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1});
+	constinit HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1});
 
-	HeatParameters::OptionalInterval<float> heavy3UnblockDelays ({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> heavy4UnblockDelays ({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> leader5UnblockDelays({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> leader7UnblockDelays({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> heavy3UnblockDelays ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> heavy4UnblockDelays ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader5UnblockDelays({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7UnblockDelays({1.f}); // seconds
 
 	// Code caves
 	constexpr size_t maxNumVehiclesPerHeavy4 = 6; // cars
 
-	std::vector<float> spawnVectorStackOne;
-	std::vector<float> spawnVectorStackTwo;
+	constinit std::vector<float> spawnVectorStackOne;
+	constinit std::vector<float> spawnVectorStackTwo;
 
-	float* spawnVectorsOne = nullptr;
-	float* spawnVectorsTwo = nullptr;
+	constinit float* spawnVectorsOne = nullptr;
+	constinit float* spawnVectorsTwo = nullptr;
 
 
 

@@ -19,25 +19,25 @@ namespace HeatChangeOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::Pair<bool> passiveHeatGainEnableds(true);
+	constinit HeatParameters::Pair<bool> passiveHeatGainEnableds(true);
 
-	HeatParameters::Pair<float> heatChangePerAssaults(0.f);
-	HeatParameters::Pair<bool>  onlyOneAssaultPerCops(true);
+	constinit HeatParameters::Pair<float> heatChangePerAssaults(0.f);
+	constinit HeatParameters::Pair<bool>  onlyOneAssaultPerCops(true);
 
-	HeatParameters::Pair<int> hitCostToHeats       (0);
-	HeatParameters::Pair<int> wreckCostToHeats     (0);
-	HeatParameters::Pair<int> deploymentCostToHeats(0);
-	HeatParameters::Pair<int> insuranceCostToHeats (0);
-	HeatParameters::Pair<int> propertyCostToHeats  (0);
+	constinit HeatParameters::Pair<int> hitCostToHeats       (0);
+	constinit HeatParameters::Pair<int> wreckCostToHeats     (0);
+	constinit HeatParameters::Pair<int> deploymentCostToHeats(0);
+	constinit HeatParameters::Pair<int> insuranceCostToHeats (0);
+	constinit HeatParameters::Pair<int> propertyCostToHeats  (0);
 
 	// Code caves
 	constexpr float heatScale = 1.f + static_cast<float>(1e-6);
 
-	size_t lastAnimatedHeatLevel = 0;
-	float  animationEndTimestamp = 0.f;
+	constinit size_t lastAnimatedHeatLevel = 0;
+	constinit float  animationEndTimestamp = 0.f;
 
 	HashContainers::CachedCopyVaultMap<float> copTypeToHeatChange(0.f);
 

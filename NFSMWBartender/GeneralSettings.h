@@ -16,36 +16,36 @@ namespace GeneralSettings
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Pursuit behaviour
-	bool trackPursuitLength  = false;
-	bool trackUnitsInPursuit = false;
-	bool trackCopsLost       = false;
-	bool trackCopsHit        = false;
-	bool trackCopsDestroyed  = false;
-	bool trackPassiveBounty  = false;
-	bool trackPropertyDamage = false;
-	bool trackInfractions    = false;
+	constinit bool trackPursuitLength  = false;
+	constinit bool trackUnitsInPursuit = false;
+	constinit bool trackCopsLost       = false;
+	constinit bool trackCopsHit        = false;
+	constinit bool trackCopsDestroyed  = false;
+	constinit bool trackPassiveBounty  = false;
+	constinit bool trackPropertyDamage = false;
+	constinit bool trackInfractions    = false;
 
 	// Heat parameters
-	HeatParameters::Pair<bool> rivalPursuitsEnableds(true);
+	constinit HeatParameters::Pair<bool> rivalPursuitsEnableds(true);
 
-	HeatParameters::Pair<float> bountyIntervals     (10.f, {.001f}); // seconds
-	HeatParameters::Pair<int>   maxBountyMultipliers(3,    {1});     // scale
+	constinit HeatParameters::Pair<float> bountyIntervals     (10.f, {.001f}); // seconds
+	constinit HeatParameters::Pair<int>   maxBountyMultipliers(3,    {1});     // scale
 
-	HeatParameters::Pair<float> bustTimers      (5.f,  {.001f}); // seconds
-	HeatParameters::Pair<float> maxBustDistances(15.f, {0.f});   // metres
+	constinit HeatParameters::Pair<float> bustTimers      (5.f,  {.001f}); // seconds
+	constinit HeatParameters::Pair<float> maxBustDistances(15.f, {0.f});   // metres
 
-	HeatParameters::Pair<float> evadeTimers(7.f, {.001f}); // seconds
+	constinit HeatParameters::Pair<float> evadeTimers(7.f, {.001f}); // seconds
 
-	HeatParameters::Pair<bool> carsAffectedByHidings (true);
-	HeatParameters::Pair<bool> helisAffectedByHidings(true);
+	constinit HeatParameters::Pair<bool> carsAffectedByHidings (true);
+	constinit HeatParameters::Pair<bool> helisAffectedByHidings(true);
 
-	HeatParameters::Pair<bool> copFlipByDamageEnableds(true);
+	constinit HeatParameters::Pair<bool> copFlipByDamageEnableds(true);
 
-	HeatParameters::OptionalPair<float> copFlipByTimers     ({0.f}); // seconds
-	HeatParameters::OptionalPair<float> racerFlipResetDelays({0.f}); // seconds
+	constinit HeatParameters::OptionalPair<float> copFlipByTimers     ({0.f}); // seconds
+	constinit HeatParameters::OptionalPair<float> racerFlipResetDelays({0.f}); // seconds
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current; // hertz
@@ -117,7 +117,7 @@ namespace GeneralSettings
 	// Checks whether flipped cop vehicles should be destroyed
 	__declspec(naked) void CopFlipping()
 	{
-		constexpr static address copFlippingSkip = 0x6B1A0D;
+		static constexpr address copFlippingSkip = 0x6B1A0D;
 
 		__asm
 		{

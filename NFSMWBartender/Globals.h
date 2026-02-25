@@ -22,33 +22,33 @@ namespace Globals
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	// Feature flags
-	bool basicSetEnabled    = false;
-	bool advancedSetEnabled = false;
+	constinit bool basicSetEnabled    = false;
+	constinit bool advancedSetEnabled = false;
 
 	// Game timer
-	uint32_t pausedTicks = 0;
+	constinit uint32_t pausedTicks = 0;
 
 	// Random-number generator
 	RandomNumbers::Generator prng;
 
 	// Player state
-	address playerPerpVehicle    = 0x0;
-	bool    playerHeatLevelKnown = false;
+	constinit address playerPerpVehicle    = 0x0;
+	constinit bool    playerHeatLevelKnown = false;
 
 	// Logging
 	constexpr bool loggingEnabled = false;
 	BasicLogger::Logger logger(9, 15, 17);
 
 	// Common function pointers
-	const auto GetVaultKey  = reinterpret_cast<vault  (__cdecl*)(const char*)>(0x5CC240);
-	const auto GetBinaryKey = reinterpret_cast<binary (__cdecl*)(const char*)>(0x460BF0);
+	constinit const auto GetVaultKey  = reinterpret_cast<vault  (__cdecl*)(const char*)>(0x5CC240);
+	constinit const auto GetBinaryKey = reinterpret_cast<binary (__cdecl*)(const char*)>(0x460BF0);
 
-	const auto GetVehicleType = reinterpret_cast<vault       (__thiscall*)(address)>(0x6880A0);
-	const auto GetVehicleName = reinterpret_cast<const char* (__thiscall*)(address)>(0x688090);
+	constinit const auto GetVehicleType = reinterpret_cast<vault       (__thiscall*)(address)>(0x6880A0);
+	constinit const auto GetVehicleName = reinterpret_cast<const char* (__thiscall*)(address)>(0x688090);
 
-	const auto IsPlayerPursuit     = reinterpret_cast<bool (__thiscall*)(address)>(0x40AD80);
-	const auto IsVehicleDestroyed  = reinterpret_cast<bool (__thiscall*)(address)>(0x688170);
-	const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
+	constinit const auto IsPlayerPursuit     = reinterpret_cast<bool (__thiscall*)(address)>(0x40AD80);
+	constinit const auto IsVehicleDestroyed  = reinterpret_cast<bool (__thiscall*)(address)>(0x688170);
+	constinit const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
 
 	// Common data pointers
 	const volatile float&    simulationTime = *reinterpret_cast<volatile float*>   (0x9885D8);

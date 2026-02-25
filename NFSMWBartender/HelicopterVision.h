@@ -14,7 +14,7 @@ namespace HelicopterVision
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Data structures
 	constexpr size_t numChannels = 4;
@@ -23,11 +23,11 @@ namespace HelicopterVision
 	using BGRA = std::array<T, numChannels>; // blue, green, red, alpha
 
 	// Code caves
-	float lengthToBase = .2f; // seconds
-	float lengthToEnd  = .2f; // seconds
+	constinit float lengthToBase = .2f; // seconds
+	constinit float lengthToEnd  = .2f; // seconds
 
-	BGRA<float> baseColour  = {};
-	BGRA<float> colourRange = {};
+	constinit BGRA<float> baseColour  = {};
+	constinit BGRA<float> colourRange = {};
 
 
 
@@ -54,8 +54,8 @@ namespace HelicopterVision
 	) {
 		constexpr bool useUnpausedTime = true;
 
-		static float currentColourState  = 0.f; // ratio
-		static float lastUpdateTimestamp = 0.f; // seconds
+		static constinit float currentColourState  = 0.f; // ratio
+		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
 		const float currentTimestamp = Globals::GetGameTime(useUnpausedTime);
 

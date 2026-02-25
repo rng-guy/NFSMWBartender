@@ -16,19 +16,19 @@ namespace LeaderOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::OptionalInterval<float> leader5CrossAggroDelays ({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> leader5ExpireResetDelays({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> leader5WreckResetDelays ({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> leader5LostResetDelays  ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader5CrossAggroDelays ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader5ExpireResetDelays({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader5WreckResetDelays ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader5LostResetDelays  ({1.f}); // seconds
 
-	HeatParameters::OptionalInterval<float> leader7CrossAggroDelays ({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> leader7HenchAggroDelays ({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> leader7ExpireResetDelays({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> leader7WreckResetDelays ({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> leader7LostResetDelays  ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7CrossAggroDelays ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7HenchAggroDelays ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7ExpireResetDelays({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7WreckResetDelays ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7LostResetDelays  ({1.f}); // seconds
 
 
 

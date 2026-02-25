@@ -18,28 +18,28 @@ namespace HelicopterOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::PointerPair<std::string> helicopterVehicles("copheli");
+	constinit HeatParameters::PointerPair<std::string> helicopterVehicles("copheli");
 
-	HeatParameters::Interval<float>rammingCooldowns(8.f, 8.f, {1.f});  // seconds
+	constinit HeatParameters::Interval<float> rammingCooldowns(8.f, 8.f, {1.f}); // seconds
 
-	HeatParameters::OptionalInterval<float> firstSpawnDelays  ({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> fuelRespawnDelays ({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> wreckRespawnDelays({1.f}); // seconds
-	HeatParameters::OptionalInterval<float> lostRespawnDelays ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> firstSpawnDelays  ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> fuelRespawnDelays ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> wreckRespawnDelays({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> lostRespawnDelays ({1.f}); // seconds
 
-	HeatParameters::OptionalInterval<float> lostRejoinDelays  ({1.f}); // seconds
-	HeatParameters::OptionalPair    <float> minRejoinFuelTimes({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> lostRejoinDelays  ({1.f}); // seconds
+	constinit HeatParameters::OptionalPair    <float> minRejoinFuelTimes({1.f}); // seconds
 
-	HeatParameters::OptionalInterval<float> fuelTimes({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> fuelTimes({1.f}); // seconds
 
 	// Code caves 
-	bool hasLimitedFuel    = false;
-	bool skipBailoutSpeech = false;
+	constinit bool hasLimitedFuel    = false;
+	constinit bool skipBailoutSpeech = false;
 
-	float maxBailoutFuelTime = 8.f; // seconds
+	constinit float maxBailoutFuelTime = 8.f; // seconds
 
 
 
@@ -72,8 +72,8 @@ namespace HelicopterOverrides
 
 		volatile int& numHelicoptersDeployed = *reinterpret_cast<volatile int*>(this->pursuit + 0x150);
 
-		inline static address     helicopterOwner   = 0x0;
-		inline static const char* helicopterVehicle = nullptr;
+		inline static constinit address     helicopterOwner   = 0x0;
+		inline static constinit const char* helicopterVehicle = nullptr;
 
 		inline static const volatile address& helicopterObject = *reinterpret_cast<volatile address*>(0x90D61C);
 

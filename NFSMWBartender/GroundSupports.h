@@ -16,46 +16,46 @@ namespace GroundSupports
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Heat parameters
-	HeatParameters::Pair<bool> rivalRoadblockEnableds(true);
-	HeatParameters::Pair<bool> rivalHeavyEnableds    (true);
-	HeatParameters::Pair<bool> rivalLeaderEnableds   (true);
+	constinit HeatParameters::Pair<bool> rivalRoadblockEnableds(true);
+	constinit HeatParameters::Pair<bool> rivalHeavyEnableds    (true);
+	constinit HeatParameters::Pair<bool> rivalLeaderEnableds   (true);
 
-	HeatParameters::Interval<float> roadblockCooldowns     (8.f,  12.f, {1.f}); // seconds
-	HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f, {1.f});       // seconds
+	constinit HeatParameters::Interval<float> roadblockCooldowns     (8.f,  12.f, {1.f}); // seconds
+	constinit HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f, {1.f});       // seconds
 
-	HeatParameters::Interval<float> roadblockSpawnDistances(250.f, 250.f, {0.f}); // metres
+	constinit HeatParameters::Interval<float> roadblockSpawnDistances(250.f, 250.f, {0.f}); // metres
 
-	HeatParameters::Pair<bool> roadblockEndsFormations(true);
+	constinit HeatParameters::Pair<bool> roadblockEndsFormations(true);
 
-	HeatParameters::OptionalPair<float> regularRBJoinTimers({0.f}); // seconds
-	HeatParameters::OptionalPair<float> backupRBJoinTimers ({0.f}); // seconds
+	constinit HeatParameters::OptionalPair<float> regularRBJoinTimers({0.f}); // seconds
+	constinit HeatParameters::OptionalPair<float> backupRBJoinTimers ({0.f}); // seconds
 
-	HeatParameters::Pair<float> maxRBJoinDistances      (500.f, {0.f}); // metres
-	HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f,  {0.f}); // metres
-	HeatParameters::Pair<int>   maxRBJoinCounts         (1,     {0});   // cars
+	constinit HeatParameters::Pair<float> maxRBJoinDistances      (500.f, {0.f}); // metres
+	constinit HeatParameters::Pair<float> maxRBJoinElevationDeltas(1.5f,  {0.f}); // metres
+	constinit HeatParameters::Pair<int>   maxRBJoinCounts         (1,     {0});   // cars
 
-	HeatParameters::Pair<bool> reactToCooldownModes(true);
-	HeatParameters::Pair<bool> reactToSpikesHits   (true);
+	constinit HeatParameters::Pair<bool> reactToCooldownModes(true);
+	constinit HeatParameters::Pair<bool> reactToSpikesHits   (true);
 	
-	HeatParameters::Interval<float> strategyCooldowns(10.f, 10.f, {1.f}); // seconds
+	constinit HeatParameters::Interval<float> strategyCooldowns(10.f, 10.f, {1.f}); // seconds
 
-	HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
-	HeatParameters::Pair<bool> heavy3AreBlockables   (true);
+	constinit HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
+	constinit HeatParameters::Pair<bool> heavy3AreBlockables   (true);
 
-	HeatParameters::PointerPair<std::string> heavy3LightVehicles("copsuvl");
-	HeatParameters::PointerPair<std::string> heavy3HeavyVehicles("copsuv");
+	constinit HeatParameters::PointerPair<std::string> heavy3LightVehicles("copsuvl");
+	constinit HeatParameters::PointerPair<std::string> heavy3HeavyVehicles("copsuv");
 
-	HeatParameters::PointerPair<std::string> heavy4LightVehicles("copsuvl");
-	HeatParameters::PointerPair<std::string> heavy4HeavyVehicles("copsuv");
+	constinit HeatParameters::PointerPair<std::string> heavy4LightVehicles("copsuvl");
+	constinit HeatParameters::PointerPair<std::string> heavy4HeavyVehicles("copsuv");
 
-	HeatParameters::PointerPair<std::string> leader5CrossVehicles("copcross");
-	HeatParameters::PointerPair<std::string> leader7CrossVehicles("copcross");
+	constinit HeatParameters::PointerPair<std::string> leader5CrossVehicles("copcross");
+	constinit HeatParameters::PointerPair<std::string> leader7CrossVehicles("copcross");
 
-	HeatParameters::PointerPair<std::string> leader7Hench1Vehicles("copsporthench");
-	HeatParameters::PointerPair<std::string> leader7Hench2Vehicles("copsporthench");
+	constinit HeatParameters::PointerPair<std::string> leader7Hench1Vehicles("copsporthench");
+	constinit HeatParameters::PointerPair<std::string> leader7Hench2Vehicles("copsporthench");
 
 
 
@@ -168,7 +168,7 @@ namespace GroundSupports
 
 	bool __fastcall SetRandomStrategy(const address pursuit) 
 	{
-		static std::vector<address> candidates;
+		static constinit std::vector<address> candidates;
 
 		// Marshal all currently eligible Strategies
 		const bool isPlayerPursuit = Globals::IsPlayerPursuit(pursuit);

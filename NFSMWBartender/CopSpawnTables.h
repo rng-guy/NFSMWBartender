@@ -256,7 +256,7 @@ namespace CopSpawnTables
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	constinit bool featureEnabled = false;
 
 	// Heat parameters
 	TablePair patrolSpawnTables;
