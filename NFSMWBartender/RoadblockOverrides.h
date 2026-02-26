@@ -156,7 +156,7 @@ namespace RoadblockOverrides
 	constinit HeatParameters::Pair<float> spikeCalloutChances(50.f,  {0.f, 100.f}); // percent
 
 	// Setup parsing
-	constexpr std::string_view baseSetupName = "Setups:";
+	constexpr std::string_view setupPrefix = "Setups:";
 	
 	// Code caves
 	constinit std::vector<RBSetup> roadblockSetups;
@@ -418,9 +418,9 @@ namespace RoadblockOverrides
 		HeatParameters::Parser& parser,
 		const std::string_view  section
 	) {
-		if (section.find(baseSetupName) > 0) return std::nullopt; // not setup
+		if (section.find(setupPrefix) > 0) return std::nullopt; // not setup
 
-		RBSetup setup(std::string(section.substr(baseSetupName.length())));
+		RBSetup setup(std::string(section.substr(setupPrefix.length())));
 
 		RBTable& table = setup.standard;
 
@@ -448,14 +448,14 @@ namespace RoadblockOverrides
 		std::array<float, maxNumParts> orientations = {};
 
 		const auto isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
-			(
-				section,
-				"part{:02}",
-				{partTypeIDs},
-				{partOffsetsX},
-				{partOffsetsY},
-				{orientations}
-			);
+		(
+			section,
+			"part{:02}",
+			{partTypeIDs},
+			{partOffsetsX},
+			{partOffsetsY},
+			{orientations}
+		);
 
 		// Process roadblock parts
 		size_t numValidParts = 0;
@@ -517,8 +517,8 @@ namespace RoadblockOverrides
 		}
 
 		// Parse other optional parameters
-		parser.ParseFromFile<bool>(section, "stretch", {setup.canStretch});
-		parser.ParseFromFile<float>(section, "mirror", {setup.mirrorChance, {0.f, 100.f}});
+		parser.ParseFromFile<bool> (section, "stretch", {setup.canStretch});
+		parser.ParseFromFile<float>(section, "mirror",  {setup.mirrorChance, {0.f, 100.f}});
 
 		// Create mirrored variant (not worth skipping if disabled)
 		setup.mirrored = table;
@@ -559,7 +559,7 @@ namespace RoadblockOverrides
 		size_t maxNumSetups = 0;
 
 		for (const auto& [section, contents] : sections)
-			if (section.find(baseSetupName) == 0) ++maxNumSetups;
+			maxNumSetups += (section.find(setupPrefix) == 0);
 
 		if (maxNumSetups == 0)
 		{

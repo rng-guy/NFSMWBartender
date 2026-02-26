@@ -260,13 +260,7 @@ namespace ConfigParser
 			const std::string_view key,
 			Parameter<T>&&         parameter
 		) {
-			bool isValid = false;
-
-			const auto& sections     = this->GetSections();
-			const auto  foundSection = sections.find(section);
-
-			if (foundSection != sections.end())
-				isValid = this->parser.ExtractByKey<T>(foundSection->second, key, parameter.value);
+			const bool isValid = this->parser.ExtractFromSection<T>(section, key, parameter.value);
 
 			parameter.limits.Enforce(parameter.value);
 
@@ -386,25 +380,19 @@ namespace ConfigParser
 			std::vector<std::string>& keys,
 			User<T>&&                 parameter
 		) {
-			keys.clear();
+			keys            .clear();
 			parameter.values.clear();
 
-			const auto& sections     = this->GetSections();
-			const auto  foundSection = sections.find(section);
+			const size_t numReads = this->parser.ExtractSection<T>(section, keys, parameter.values);
 
-			if (foundSection != sections.end())
+			// Fuck the std::vector<bool> specialisation
+			if constexpr (not std::is_same_v<T, bool>)
 			{
-				this->parser.ExtractContents<T>(foundSection->second, keys, parameter.values);
-
-				// Fuck the std::vector<bool> specialisation
-				if constexpr (not std::is_same_v<T, bool>)
-				{
-					for (T& value : parameter.values)
-						parameter.limits.Enforce(value);
-				}
+				for (T& value : parameter.values)
+					parameter.limits.Enforce(value);
 			}
 		
-			return keys.size();
+			return numReads;
 		}
 
 

@@ -195,7 +195,7 @@ namespace inipp
 
 
 		template <typename T>
-		static bool ExtractByKey
+		static bool ExtractFromSection
 		(
 			const Section&         section,
 			const std::string_view key,
@@ -209,13 +209,31 @@ namespace inipp
 
 
 		template <typename T>
-		static size_t ExtractContents
+		bool ExtractFromSection
+		(
+			const std::string_view section,
+			const std::string_view key,
+			T&                     value
+		)
+			const
+		{
+			const auto foundSection = this->sections.find(section);
+			if (foundSection == this->sections.end()) return false;
+
+			return this->ExtractFromSection<T>(foundSection->second, key, value);
+		}
+
+
+		template <typename T>
+		static size_t ExtractSection
 		(
 			const Section&            section,
 			std::vector<std::string>& keys,
 			std::vector<T>&           values
 		) {
 			T result{};
+
+			size_t numReads = 0;
 
 			keys  .reserve(keys.size()   + section.size());
 			values.reserve(values.size() + section.size());
@@ -224,12 +242,30 @@ namespace inipp
 			{
 				if (ExtractFromString<T>(value, result))
 				{
+					++numReads;
+
 					keys  .push_back(key);
 					values.push_back(std::move(result));
 				}
 			}
 
-			return values.size();
+			return numReads;
+		}
+
+
+		template <typename T>
+		size_t ExtractSection
+		(
+			const std::string_view    section,
+			std::vector<std::string>& keys,
+			std::vector<T>&           values
+		)
+			const
+		{
+			const auto foundSection = this->sections.find(section);
+			if (foundSection == this->sections.end()) return 0;
+
+			return this->ExtractSection<T>(foundSection->second, keys, values);
 		}
 
 
