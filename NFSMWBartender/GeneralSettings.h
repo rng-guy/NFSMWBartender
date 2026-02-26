@@ -16,17 +16,17 @@ namespace GeneralSettings
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Pursuit behaviour
-	constinit bool trackPursuitLength  = false;
-	constinit bool trackUnitsInPursuit = false;
-	constinit bool trackCopsLost       = false;
-	constinit bool trackCopsHit        = false;
-	constinit bool trackCopsDestroyed  = false;
-	constinit bool trackPassiveBounty  = false;
-	constinit bool trackPropertyDamage = false;
-	constinit bool trackInfractions    = false;
+	bool trackPursuitLength  = false;
+	bool trackUnitsInPursuit = false;
+	bool trackCopsLost       = false;
+	bool trackCopsHit        = false;
+	bool trackCopsDestroyed  = false;
+	bool trackPassiveBounty  = false;
+	bool trackPropertyDamage = false;
+	bool trackInfractions    = false;
 
 	// Heat parameters
 	constinit HeatParameters::Pair<bool> rivalPursuitsEnableds(true);

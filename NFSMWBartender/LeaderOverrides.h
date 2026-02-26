@@ -16,7 +16,7 @@ namespace LeaderOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::OptionalInterval<float> leader5CrossAggroDelays ({1.f}); // seconds

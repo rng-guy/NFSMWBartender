@@ -149,7 +149,7 @@ namespace RoadblockOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::Pair<float> spawnCalloutChances(100.f, {0.f, 100.f}); // percent
@@ -161,10 +161,10 @@ namespace RoadblockOverrides
 	// Code caves
 	constinit std::vector<RBSetup> roadblockSetups;
 
-	constinit float maxStretchScale = 1.14f;
+	float maxStretchScale = 1.14f;
 
-	constinit bool hasSpikes = false;
-	constinit int  spikeLane = 0;
+	bool hasSpikes = false;
+	int  spikeLane = 0;
 
 	// Logging
 	constinit SetupCounter counter;

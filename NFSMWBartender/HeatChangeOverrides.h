@@ -19,7 +19,7 @@ namespace HeatChangeOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::Pair<bool> passiveHeatGainEnableds(true);
@@ -36,8 +36,8 @@ namespace HeatChangeOverrides
 	// Code caves
 	constexpr float heatScale = 1.f + static_cast<float>(1e-6);
 
-	constinit size_t lastAnimatedHeatLevel = 0;
-	constinit float  animationEndTimestamp = 0.f;
+	size_t lastAnimatedHeatLevel = 0;
+	float  animationEndTimestamp = 0.f;
 
 	HashContainers::CachedCopyVaultMap<float> copTypeToHeatChange(0.f);
 

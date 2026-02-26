@@ -18,7 +18,7 @@ namespace HelicopterOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::PointerPair<std::string> helicopterVehicles("copheli");
@@ -36,10 +36,10 @@ namespace HelicopterOverrides
 	constinit HeatParameters::OptionalInterval<float> fuelTimes({1.f}); // seconds
 
 	// Code caves 
-	constinit bool hasLimitedFuel    = false;
-	constinit bool skipBailoutSpeech = false;
+	bool hasLimitedFuel    = false;
+	bool skipBailoutSpeech = false;
 
-	constinit float maxBailoutFuelTime = 8.f; // seconds
+	float maxBailoutFuelTime = 8.f; // seconds
 
 
 

@@ -19,11 +19,11 @@ namespace StateObserver
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Code caves
-	constinit size_t playerHeatLevel = 0;
-	constinit bool   playerIsRacing  = false;
+	size_t playerHeatLevel = 0;
+	bool   playerIsRacing  = false;
 
 
 
@@ -56,7 +56,7 @@ namespace StateObserver
 
 	// Hooking functions ----------------------------------------------------------------------------------------------------------------------------
 
-	constinit address OnGameplayUpdatesOriginal = 0x0;
+	address OnGameplayUpdatesOriginal = 0x0;
 
 	void __fastcall OnGameplayUpdates(const address soundAI)
 	{
@@ -80,7 +80,7 @@ namespace StateObserver
 
 
 
-	constinit address OnWorldLoadUpdatesOriginal = 0x0;
+	address OnWorldLoadUpdatesOriginal = 0x0;
 
 	void OnWorldLoadUpdates()
 	{
@@ -95,7 +95,7 @@ namespace StateObserver
 
 
 
-	constinit address OnRestartUpdatesOriginal = 0x0;
+	address OnRestartUpdatesOriginal = 0x0;
 
 	void OnRestartUpdates()
 	{

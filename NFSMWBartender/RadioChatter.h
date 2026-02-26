@@ -14,7 +14,7 @@ namespace RadioChatter
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Data structures
 	enum Jurisdiction // as above
@@ -37,8 +37,8 @@ namespace RadioChatter
 	constinit HeatParameters::Pair<int> heatJurisdictionIDs(Jurisdiction::CITY);
 
 	// Code caves 
-	constinit size_t lastReportedHeatLevel = 1;
-	constinit int    lastJurisdictionID    = 0;
+	size_t lastReportedHeatLevel = 1;
+	int    lastJurisdictionID    = 0;
 
 	HashContainers::CachedCopyVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
 

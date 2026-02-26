@@ -17,7 +17,7 @@ namespace StrategyOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1});
@@ -33,8 +33,8 @@ namespace StrategyOverrides
 	constinit std::vector<float> spawnVectorStackOne;
 	constinit std::vector<float> spawnVectorStackTwo;
 
-	constinit float* spawnVectorsOne = nullptr;
-	constinit float* spawnVectorsTwo = nullptr;
+	float* spawnVectorsOne = nullptr;
+	float* spawnVectorsTwo = nullptr;
 
 
 

@@ -26,7 +26,7 @@ namespace PursuitObserver
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 
 

@@ -15,9 +15,9 @@ namespace MemoryTools
 
 	// Status variables -----------------------------------------------------------------------------------------------------------------------------
 
-	constinit size_t numRangeErrors = 0;
-	constinit size_t numCaveErrors  = 0;
-	constinit size_t numHookErrors  = 0;
+	size_t numRangeErrors = 0;
+	size_t numCaveErrors  = 0;
+	size_t numHookErrors  = 0;
 
 
 

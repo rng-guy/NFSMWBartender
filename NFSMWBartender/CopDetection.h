@@ -17,7 +17,7 @@ namespace CopDetection
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Data structures
 	struct Settings
@@ -29,10 +29,10 @@ namespace CopDetection
 	};
 
 	// Code caves
-	constinit bool isNewMiniMap  = true;
-	constinit bool isNewWorldMap = true;
+	bool isNewMiniMap  = true;
+	bool isNewWorldMap = true;
 
-	constinit bool updateWorldMapColours = false;
+	bool updateWorldMapColours = false;
 
 	HashContainers::CachedPointerVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
 

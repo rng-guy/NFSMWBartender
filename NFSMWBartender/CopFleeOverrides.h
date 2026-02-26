@@ -17,7 +17,7 @@ namespace CopFleeOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::OptionalInterval<float> chaserFleeDelays       ({1.f}); // seconds

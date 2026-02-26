@@ -21,7 +21,7 @@
 
 // Initialisation and injection ---------------------------------------------------------------------------------------------------------------------
 
-constinit address InitialiseBartenderOriginal = 0x0;
+address InitialiseBartenderOriginal = 0x0;
 
 static void __cdecl InitialiseBartender
 (
@@ -38,7 +38,7 @@ static void __cdecl InitialiseBartender
     {
         Globals::logger.Open("BartenderLog.txt");
 
-        Globals::logger.Log("\n SESSION [VER] Bartender v3.01.00");
+        Globals::logger.Log("\n SESSION [VER] Bartender v3.01.01");
     }
 
     HeatParameters::Parser parser;

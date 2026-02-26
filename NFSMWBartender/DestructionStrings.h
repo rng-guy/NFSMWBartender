@@ -16,7 +16,7 @@ namespace DestructionStrings
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Code caves 
 	HashContainers::CachedCopyVaultMap<binary> copTypeToDestructionKey(0x0);

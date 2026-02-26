@@ -14,7 +14,7 @@ namespace HelicopterVision
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Data structures
 	constexpr size_t numChannels = 4;
@@ -23,8 +23,8 @@ namespace HelicopterVision
 	using BGRA = std::array<T, numChannels>; // blue, green, red, alpha
 
 	// Code caves
-	constinit float lengthToBase = .2f; // seconds
-	constinit float lengthToEnd  = .2f; // seconds
+	float lengthToBase = .2f; // seconds
+	float lengthToEnd  = .2f; // seconds
 
 	constinit BGRA<float> baseColour  = {};
 	constinit BGRA<float> colourRange = {};

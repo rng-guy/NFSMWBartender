@@ -22,8 +22,8 @@ namespace Globals
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	// Feature flags
-	constinit bool basicSetEnabled    = false;
-	constinit bool advancedSetEnabled = false;
+	bool basicSetEnabled    = false;
+	bool advancedSetEnabled = false;
 
 	// Game timer
 	constinit uint32_t pausedTicks = 0;
@@ -32,8 +32,8 @@ namespace Globals
 	RandomNumbers::Generator prng;
 
 	// Player state
-	constinit address playerPerpVehicle    = 0x0;
-	constinit bool    playerHeatLevelKnown = false;
+	address playerPerpVehicle    = 0x0;
+	bool    playerHeatLevelKnown = false;
 
 	// Logging
 	constexpr bool loggingEnabled = false;

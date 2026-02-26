@@ -232,12 +232,12 @@ namespace CopSpawnOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	constinit bool featureEnabled = false;
+	bool featureEnabled = false;
 
 	// Pursuit-board tracking
-	constinit bool trackHeavyVehicles  = false;
-	constinit bool trackLeaderVehicles = false;
-	constinit bool trackJoinedVehicles = false;
+	bool trackHeavyVehicles  = false;
+	bool trackLeaderVehicles = false;
+	bool trackJoinedVehicles = false;
 
 	// Heat parameters
 	constinit HeatParameters::Interval<int>activeChaserCounts(1, 8, {0}); // cars
@@ -254,7 +254,7 @@ namespace CopSpawnOverrides
 	constinit HeatParameters::OptionalPair<int> roadblockJoinLimits({0}); // cars
 
 	// Code caves
-	constinit bool skipScriptedSpawns = true;
+	bool skipScriptedSpawns = true;
 	
 	Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTables);
 	Contingent scriptedSpawns (CopSpawnTables::scriptedSpawnTables);
