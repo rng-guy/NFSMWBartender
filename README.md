@@ -210,7 +210,7 @@ Most **other `.asi` mods** should be fully compatible with all Bartender configu
 
 # 4 - What other mods does Bartender depend on?
 
-Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) mod by Zolika1351. Specifically, you likely need that mod if you configure Bartender in any of the following ways:
+Under certain conditions, Bartender **may require** a mod that replaces the game's car loader. There are two such mods: [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, and [OpenLimitAdjuster](https://github.com/gaycoderprincess/MostWantedOpenLimitAdjuster) by Chloe. You'll likely need one of these two mods if you configure Bartender in any of the following ways:
 * cop-vehicle spawn tables in `CarTables.ini` : You define > 3 vehicle types for any Heat level.
 * `[Chasers:Limits]` in `CarSpawns.ini`: You define a global cop-spawn limit > 8.
 * `[Chasers:Independence]` in `CarSpawns.ini`: You enable independent spawns for chasing cops.
@@ -221,10 +221,14 @@ Under certain conditions, Bartender **may require** the [NFSMW LimitAdjuster](ht
 
 &nbsp;
  
-**To configure** NFSMW LimitAdjuster for optimal compatibility with Bartender:
+**Should you choose** NFSMW LimitAdjuster, you'll need to configure it to work with Bartender:
 1. place `NFSMWLimitAdjuster.asi` / `.ini` into the same folder as `speed.exe` (*not* `scripts`);
 2. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature;
 3. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50 (or higher), `PursuitCops` to 255, and `Vehicles_SoftCap` to 255.
+
+&nbsp;
+
+**Should you choose** OpenLimitAdjuster, you won't need to configure it to work with Bartender.
 
 &nbsp;
 

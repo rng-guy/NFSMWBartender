@@ -393,7 +393,7 @@ Regarding CAR (DE)SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\CarSpawns.ini"
    for the "NumPatrolCars" VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
  • If you want to use global cop-spawn limits > 8 and / or make "Chasers" / traffic spawns
-   independent of other vehicles, you may also need the "NFSMW LimitAdjuster" mod by Zolika1351.
+   independent of other vehicles, you may also need a mod that replaces the game's car loader.
    This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
 
  • Very small spawning clearances for "Chasers" may lead to stacked spawns and congested roads.
@@ -467,7 +467,7 @@ Regarding STRATEGY REQUESTS ("BartenderSettings\Advanced\Strategies.ini"):
 
  • If you allow more than 2 vehicles to spawn per HeavyStrategy 3 request, use short unblock
    delays for HeavyStrategy 3, or enable joining from expired HeavyStrategy 3 requests, then
-   you may also need the "NFSMW LimitAdjuster" mod by Zolika1351. You may need it because
+   you may also need a mod that replaces the game's car loader. You may need such a mod as
    HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and 
    (partially) invisible cops to appear if their numbers grow beyond a certain point.
 
@@ -748,4 +748,4 @@ v1.00.00: Initial release
       06: Fixed some minor oversights in documentation (sigh)
 
    01.00: Restored a helicopter callout, expanded roadblock features, and revised some files
-      01: Improved performance slightly and simplified mod-internal memory management
+      01: Improved performance and ensured compatibility with Chloe's "OpenLimitAdjuster" mod
