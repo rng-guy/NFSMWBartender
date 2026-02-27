@@ -78,21 +78,19 @@ namespace ConfigParser
 
 	// Configuration-file parser --------------------------------------------------------------------------------------------------------------------
 
-	class Parser
+	class Parser : protected inipp::Ini
 	{
 	private:
-
-		inipp::Ini parser;
 
 		std::filesystem::path currentPath;
 		
 		std::map<std::filesystem::path, inipp::Ini::Sections> pathToSections;
 
 
-		static std::string Trim(std::string&& string)
+		static std::string TrimNewColumn(std::string&& string)
 		{
-			inipp::TrimLeft (string);
-			inipp::TrimRight(string);
+			inipp::TrimStringLeft (string);
+			inipp::TrimStringRight(string);
 
 			return std::move(string);
 		}
@@ -115,7 +113,7 @@ namespace ConfigParser
 					const auto iterator = subrange | std::views::common;
 
 					// The static analyser likes to complain here, even though this is perfectly safe
-					columns[columnID++] = this->Trim(std::string(iterator.begin(), iterator.end()));
+					columns[columnID++] = this->TrimNewColumn(std::string(iterator.begin(), iterator.end()));
 				}
 				else return std::nullopt;
 			}
@@ -163,7 +161,7 @@ namespace ConfigParser
 				return true;
 			}
 
-			this->parser.Clear();
+			this->Clear();
 
 			// Attempt to create new cache entry
 			const auto& [pair, wasAdded] = this->pathToSections.try_emplace(this->currentPath);
@@ -171,7 +169,7 @@ namespace ConfigParser
 			// Check against cached paths
 			if (not wasAdded)
 			{
-				this->parser.sections = pair->second;
+				this->sections = pair->second;
 				
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Load:", file);
@@ -184,8 +182,8 @@ namespace ConfigParser
 
 			if (fileStream.is_open())
 			{
-				this->parser.ParseStream(fileStream);
-				pair->second = this->parser.sections;
+				this->ParseStream(fileStream);
+				pair->second = this->sections;
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Open:", file);
@@ -202,7 +200,7 @@ namespace ConfigParser
 
 		const auto& GetSections() const
 		{
-			return this->parser.sections;
+			return this->sections;
 		}
 
 
@@ -260,7 +258,7 @@ namespace ConfigParser
 			const std::string_view key,
 			Parameter<T>&&         parameter
 		) {
-			const bool isValid = this->parser.ExtractFromSection<T>(section, key, parameter.value);
+			const bool isValid = this->ExtractFromSection<T>(section, key, parameter.value);
 
 			parameter.limits.Enforce(parameter.value);
 
@@ -383,7 +381,7 @@ namespace ConfigParser
 			keys            .clear();
 			parameter.values.clear();
 
-			const size_t numReads = this->parser.ExtractSection<T>(section, keys, parameter.values);
+			const size_t numReads = this->ExtractSection<T>(section, keys, parameter.values);
 
 			// Fuck the std::vector<bool> specialisation
 			if constexpr (not std::is_same_v<T, bool>)

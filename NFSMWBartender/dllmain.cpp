@@ -113,19 +113,6 @@ static void __cdecl InitialiseBartender
 
 
 
-static bool IsExecutableCompatible()
-{
-    // Credit: thelink2012 and MWisBest
-    const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleA(NULL));
-
-    const auto dos = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
-    const auto nt  = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dos->e_lfanew);
-
-    return (nt->OptionalHeader.AddressOfEntryPoint == 0x3C4040);
-}
-
-
-
 
 
 // DLL hook boilerplate -----------------------------------------------------------------------------------------------------------------------------
@@ -138,7 +125,7 @@ BOOL WINAPI DllMain
 ) {
     if (fdwReason == DLL_PROCESS_ATTACH)
     {
-        if (not IsExecutableCompatible())
+        if (MemoryTools::GetEntryPoint() != 0x3C4040)
         {
             MessageBoxA(NULL, "This .exe isn't compatible with Bartender.\nSee Bartender's README for help.", "NFSMW Bartender", MB_ICONERROR);
 

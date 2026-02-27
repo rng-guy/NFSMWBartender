@@ -30,6 +30,7 @@
 */
 
 #include <map>
+#include <ranges>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -45,29 +46,48 @@ namespace inipp
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	inline bool IsNotSpace(const unsigned char ch)
+	bool IsNotSpace(const unsigned char ch)
 	{
 		return (not std::isspace(ch));
 	}
 
 
 
-	inline void TrimLeft(std::string& string)
+	void TrimStringLeft(std::string& string)
 	{
 		string.erase(string.begin(), std::find_if(string.begin(), string.end(), IsNotSpace));
 	}
 
 
 
-	inline void TrimRight(std::string& string)
+	void TrimStringRight(std::string& string)
 	{
 		string.erase(std::find_if(string.rbegin(), string.rend(), IsNotSpace).base(), string.end());
 	}
 
 
 
+	std::string_view TrimViewLeft(std::string_view view)
+	{
+		view.remove_prefix(std::distance(view.begin(), std::ranges::find_if(view, IsNotSpace)));
+
+		return view;
+	}
+
+
+
+	std::string_view TrimViewRight(std::string_view view)
+	{
+		const auto reversed = view | std::views::reverse;
+		view.remove_suffix(std::distance(reversed.begin(), std::ranges::find_if(reversed, IsNotSpace)));
+
+		return view;
+	}
+
+	
+
 	template <typename T>
-	inline bool ExtractFromString
+	bool ExtractFromString
 	(
 		const std::string& string,
 		T&                 value
@@ -86,13 +106,14 @@ namespace inipp
 		if (stream >> tail) return false;
 
 		value = std::move(result);
+
 		return true;
 	}
 
 
 
 	template <>
-	inline bool ExtractFromString<std::string>
+	bool ExtractFromString<std::string>
 	(
 		const std::string& string,
 		std::string&       value
@@ -111,25 +132,40 @@ namespace inipp
 	{
 	private:
 
-		static bool IsSectionStart(const char ch) {return (ch == '[');}
-		static bool IsSectionEnd  (const char ch) {return (ch == ']');}
-
-
-		static void TrimComment(std::string& string) 
+		static bool PreProcessLine(std::string& line) 
 		{
+			TrimStringLeft(line);
+
+			// Remove (trailing) comment if there is one
 			constexpr auto IsComment = [](const char ch) {return (ch == ';');};
-			string.erase(std::find_if(string.begin(), string.end(), IsComment), string.end());
+			line.erase(std::find_if(line.begin(), line.end(), IsComment), line.end());
+
+			TrimStringRight(line);
+
+			return (not line.empty());
 		}
 
 
-		static std::optional<std::string::size_type> FindUniqueAssign(const std::string& string)
+		static bool IsSectionStart(const std::string& line)
+		{
+			return ((line.front() == '[') and (line.back() == ']'));
+		}
+
+
+		static std::string ExtractName(const std::string& line)
+		{
+			return line.substr(1, line.length() - 2);
+		}
+
+
+		static std::optional<std::string::size_type> FindUniqueAssign(const std::string& line)
 		{
 			constexpr char assign = '=';
 
-			const std::string::size_type leftAssign = string.find(assign);
+			const std::string::size_type leftAssign = line.find(assign);
 
-			if (leftAssign == std::string::npos)    return std::nullopt;
-			if (leftAssign != string.rfind(assign)) return std::nullopt;
+			if (leftAssign == std::string::npos)  return std::nullopt;
+			if (leftAssign != line.rfind(assign)) return std::nullopt;
 
 			return leftAssign;
 		}
@@ -153,34 +189,27 @@ namespace inipp
 
 			while (std::getline(stream, line))
 			{
-				TrimLeft (line);
-				this->TrimComment(line);
-				TrimRight(line);
+				if (not this->PreProcessLine(line)) continue;
 
-				if (line.empty()) continue;
-
-				// If line contains valid section, update current section
-				if (this->IsSectionStart(line.front()))
+				// Check for new section
+				if (this->IsSectionStart(line))
 				{
-					if (this->IsSectionEnd(line.back()))
-						currentSection = &(this->sections[line.substr(1, line.length() - 2)]);
+					currentSection = &(this->sections[ExtractName(line)]);
 
 					continue;
 				}
 				else if (not currentSection) continue;
 
-				// If line contains valid key-value pair, append to section
+				// Parse key-value pair
 				if (const auto foundAssign = this->FindUniqueAssign(line))
 				{
-					// Most lines should be valid, so we construct stings right away
-					std::string key   = line.substr(0, *foundAssign);
-					std::string value = line.substr(*foundAssign + 1);
+					const std::string_view key = TrimViewRight({line.data(), *foundAssign});
+					if (key.empty()) continue;
 
-					TrimRight(key);
-					TrimLeft (value);
+					const std::string_view value = TrimViewLeft({line.data() + (*foundAssign + 1), line.size() - (*foundAssign + 1)});
+					if (value.empty()) continue;
 
-					if ((not key.empty()) and (not value.empty()))
-						currentSection->try_emplace(std::move(key), std::move(value));
+					currentSection->try_emplace(std::string(key), std::string(value));
 				}
 			}
 		}

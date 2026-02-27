@@ -52,7 +52,7 @@ namespace Globals
 
 	// Common data pointers
 	const volatile float&    simulationTime = *reinterpret_cast<volatile float*>   (0x9885D8);
-	const volatile address&  copManager     = *reinterpret_cast<volatile address*> (0x989098);
+	const volatile address&  copManager     = *reinterpret_cast<volatile address*> (0x90D5F4);
 	const volatile uint32_t& gameTicks      = *reinterpret_cast<volatile uint32_t*>(0x925B14);
 
 

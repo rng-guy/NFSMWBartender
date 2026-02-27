@@ -25,6 +25,26 @@ namespace MemoryTools
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	bool IsModuleLoaded(const char* const name)
+	{
+		return GetModuleHandleA(name);
+	}
+
+
+
+	address GetEntryPoint()
+	{
+		// Credit: thelink2012 and MWisBest
+		const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleA(NULL));
+
+		const auto dos = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
+		const auto nt  = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dos->e_lfanew);
+
+		return nt->OptionalHeader.AddressOfEntryPoint;
+	}
+
+
+
 	template <typename T>
 	void Write
 	(
