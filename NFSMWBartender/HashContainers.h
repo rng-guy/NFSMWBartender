@@ -167,7 +167,7 @@ namespace HashContainers
 		explicit CachedPointerMap(const V& defaultValue) : BaseCachedMap<K, V>(defaultValue) {}
 
 
-		const V* GetValue(const K key)
+		const V* GetValue(const K key) noexcept
 		{
 			if ((not this->cachedKey) or (key != *(this->cachedKey)))
 			{
@@ -198,7 +198,7 @@ namespace HashContainers
 		explicit CachedCopyMap(const V defaultValue) : BaseCachedMap<K, V>(defaultValue) {}
 
 
-		V GetValue(const K key)
+		V GetValue(const K key) noexcept
 		{
 			if ((not this->cachedKey) or (key != *(this->cachedKey)))
 			{

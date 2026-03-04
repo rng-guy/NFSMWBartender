@@ -1,9 +1,8 @@
 #pragma once
 
-#include <string>
 #include <cstdint>
-#include <cstdarg>
 
+#include "MemoryTools.h"
 #include "BasicLogger.h"
 #include "RandomNumbers.h"
 
@@ -13,12 +12,13 @@
 
 
 // Unscoped aliases
-using byte = unsigned char;
-using word = unsigned short;
+using binary = uint32_t;
+using vault  = uint32_t;
 
-using address = uintptr_t;
-using binary  = uint32_t;
-using vault   = uint32_t;
+using byte = MemoryTools::byte;
+using word = MemoryTools::word;
+
+using address = MemoryTools::address;
 
 
 
@@ -32,7 +32,7 @@ namespace Globals
 	bool advancedSetEnabled = false;
 
 	// Game timer
-	constinit uint32_t pausedTicks = 0;
+	uint32_t pausedTicks = 0;
 
 	// Random-number generator
 	RandomNumbers::Generator prng;
@@ -60,24 +60,6 @@ namespace Globals
 	const volatile float&    simulationTime = *reinterpret_cast<volatile float*>   (0x9885D8);
 	const volatile address&  copManager     = *reinterpret_cast<volatile address*> (0x90D5F4);
 	const volatile uint32_t& gameTicks      = *reinterpret_cast<volatile uint32_t*>(0x925B14);
-
-
-
-
-
-	// Conversion functions -------------------------------------------------------------------------------------------------------------------------
-
-	vault StringToVaultKey(const std::string& string)
-	{
-		return GetVaultKey(string.c_str());
-	}
-
-
-
-	binary StringToBinaryKey(const std::string& string)
-	{
-		return GetBinaryKey(string.c_str());
-	}
 
 
 

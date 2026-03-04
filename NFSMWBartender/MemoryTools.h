@@ -7,12 +7,21 @@
 #include <libloaderapi.h>
 #include <initializer_list>
 
-#include "Globals.h"
-
 
 
 namespace MemoryTools
 {
+
+	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
+
+	using byte = unsigned char;
+	using word = unsigned short;
+
+	using address = uintptr_t;
+
+
+
+
 
 	// Status variables -----------------------------------------------------------------------------------------------------------------------------
 
@@ -24,7 +33,7 @@ namespace MemoryTools
 
 
 
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+	// Memory functions -----------------------------------------------------------------------------------------------------------------------------
 
 	bool IsModuleLoaded(const char* const name)
 	{

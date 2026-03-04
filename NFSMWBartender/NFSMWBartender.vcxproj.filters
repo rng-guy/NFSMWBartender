@@ -51,6 +51,9 @@
     <Filter Include="Headers\Features\Advanced">
       <UniqueIdentifier>{af4345db-acb4-4116-a6eb-24bb3f5c5760}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Libraries">
+      <UniqueIdentifier>{2c5715fe-59ed-45d6-a33a-6e82ff9f79ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -59,12 +62,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Globals.h">
-      <Filter>Headers\General</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryTools.h">
-      <Filter>Headers\General</Filter>
-    </ClInclude>
-    <ClInclude Include="RandomNumbers.h">
       <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="StateObserver.h">
@@ -103,9 +100,6 @@
     <ClInclude Include="HeatParameters.h">
       <Filter>Headers\General</Filter>
     </ClInclude>
-    <ClInclude Include="BasicLogger.h">
-      <Filter>Headers\General</Filter>
-    </ClInclude>
     <ClInclude Include="LeaderOverrides.h">
       <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
@@ -133,8 +127,17 @@
     <ClInclude Include="RoadblockOverrides.h">
       <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
+    <ClInclude Include="RandomNumbers.h">
+      <Filter>Headers\Libraries</Filter>
+    </ClInclude>
     <ClInclude Include="StreamParser.h">
-      <Filter>Headers\General</Filter>
+      <Filter>Headers\Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicLogger.h">
+      <Filter>Headers\Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryTools.h">
+      <Filter>Headers\Libraries</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

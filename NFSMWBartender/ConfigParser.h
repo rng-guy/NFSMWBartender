@@ -51,7 +51,7 @@ namespace ConfigParser
 	template <typename T>
 	struct Bounds 
 	{
-		constexpr void Enforce(const auto& values) const noexcept {}
+		constexpr void Enforce(const auto&) const noexcept {}
 	};
 
 

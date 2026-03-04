@@ -113,13 +113,13 @@ namespace HeatParameters
 		Values<T> race = {};
 
 
-		Values<T>& GetValues(const bool forRaces)
+		constexpr Values<T>& GetValues(const bool forRaces) noexcept
 		{
 			return (forRaces) ? this->race : this->roam;
 		}
 
 
-		const Values<T>& GetValues(const bool forRaces) const
+		constexpr const Values<T>& GetValues(const bool forRaces) const noexcept
 		{
 			return (forRaces) ? this->race : this->roam;
 		}
@@ -138,8 +138,8 @@ namespace HeatParameters
 
 		explicit constexpr Pair
 		(
-			const T          original, 
-			const Bounds<T>& limits = {}
+			const T         original, 
+			const Bounds<T> limits = {}
 		) 
 		requires (Concepts::IsBoundsCompatible<T>) : current(original), limits(limits) {}
 
@@ -148,16 +148,18 @@ namespace HeatParameters
 		requires (not Concepts::IsBoundsCompatible<T>) : current(original), limits({}) {}
 
 
-		void SetToHeat
+		constexpr void SetToHeat
 		(
 			const bool   forRaces,
 			const size_t heatLevel
-		) {
+		) 
+			noexcept
+		{
 			this->current = this->GetValues(forRaces)[heatLevel - 1];
 		}
 
 
-		T GetMinimum() const
+		constexpr T GetMinimum() const noexcept
 		{
 			T minimum = this->roam[0];
 
@@ -173,7 +175,7 @@ namespace HeatParameters
 		}
 
 
-		T GetMaximum() const
+		constexpr T GetMaximum() const noexcept
 		{
 			T maximum = this->roam[0];
 
@@ -204,11 +206,13 @@ namespace HeatParameters
 		const T* current = &(this->roam[0]);
 
 
-		void SetToHeat
+		constexpr void SetToHeat
 		(
 			const bool   forRaces,
 			const size_t heatLevel
-		) {
+		) 
+			noexcept
+		{
 			this->current = &(this->GetValues(forRaces)[heatLevel - 1]);
 		}
 	};
@@ -224,11 +228,13 @@ namespace HeatParameters
 		explicit constexpr PointerPair(const char* const original) : current(original) {}
 
 
-		void SetToHeat
+		constexpr void SetToHeat
 		(
 			const bool   forRaces,
 			const size_t heatLevel
-		) {
+		) 
+			noexcept
+		{
 			this->current = (this->GetValues(forRaces)[heatLevel - 1]).c_str();
 		}
 
@@ -250,7 +256,7 @@ namespace HeatParameters
 		Pair<T> values;
 
 
-		explicit constexpr OptionalPair(const Bounds<T>& limits = {})
+		explicit constexpr OptionalPair(const Bounds<T> limits = {})
 		requires (Concepts::IsBoundsCompatible<T>) : values(T(), limits) {}
 
 
@@ -258,11 +264,13 @@ namespace HeatParameters
 		requires (not Concepts::IsBoundsCompatible<T>) : values(T()) {}
 
 
-		void SetToHeat
+		constexpr void SetToHeat
 		(
 			const bool   forRaces,
 			const size_t heatLevel
-		) {
+		) 
+			noexcept
+		{
 			this->isEnableds.SetToHeat(forRaces, heatLevel);
 			this->values    .SetToHeat(forRaces, heatLevel);
 		}
@@ -286,11 +294,13 @@ namespace HeatParameters
 		PointerPair<T> values;
 
 
-		void SetToHeat
+		constexpr void SetToHeat
 		(
 			const bool   forRaces,
 			const size_t heatLevel
-		) {
+		) 
+			noexcept
+		{
 			this->isEnableds.SetToHeat(forRaces, heatLevel);
 			this->values    .SetToHeat(forRaces, heatLevel);
 		}
@@ -306,11 +316,13 @@ namespace HeatParameters
 		PointerPair<std::string> values{nullptr};
 
 
-		void SetToHeat
+		constexpr void SetToHeat
 		(
 			const bool   forRaces,
 			const size_t heatLevel
-		) {
+		) 
+			noexcept
+		{
 			this->isEnableds.SetToHeat(forRaces, heatLevel);
 			this->values    .SetToHeat(forRaces, heatLevel);
 		}
@@ -335,9 +347,9 @@ namespace HeatParameters
 
 		explicit constexpr Interval
 		(
-			const T          originalMin,
-			const T          originalMax,
-			const Bounds<T>& limits = {}
+			const T         originalMin,
+			const T         originalMax,
+			const Bounds<T> limits = {}
 		) 
 			: minValues(originalMin, limits),
 			  maxValues(originalMax, limits)
@@ -345,29 +357,31 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeat
+		constexpr void SetToHeat
 		(
 			const bool   forRaces,
 			const size_t heatLevel
-		) {
+		) 
+			noexcept
+		{
 			this->minValues.SetToHeat(forRaces, heatLevel);
 			this->maxValues.SetToHeat(forRaces, heatLevel);
 		}
 
 
-		T GetMinimum() const
+		constexpr T GetMinimum() const noexcept
 		{
 			return this->minValues.GetMinimum();
 		}
 
 
-		T GetMaximum() const
+		constexpr T GetMaximum() const noexcept
 		{
 			return this->maxValues.GetMaximum();
 		}
 
 
-		T GetRandomValue() const
+		T GetRandomValue() const noexcept
 		{
 			return Globals::prng.GenerateNumber<T>(this->minValues.current, this->maxValues.current);
 		}
@@ -391,21 +405,23 @@ namespace HeatParameters
 		Pair<T> maxValues;
 
 
-		explicit constexpr OptionalInterval(const Bounds<T>& limits = {}) : minValues(T(), limits), maxValues(T(), limits) {}
+		explicit constexpr OptionalInterval(const Bounds<T> limits = {}) : minValues(T(), limits), maxValues(T(), limits) {}
 
 
-		void SetToHeat
+		constexpr void SetToHeat
 		(
 			const bool   forRaces,
 			const size_t heatLevel
-		) {
+		) 
+			noexcept
+		{
 			this->isEnableds.SetToHeat(forRaces, heatLevel);
 			this->minValues .SetToHeat(forRaces, heatLevel);
 			this->maxValues .SetToHeat(forRaces, heatLevel);
 		}
 
 
-		T GetRandomValue() const
+		T GetRandomValue() const noexcept
 		{
 			return Globals::prng.GenerateNumber<T>(this->minValues.current, this->maxValues.current);
 		}
@@ -442,7 +458,7 @@ namespace HeatParameters
 			{
 				std::string& vehicle = vehicles[heatLevel - 1];
 
-				if (not IsVehicleTypeValid(Globals::StringToVaultKey(vehicle)))
+				if (not IsVehicleTypeValid(Globals::GetVaultKey(vehicle.c_str())))
 				{
 					if constexpr (Globals::loggingEnabled)
 					{
@@ -492,11 +508,13 @@ namespace HeatParameters
 
 
 		template <typename T>
-		auto MakeFormatTuple
+		constexpr auto MakeFormatTuple
 		(
 			const bool forRaces,
 			Pair<T>&   pair
-		) {
+		) 
+			noexcept
+		{
 			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(pair.current);
 
 			return std::tuple(Format<T>(pair.GetValues(forRaces), std::move(defaultValue), pair.limits));
@@ -504,7 +522,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		auto MakeFormatTuple
+		constexpr auto MakeFormatTuple
 		(
 			const bool      forRaces,
 			PointerPair<T>& pair
@@ -516,11 +534,13 @@ namespace HeatParameters
 
 
 		template <typename T>
-		auto MakeFormatTuple
+		constexpr auto MakeFormatTuple
 		(
 			const bool   forRaces,
 			Interval<T>& interval
-		) {
+		) 
+			noexcept
+		{
 			return std::tuple_cat
 			(
 				MakeFormatTuple<T>(forRaces, interval.minValues), 
@@ -530,17 +550,19 @@ namespace HeatParameters
 
 
 		template <typename T>
-		auto MakeFormatTuple
+		constexpr auto MakeFormatTuple
 		(
 			const bool       forRaces,
 			OptionalPair<T>& pair
-		) {
+		) 
+			noexcept
+		{
 			return std::tuple(Format<T>(pair.values.GetValues(forRaces), std::nullopt, pair.values.limits));
 		}
 
 
 		template <typename T>
-		auto MakeFormatTuple
+		constexpr auto MakeFormatTuple
 		(
 			const bool              forRaces,
 			OptionalPointerPair<T>& pair
@@ -550,11 +572,13 @@ namespace HeatParameters
 
 
 		template <typename T>
-		auto MakeFormatTuple
+		constexpr auto MakeFormatTuple
 		(
 			const bool           forRaces,
 			OptionalInterval<T>& interval
-		) {
+		) 
+			noexcept
+		{
 			return std::tuple
 			(
 				Format<T>(interval.minValues.GetValues(forRaces), std::nullopt, interval.minValues.limits),
@@ -564,15 +588,22 @@ namespace HeatParameters
 
 
 
-		template <class HeatParameter>
-		void CopyRoamToRaceValues(HeatParameter& pair)
+		template <typename T>
+		constexpr void CopyRoamToRaceValues(Pair<T>& pair) noexcept
 		{
 			pair.race = pair.roam;
 		}
 
 
 		template <typename T>
-		void CopyRoamToRaceValues(Interval<T>& interval)
+		constexpr void CopyRoamToRaceValues(PointerPair<T>& pair) noexcept
+		{
+			pair.race = pair.roam;
+		}
+
+
+		template <typename T>
+		constexpr void CopyRoamToRaceValues(Interval<T>& interval) noexcept
 		{
 			interval.minValues.race = interval.minValues.roam;
 			interval.maxValues.race = interval.maxValues.roam;
@@ -608,11 +639,13 @@ namespace HeatParameters
 
 
 		template <typename T>
-		void CheckIntervals
+		constexpr void CheckIntervals
 		(
 			Pair<T>&       minValues,
 			const Pair<T>& maxValues
-		) {
+		) 
+			noexcept
+		{
 			for (const bool forRaces : {false, true})
 			{
 				Values<T>&       lowers = minValues.GetValues(forRaces);
@@ -625,19 +658,18 @@ namespace HeatParameters
 
 
 
-		template <class HeatParameter>
-		void FinaliseIntervals(const HeatParameter& pair) {}
+		constexpr void FinaliseParameters(const auto&) noexcept {}
 
 
 		template <typename T>
-		void FinaliseIntervals(Interval<T>& interval)
+		constexpr void FinaliseParameters(Interval<T>& interval) noexcept
 		{
 			CheckIntervals<T>(interval.minValues, interval.maxValues);
 		}
 
 
 		template <typename T>
-		void FinaliseIntervals(OptionalInterval<T>& interval)
+		constexpr void FinaliseParameters(OptionalInterval<T>& interval) noexcept
 		{
 			CheckIntervals<T>(interval.minValues, interval.maxValues);
 		}
@@ -665,7 +697,7 @@ namespace HeatParameters
 			Details::ParsePartial<HeatParameters...>(forRaces, parser, section, parameters...);
 		}
 			
-		(..., Details::FinaliseIntervals(parameters));
+		(..., Details::FinaliseParameters(parameters));
 	}
 
 
@@ -685,6 +717,6 @@ namespace HeatParameters
 			(..., (parameters.isEnableds.GetValues(forRaces) = isEnableds));
 		}
 
-		(..., Details::FinaliseIntervals(parameters));
+		(..., Details::FinaliseParameters(parameters));
 	}
 }
