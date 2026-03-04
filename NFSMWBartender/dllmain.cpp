@@ -1,5 +1,6 @@
 #include <Windows.h>
 
+#include "Globals.h"
 #include "MemoryTools.h"
 #include "HeatParameters.h"
 
@@ -42,8 +43,6 @@ static void __cdecl InitialiseBartender
     }
 
     HeatParameters::Parser parser;
-
-    parser.formatDefaultKey = HeatParameters::configDefaultHandle;
 
     Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
     Globals::basicSetEnabled |= RadioChatter      ::Initialise(parser);

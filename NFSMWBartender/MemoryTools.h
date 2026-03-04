@@ -1,9 +1,10 @@
 #pragma once
 
-#include <array>
+#include <cstdarg>
 #include <cstring>
-#include <concepts>
 #include <Windows.h>
+#include <memoryapi.h>
+#include <libloaderapi.h>
 #include <initializer_list>
 
 #include "Globals.h"

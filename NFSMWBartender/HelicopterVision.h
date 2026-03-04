@@ -1,7 +1,9 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 #include <algorithm>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -86,39 +88,6 @@ namespace HelicopterVision
 
 
 
-	bool ParseColour
-	(
-		HeatParameters::Parser& parser,
-		const std::string&      colourName,
-		BGRA<float>&            colour,
-		float&                  length
-	) {
-		BGRA<int> rawColour = {};
-
-		constexpr HeatParameters::Bounds<int> limits(0, 255);
-
-		const bool isValid = parser.ParseFromFile<int, int, int, int, float>
-		(
-			"Helicopter:Vision",
-			colourName,
-			{rawColour[2], limits}, // red
-			{rawColour[1], limits}, // green
-			{rawColour[0], limits}, // blue
-			{rawColour[3], limits}, // alpha
-			{length, {.001f}}
-		);
-
-		if (isValid)
-		{
-			for (size_t channelID = 0; channelID < numChannels; ++channelID)
-				colour[channelID] = static_cast<float>(rawColour[channelID]);
-		}
-
-		return isValid;
-	}
-
-
-
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
@@ -175,7 +144,40 @@ namespace HelicopterVision
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	bool ParseColours(HeatParameters::Parser& parser)
+	bool ParseColour
+	(
+		const HeatParameters::Parser& parser,
+		const std::string_view        key,
+		BGRA<float>&                  colour,
+		float&                        length
+	) {
+		BGRA<int> rawColour = {};
+
+		constexpr HeatParameters::Bounds<int> limits(0, 255);
+
+		const bool isValid = parser.ParseFromFile<int, int, int, int, float>
+		(
+			"Helicopter:Vision",
+			key,
+			{rawColour[2], limits}, // red
+			{rawColour[1], limits}, // green
+			{rawColour[0], limits}, // blue
+			{rawColour[3], limits}, // alpha
+			{length, {.001f}}
+		);
+
+		if (isValid)
+		{
+			for (size_t channelID = 0; channelID < numChannels; ++channelID)
+				colour[channelID] = static_cast<float>(rawColour[channelID]);
+		}
+
+		return isValid;
+	}
+
+
+
+	bool ParseColours(const HeatParameters::Parser& parser)
 	{
 		// In-sight colour
 		if (not ParseColour(parser, "withinSightColour", colourRange, lengthToEnd))

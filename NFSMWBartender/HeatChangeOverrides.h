@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cmath>
-#include <limits>
 #include <vector>
 #include <algorithm>
 
@@ -486,18 +484,18 @@ namespace HeatChangeOverrides
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	bool ParseWreckingChanges(HeatParameters::Parser& parser)
+	bool ParseWreckingChanges(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string> copVehicles;
+		std::vector<const char*> copVehicles; // for game compatibility
 		std::vector<float>       heatChanges;
 
-		parser.ParseUser<float>("Heat:Wrecking", copVehicles, {heatChanges});
+		parser.ParseUser<const char*, float>("Heat:Wrecking", copVehicles, {heatChanges});
 
 		return copTypeToHeatChange.FillFromVectors
 		(
 			"Vehicle-to-change",
-			HeatParameters::configDefaultHandle,
-			HashContainers::FillSetup(copVehicles, Globals::StringToVaultKey, Globals::DoesVehicleTypeExist),
+			Globals::GetVaultKey(HeatParameters::configDefaultKey),
+			HashContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
 			HashContainers::FillSetup(heatChanges)
 		);
 	}

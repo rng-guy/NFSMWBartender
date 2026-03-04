@@ -10,6 +10,7 @@
 #include <string_view>
 
 #include "Globals.h"
+#include "MemoryTools.h"
 #include "HeatParameters.h"
 
 
@@ -415,8 +416,8 @@ namespace RoadblockOverrides
 
 	std::optional<RBSetup> ParseRoadblockSetup
 	(
-		HeatParameters::Parser& parser,
-		const std::string_view  section
+		const HeatParameters::Parser& parser,
+		const std::string_view        section
 	) {
 		if (section.find(setupPrefix) > 0) return std::nullopt; // not setup
 
@@ -450,7 +451,9 @@ namespace RoadblockOverrides
 		const auto isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
 		(
 			section,
+			{}, // no "default" value tuple
 			"part{:02}",
+			HeatParameters::configFormatStart,
 			{partTypeIDs},
 			{partOffsetsX},
 			{partOffsetsY},
@@ -548,7 +551,7 @@ namespace RoadblockOverrides
 
 
 
-	bool ParseRoadblockSetups(HeatParameters::Parser& parser)
+	bool ParseRoadblockSetups(const HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<2>("Roadblock setups:");

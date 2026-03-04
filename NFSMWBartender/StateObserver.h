@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "HeatParameters.h"
@@ -317,7 +319,7 @@ namespace StateObserver
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool Initialise(const HeatParameters::Parser& parser)
 	{
 		// Code modifications 
 		OnGameplayUpdatesOriginal  = MemoryTools::MakeCallHook(OnGameplayUpdates,  0x721609); // SoundAI::SyncPursuit (0x720850)

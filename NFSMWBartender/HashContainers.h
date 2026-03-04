@@ -1,15 +1,14 @@
 #pragma once
 
-#include <string>
 #include <memory>
-#include <utility>
-#include <concepts>
+#include <vector>
 #include <optional>
 #include <functional>
 #include <string_view>
+#include <unordered_set>
+#include <unordered_map>
 
 #include "Globals.h"
-#include "unordered_dense.h"
 
 
 
@@ -18,47 +17,22 @@ namespace HashContainers
 
 	// Custom hash function and (scoped) aliases ----------------------------------------------------------------------------------------------------
 
-	template <typename K>
-	struct IdentityHash
-	{
-		size_t operator()(const K key) const
-		{
-			return key;
-		}
-	};
-
-
-
 	template <typename K, typename H = std::hash<K>>
-	using Set = ankerl::unordered_dense::set<K, H>;
+	using Set = std::unordered_set<K, H>;
 
-	template <typename K>
-	requires std::is_integral_v<K>
-	using FastSet = Set<K, IdentityHash<K>>;
-
-	using AddressSet = FastSet<address>;
-	using VaultSet   = FastSet<vault>;
+	using AddressSet = Set<address>;
+	using VaultSet   = Set<vault>;
 
 
 
 	template <typename K, typename V, typename H = std::hash<K>>
-	using Map = ankerl::unordered_dense::map<K, V, H>;
-
-	template <typename K, typename V>
-	requires std::is_integral_v<K>
-	using FastMap = Map<K, V, IdentityHash<K>>;
+	using Map = std::unordered_map<K, V, H>;
 
 	template <typename V>
-	using AddressMap = FastMap<address, V>;
+	using AddressMap = Map<address, V>;
 
 	template <typename V>
-	using StableAddressMap = AddressMap<std::unique_ptr<V>>;
-
-	template <typename V>
-	using VaultMap = FastMap<vault, V>;
-
-	template <typename V>
-	using StableVaultMap = VaultMap<std::unique_ptr<V>>;
+	using VaultMap = Map<vault, V>;
 
 
 
@@ -79,7 +53,7 @@ namespace HashContainers
 	template <typename T, class Converter = std::identity, class Validator = AlwaysTrue>
 	struct FillSetup
 	{
-		const std::vector<T>& rawValues;
+		std::vector<T>& rawValues;
 
 		Converter RawToValue   = {};
 		Validator IsValidValue = {};
@@ -93,8 +67,10 @@ namespace HashContainers
 	protected:
 
 		V defaultValue;
-
+		
 		std::optional<K> cachedKey;
+
+		Map<K, V> map;
 
 
 		explicit BaseCachedMap(const V& defaultValue) : defaultValue(defaultValue) {}
@@ -103,14 +79,11 @@ namespace HashContainers
 
 	public:
 
-		FastMap<K, V> map;
-
-
 		template <typename RawK, class ConK, class ValK, typename RawV, class ConV, class ValV>
 		bool FillFromVectors
 		(
 			const std::string_view              mapName,
-			const RawK&                         defaultHandle,
+			const K&                            defaultKey,
 			const FillSetup<RawK, ConK, ValK>&& keySetup,
 			const FillSetup<RawV, ConV, ValV>&& valueSetup
 		) {
@@ -142,7 +115,7 @@ namespace HashContainers
 					{
 						const K key = keySetup.RawToValue(rawKey);
 
-						if (rawKey == defaultHandle)
+						if (key == defaultKey)
 						{
 							defaultProvided = true;
 

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <string>
+#include <vector>
 #include <algorithm>
 #include <functional>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -371,37 +372,37 @@ namespace GeneralSettings
 
 	void ParseTracking
 	(
-		HeatParameters::Parser& parser,
-		const std::string&      trackingName,
-		bool&                   isTracked,
-		const address           rangeStart,
-		const address           rangeEnd
+		const HeatParameters::Parser& parser,
+		const std::string_view        key,
+		bool&                         isTracked,
+		const address                 rangeStart,
+		const address                 rangeEnd
 	) {
-		parser.ParseFromFile<bool>("Pursuits:Races", trackingName, {isTracked});
+		parser.ParseFromFile<bool>("Pursuits:Races", key, {isTracked});
 
 		if (isTracked)
 		{
 			MemoryTools::MakeRangeNOP(rangeStart, rangeEnd);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Tracking", trackingName);
+				Globals::logger.Log<2>("Tracking", key);
 		}
 	}
 
 
 
-	bool ParseBreakerImmunities(HeatParameters::Parser& parser)
+	bool ParseBreakerImmunities(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string> copVehicles;
+		std::vector<const char*> copVehicles; // for game compatibility
 		std::vector<bool>        isAffecteds;
 
-		parser.ParseUser<bool>("Vehicles:Breakers", copVehicles, {isAffecteds});
+		parser.ParseUser<const char*, bool>("Vehicles:Breakers", copVehicles, {isAffecteds});
 
 		return copTypeToIsBreakerImmune.FillFromVectors
 		(
 			"Vehicle-to-immunity",
-			HeatParameters::configDefaultHandle,
-			HashContainers::FillSetup(copVehicles, Globals::StringToVaultKey, Globals::DoesVehicleTypeExist),
+			Globals::GetVaultKey(HeatParameters::configDefaultKey),
+			HashContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
 			HashContainers::FillSetup(isAffecteds, std::logical_not<bool>{})
 		);
 	}

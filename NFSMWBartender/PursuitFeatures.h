@@ -1,9 +1,6 @@
 #pragma once
 
-#include <array>
-
 #include "Globals.h"
-#include "MemoryTools.h"
 #include "HeatParameters.h"
 
 

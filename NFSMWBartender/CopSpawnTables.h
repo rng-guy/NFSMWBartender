@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include <array>
 #include <string>
 #include <format>
 #include <vector>
@@ -8,7 +8,6 @@
 #include <string_view>
 
 #include "Globals.h"
-#include "MemoryTools.h"
 #include "HashContainers.h"
 #include "HeatParameters.h"
 
@@ -37,17 +36,12 @@ namespace CopSpawnTables
 
 		HashContainers::VaultMap<Entry> copTypeToEntry;
 
-		inline static HashContainers::StableVaultMap<const std::string> copTypeToName;
+		inline static HashContainers::VaultMap<const std::string> copTypeToName;
 		
 
-		static auto RegisterName(std::string&& copName)
+		static auto RegisterName(const char* const copName)
 		{
-			const auto [pair, wasAdded] = SpawnTable::copTypeToName.try_emplace(Globals::StringToVaultKey(copName), nullptr);
-
-			if (wasAdded)
-				pair->second = std::make_unique<const std::string>(std::move(copName)); // deferred allocation
-
-			return pair;
+			return SpawnTable::copTypeToName.try_emplace(Globals::GetVaultKey(copName), copName).first;
 		}
 
 
@@ -57,7 +51,7 @@ namespace CopSpawnTables
 		static const char* ConvertTypeToName(const vault copType)
 		{
 			const auto foundType = SpawnTable::copTypeToName.find(copType);
-			return (foundType != SpawnTable::copTypeToName.end()) ? foundType->second->c_str() : nullptr;
+			return (foundType != SpawnTable::copTypeToName.end()) ? foundType->second.c_str() : nullptr;
 		}
 
 
@@ -69,19 +63,21 @@ namespace CopSpawnTables
 
 		bool AddTypeByName
 		(
-			std::string&& copName,
-			const int     copCount, 
-			const int     copChance
+			const char* const copName,
+			const int         copCount, 
+			const int         copChance
 		) {
+			if (not copName) return false;
+
 			if (copCount  < 1) return false;
 			if (copChance < 1) return false;
 			
-			const auto registration = this->RegisterName(std::move(copName));
+			const auto registration = this->RegisterName(copName);
 
 			const auto [pair, wasAdded] = this->copTypeToEntry.try_emplace
 			(
 				registration->first,
-				registration->second->c_str(), // safe due to stable map
+				registration->second.c_str(), // safe due to stable map
 				copCount, 
 				copChance, 
 				copCount
@@ -272,28 +268,25 @@ namespace CopSpawnTables
 
 	void ParseTables
 	(
-		HeatParameters::Parser& parser,
-		const std::string_view  tableName,
-		const std::string_view  baseFormat,
-		Tables&                 tables
+		const HeatParameters::Parser& parser,
+		const std::string_view        tableName,
+		const std::string_view        formatPrefix,
+		Tables&                       tables
 	) {
-		std::string section;
-
-		std::vector<std::string> copNames;
+		std::vector<const char*> copNames; // for game compatibility
 
 		std::vector<int> copCounts;
 		std::vector<int> copChances;
 
-		const std::string format = std::format("{}:{}", baseFormat, tableName);
+		const std::string sectionFormat = std::format("{}:{}", formatPrefix, tableName);
 
 		for (const size_t heatLevel : HeatParameters::heatLevels)
 		{
-			section = std::vformat(format, std::make_format_args(heatLevel));
-
-			const size_t numEntries = parser.ParseUser<int, int>(section, copNames, {copCounts, {0}}, {copChances, {0}});
+			const std::string section    = std::vformat(sectionFormat, std::make_format_args(heatLevel));
+			const size_t      numEntries = parser.ParseUser<const char*, int, int>(section, copNames, {copCounts, {0}}, {copChances, {0}});
 
 			for (size_t entryID = 0; entryID < numEntries; ++entryID)
-				(tables[heatLevel - 1]).AddTypeByName(std::move(copNames[entryID]), copCounts[entryID], copChances[entryID]);
+				(tables[heatLevel - 1]).AddTypeByName(copNames[entryID], copCounts[entryID], copChances[entryID]);
 		}
 	}
 

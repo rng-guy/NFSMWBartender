@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <string>
 #include <fstream>
 #include <string_view>
 
@@ -122,23 +121,6 @@ namespace CopDetection
 	{
 		const Settings* const settings = copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle));
 		return (settings) ? settings->radarRange : 0.f; // should never be false
-	}
-
-
-
-	std::fstream& operator<<
-	(
-		std::fstream&   stream,
-		const Settings& copSettings
-	) {
-		const std::string_view delimiter = ", ";
-
-		stream << copSettings.radarRange;
-		stream << delimiter << copSettings.patrolIconRange;
-		stream << delimiter << copSettings.pursuitIconRange;
-		stream << delimiter << ((copSettings.keepsIcon) ? "true" : "false");
-
-		return stream;
 	}
 
 
@@ -349,16 +331,33 @@ namespace CopDetection
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	bool ParseDetectionSettings(HeatParameters::Parser& parser)
+	std::fstream& operator<<
+	(
+		std::fstream&   stream,
+		const Settings& copSettings
+	) {
+		constexpr std::string_view delimiter = ", ";
+
+		stream << copSettings.radarRange;
+		stream << delimiter << copSettings.patrolIconRange;
+		stream << delimiter << copSettings.pursuitIconRange;
+		stream << delimiter << ((copSettings.keepsIcon) ? "true" : "false");
+
+		return stream;
+	}
+
+
+
+	bool ParseDetectionSettings(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string> copVehicles;
+		std::vector<const char*> copVehicles; // for game compatibility
 
 		std::vector<float> radarRanges;
 		std::vector<float> patrolIconRanges;
 		std::vector<float> pursuitIconRanges;
 		std::vector<bool>  keepsIcons;
 
-		const size_t numCopVehicles = parser.ParseUser<float, float, float, bool>
+		const size_t numCopVehicles = parser.ParseUser<const char*, float, float, float, bool>
 		(
 			"Vehicles:Detection",
 			copVehicles,
@@ -384,8 +383,8 @@ namespace CopDetection
 		return copTypeToSettings.FillFromVectors
 		(
 			"Vehicle-to-settings",
-			HeatParameters::configDefaultHandle,
-			HashContainers::FillSetup(copVehicles, Globals::StringToVaultKey, Globals::IsVehicleTypeCar),
+			Globals::GetVaultKey(HeatParameters::configDefaultKey),
+			HashContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::IsVehicleTypeCar),
 			HashContainers::FillSetup(settings)
 		);
 	}

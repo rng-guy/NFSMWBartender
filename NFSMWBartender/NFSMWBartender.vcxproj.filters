@@ -23,9 +23,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Headers\Libraries">
-      <UniqueIdentifier>{76ba4780-d613-49c9-8716-a2ce15e72b8f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Headers\General">
       <UniqueIdentifier>{5a20c96a-326e-491c-ba6b-119f92c1a0a5}</UniqueIdentifier>
     </Filter>
@@ -127,12 +124,6 @@
     <ClInclude Include="CopDetection.h">
       <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="unordered_dense.h">
-      <Filter>Headers\Libraries</Filter>
-    </ClInclude>
-    <ClInclude Include="stl.h">
-      <Filter>Headers\Libraries</Filter>
-    </ClInclude>
     <ClInclude Include="HelicopterVision.h">
       <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
@@ -142,8 +133,8 @@
     <ClInclude Include="RoadblockOverrides.h">
       <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
-    <ClInclude Include="inipp.h">
-      <Filter>Headers\Libraries</Filter>
+    <ClInclude Include="StreamParser.h">
+      <Filter>Headers\General</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

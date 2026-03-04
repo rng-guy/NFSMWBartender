@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -191,10 +191,10 @@ namespace CopFleeOverrides
 			const address  copVehicle,
 			const CopLabel copLabel
 		) {
-			std::string vehicleLabel;
-
 			bool makeVehicleBail = false;
-			
+
+			std::string_view vehicleLabel;
+
 			switch (copLabel)
 			{
 			case CopLabel::HEAVY:
@@ -237,8 +237,6 @@ namespace CopFleeOverrides
 			switch (copLabel)
 			{
 			case CopLabel::HEAVY:
-				[[fallthrough]];
-
 			case CopLabel::LEADER:
 				return true;
 

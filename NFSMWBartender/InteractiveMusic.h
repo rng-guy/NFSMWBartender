@@ -158,7 +158,7 @@ namespace InteractiveMusic
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	bool ParsePlaylist(HeatParameters::Parser& parser)
+	bool ParsePlaylist(const HeatParameters::Parser& parser)
 	{
 		const auto& sections     = parser.GetSections();
 		const auto  foundSection = sections.find("Music:Playlist");
@@ -166,7 +166,7 @@ namespace InteractiveMusic
 		// Parse track IDs if playlist section exists
 		if (foundSection != sections.end())
 		{
-			const HashContainers::Map<std::string, int> nameToIndex =
+			const HashContainers::Map<std::string_view, int> nameToIndex =
 			{
 				{"theme1", 0},
 				{"theme2", 1},
@@ -210,7 +210,7 @@ namespace InteractiveMusic
 
 
 
-	void ParseSettings(HeatParameters::Parser& parser)
+	void ParseSettings(const HeatParameters::Parser& parser)
 	{
 		constexpr std::string_view section = "Playlist:Settings";
 

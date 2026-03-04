@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <memory>
 #include <utility>
 #include <concepts>
@@ -52,7 +53,7 @@ namespace PursuitObserver
 		HashContainers::AddressMap<CopLabel>          copVehicleToLabel;
 		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
 
-		inline static HashContainers::StableAddressMap<PursuitObserver> pursuitToObserver;
+		inline static HashContainers::AddressMap<PursuitObserver> pursuitToObserver;
 
 
 		static CopLabel LabelAddVehicleCall(const address caller)
@@ -60,8 +61,6 @@ namespace PursuitObserver
 			switch (caller)
 			{
 			case 0x40B02A: // roadblock cop after spike-strip hit
-				[[fallthrough]];
-
 			case 0x4443D8: // regular roadblock cop
 				return CopLabel::ROADBLOCK;
 
@@ -75,17 +74,9 @@ namespace PursuitObserver
 				return CopLabel::HELICOPTER;
 
 			case 0x43EAF5: // free patrol
-				[[fallthrough]];
-
 			case 0x43EE97: // first patrol in race
-				[[fallthrough]];
-
 			case 0x42E872: // scripted event spawn
-				[[fallthrough]];
-
 			case 0x42EB73: // first cop of milestone / bounty pursuit
-				[[fallthrough]];
-
 			case 0x4311EC: // pursuit spawn
 				return CopLabel::CHASER;
 			}
@@ -144,7 +135,7 @@ namespace PursuitObserver
 			const auto foundObserver = PursuitObserver::pursuitToObserver.find(pursuit);
 
 			if (foundObserver != PursuitObserver::pursuitToObserver.end())
-				return foundObserver->second.get();
+				return &(foundObserver->second);
 
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [OBS] No observer for pursuit", pursuit);
@@ -195,13 +186,13 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     NEW [OBS] Pursuit", pursuit);
 
-			const auto [pair, wasAdded] = PursuitObserver::pursuitToObserver.try_emplace(pursuit, nullptr);
+			const bool wasAdded = PursuitObserver::pursuitToObserver.try_emplace(pursuit, pursuit).second;
 
-			if (wasAdded)
-				pair->second = std::make_unique<PursuitObserver>(pursuit); // deferred allocation
-			
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (not wasAdded)
+					Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
+			}
 		}
 
 
@@ -229,15 +220,15 @@ namespace PursuitObserver
 
 		static void NotifyOfHeatChange()
 		{
-			for (const auto& pair : PursuitObserver::pursuitToObserver)
-				pair.second->UpdateOnHeatChange();
+			for (auto& pair : PursuitObserver::pursuitToObserver)
+				pair.second.UpdateOnHeatChange();
 		}
 
 
 		static void NotifyOfGameplay()
 		{
-			for (const auto& pair : PursuitObserver::pursuitToObserver)
-				pair.second->UpdateOnGameplay();
+			for (auto& pair : PursuitObserver::pursuitToObserver)
+				pair.second.UpdateOnGameplay();
 		}
 
 

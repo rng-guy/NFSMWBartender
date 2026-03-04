@@ -250,8 +250,6 @@ Finally, Bartender wouldn't have seen the light of day without
  • nlgxzef, for the Most Wanted debug symbols;
  • GuidedHacking, for their Cheat Engine tutorials;
  • Sebastiano Vigna, for his pseudorandom number generators;
- • Matthias C. M. Troffaes, for his configuration-file parser;
  • ExOptsTeam, for permitting me to use their Heat-level fixes;
- • Martin Leitner-Ankerl, for his performant hashmap implementation;
  • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a learning resource; and
  • Orsal, zeta1207, Aven, Astra King79, and MORELLO, for testing and providing feedback.

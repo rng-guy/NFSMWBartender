@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -99,8 +100,6 @@ namespace GroundSupports
 			switch (strategyID)
 			{
 			case 5: // Cross only
-				[[fallthrough]];
-
 			case 7: // Cross with henchmen
 				return true;
 			}

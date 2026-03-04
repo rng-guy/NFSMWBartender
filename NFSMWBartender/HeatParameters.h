@@ -5,9 +5,10 @@
 #include <string>
 #include <utility>
 #include <optional>
-#include <algorithm>
+#include <concepts>
 #include <filesystem>
 #include <string_view>
+#include <type_traits>
 
 #include "Globals.h"
 #include "ConfigParser.h"
@@ -24,7 +25,8 @@ namespace HeatParameters
 	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
 
 	// Configuration files
-	const std::string configDefaultHandle = "default";
+	const char* const configDefaultKey  = "default"; // for game compatibility
+	constexpr size_t  configFormatStart = 1;
 
 	constexpr std::string_view configFormatRoam = "heat{:02}";
 	constexpr std::string_view configFormatRace = "race{:02}";
@@ -72,6 +74,28 @@ namespace HeatParameters
 
 
 
+	// Concepts -------------------------------------------------------------------------------------------------------------------------------------
+
+	namespace Concepts
+	{
+
+		template <typename T>
+		concept IsBoundsCompatible = ConfigParser::Concepts::IsBoundsCompatible<T>;
+
+		template <typename T>
+		concept IsPureArithmetic = (std::is_arithmetic_v<T> and std::same_as<T, std::remove_cvref_t<T>>);;
+
+		template <typename T>
+		concept IsIntervalCompatible = (IsPureArithmetic<T> and IsBoundsCompatible<T>);
+
+		template <typename T>
+		concept IsCopyPairCompatible = (IsPureArithmetic<T> or std::same_as<T, const char*> or std::same_as<T, std::string_view>);
+	}
+
+
+
+
+
 	// HeatParameter structs ------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
@@ -104,7 +128,7 @@ namespace HeatParameters
 
 
 	template <typename T>
-	requires std::is_arithmetic_v<T>
+	requires Concepts::IsCopyPairCompatible<T>
 	struct Pair : public BasePair<T>
 	{
 		T current;
@@ -117,9 +141,11 @@ namespace HeatParameters
 			const T          original, 
 			const Bounds<T>& limits = {}
 		) 
-			: current(original), limits(limits)
-		{
-		}
+		requires (Concepts::IsBoundsCompatible<T>) : current(original), limits(limits) {}
+
+
+		explicit constexpr Pair(const T original) 
+		requires (not Concepts::IsBoundsCompatible<T>) : current(original), limits({}) {}
 
 
 		void SetToHeat
@@ -171,33 +197,8 @@ namespace HeatParameters
 
 
 
-	template <>
-	struct Pair<bool> : public BasePair<bool>
-	{
-		bool current;
-
-
-		explicit constexpr Pair(const bool original) : current(original) {}
-
-
-		void SetToHeat
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->current = this->GetValues(forRaces)[heatLevel - 1];
-		}
-
-
-		void Log(const std::string_view pairName) const
-		{
-			Globals::logger.Log<2>(pairName, this->current);
-		}
-	};
-
-
-
 	template <typename T>
+	requires (not Concepts::IsCopyPairCompatible<T>)
 	struct PointerPair : public BasePair<T>
 	{
 		const T* current = &(this->roam[0]);
@@ -241,7 +242,7 @@ namespace HeatParameters
 
 
 	template <typename T>
-	requires std::is_arithmetic_v<T>
+	requires Concepts::IsCopyPairCompatible<T>
 	struct OptionalPair
 	{
 		Pair<bool> isEnableds{false};
@@ -249,34 +250,12 @@ namespace HeatParameters
 		Pair<T> values;
 
 
-		explicit constexpr OptionalPair(const Bounds<T>& limits = {}) : values(T(), limits) {}
+		explicit constexpr OptionalPair(const Bounds<T>& limits = {})
+		requires (Concepts::IsBoundsCompatible<T>) : values(T(), limits) {}
 
 
-		void SetToHeat
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->isEnableds.SetToHeat(forRaces, heatLevel);
-			this->values    .SetToHeat(forRaces, heatLevel);
-		}
-
-
-		void Log(const std::string_view optionalName) const
-		{
-			if (this->isEnableds.current)
-				Globals::logger.Log<2>(optionalName, this->values.current);
-		}
-	};
-
-
-
-	template <>
-	struct OptionalPair<bool>
-	{
-		Pair<bool> isEnableds{false};
-
-		Pair<bool> values{false};
+		explicit constexpr OptionalPair() 
+		requires (not Concepts::IsBoundsCompatible<T>) : values(T()) {}
 
 
 		void SetToHeat
@@ -299,6 +278,7 @@ namespace HeatParameters
 
 
 	template <typename T>
+	requires (not Concepts::IsCopyPairCompatible<T>)
 	struct OptionalPointerPair
 	{
 		Pair<bool> isEnableds{false};
@@ -346,7 +326,7 @@ namespace HeatParameters
 
 
 	template <typename T>
-	requires (std::is_arithmetic_v<T> and (not std::is_same_v<T, bool>))
+	requires Concepts::IsIntervalCompatible<T>
 	struct Interval
 	{
 		Pair<T> minValues;
@@ -402,7 +382,7 @@ namespace HeatParameters
 
 
 	template <typename T>
-	requires (std::is_arithmetic_v<T> and (not std::is_same_v<T, bool>))
+	requires Concepts::IsIntervalCompatible<T>
 	struct OptionalInterval
 	{
 		Pair<bool> isEnableds{false};
@@ -498,10 +478,16 @@ namespace HeatParameters
 		template <typename T> struct IsRegular<PointerPair<T>> : std::true_type  {};
 		template <typename T> struct IsRegular<Pair       <T>> : std::true_type  {};
 
+		template <typename ...T>
+		concept AreRegular = (IsRegular<T>::value and ...);
+
 		template <typename T> struct IsOptional                         : std::false_type {};
 		template <typename T> struct IsOptional<OptionalInterval   <T>> : std::true_type  {};
 		template <typename T> struct IsOptional<OptionalPointerPair<T>> : std::true_type  {};
 		template <typename T> struct IsOptional<OptionalPair       <T>> : std::true_type  {};
+
+		template <typename ...T>
+		concept AreOptional = (IsOptional<T>::value and ...);
 
 
 
@@ -514,18 +500,6 @@ namespace HeatParameters
 			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(pair.current);
 
 			return std::tuple(Format<T>(pair.GetValues(forRaces), std::move(defaultValue), pair.limits));
-		}
-
-
-		template <>
-		auto MakeFormatTuple<bool>
-		(
-			const bool  forRaces,
-			Pair<bool>& pair
-		) {
-			auto defaultValue = (forRaces) ? std::nullopt : std::optional<bool>(pair.current);
-
-			return std::tuple(Format<bool>(pair.GetValues(forRaces), std::move(defaultValue)));
 		}
 
 
@@ -562,16 +536,6 @@ namespace HeatParameters
 			OptionalPair<T>& pair
 		) {
 			return std::tuple(Format<T>(pair.values.GetValues(forRaces), std::nullopt, pair.values.limits));
-		}
-
-
-		template <>
-		auto MakeFormatTuple<bool>
-		(
-			const bool          forRaces,
-			OptionalPair<bool>& pair
-		) {
-			return std::tuple(Format<bool>(pair.values.GetValues(forRaces), std::nullopt));
 		}
 
 
@@ -617,10 +581,11 @@ namespace HeatParameters
 
 
 		template <class ...HeatParameters>
+		requires (AreRegular<HeatParameters...> or AreOptional<HeatParameters...>)
 		Values<bool> ParsePartial
 		(
 			const bool                forRaces,
-			Parser&                   parser,
+			const Parser&             parser,
 			const std::string_view    section,
 			HeatParameters&        ...parameters
 		) {
@@ -631,7 +596,9 @@ namespace HeatParameters
 				return parser.ParseFormat<maxHeatLevel>
 				(
 					section,
+					configDefaultKey,
 					(forRaces) ? configFormatRace : configFormatRoam,
+					configFormatStart,
 					std::move(std::get<formatIDs>(formats))...
 				);
 			}
@@ -680,13 +647,13 @@ namespace HeatParameters
 
 
 
-	// Generic parsing function ---------------------------------------------------------------------------------------------------------------------
+	// Generic parsing functions --------------------------------------------------------------------------------------------------------------------
 
 	template <class ...HeatParameters>
-	requires (Details::IsRegular<HeatParameters>::value and ...)
+	requires Details::AreRegular<HeatParameters...>
 	void Parse
 	(
-		Parser&                   parser,
+		const Parser&             parser,
 		const std::string_view    section,
 		HeatParameters&        ...parameters
 	) {
@@ -704,10 +671,10 @@ namespace HeatParameters
 
 
 	template <class ...HeatParameters>
-	requires (Details::IsOptional<HeatParameters>::value and ...)
+	requires Details::AreOptional<HeatParameters...>
 	void Parse
 	(
-		Parser&                   parser,
+		const Parser&             parser,
 		const std::string_view    section,
 		HeatParameters&        ...parameters
 	) {

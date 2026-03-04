@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <cstdint>
+#include <cstdarg>
+
 #include "BasicLogger.h"
 #include "RandomNumbers.h"
 
@@ -9,7 +13,9 @@
 
 
 // Unscoped aliases
-using byte    = unsigned char;
+using byte = unsigned char;
+using word = unsigned short;
+
 using address = uintptr_t;
 using binary  = uint32_t;
 using vault   = uint32_t;
@@ -155,8 +161,6 @@ namespace Globals
 		switch (GetVehicleTypeClass(type))
 		{
 		case 0x336FCACF: // CAR
-			[[fallthrough]];
-
 		case 0x89E87652: // TRACTOR
 			return true;
 		}

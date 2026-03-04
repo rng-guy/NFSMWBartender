@@ -1,8 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <string>
-#include <algorithm>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -58,25 +56,25 @@ namespace DestructionStrings
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	bool ParseDestructionKeys(HeatParameters::Parser& parser)
+	bool ParseDestructionKeys(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string> copVehicles;
-		std::vector<std::string> binaryLabels;
+		std::vector<const char*> copVehicles;  // for game compatibility
+		std::vector<const char*> binaryLabels; // for game compatibility
 
-		parser.ParseUser<std::string>("Vehicles:Strings", copVehicles, {binaryLabels});
+		parser.ParseUser<const char*, const char*>("Vehicles:Strings", copVehicles, {binaryLabels});
 
 		const auto IsBinaryKeyValid = [](const binary key) -> bool
-			{
-				const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
-				return GetBinaryString(0, key); // first argument is unused placeholder value
-			};
+		{
+			const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
+			return GetBinaryString(0, key); // first argument is unused placeholder value
+		};
 
 		return copTypeToDestructionKey.FillFromVectors
 		(
 			"Vehicle-to-label",
-			HeatParameters::configDefaultHandle,
-			HashContainers::FillSetup(copVehicles,  Globals::StringToVaultKey,  Globals::DoesVehicleTypeExist),
-			HashContainers::FillSetup(binaryLabels, Globals::StringToBinaryKey, IsBinaryKeyValid)
+			Globals::GetVaultKey(HeatParameters::configDefaultKey),
+			HashContainers::FillSetup(copVehicles,  Globals::GetVaultKey,  Globals::DoesVehicleTypeExist),
+			HashContainers::FillSetup(binaryLabels, Globals::GetBinaryKey, IsBinaryKeyValid)
 		);
 	}
 

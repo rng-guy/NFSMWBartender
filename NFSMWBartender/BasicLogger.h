@@ -3,6 +3,9 @@
 #include <array>
 #include <format>
 #include <string>
+#include <cstdarg>
+#include <cstdint>
+#include <ostream>
 #include <fstream>
 #include <concepts>
 #include <string_view>

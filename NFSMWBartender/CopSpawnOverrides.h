@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -1072,11 +1072,11 @@ namespace CopSpawnOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
 
 		// Pursuit-board tracking
-		const std::string section = "Board:Tracking";
+		constexpr std::string_view trackingSection = "Board:Tracking";
 
-		parser.ParseFromFile<bool>(section, "heavyVehicles",  {trackHeavyVehicles});
-		parser.ParseFromFile<bool>(section, "leaderVehicles", {trackLeaderVehicles});
-		parser.ParseFromFile<bool>(section, "joinedVehicles", {trackJoinedVehicles});
+		parser.ParseFromFile<bool>(trackingSection, "heavyVehicles",  {trackHeavyVehicles});
+		parser.ParseFromFile<bool>(trackingSection, "leaderVehicles", {trackLeaderVehicles});
+		parser.ParseFromFile<bool>(trackingSection, "joinedVehicles", {trackJoinedVehicles});
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -1102,6 +1102,8 @@ namespace CopSpawnOverrides
 		// Code modifications 
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
 		MemoryTools::Write<byte>(0x90, {0x4443E4}); // roadblock increment
+
+		MemoryTools::Write<word>(0x517D, {0x43EB90}); // undo count skip of "OpenLimitAdjuster"
 
 		MemoryTools::MakeRangeNOP(0x4442AC, 0x4442C2); // zero-wave / capacity increment
 		MemoryTools::MakeRangeNOP(0x57B186, 0x57B189); // helicopter increment

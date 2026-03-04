@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include <algorithm>
+
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "HashContainers.h"
@@ -8,7 +11,6 @@
 #include "GeneralSettings.h"
 
 #include "PursuitFeatures.h"
-#include "CopFleeOverrides.h"
 
 
 
