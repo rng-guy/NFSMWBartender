@@ -129,13 +129,13 @@ namespace HeatChangeOverrides
 		inline static ModContainers::AddressMap<HeatManager*> pursuitToManager;
 
 
-		void CheckPursuitCounts()
+		void UpdateTrackers()
 		{
 			if (not Globals::playerHeatLevelKnown) return;
 
 			float totalHeatChange = 0.f;
 
-			for (CountTracker& tracker : this->trackers)
+			for (auto& tracker : this->trackers)
 				totalHeatChange += tracker.UpdateCount();
 
 			if (not Globals::IsInCooldownMode(this->pursuit))
@@ -180,7 +180,7 @@ namespace HeatChangeOverrides
 
 		void UpdateOnGameplay() override
 		{
-			this->CheckPursuitCounts();
+			this->UpdateTrackers();
 		}
 
 
