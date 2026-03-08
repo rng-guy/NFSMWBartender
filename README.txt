@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v3.01.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v3.02.00) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -60,6 +60,7 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • the selection, order, and length of interactive themes that play during player pursuits.
 
 The "Basic" feature set ALWAYS FIXES FOURTEEN BUGS / ISSUES automatically:
+ • the game no longer fails to select certain arrest cutscenes,
  • the game now always updates the passive bounty increment after races,
  • the (mini-)map icons for cop vehicles now always flash at the correct pace,
  • transitions to Heat levels > 5 now trigger their proper radio announcements,
@@ -69,7 +70,6 @@ The "Basic" feature set ALWAYS FIXES FOURTEEN BUGS / ISSUES automatically:
  • the helicopter mini-map icon is now always visible whenever a helicopter is active,
  • the helicopter vision-cone icon now always disappears whenever a helicopter is destroyed,
  • helicopters no longer cast static shadows (like cars do) with incorrect placements,
- • the game now counts spike-strip deployments accurately in cost-to-state calculations,
  • the game is no longer inadvertently biased in how it chooses to make Strategy requests,
  • Heat levels > 5 are no longer reset back to 5 when you enter free-roam or start an event,
  • Heat levels > 5 are now shown correctly in menus (requires Binary for missing textures), and
@@ -90,9 +90,6 @@ The "Basic" feature set CAN FIX THREE MORE BUGS / ISSUES, depending on its confi
 The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • which roadblock setups can spawn through roadblock requests,
  • how likely cops are to call out roadblocks / spikes over the radio,
- • whether Heat increases passively whenever racers are being pursued,
- • how much Heat racers gain / lose whenever they assault a cop vehicle,
- • how much Heat racers gain / lose whenever their cost-to-state score increases,
  • how many chasing cops can (re)spawn regardless of the remaining engagement count,
  • below what total number of active cops in the world the game can spawn new chasing cops,
  • whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
@@ -101,9 +98,9 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • whether Heat transitions immediately trigger backup to update the engagement count,
  • how far away new chasing cops must spawn from all already active cops,
  • above what count (if at all) no more cops can join the pursuit from roadblocks,
- • when exactly (if at all) and how many cops that joined from roadblocks can flee the pursuit,
- • when exactly (if at all) and how many chasing cops from other Heat levels can flee the pursuit,
- • which vehicles (any amount, with counts and chances) can spawn to chase and search for racers,
+ • when exactly (if at all) and how many cops that joined from roadblocks can flee,
+ • when exactly (if at all) and how many chasing cops from other Heat levels can flee,
+ • which vehicles (any amount, with counts and chances) can spawn to chase racers,
  • which vehicles (same liberties as above) can spawn in non-Strategy roadblocks,
  • which vehicles (ditto) can spawn as pre-generated cops in scripted events,
  • which vehicles (ditto again) can spawn as free patrols outside pursuits,
@@ -119,23 +116,32 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • how many vehicles can spawn through each successful HeavyStrategy 3 request,
  • whether HeavyStrategy 3 vehicles can join the pursuit once their request expires,
  • above what count (if at all) no more cops can join the pursuit from HeavyStrategy 3 requests,
+ • when exactly (if at all) and how many cops that joined from HeavyStrategy 3 requests can flee,
  • when exactly (if at all) LeaderStrategy 5 / 7 Cross and / or his henchmen become aggressive,
- • when exactly (if at all) the game can request a new LeaderStrategy once Cross is gone, and
- • when exactly (if at all) the game can request a new Strategy while another is still active.
+ • when exactly (if at all) the game can request a new LeaderStrategy once Cross is gone,
+ • when exactly (if at all) the game can request a new Strategy while another is still active,
+ • whether racer Heat increases passively over time in pursuits,
+ • the Heat gain / loss from cop and roadblock deployments,
+ • the Heat gain / loss from destroying any cop vehicle,
+ • the Heat gain / loss from colliding with another vehicle,
+ • the Heat gain / loss from assaulting a cop vehicle, and
+ • the Heat gain / loss from generic property damage.
 
 The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
+ • the Heat gain / loss from destroying a cop vehicle of a given type,
  • what combination and arrangement of parts makes up a given roadblock setup,
- • how likely each roadblock setup is to spawn with vertically mirrored parts instead,
- • how much Heat racers gain / lose whenever they destroy a cop vehicle of a given type, and
+ • how likely each roadblock setup is to spawn with vertically mirrored parts instead, and
  • which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
-The "Advanced" feature set ALWAYS FIXES NINE BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES ELEVEN BUGS / ISSUES automatically:
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
  • failed roadblock spawn attempts can no longer stall spawns for chasing cops,
  • Challenge Series events now use the Heat level limits defined for them in VltEd,
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
  • the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
  • the helicopter AI is no longer crippled whenever a roadblock is present in the pursuit,
+ • the game now counts spike-strip deployments accurately in cost-to-state calculations,
+ • the game now counts support-vehicle deployments accurately in cost-to-state calculations,
  • early Strategy despawns or cancellations no longer stall the game from making new requests,
  • the engagement count above the pursuit board now always tracks relevant cops accurately, and
  • the pathfinding of new cop vehicles no longer breaks whenever a race pursuit moves to free-roam.
@@ -231,7 +237,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v3.01.00, replace all old configuration files.
+If you update from a version older than v3.02.00, replace all old configuration files.
 
 
 

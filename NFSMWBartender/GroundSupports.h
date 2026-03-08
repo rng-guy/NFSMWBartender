@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <concepts>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -111,6 +112,7 @@ namespace GroundSupports
 
 
 	template <address CountFunction, address RetrievalFunction, auto IsStrategyAvailable>
+	requires std::predicate<decltype(IsStrategyAvailable), address, address>
 	void MarshalStrategies
 	(
 		const address         pursuit,
@@ -407,28 +409,6 @@ namespace GroundSupports
 			mov esi, dword ptr [esp + 0x60]
 
 			jmp dword ptr henchmenSubExit
-		}
-	}
-
-
-
-	constexpr address spikeCounterEntrance = 0x43E654;
-	constexpr address spikeCounterExit     = 0x43E663;
-
-	// Increments the "spikes deployed" counter correctly
-	__declspec(naked) void SpikeCounter()
-	{
-		__asm
-		{
-			mov ecx, dword ptr [esp + 0x10]
-			cmp dword ptr [ecx], 0x3 // prop ID
-			jne conclusion           // prop not spike strip
-
-			mov edx, dword ptr [esp + 0x4C4] // roadblock pursuit
-			inc dword ptr [edx + 0x17C]      // spike strips deployed
-
-			conclusion:
-			jmp dword ptr spikeCounterExit
 		}
 	}
 
@@ -742,9 +722,6 @@ namespace GroundSupports
 
 	void ApplyFixes()
 	{
-		// Fixes incorrect spike-strip CTS count
-		MemoryTools::MakeRangeJMP(SpikeCounter, spikeCounterEntrance, spikeCounterExit);
-
 		// Also fixes the unintended biases in the Strategy-selection process
 		MemoryTools::MakeRangeJMP(StrategySelection, strategySelectionEntrance, strategySelectionExit);
 

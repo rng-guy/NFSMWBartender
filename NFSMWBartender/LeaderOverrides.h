@@ -4,7 +4,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "HashContainers.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 #include "PursuitFeatures.h"
@@ -40,6 +40,7 @@ namespace LeaderOverrides
 	{
 	private:
 
+		// Internal enum
 		enum class Status
 		{
 			PENDING,
@@ -48,6 +49,10 @@ namespace LeaderOverrides
 			WRECKED,
 			LOST
 		};
+
+
+
+	private:
 
 		int lastStrategyID = 5;
 
@@ -61,7 +66,7 @@ namespace LeaderOverrides
 
 		const volatile address& leaderStrategy = *reinterpret_cast<volatile address*>(this->pursuit + 0x198);
 
-		HashContainers::AddressSet passiveHenchmenVehicles;
+		ModContainers::AddressSet passiveHenchmenVehicles;
 
 		PursuitFeatures::IntervalTimer flagResetTimer;
 		PursuitFeatures::IntervalTimer crossAggroTimer;
@@ -197,6 +202,8 @@ namespace LeaderOverrides
 
 		explicit LeaderManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
 		{
+			this->passiveHenchmenVehicles.reserve(2);
+
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>('+', this, "LeaderManager");
 		}

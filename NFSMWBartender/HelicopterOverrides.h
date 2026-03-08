@@ -50,9 +50,8 @@ namespace HelicopterOverrides
 	class HelicopterManager : public PursuitFeatures::PursuitReaction
 	{
 	private:
-		
-		bool isPlayerPursuit = false;
 
+		// Internal enum
 		enum class Status
 		{
 			PENDING,
@@ -63,6 +62,12 @@ namespace HelicopterOverrides
 			REJOINING
 		};
 
+
+
+	private:
+		
+		bool isPlayerPursuit = false;
+
 		Status helicopterStatus = Status::PENDING;
 
 		PursuitFeatures::IntervalTimer spawnTimer;
@@ -70,7 +75,7 @@ namespace HelicopterOverrides
 		float fuelTimeOnRejoin  = 0.f;  // seconds
 		float minRejoinFuelTime = 10.f; // seconds
 
-		volatile int& numHelicoptersDeployed = *reinterpret_cast<volatile int*>(this->pursuit + 0x150);
+		volatile int& numHelisDeployed = *reinterpret_cast<volatile int*>(this->pursuit + 0x150);
 
 		inline static constinit address     helicopterOwner   = 0x0;
 		inline static constinit const char* helicopterVehicle = nullptr;
@@ -318,7 +323,7 @@ namespace HelicopterOverrides
 						Globals::logger.Log(this->pursuit, "[HEL] Helicopter rejoined");
 
 					this->SetFuelTime(this->fuelTimeOnRejoin);
-					--(this->numHelicoptersDeployed);
+					--(this->numHelisDeployed);
 				}
 			}
 			else this->ProcessNewHelicopter(copVehicle);

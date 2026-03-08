@@ -12,6 +12,21 @@ namespace PursuitFeatures
 
 	class PursuitReaction
 	{
+	public:
+
+		// Classs-specific enum
+		enum class CopLabel
+		{
+			UNKNOWN,
+			CHASER,
+			HEAVY,
+			LEADER,
+			ROADBLOCK,
+			HELICOPTER
+		};
+
+
+
 	protected:
 
 		const address pursuit;
@@ -37,16 +52,6 @@ namespace PursuitFeatures
 		virtual void UpdateOncePerPursuit()   {}
 		virtual void UpdateOncePerHeatLevel() {}
 
-
-		enum class CopLabel
-		{
-			UNKNOWN,
-			CHASER,
-			HEAVY,
-			LEADER,
-			ROADBLOCK,
-			HELICOPTER
-		};
 
 		virtual void ReactToAddedVehicle
 		(

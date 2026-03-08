@@ -6,7 +6,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "HashContainers.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 #include "ConfigParser.h"
 
@@ -166,7 +166,7 @@ namespace InteractiveMusic
 		// Parse track IDs if playlist section exists
 		if (foundSection != sections.end())
 		{
-			const HashContainers::Map<std::string_view, int> nameToIndex =
+			const ModContainers::Map<std::string_view, int> nameToIndex =
 			{
 				{"theme1", 0},
 				{"theme2", 1},

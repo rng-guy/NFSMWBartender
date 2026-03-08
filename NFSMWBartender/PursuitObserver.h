@@ -7,7 +7,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "HashContainers.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 #include "CopSpawnTables.h"
@@ -37,6 +37,9 @@ namespace PursuitObserver
 
 	class PursuitObserver
 	{
+	private:
+
+		// Internal aliases
 		using PursuitReaction = PursuitFeatures::PursuitReaction;
 		using CopLabel        = PursuitReaction::CopLabel;
 
@@ -50,10 +53,11 @@ namespace PursuitObserver
 		bool perPursuitUpdatePending   = true;
 		bool perHeatLevelUpdatePending = true;
 
-		HashContainers::AddressMap<CopLabel>          copVehicleToLabel;
+		ModContainers::AddressMap<CopLabel> copVehicleToLabel;
+
 		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
 
-		inline static HashContainers::AddressMap<PursuitObserver> pursuitToObserver;
+		inline static ModContainers::StableAddressMap<PursuitObserver> pursuitToObserver;
 
 
 		static CopLabel LabelAddVehicleCall(const address caller)
@@ -135,7 +139,7 @@ namespace PursuitObserver
 			const auto foundObserver = PursuitObserver::pursuitToObserver.find(pursuit);
 
 			if (foundObserver != PursuitObserver::pursuitToObserver.end())
-				return &(foundObserver->second);
+				return foundObserver->second.get();
 
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [OBS] No observer for pursuit", pursuit);
@@ -186,7 +190,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     NEW [OBS] Pursuit", pursuit);
 
-			const bool wasAdded = PursuitObserver::pursuitToObserver.try_emplace(pursuit, pursuit).second;
+			const auto [pair, wasAdded] = PursuitObserver::pursuitToObserver.try_emplace(pursuit, pursuit);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -221,14 +225,14 @@ namespace PursuitObserver
 		static void NotifyOfHeatChange()
 		{
 			for (auto& pair : PursuitObserver::pursuitToObserver)
-				pair.second.UpdateOnHeatChange();
+				pair.second->UpdateOnHeatChange();
 		}
 
 
 		static void NotifyOfGameplay()
 		{
 			for (auto& pair : PursuitObserver::pursuitToObserver)
-				pair.second.UpdateOnGameplay();
+				pair.second->UpdateOnGameplay();
 		}
 
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <vector>
 #include <algorithm>
 #include <functional>
@@ -7,7 +8,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "HashContainers.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 
@@ -58,10 +59,71 @@ namespace GeneralSettings
 	float halfEvadeRate = .5f / evadeTimers.current; // hertz
 
 	// Code caves
-	HashContainers::CachedCopyVaultMap<bool> copTypeToIsBreakerImmune(false);
+	ModContainers::DefaultCopyVaultMap<bool> copTypeToIsBreakerImmune(false);
 
 
-	
+
+
+
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	const char* __fastcall GetRandomArrestScene(const size_t heatLevel)
+	{
+		static constexpr std::array<const char*, 8> scenesDefault =
+		{
+			"ArrestM06",  "ArrestM19",
+			"ArrestF06",  "ArrestF07",
+			"ArrestM06b", "ArrestM19b",
+			"ArrestF06b", "ArrestF07b"
+		};
+
+		static constexpr std::array<const char*, 8> scenesHeat1 =
+		{
+			"ArrestM01",  "ArrestM16",
+			"ArrestF02",  "ArrestF18",
+			"ArrestM01b", "ArrestM16b",
+			"ArrestF02b", "ArrestF18b"
+		};
+
+		static constexpr std::array<const char*, 4> scenesHeat2 =
+		{
+			"ArrestM04",  "ArrestF23",
+			"ArrestM04b", "ArrestF23b"
+		};
+
+		static constexpr std::array<const char*, 6> scenesHeat3 =
+		{
+			"ArrestM07",  "ArrestM14",
+			"ArrestF14",  "ArrestM07b",
+			"ArrestM14b", "ArrestF14b"
+		};
+
+		auto   candidates    = scenesDefault.data();
+		size_t numCandidates = scenesDefault.size();
+
+		switch (heatLevel)
+		{
+		case 0:
+		case 1:
+			candidates    = scenesHeat1.data();
+			numCandidates = scenesHeat1.size();
+			break;
+
+		case 2:
+			candidates    = scenesHeat2.data();
+			numCandidates = scenesHeat2.size();
+			break;
+
+		case 3:
+			candidates    = scenesHeat3.data();
+			numCandidates = scenesHeat3.size();
+		}
+
+		return candidates[Globals::prng.GenerateIndex(numCandidates)];
+	}
+
+
+
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
@@ -150,6 +212,28 @@ namespace GeneralSettings
 
 
 
+	constexpr address arrestSceneEntrance = 0x44D7A9;
+	constexpr address arrestSceneExit     = 0x44D967;
+
+	// Selects a random arrest scene
+	__declspec(naked) void ArrestScene()
+	{
+		__asm
+		{
+			// Execute original code first
+			mov esi, dword ptr [esp + 0x18]
+			push dword ptr [esp + 0x1C]
+
+			mov ecx, ebx
+			call GetRandomArrestScene // ecx: heatLevel
+			push eax
+
+			jmp dword ptr arrestSceneExit
+		}
+	}
+
+
+
 	constexpr address rivalPursuitEntrance = 0x426C9C;
 	constexpr address rivalPursuitExit     = 0x426CA4;
 
@@ -191,7 +275,7 @@ namespace GeneralSettings
 
 			push eax // copType
 			mov ecx, offset copTypeToIsBreakerImmune
-			call HashContainers::CachedCopyVaultMap<bool>::GetValue
+			call ModContainers::DefaultCopyVaultMap<bool>::GetValue
 			test al, al
 
 			conclusion:
@@ -402,8 +486,8 @@ namespace GeneralSettings
 		(
 			"Vehicle-to-immunity",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			HashContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
-			HashContainers::FillSetup(isAffecteds, std::logical_not<bool>{})
+			ModContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
+			ModContainers::FillSetup(isAffecteds, std::logical_not<bool>{})
 		);
 	}
 
@@ -417,6 +501,9 @@ namespace GeneralSettings
 	{
 		// Fixes update for passive bounty amount after race pursuits
 		MemoryTools::MakeRangeJMP(HeatUpdate, heatUpdateEntrance, heatUpdateExit);
+
+		// Fixes broken scene-selection logic for arrests
+		MemoryTools::MakeRangeJMP(ArrestScene, arrestSceneEntrance, arrestSceneExit);
 
 		// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
 		MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);

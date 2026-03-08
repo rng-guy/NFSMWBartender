@@ -109,7 +109,7 @@
     <ClInclude Include="RadioChatter.h">
       <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="HashContainers.h">
+    <ClInclude Include="ModContainers.h">
       <Filter>Headers\General</Filter>
     </ClInclude>
     <ClInclude Include="InteractiveMusic.h">
@@ -137,6 +137,9 @@
       <Filter>Headers\Libraries</Filter>
     </ClInclude>
     <ClInclude Include="MemoryTools.h">
+      <Filter>Headers\Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatContainers.h">
       <Filter>Headers\Libraries</Filter>
     </ClInclude>
   </ItemGroup>

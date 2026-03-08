@@ -8,7 +8,7 @@
 #include <string_view>
 
 #include "Globals.h"
-#include "HashContainers.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 
@@ -22,6 +22,7 @@ namespace CopSpawnTables
 	{
 	private:
 
+		// Internal struct
 		struct Entry
 		{
 			const char* name;
@@ -31,17 +32,23 @@ namespace CopSpawnTables
 			int capacity; // available cars
 		};
 
+
+
+	private:
+
 		int totalCopCount         = 0;
 		int currentTotalCopChance = 0;
 
-		HashContainers::VaultMap<Entry> copTypeToEntry;
+		ModContainers::VaultMap<Entry> copTypeToEntry;
 
-		inline static HashContainers::VaultMap<const std::string> copTypeToName;
+		inline static ModContainers::StableVaultMap<const std::string> copTypeToName;
 		
 
 		static auto RegisterName(const char* const copName)
 		{
-			return SpawnTable::copTypeToName.try_emplace(Globals::GetVaultKey(copName), copName).first;
+			const auto [pair, wasAdded] = SpawnTable::copTypeToName.try_emplace(Globals::GetVaultKey(copName), copName);
+
+			return pair;
 		}
 
 
@@ -51,7 +58,7 @@ namespace CopSpawnTables
 		static const char* ConvertTypeToName(const vault copType)
 		{
 			const auto foundType = SpawnTable::copTypeToName.find(copType);
-			return (foundType != SpawnTable::copTypeToName.end()) ? foundType->second.c_str() : nullptr;
+			return (foundType != SpawnTable::copTypeToName.end()) ? foundType->second->c_str() : nullptr;
 		}
 
 
@@ -77,7 +84,7 @@ namespace CopSpawnTables
 			const auto [pair, wasAdded] = this->copTypeToEntry.try_emplace
 			(
 				registration->first,
-				registration->second.c_str(), // safe due to stable map
+				registration->second->c_str(), // safe due to pointer stability
 				copCount, 
 				copChance, 
 				copCount
@@ -223,6 +230,8 @@ namespace CopSpawnTables
 				if (numRemoved > 0)
 					Globals::logger.Log<3>(static_cast<int>(this->copTypeToEntry.size()), "type(s) left");
 			}
+
+			this->copTypeToEntry.shrink_to_fit();
 
 			return (numRemoved == 0);
 		}

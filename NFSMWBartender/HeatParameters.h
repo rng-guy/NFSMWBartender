@@ -103,7 +103,7 @@ namespace HeatParameters
 	{
 	protected:
 
-		explicit constexpr BasePair() = default;
+		constexpr BasePair() = default;
 
 
 
@@ -260,7 +260,7 @@ namespace HeatParameters
 		requires (Concepts::IsBoundsCompatible<T>) : values(T(), limits) {}
 
 
-		explicit constexpr OptionalPair() 
+		constexpr OptionalPair() 
 		requires (not Concepts::IsBoundsCompatible<T>) : values(T()) {}
 
 

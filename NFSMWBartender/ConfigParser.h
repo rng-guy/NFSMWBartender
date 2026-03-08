@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <span>
 #include <array>
 #include <vector>
@@ -14,6 +13,7 @@
 
 #include "Globals.h"
 #include "StreamParser.h"
+#include "FlatContainers.h"
 
 
 
@@ -122,7 +122,7 @@ namespace ConfigParser
 
 		std::filesystem::path currentPath;
 
-		std::map<std::filesystem::path, Parser::Sections> pathToSections;
+		FlatContainers::Map<std::filesystem::path, Parser::Sections> pathToSections;
 
 
 		bool UpdatePath
@@ -142,6 +142,11 @@ namespace ConfigParser
 
 	public:
 
+		Parser() = default;
+
+		explicit Parser(const size_t fileCapacity) : pathToSections(fileCapacity) {}
+
+
 		bool LoadFile
 		(
 			const std::filesystem::path& root,
@@ -159,11 +164,11 @@ namespace ConfigParser
 			this->ClearParsedStrings();
 
 			// Attempt to retrieve file from cache
-			const auto pathLocation = this->pathToSections.lower_bound(this->currentPath);
+			const auto [pair, wasAdded] = this->pathToSections.try_emplace(this->currentPath);
 
-			if ((pathLocation != this->pathToSections.end()) and (pathLocation->first == this->currentPath))
+			if (not wasAdded)
 			{
-				this->sections = pathLocation->second;
+				this->sections = pair->second;
 				
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Load:", file);
@@ -177,9 +182,7 @@ namespace ConfigParser
 			if (fileStream.is_open())
 			{
 				this->ParseStream(fileStream);
-					
-				// Defers path and map construction as much as possible
-				this->pathToSections.emplace_hint(pathLocation, this->currentPath, this->sections);
+				pair->second = this->sections;
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Open:", file);
@@ -190,6 +193,12 @@ namespace ConfigParser
 				Globals::logger.Log<2>("Skip:", file);
 
 			return false;
+		}
+
+
+		const auto& GetCurrentPath() const noexcept
+		{
+			return this->currentPath;
 		}
 
 
@@ -384,7 +393,7 @@ namespace ConfigParser
 		) 
 			const
 		{
-			keys            .clear();
+			keys.clear();
 			parameter.values.clear();
 
 			const size_t numReads = this->GetFullSection<K, V>(section, keys, parameter.values);

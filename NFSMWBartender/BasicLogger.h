@@ -2,12 +2,12 @@
 
 #include <array>
 #include <format>
-#include <string>
 #include <cstdarg>
 #include <cstdint>
 #include <ostream>
 #include <fstream>
 #include <concepts>
+#include <iterator>
 #include <string_view>
 #include <type_traits>
 
@@ -25,7 +25,7 @@ namespace BasicLogger
 
 		std::fstream file;
 
-		std::array<std::string, numIndents> indents;
+		std::array<size_t, numIndents> indents;
 
 
 		template <typename T>
@@ -107,7 +107,7 @@ namespace BasicLogger
 
 		template <typename ...Ts>
 		requires ((sizeof...(Ts) == numIndents) and ... and std::convertible_to<Ts, size_t>)
-		explicit Logger(const Ts ...numSpaces) : indents(std::string(numSpaces, ' ')...) {}
+		explicit Logger(const Ts ...numSpaces) : indents(numSpaces...) {}
 
 
 		bool Open(const std::string_view path)
@@ -137,8 +137,9 @@ namespace BasicLogger
 			{
 				if constexpr (indentLevel > 0)
 				{
-					static_assert(indentLevel - 1 < numIndents, "Invalid indentLevel");
-					this->Print((this->indents[indentLevel - 1]).c_str());
+					static_assert(indentLevel < numIndents + 1, "Invalid indentLevel");
+
+					std::fill_n(std::ostreambuf_iterator<char>(this->file), this->indents[indentLevel - 1], ' ');
 				}
 
 				this->PrintLine<Ts...>(parts...);

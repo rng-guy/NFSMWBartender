@@ -6,7 +6,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "HashContainers.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 
@@ -33,7 +33,7 @@ namespace CopDetection
 
 	bool updateWorldMapColours = false;
 
-	HashContainers::CachedPointerVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
+	ModContainers::DefaultReferenceVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
 
 
 
@@ -86,10 +86,8 @@ namespace CopDetection
 		// Fetch icon-range data for vehicle type
 		if (not Globals::playerPerpVehicle) return false; // should never happen
 
-		const Settings* const settings = copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle));
-		if (not settings) return false; // should never happen
-
-		const float iconRange = (hasBeenInPursuit) ? settings->pursuitIconRange : settings->patrolIconRange;
+		const Settings& settings  = copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle));
+		const float     iconRange = (hasBeenInPursuit) ? settings.pursuitIconRange : settings.patrolIconRange;
 
 		// Check whether vehicle is in icon range
 		if (iconRange > 0.f)
@@ -106,7 +104,7 @@ namespace CopDetection
 
 			if (GetSquaredDistance(copPosition, playerPosition) <= iconRange * iconRange)
 			{
-				iconIsKept = settings->keepsIcon;
+				iconIsKept = settings.keepsIcon;
 
 				return true;
 			}
@@ -119,8 +117,7 @@ namespace CopDetection
 
 	float __fastcall GetRadarRange(const address copVehicle)
 	{
-		const Settings* const settings = copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle));
-		return (settings) ? settings->radarRange : 0.f; // should never be false
+		return copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle)).radarRange;
 	}
 
 
@@ -384,8 +381,8 @@ namespace CopDetection
 		(
 			"Vehicle-to-settings",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			HashContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::IsVehicleTypeCar),
-			HashContainers::FillSetup(settings)
+			ModContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::IsVehicleTypeCar),
+			ModContainers::FillSetup(settings)
 		);
 	}
 

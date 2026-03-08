@@ -12,8 +12,8 @@
 
 
 // Unscoped aliases
-using binary = uint32_t;
 using vault  = uint32_t;
+using binary = uint32_t;
 
 using byte = MemoryTools::byte;
 using word = MemoryTools::word;
@@ -137,7 +137,6 @@ namespace Globals
 	}
 
 
-
 	bool IsVehicleTypeCar(const vault type)
 	{
 		switch (GetVehicleTypeClass(type))
@@ -149,7 +148,6 @@ namespace Globals
 
 		return false;
 	}
-
 
 
 	bool IsVehicleTypeChopper(const vault type)

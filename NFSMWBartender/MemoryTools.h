@@ -25,9 +25,9 @@ namespace MemoryTools
 
 	// Status variables -----------------------------------------------------------------------------------------------------------------------------
 
-	size_t numRangeErrors = 0;
-	size_t numCaveErrors  = 0;
-	size_t numHookErrors  = 0;
+	inline size_t numRangeErrors = 0;
+	inline size_t numCaveErrors  = 0;
+	inline size_t numHookErrors  = 0;
 
 
 
@@ -35,14 +35,14 @@ namespace MemoryTools
 
 	// Memory functions -----------------------------------------------------------------------------------------------------------------------------
 
-	bool IsModuleLoaded(const char* const name)
+	inline bool IsModuleLoaded(const char* const name)
 	{
 		return GetModuleHandleA(name);
 	}
 
 
 
-	address GetEntryPoint()
+	inline address GetEntryPoint()
 	{
 		// Credit: thelink2012 and MWisBest
 		const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleA(NULL));
@@ -56,7 +56,7 @@ namespace MemoryTools
 
 
 	template <typename T>
-	void Write
+	inline void Write
 	(
 		const T                              data,
 		const std::initializer_list<address> locations
@@ -76,7 +76,7 @@ namespace MemoryTools
 
 
 
-	void WriteToRange
+	inline void WriteToRange
 	(
 		const byte    value,
 		const address start,
@@ -98,7 +98,7 @@ namespace MemoryTools
 
 
 
-	void MakeRangeNOP
+	inline void MakeRangeNOP
 	(
 		const address start,
 		const address end
@@ -108,31 +108,41 @@ namespace MemoryTools
 
 
 
-	void MakeRangeJMP
+	inline void MakeRangeJMP
 	(
-		const void* const target,
-		const address     start,
-		const address     end
+		const address target,
+		const address start,
+		const address end
 	) {
-		const address targetStart = start       + sizeof(byte);
+		const address targetStart = start + sizeof(byte);
 		const address jumpEnd     = targetStart + sizeof(address);
 
 		if (end >= jumpEnd)
 		{
 			MakeRangeNOP(start, end);
-			
+
 			Write<byte>   (0xE9, {start}); // jump near, relative
-			Write<address>(reinterpret_cast<address>(target) - jumpEnd, {targetStart});
+			Write<address>(target - jumpEnd, {targetStart});
 		}
 		else ++numCaveErrors;
 	}
 
 
-
-	address MakeCallHook
+	inline void MakeRangeJMP
 	(
 		const void* const target,
-		const address     location
+		const address     start,
+		const address     end
+	) {
+		MakeRangeJMP(reinterpret_cast<address>(target), start, end);
+	}
+
+
+
+	inline address MakeCallHook
+	(
+		const address target,
+		const address location
 	) {
 		address replacedTarget = 0x0;
 
@@ -145,12 +155,21 @@ namespace MemoryTools
 
 			std::memcpy(&replacedTarget, reinterpret_cast<address*>(targetStart), sizeof(address));
 
-			Write<address>(reinterpret_cast<address>(target) - callEnd, {targetStart});
+			Write<address>(target - callEnd, {targetStart});
 
 			replacedTarget += callEnd;
 		}
 		else ++numHookErrors;
 
 		return replacedTarget;
+	}
+
+
+	inline address MakeCallHook
+	(
+		const void* const target,
+		const address     location
+	) {
+		return MakeCallHook(reinterpret_cast<address>(target), location);
 	}
 }

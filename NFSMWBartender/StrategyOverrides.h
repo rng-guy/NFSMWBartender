@@ -5,7 +5,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "HashContainers.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 #include "GeneralSettings.h"
@@ -58,9 +58,10 @@ namespace StrategyOverrides
 		const volatile address& leaderStrategy = *reinterpret_cast<volatile address*>(this->pursuit + 0x198);
 
 		PursuitFeatures::IntervalTimer unblockTimer;
-		HashContainers ::AddressSet    vehiclesOfCurrentStrategy;
 
-		inline static HashContainers::AddressMap<StrategyManager*> pursuitToManager;
+		ModContainers ::AddressSet vehiclesOfCurrentStrategy;
+
+		inline static ModContainers::AddressMap<StrategyManager*> pursuitToManager;
 
 
 		void UpdateNextHeavy3Count()
@@ -68,7 +69,7 @@ namespace StrategyOverrides
 			this->nextHeavy3Count = static_cast<size_t>(numVehiclesPerHeavy3s.GetRandomValue());
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[STR] Next Heavy3 count:", static_cast<int>(this->nextHeavy3Count));
+				Globals::logger.Log(this->pursuit, "[STR] Next HeavyStrategy 3 count:", static_cast<int>(this->nextHeavy3Count));
 		}
 
 
@@ -136,6 +137,8 @@ namespace StrategyOverrides
 
 		explicit StrategyManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
+			this->vehiclesOfCurrentStrategy.reserve(10);
+
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>('+', this, "StrategyManager");
 			
@@ -182,6 +185,7 @@ namespace StrategyOverrides
 			if (this->unblockTimer.IsSet())
 			{
 				this->vehiclesOfCurrentStrategy.insert(copVehicle);
+
 				this->UpdateNumStrategyVehicles();
 			}
 			else if constexpr (Globals::loggingEnabled)

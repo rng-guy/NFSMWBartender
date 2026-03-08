@@ -4,7 +4,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "HashContainers.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 
@@ -17,7 +17,7 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves 
-	HashContainers::CachedCopyVaultMap<binary> copTypeToDestructionKey(0x0);
+	ModContainers::DefaultCopyVaultMap<binary> copTypeToDestructionKey(0x0);
 
 
 	
@@ -37,7 +37,7 @@ namespace DestructionStrings
 		{
 			push dword ptr [esp + 0x54] // copType
 			mov ecx, offset copTypeToDestructionKey
-			call HashContainers::CachedCopyVaultMap<binary>::GetValue
+			call ModContainers::DefaultCopyVaultMap<binary>::GetValue
 			test eax, eax
 			je skip                     // string invalid
 
@@ -73,8 +73,8 @@ namespace DestructionStrings
 		(
 			"Vehicle-to-label",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			HashContainers::FillSetup(copVehicles,  Globals::GetVaultKey,  Globals::DoesVehicleTypeExist),
-			HashContainers::FillSetup(binaryLabels, Globals::GetBinaryKey, IsBinaryKeyValid)
+			ModContainers::FillSetup(copVehicles,  Globals::GetVaultKey,  Globals::DoesVehicleTypeExist),
+			ModContainers::FillSetup(binaryLabels, Globals::GetBinaryKey, IsBinaryKeyValid)
 		);
 	}
 

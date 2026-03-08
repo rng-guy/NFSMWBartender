@@ -5,7 +5,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "HashContainers.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 
@@ -41,7 +41,7 @@ namespace RadioChatter
 	size_t lastReportedHeatLevel = 1;
 	int    lastJurisdictionID    = 0;
 
-	HashContainers::CachedCopyVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
+	ModContainers::DefaultCopyVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
 
 
 
@@ -132,7 +132,7 @@ namespace RadioChatter
 		{
 			push eax // copType
 			mov ecx, offset copTypeToCallsignID
-			call HashContainers::CachedCopyVaultMap<Callsigns>::GetValue
+			call ModContainers::DefaultCopyVaultMap<Callsigns>::GetValue
 			cmp eax, CROSS
 
 			mov dword ptr [esp + 0x28], eax // repurposed variable
@@ -208,7 +208,7 @@ namespace RadioChatter
 		{
 			push eax                   // copType
 			mov ecx, offset copTypeToCallsignID
-			call HashContainers::CachedCopyVaultMap<Callsigns>::GetValue
+			call ModContainers::DefaultCopyVaultMap<Callsigns>::GetValue
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B] // is "rhino"
 
@@ -256,7 +256,7 @@ namespace RadioChatter
 	{
 		HeatParameters::Pair<std::string_view> jurisdictionNames("city");
 
-		const HashContainers::Map<std::string_view, Jurisdiction> nameToJurisdiction =
+		const ModContainers::Map<std::string_view, Jurisdiction> nameToJurisdiction =
 		{
 			{"city",    Jurisdiction::CITY},
 			{"state",   Jurisdiction::STATE},
@@ -288,7 +288,7 @@ namespace RadioChatter
 
 		parser.ParseUser<const char*, std::string_view>("Vehicles:Callsigns", copVehicles, {callsignNames});
 
-		const HashContainers::Map<std::string_view, Callsigns> nameToCallsigns =
+		const ModContainers::Map<std::string_view, Callsigns> nameToCallsigns =
 		{
 			{"patrol", Callsigns::PATROL},
 			{"elite",  Callsigns::ELITE},
@@ -309,8 +309,8 @@ namespace RadioChatter
 		(
 			"Vehicle-to-callsign",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			HashContainers::FillSetup(copVehicles,   Globals::GetVaultKey, Globals::IsVehicleTypeCar),
-			HashContainers::FillSetup(callsignNames, RawValueToCallsigns,  AreCallsignsValid)
+			ModContainers::FillSetup(copVehicles,   Globals::GetVaultKey, Globals::IsVehicleTypeCar),
+			ModContainers::FillSetup(callsignNames, RawValueToCallsigns,  AreCallsignsValid)
 		);
 	}
 

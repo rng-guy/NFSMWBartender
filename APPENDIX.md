@@ -1,7 +1,7 @@
 
 ![POV: You hit the RESET button by accident.](Thumbnail.jpg "I'm far too lazy to make another thumbnail for this.")
 
-This document contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](README.md/#3---what-mods-are-incompatible-with-bartender).
+This file contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](README.md/#3---what-mods-are-incompatible-with-bartender).
 
 &nbsp;
 
@@ -369,6 +369,8 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * The number of active vehicles from expired HeavyStrategy 3 requests is limited only at Heat levels for which you define a valid limit value. These limits apply to each pursuit separately.
 
+* Joined HeavyStrategy 3 vehicles flee only at Heat levels for which you define valid flee-delay values and "Chasers" thresholds. Joined HeavyStrategy 3 vehicles only flee if there would be enough active "Chasers" remaining in the pursuit after their retreat.
+
 * LeaderStrategy Cross and / or his henchmen become aggressive only at Heat levels for which you define valid aggro-delay values. Henchmen, however, always become aggressive when Cross leaves.
 
 * Once aggressive, Cross and / or his henchmen act like regular cops and can join formations. Also, neither Cross nor his henchmen can return to being passive again until they despawn.
@@ -437,6 +439,6 @@ Regarding **Heat gain / loss** (`BartenderSettings\Advanced\Heat.ini`):
 
 * If you define no wrecking Heats and no `default`, Bartender disables its wrecking feature.
 
-* In races, the game doesn't award bonus cost-to-state for hitting / destroying cop vehicles; damaging / destroying cop vehicles does, however, still add some generic property damage. You can change the former with the `[Pursuits:Races]` parameter group in `General.ini`.
+* In races, the vanilla game doesn't track how often racers hit / destroy cop vehicles. You can change this with the `[Pursuits:Races]` parameter group in `General.ini`.
 
 * Due to the limitations of floating-point math, some Heat changes might be slightly off.

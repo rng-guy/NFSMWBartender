@@ -173,8 +173,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BasicLogger.h" />
+    <ClInclude Include="FlatContainers.h" />
     <ClInclude Include="StreamParser.h" />
-    <ClInclude Include="HashContainers.h" />
+    <ClInclude Include="ModContainers.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="ConfigParser.h" />
     <ClInclude Include="CopFleeOverrides.h" />

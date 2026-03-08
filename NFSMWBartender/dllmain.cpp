@@ -39,10 +39,10 @@ static void __cdecl InitialiseBartender
     {
         Globals::logger.Open("BartenderLog.txt");
 
-        Globals::logger.Log("\n SESSION [VER] Bartender v3.01.01");
+        Globals::logger.Log("\n SESSION [VER] Bartender v3.02.00");
     }
 
-    HeatParameters::Parser parser;
+    HeatParameters::Parser parser(6);
 
     Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
     Globals::basicSetEnabled |= RadioChatter      ::Initialise(parser);

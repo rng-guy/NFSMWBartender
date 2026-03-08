@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <tuple>
 #include <array>
 #include <ranges>
@@ -16,6 +15,8 @@
 #include <string_view>
 #include <type_traits>
 #include <system_error>
+
+#include "FlatContainers.h"
 
 
 
@@ -64,7 +65,7 @@ namespace StreamParser
 
 
 
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+	// Implementation details -----------------------------------------------------------------------------------------------------------------------
 
 	namespace Details
 	{
@@ -139,21 +140,28 @@ namespace StreamParser
 		) 
 			noexcept
 		{
-			size_t segmentID = 0;
+			size_t segmentID     = 0;
+			size_t startPosition = 0;
 
 			std::array<std::string_view, numSegments> segments;
 
-			auto splits = source | std::views::split(separator);
-
-			for (const auto& subrange : splits)
+			while (startPosition <= source.length())
 			{
 				if (segmentID < numSegments)
 				{
-					// Convert to regular iterator for view construction
-					const auto iterator = subrange | std::views::common;
+					const size_t endPosition = source.find(separator, startPosition);
 
-					// The static analyser likes to complain about this despite the bounds check
-					segments[segmentID++] = Trim({iterator.begin(), iterator.end()});
+					if (endPosition == std::string_view::npos)
+					{
+						segments[segmentID++] = Trim(source.substr(startPosition));
+
+						break;
+					}
+
+					// The static analyser likes to complain about this despite the preceding bounds check
+					segments[segmentID++] = Trim(source.substr(startPosition, endPosition - startPosition));
+
+					startPosition = endPosition + 1;
 				}
 				else return std::nullopt;
 			}
@@ -295,27 +303,7 @@ namespace StreamParser
 
 		static constexpr std::string_view GetContent(const std::string_view line) noexcept
 		{
-			return Details::Trim(line.substr(0, line.find_first_of(comment)));
-		}
-
-
-		static constexpr std::optional<std::string_view> GetSectionName(const std::string_view content) noexcept
-		{
-			if (not content.starts_with(start)) return std::nullopt;
-			if (not content.ends_with  (end))   return std::nullopt;
-
-			return content.substr(1, content.length() - 2);
-		}
-
-
-		static constexpr std::optional<size_t> FindUniqueAssign(const std::string_view content) noexcept
-		{
-			const size_t leftAssign = content.find(assign);
-
-			if (leftAssign == std::string_view::npos) return std::nullopt;
-			if (leftAssign != content.rfind(assign))  return std::nullopt;
-
-			return leftAssign;
+			return Details::Trim(line.substr(0, line.find(comment)));
 		}
 
 
@@ -343,8 +331,8 @@ namespace StreamParser
 
 	protected:
 
-		using Section  = std::map<std::string, std::string, std::less<>>;
-		using Sections = std::map<std::string, Section,     std::less<>>;
+		using Section  = FlatContainers::Map<std::string, std::string>;
+		using Sections = FlatContainers::Map<std::string, Section>;
 
 		Sections sections;
 
@@ -360,52 +348,64 @@ namespace StreamParser
 		static constexpr char sectionEnd      = end;
 
 
-		void ParseStream(std::istream& stream) 
-		{
+		// Invalidates any retrieved const char* and string_view values
+		void ParseStream
+		(
+			std::istream& stream,
+			const size_t  sectionCapacity  = 10,
+			const size_t  pairCapacityEach = 20
+		) {
 			std::string line;
 
 			Section* currentSection = nullptr;
 
+			this->sections.reserve(this->sections.size() + sectionCapacity);
+
 			while (std::getline(stream, line))
 			{
+				if (line.empty()) continue;
+
 				const std::string_view content = this->GetContent(line);
 				if (content.empty()) continue;
 
 				// Check for new section
-				if (const auto section = this->GetSectionName(content))
+				if (content.starts_with(start))
 				{
-					// emplace_hint avoids construction of temporary strings
-					auto sectionLocation = this->sections.lower_bound(*section);
+					if (content.ends_with(end))
+					{
+						const std::string_view section = content.substr(1, content.length() - 2);
 
-					if ((sectionLocation == this->sections.end()) or (sectionLocation->first != *section))
-						sectionLocation = this->sections.emplace_hint(sectionLocation, *section, Section{});
+						const auto [pair, wasAdded] = this->sections.try_emplace(section);
 
-					currentSection = &(sectionLocation->second);
+						if (wasAdded)
+							pair->second.reserve(pairCapacityEach);
+
+						currentSection = &(pair->second);
+					}
+					else currentSection = nullptr; // mangled
 
 					continue;
 				}
-				else if (not currentSection) continue;
+				
+				// Check for active section
+				if (not currentSection) continue;
 
 				// Parse key-value pair
-				if (const auto foundAssign = this->FindUniqueAssign(content))
-				{
-					const std::string_view key = Details::TrimRight(content.substr(0, *foundAssign));
-					if (key.empty()) continue;
+				const size_t firstAssign = content.find(assign);
+				if (firstAssign == std::string_view::npos) continue;
+
+				const std::string_view key = Details::TrimRight(content.substr(0, firstAssign));
+				if (key.empty()) continue;
 					
-					const std::string_view value = Details::TrimLeft(content.substr(*foundAssign + 1));
-					if (value.empty()) continue;
+				const std::string_view value = Details::TrimLeft(content.substr(firstAssign + 1));
+				if (value.empty()) continue;
 
-					// emplace_hint avoids construction of temporary strings
-					const auto keyLocation = currentSection->lower_bound(key);
-
-					if ((keyLocation == currentSection->end()) or (keyLocation->first != key))
-						currentSection->emplace_hint(keyLocation, key, value);
-				}
+				currentSection->try_emplace(key, value);
 			}
 		}
 
 
-		explicit Parser() = default;
+		Parser() = default;
 
 		Parser(std::istream& fileStream)
 		{

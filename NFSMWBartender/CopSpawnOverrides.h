@@ -4,7 +4,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "HashContainers.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 #include "GeneralSettings.h"
@@ -32,7 +32,7 @@ namespace CopSpawnOverrides
 		
 		CopSpawnTables::SpawnTable table = *(this->source.current);
 
-		HashContainers::VaultMap<int> copTypeToCurrentCount;
+		ModContainers::VaultMap<int> copTypeToCurrentCount;
 
 
 		void UpdateSpawnTableCapacity
@@ -88,6 +88,12 @@ namespace CopSpawnOverrides
 				if (this->pursuit)
 					Globals::logger.Log<2>('-', this, "Contingent");
 			}
+		}
+
+
+		void ReserveTypeCapacity(const size_t numTypes)
+		{
+			this->copTypeToCurrentCount.reserve(numTypes);
 		}
 
 
@@ -293,7 +299,7 @@ namespace CopSpawnOverrides
 
 		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTables, this->pursuit};
 
-		inline static HashContainers::AddressMap<ChasersManager*> pursuitToManager;
+		inline static ModContainers::AddressMap<ChasersManager*> pursuitToManager;
 
 
 		void UpdateSpawnTable()
@@ -482,6 +488,9 @@ namespace CopSpawnOverrides
 				Globals::logger.Log<2>('+', this, "ChasersManager");
 
 			this->pursuitToManager.try_emplace(this->pursuit, this);
+
+			// Memory pre-allocation
+			this->chaserSpawns.ReserveTypeCapacity(20);
 		}
 
 
@@ -1098,6 +1107,11 @@ namespace CopSpawnOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
 
 		HeatParameters::Parse(parser, "Joining:Limit", roadblockJoinLimits);
+
+		// Memory pre-allocations
+		patrolSpawns   .ReserveTypeCapacity(20);
+		scriptedSpawns .ReserveTypeCapacity(10);
+		roadblockSpawns.ReserveTypeCapacity(10);
 
 		// Code modifications 
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
