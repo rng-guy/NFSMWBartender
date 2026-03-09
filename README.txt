@@ -111,6 +111,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the helicopter can respawn if it loses you,
  • when exactly (if at all) the helicopter can rejoin instead if it loses you,
  • when exactly (if at all) the helicopter can run out of fuel after each (re)spawn,
+ • whether the presence of roadblocks affects the helicopter's navigation behaviour,
  • the internal cooldown between the helicopter's ramming attempts through HeliStrategy 2,
  • below what racer speed HeavyStrategy 3 vehicles cancel their ramming attempts early,
  • how many vehicles can spawn through each successful HeavyStrategy 3 request,
@@ -133,13 +134,12 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how likely each roadblock setup is to spawn with vertically mirrored parts instead, and
  • which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
-The "Advanced" feature set ALWAYS FIXES ELEVEN BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES TEN BUGS / ISSUES automatically:
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
  • failed roadblock spawn attempts can no longer stall spawns for chasing cops,
  • Challenge Series events now use the Heat level limits defined for them in VltEd,
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
  • the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
- • the helicopter AI is no longer crippled whenever a roadblock is present in the pursuit,
  • the game now counts spike-strip deployments accurately in cost-to-state calculations,
  • the game now counts support-vehicle deployments accurately in cost-to-state calculations,
  • early Strategy despawns or cancellations no longer stall the game from making new requests,

@@ -23,8 +23,6 @@ namespace HelicopterOverrides
 	// Heat parameters
 	constinit HeatParameters::PointerPair<std::string> helicopterVehicles("copheli");
 
-	constinit HeatParameters::Interval<float> rammingCooldowns(8.f, 8.f, {1.f}); // seconds
-
 	constinit HeatParameters::OptionalInterval<float> firstSpawnDelays  ({1.f}); // seconds
 	constinit HeatParameters::OptionalInterval<float> fuelRespawnDelays ({1.f}); // seconds
 	constinit HeatParameters::OptionalInterval<float> wreckRespawnDelays({1.f}); // seconds
@@ -34,6 +32,10 @@ namespace HelicopterOverrides
 	constinit HeatParameters::OptionalPair    <float> minRejoinFuelTimes({1.f}); // seconds
 
 	constinit HeatParameters::OptionalInterval<float> fuelTimes({1.f}); // seconds
+
+	constinit HeatParameters::Pair<bool> affectedByRoadblocks(true);
+
+	constinit HeatParameters::Interval<float> rammingCooldowns(8.f, 8.f, {1.f}); // seconds
 
 	// Code caves 
 	bool hasLimitedFuel    = false;
@@ -500,6 +502,28 @@ namespace HelicopterOverrides
 
 
 
+	constexpr address roadblockCheckEntrance = 0x419160;
+	constexpr address roadblockCheckExit     = 0x419168;
+
+	// Controls whether roadblocks affect helicopter behaviour
+	__declspec(naked) void RoadblockCheck()
+	{
+		__asm
+		{
+			cmp byte ptr affectedByRoadblocks.current, 0x0
+			je conclusion // helicopter unaffected
+
+			// Execute original code and resume
+			mov eax, dword ptr [ecx + 0xCC]
+			test eax, eax
+
+			conclusion:
+			jmp dword ptr roadblockCheckExit
+		}
+	}
+
+
+
 	constexpr address rammingCooldownEntrance = 0x4128B2;
 	constexpr address rammingCooldownExit     = 0x4128B9;
 
@@ -557,6 +581,8 @@ namespace HelicopterOverrides
 		HeatParameters::Parse(parser, "Helicopter:LostRejoin",   lostRejoinDelays,    minRejoinFuelTimes);
 		HeatParameters::Parse(parser, "Helicopter:FuelTime",     fuelTimes);
 
+		HeatParameters::Parse(parser, "Helicopter:Roadblocks", affectedByRoadblocks);
+
 		HeatParameters::Parse(parser, "Helicopter:Ramming", rammingCooldowns);
 
 		// Check whether vehicles are helicopters
@@ -565,11 +591,10 @@ namespace HelicopterOverrides
 		// Code modifications 
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
 
-		MemoryTools::MakeRangeNOP(0x419160, 0x41916E); // roadblock-induced lobotomy
-
 		MemoryTools::MakeRangeJMP(FuelUpdate,      fuelUpdateEntrance,      fuelUpdateExit);
 		MemoryTools::MakeRangeJMP(DefaultFuel,     defaultFuelEntrance,     defaultFuelExit);
 		MemoryTools::MakeRangeJMP(EarlyBailout,    earlyBailoutEntrance,    earlyBailoutExit);
+		MemoryTools::MakeRangeJMP(RoadblockCheck,  roadblockCheckEntrance,  roadblockCheckExit);
 		MemoryTools::MakeRangeJMP(RammingCooldown, rammingCooldownEntrance, rammingCooldownExit);
 
 		// Status flag
@@ -593,8 +618,7 @@ namespace HelicopterOverrides
 			Globals::logger.Log("    HEAT [HEL] HelicopterOverrides");
 
 			helicopterVehicles.Log("helicopterVehicle       ");
-			rammingCooldowns  .Log("rammingCooldown         ");
-
+			
 			fuelTimes         .Log("fuelTime                ");
 			firstSpawnDelays  .Log("firstSpawnDelay         ");
 			fuelRespawnDelays .Log("fuelRespawnDelays       ");
@@ -603,6 +627,10 @@ namespace HelicopterOverrides
 
 			lostRejoinDelays  .Log("lostRejoinDelay         ");
 			minRejoinFuelTimes.Log("minRejoinFuelTime       ");
+
+			affectedByRoadblocks.Log("isAffectedByRoadblock   ");
+
+			rammingCooldowns.Log("rammingCooldown         ");
 		}
 	}
 
@@ -616,8 +644,7 @@ namespace HelicopterOverrides
 		if (not featureEnabled) return;
 
 		helicopterVehicles.SetToHeat(isRacing, heatLevel);
-		rammingCooldowns  .SetToHeat(isRacing, heatLevel);
-
+		
 		fuelTimes         .SetToHeat(isRacing, heatLevel);
 		firstSpawnDelays  .SetToHeat(isRacing, heatLevel);
 		fuelRespawnDelays .SetToHeat(isRacing, heatLevel);
@@ -626,6 +653,10 @@ namespace HelicopterOverrides
 
 		lostRejoinDelays  .SetToHeat(isRacing, heatLevel);
 		minRejoinFuelTimes.SetToHeat(isRacing, heatLevel);
+
+		affectedByRoadblocks.SetToHeat(isRacing, heatLevel);
+
+		rammingCooldowns.SetToHeat(isRacing, heatLevel);
 		
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();

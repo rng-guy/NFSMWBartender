@@ -15,11 +15,12 @@
 namespace FlatContainers
 {
 
-	// Implementation details -----------------------------------------------------------------------------------------------------------------------
+	// Helpers --------------------------------------------------------------------------------------------------------------------------------------
 
 	namespace Details
 	{
 
+		// Concept to filter for unique_ptr
 		template <typename T>
 		struct is_unique_ptr : std::false_type {};
 
@@ -28,44 +29,126 @@ namespace FlatContainers
 
 		template <typename T>
 		concept IsUniquePtr = is_unique_ptr<T>::value;
+
+
+
+		// Vector wrapper for boilerplate
+		template <typename T>
+		class Wrapper
+		{
+		public:
+
+			using value_type = T;
+
+			using self_base      = Wrapper<value_type>;
+			using container_type = std::vector<value_type>;
+			using size_type      = container_type::size_type;
+
+			using iterator               = container_type::iterator;
+			using const_iterator         = container_type::const_iterator;
+			using reverse_iterator       = container_type::reverse_iterator;
+			using const_reverse_iterator = container_type::const_reverse_iterator;
+
+
+
+		protected:
+			
+			container_type data;
+
+
+			Wrapper() = default;
+
+			~Wrapper() = default;
+
+		
+			explicit Wrapper(const size_type cap)
+			{
+				this->reserve(cap);
+			}
+
+
+
+		public:
+
+			// May invalidate all iterators
+			void reserve(const size_type new_cap)
+			{
+				this->data.reserve(new_cap);
+			}
+
+
+			// May invalidate all iterators
+			void shrink_to_fit()
+			{
+				this->data.shrink_to_fit();
+			}
+
+
+			// Invalidates all iterators
+			void clear() noexcept
+			{
+				this->data.clear();
+			}
+
+
+			bool empty() const noexcept
+			{
+				return this->data.empty();
+			}
+
+
+			size_type size() const noexcept
+			{
+				return this->data.size();
+			}
+
+
+			size_type capacity() const noexcept
+			{
+				return this->data.capacity();
+			}
+
+
+			iterator begin() {return this->data.begin();}
+			iterator end()   {return this->data.end();}
+
+			const_iterator begin() const {return this->data.begin();}
+			const_iterator end()   const {return this->data.end();}
+
+			reverse_iterator rbegin() {return this->data.rbegin();}
+			reverse_iterator rend()   {return this->data.rend();}
+
+			const_reverse_iterator rbegin() const {return this->data.rbegin();}
+			const_reverse_iterator rend()   const {return this->data.rend();}
+		};
 	}
 	
 
 
 
 
-	// STL-"inspired" (i.e. shamelessly stolen) flat Set class --------------------------------------------------------------------------------------
+	// Reasonably STL-compatible flat-Set class -----------------------------------------------------------------------------------------------------
 
 	template <typename T>
-	class Set
+	class Set : public Details::Wrapper<T>
 	{
 	public:
 
-		using value_type     = T;
-		using container_type = std::vector<value_type>;
+		using base = typename Set::self_base;
 
-		using iterator               = container_type::iterator;
-		using const_iterator         = container_type::const_iterator;
-		using reverse_iterator       = container_type::reverse_iterator;
-		using const_reverse_iterator = container_type::const_reverse_iterator;
+		using value_type     = base::value_type;
+		using container_type = base::container_type;
+		using size_type      = base::size_type;
 
+		using iterator               = base::iterator;
+		using const_iterator         = base::const_iterator;
+		using reverse_iterator       = base::reverse_iterator;
+		using const_reverse_iterator = base::const_reverse_iterator;
 
-
-	private:
-
-		container_type data;
-
-
-
-	public:
 
 		Set() = default;
 
-
-		explicit Set(const size_t cap)
-		{
-			this->reserve(cap);
-		}
+		explicit Set(const size_type cap) : base(cap) {}
 
 
 		Set(const std::initializer_list<value_type> init)
@@ -90,41 +173,8 @@ namespace FlatContainers
 		}
 
 
-		// May invalidate all iterators
-		void reserve(const size_t new_cap)
-		{
-			this->data.reserve(new_cap);
-		}
-
-
-		// May invalidate all iterators
-		void shrink_to_fit()
-		{
-			this->data.shrink_to_fit();
-		}
-
-
-		// Invalidates all iterators
-		void clear() noexcept
-		{
-			this->data.clear();
-		}
-
-
-		bool empty() const noexcept
-		{
-			return this->data.empty();
-		}
-
-
-		size_t size() const noexcept
-		{
-			return this->data.size();
-		}
-
-
 		template <typename U>
-		requires std::equality_comparable_with<U, T>
+		requires std::equality_comparable_with<U, value_type>
 		iterator find(const U& value)
 		{
 			return std::find(this->begin(), this->end(), value);
@@ -132,7 +182,7 @@ namespace FlatContainers
 
 
 		template <typename U>
-		requires std::equality_comparable_with<U, T>
+		requires std::equality_comparable_with<U, value_type>
 		const_iterator find(const U& value) const
 		{
 			return std::find(this->begin(), this->end(), value);
@@ -140,7 +190,7 @@ namespace FlatContainers
 
 
 		template <typename U>
-		requires std::equality_comparable_with<U, T>
+		requires std::equality_comparable_with<U, value_type>
 		bool contains(const U& value) const
 		{
 			return (this->find(value) != this->end());
@@ -164,7 +214,7 @@ namespace FlatContainers
 		template <typename... Args>
 		std::pair<iterator, bool> emplace(Args&&... args)
 		{
-			T temp(std::forward<Args>(args)...);
+			value_type temp(std::forward<Args>(args)...);
 
 			const auto it = this->find(temp);
 			if (it != this->end()) return {it, false};
@@ -177,7 +227,7 @@ namespace FlatContainers
 
 		// Invalidates iterators of erased and final value
 		template <typename U>
-		requires std::equality_comparable_with<U, T>
+		requires std::equality_comparable_with<U, value_type>
 		bool erase(const U& value)
 		{
 			const auto it = this->find(value);
@@ -212,59 +262,37 @@ namespace FlatContainers
 
 			return reverse_iterator(this->erase(std::prev(rit.base())));
 		}
-
-
-		iterator begin() {return this->data.begin();}
-		iterator end()   {return this->data.end();}
-
-		const_iterator begin() const {return this->data.begin();}
-		const_iterator end()   const {return this->data.end();}
-
-		reverse_iterator rbegin() {return this->data.rbegin();}
-		reverse_iterator rend()   {return this->data.rend();}
-
-		const_reverse_iterator rbegin() const {return this->data.rbegin();}
-		const_reverse_iterator rend()   const {return this->data.rend();}
 	};
 
+	
 
 
 
-
-	// Similarly "inspired" flat Map class ----------------------------------------------------------------------------------------------------------
+	// Similarly STL-compatible flat-Map class ------------------------------------------------------------------------------------------------------
 
 	template <typename K, typename V>
-	class Map 
+	class Map : public Details::Wrapper<std::pair<K, V>>
 	{
 	public:
 
-		using key_type       = K;
-		using mapped_type    = V;
-		using value_type     = std::pair<K, V>;
-		using container_type = std::vector<value_type>;
+		using key_type    = K;
+		using mapped_type = V;
 
-		using iterator               = container_type::iterator;
-		using const_iterator         = container_type::const_iterator;
-		using reverse_iterator       = container_type::reverse_iterator;
-		using const_reverse_iterator = container_type::const_reverse_iterator;
+		using base = typename Map::self_base;
 
+		using value_type     = base::value_type;
+		using container_type = base::container_type;
+		using size_type      = base::size_type;
 
+		using iterator               = base::iterator;
+		using const_iterator         = base::const_iterator;
+		using reverse_iterator       = base::reverse_iterator;
+		using const_reverse_iterator = base::const_reverse_iterator;
 
-	private:
-
-		container_type data;
-
-
-
-	public:
 
 		Map() = default;
 
-		
-		explicit Map(const size_t cap)
-		{
-			this->reserve(cap);
-		}
+		explicit Map(const size_type cap) : base(cap) {}
 
 
 		Map(const std::initializer_list<value_type> init)
@@ -288,42 +316,9 @@ namespace FlatContainers
 			return *this;
 		}
 
-   
-		// May invalidate all iterators
-		void reserve(const size_t new_cap)
-		{ 
-			this->data.reserve(new_cap); 
-		}
-
-
-		// May invalidate all iterators
-		void shrink_to_fit()
-		{
-			this->data.shrink_to_fit();
-		}
-
-
-		// Invalidates all iterators
-		void clear() noexcept 
-		{ 
-			this->data.clear(); 
-		}
-
-
-		bool empty() const noexcept 
-		{ 
-			return this->data.empty(); 
-		}
-
-
-		size_t size() const noexcept 
-		{ 
-			return this->data.size(); 
-		}
-
   
 		template <typename U>
-		requires std::equality_comparable_with<U, K>
+		requires std::equality_comparable_with<U, key_type>
 		iterator find(const U& key) 
 		{
 			const auto key_matches = [&key](const value_type& p) {return p.first == key;};
@@ -333,7 +328,7 @@ namespace FlatContainers
 
 
 		template <typename U>
-		requires std::equality_comparable_with<U, K>
+		requires std::equality_comparable_with<U, key_type>
 		const_iterator find(const U& key) const 
 		{
 			const auto key_matches = [&key](const value_type& p) {return p.first == key;};
@@ -343,7 +338,7 @@ namespace FlatContainers
 
 
 		template <typename U>
-		requires std::equality_comparable_with<U, K>
+		requires std::equality_comparable_with<U, key_type>
 		bool contains(const U& key) const 
 		{
 			return (this->find(key) != this->end());
@@ -368,7 +363,7 @@ namespace FlatContainers
 
 		// Invalidates iterators of erased and final value
 		template <typename KeyArg, typename... ValArgs>
-		requires (not Details::IsUniquePtr<V>)
+		requires (not Details::IsUniquePtr<mapped_type>)
 		std::pair<iterator, bool> try_emplace
 		(
 			KeyArg&&     key, 
@@ -390,7 +385,7 @@ namespace FlatContainers
 
 		// Invalidates iterators of erased and final value
 		template <typename KeyArg, typename... ValArgs>
-		requires Details::IsUniquePtr<V>
+		requires Details::IsUniquePtr<mapped_type>
 		std::pair<iterator, bool> try_emplace
 		(
 			KeyArg&&     key, 
@@ -400,7 +395,11 @@ namespace FlatContainers
 			if (it != this->end()) return {it, false};
 
 			// Truly lazy construction of type contained in unique pointer
-			this->data.emplace_back(std::forward<KeyArg>(key), std::make_unique<typename V::element_type>(std::forward<ValArgs>(args)...));
+			this->data.emplace_back
+			(
+				std::forward<KeyArg>(key), 
+				std::make_unique<typename mapped_type::element_type>(std::forward<ValArgs>(args)...)
+			);
 
 			return {std::prev(this->end()), true};
 		}
@@ -408,7 +407,7 @@ namespace FlatContainers
 
 		// Invalidates iterators of erased and final value
 		template <typename U>
-		requires std::equality_comparable_with<U, K>
+		requires std::equality_comparable_with<U, key_type>
 		bool erase(const U& key) 
 		{
 			const auto it = this->find(key);
@@ -443,18 +442,5 @@ namespace FlatContainers
 
 			return reverse_iterator(this->erase(std::prev(rit.base())));
 		}
-
-
-		iterator begin() {return this->data.begin();}
-		iterator end()   {return this->data.end();}
-
-		const_iterator begin() const {return this->data.begin();}
-		const_iterator end()   const {return this->data.end();}
-
-		reverse_iterator rbegin() {return this->data.rbegin();}
-		reverse_iterator rend()   {return this->data.rend();}
-
-		const_reverse_iterator rbegin() const {return this->data.rbegin();}
-		const_reverse_iterator rend()   const {return this->data.rend();}
 	};
 }
