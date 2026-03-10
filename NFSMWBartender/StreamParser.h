@@ -32,29 +32,26 @@ namespace StreamParser
 		concept IsChar = std::same_as<T, char>;
 
 		template <typename T>
-		concept IsLegacyString = std::same_as<T, const char*>;
-
-		template <typename T>
 		concept IsModernStringOrView = (std::same_as<T, std::string> or std::same_as<T, std::string_view>);
 
 		template <typename T>
-		concept IsAnyStringOrView = (IsLegacyString<T> or IsModernStringOrView<T>);
+		concept IsAnyStringOrView = (std::same_as<T, const char*> or IsModernStringOrView<T>);
 
 		template <typename V>
 		concept IsPureArithmetic = (std::is_arithmetic_v<V> and std::same_as<V, std::remove_cvref_t<V>>);
 
-		template <typename V>
-		concept IsLineParseable = (IsAnyStringOrView<V> or IsPureArithmetic<V>);
-
-		template <typename K, typename V>
-		concept IsSectionParseable = (IsAnyStringOrView<K> and IsLineParseable<V>);
+		template <typename ...Vs>
+		concept AreLineParseable = ((sizeof...(Vs) == 1) and ... and (IsPureArithmetic<Vs> or IsAnyStringOrView<Vs>));
 
 		// Cannot convert views of split source strings to C-style strings
 		template <typename ...Vs>
-		concept AreSeparatorParseable = ((sizeof...(Vs) > 1) and ... and (IsLineParseable<Vs> and (not IsLegacyString<Vs>)));
+		concept AreSeparatorParseable = ((sizeof...(Vs) > 1) and ... and (IsPureArithmetic<Vs> or IsModernStringOrView<Vs>));
 
-		template <typename K, typename ...Vs>
-		concept AreSectionSeparatorParseable = (IsAnyStringOrView<K> and AreSeparatorParseable<Vs...>);
+		template <typename ...Vs>
+		concept AreParseable = (AreLineParseable<Vs...> or AreSeparatorParseable<Vs...>);
+
+		template <typename K, typename... Vs>
+		concept AreSectionParseable = (IsAnyStringOrView<K> and AreParseable<Vs...>);
 
 		// For noexcept equlifiers due to potential allocation(s)
 		template <typename ...Ts>
@@ -307,24 +304,20 @@ namespace StreamParser
 		}
 
 
-		template <typename K>
-		requires Concepts::IsAnyStringOrView<K>
-		static constexpr void PushSectionKey
+		template <typename ...Vs>
+		requires Concepts::AreParseable<Vs...>
+		static bool DispatchParsing
 		(
-			const std::string& key, 
-			std::vector<K>&    keys
-		) {
-			keys.emplace_back(key);
-		}
+			const std::string&    source,
+			Vs&                ...values
+		)
+			noexcept(Concepts::AreAllocationFree<Vs...>)
+		{
+			if constexpr (Concepts::AreSeparatorParseable<Vs...>)
+				return ParseFromString<Vs...>(source, separator, values...);
 
-	
-		template <>
-		static constexpr void PushSectionKey<const char*>
-		(
-			const std::string&        key,
-			std::vector<const char*>& keys
-		) {
-			keys.push_back(key.c_str());
+			else
+				return ParseFromString(source, values...);
 		}
 
 
@@ -348,7 +341,7 @@ namespace StreamParser
 		static constexpr char sectionEnd      = end;
 
 
-		// Invalidates any retrieved const char* and string_view values
+		// Invalidates retrieved const char* and string_view
 		void ParseStream
 		(
 			std::istream& stream,
@@ -375,10 +368,7 @@ namespace StreamParser
 					{
 						const std::string_view section = content.substr(1, content.length() - 2);
 
-						const auto [pair, wasAdded] = this->sections.try_emplace(section);
-
-						if (wasAdded)
-							pair->second.reserve(pairCapacityEach);
+						const auto [pair, wasAdded] = this->sections.try_emplace(section, pairCapacityEach);
 
 						currentSection = &(pair->second);
 					}
@@ -413,60 +403,8 @@ namespace StreamParser
 		}
 
 
-		template <typename V>
-		requires Concepts::IsLineParseable<V>
-		static bool GetValue
-		(
-			const Section&         section,
-			const std::string_view key,
-			V&                     value
-		) 
-			noexcept(Concepts::AreAllocationFree<V>)
-		{
-			const auto foundKey = section.find(key);
-			if (foundKey == section.end()) return false;
-
-			return ParseFromString(foundKey->second, value);
-		}
-
-
-		template <>
-		static bool GetValue<const char*>
-		(
-			const Section&         section,
-			const std::string_view key,
-			const char*&           value
-		) 
-			noexcept
-		{
-			const auto foundKey = section.find(key);
-			if (foundKey == section.end()) return false;
-
-			value = (foundKey->second).c_str();
-
-			return true;
-		}
-
-
-		template <typename V>
-		requires Concepts::IsLineParseable<V>
-		bool GetValue
-		(
-			const std::string_view section,
-			const std::string_view key,
-			V&                     value
-		)
-			const noexcept(Concepts::AreAllocationFree<V>)
-		{
-			const auto foundSection = this->sections.find(section);
-			if (foundSection == this->sections.end()) return false;
-
-			return this->GetValue<V>(foundSection->second, key, value);
-		}
-		
-
 		template <typename ...Vs>
-		requires Concepts::AreSeparatorParseable<Vs...>
+		requires Concepts::AreParseable<Vs...>
 		static bool GetValues
 		(
 			const Section&            section,
@@ -478,12 +416,12 @@ namespace StreamParser
 			const auto foundKey = section.find(key);
 			if (foundKey == section.end()) return false;
 
-			return ParseFromString<Vs...>(foundKey->second, separator, values...);
+			return Parser::DispatchParsing<Vs...>(foundKey->second, values...);
 		}
 
 
 		template <typename ...Vs>
-		requires Concepts::AreSeparatorParseable<Vs...>
+		requires Concepts::AreParseable<Vs...>
 		bool GetValues
 		(
 			const std::string_view    section,
@@ -499,55 +437,8 @@ namespace StreamParser
 		}
 
 
-		template <typename K, typename V>
-		requires Concepts::IsSectionParseable<K, V>
-		static size_t GetFullSection
-		(
-			const Section&  section,
-			std::vector<K>& keys,
-			std::vector<V>& values
-		) {
-			size_t numReads = 0;
-
-			keys  .reserve(keys.size()   + section.size());
-			values.reserve(values.size() + section.size());
-
-			for (auto const& [key, value] : section)
-			{
-				V result{};
-
-				if (ParseFromString(value, result))
-				{
-					values.push_back(std::move(result));
-					Parser::PushSectionKey(key, keys);
-
-					++numReads;
-				}
-			}
-
-			return numReads;
-		}
-
-
-		template <typename K, typename V>
-		requires Concepts::IsSectionParseable<K, V>
-		size_t GetFullSection
-		(
-			const std::string_view section,
-			std::vector<K>&        keys,
-			std::vector<V>&        values
-		)
-			const
-		{
-			const auto foundSection = this->sections.find(section);
-			if (foundSection == this->sections.end()) return 0;
-
-			return this->GetFullSection<K, V>(foundSection->second, keys, values);
-		}
-
-
 		template <typename K, typename ...Vs>
-		requires Concepts::AreSectionSeparatorParseable<K, Vs...>
+		requires Concepts::AreSectionParseable<K, Vs...>
 		static size_t GetFullSection
 		(
 			const Section&      section,
@@ -567,10 +458,15 @@ namespace StreamParser
 
 				for (const auto& [key, value] : section)
 				{
-					if (ParseFromString<Vs...>(value, separator, std::get<columnIDs>(candidates)...))
+					if (Parser::DispatchParsing<Vs...>(value, std::get<columnIDs>(candidates)...))
 					{
 						(..., values.push_back(std::move(std::get<columnIDs>(candidates))));
-						Parser::PushSectionKey(key, keys);
+
+						if constexpr (Concepts::IsModernStringOrView<K>)
+							keys.emplace_back(key);
+
+						else
+							keys.push_back(key.c_str());
 
 						++numReads;
 					}
@@ -583,7 +479,7 @@ namespace StreamParser
 
 
 		template <typename K, typename ...Vs>
-		requires Concepts::AreSectionSeparatorParseable<K, Vs...>
+		requires Concepts::AreSectionParseable<K, Vs...>
 		size_t GetFullSection
 		(
 			const std::string_view    section,
@@ -605,7 +501,7 @@ namespace StreamParser
 		}
 
 
-		// Invalidates any retrieved const char* and string_view values
+		// Invalidates retrieved const char* and string_view
 		void ClearParsedStrings() noexcept
 		{
 			this->sections.clear();

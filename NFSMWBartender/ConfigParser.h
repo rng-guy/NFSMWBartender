@@ -29,17 +29,11 @@ namespace ConfigParser
 		template <typename V>
 		concept IsBoundsCompatible = (StreamParser::Concepts::IsPureArithmetic<V> and (not std::same_as<V, bool>));
 
-		template <typename V>
-		concept IsSingleParseable = StreamParser::Concepts::IsLineParseable<V>;
-
 		template <typename ...Vs>
-		concept AreColumnParseable = StreamParser::Concepts::AreSeparatorParseable<Vs...>;
-
-		template <typename K, typename V>
-		concept IsUserParseable = StreamParser::Concepts::IsSectionParseable<K, V>;
+		concept AreParseable = StreamParser::Concepts::AreParseable<Vs...>;
 
 		template <typename K, typename ...Vs>
-		concept AreColumnUserParseable = StreamParser::Concepts::AreSectionSeparatorParseable<K, Vs...>;
+		concept AreUserParseable = StreamParser::Concepts::AreSectionParseable<K, Vs...>;
 	}
 
 	
@@ -214,62 +208,9 @@ namespace ConfigParser
 		}
 
 
-		// Single value from string
-		template <typename V>
-		requires Concepts::IsSingleParseable<V>
-		static bool ParseFromString
-		(
-			const std::string_view source,
-			Parameter<V>&&         parameter
-		) {
-			const bool isValid = StreamParser::ParseFromString(source, parameter.value);
-
-			parameter.limits.Enforce(parameter.value);
-
-			return isValid;
-		}
-
-
-		// Multiple values from delimited string
+		// Value(s) from parsed file
 		template <typename ...Vs>
-		requires Concepts::AreColumnParseable<Vs...>
-		bool ParseFromString
-		(
-			const std::string_view    source,
-			Parameter<Vs>&&        ...parameters
-		) 
-			const
-		{
-			const bool areValid = StreamParser::ParseFromString<Vs...>(source, this->valueSeparator, parameters.value...);
-
-			(..., parameters.limits.Enforce(parameters.value));
-
-			return areValid;
-		}
-
-
-		// Single value from parsed file
-		template <typename V>
-		requires Concepts::IsSingleParseable<V>
-		bool ParseFromFile
-		(
-			const std::string_view section,
-			const std::string_view key,
-			Parameter<V>&&         parameter
-		) 
-			const
-		{
-			const bool isValid = this->GetValue<V>(section, key, parameter.value);
-
-			parameter.limits.Enforce(parameter.value);
-
-			return isValid;
-		}
-
-
-		// Multi-value row from parsed file
-		template <typename ...Vs>
-		requires Concepts::AreColumnParseable<Vs...>
+		requires Concepts::AreParseable<Vs...>
 		bool ParseFromFile
 		(
 			const std::string_view    section,
@@ -286,61 +227,9 @@ namespace ConfigParser
 		}
 
 
-		// Single-column, fixed-format values from parsed file
-		template <size_t numRows, typename V>
-		requires Concepts::IsSingleParseable<V>
-		std::array<bool, numRows> ParseFormat
-		(
-			const std::string_view section,
-			const std::string_view defaultKey,
-			const std::string_view formatKey,
-			const size_t           keyStart,
-			Format<V, numRows>&&   parameter
-		) 
-			const
-		{
-			std::array<bool, numRows> isValids = {};
-
-			size_t     keyIndex     = keyStart;
-			const auto foundSection = this->sections.find(section);
-
-			// Parse default (if available)
-			if (parameter.defaultValue and (not defaultKey.empty()) and (foundSection != this->sections.end()))
-				this->GetValue<V>(foundSection->second, defaultKey, *(parameter.defaultValue));
-
-			for (size_t rowID = 0; rowID < numRows; ++rowID)
-			{
-				// Parse row without default first
-				if (foundSection != this->sections.end())
-				{
-					isValids[rowID] = this->GetValue<V>
-					(
-						foundSection->second,
-						std::vformat(formatKey, std::make_format_args(keyIndex)),
-						parameter.values[rowID]
-					);
-				}
-
-				++keyIndex;
-
-				// Apply default to invalid row (if available)
-				if ((not isValids[rowID]) and parameter.defaultValue)
-				{
-					parameter.values[rowID] = *(parameter.defaultValue);
-
-					isValids[rowID] = true;
-				}
-			}
-
-			parameter.limits.Enforce(parameter.values);
-
-			return isValids;
-		}
-
-
-		// Multi-column, fixed-format values from parsed file
+		// Fixed-format value(s) from parsed file
 		template <size_t numRows, typename ...Vs>
-		requires Concepts::AreColumnParseable<Vs...>
+		requires Concepts::AreParseable<Vs...>
 		std::array<bool, numRows> ParseFormat
 		(
 			const std::string_view    section,
@@ -351,21 +240,32 @@ namespace ConfigParser
 		) 
 			const 
 		{
-			std::array<std::string_view, numRows> rawRows;
-
-			const bool hasFullDefaultRow = (parameters.defaultValue and ...);
+			const auto foundSection      = this->sections.find(section);
+			const bool hasFullDefaultRow = (parameters.defaultValue.has_value() and ...);
 
 			// Parse default (if available)
 			if (hasFullDefaultRow and (not defaultKey.empty()))
-				this->ParseFromFile<Vs...>(section, defaultKey, {*(parameters.defaultValue)}...);
-
-			// Retrieve raw row strings by format
-			std::array<bool, numRows> isValidRows = this->ParseFormat<numRows, std::string_view>(section, {}, formatKey, keyStart, {rawRows});
+				this->GetValues<Vs...>(foundSection->second, defaultKey, {*(parameters.defaultValue)}...);
 
 			// Parse each row column-wise
+			size_t keyIndex = keyStart;
+
+			std::array<bool, numRows> isValidRows = {};
+
 			for (size_t rowID = 0; rowID < numRows; ++rowID)
 			{
-				isValidRows[rowID] = (isValidRows[rowID] and this->ParseFromString<Vs...>(rawRows[rowID], {parameters.values[rowID]}...));
+				// Parse row without default first
+				if (foundSection != this->sections.end())
+				{
+					isValidRows[rowID] = this->GetValues<Vs...>
+					(
+						foundSection->second,
+						std::vformat(formatKey, std::make_format_args(keyIndex)),
+						parameters.values[rowID]...
+					);
+
+					++keyIndex;
+				}
 
 				// Apply default to invalid row (if available)
 				if ((not isValidRows[rowID]) and hasFullDefaultRow)
@@ -381,32 +281,10 @@ namespace ConfigParser
 			return isValidRows;
 		}
 
-
-		// Single-column, user-defined key-value pairs from parsed file
-		template <typename K, typename V>
-		requires Concepts::IsUserParseable<K, V>
-		size_t ParseUser
-		(
-			const std::string_view section,
-			std::vector<K>&        keys,
-			User<V>&&              parameter
-		) 
-			const
-		{
-			keys.clear();
-			parameter.values.clear();
-
-			const size_t numReads = this->GetFullSection<K, V>(section, keys, parameter.values);
-
-			parameter.limits.Enforce(parameter.values);
-
-			return numReads;
-		}
-
-
-		// Multi-column, user-defined key-value pairs from parsed file
+		
+		// User-defined key-value pair(s) from parsed file
 		template <typename K, typename ...Vs>
-		requires Concepts::AreColumnUserParseable<K, Vs...>
+		requires Concepts::AreUserParseable<K, Vs...>
 		size_t ParseUser
 		(
 			const std::string_view    section,
