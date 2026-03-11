@@ -244,7 +244,7 @@ namespace ConfigParser
 			const bool hasFullDefaultRow = (parameters.defaultValue.has_value() and ...);
 
 			// Parse default (if available)
-			if (hasFullDefaultRow and (not defaultKey.empty()))
+			if ((foundSection != this->sections.end()) and hasFullDefaultRow and (not defaultKey.empty()))
 				this->GetValues<Vs...>(foundSection->second, defaultKey, {*(parameters.defaultValue)}...);
 
 			// Parse each row column-wise

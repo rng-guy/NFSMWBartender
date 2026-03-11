@@ -188,10 +188,11 @@ namespace StreamParser
 
 		V result{};
 
-		const auto viewEnd = source.data() + source.size();
-
+		const auto viewEnd          = source.data() + source.size();
 		const auto [readEnd, error] = std::from_chars(source.data(), viewEnd, result);
-		if ((error != std::errc{}) or (readEnd != viewEnd)) return false;
+
+		if (error != std::errc{}) return false;
+		if (readEnd != viewEnd)   return false;
 
 		value = result;
 
@@ -255,6 +256,20 @@ namespace StreamParser
 
 
 
+	constexpr bool ParseFromString
+	(
+		const char* const source,
+		const char*& value
+	)
+		noexcept
+	{
+		value = source;
+
+		return true;
+	}
+
+
+
 	template <typename ...Vs>
 	requires Concepts::AreSeparatorParseable<Vs...>
 	inline bool ParseFromString
@@ -306,7 +321,7 @@ namespace StreamParser
 
 		template <typename ...Vs>
 		requires Concepts::AreParseable<Vs...>
-		static bool DispatchParsing
+		static bool DispatchToParsing
 		(
 			const std::string&    source,
 			Vs&                ...values
@@ -416,7 +431,7 @@ namespace StreamParser
 			const auto foundKey = section.find(key);
 			if (foundKey == section.end()) return false;
 
-			return Parser::DispatchParsing<Vs...>(foundKey->second, values...);
+			return Parser::DispatchToParsing<Vs...>(foundKey->second, values...);
 		}
 
 
@@ -458,7 +473,7 @@ namespace StreamParser
 
 				for (const auto& [key, value] : section)
 				{
-					if (Parser::DispatchParsing<Vs...>(value, std::get<columnIDs>(candidates)...))
+					if (Parser::DispatchToParsing<Vs...>(value, std::get<columnIDs>(candidates)...))
 					{
 						(..., values.push_back(std::move(std::get<columnIDs>(candidates))));
 

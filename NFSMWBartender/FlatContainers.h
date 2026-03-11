@@ -260,7 +260,7 @@ namespace FlatContainers
 		{
 			if (rit == this->rend()) return rit;
 
-			return reverse_iterator(this->erase(std::prev(rit.base())));
+			return {this->erase(std::prev(rit.base()))};
 		}
 	};
 
@@ -440,7 +440,7 @@ namespace FlatContainers
 		{
 			if (rit == this->rend()) return rit;
 
-			return reverse_iterator(this->erase(std::prev(rit.base())));
+			return {this->erase(std::prev(rit.base()))};
 		}
 	};
 }
