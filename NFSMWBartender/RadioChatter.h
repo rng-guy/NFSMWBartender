@@ -41,7 +41,7 @@ namespace RadioChatter
 	size_t lastReportedHeatLevel = 1;
 	int    lastJurisdictionID    = 0;
 
-	ModContainers::DefaultCopyVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
+	constinit ModContainers::DefaultCopyVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
 
 
 

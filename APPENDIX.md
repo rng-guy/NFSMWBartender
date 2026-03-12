@@ -293,8 +293,6 @@ Regarding **cop spawn tables** (`BartenderSettings\Advanced\CarTables.ini`):
 
 * To be precise, the "Scripted" spawn tables apply to each LUA script that requests cop spawns. This includes pre-generated cops in Challenge Series pursuits and patrols in prologue races.
 
-* The "Scripted" spawn tables don't apply to the very first pre-generated cop that spawns in a given Challenge Series pursuit. Instead, this first cop is always of the type defined by the event's `CopSpawnType` VltEd parameter. This is because the game requests this vehicle before it loads any pursuit or Heat-level information, making it impossible to replace properly.
-
 * You shouldn't use fast Heat transitions (`0x80deb840` VltEd parameter set to < 5 seconds), else you might see a mix of cops from more than one "Scripted" spawn table appear in events with pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can also avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
 
 * Bartender uses different spawn tables for each of the two patrol-spawn types in the game: "Patrols" tables replace the free patrols that spawn when there is no active pursuit, and "Chasers" tables replace the searching patrols that spawn in pursuits when racers are in "COOLDOWN" mode. You can control the number of patrol spawns through the `NumPatrolCars` VltEd parameter, but there are two important quirks: Free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count.

@@ -17,7 +17,7 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves 
-	ModContainers::DefaultCopyVaultMap<binary> copTypeToDestructionKey(0x0);
+	constinit ModContainers::DefaultCopyVaultMap<binary> copTypeToDestructionKey(0x0);
 
 
 	

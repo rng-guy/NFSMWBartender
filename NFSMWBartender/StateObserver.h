@@ -89,7 +89,7 @@ namespace StateObserver
 		const auto OriginalFunction = reinterpret_cast<void (*)()>(OnWorldLoadUpdatesOriginal);
 
 		// Apply hooked logic fist
-		CopSpawnOverrides::ResetState();
+		CopSpawnOverrides::FullResetState();
 
 		// Call original function last
 		OriginalFunction();
@@ -108,7 +108,7 @@ namespace StateObserver
 
 		Globals::playerHeatLevelKnown = false;
 
-		CopSpawnOverrides::ResetState();
+		CopSpawnOverrides::SoftResetState();
 
 		// Call original function last
 		OriginalFunction();

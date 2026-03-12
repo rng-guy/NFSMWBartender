@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <string_view>
 
 #include "Globals.h"
@@ -260,7 +261,8 @@ namespace CopSpawnOverrides
 	constinit HeatParameters::OptionalPair<int> roadblockJoinLimits({0}); // cars
 
 	// Code caves
-	bool skipScriptedSpawns = true;
+	bool        useFirstScriptedCop  = true;
+	const char* firstScriptedCopName = nullptr;
 	
 	Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTables);
 	Contingent scriptedSpawns (CopSpawnTables::scriptedSpawnTables);
@@ -299,7 +301,7 @@ namespace CopSpawnOverrides
 
 		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTables, this->pursuit};
 
-		inline static ModContainers::AddressMap<ChasersManager*> pursuitToManager;
+		inline static constinit ModContainers::AddressMap<ChasersManager*> pursuitToManager;
 
 
 		void UpdateSpawnTable()
@@ -525,7 +527,7 @@ namespace CopSpawnOverrides
 		) 
 			override
 		{
-			skipScriptedSpawns = false;
+			useFirstScriptedCop = false;
 
 			switch (copLabel)
 			{
@@ -670,6 +672,21 @@ namespace CopSpawnOverrides
 		}
 
 		return nullptr;
+	}
+
+
+
+	const char* __fastcall UpdateFirstScriptedCopName(size_t heatLevel)
+	{
+		constexpr bool assumeRace = false;
+
+		heatLevel            = std::clamp<size_t>(heatLevel, 1, HeatParameters::maxHeatLevel);
+	    firstScriptedCopName = CopSpawnTables::scriptedSpawnTables.GetValues(assumeRace)[heatLevel - 1].GetNameOfAvailableCop();
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<1>("[SPA] First scripted cop:", firstScriptedCopName);
+
+		return firstScriptedCopName;
 	}
 
 
@@ -1021,9 +1038,15 @@ namespace CopSpawnOverrides
 			mov dword ptr [esp + 0x28], eax
 			lea esi, dword ptr [edi + 0x18]
 
-			cmp byte ptr skipScriptedSpawns, 0x0
-			jne conclusion // skip "Scripted" spawn
+			cmp byte ptr useFirstScriptedCop, 0x1
+			jne replacement // do not use first cop name
 
+			mov eax, dword ptr firstScriptedCopName
+			test eax, eax
+			cmovne esi, eax // first cop name valid
+			jmp conclusion  // used first cop name
+
+			replacement:
 			cmp byte ptr Globals::playerHeatLevelKnown, 0x1
 			jne conclusion // Heat level unknown
 
@@ -1035,6 +1058,24 @@ namespace CopSpawnOverrides
 			mov ecx, ebp
 
 			jmp dword ptr scriptedRequestExit
+		}
+	}
+
+
+
+	constexpr address firstScriptedCopEntrance = 0x61E2AE;
+	constexpr address firstScriptedCopExit     = 0x61E2B7;
+
+	// Updates and fetches name of first scripted cop to spawn
+	__declspec(naked) void FirstScriptedCop()
+	{
+		__asm
+		{
+			mov ecx, dword ptr [eax]
+			call UpdateFirstScriptedCopName // ecx: heatLevel
+			test eax, eax
+
+			jmp dword ptr firstScriptedCopExit
 		}
 	}
 
@@ -1119,13 +1160,15 @@ namespace CopSpawnOverrides
 
 		MemoryTools::Write<word>(0x517D, {0x43EB90}); // undo count skip of "OpenLimitAdjuster"
 
+		MemoryTools::Write<vault>(0xE4211F4F, {0x61E295}); // query "ForceHeatLevel" instead
+
 		MemoryTools::MakeRangeNOP(0x4442AC, 0x4442C2); // zero-wave / capacity increment
 		MemoryTools::MakeRangeNOP(0x57B186, 0x57B189); // helicopter increment
 		MemoryTools::MakeRangeNOP(0x42B74E, 0x42B771); // cops-lost increment
 		MemoryTools::MakeRangeNOP(0x4440D7, 0x4440DF); // membership check
 
 		MemoryTools::MakeRangeJMP(ChasersManager::GetNameOfNewChaser, 0x42BA50, 0x42BCEE);
-		
+
 		MemoryTools::MakeRangeJMP(WaveReset,          waveResetEntrance,          waveResetExit);
 		MemoryTools::MakeRangeJMP(PatrolSpawn,        patrolSpawnEntrance,        patrolSpawnExit);
 		MemoryTools::MakeRangeJMP(CopClearance,       copClearanceEntrance,       copClearanceExit);
@@ -1139,6 +1182,7 @@ namespace CopSpawnOverrides
 		MemoryTools::MakeRangeJMP(RecyclingCheck,     recyclingCheckEntrance,     recyclingCheckExit);
 		MemoryTools::MakeRangeJMP(ByClassRequest,     byClassRequestEntrance,     byClassRequestExit);
 		MemoryTools::MakeRangeJMP(ScriptedRequest,    scriptedRequestEntrance,    scriptedRequestExit);
+		MemoryTools::MakeRangeJMP(FirstScriptedCop,   firstScriptedCopEntrance,   firstScriptedCopExit);
 		MemoryTools::MakeRangeJMP(ScriptedSpawnReset, scriptedSpawnResetEntrance, scriptedSpawnResetExit);
 
 		// Status flag
@@ -1175,7 +1219,7 @@ namespace CopSpawnOverrides
 		if (not featureEnabled) return;
 
 		if (isRacing)
-			skipScriptedSpawns = false;
+			useFirstScriptedCop = false;
 
 		patrolSpawns   .UpdateSpawnTable();
 		scriptedSpawns .UpdateSpawnTable();
@@ -1200,14 +1244,25 @@ namespace CopSpawnOverrides
 
 
 
-	void ResetState()
+	void SoftResetState()
 	{
 		if (not featureEnabled) return;
 
-		skipScriptedSpawns = true;
+		useFirstScriptedCop = true;
 
 		patrolSpawns   .ClearVehicles();
 		scriptedSpawns .ClearVehicles();
 		roadblockSpawns.ClearVehicles();
+	}
+
+
+
+	void FullResetState()
+	{
+		if (not featureEnabled) return;
+
+		firstScriptedCopName = nullptr;
+
+		SoftResetState();
 	}
 }

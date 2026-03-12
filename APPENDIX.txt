@@ -353,11 +353,6 @@ Regarding COP SPAWN TABLES ("BartenderSettings\Advanced\CarTables.ini"):
  • To be precise, the "Scripted" spawn tables apply to each LUA script that requests cop spawns.
    This includes pre-generated cops in Challenge Series pursuits and patrols in prologue races.
 
- • The "Scripted" spawn tables don't apply to the very first pre-generated cop that spawns in a
-   given Challenge Series pursuit. Instead, this first cop is always of the type defined by the
-   event's "CopSpawnType" VltEd parameter. This is because the game requests this vehicle before
-   it loads any pursuit or Heat-level information, making it impossible to replace properly.
-
  • You shouldn't use fast Heat transitions ("0x80deb840" VltEd parameter set to < 5 seconds),
    else you might see a mix of cops from more than one "Scripted" spawn table appear in events
    with pre-generated cops. This happens because, depending on your loading times, the game

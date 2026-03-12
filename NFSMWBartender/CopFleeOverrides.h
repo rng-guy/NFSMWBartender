@@ -327,19 +327,25 @@ namespace CopFleeOverrides
 	{
 	private:
 
+		// Internal aliases
+		using StrategyScheduler = Details::StrategyScheduler;
+		using PursuitScheduler  = Details::PursuitScheduler;
+
+
+
+	private:
+
 		bool pursuitTargetKnown = false;
 
-		Details::StrategyScheduler heavyVehicles {this->pursuit, "Heavy",  0x194};
-		Details::StrategyScheduler leaderVehicles{this->pursuit, "Leader", 0x198};
+		StrategyScheduler heavyVehicles {this->pursuit, "Heavy",  0x194};
+		StrategyScheduler leaderVehicles{this->pursuit, "Leader", 0x198};
 
-		Details::PursuitScheduler chaserVehicles         {this->pursuit, "Chaser",    chaserFleeDelays,          chaserThresholds};
-		Details::PursuitScheduler joinedHeavyVehicles    {this->pursuit, "Joined H3", joinedHeavy3FleeDelays,    joinedHeavy3Thresholds};
-		Details::PursuitScheduler joinedRoadblockVehicles{this->pursuit, "Joined RB", joinedRoadblockFleeDelays, joinedRoadblockThresholds};
+		PursuitScheduler chaserVehicles         {this->pursuit, "Chaser",    chaserFleeDelays,          chaserThresholds};
+		PursuitScheduler joinedHeavyVehicles    {this->pursuit, "Joined H3", joinedHeavy3FleeDelays,    joinedHeavy3Thresholds};
+		PursuitScheduler joinedRoadblockVehicles{this->pursuit, "Joined RB", joinedRoadblockFleeDelays, joinedRoadblockThresholds};
 
 		const volatile bool&    isJerk         = *reinterpret_cast<volatile bool*>   (this->pursuit + 0x238);
 		const volatile address& pursuitTarget  = *reinterpret_cast<volatile address*>(this->pursuit + 0x74);
-
-		inline static ModContainers::AddressMap<MembershipManager*> pursuitToManager;
 
 
 		static bool IsNotInChasersTable(const address copVehicle)

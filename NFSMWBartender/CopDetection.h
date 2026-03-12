@@ -33,7 +33,7 @@ namespace CopDetection
 
 	bool updateWorldMapColours = false;
 
-	ModContainers::DefaultReferenceVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
+	constinit ModContainers::DefaultReferenceVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
 
 
 

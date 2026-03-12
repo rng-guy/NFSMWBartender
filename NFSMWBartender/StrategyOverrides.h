@@ -61,7 +61,7 @@ namespace StrategyOverrides
 
 		ModContainers ::AddressSet vehiclesOfCurrentStrategy;
 
-		inline static ModContainers::AddressMap<StrategyManager*> pursuitToManager;
+		inline static constinit ModContainers::AddressMap<StrategyManager*> pursuitToManager;
 
 
 		void UpdateNextHeavy3Count()

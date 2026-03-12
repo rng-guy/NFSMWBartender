@@ -5,9 +5,6 @@
 #include <cstdint>
 #include <type_traits>
 
-#undef min
-#undef max
-
 
 
 namespace RandomNumbers
@@ -58,21 +55,23 @@ namespace RandomNumbers
 
 	public:
 
-		explicit Xoshiro256ss(uint64_t seed = 0x0)
+		constexpr Xoshiro256ss() = default;
+
+
+		constexpr void SeedState(uint64_t seed)
 		{
-			if (not seed)
-			{
-				std::random_device rng;
-
-				seed = this->Join(rng(), rng());
-			}
-
 			for (uint64_t& value : this->state)
 				value = this->ApplySplitmix64(seed);
 		}
 
 
-		uint64_t operator()() noexcept
+		constexpr explicit Xoshiro256ss(const uint64_t seed)
+		{
+			this->SeedState(seed);
+		}
+
+
+		constexpr uint64_t operator()() noexcept
 		{
 			const uint64_t result = this->Rotate(this->state[1] * 5, 7) * 9;
 			const uint64_t t      = this->state[1] << 17;
@@ -89,12 +88,14 @@ namespace RandomNumbers
 		}
 
 
+		// For STL compatibility
 		static constexpr uint64_t min() noexcept
 		{
 			return 0;
 		}
 
 
+		// For STL compatibility
 		static constexpr uint64_t max() noexcept
 		{
 			return uint64_t(-1);
@@ -107,16 +108,37 @@ namespace RandomNumbers
 
 	// Generator wrapper class ----------------------------------------------------------------------------------------------------------------------
 
-	template <class Engine = Xoshiro256ss>
 	class Generator
 	{
 	private:
 
-		Engine engine;
+		Xoshiro256ss engine;
 		
+
+		static constexpr uint64_t Join
+		(
+			const uint32_t upper,
+			const uint32_t lower
+		)
+			noexcept
+		{
+			return (static_cast<uint64_t>(upper) << 32) bitor lower;
+		}
+
 
 
 	public:
+
+		Generator()
+		{
+			std::random_device rng;
+
+			this->engine.SeedState(this->Join(rng(), rng()));
+		}
+
+
+		explicit Generator(const uint64_t seed) : engine(seed) {}
+
 
 		template <typename T>
 		requires std::is_integral_v<T>

@@ -6,9 +6,6 @@
 #include "BasicLogger.h"
 #include "RandomNumbers.h"
 
-#undef min
-#undef max
-
 
 
 // Unscoped aliases

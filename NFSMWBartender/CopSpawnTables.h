@@ -41,7 +41,7 @@ namespace CopSpawnTables
 
 		ModContainers::VaultMap<Entry> copTypeToEntry;
 
-		inline static ModContainers::StableVaultMap<const std::string> copTypeToName;
+		inline static constinit ModContainers::StableVaultMap<const std::string> copTypeToName;
 		
 
 		static auto RegisterName(const char* const copName)
@@ -264,10 +264,10 @@ namespace CopSpawnTables
 	bool featureEnabled = false;
 
 	// Heat parameters
-	TablePair patrolSpawnTables;
-	TablePair chaserSpawnTables;
-	TablePair scriptedSpawnTables;
-	TablePair roadblockSpawnTables;
+	constinit TablePair patrolSpawnTables;
+	constinit TablePair chaserSpawnTables;
+	constinit TablePair scriptedSpawnTables;
+	constinit TablePair roadblockSpawnTables;
 
 
 

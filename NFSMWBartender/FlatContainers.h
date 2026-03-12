@@ -56,12 +56,12 @@ namespace FlatContainers
 			container_type data;
 
 
-			Wrapper() = default;
+			constexpr Wrapper() = default;
 
 			~Wrapper() = default;
 
 		
-			explicit Wrapper(const size_type cap)
+			constexpr explicit Wrapper(const size_type cap)
 			{
 				this->reserve(cap);
 			}
@@ -71,55 +71,55 @@ namespace FlatContainers
 		public:
 
 			// May invalidate all iterators
-			void reserve(const size_type new_cap)
+			constexpr void reserve(const size_type new_cap)
 			{
 				this->data.reserve(new_cap);
 			}
 
 
 			// May invalidate all iterators
-			void shrink_to_fit()
+			constexpr void shrink_to_fit()
 			{
 				this->data.shrink_to_fit();
 			}
 
 
 			// Invalidates all iterators
-			void clear() noexcept
+			constexpr void clear() noexcept
 			{
 				this->data.clear();
 			}
 
 
-			bool empty() const noexcept
+			constexpr bool empty() const noexcept
 			{
 				return this->data.empty();
 			}
 
 
-			size_type size() const noexcept
+			constexpr size_type size() const noexcept
 			{
 				return this->data.size();
 			}
 
 
-			size_type capacity() const noexcept
+			constexpr size_type capacity() const noexcept
 			{
 				return this->data.capacity();
 			}
 
 
-			iterator begin() {return this->data.begin();}
-			iterator end()   {return this->data.end();}
+			constexpr iterator begin() {return this->data.begin();}
+			constexpr iterator end()   {return this->data.end();}
 
-			const_iterator begin() const {return this->data.begin();}
-			const_iterator end()   const {return this->data.end();}
+			constexpr const_iterator begin() const {return this->data.begin();}
+			constexpr const_iterator end()   const {return this->data.end();}
 
-			reverse_iterator rbegin() {return this->data.rbegin();}
-			reverse_iterator rend()   {return this->data.rend();}
+			constexpr reverse_iterator rbegin() {return this->data.rbegin();}
+			constexpr reverse_iterator rend()   {return this->data.rend();}
 
-			const_reverse_iterator rbegin() const {return this->data.rbegin();}
-			const_reverse_iterator rend()   const {return this->data.rend();}
+			constexpr const_reverse_iterator rbegin() const {return this->data.rbegin();}
+			constexpr const_reverse_iterator rend()   const {return this->data.rend();}
 		};
 	}
 	
@@ -146,12 +146,12 @@ namespace FlatContainers
 		using const_reverse_iterator = base::const_reverse_iterator;
 
 
-		Set() = default;
+		constexpr Set() = default;
 
-		explicit Set(const size_type cap) : base(cap) {}
+		constexpr explicit Set(const size_type cap) : base(cap) {}
 
 
-		Set(const std::initializer_list<value_type> init)
+		constexpr Set(const std::initializer_list<value_type> init)
 		{
 			this->reserve(init.size());
 
@@ -161,7 +161,7 @@ namespace FlatContainers
 
 
 		// Invalidates all iterators
-		Set& operator=(const std::initializer_list<value_type> init)
+		constexpr Set& operator=(const std::initializer_list<value_type> init)
 		{
 			this->clear();
 			this->reserve(init.size());
@@ -175,7 +175,7 @@ namespace FlatContainers
 
 		template <typename U>
 		requires std::equality_comparable_with<U, value_type>
-		iterator find(const U& value)
+		constexpr iterator find(const U& value)
 		{
 			return std::find(this->begin(), this->end(), value);
 		}
@@ -183,7 +183,7 @@ namespace FlatContainers
 
 		template <typename U>
 		requires std::equality_comparable_with<U, value_type>
-		const_iterator find(const U& value) const
+		constexpr const_iterator find(const U& value) const
 		{
 			return std::find(this->begin(), this->end(), value);
 		}
@@ -191,7 +191,7 @@ namespace FlatContainers
 
 		template <typename U>
 		requires std::equality_comparable_with<U, value_type>
-		bool contains(const U& value) const
+		constexpr bool contains(const U& value) const
 		{
 			return (this->find(value) != this->end());
 		}
@@ -199,7 +199,7 @@ namespace FlatContainers
 
 		// May invalidate all iterators
 		template <typename ValArg>
-		std::pair<iterator, bool> insert(ValArg&& value)
+		constexpr std::pair<iterator, bool> insert(ValArg&& value)
 		{
 			const auto it = this->find(value);
 			if (it != this->end()) return {it, false};
@@ -212,7 +212,7 @@ namespace FlatContainers
 
 		// May invalidate all iterators
 		template <typename... Args>
-		std::pair<iterator, bool> emplace(Args&&... args)
+		constexpr std::pair<iterator, bool> emplace(Args&&... args)
 		{
 			value_type temp(std::forward<Args>(args)...);
 
@@ -228,7 +228,7 @@ namespace FlatContainers
 		// Invalidates iterators of erased and final value
 		template <typename U>
 		requires std::equality_comparable_with<U, value_type>
-		bool erase(const U& value)
+		constexpr bool erase(const U& value)
 		{
 			const auto it = this->find(value);
 			if (it == this->end()) return false;
@@ -240,7 +240,7 @@ namespace FlatContainers
 
 
 		// Invalidates iterators of erased and final value
-		iterator erase(const iterator it)
+		constexpr iterator erase(const iterator it)
 		{
 			if (it == this->end()) return it;
 
@@ -256,7 +256,7 @@ namespace FlatContainers
 
 
 		// Invalidates iterators of erased and final value
-		reverse_iterator erase(const reverse_iterator rit)
+		constexpr reverse_iterator erase(const reverse_iterator rit)
 		{
 			if (rit == this->rend()) return rit;
 
@@ -290,12 +290,12 @@ namespace FlatContainers
 		using const_reverse_iterator = base::const_reverse_iterator;
 
 
-		Map() = default;
+		constexpr Map() = default;
 
-		explicit Map(const size_type cap) : base(cap) {}
+		constexpr explicit Map(const size_type cap) : base(cap) {}
 
 
-		Map(const std::initializer_list<value_type> init)
+		constexpr Map(const std::initializer_list<value_type> init)
 		{
 			this->reserve(init.size());
 
@@ -305,7 +305,7 @@ namespace FlatContainers
 
 
 		// Invalidates all iterators
-		Map& operator=(const std::initializer_list<value_type> init)
+		constexpr Map& operator=(const std::initializer_list<value_type> init)
 		{
 			this->clear();
 			this->reserve(init.size());
@@ -319,7 +319,7 @@ namespace FlatContainers
   
 		template <typename U>
 		requires std::equality_comparable_with<U, key_type>
-		iterator find(const U& key) 
+		constexpr iterator find(const U& key)
 		{
 			const auto key_matches = [&key](const value_type& p) {return p.first == key;};
 
@@ -329,7 +329,7 @@ namespace FlatContainers
 
 		template <typename U>
 		requires std::equality_comparable_with<U, key_type>
-		const_iterator find(const U& key) const 
+		constexpr const_iterator find(const U& key) const
 		{
 			const auto key_matches = [&key](const value_type& p) {return p.first == key;};
 
@@ -339,7 +339,7 @@ namespace FlatContainers
 
 		template <typename U>
 		requires std::equality_comparable_with<U, key_type>
-		bool contains(const U& key) const 
+		constexpr bool contains(const U& key) const
 		{
 			return (this->find(key) != this->end());
 		}
@@ -347,7 +347,7 @@ namespace FlatContainers
 
 		// Invalidates iterators of erased and final value
 		template <typename KeyArg, typename ValArg>
-		std::pair<iterator, bool> insert
+		constexpr std::pair<iterator, bool> insert
 		(
 			KeyArg&& key, 
 			ValArg&& value
@@ -364,7 +364,7 @@ namespace FlatContainers
 		// Invalidates iterators of erased and final value
 		template <typename KeyArg, typename... ValArgs>
 		requires (not Details::IsUniquePtr<mapped_type>)
-		std::pair<iterator, bool> try_emplace
+		constexpr std::pair<iterator, bool> try_emplace
 		(
 			KeyArg&&     key, 
 			ValArgs&& ...args
@@ -386,7 +386,7 @@ namespace FlatContainers
 		// Invalidates iterators of erased and final value
 		template <typename KeyArg, typename... ValArgs>
 		requires Details::IsUniquePtr<mapped_type>
-		std::pair<iterator, bool> try_emplace
+		constexpr std::pair<iterator, bool> try_emplace
 		(
 			KeyArg&&     key, 
 			ValArgs&& ...args
@@ -408,7 +408,7 @@ namespace FlatContainers
 		// Invalidates iterators of erased and final value
 		template <typename U>
 		requires std::equality_comparable_with<U, key_type>
-		bool erase(const U& key) 
+		constexpr bool erase(const U& key)
 		{
 			const auto it = this->find(key);
 			if (it == this->end()) return false;
@@ -420,7 +420,7 @@ namespace FlatContainers
 
 
 		// Invalidates iterators of erased and final value
-		iterator erase(const iterator it)
+		constexpr iterator erase(const iterator it)
 		{
 			if (it == this->end()) return it;
 
@@ -436,7 +436,7 @@ namespace FlatContainers
 
 
 		// Invalidates iterators of erased and final value
-		reverse_iterator erase(const reverse_iterator rit)
+		constexpr reverse_iterator erase(const reverse_iterator rit)
 		{
 			if (rit == this->rend()) return rit;
 

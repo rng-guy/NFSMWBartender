@@ -136,7 +136,7 @@ namespace HeatParameters
 		Bounds<T> limits;
 
 
-		explicit constexpr Pair
+		constexpr explicit Pair
 		(
 			const T         original, 
 			const Bounds<T> limits = {}
@@ -144,7 +144,7 @@ namespace HeatParameters
 		requires (Concepts::IsBoundsCompatible<T>) : current(original), limits(limits) {}
 
 
-		explicit constexpr Pair(const T original) 
+		constexpr explicit Pair(const T original) 
 		requires (not Concepts::IsBoundsCompatible<T>) : current(original), limits({}) {}
 
 
@@ -225,7 +225,7 @@ namespace HeatParameters
 		const char* current;
 
 
-		explicit constexpr PointerPair(const char* const original) : current(original) {}
+		constexpr explicit PointerPair(const char* const original) : current(original) {}
 
 
 		constexpr void SetToHeat
@@ -256,7 +256,7 @@ namespace HeatParameters
 		Pair<T> values;
 
 
-		explicit constexpr OptionalPair(const Bounds<T> limits = {})
+		constexpr explicit OptionalPair(const Bounds<T> limits = {})
 		requires (Concepts::IsBoundsCompatible<T>) : values(T(), limits) {}
 
 
@@ -345,7 +345,7 @@ namespace HeatParameters
 		Pair<T> maxValues;
 
 
-		explicit constexpr Interval
+		constexpr explicit Interval
 		(
 			const T         originalMin,
 			const T         originalMax,
@@ -405,7 +405,7 @@ namespace HeatParameters
 		Pair<T> maxValues;
 
 
-		explicit constexpr OptionalInterval(const Bounds<T> limits = {}) : minValues(T(), limits), maxValues(T(), limits) {}
+		constexpr explicit OptionalInterval(const Bounds<T> limits = {}) : minValues(T(), limits), maxValues(T(), limits) {}
 
 
 		constexpr void SetToHeat

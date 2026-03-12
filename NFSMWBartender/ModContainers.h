@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <vector>
-#include <optional>
+#include <concepts>
 #include <functional>
 #include <string_view>
 #include <type_traits>
@@ -49,7 +49,7 @@ namespace ModContainers
 
 
 
-	// ModContainer objects -------------------------------------------------------------------------------------------------------------------------
+	// Helper structs -------------------------------------------------------------------------------------------------------------------------------
 
 	struct AlwaysTrue
 	{
@@ -72,6 +72,10 @@ namespace ModContainers
 
 
 
+
+
+	// DefaultMap class -----------------------------------------------------------------------------------------------------------------------------
+
 	template <typename K, typename V, bool returnReferences>
 	requires (std::is_trivially_copyable_v<K> and std::is_trivially_copyable_v<V>)
 	class DefaultMap
@@ -88,7 +92,7 @@ namespace ModContainers
 
 		using ReturnType = std::conditional_t<returnReferences, const V&, V>;
 
-		explicit DefaultMap(const V defaultValue) : defaultValue(defaultValue) {}
+		constexpr explicit DefaultMap(const V defaultValue) : defaultValue(defaultValue) {}
 
 
 		
@@ -129,6 +133,7 @@ namespace ModContainers
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<3>(static_cast<int>(numPairs), "pair(s) provided");
 
+				// Key-value insertion
 				for (size_t pairID = 0; pairID < numPairs; ++pairID)
 				{
 					const RawK& rawKey = rawKeys[pairID];
@@ -154,6 +159,7 @@ namespace ModContainers
 						Globals::logger.Log<3>('-', rawKey, "(invalid value)");
 				}
 
+				// Concluding validation
 				if (defaultProvided or (not this->map.empty()))
 				{
 					mapIsValid = true;

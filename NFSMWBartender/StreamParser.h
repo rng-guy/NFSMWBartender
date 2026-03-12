@@ -105,6 +105,15 @@ namespace StreamParser
 
 
 
+		constexpr std::string_view GetEnclosed(const std::string_view view) noexcept
+		{
+			if (view.size() <= 2) return {};
+
+			return view.substr(1, view.length() - 2);
+		}
+
+
+
 		constexpr std::string_view TrimLeft(const std::string_view view) noexcept
 		{
 			const size_t numChars = std::distance(view.begin(), std::ranges::find_if_not(view, IsWhitespace));
@@ -381,11 +390,15 @@ namespace StreamParser
 				{
 					if (content.ends_with(end))
 					{
-						const std::string_view section = content.substr(1, content.length() - 2);
+						const std::string_view section = Details::Trim(Details::GetEnclosed(content));
 
-						const auto [pair, wasAdded] = this->sections.try_emplace(section, pairCapacityEach);
+						if (not section.empty())
+						{
+							const auto [pair, wasAdded] = this->sections.try_emplace(section, pairCapacityEach);
 
-						currentSection = &(pair->second);
+							currentSection = &(pair->second);
+						}
+						else currentSection = nullptr; // empty
 					}
 					else currentSection = nullptr; // mangled
 
