@@ -117,6 +117,12 @@ namespace PursuitFeatures
 		}
 
 
+		void DisableInterval()
+		{
+			this->isEnabled = false;
+		}
+
+
 		void UpdateParameters
 		(
 			const bool  isEnabled,

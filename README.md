@@ -39,6 +39,8 @@ The "Basic" feature set **lets you change** (per Heat level)
 * whether player-damaged cop vehicles are destroyed instantly if flipped over,
 * when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
 * when exactly (if at all) racer vehicles are reset if flipped over,
+* whether the Speedbreaker's vanilla recharging mechanics work in pursuits,
+* the Speedbreaker-charge gain / loss from destroying any cop vehicle,
 * which pursuit jurisdiction dispatch announces over radio after a Heat transition,
 * which of the enabled ground supports the cops can request in non-player pursuits,
 * the internal cooldown between non-Strategy roadblock requests,
@@ -58,6 +60,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 
 The "Basic" feature set **also lets you change** (in general)
 * which pursuit stats (e.g. pursuit length, bounty) the game also tracks in races;
+* the Speedbreaker-charge gain / loss from destroying a cop vehicle of a given type;
 * whether a given cop vehicle is affected by pursuit-breaker instakills of any kind;
 * which notification string the game displays whenever you destroy a given cop vehicle;
 * which radio callsigns and chatter a given cop vehicle can trigger in player pursuits;

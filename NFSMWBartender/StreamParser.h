@@ -11,7 +11,6 @@
 #include <concepts>
 #include <optional>
 #include <algorithm>
-#include <functional>
 #include <string_view>
 #include <type_traits>
 #include <system_error>

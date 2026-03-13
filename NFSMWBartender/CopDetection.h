@@ -98,8 +98,7 @@ namespace CopDetection
 			const address copPosition = GetVehiclePosition(copVehicle);
 			if (not copPosition) return false; // should never happen
 
-			const address playerVehicle  = *reinterpret_cast<volatile address*>(Globals::playerPerpVehicle - 0x758 + 0x4C - 0x4);
-			const address playerPosition = GetVehiclePosition(playerVehicle);
+			const address playerPosition = GetVehiclePosition(Globals::GetPlayerVehicle());
 			if (not playerPosition) return false; // should never happen
 
 			if (GetSquaredDistance(copPosition, playerPosition) <= iconRange * iconRange)

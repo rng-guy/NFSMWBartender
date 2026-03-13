@@ -96,6 +96,7 @@ namespace Globals
 		const auto GetVaultAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454190);
 
 		const address node = GetVaultNode(rootKey, nodeKey);
+
 		return (node and attributeKey) ? GetVaultAttribute(node, attributeKey, attributeIndex) : node;
 	}
 
@@ -111,7 +112,8 @@ namespace Globals
 		const auto GetPursuitAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
 
 		const address node = GetPursuitNode(pursuit);
-		return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : node;
+
+		return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : 0x0;
 	}
 
 	
@@ -123,7 +125,7 @@ namespace Globals
 	vault GetVehicleTypeClass(const vault type)
 	{
 		const address attribute = GetFromVault(0x4A97EC8F, type, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
-		return (attribute) ? *reinterpret_cast<volatile vault*>(attribute + 0x8) : attribute;
+		return (attribute) ? *reinterpret_cast<volatile vault*>(attribute + 0x8) : 0x0;
 	}
 
 
@@ -158,17 +160,22 @@ namespace Globals
 
 	// Vehicle-object functions ---------------------------------------------------------------------------------------------------------------------
 
-	address GetAIVehicle(const address vehicle)
+	address GetPlayerVehicle()
 	{
-		return *reinterpret_cast<volatile address*>(vehicle + 0x54);
+		return (playerPerpVehicle) ? *reinterpret_cast<volatile address*>(playerPerpVehicle - 0x758 + 0x4C - 0x4) : 0x0;
 	}
 
+
+	address GetAIVehicle(const address vehicle)
+	{
+		return (vehicle) ? *reinterpret_cast<volatile address*>(vehicle + 0x54) : 0x0;
+	}
 
 
 	address GetAIVehiclePursuit(const address copVehicle)
 	{
 		const address copAIVehicle = GetAIVehicle(copVehicle);
-		return (copAIVehicle) ? (copAIVehicle - 0x4C + 0x758) : copAIVehicle;
+		return (copAIVehicle) ? (copAIVehicle - 0x4C + 0x758) : 0x0;
 	}
 
 
@@ -184,7 +191,7 @@ namespace Globals
 		const auto SetSupportGoal = reinterpret_cast<void (__thiscall*)(address, vault)>       (0x409850);
 		const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault*)>(0x422480);
 
-		constexpr vault pursuitGoal = 0x492916A2; // "AIGoalPursuit"
+		static constexpr vault pursuitGoal = 0x492916A2; // "AIGoalPursuit"
 
 		SetSupportGoal(copAIVehiclePursuit, 0x0);
 		SetVehicleGoal(copAIVehicle - 0x4C, &pursuitGoal);

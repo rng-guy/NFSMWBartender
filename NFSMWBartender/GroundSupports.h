@@ -65,6 +65,41 @@ namespace GroundSupports
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	const char* __fastcall SelectHeavyVehicle
+	(
+		const size_t strategyID,
+		const bool   isHeavy
+	) {
+		switch (strategyID)
+		{
+		case 3: // ramming SUVs
+			return (isHeavy) ? heavy3HeavyVehicles.current : heavy3LightVehicles.current;
+
+		case 4: // SUV roadblock
+			return (isHeavy) ? heavy4HeavyVehicles.current : heavy4LightVehicles.current;
+		}
+
+		return (isHeavy) ? "copsuv" : "copsuvl";
+	}
+
+
+
+	const char* __fastcall SelectCrossVehicle(const size_t strategyID)
+	{
+		switch (strategyID)
+		{
+		case 5: // Cross only
+			return leader5CrossVehicles.current;
+
+		case 7: // Cross with henchmen
+			return leader7CrossVehicles.current;
+		}
+
+		return "copcross";
+	}
+
+
+
 	bool IsHeavyStrategyAvailable
 	(
 		const address pursuit,
@@ -107,6 +142,19 @@ namespace GroundSupports
 		}
 
 		return false;
+	}
+
+	
+
+	void __fastcall ReportPriorityOutcome(const address pursuit)
+	{
+		if constexpr (Globals::loggingEnabled)
+		{
+			const address leaderStrategy = *reinterpret_cast<volatile address*>(pursuit + 0x198);
+			const int     strategyID     = *reinterpret_cast<volatile int*>(leaderStrategy);
+
+			Globals::logger.Log<0>(pursuit, "[SUP] Priority: LeaderStrategy", strategyID);
+		}
 	}
 
 
@@ -296,28 +344,7 @@ namespace GroundSupports
 
 
 
-
-
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
-
-	constexpr address crossSubEntrance = 0x41F504;
-	constexpr address crossSubExit     = 0x41F50C;
-
-	// Replaces Cross' vehicle
-	__declspec(naked) void CrossSub()
-	{
-		__asm
-		{
-			mov ecx, dword ptr leader5CrossVehicles.current
-			cmovne ecx, dword ptr leader7CrossVehicles.current // not LeaderStrategy 5
-
-			mov dword ptr [esp + 0x24], ecx
-
-			jmp dword ptr crossSubExit
-		}
-	}
-
-
 
 	constexpr address onAttachedEntrance = 0x424036;
 	constexpr address onAttachedExit     = 0x42403C;
@@ -328,7 +355,7 @@ namespace GroundSupports
 		__asm
 		{
 			cmp byte ptr LeaderOverrides::featureEnabled, 0x1
-			je conclusion // Cross flag managed by "Advanced" feature set
+			je conclusion // flag managed by "Advanced" feature set
 
 			mov edx, dword ptr [edi + 0x54]       // AIVehicle
 			cmp byte ptr [edx - 0x4C + 0x83], 0x1 // padding byte: Cross flag (car)
@@ -403,6 +430,7 @@ namespace GroundSupports
 			mov eax, dword ptr leader7Hench1Vehicles.current
 			mov edx, dword ptr leader7Hench2Vehicles.current
 
+			// Only LeaderStrategy 7 reads these
 			mov dword ptr [esp + 0x24], eax
 			mov dword ptr [esp + 0x28], edx
 
@@ -422,17 +450,36 @@ namespace GroundSupports
 	{
 		__asm
 		{
-			mov eax, dword ptr heavy3LightVehicles.current
-			cmovl eax, dword ptr heavy3HeavyVehicles.current // is "heavy"
+			mov eax, dword ptr [esi]
 
-			mov edx, dword ptr heavy4LightVehicles.current
-			cmovl edx, dword ptr heavy4HeavyVehicles.current // is "heavy"
-
-			mov ecx, dword ptr [esi] // Strategy ID
-			cmp dword ptr [ecx], 0x3
-			cmovne eax, edx          // not HeavyStrategy 3
+			setl dl
+			mov ecx, dword ptr [eax]
+			call SelectHeavyVehicle // ecx: strategyID, dl: isHeavy
 
 			jmp dword ptr heavySelectorExit
+		}
+	}
+
+
+
+	constexpr address crossSelectorEntrance = 0x41F504;
+	constexpr address crossSelectorExit     = 0x41F50C;
+
+	// Replaces Cross' vehicle
+	__declspec(naked) void CrossSelector()
+	{
+		__asm
+		{
+			mov edi, eax
+
+			lea ecx, dword ptr [eax + 0x5]
+			call SelectCrossVehicle // ecx: strategyID
+			mov dword ptr [esp + 0x24], eax
+
+			test edi, edi
+			mov eax, edi
+
+			jmp dword ptr crossSelectorExit
 		}
 	}
 
@@ -501,6 +548,26 @@ namespace GroundSupports
 
 			skip:
 			jmp dword ptr rivalRoadblockSkip
+		}
+	}
+
+
+
+	constexpr address priorityOutcomeEntrance = 0x419770;
+	constexpr address priorityOutcomeExit     = 0x419776;
+
+	// Reports the outcome of LeaderStrategy priority
+	__declspec(naked) void PriorityOutcome()
+	{
+		__asm
+		{
+			// Execute original code first
+			mov dword ptr [esi + 0x208], eax
+
+			mov ecx, esi
+			call ReportPriorityOutcome // ecx: pursuit
+
+			jmp dword ptr priorityOutcomeExit
 		}
 	}
 
@@ -758,19 +825,23 @@ namespace GroundSupports
 		// Check whether vehicles are cars
 		ValidateVehicleTypes();
 
-		// Code modifications 
+		// Code modifications (feature-specific)
+		if constexpr (Globals::loggingEnabled)
+			MemoryTools::MakeRangeJMP(PriorityOutcome, priorityOutcomeEntrance, priorityOutcomeExit);
+
+		// Code modifications (geneal)
 		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),       {0x42BEBC});
 		MemoryTools::Write<float*>(&(maxRBJoinElevationDeltas.current), {0x42BE3A});
 
 		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
 		MemoryTools::MakeRangeNOP(0x42402A, 0x424036); // Cross flag = 1
 
-		MemoryTools::MakeRangeJMP(CrossSub,           crossSubEntrance,           crossSubExit);
 		MemoryTools::MakeRangeJMP(OnAttached,         onAttachedEntrance,         onAttachedExit);
 		MemoryTools::MakeRangeJMP(OnDetached,         onDetachedEntrance,         onDetachedExit);
 		MemoryTools::MakeRangeJMP(CrossSpawn,         crossSpawnEntrance,         crossSpawnExit);
 		MemoryTools::MakeRangeJMP(HenchmenSub,        henchmenSubEntrance,        henchmenSubExit);
 		MemoryTools::MakeRangeJMP(HeavySelector,      heavySelectorEntrance,      heavySelectorExit);
+		MemoryTools::MakeRangeJMP(CrossSelector,      crossSelectorEntrance,      crossSelectorExit);
 		MemoryTools::MakeRangeJMP(CrossPriority,      crossPriorityEntrance,      crossPriorityExit);
 		MemoryTools::MakeRangeJMP(RivalRoadblock,     rivalRoadblockEntrance,     rivalRoadblockExit);
 		MemoryTools::MakeRangeJMP(RequestCooldown,    requestCooldownEntrance,    requestCooldownExit);

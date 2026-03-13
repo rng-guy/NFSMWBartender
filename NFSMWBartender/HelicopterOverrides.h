@@ -244,7 +244,7 @@ namespace HelicopterOverrides
 				break;
 
 			default:
-				return; // e.g. Status::REJOINING
+				return; // ACTIVE, REJOINING
 			}
 
 			if (not this->spawnTimer.IsSet())

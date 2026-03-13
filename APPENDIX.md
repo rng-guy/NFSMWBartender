@@ -189,6 +189,8 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 * Resets of flipped racers happen only at Heat levels for which you define a valid delay value.
 
+* For further Speedbreaker customisation, use the [NFSMWSpeedFixer](https://github.com/rng-guy/NFSMWSpeedFixer) mod by rng_guy.
+
 * If you don't define a valid `default` breaker flag, Bartender uses `true` instead.
 
 * If you define no valid breaker flags and no `default`, Bartender disables its breaker feature.

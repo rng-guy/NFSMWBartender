@@ -110,31 +110,81 @@ namespace LeaderOverrides
 		}
 
 
+		void ProcessCrossExpiration()
+		{
+			switch (this->lastStrategyID)
+			{
+			case 5: // Cross only
+				this->flagResetTimer.LoadInterval(leader5ExpireResetDelays);
+				return;
+
+			case 7: // Cross with henchmen
+				this->flagResetTimer.LoadInterval(leader7ExpireResetDelays);
+				return;
+			}
+
+			this->flagResetTimer.UpdateParameters(true, 1.f, 1.f); // vanilla-like
+		}
+
+
+		void ProcessCrossWreck()
+		{
+			switch (this->lastStrategyID)
+			{
+			case 5: // Cross only
+				this->flagResetTimer.LoadInterval(leader5WreckResetDelays);
+				return;
+
+			case 7: // Cross with henchmen
+				this->flagResetTimer.LoadInterval(leader7WreckResetDelays);
+				return;
+			}
+
+			this->flagResetTimer.DisableInterval(); // vanilla-like
+		}
+
+
+		void ProcessCrossLoss()
+		{
+			switch (this->lastStrategyID)
+			{
+			case 5: // Cross only
+				this->flagResetTimer.LoadInterval(leader5LostResetDelays);
+				return;
+
+			case 7: // Cross with henchmen
+				this->flagResetTimer.LoadInterval(leader7LostResetDelays);
+				return;
+			}
+
+			this->flagResetTimer.UpdateParameters(true, 1.f, 1.f); // vanilla-like
+		}
+
+
 		void UpdateFlagResetTimer()
 		{
 			std::string_view statusName;
 
-			const bool isLeader7 = (this->lastStrategyID == 7);
-
+			// Reset-timer selection
 			switch (this->crossStatus)
 			{
 			case Status::EXPIRED:
 				statusName = "(expire)";
-				this->flagResetTimer.LoadInterval((isLeader7) ? leader7ExpireResetDelays : leader5ExpireResetDelays);
+				this->ProcessCrossExpiration();
 				break;
 
 			case Status::WRECKED:
 				statusName = "(wreck)";
-				this->flagResetTimer.LoadInterval((isLeader7) ? leader7WreckResetDelays : leader5WreckResetDelays);
+				this->ProcessCrossWreck();
 				break;
 
 			case Status::LOST:
 				statusName = "(lost)";
-				this->flagResetTimer.LoadInterval((isLeader7) ? leader7LostResetDelays : leader5LostResetDelays);
+				this->ProcessCrossLoss();
 				break;
 
 			default:
-				return; // e.g. Status::PENDING
+				return; // ACTIVE, PENDING
 			}
 
 			if (not flagResetTimer.IsSet())
@@ -185,15 +235,79 @@ namespace LeaderOverrides
 		}
 
 
-		void UpdateExpirationTimestamp()
+		void ProcessAddedCross(const address copVehicle)
 		{
+			this->skipPriority = true;
+			this->crossVehicle = copVehicle;
+			this->flagResetTimer.Stop();
+
 			this->expirationTimestamp = Globals::simulationTime;
 
 			if (this->leaderStrategy)
+			{
+				this->lastStrategyID       = *reinterpret_cast<volatile int*>  (this->leaderStrategy);
 				this->expirationTimestamp += *reinterpret_cast<volatile float*>(this->leaderStrategy + 0x8);
 
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [LDR] Invalid duration pointer in", this->pursuit);
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log(this->pursuit, "[LDR] Strategy ID now", this->lastStrategyID);
+			}
+			else this->lastStrategyID = 0;
+
+			this->SetCrossStatus(Status::ACTIVE);
+
+			// Aggro-timer selection
+			switch (this->lastStrategyID)
+			{
+			case 5: // Cross only
+				this->crossAggroTimer.LoadInterval(leader5CrossAggroDelays);
+				break;
+
+			case 7: // Cross with henchmen
+				this->crossAggroTimer.LoadInterval(leader7CrossAggroDelays);
+				break;
+
+			default:
+				this->crossAggroTimer.DisableInterval();
+
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log("WARNING: [LDR] LeaderStrategy", this->lastStrategyID, "in", pursuit);
+			}
+
+			this->crossAggroTimer.Start();
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->crossAggroTimer.IsIntervalEnabled())
+					Globals::logger.Log(this->pursuit, "[LDR] Cross aggro in", this->crossAggroTimer.GetLength());
+			}
+		}
+
+
+		void ProcessAddedHenchman(const address copVehicle)
+		{
+			this->passiveHenchmenVehicles.insert(copVehicle);
+
+			if (not this->henchmenAggroTimer.IsSet())
+			{
+				// Aggro-timer selection
+				switch (this->lastStrategyID)
+				{
+				case 7: // Cross with henchmen
+					this->henchmenAggroTimer.LoadInterval(leader7HenchAggroDelays);
+					break;
+
+				default:
+					this->henchmenAggroTimer.DisableInterval();
+				}
+
+				this->henchmenAggroTimer.Start();
+
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (this->henchmenAggroTimer.IsIntervalEnabled())
+						Globals::logger.Log(this->pursuit, "[LDR] Henchmen aggro in", this->henchmenAggroTimer.GetLength());
+				}
+			}
 		}
 
 
@@ -240,45 +354,10 @@ namespace LeaderOverrides
 			if (copLabel != CopLabel::LEADER) return;
 
 			if (not this->crossVehicle) // Cross always joins first
-			{
-				this->crossVehicle = copVehicle;
-				this->flagResetTimer.Stop();
+				this->ProcessAddedCross(copVehicle);
 
-				this->skipPriority = true;
-
-				this->UpdateExpirationTimestamp();
-				this->SetCrossStatus(Status::ACTIVE);
-
-				this->lastStrategyID = (this->leaderStrategy) ? *reinterpret_cast<volatile int*>(this->leaderStrategy) : 5;
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[LDR] Strategy ID now", this->lastStrategyID);
-
-				this->crossAggroTimer.LoadInterval((this->lastStrategyID == 7) ? leader7CrossAggroDelays : leader5CrossAggroDelays);
-				this->crossAggroTimer.Start();
-
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (this->crossAggroTimer.IsIntervalEnabled())
-						Globals::logger.Log(this->pursuit, "[LDR] Cross aggro in", this->crossAggroTimer.GetLength());
-				}
-			}
 			else
-			{
-				this->passiveHenchmenVehicles.insert(copVehicle);
-
-				if (not this->henchmenAggroTimer.IsSet())
-				{
-					this->henchmenAggroTimer.LoadInterval(leader7HenchAggroDelays);
-					this->henchmenAggroTimer.Start();
-
-					if constexpr (Globals::loggingEnabled)
-					{
-						if (this->henchmenAggroTimer.IsIntervalEnabled())
-							Globals::logger.Log(this->pursuit, "[LDR] Henchmen aggro in", this->henchmenAggroTimer.GetLength());
-					}
-				}
-			}
+				this->ProcessAddedHenchman(copVehicle);
 		}
 
 
@@ -296,6 +375,7 @@ namespace LeaderOverrides
 				this->crossVehicle = 0x0;
 				this->crossAggroTimer.Stop();
 
+				// Cause of Cross despawn
 				if (Globals::IsVehicleDestroyed(copVehicle))
 					this->SetCrossStatus(Status::WRECKED);
 				

@@ -242,8 +242,10 @@ namespace StrategyOverrides
 				break;
 
 			default:
+				manager->unblockTimer.DisableInterval();
+
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] Unknown HeavyStrategy", strategyID, "in", pursuit);
+					Globals::logger.Log("WARNING: [STR] HeavyStrategy", strategyID, "in", pursuit);
 
 				return; // should never happen
 			}
@@ -283,10 +285,10 @@ namespace StrategyOverrides
 				break;
 
 			default:
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] Unknown LeaderStrategy", strategyID, "in", pursuit);
+				manager->unblockTimer.DisableInterval();
 
-				return; // should never happen
+				if constexpr (Globals::loggingEnabled)
+					Globals::logger.Log("WARNING: [STR] LeaderStrategy", strategyID, "in", pursuit);
 			}
 
 			if constexpr (Globals::loggingEnabled)
