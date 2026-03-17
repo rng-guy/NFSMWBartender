@@ -173,9 +173,9 @@ namespace MemoryTools
 
 		if (opcode != 0xE8)
 		{
-			// Should never happen in any remotely tested release build
 			MessageBoxA(NULL, std::format("Expected opcode 0xE8 at address {:08x}!", location).c_str(), "Fatal hooking error", MB_ICONERROR);
 
+			// Mod corrupted; terminate for safety
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
 
