@@ -620,7 +620,7 @@ namespace CopFleeOverrides
 		HeatParameters::Parse(parser, "Joining:Fleeing",     joinedHeavy3FleeDelays, joinedHeavy3Thresholds);
 
 		// Code modifications 
-		MemoryTools::MakeRangeJMP(GoalUpdate, goalUpdateEntrance, goalUpdateExit);
+		MemoryTools::MakeRangeJMP<goalUpdateEntrance, goalUpdateExit>(GoalUpdate);
 
 		// Status flag
 		featureEnabled = true;

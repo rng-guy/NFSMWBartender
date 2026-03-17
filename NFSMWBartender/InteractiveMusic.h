@@ -256,10 +256,10 @@ namespace InteractiveMusic
 		ParseSettings(parser);
 
 		// Code modifications 
-		MemoryTools::MakeRangeJMP(NextTrack,       nextTrackEntrance,       nextTrackExit);
-		MemoryTools::MakeRangeJMP(FirstTrack,      firstTrackEntrance,      firstTrackExit);
-		MemoryTools::MakeRangeJMP(MainTransition,  mainTransitionEntrance,  mainTransitionExit);
-		MemoryTools::MakeRangeJMP(OtherTransition, otherTransitionEntrance, otherTransitionExit);
+		MemoryTools::MakeRangeJMP<nextTrackEntrance,       nextTrackExit>      (NextTrack);
+		MemoryTools::MakeRangeJMP<firstTrackEntrance,      firstTrackExit>     (FirstTrack);
+		MemoryTools::MakeRangeJMP<mainTransitionEntrance,  mainTransitionExit> (MainTransition);
+		MemoryTools::MakeRangeJMP<otherTransitionEntrance, otherTransitionExit>(OtherTransition);
 
 		// Status flag
 		featureEnabled = true;

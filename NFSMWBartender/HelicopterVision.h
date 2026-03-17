@@ -218,7 +218,7 @@ namespace HelicopterVision
 	void ApplyFixes()
 	{
 		// Also fixes the helicopter cone icon staying visible if destroyed
-		MemoryTools::MakeRangeJMP(ConeIconColour, coneIconColourEntrance, coneIconColourExit);
+		MemoryTools::MakeRangeJMP<coneIconColourEntrance, coneIconColourExit>(ConeIconColour);
 	}
 
 

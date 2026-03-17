@@ -791,10 +791,10 @@ namespace GroundSupports
 	void ApplyFixes()
 	{
 		// Also fixes the unintended biases in the Strategy-selection process
-		MemoryTools::MakeRangeJMP(StrategySelection, strategySelectionEntrance, strategySelectionExit);
+		MemoryTools::MakeRangeJMP<strategySelectionEntrance, strategySelectionExit>(StrategySelection);
 
 		// Also prevents excessive joining from roadblocks
-		MemoryTools::MakeRangeJMP(RoadblockJoinCount, roadblockJoinCountEntrance, roadblockJoinCountExit);
+		MemoryTools::MakeRangeJMP<roadblockJoinCountEntrance, roadblockJoinCountExit>(RoadblockJoinCount);
 	}
 
 
@@ -828,29 +828,29 @@ namespace GroundSupports
 
 		// Code modifications (feature-specific)
 		if constexpr (Globals::loggingEnabled)
-			MemoryTools::MakeRangeJMP(PriorityOutcome, priorityOutcomeEntrance, priorityOutcomeExit);
+			MemoryTools::MakeRangeJMP<priorityOutcomeEntrance, priorityOutcomeExit>(PriorityOutcome);
 
 		// Code modifications (geneal)
 		MemoryTools::Write<float*>(&(maxRBJoinDistances.current),       {0x42BEBC});
 		MemoryTools::Write<float*>(&(maxRBJoinElevationDeltas.current), {0x42BE3A});
 
-		MemoryTools::MakeRangeNOP(0x42BEB6, 0x42BEBA); // roadblock-joining flag reset
-		MemoryTools::MakeRangeNOP(0x42402A, 0x424036); // Cross flag = 1
+		MemoryTools::MakeRangeNOP<0x42BEB6, 0x42BEBA>(); // roadblock-joining flag reset
+		MemoryTools::MakeRangeNOP<0x42402A, 0x424036>(); // Cross flag = 1
 
-		MemoryTools::MakeRangeJMP(OnAttached,         onAttachedEntrance,         onAttachedExit);
-		MemoryTools::MakeRangeJMP(OnDetached,         onDetachedEntrance,         onDetachedExit);
-		MemoryTools::MakeRangeJMP(CrossSpawn,         crossSpawnEntrance,         crossSpawnExit);
-		MemoryTools::MakeRangeJMP(HenchmenSub,        henchmenSubEntrance,        henchmenSubExit);
-		MemoryTools::MakeRangeJMP(HeavySelector,      heavySelectorEntrance,      heavySelectorExit);
-		MemoryTools::MakeRangeJMP(CrossSelector,      crossSelectorEntrance,      crossSelectorExit);
-		MemoryTools::MakeRangeJMP(CrossPriority,      crossPriorityEntrance,      crossPriorityExit);
-		MemoryTools::MakeRangeJMP(RivalRoadblock,     rivalRoadblockEntrance,     rivalRoadblockExit);
-		MemoryTools::MakeRangeJMP(RequestCooldown,    requestCooldownEntrance,    requestCooldownExit);
-		MemoryTools::MakeRangeJMP(RoadblockCooldown,  roadblockCooldownEntrance,  roadblockCooldownExit);
-		MemoryTools::MakeRangeJMP(RoadblockDistance,  roadblockDistanceEntrance,  roadblockDistanceExit);
-		MemoryTools::MakeRangeJMP(SpikesHitReaction,  spikesHitReactionEntrance,  spikesHitReactionExit);
-		MemoryTools::MakeRangeJMP(RoadblockFormation, roadblockFormationEntrance, roadblockFormationExit);
-		MemoryTools::MakeRangeJMP(RoadblockJoinTimer, roadblockJoinTimerEntrance, roadblockJoinTimerExit);
+		MemoryTools::MakeRangeJMP<onAttachedEntrance,         onAttachedExit>        (OnAttached);
+		MemoryTools::MakeRangeJMP<onDetachedEntrance,         onDetachedExit>        (OnDetached);
+		MemoryTools::MakeRangeJMP<crossSpawnEntrance,         crossSpawnExit>        (CrossSpawn);
+		MemoryTools::MakeRangeJMP<henchmenSubEntrance,        henchmenSubExit>       (HenchmenSub);
+		MemoryTools::MakeRangeJMP<heavySelectorEntrance,      heavySelectorExit>     (HeavySelector);
+		MemoryTools::MakeRangeJMP<crossSelectorEntrance,      crossSelectorExit>     (CrossSelector);
+		MemoryTools::MakeRangeJMP<crossPriorityEntrance,      crossPriorityExit>     (CrossPriority);
+		MemoryTools::MakeRangeJMP<rivalRoadblockEntrance,     rivalRoadblockExit>    (RivalRoadblock);
+		MemoryTools::MakeRangeJMP<requestCooldownEntrance,    requestCooldownExit>   (RequestCooldown);
+		MemoryTools::MakeRangeJMP<roadblockCooldownEntrance,  roadblockCooldownExit> (RoadblockCooldown);
+		MemoryTools::MakeRangeJMP<roadblockDistanceEntrance,  roadblockDistanceExit> (RoadblockDistance);
+		MemoryTools::MakeRangeJMP<spikesHitReactionEntrance,  spikesHitReactionExit> (SpikesHitReaction);
+		MemoryTools::MakeRangeJMP<roadblockFormationEntrance, roadblockFormationExit>(RoadblockFormation);
+		MemoryTools::MakeRangeJMP<roadblockJoinTimerEntrance, roadblockJoinTimerExit>(RoadblockJoinTimer);
         
 		ApplyFixes(); // also contains Strategy-selection and roadblock-joining features
         

@@ -95,7 +95,7 @@ namespace DestructionStrings
 		if (not ParseDestructionKeys(parser)) return false; // no valid keys; disable feature
 	
 		// Code modifications 
-		MemoryTools::MakeRangeJMP(CopDestruction, copDestructionEntrance, copDestructionExit);
+		MemoryTools::MakeRangeJMP<copDestructionEntrance, copDestructionExit>(CopDestruction);
 
 		// Status flag
 		featureEnabled = true;

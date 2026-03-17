@@ -416,10 +416,10 @@ namespace PursuitObserver
 		if (not RoadblockOverrides::featureEnabled)
 			RoadblockOverrides::ApplyFixes();
 
-		MemoryTools::MakeRangeJMP(CopAdded,           copAddedEntrance,           copAddedExit);
-		MemoryTools::MakeRangeJMP(CopRemoved,         copRemovedEntrance,         copRemovedExit);
-		MemoryTools::MakeRangeJMP(PursuitDestructor,  pursuitDestructorEntrance,  pursuitDestructorExit);
-		MemoryTools::MakeRangeJMP(PursuitConstructor, pursuitConstructorEntrance, pursuitConstructorExit);
+		MemoryTools::MakeRangeJMP<copAddedEntrance,           copAddedExit>          (CopAdded);
+		MemoryTools::MakeRangeJMP<copRemovedEntrance,         copRemovedExit>        (CopRemoved);
+		MemoryTools::MakeRangeJMP<pursuitDestructorEntrance,  pursuitDestructorExit> (PursuitDestructor);
+		MemoryTools::MakeRangeJMP<pursuitConstructorEntrance, pursuitConstructorExit>(PursuitConstructor);
 
 		// Status flag
 		featureEnabled = true;

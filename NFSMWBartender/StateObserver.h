@@ -329,13 +329,13 @@ namespace StateObserver
 		OnWorldLoadUpdatesOriginal = MemoryTools::MakeCallHook(OnWorldLoadUpdates, 0x662ADC); // nullsub_174          (0x6C39C0)
 		OnRestartUpdatesOriginal   = MemoryTools::MakeCallHook(OnRestartUpdates,   0x63090B); // World_RestoreProps   (0x74D320)
 
-		MemoryTools::MakeRangeJMP(HeatEqualiser,         heatEqualiserEntrance,         heatEqualiserExit);
-		MemoryTools::MakeRangeJMP(ResetAIVehicle,        resetAIVehicleEntrance,        resetAIVehicleExit);
-		MemoryTools::MakeRangeJMP(GameStateUpdate,       gameStateUpdateEntrance,       gameStateUpdateExit);
-		MemoryTools::MakeRangeJMP(PlayerDestructor,      playerDestructorEntrance,      playerDestructorExit);
-		MemoryTools::MakeRangeJMP(HeatLevelObserver,     heatLevelObserverEntrance,     heatLevelObserverExit);
-		MemoryTools::MakeRangeJMP(PlayerConstructor,     playerConstructorEntrance,     playerConstructorExit);
-		MemoryTools::MakeRangeJMP(ResetAIVehiclePursuit, resetAIVehiclePursuitEntrance, resetAIVehiclePursuitExit);
+		MemoryTools::MakeRangeJMP<heatEqualiserEntrance,         heatEqualiserExit>        (HeatEqualiser);
+		MemoryTools::MakeRangeJMP<resetAIVehicleEntrance,        resetAIVehicleExit>       (ResetAIVehicle);
+		MemoryTools::MakeRangeJMP<gameStateUpdateEntrance,       gameStateUpdateExit>      (GameStateUpdate);
+		MemoryTools::MakeRangeJMP<playerDestructorEntrance,      playerDestructorExit>     (PlayerDestructor);
+		MemoryTools::MakeRangeJMP<heatLevelObserverEntrance,     heatLevelObserverExit>    (HeatLevelObserver);
+		MemoryTools::MakeRangeJMP<playerConstructorEntrance,     playerConstructorExit>    (PlayerConstructor);
+		MemoryTools::MakeRangeJMP<resetAIVehiclePursuitEntrance, resetAIVehiclePursuitExit>(ResetAIVehiclePursuit);
 		
 		// Status flag
 		featureEnabled = true;

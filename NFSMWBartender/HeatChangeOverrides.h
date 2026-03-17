@@ -569,21 +569,21 @@ namespace HeatChangeOverrides
 		if (ParseVehicleChanges(parser))
 		{
 			// Code modifications (feature-specific)
-			MemoryTools::MakeRangeJMP(TypeDestruction, typeDestructionEntrance, typeDestructionExit);
+			MemoryTools::MakeRangeJMP<typeDestructionEntrance, typeDestructionExit>(TypeDestruction);
 		}
 
 		// Code modifications (general)
 		MemoryTools::Write<byte>(0xEB, {0x44307F}); // Heat limits in Challenge Series events
 
-		MemoryTools::MakeRangeNOP(0x429C74, 0x429C7F); // first perp-damage check
+		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first perp-damage check
 
-		MemoryTools::MakeRangeJMP(HeatLimits,      heatLimitsEntrance,      heatLimitsExit);
-		MemoryTools::MakeRangeJMP(PassiveHeat,     passiveHeatEntrance,     passiveHeatExit);
-		MemoryTools::MakeRangeJMP(SpikeCounter,    spikeCounterEntrance,    spikeCounterExit);
-		MemoryTools::MakeRangeJMP(SupportCheck,    supportCheckEntrance,    supportCheckExit);
-		MemoryTools::MakeRangeJMP(PerpCollision,   perpCollisionEntrance,   perpCollisionExit);
-		MemoryTools::MakeRangeJMP(HeatMeterReset,  heatMeterResetEntrance,  heatMeterResetExit);
-		MemoryTools::MakeRangeJMP(HeatMeterUpdate, heatMeterUpdateEntrance, heatMeterUpdateExit);
+		MemoryTools::MakeRangeJMP<heatLimitsEntrance,      heatLimitsExit>     (HeatLimits);
+		MemoryTools::MakeRangeJMP<passiveHeatEntrance,     passiveHeatExit>    (PassiveHeat);
+		MemoryTools::MakeRangeJMP<spikeCounterEntrance,    spikeCounterExit>   (SpikeCounter);
+		MemoryTools::MakeRangeJMP<supportCheckEntrance,    supportCheckExit>   (SupportCheck);
+		MemoryTools::MakeRangeJMP<perpCollisionEntrance,   perpCollisionExit>  (PerpCollision);
+		MemoryTools::MakeRangeJMP<heatMeterResetEntrance,  heatMeterResetExit> (HeatMeterReset);
+		MemoryTools::MakeRangeJMP<heatMeterUpdateEntrance, heatMeterUpdateExit>(HeatMeterUpdate);
 
 		// Status flag
 		featureEnabled = true;

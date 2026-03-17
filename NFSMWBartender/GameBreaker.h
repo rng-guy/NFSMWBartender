@@ -66,7 +66,7 @@ namespace GameBreaker
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<1>("[SPD] Speedbreaker change:", amount);
+			Globals::logger.Log<1>("[GBR] Speedbreaker change:", amount);
 
 		const auto  ChargeGameBreaker = reinterpret_cast<void (__thiscall*)(address, float)>(0x6F8F60);
 		const float timeToRatio       = **reinterpret_cast<volatile float* volatile*>(0x6EDDC3);
@@ -201,7 +201,7 @@ namespace GameBreaker
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [SPD] Speedbreaker");
+			Globals::logger.Log("  CONFIG [GBR] GameBreaker");
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Speedbreaker.ini")) return false;
 
@@ -216,9 +216,9 @@ namespace GameBreaker
 		ParseSpeedbreakerChanges(parser);
 
 		// Code changes
-		MemoryTools::MakeRangeJMP(WreckChange,     wreckChangeEntrance,     wreckChangeExit);
-		MemoryTools::MakeRangeJMP(DriftRecharge,   driftRechargeEntrance,   driftRechargeExit);
-		MemoryTools::MakeRangeJMP(PassiveRecharge, passiveRechargeEntrance, passiveRechargeExit);
+		MemoryTools::MakeRangeJMP<wreckChangeEntrance,     wreckChangeExit>    (WreckChange);
+		MemoryTools::MakeRangeJMP<driftRechargeEntrance,   driftRechargeExit>  (DriftRecharge);
+		MemoryTools::MakeRangeJMP<passiveRechargeEntrance, passiveRechargeExit>(PassiveRecharge);
 
 		// Status flag
 		featureEnabled = true;
@@ -230,7 +230,7 @@ namespace GameBreaker
 
 	void LogHeatReport()
 	{
-		Globals::logger.Log("    HEAT [SPD] Speedbreaker");
+		Globals::logger.Log("    HEAT [GBR] GameBreaker");
 
 		passiveRechargeEnableds.Log("passiveRechargeEnabled  ");
 		driftRechargeEnableds  .Log("driftRechargeEnabled    ");

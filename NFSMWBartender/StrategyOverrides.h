@@ -668,25 +668,25 @@ namespace StrategyOverrides
 		MemoryTools::Write<byte>   (0xE9,  {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
 		MemoryTools::Write<address>(0x2A3, {0x44384B});
 
-		MemoryTools::MakeRangeNOP(0x4240BD, 0x4240C3); // OnAttached increment
-		MemoryTools::MakeRangeNOP(0x42B717, 0x42B72E); // OnDetached decrement
+		MemoryTools::MakeRangeNOP<0x4240BD, 0x4240C3>(); // OnAttached increment
+		MemoryTools::MakeRangeNOP<0x42B717, 0x42B72E>(); // OnDetached decrement
 
-		MemoryTools::MakeRangeJMP(GoalReset,      goalResetEntrance,      goalResetExit);
-		MemoryTools::MakeRangeJMP(HeavyGoal,      heavyGoalEntrance,      heavyGoalExit);
-		MemoryTools::MakeRangeJMP(Heavy3Count,    heavy3CountEntrance,    heavy3CountExit);
-		MemoryTools::MakeRangeJMP(Heavy3Setup,    heavy3SetupEntrance,    heavy3SetupExit);
-		MemoryTools::MakeRangeJMP(ClearRequest,   clearRequestEntrance,   clearRequestExit);
-		MemoryTools::MakeRangeJMP(Heavy3Position, heavy3PositionEntrance, heavy3PositionExit);
-		MemoryTools::MakeRangeJMP(LeaderStrategy, leaderStrategyEntrance, leaderStrategyExit);
-		MemoryTools::MakeRangeJMP(HeavyStrategy3, heavyStrategy3Entrance, heavyStrategy3Exit);
-		MemoryTools::MakeRangeJMP(HeavyStrategy4, heavyStrategy4Entrance, heavyStrategy4Exit);
+		MemoryTools::MakeRangeJMP<goalResetEntrance,      goalResetExit>     (GoalReset);
+		MemoryTools::MakeRangeJMP<heavyGoalEntrance,      heavyGoalExit>     (HeavyGoal);
+		MemoryTools::MakeRangeJMP<heavy3CountEntrance,    heavy3CountExit>   (Heavy3Count);
+		MemoryTools::MakeRangeJMP<heavy3SetupEntrance,    heavy3SetupExit>   (Heavy3Setup);
+		MemoryTools::MakeRangeJMP<clearRequestEntrance,   clearRequestExit>  (ClearRequest);
+		MemoryTools::MakeRangeJMP<heavy3PositionEntrance, heavy3PositionExit>(Heavy3Position);
+		MemoryTools::MakeRangeJMP<leaderStrategyEntrance, leaderStrategyExit>(LeaderStrategy);
+		MemoryTools::MakeRangeJMP<heavyStrategy3Entrance, heavyStrategy3Exit>(HeavyStrategy3);
+		MemoryTools::MakeRangeJMP<heavyStrategy4Entrance, heavyStrategy4Exit>(HeavyStrategy4);
 
 		// Code modifications (feature-specific)
 		if (not GeneralSettings::trackPursuitLength)
 		{
-			MemoryTools::MakeRangeJMP(MinStrategyDelay,   minStrategyDelayEntrance,   minStrategyDelayExit);
-			MemoryTools::MakeRangeJMP(MinRoadblockDelay,  minRoadblockDelayEntrance,  minRoadblockDelayExit);
-			MemoryTools::MakeRangeJMP(CrossPriorityDelay, crossPriorityDelayEntrance, crossPriorityDelayExit);
+			MemoryTools::MakeRangeJMP<minStrategyDelayEntrance,   minStrategyDelayExit>  (MinStrategyDelay);
+			MemoryTools::MakeRangeJMP<minRoadblockDelayEntrance,  minRoadblockDelayExit> (MinRoadblockDelay);
+			MemoryTools::MakeRangeJMP<crossPriorityDelayEntrance, crossPriorityDelayExit>(CrossPriorityDelay);
 		}
 
 		// Status flag

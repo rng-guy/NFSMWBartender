@@ -422,9 +422,9 @@ namespace LeaderOverrides
 		HeatParameters::Parse(parser, "Leader7:LostReset",     leader7LostResetDelays);
 
 		// Code modifications
-		MemoryTools::MakeRangeNOP(0x42B6A2, 0x42B6B4); // Cross flag = 0
-		MemoryTools::MakeRangeNOP(0x42402A, 0x424036); //              1
-		MemoryTools::MakeRangeNOP(0x42B631, 0x42B643); //              2
+		MemoryTools::MakeRangeNOP<0x42B6A2, 0x42B6B4>(); // Cross flag = 0
+		MemoryTools::MakeRangeNOP<0x42402A, 0x424036>(); //              1
+		MemoryTools::MakeRangeNOP<0x42B631, 0x42B643>(); //              2
 
 		// Status flag
 		featureEnabled = true;

@@ -322,11 +322,12 @@ namespace RadioChatter
 
 	void ApplyFixes()
 	{
-		// Fixes radio announcements for Heat levels > 5
-		MemoryTools::MakeRangeNOP(0x71D345, 0x71D370); // Heat-level 1 filter
-		MemoryTools::MakeRangeJMP(HeatCheck,     heatCheckEntrance,     heatCheckExit);
-		MemoryTools::MakeRangeJMP(HeatReport,    heatReportEntrance,    heatReportExit);
-		MemoryTools::MakeRangeJMP(PlayerPursuit, playerPursuitEntrance, playerPursuitExit);
+		// All these fix radio announcements for Heat levels > 5
+		MemoryTools::MakeRangeNOP<0x71D345, 0x71D370>(); // Heat-level 1 filter
+
+		MemoryTools::MakeRangeJMP<heatCheckEntrance,     heatCheckExit>    (HeatCheck);
+		MemoryTools::MakeRangeJMP<heatReportEntrance,    heatReportExit>   (HeatReport);
+		MemoryTools::MakeRangeJMP<playerPursuitEntrance, playerPursuitExit>(PlayerPursuit);
 	}
 
 
@@ -347,14 +348,14 @@ namespace RadioChatter
 			// Code modifications (feature-specific)
 			MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up stack variable
 
-			MemoryTools::MakeRangeJMP(CrossCallsign,    crossCallsignEntrance,    crossCallsignExit);
-			MemoryTools::MakeRangeJMP(FirstCallsign,    firstCallsignEntrance,    firstCallsignExit);
-			MemoryTools::MakeRangeJMP(SecondCallsign,   secondCallsignEntrance,   secondCallsignExit);
-			MemoryTools::MakeRangeJMP(CollisionCallout, collisionCalloutEntrance, collisionCalloutExit);
+			MemoryTools::MakeRangeJMP<crossCallsignEntrance,    crossCallsignExit>   (CrossCallsign);
+			MemoryTools::MakeRangeJMP<firstCallsignEntrance,    firstCallsignExit>   (FirstCallsign);
+			MemoryTools::MakeRangeJMP<secondCallsignEntrance,   secondCallsignExit>  (SecondCallsign);
+			MemoryTools::MakeRangeJMP<collisionCalloutEntrance, collisionCalloutExit>(CollisionCallout);
 		}
 
 		// Code modifications (general)
-		MemoryTools::MakeRangeJMP(JurisdictionReport, jurisdictionReportEntrance, jurisdictionReportExit);
+		MemoryTools::MakeRangeJMP<jurisdictionReportEntrance, jurisdictionReportExit>(JurisdictionReport);
 
 		ApplyFixes(); // fixes announcements for Heat levels > 5
 

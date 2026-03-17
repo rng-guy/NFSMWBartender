@@ -94,21 +94,8 @@ static void __cdecl InitialiseBartender
     }
 
     if (Globals::basicSetEnabled or Globals::advancedSetEnabled)
-    {
         StateObserver::Initialise(parser);
-
-        if constexpr (Globals::loggingEnabled)
-        {
-            if (MemoryTools::numRangeErrors > 0)
-                Globals::logger.Log("WARNING: [INI]", static_cast<int>(MemoryTools::numRangeErrors), "RANGE ERRORS!");
-
-            if (MemoryTools::numCaveErrors > 0)
-                Globals::logger.Log("WARNING: [INI]", static_cast<int>(MemoryTools::numCaveErrors), "CAVE ERRORS!");
-
-            if (MemoryTools::numHookErrors > 0)
-                Globals::logger.Log("WARNING: [INI]", static_cast<int>(MemoryTools::numHookErrors), "HOOK ERRORS!");
-        }
-    }
+    
     else if constexpr (Globals::loggingEnabled)
         Globals::logger.Log(" SESSION [INI] Bartender disabled");
 }

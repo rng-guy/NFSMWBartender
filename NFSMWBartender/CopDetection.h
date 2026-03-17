@@ -393,17 +393,18 @@ namespace CopDetection
 
 	void ApplyFixes()
 	{
-		// Also fixes the disappearing helicopter icon
-		MemoryTools::MakeRangeNOP(0x579EA2, 0x579EAB); // early icon-counter check
-		MemoryTools::MakeRangeJMP(CopVehicleIcon,   copVehicleIconEntrance,   copVehicleIconExit);
-		MemoryTools::MakeRangeJMP(DestructionCheck, destructionCheckEntrance, destructionCheckExit);
+		// Also these fix the disappearing helicopter icon
+		MemoryTools::MakeRangeNOP<0x579EA2, 0x579EAB>(); // early icon-counter check
+
+		MemoryTools::MakeRangeJMP<copVehicleIconEntrance,   copVehicleIconExit>  (CopVehicleIcon);
+		MemoryTools::MakeRangeJMP<destructionCheckEntrance, destructionCheckExit>(DestructionCheck);
 
 		// Fixes update frequency for cop-icon colours
-		MemoryTools::MakeRangeJMP(WorldMapUpdate,      worldMapUpdateEntrance,      worldMapUpdateExit);
-		MemoryTools::MakeRangeJMP(MiniMapCopColours,   miniMapCopColoursEntrance,   miniMapCopColoursExit);
-		MemoryTools::MakeRangeJMP(WorldMapCopColours,  worldMapCopColoursEntrance,  worldMapcopColoursExit);
-		MemoryTools::MakeRangeJMP(MiniMapConstructor,  miniMapConstructorEntrance,  miniMapConstructorExit);
-		MemoryTools::MakeRangeJMP(WorldMapConstructor, worldMapConstructorEntrance, worldMapConstructorExit);
+		MemoryTools::MakeRangeJMP<worldMapUpdateEntrance,      worldMapUpdateExit>     (WorldMapUpdate);
+		MemoryTools::MakeRangeJMP<miniMapCopColoursEntrance,   miniMapCopColoursExit>  (MiniMapCopColours);
+		MemoryTools::MakeRangeJMP<worldMapCopColoursEntrance,  worldMapcopColoursExit> (WorldMapCopColours);
+		MemoryTools::MakeRangeJMP<miniMapConstructorEntrance,  miniMapConstructorExit> (MiniMapConstructor);
+		MemoryTools::MakeRangeJMP<worldMapConstructorEntrance, worldMapConstructorExit>(WorldMapConstructor);
 	}
 
 
@@ -419,12 +420,12 @@ namespace CopDetection
 		if (not ParseDetectionSettings(parser)) return false; // no valid settings; disable feature
 
 		// Code modifications
-		MemoryTools::MakeRangeNOP(0x579E33, 0x579E69); // pursuit check
-		MemoryTools::MakeRangeNOP(0x579EE5, 0x579EEA); // non-pursuit icon flag
-		MemoryTools::MakeRangeNOP(0x579EF0, 0x579F0E); // engagement-radius check
-		MemoryTools::MakeRangeNOP(0x579FCD, 0x579FFD); // icon-flag checks
+		MemoryTools::MakeRangeNOP<0x579E33, 0x579E69>(); // pursuit check
+		MemoryTools::MakeRangeNOP<0x579EE5, 0x579EEA>(); // non-pursuit icon flag
+		MemoryTools::MakeRangeNOP<0x579EF0, 0x579F0E>(); // engagement-radius check
+		MemoryTools::MakeRangeNOP<0x579FCD, 0x579FFD>(); // icon-flag checks
 
-		MemoryTools::MakeRangeJMP(CopVehicleRadar, copVehicleRadarEntrance, copVehicleRadarExit);
+		MemoryTools::MakeRangeJMP<copVehicleRadarEntrance, copVehicleRadarExit>(CopVehicleRadar);
 
 		ApplyFixes(); // also contains map-icon feature
 

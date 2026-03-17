@@ -617,7 +617,7 @@ namespace RoadblockOverrides
 	void ApplyFixes()
 	{
 		// Fixes cop-spawn stalling due to failed roadblock spawn attempts
-		MemoryTools::MakeRangeJMP(SpawnFailure, spawnFailureEntrance, spawnFailureExit);
+		MemoryTools::MakeRangeJMP<spawnFailureEntrance, spawnFailureExit>(SpawnFailure);
 	}
 
 
@@ -638,14 +638,14 @@ namespace RoadblockOverrides
 		// Code Changes
 		MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
 
-		MemoryTools::MakeRangeNOP(0x71F184, 0x71F19F); // regular callout
-		MemoryTools::MakeRangeNOP(0x71F091, 0x71F096); // spikes  callout
+		MemoryTools::MakeRangeNOP<0x71F184, 0x71F19F>(); // regular callout
+		MemoryTools::MakeRangeNOP<0x71F091, 0x71F096>(); // spikes  callout
 
-		MemoryTools::MakeRangeJMP(SelectRoadblockTable, 0x4063D0, 0x40644A);
+		MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable);
 
-		MemoryTools::MakeRangeJMP(SpikeLane,    spikeLaneEntrance,    spikeLaneExit);
-		MemoryTools::MakeRangeJMP(ScaleLimit,   scaleLimitEntrance,   scaleLimitExit);
-		MemoryTools::MakeRangeJMP(RadioRequest, radioRequestEntrance, radioRequestExit);
+		MemoryTools::MakeRangeJMP<spikeLaneEntrance,    spikeLaneExit>   (SpikeLane);
+		MemoryTools::MakeRangeJMP<scaleLimitEntrance,   scaleLimitExit>  (ScaleLimit);
+		MemoryTools::MakeRangeJMP<radioRequestEntrance, radioRequestExit>(RadioRequest);
 
 		ApplyFixes();
 

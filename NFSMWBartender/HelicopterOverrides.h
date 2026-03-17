@@ -591,11 +591,11 @@ namespace HelicopterOverrides
 		// Code modifications 
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
 
-		MemoryTools::MakeRangeJMP(FuelUpdate,      fuelUpdateEntrance,      fuelUpdateExit);
-		MemoryTools::MakeRangeJMP(DefaultFuel,     defaultFuelEntrance,     defaultFuelExit);
-		MemoryTools::MakeRangeJMP(EarlyBailout,    earlyBailoutEntrance,    earlyBailoutExit);
-		MemoryTools::MakeRangeJMP(RoadblockCheck,  roadblockCheckEntrance,  roadblockCheckExit);
-		MemoryTools::MakeRangeJMP(RammingCooldown, rammingCooldownEntrance, rammingCooldownExit);
+		MemoryTools::MakeRangeJMP<fuelUpdateEntrance,      fuelUpdateExit>     (FuelUpdate);
+		MemoryTools::MakeRangeJMP<defaultFuelEntrance,     defaultFuelExit>    (DefaultFuel);
+		MemoryTools::MakeRangeJMP<earlyBailoutEntrance,    earlyBailoutExit>   (EarlyBailout);
+		MemoryTools::MakeRangeJMP<roadblockCheckEntrance,  roadblockCheckExit> (RoadblockCheck);
+		MemoryTools::MakeRangeJMP<rammingCooldownEntrance, rammingCooldownExit>(RammingCooldown);
 
 		// Status flag
 		featureEnabled = true;

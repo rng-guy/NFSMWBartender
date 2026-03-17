@@ -459,23 +459,54 @@ namespace GeneralSettings
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	void ParseTracking
+	bool ParseTracking
 	(
 		const HeatParameters::Parser& parser,
 		const std::string_view        key,
-		bool&                         isTracked,
-		const address                 rangeStart,
-		const address                 rangeEnd
+		bool&                         isTracked
 	) {
 		parser.ParseFromFile<bool>("Pursuits:Races", key, {isTracked});
 
-		if (isTracked)
+		if constexpr (Globals::loggingEnabled)
 		{
-			MemoryTools::MakeRangeNOP(rangeStart, rangeEnd);
-
-			if constexpr (Globals::loggingEnabled)
+			if (isTracked)
 				Globals::logger.Log<2>("Tracking", key);
 		}
+
+		return isTracked;
+	}
+
+
+
+	void ParseTrackingSettings(const HeatParameters::Parser& parser)
+	{
+		if (ParseTracking(parser, "pursuitLength", trackPursuitLength))
+			MemoryTools::MakeRangeNOP<0x443CBE, 0x443CC8>();
+
+		if (ParseTracking(parser, "unitsInPursuit", trackUnitsInPursuit))
+			MemoryTools::MakeRangeNOP<0x41911B, 0x419125>();
+
+		if (ParseTracking(parser, "copsLost", trackCopsLost))
+			MemoryTools::MakeRangeNOP<0x42B761, 0x42B76B>();
+
+		if (ParseTracking(parser, "copsHit", trackCopsHit))
+			MemoryTools::MakeRangeNOP<0x40AF43, 0x40AF4D>();
+
+		if (ParseTracking(parser, "copsDestroyed", trackCopsDestroyed))
+		{
+			MemoryTools::MakeRangeNOP<0x4094E0, 0x4094EA>(); // cop bounty
+			MemoryTools::MakeRangeNOP<0x418F33, 0x418F41>(); // cops destroyed
+			MemoryTools::MakeRangeNOP<0x43EA15, 0x43EA19>(); // total cops destroyed
+		}
+
+		if (ParseTracking(parser, "passiveBounty", trackPassiveBounty))
+			MemoryTools::MakeRangeNOP<0x4094A0, 0x4094AA>();
+
+		if (ParseTracking(parser, "propertyDamage", trackPropertyDamage))
+			MemoryTools::MakeRangeNOP<0x409463, 0x409467>();
+
+		if (ParseTracking(parser, "infractions", trackInfractions))
+			MemoryTools::MakeRangeNOP<0x5FDDDC, 0x5FDDE7>();
 	}
 
 
@@ -505,17 +536,17 @@ namespace GeneralSettings
 	void ApplyFixes()
 	{
 		// Fixes update for passive bounty amount after race pursuits
-		MemoryTools::MakeRangeJMP(HeatUpdate, heatUpdateEntrance, heatUpdateExit);
+		MemoryTools::MakeRangeJMP<heatUpdateEntrance, heatUpdateExit>(HeatUpdate);
 
 		// Fixes broken scene-selection logic for arrests
-		MemoryTools::MakeRangeJMP(ArrestScene, arrestSceneEntrance, arrestSceneExit);
+		MemoryTools::MakeRangeJMP<arrestSceneEntrance, arrestSceneExit>(ArrestScene);
 
 		// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
-		MemoryTools::MakeRangeJMP(MaxBustDistance, maxBustDistanceEntrance, maxBustDistanceExit);
+		MemoryTools::MakeRangeJMP<maxBustDistanceEntrance, maxBustDistanceExit>(MaxBustDistance);
 
 		// Fixes incorrect array values read from VltEd
-		MemoryTools::MakeRangeJMP(HeatEscalation,    heatEscalationEntrance,    heatEscalationExit);
-		MemoryTools::MakeRangeJMP(DestructionBounty, destructionBountyEntrance, destructionBountyExit);
+		MemoryTools::MakeRangeJMP<heatEscalationEntrance,    heatEscalationExit>   (HeatEscalation);
+		MemoryTools::MakeRangeJMP<destructionBountyEntrance, destructionBountyExit>(DestructionBounty);
 	}
 
 
@@ -527,21 +558,8 @@ namespace GeneralSettings
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "General.ini")) return false;
 
-		// Pursuit tracking (and code modifications)
-		ParseTracking(parser, "pursuitLength",  trackPursuitLength,  0x443CBE, 0x443CC8);
-		ParseTracking(parser, "unitsInPursuit", trackUnitsInPursuit, 0x41911B, 0x419125);
-		ParseTracking(parser, "copsLost",       trackCopsLost,       0x42B761, 0x42B76B);
-		ParseTracking(parser, "copsHit",        trackCopsHit,        0x40AF43, 0x40AF4D);
-		ParseTracking(parser, "copsDestroyed",  trackCopsDestroyed,  0x418F33, 0x418F41);
-		ParseTracking(parser, "passiveBounty",  trackPassiveBounty,  0x4094A0, 0x4094AA);
-		ParseTracking(parser, "propertyDamage", trackPropertyDamage, 0x409463, 0x409467);
-		ParseTracking(parser, "infractions",    trackInfractions,    0x5FDDDC, 0x5FDDE7);
-		
-		if (trackCopsDestroyed)
-		{
-			MemoryTools::MakeRangeNOP(0x4094E0, 0x4094EA); // cop bounty
-			MemoryTools::MakeRangeNOP(0x43EA15, 0x43EA19); // total cops destroyed
-		}
+		// Race tracking (and code modifications)
+		ParseTrackingSettings(parser);
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Pursuits:Rivals", rivalPursuitsEnableds);
@@ -561,7 +579,7 @@ namespace GeneralSettings
 		if (ParsePursuitBreakerImmunities(parser))
 		{
 			// Code modifications (feature-specific)
-			MemoryTools::MakeRangeJMP(PursuitBreakerCheck, pursuitBreakerCheckEntrance, pursuitBreakerCheckExit);
+			MemoryTools::MakeRangeJMP<pursuitBreakerCheckEntrance, pursuitBreakerCheckExit>(PursuitBreakerCheck);
 		}
 
 		// Code modifications (general)
@@ -575,14 +593,14 @@ namespace GeneralSettings
 		MemoryTools::Write<float*>(&halfEvadeRate,         {0x444A3A});
 		MemoryTools::Write<float*>(&(evadeTimers.current), {0x4448E6, 0x444802, 0x4338F8});
 
-		MemoryTools::MakeRangeJMP(CopCombo,              copComboEntrance,              copComboExit);
-		MemoryTools::MakeRangeJMP(CopFlipping,           copFlippingEntrance,           copFlippingExit);
-		MemoryTools::MakeRangeJMP(RivalPursuit,          rivalPursuitEntrance,          rivalPursuitExit);
-		MemoryTools::MakeRangeJMP(RacerFlipping,         racerFlippingEntrance,         racerFlippingExit);
-		MemoryTools::MakeRangeJMP(PassiveBounty,         passiveBountyEntrance,         passiveBountyExit);
-		MemoryTools::MakeRangeJMP(HiddenFromCars,        hiddenFromCarsEntrance,        hiddenFromCarsExit);
-		MemoryTools::MakeRangeJMP(HiddenFromRoadblocks,  hiddenFromRoadblocksEntrance,  hiddenFromRoadblocksExit);
-		MemoryTools::MakeRangeJMP(HiddenFromHelicopters, hiddenFromHelicoptersEntrance, hiddenFromHelicoptersExit);
+		MemoryTools::MakeRangeJMP<copComboEntrance,              copComboExit>             (CopCombo);
+		MemoryTools::MakeRangeJMP<copFlippingEntrance,           copFlippingExit>          (CopFlipping);
+		MemoryTools::MakeRangeJMP<rivalPursuitEntrance,          rivalPursuitExit>         (RivalPursuit);
+		MemoryTools::MakeRangeJMP<racerFlippingEntrance,         racerFlippingExit>        (RacerFlipping);
+		MemoryTools::MakeRangeJMP<passiveBountyEntrance,         passiveBountyExit>        (PassiveBounty);
+		MemoryTools::MakeRangeJMP<hiddenFromCarsEntrance,        hiddenFromCarsExit>       (HiddenFromCars);
+		MemoryTools::MakeRangeJMP<hiddenFromRoadblocksEntrance,  hiddenFromRoadblocksExit> (HiddenFromRoadblocks);
+		MemoryTools::MakeRangeJMP<hiddenFromHelicoptersEntrance, hiddenFromHelicoptersExit>(HiddenFromHelicopters);
 
 		ApplyFixes(); // also contains bust-distance feature
 

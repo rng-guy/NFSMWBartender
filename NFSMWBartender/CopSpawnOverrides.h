@@ -1162,28 +1162,28 @@ namespace CopSpawnOverrides
 
 		MemoryTools::Write<vault>(0xE4211F4F, {0x61E295}); // query "ForceHeatLevel" instead
 
-		MemoryTools::MakeRangeNOP(0x4442AC, 0x4442C2); // zero-wave / capacity increment
-		MemoryTools::MakeRangeNOP(0x57B186, 0x57B189); // helicopter increment
-		MemoryTools::MakeRangeNOP(0x42B74E, 0x42B771); // cops-lost increment
-		MemoryTools::MakeRangeNOP(0x4440D7, 0x4440DF); // membership check
+		MemoryTools::MakeRangeNOP<0x4442AC, 0x4442C2>(); // zero-wave / capacity increment
+		MemoryTools::MakeRangeNOP<0x57B186, 0x57B189>(); // helicopter increment
+		MemoryTools::MakeRangeNOP<0x42B74E, 0x42B771>(); // cops-lost increment
+		MemoryTools::MakeRangeNOP<0x4440D7, 0x4440DF>(); // membership check
 
-		MemoryTools::MakeRangeJMP(ChasersManager::GetNameOfNewChaser, 0x42BA50, 0x42BCEE);
+		MemoryTools::MakeRangeJMP<0x42BA50, 0x42BCEE>(ChasersManager::GetNameOfNewChaser);
 
-		MemoryTools::MakeRangeJMP(WaveReset,          waveResetEntrance,          waveResetExit);
-		MemoryTools::MakeRangeJMP(PatrolSpawn,        patrolSpawnEntrance,        patrolSpawnExit);
-		MemoryTools::MakeRangeJMP(CopClearance,       copClearanceEntrance,       copClearanceExit);
-		MemoryTools::MakeRangeJMP(CopSpawnLimit,      copSpawnLimitEntrance,      copSpawnLimitExit);
-		MemoryTools::MakeRangeJMP(ScriptedSpawn,      scriptedSpawnEntrance,      scriptedSpawnExit);
-		MemoryTools::MakeRangeJMP(PatrolPursuit,      patrolPursuitEntrance,      patrolPursuitExit);
-		MemoryTools::MakeRangeJMP(PatrolDespawn,      patrolDespawnEntrance,      patrolDespawnExit);
-		MemoryTools::MakeRangeJMP(RoadblockSpawn,     roadblockSpawnEntrance,     roadblockSpawnExit);
-		MemoryTools::MakeRangeJMP(TrafficDensity,     trafficDensityEntrance,     trafficDensityExit);
-		MemoryTools::MakeRangeJMP(CopConstructor,     copConstructorEntrance,     copConstructorExit);
-		MemoryTools::MakeRangeJMP(RecyclingCheck,     recyclingCheckEntrance,     recyclingCheckExit);
-		MemoryTools::MakeRangeJMP(ByClassRequest,     byClassRequestEntrance,     byClassRequestExit);
-		MemoryTools::MakeRangeJMP(ScriptedRequest,    scriptedRequestEntrance,    scriptedRequestExit);
-		MemoryTools::MakeRangeJMP(FirstScriptedCop,   firstScriptedCopEntrance,   firstScriptedCopExit);
-		MemoryTools::MakeRangeJMP(ScriptedSpawnReset, scriptedSpawnResetEntrance, scriptedSpawnResetExit);
+		MemoryTools::MakeRangeJMP<waveResetEntrance,          waveResetExit>         (WaveReset);
+		MemoryTools::MakeRangeJMP<patrolSpawnEntrance,        patrolSpawnExit>       (PatrolSpawn);
+		MemoryTools::MakeRangeJMP<copClearanceEntrance,       copClearanceExit>      (CopClearance);
+		MemoryTools::MakeRangeJMP<copSpawnLimitEntrance,      copSpawnLimitExit>     (CopSpawnLimit);
+		MemoryTools::MakeRangeJMP<scriptedSpawnEntrance,      scriptedSpawnExit>     (ScriptedSpawn);
+		MemoryTools::MakeRangeJMP<patrolPursuitEntrance,      patrolPursuitExit>     (PatrolPursuit);
+		MemoryTools::MakeRangeJMP<patrolDespawnEntrance,      patrolDespawnExit>     (PatrolDespawn);
+		MemoryTools::MakeRangeJMP<roadblockSpawnEntrance,     roadblockSpawnExit>    (RoadblockSpawn);
+		MemoryTools::MakeRangeJMP<trafficDensityEntrance,     trafficDensityExit>    (TrafficDensity);
+		MemoryTools::MakeRangeJMP<copConstructorEntrance,     copConstructorExit>    (CopConstructor);
+		MemoryTools::MakeRangeJMP<recyclingCheckEntrance,     recyclingCheckExit>    (RecyclingCheck);
+		MemoryTools::MakeRangeJMP<byClassRequestEntrance,     byClassRequestExit>    (ByClassRequest);
+		MemoryTools::MakeRangeJMP<scriptedRequestEntrance,    scriptedRequestExit>   (ScriptedRequest);
+		MemoryTools::MakeRangeJMP<firstScriptedCopEntrance,   firstScriptedCopExit>  (FirstScriptedCop);
+		MemoryTools::MakeRangeJMP<scriptedSpawnResetEntrance, scriptedSpawnResetExit>(ScriptedSpawnReset);
 
 		// Status flag
 		featureEnabled = true;
