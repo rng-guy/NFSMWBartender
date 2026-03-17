@@ -259,7 +259,6 @@ namespace FlatContainers
 		constexpr reverse_iterator erase(const reverse_iterator rit)
 		{
 			if (rit == this->rend()) return rit;
-
 			return {this->erase(std::prev(rit.base()))};
 		}
 	};
@@ -345,7 +344,7 @@ namespace FlatContainers
 		}
 
 
-		// Invalidates iterators of erased and final value
+		// May invalidate all iterators
 		template <typename KeyArg, typename ValArg>
 		constexpr std::pair<iterator, bool> insert
 		(
@@ -361,7 +360,7 @@ namespace FlatContainers
 		}
 
 
-		// Invalidates iterators of erased and final value
+		// May invalidate all iterators
 		template <typename KeyArg, typename... ValArgs>
 		requires (not Details::IsUniquePtr<mapped_type>)
 		constexpr std::pair<iterator, bool> try_emplace
@@ -383,7 +382,7 @@ namespace FlatContainers
 		}
 
 
-		// Invalidates iterators of erased and final value
+		// May invalidate all iterators
 		template <typename KeyArg, typename... ValArgs>
 		requires Details::IsUniquePtr<mapped_type>
 		constexpr std::pair<iterator, bool> try_emplace
@@ -439,7 +438,6 @@ namespace FlatContainers
 		constexpr reverse_iterator erase(const reverse_iterator rit)
 		{
 			if (rit == this->rend()) return rit;
-
 			return {this->erase(std::prev(rit.base()))};
 		}
 	};

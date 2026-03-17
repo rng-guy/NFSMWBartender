@@ -42,6 +42,9 @@ namespace Globals
 	constexpr bool loggingEnabled = false;
 	BasicLogger::Logger logger(9, 15, 17);
 
+	// Hackjob floating-point correction coefficient
+	constexpr float floatScale = 1.f + static_cast<float>(1e-6);
+
 	// Common function pointers
 	constinit const auto GetVaultKey  = reinterpret_cast<vault  (__cdecl*)(const char*)>(0x5CC240);
 	constinit const auto GetBinaryKey = reinterpret_cast<binary (__cdecl*)(const char*)>(0x460BF0);

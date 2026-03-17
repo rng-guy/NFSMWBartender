@@ -42,8 +42,6 @@ namespace HeatChangeOverrides
 	constinit HeatParameters::Pair<float> damageHeatChanges(0.f);
 
 	// Code caves
-	constexpr float heatScale = 1.f + static_cast<float>(1e-6);
-
 	size_t lastAnimatedHeatLevel = 0;
 	float  animationEndTimestamp = 0.f;
 
@@ -99,7 +97,7 @@ namespace HeatChangeOverrides
 				this->lastCount += change;
 				if (change <= 0) return 0.f;
 
-				return heatScale * static_cast<float>(change) * this->heatPerCounts.current;
+				return Globals::floatScale * static_cast<float>(change) * this->heatPerCounts.current;
 			}
 		};
 
@@ -194,7 +192,7 @@ namespace HeatChangeOverrides
 			HeatManager* const manager = HeatManager::FindManager(pursuit);
 			if (not manager) return; // should never happen
 
-			manager->pendingHeatChange += heatScale * amount;
+			manager->pendingHeatChange += Globals::floatScale * amount;
 		}
 
 

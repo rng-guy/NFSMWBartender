@@ -22,7 +22,7 @@ namespace StrategyOverrides
 	bool featureEnabled = false;
 
 	// Heat parameters
-	constinit HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1});
+	constinit HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1, 20});
 
 	constinit HeatParameters::OptionalInterval<float> heavy3UnblockDelays ({1.f}); // seconds
 	constinit HeatParameters::OptionalInterval<float> heavy4UnblockDelays ({1.f}); // seconds

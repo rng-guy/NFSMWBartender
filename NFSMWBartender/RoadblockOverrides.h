@@ -68,8 +68,8 @@ namespace RoadblockOverrides
 		bool hasSpikes  = false;
 		bool canStretch = true;
 
-		float maxRoadWidth = 0.f; // metres
-		float mirrorChance = 0.f; // percent
+		float maxRoadWidth = 0.f;  // metres
+		float mirrorChance = 50.f; // percent
 
 		HeatParameters::Pair<int> chances{100, {0}}; // relative
 

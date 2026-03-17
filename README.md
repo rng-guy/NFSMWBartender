@@ -7,6 +7,10 @@ Bartender adds **new customisation options** to pursuits in *Need for Speed: Mos
 
 &nbsp;
 
+Bartender's **default settings** match the vanilla game's, except for the many bug / issue fixes.
+
+&nbsp;
+
 For **optimal customisability**, use [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) along with Bartender. Bartender doesn't replace VltEd, as Bartender's features are deliberately limited to things you cannot do with VltEd alone.
 
 &nbsp;

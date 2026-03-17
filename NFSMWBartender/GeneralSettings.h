@@ -49,11 +49,6 @@ namespace GeneralSettings
 	constinit HeatParameters::OptionalPair<float> copFlipByTimers     ({0.f}); // seconds
 	constinit HeatParameters::OptionalPair<float> racerFlipResetDelays({0.f}); // seconds
 
-	constinit HeatParameters::Pair<bool> passiveRechargeEnableds(true);
-	constinit HeatParameters::Pair<bool> driftRechargeEnableds  (true);
-
-	constinit HeatParameters::Pair<float> copWreckSBreakerChanges(0.f); // seconds
-
 	// Conversions
 	float bountyFrequency = 1.f / bountyIntervals.current; // hertz
 	
@@ -64,52 +59,13 @@ namespace GeneralSettings
 	float halfEvadeRate = .5f / evadeTimers.current; // hertz
 
 	// Code caves
-	constinit ModContainers::DefaultCopyVaultMap<float> copTypeToSBreakerChange  (0.f);   // seconds
-	constinit ModContainers::DefaultCopyVaultMap<bool>  copTypeToIsPBreakerImmune(false);
+	constinit ModContainers::DefaultCopyVaultMap<bool> copTypeToIsBreakerImmune(false);
 
 
 
 
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	address GetLocalPlayer()
-	{
-		const bool playerActive = *reinterpret_cast<volatile size_t*>(0x92D884);
-		if (not playerActive) return 0x0; // should never happen
-
-		return **reinterpret_cast<volatile address* volatile*>(0x92D87C);
-	}
-
-
-
-	void __stdcall ChargeSpeedbreaker(const float amount)
-	{
-		if (amount == 0.f) return;
-
-		const address localPlayer = GetLocalPlayer();
-		if (not localPlayer) return; // should never happen
-
-		const auto ChargeGameBreaker = reinterpret_cast<void (__thiscall*)(address, float)>(0x6F8F60);
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<1>("[GEN] Speedbreaker change:", amount);
-
-		constexpr float chargeScale = 1.f + static_cast<float>(1e-6);
-		const float     timeToRatio = **reinterpret_cast<volatile float* volatile*>(0x6EDDC3);
-
-		ChargeGameBreaker(localPlayer, chargeScale * timeToRatio * amount);
-	}
-
-
-
-	bool IsPlayerInPursuit()
-	{
-		const address playerAIVehicle = Globals::GetAIVehicle(Globals::GetPlayerVehicle());
-		return (playerAIVehicle and *reinterpret_cast<volatile address*>(playerAIVehicle + 0x70));
-	}
-
-
 
 	const char* __fastcall GetRandomArrestScene(const size_t heatLevel)
 	{
@@ -223,40 +179,6 @@ namespace GeneralSettings
 
 
 
-	constexpr address wreckChangeEntrance = 0x418F9F;
-	constexpr address wreckChangeExit     = 0x418FA5;
-
-	// Updates speedbreaker charge on cop destruction
-	__declspec(naked) void WreckChange()
-	{
-		__asm
-		{
-			mov ecx, esi
-			call Globals::IsPlayerPursuit
-			test al, al
-			je conclusion // not player pursuit
-			
-			push dword ptr copWreckSBreakerChanges.current // amount
-			call ChargeSpeedbreaker
-
-			push dword ptr [esi + 0xF8] // copType
-			mov ecx, offset copTypeToSBreakerChange
-			call ModContainers::DefaultCopyVaultMap<float>::GetValue
-
-			push eax
-			fstp [esp] // amount
-			call ChargeSpeedbreaker
-
-			conclusion:
-			// Execute original code and resume
-			fld dword ptr [esi + 0xEC]
-
-			jmp dword ptr wreckChangeExit
-		}
-	}
-
-
-
 	constexpr address copFlippingEntrance = 0x6B19AE;
 	constexpr address copFlippingExit     = 0x6B19CA;
 
@@ -334,31 +256,6 @@ namespace GeneralSettings
 
 			conclusion:
 			jmp dword ptr rivalPursuitExit
-		}
-	}
-
-
-
-	constexpr address driftRechargeEntrance = 0x6A99BC;
-	constexpr address driftRechargeExit     = 0x6A99C1;
-
-	// Toggles drift-based Speedbreaker recharging
-	__declspec(naked) void DriftRecharge()
-	{
-		__asm
-		{
-			fnstsw ax
-			test ah, 0x41
-			jne conclusion // below speed threshold
-
-			cmp byte ptr driftRechargeEnableds.current, 0x1
-			je conclusion // drift recharging unrestricted
-
-			call IsPlayerInPursuit
-			test al, al
-
-			conclusion:
-			jmp dword ptr driftRechargeExit
 		}
 	}
 
@@ -495,31 +392,6 @@ namespace GeneralSettings
 
 
 
-	constexpr address passiveRechargeEntrance = 0x6EDDDE;
-	constexpr address passiveRechargeExit     = 0x6EDDE3;
-
-	// Toggles passive Speedbreaker recharging
-	__declspec(naked) void PassiveRecharge()
-	{
-		__asm
-		{
-			fnstsw ax
-			test ah, 0x41
-			jne conclusion // below speed threshold
-
-			cmp byte ptr passiveRechargeEnableds.current, 0x1
-			je conclusion // passive recharging unrestricted
-
-			call IsPlayerInPursuit
-			test al, al
-
-			conclusion:
-			jmp dword ptr passiveRechargeExit
-		}
-	}
-
-
-
 	constexpr address pursuitBreakerCheckEntrance = 0x42E963;
 	constexpr address pursuitBreakerCheckExit     = 0x42E96C;
 
@@ -538,7 +410,7 @@ namespace GeneralSettings
 			call Globals::GetVehicleType
 
 			push eax // copType
-			mov ecx, offset copTypeToIsPBreakerImmune
+			mov ecx, offset copTypeToIsBreakerImmune
 			call ModContainers::DefaultCopyVaultMap<bool>::GetValue
 			test al, al
 
@@ -608,24 +480,6 @@ namespace GeneralSettings
 
 
 
-	bool ParseSpeedbreakerChanges(const HeatParameters::Parser& parser)
-	{
-		std::vector<const char*> copVehicles; // for game compatibility
-		std::vector<float>       breakerChanges;
-
-		parser.ParseUser<const char*, float>("Wrecking:Vehicles", copVehicles, {breakerChanges});
-
-		return copTypeToSBreakerChange.FillFromVectors
-		(
-			"Vehicle-to-change",
-			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
-			ModContainers::FillSetup(breakerChanges)
-		);
-	}
-
-
-
 	bool ParsePursuitBreakerImmunities(const HeatParameters::Parser& parser)
 	{
 		std::vector<const char*> copVehicles; // for game compatibility
@@ -633,7 +487,7 @@ namespace GeneralSettings
 
 		parser.ParseUser<const char*, bool>("Vehicles:Breakers", copVehicles, {isAffecteds});
 
-		return copTypeToIsPBreakerImmune.FillFromVectors
+		return copTypeToIsBreakerImmune.FillFromVectors
 		(
 			"Vehicle-to-immunity",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
@@ -703,12 +557,6 @@ namespace GeneralSettings
 		HeatParameters::Parse(parser, "Flipping:Time",    copFlipByTimers);
 		HeatParameters::Parse(parser, "Flipping:Reset",   racerFlipResetDelays);
 
-		HeatParameters::Parse(parser, "Speedbreaker:Mechanics", passiveRechargeEnableds, driftRechargeEnableds);
-		HeatParameters::Parse(parser, "Speedbreaker:Wrecking",  copWreckSBreakerChanges);
-
-		// Speedbreaker changes
-		ParseSpeedbreakerChanges(parser);
-
 		// Pursuit-breaker immunity
 		if (ParsePursuitBreakerImmunities(parser))
 		{
@@ -728,14 +576,11 @@ namespace GeneralSettings
 		MemoryTools::Write<float*>(&(evadeTimers.current), {0x4448E6, 0x444802, 0x4338F8});
 
 		MemoryTools::MakeRangeJMP(CopCombo,              copComboEntrance,              copComboExit);
-		MemoryTools::MakeRangeJMP(WreckChange,           wreckChangeEntrance,           wreckChangeExit);
 		MemoryTools::MakeRangeJMP(CopFlipping,           copFlippingEntrance,           copFlippingExit);
 		MemoryTools::MakeRangeJMP(RivalPursuit,          rivalPursuitEntrance,          rivalPursuitExit);
-		MemoryTools::MakeRangeJMP(DriftRecharge,         driftRechargeEntrance,         driftRechargeExit);
 		MemoryTools::MakeRangeJMP(RacerFlipping,         racerFlippingEntrance,         racerFlippingExit);
 		MemoryTools::MakeRangeJMP(PassiveBounty,         passiveBountyEntrance,         passiveBountyExit);
 		MemoryTools::MakeRangeJMP(HiddenFromCars,        hiddenFromCarsEntrance,        hiddenFromCarsExit);
-		MemoryTools::MakeRangeJMP(PassiveRecharge,       passiveRechargeEntrance,       passiveRechargeExit);
 		MemoryTools::MakeRangeJMP(HiddenFromRoadblocks,  hiddenFromRoadblocksEntrance,  hiddenFromRoadblocksExit);
 		MemoryTools::MakeRangeJMP(HiddenFromHelicopters, hiddenFromHelicoptersEntrance, hiddenFromHelicoptersExit);
 
@@ -768,10 +613,6 @@ namespace GeneralSettings
 		copFlipByDamageEnableds.Log("copFlipByDamageEnabled  ");
 		copFlipByTimers        .Log("copFlipByTimer          ");
 		racerFlipResetDelays   .Log("racerFlipResetDelay     ");
-
-		passiveRechargeEnableds.Log("passiveRechargeEnabled  ");
-		driftRechargeEnableds  .Log("driftRechargeEnabled    ");
-		copWreckSBreakerChanges.Log("copWreckSBreakerChange  ");
 	}
 
 
@@ -807,10 +648,6 @@ namespace GeneralSettings
 		copFlipByDamageEnableds.SetToHeat(isRacing, heatLevel);
 		copFlipByTimers        .SetToHeat(isRacing, heatLevel);
 		racerFlipResetDelays   .SetToHeat(isRacing, heatLevel);
-
-		passiveRechargeEnableds.SetToHeat(isRacing, heatLevel);
-		driftRechargeEnableds  .SetToHeat(isRacing, heatLevel);
-		copWreckSBreakerChanges.SetToHeat(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();

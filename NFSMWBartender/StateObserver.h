@@ -6,10 +6,10 @@
 #include "MemoryTools.h"
 #include "HeatParameters.h"
 
+#include "GameBreaker.h"
 #include "RadioChatter.h"
-
-#include "GeneralSettings.h"
 #include "GroundSupports.h"
+#include "GeneralSettings.h"
 
 #include "PursuitObserver.h"
 #include "CopSpawnOverrides.h"
@@ -43,9 +43,12 @@ namespace StateObserver
 
 			Globals::playerHeatLevelKnown = true;
 
-			RadioChatter   ::SetToHeat(playerIsRacing, playerHeatLevel);
+			RadioChatter::SetToHeat(playerIsRacing, playerHeatLevel);
+
 			GeneralSettings::SetToHeat(playerIsRacing, playerHeatLevel);
 			GroundSupports ::SetToHeat(playerIsRacing, playerHeatLevel);
+			GameBreaker    ::SetToHeat(playerIsRacing, playerHeatLevel);
+			
 			PursuitObserver::SetToHeat(playerIsRacing, playerHeatLevel);
 		}
 		else if constexpr (Globals::loggingEnabled)

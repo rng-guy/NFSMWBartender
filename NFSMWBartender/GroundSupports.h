@@ -65,11 +65,13 @@ namespace GroundSupports
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	const char* __fastcall SelectHeavyVehicle
-	(
-		const size_t strategyID,
-		const bool   isHeavy
-	) {
+	const char* __fastcall SelectHeavyVehicle(const address heavyStrategy) 
+	{
+		const int strategyID = *reinterpret_cast<volatile int*>(heavyStrategy);
+
+		const int  heavyChance = *reinterpret_cast<volatile int*>(heavyStrategy + 0xC);
+		const bool isHeavy     = Globals::prng.DoPercentTrial<int>(heavyChance);
+
 		switch (strategyID)
 		{
 		case 3: // ramming SUVs
@@ -84,8 +86,10 @@ namespace GroundSupports
 
 
 
-	const char* __fastcall SelectCrossVehicle(const size_t strategyID)
+	const char* __fastcall SelectCrossVehicle(const address leaderStrategy)
 	{
+		const int strategyID = *reinterpret_cast<volatile int*>(leaderStrategy);
+
 		switch (strategyID)
 		{
 		case 5: // Cross only
@@ -103,9 +107,9 @@ namespace GroundSupports
 	bool IsHeavyStrategyAvailable
 	(
 		const address pursuit,
-		const address strategy
+		const address heavyStrategy
 	) {
-		const int  strategyID   = *reinterpret_cast<volatile int*>    (strategy);
+		const int  strategyID   = *reinterpret_cast<volatile int*>    (heavyStrategy);
 		const bool hasRoadblock = *reinterpret_cast<volatile address*>(pursuit + 0x84);
 
 		switch (strategyID)
@@ -125,13 +129,13 @@ namespace GroundSupports
 	bool IsLeaderStrategyAvailable
 	(
 		const address pursuit,
-		const address strategy
+		const address leaderStrategy
 	) {
 		const int crossFlag = *reinterpret_cast<volatile int*>(pursuit + 0x164);
 
 		if (crossFlag == 0)
 		{
-			const int strategyID = *reinterpret_cast<volatile int*>(strategy);
+			const int strategyID = *reinterpret_cast<volatile int*>(leaderStrategy);
 
 			switch (strategyID)
 			{
@@ -442,7 +446,7 @@ namespace GroundSupports
 
 
 
-	constexpr address heavySelectorEntrance = 0x41F1BC;
+	constexpr address heavySelectorEntrance = 0x41F1A4;
 	constexpr address heavySelectorExit     = 0x41F1C8;
 
 	// Replaces HeavyStrategy vehicles
@@ -450,11 +454,8 @@ namespace GroundSupports
 	{
 		__asm
 		{
-			mov eax, dword ptr [esi]
-
-			setl dl
-			mov ecx, dword ptr [eax]
-			call SelectHeavyVehicle // ecx: strategyID, dl: isHeavy
+			mov ecx, dword ptr [esi]
+			call SelectHeavyVehicle // ecx: heavyStrategy
 
 			jmp dword ptr heavySelectorExit
 		}
@@ -472,8 +473,8 @@ namespace GroundSupports
 		{
 			mov edi, eax
 
-			lea ecx, dword ptr [eax + 0x5]
-			call SelectCrossVehicle // ecx: strategyID
+			mov ecx, dword ptr [esi + 0x4]
+			call SelectCrossVehicle // ecx: LeaderStrategy
 			mov dword ptr [esp + 0x24], eax
 
 			test edi, edi

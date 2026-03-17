@@ -105,7 +105,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 * With this feature set enabled, the game accesses the values of the `RepPointsForDestroying` VltEd arrays in `aivehicle` correctly: The game now uses the value at `[0]` for Heat level 1, at `[1]` for Heat level 2, and so on. Before, every Heat level's value was off by one: `[1]` for Heat level 1, `[2]` for Heat level 2, and so on; Heat level 10 wouldn't get any value.
 
-* The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: The `0xe8c24416` parameter of a given `race_bin_XY` VltEd node determines the maximum Heat level (1-10) at Blacklist rival #XY.
+* The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, you can still change the maximum available Heat level with VltEd: For Career mode, the `0xe8c24416` parameter of a given `race_bin_XY` VltEd node determines the maximum Heat level (1-10) at Blacklist rival #XY. For Challenge Series events, use their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters instead.
 
 * If you don't install the optional missing textures (`FixMissingTextures.end`), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures doesn't affect the Heat-level reset fix in any way.
 
@@ -189,11 +189,27 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 * Resets of flipped racers happen only at Heat levels for which you define a valid delay value.
 
-* For further Speedbreaker customisation, use the [NFSMWSpeedFixer](https://github.com/rng-guy/NFSMWSpeedFixer) mod by rng_guy.
-
 * If you don't define a valid `default` breaker flag, Bartender uses `true` instead.
 
 * If you define no valid breaker flags and no `default`, Bartender disables its breaker feature.
+
+&nbsp;
+
+Regarding **Speedbreaker features** (`BartenderSettings\Basic\Speedbreaker.ini`):
+
+* In the vanilla game, you can recharge the Speedbreaker by driving fast enough or by drifting.
+
+* Both Bartender and the game always respect the hard-coded Speedbreaker-charge limits.
+
+* The features that affect Speedbreaker charge whenever you wreck a cop vehicle require the game to track the number of cops destroyed in pursuits. The vanilla game doesn't do this in races, but you can enable this tracking with the `[Pursuits:Races]` parameter group in `General.ini`.
+
+* For wrecking change by vehicle type, Bartender ignores vehicles that don't exist in VltEd. 
+
+* If you don't define a valid `default` wrecking change by type, Bartender uses 0.0 instead.
+
+* Due to the limitations of floating-point math, some charge changes might be slightly off.
+
+* For further Speedbreaker customisation, use the [NFSMWSpeedFixer](https://github.com/rng-guy/NFSMWSpeedFixer) mod by rng_guy.
 
 &nbsp;
 
@@ -433,12 +449,12 @@ Regarding **Heat gain / loss** (`BartenderSettings\Advanced\Heat.ini`):
 
 * Both Bartender and the game always respect the minimum and maximum available Heat levels set in VltEd. In Career mode, you can define the maximum Heat level through each rival's `0xe8c24416` VltEd parameter. For Challenge Series events, however, you must use their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters instead.
 
-* For wrecking Heat, Bartender ignores vehicles that don't exist in VltEd. 
+* For wrecking Heat by vehicle type, Bartender ignores vehicles that don't exist in VltEd. 
 
-* If you don't define a valid `default` wrecking Heat, Bartender uses 0.0 instead.
+* If you don't define a valid `default` wrecking Heat by type, Bartender uses 0.0 instead.
 
 * If you define no wrecking Heats and no `default`, Bartender disables its wrecking feature.
 
-* In races, the vanilla game doesn't track how often racers hit / destroy cop vehicles. You can change this with the `[Pursuits:Races]` parameter group in `General.ini`.
+* The features that affect Heat whenever racers hit / wreck a cop vehicle require the game to track the number of cops hit / destroyed in pursuits. The vanilla game doesn't do this in races, but you can enable it with the `[Pursuits:Races]` parameter group in `General.ini`.
 
 * Due to the limitations of floating-point math, some Heat changes might be slightly off.

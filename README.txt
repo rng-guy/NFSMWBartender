@@ -7,6 +7,8 @@ Bartender adds NEW CUSTOMISATION OPTIONS to pursuits. These new options come in 
  • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
+Bartender's DEFAULT SETTINGS match the vanilla game's, except for the many bug / issue fixes.
+
 For OPTIMAL CUSTOMISABILITY, use VltEd along with Bartender. Bartender doesn't replace VltEd,
 as Bartender's features are deliberately limited to things you cannot do with VltEd alone.
 

@@ -142,6 +142,9 @@
     <ClInclude Include="FlatContainers.h">
       <Filter>Headers\Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="GameBreaker.h">
+      <Filter>Headers\Features\Basic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Basic\General.ini">
@@ -200,6 +203,9 @@
     </None>
     <None Include="..\Editor\Source\Scripting.js">
       <Filter>Editor\Source</Filter>
+    </None>
+    <None Include="..\BartenderSettings\Basic\Speedbreaker.ini">
+      <Filter>Configuration\Basic</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

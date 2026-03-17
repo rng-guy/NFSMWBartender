@@ -440,11 +440,13 @@ namespace HeatParameters
 
 	// Validation functions -------------------------------------------------------------------------------------------------------------------------
 
+	template <typename Predicate>
+	requires std::predicate<Predicate, vault>
 	bool ValidateVehicleTypes
 	(
 		const std::string_view    pairName,
 		PointerPair<std::string>& pointerPair,
-		const auto&               IsVehicleTypeValid
+		const Predicate&          IsVehicleTypeValid
 	) {
 		size_t numTotalReplaced = 0;
 

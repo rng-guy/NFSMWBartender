@@ -4,6 +4,7 @@
 #include "MemoryTools.h"
 #include "HeatParameters.h"
 
+#include "GameBreaker.h"
 #include "RadioChatter.h"
 #include "CopDetection.h"
 #include "GroundSupports.h"
@@ -42,7 +43,8 @@ static void __cdecl InitialiseBartender
         Globals::logger.Log("\n SESSION [VER] Bartender v3.02.00");
     }
 
-    HeatParameters::Parser parser(6);
+    constexpr size_t maxNumConfigFiles = 6;
+    HeatParameters::Parser parser(maxNumConfigFiles);
 
     Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
     Globals::basicSetEnabled |= RadioChatter      ::Initialise(parser);
@@ -51,6 +53,7 @@ static void __cdecl InitialiseBartender
     Globals::basicSetEnabled |= InteractiveMusic  ::Initialise(parser);
     Globals::basicSetEnabled |= GeneralSettings   ::Initialise(parser);
     Globals::basicSetEnabled |= GroundSupports    ::Initialise(parser);
+    Globals::basicSetEnabled |= GameBreaker       ::Initialise(parser);
 
     parser.ClearCachedPaths();
 

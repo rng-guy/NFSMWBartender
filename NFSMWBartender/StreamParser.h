@@ -424,9 +424,14 @@ namespace StreamParser
 
 		Parser() = default;
 
-		Parser(std::istream& fileStream)
-		{
-			this->ParseStream(fileStream);
+
+		Parser
+		(
+			std::istream& fileStream,
+			const size_t  sectionCapacity  = 10,
+			const size_t  pairCapacityEach = 20
+		) {
+			this->ParseStream(fileStream, sectionCapacity, pairCapacityEach);
 		}
 
 
