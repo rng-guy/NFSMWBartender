@@ -130,7 +130,7 @@ namespace MemoryTools
 	template <address start, address end>
 	inline void WriteToRange(const byte value)
 	{
-		static_assert(end > start, "end must be > start.");
+		static_assert(end > start, "Invalid or empty range");
 
 		Details::WriteToRange(value, start, end);
 	}
@@ -140,7 +140,7 @@ namespace MemoryTools
 	template <address start, address end>
 	inline void MakeRangeNOP()
 	{
-		static_assert(end > start, "end must be > start.");
+		static_assert(end > start, "Invalid or empty range");
 
 		Details::MakeRangeNOP(start, end);
 	}
@@ -150,7 +150,7 @@ namespace MemoryTools
 	template <address start, address end>
 	inline void MakeRangeJMP(const address target)
 	{
-		static_assert(end >= start + sizeof(byte) + sizeof(address), "cannot accommodate JMP");
+		static_assert(end >= start + sizeof(byte) + sizeof(address), "Cannot accommodate JMP");
 
 		Details::MakeRangeJMP(target, start, end);
 	}
@@ -161,7 +161,7 @@ namespace MemoryTools
 	{
 		MakeRangeJMP<start, end>(reinterpret_cast<address>(target));
 	}
-
+	
 
 
 	inline address MakeCallHook
@@ -179,18 +179,14 @@ namespace MemoryTools
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
 
-		address replacedTarget = 0x0;
-
 		const address targetStart = location    + sizeof(byte);
 		const address callEnd     = targetStart + sizeof(address);
 
-		std::memcpy(&replacedTarget, reinterpret_cast<address*>(targetStart), sizeof(address));
+		const address original = *reinterpret_cast<volatile address*>(targetStart) + callEnd;
 
 		Write<address>(target - callEnd, {targetStart});
 
-		replacedTarget += callEnd;
-
-		return replacedTarget;
+		return original;
 	}
 
 
