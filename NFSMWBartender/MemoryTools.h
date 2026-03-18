@@ -1,6 +1,5 @@
 #pragma once
 
-#include <format>
 #include <cstdarg>
 #include <cstring>
 #include <Windows.h>
@@ -173,7 +172,7 @@ namespace MemoryTools
 
 		if (opcode != 0xE8)
 		{
-			MessageBoxA(NULL, std::format("Expected opcode 0xE8 at address {:08x}!", location).c_str(), "Fatal hooking error", MB_ICONERROR);
+			MessageBoxA(NULL, "Invalid hooking target. Contact the mod author.", "Fatal hooking error", MB_ICONERROR);
 
 			// Mod corrupted; terminate for safety
 			TerminateProcess(GetCurrentProcess(), 1);
