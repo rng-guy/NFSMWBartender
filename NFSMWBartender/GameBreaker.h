@@ -179,16 +179,16 @@ namespace GameBreaker
 	bool ParseSpeedbreakerChanges(const HeatParameters::Parser& parser)
 	{
 		std::vector<const char*> copVehicles; // for game compatibility
-		std::vector<float>       breakerChanges;
+		std::vector<float>       changes;
 
-		parser.ParseUser<const char*, float>("Wrecking:Vehicles", copVehicles, { breakerChanges });
+		parser.ParseUser<const char*, float>("Wrecking:Vehicles", copVehicles, {changes});
 
 		return copTypeToBreakerChange.FillFromVectors
 		(
 			"Vehicle-to-change",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
 			ModContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
-			ModContainers::FillSetup(breakerChanges)
+			ModContainers::FillSetup(changes)
 		);
 	}
 

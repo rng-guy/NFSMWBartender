@@ -297,7 +297,7 @@ namespace RadioChatter
 		};
 
 		// Populate callsign map
-		const auto RawValueToCallsigns = [&](const std::string_view rawValue) -> Callsigns
+		const auto RawValueToCallsigns = [&nameToCallsigns](const std::string_view rawValue) -> Callsigns
 		{
 			const auto foundName = nameToCallsigns.find(rawValue);
 			return (foundName != nameToCallsigns.end()) ? foundName->second : Callsigns::UNKNOWN;

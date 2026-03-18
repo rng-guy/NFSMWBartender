@@ -578,8 +578,10 @@ namespace HelicopterOverrides
 		HeatParameters::Parse(parser, "Helicopter:FuelRespawn",  fuelRespawnDelays);
 		HeatParameters::Parse(parser, "Helicopter:WreckRespawn", wreckRespawnDelays);
 		HeatParameters::Parse(parser, "Helicopter:LostRespawn",  lostRespawnDelays);
-		HeatParameters::Parse(parser, "Helicopter:LostRejoin",   lostRejoinDelays,    minRejoinFuelTimes);
-		HeatParameters::Parse(parser, "Helicopter:FuelTime",     fuelTimes);
+
+		HeatParameters::Parse(parser, "Helicopter:LostRejoin", lostRejoinDelays, minRejoinFuelTimes);
+
+		HeatParameters::Parse(parser, "Helicopter:FuelTime", fuelTimes);
 
 		HeatParameters::Parse(parser, "Helicopter:Roadblocks", affectedByRoadblocks);
 
@@ -619,7 +621,6 @@ namespace HelicopterOverrides
 
 			helicopterVehicles.Log("helicopterVehicle       ");
 			
-			fuelTimes         .Log("fuelTime                ");
 			firstSpawnDelays  .Log("firstSpawnDelay         ");
 			fuelRespawnDelays .Log("fuelRespawnDelays       ");
 			wreckRespawnDelays.Log("wreckRespawnDelay       ");
@@ -627,6 +628,8 @@ namespace HelicopterOverrides
 
 			lostRejoinDelays  .Log("lostRejoinDelay         ");
 			minRejoinFuelTimes.Log("minRejoinFuelTime       ");
+
+			fuelTimes.Log("fuelTime                ");
 
 			affectedByRoadblocks.Log("isAffectedByRoadblock   ");
 
@@ -645,7 +648,6 @@ namespace HelicopterOverrides
 
 		helicopterVehicles.SetToHeat(isRacing, heatLevel);
 		
-		fuelTimes         .SetToHeat(isRacing, heatLevel);
 		firstSpawnDelays  .SetToHeat(isRacing, heatLevel);
 		fuelRespawnDelays .SetToHeat(isRacing, heatLevel);
 		wreckRespawnDelays.SetToHeat(isRacing, heatLevel);
@@ -653,6 +655,8 @@ namespace HelicopterOverrides
 
 		lostRejoinDelays  .SetToHeat(isRacing, heatLevel);
 		minRejoinFuelTimes.SetToHeat(isRacing, heatLevel);
+
+		fuelTimes.SetToHeat(isRacing, heatLevel);
 
 		affectedByRoadblocks.SetToHeat(isRacing, heatLevel);
 
