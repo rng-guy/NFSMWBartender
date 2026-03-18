@@ -197,7 +197,7 @@ However, some pursuit-related .asi mods require manual (re)configuration for com
 
 Under certain conditions, Bartender MAY REQUIRE a mod that replaces the game's car loader.
 There are two such mods: "NFSMW LimitAdjuster" by Zolika1351, and "OpenLimitAdjuster" by Chloe.
-You'll likely need one of these two mods if you configure Bartender in any of the following ways:
+You likely need one of these two mods if you configure Bartender in any of the following ways:
  • cop-vehicle spawn tables in "CarTables.ini" : You define > 3 vehicle types for any Heat level.
  • "[Chasers:Limits]"       in "CarSpawns.ini" : You define a global cop-spawn limit > 8.
  • "[Chasers:Independence]" in "CarSpawns.ini" : You enable independent spawns for chasing cops.
@@ -206,14 +206,14 @@ You'll likely need one of these two mods if you configure Bartender in any of th
  • "[Heavy3:Joining]"       in "Strategies.ini": You enable joining from HeavyStrategy 3 requests.
  • "[Heavy3:Unblocking]"    in "Strategies.ini": You define very short unblock delays.
  
-SHOULD YOU CHOOSE "NFSMW LimitAdjuster", you'll need to configure it to work with Bartender:
+SHOULD YOU CHOOSE "NFSMW LimitAdjuster", you need to configure it to work with Bartender:
  1) • place "NFSMWLimitAdjuster.asi" / ".ini" into the same folder as "speed.exe" (not "scripts");
  2) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature; 
  3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50 (or higher), 
                                                          "PursuitCops"      to 255, and
                                                          "Vehicles_SoftCap" to 255.
 
-SHOULD YOU CHOOSE "OpenLimitAdjuster", you won't need to configure it to work with Bartender.
+SHOULD YOU CHOOSE "OpenLimitAdjuster", you don't need to configure it to work with Bartender.
 
 
 

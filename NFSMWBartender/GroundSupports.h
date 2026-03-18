@@ -155,7 +155,7 @@ namespace GroundSupports
 		if constexpr (Globals::loggingEnabled)
 		{
 			const address leaderStrategy = *reinterpret_cast<volatile address*>(pursuit + 0x198);
-			const int     strategyID     = *reinterpret_cast<volatile int*>(leaderStrategy);
+			const int     strategyID     = *reinterpret_cast<volatile int*>    (leaderStrategy);
 
 			Globals::logger.Log<0>(pursuit, "[SUP] Priority: LeaderStrategy", strategyID);
 		}
@@ -170,9 +170,9 @@ namespace GroundSupports
 		const address         pursuit,
 		std::vector<address>& candidates
 	) {
-		const auto    GetSupportNode = reinterpret_cast<address (__thiscall*)(address)>(0x418EE0);
-		const address supportNode    = GetSupportNode(pursuit - 0x48);
+		const auto GetSupportNode = reinterpret_cast<address (__thiscall*)(address)>(0x418EE0);
 
+		const address supportNode = GetSupportNode(pursuit - 0x48);
 		if (not supportNode) return; // should never happen
 
 		const auto GetNumStrategies = reinterpret_cast<size_t  (__thiscall*)(address)>        (CountFunction);
@@ -763,21 +763,21 @@ namespace GroundSupports
 
 	void ValidateVehicleTypes()
 	{
-		bool allTypesCars = true;
+		bool allValid = true;
 
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 3, light", heavy3LightVehicles, Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 4, light", heavy4LightVehicles, Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Heavy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 3, light", heavy3LightVehicles, Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 4, light", heavy4LightVehicles, Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleTypeCar);
 
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleTypeCar);
-		allTypesCars &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Leader 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleTypeCar);
+		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleTypeCar);
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			if (allTypesCars)
+			if (allValid)
 				Globals::logger.Log<2>("All vehicles valid");
 		}
 	}
