@@ -486,9 +486,9 @@ namespace HeatChangeOverrides
 			mov ecx, offset copTypeToHeatChange
 			call ModContainers::DefaultCopyVaultMap<float>::GetValue
 
-			push eax // amount
-			fstp dword ptr [esp]
-			push esi // pursuit
+			push eax
+			fstp dword ptr [esp] // amount
+			push esi             // pursuit
 			call HeatManager::AddToPendingHeatChange
 
 			jmp dword ptr typeDestructionExit

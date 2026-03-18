@@ -107,9 +107,9 @@ namespace MemoryTools
 
 		inline void MakeRangeJMP
 		(
-			const address target,
 			const address start,
-			const address end
+			const address end,
+			const address target
 		) {
 			const address targetStart = start       + sizeof(byte);
 			const address jumpEnd     = targetStart + sizeof(address);
@@ -152,7 +152,7 @@ namespace MemoryTools
 	{
 		static_assert(end >= start + sizeof(byte) + sizeof(address), "Cannot accommodate JMP");
 
-		Details::MakeRangeJMP(target, start, end);
+		Details::MakeRangeJMP(start, end, target);
 	}
 
 
@@ -166,8 +166,8 @@ namespace MemoryTools
 
 	inline address MakeCallHook
 	(
-		const address target,
-		const address location
+		const address location,
+		const address target
 	) {
 		const byte opcode = *reinterpret_cast<byte*>(location);
 
@@ -192,9 +192,9 @@ namespace MemoryTools
 
 	inline address MakeCallHook
 	(
-		const void* const target,
-		const address     location
+		const address     location,
+		const void* const target
 	) {
-		return MakeCallHook(reinterpret_cast<address>(target), location);
+		return MakeCallHook(location, reinterpret_cast<address>(target));
 	}
 }

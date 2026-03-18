@@ -1112,6 +1112,31 @@ namespace CopSpawnOverrides
 
 
 
+	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+
+	void ParseBoardTrackingSettings(const HeatParameters::Parser& parser)
+	{
+		const auto ParseTracking = [&parser](const std::string_view key, bool& isTracked) -> void
+		{
+			parser.ParseFromFile<bool>("Board:Tracking", key, {isTracked});
+		};
+
+		ParseTracking("heavyVehicles",  trackHeavyVehicles);
+		ParseTracking("leaderVehicles", trackLeaderVehicles);
+		ParseTracking("joinedVehicles", trackJoinedVehicles);
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (trackHeavyVehicles)  Globals::logger.Log<2>("Tracking HeavyStrategy");
+			if (trackLeaderVehicles) Globals::logger.Log<2>("Tracking LeaderStrategy");
+			if (trackJoinedVehicles) Globals::logger.Log<2>("Tracking roadblocks");
+		}
+	}
+
+
+
+
+
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
 	bool Initialise(HeatParameters::Parser& parser)
@@ -1122,18 +1147,7 @@ namespace CopSpawnOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
 
 		// Pursuit-board tracking
-		constexpr std::string_view trackingSection = "Board:Tracking";
-
-		parser.ParseFromFile<bool>(trackingSection, "heavyVehicles",  {trackHeavyVehicles});
-		parser.ParseFromFile<bool>(trackingSection, "leaderVehicles", {trackLeaderVehicles});
-		parser.ParseFromFile<bool>(trackingSection, "joinedVehicles", {trackJoinedVehicles});
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (trackHeavyVehicles)  Globals::logger.Log<2>("Tracking HeavyStrategy vehicles");
-			if (trackLeaderVehicles) Globals::logger.Log<2>("Tracking LeaderStrategy vehicles");
-			if (trackJoinedVehicles) Globals::logger.Log<2>("Tracking roadblock vehicles");
-		}
+		ParseBoardTrackingSettings(parser);
 
 		// Heat parameters (first file)
 		HeatParameters::Parse(parser, "Chasers:Limits",       activeChaserCounts);

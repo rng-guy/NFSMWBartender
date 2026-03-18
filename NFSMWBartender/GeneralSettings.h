@@ -459,54 +459,88 @@ namespace GeneralSettings
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	bool ParseTracking
-	(
-		const HeatParameters::Parser& parser,
-		const std::string_view        key,
-		bool&                         isTracked
-	) {
-		parser.ParseFromFile<bool>("Pursuits:Races", key, {isTracked});
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (isTracked)
-				Globals::logger.Log<2>("Tracking", key);
-		}
-
-		return isTracked;
-	}
-
-
-
 	void ParseTrackingSettings(const HeatParameters::Parser& parser)
 	{
-		if (ParseTracking(parser, "pursuitLength", trackPursuitLength))
+		const auto ParseTracking = [&parser](const std::string_view key, bool& isTracked) -> bool
+		{
+			parser.ParseFromFile<bool>("Pursuits:Races", key, {isTracked});
+
+			return isTracked;
+		};
+
+		// Pursuit length
+		if (ParseTracking("pursuitLength", trackPursuitLength))
+		{
 			MemoryTools::MakeRangeNOP<0x443CBE, 0x443CC8>();
 
-		if (ParseTracking(parser, "unitsInPursuit", trackUnitsInPursuit))
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Tracking pursuit length");
+		}
+
+		// Units in pursuit
+		if (ParseTracking("unitsInPursuit", trackUnitsInPursuit))
+		{
 			MemoryTools::MakeRangeNOP<0x41911B, 0x419125>();
 
-		if (ParseTracking(parser, "copsLost", trackCopsLost))
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Tracking units in pursuit");
+		}
+
+		// Cops lost
+		if (ParseTracking("copsLost", trackCopsLost))
+		{
 			MemoryTools::MakeRangeNOP<0x42B761, 0x42B76B>();
 
-		if (ParseTracking(parser, "copsHit", trackCopsHit))
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Tracking cops lost");
+		}
+
+		// Cops hit
+		if (ParseTracking("copsHit", trackCopsHit))
+		{
 			MemoryTools::MakeRangeNOP<0x40AF43, 0x40AF4D>();
 
-		if (ParseTracking(parser, "copsDestroyed", trackCopsDestroyed))
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Tracking cops hit");
+		}
+
+		// Cops destroyed
+		if (ParseTracking("copsDestroyed", trackCopsDestroyed))
 		{
 			MemoryTools::MakeRangeNOP<0x4094E0, 0x4094EA>(); // cop bounty
 			MemoryTools::MakeRangeNOP<0x418F33, 0x418F41>(); // cops destroyed
 			MemoryTools::MakeRangeNOP<0x43EA15, 0x43EA19>(); // total cops destroyed
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Tracking cops destroyed");
 		}
 
-		if (ParseTracking(parser, "passiveBounty", trackPassiveBounty))
+		// Passive bounty
+		if (ParseTracking("passiveBounty", trackPassiveBounty))
+		{
 			MemoryTools::MakeRangeNOP<0x4094A0, 0x4094AA>();
 
-		if (ParseTracking(parser, "propertyDamage", trackPropertyDamage))
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Tracking passive bounty");
+		}
+
+		// Property damage
+		if (ParseTracking("propertyDamage", trackPropertyDamage))
+		{
 			MemoryTools::MakeRangeNOP<0x409463, 0x409467>();
 
-		if (ParseTracking(parser, "infractions", trackInfractions))
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Tracking property damage");
+		}
+
+		// Infractions
+		if (ParseTracking("infractions", trackInfractions))
+		{
 			MemoryTools::MakeRangeNOP<0x5FDDDC, 0x5FDDE7>();
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Tracking infractions");
+		}
 	}
 
 
