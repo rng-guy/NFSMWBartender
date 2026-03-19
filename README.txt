@@ -258,8 +258,8 @@ In the interest of code transparency, however, consider linking to Bartender's G
 Finally, Bartender wouldn't have seen the light of day without
  • DarkByte, for Cheat Engine;
  • rx, for encouraging me to try .asi modding;
- • nlgxzef, for the Most Wanted debug symbols;
  • GuidedHacking, for their Cheat Engine tutorials;
+ • nlgxzef, for his (partial) Most Wanted debug symbols;
  • Sebastiano Vigna, for his pseudorandom number generators;
  • ExOptsTeam, for permitting me to use their Heat-level fixes;
  • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a learning resource; and

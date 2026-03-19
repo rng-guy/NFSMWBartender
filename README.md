@@ -299,8 +299,8 @@ You are free to bundle Bartender and its files with your own pursuit mod, **no c
 Finally, Bartender wouldn't have seen the light of day without
 * **DarkByte**, for [Cheat Engine](https://www.cheatengine.org/);
 * **[rx](https://github.com/rxyyy)**, for encouraging me to try `.asi` modding;
-* **[nlgxzef](https://github.com/nlgxzef)**, for the Most Wanted debug symbols;
 * **GuidedHacking**, for their [Cheat Engine tutorials](https://www.youtube.com/playlist?list=PLt9cUwGw6CYFSoQHsf9b12kHWLdgYRhmQ);
+* **[nlgxzef](https://github.com/nlgxzef)**, for his (partial) Most Wanted debug symbols;
 * **[ExOptsTeam](https://github.com/ExOptsTeam)**, for permitting me to use their Heat-level fixes;
 * **Sebastiano Vigna**, for his [pseudorandom number generators](https://prng.di.unimi.it/);
 * **trelbutate**, for his [NFSMW Cop Car Healthbars](https://github.com/trelbutate/MWHealthbars/) mod as a learning resource; and
