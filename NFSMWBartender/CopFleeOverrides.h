@@ -496,7 +496,7 @@ namespace CopFleeOverrides
 		void UpdateOnHeatChange() override 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<0>(this->pursuit, "[FLE] Reviewing all vehicles");
+				Globals::logger.Log(this->pursuit, "[FLE] Reviewing all vehicles");
 
 			this->chaserVehicles         .ReviewAllVehicles();
 			this->joinedHeavyVehicles    .ReviewAllVehicles();

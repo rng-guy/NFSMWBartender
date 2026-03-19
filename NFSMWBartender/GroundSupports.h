@@ -157,7 +157,7 @@ namespace GroundSupports
 			const address leaderStrategy = *reinterpret_cast<volatile address*>(pursuit + 0x198);
 			const int     strategyID     = *reinterpret_cast<volatile int*>    (leaderStrategy);
 
-			Globals::logger.Log<0>(pursuit, "[SUP] Priority: LeaderStrategy", strategyID);
+			Globals::logger.Log(pursuit, "[SUP] Priority: LeaderStrategy", strategyID);
 		}
 	}
 

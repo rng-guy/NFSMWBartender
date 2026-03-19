@@ -208,7 +208,7 @@ namespace HeatChangeOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (heatChange != 0.f)
-					Globals::logger.Log<0>(pursuit, "[CNG] Heat change:", heatChange);
+					Globals::logger.Log(pursuit, "[CNG] Heat change:", heatChange);
 			}
 
 			manager->pendingHeatChange = 0.f;
