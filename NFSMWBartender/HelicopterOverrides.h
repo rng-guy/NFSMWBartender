@@ -544,24 +544,6 @@ namespace HelicopterOverrides
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
-
-	void ValidateVehicleTypes()
-	{
-		const bool allValid = HeatParameters::ValidateVehicleTypes("Helicopters", helicopterVehicles, Globals::IsVehicleTypeChopper);
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (allValid)
-				Globals::logger.Log<2>("All vehicles valid");
-		}
-
-	}
-
-
-
-
-
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
 	bool Initialise(HeatParameters::Parser& parser)
@@ -588,7 +570,11 @@ namespace HelicopterOverrides
 		HeatParameters::Parse(parser, "Helicopter:Ramming", rammingCooldowns);
 
 		// Check whether vehicles are helicopters
-		ValidateVehicleTypes();
+		if (HeatParameters::ValidateVehicleTypes("Helicopters", helicopterVehicles, Globals::IsVehicleTypeChopper))
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("All vehicles valid");
+		}
 
 		// Code modifications 
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
