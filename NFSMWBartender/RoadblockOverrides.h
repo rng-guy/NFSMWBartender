@@ -81,10 +81,10 @@ namespace RoadblockOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (isMirrored)
-					Globals::logger.Log<2>("Setup:", this->name.c_str(), "(mirrored)");
+					Globals::logger.Log<2>("Setup:", this->name, "(mirrored)");
 
 				else
-					Globals::logger.Log<2>("Setup:", this->name.c_str());
+					Globals::logger.Log<2>("Setup:", this->name);
 			}
 
 			return &((isMirrored) ? this->mirrored : this->standard);
@@ -429,7 +429,7 @@ namespace RoadblockOverrides
 		if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {0.f}}, {setup.maxRoadWidth, {0.f}}))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name.c_str(), "(no extent)");
+				Globals::logger.Log<3>('-', setup.name, "(no extent)");
 
 			return std::nullopt; // invalid setup
 		}
@@ -437,7 +437,7 @@ namespace RoadblockOverrides
 		if (table.minRoadWidth >= setup.maxRoadWidth)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name.c_str(), "(invalid extent)");
+				Globals::logger.Log<3>('-', setup.name, "(invalid extent)");
 
 			return std::nullopt; // invalid setup
 		}
@@ -503,7 +503,7 @@ namespace RoadblockOverrides
 		if (table.numCarsRequired == 0)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name.c_str(), "(no car(s))");
+				Globals::logger.Log<3>('-', setup.name, "(no car(s))");
 
 			return std::nullopt; // invalid setup
 		}
@@ -514,7 +514,7 @@ namespace RoadblockOverrides
 		if (setup.chances.GetMaximum() < 1)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name.c_str(), "(unused)");
+				Globals::logger.Log<3>('-', setup.name, "(unused)");
 
 			return std::nullopt; // unused setup
 		}

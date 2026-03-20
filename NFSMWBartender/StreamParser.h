@@ -28,9 +28,6 @@ namespace StreamParser
 	{
 
 		template <typename T>
-		concept IsChar = std::same_as<T, char>;
-
-		template <typename T>
 		concept IsModernStringOrView = (std::same_as<T, std::string> or std::same_as<T, std::string_view>);
 
 		template <typename T>
@@ -83,20 +80,14 @@ namespace StreamParser
 		}
 
 		
-		template <typename T, typename ...Ts>
-		requires (Concepts::IsChar<T> and ... and Concepts::IsChar<Ts>)
-		consteval bool AreUniqueNonWhitespace
-		(
-			const T     first,
-			const Ts ...rest
-		) 
-			noexcept
+		template <char first, char ...rest>
+		consteval bool AreUniqueNonWhitespace() noexcept
 		{
 			if (IsWhitespace(first))
 				return false;
 
-			else if constexpr (sizeof...(Ts) > 0)
-				return (AreUniqueNonWhitespace<Ts...>(rest...) and ... and (first != rest));
+			else if constexpr (sizeof...(rest) > 0)
+				return (AreUniqueNonWhitespace<rest...>() and ... and (first != rest));
 
 			else
 				return true;
@@ -208,9 +199,7 @@ namespace StreamParser
 	}
 
 
-
-	template <>
-	constexpr bool ParseFromString<bool>
+	constexpr bool ParseFromString
 	(
 		const std::string_view source,
 		bool&                  value
@@ -249,7 +238,6 @@ namespace StreamParser
 	}
 
 
-
 	constexpr bool ParseFromString
 	(
 		const std::string& source,
@@ -261,7 +249,6 @@ namespace StreamParser
 
 		return true;
 	}
-
 
 
 	constexpr bool ParseFromString
@@ -316,7 +303,7 @@ namespace StreamParser
 	// Stream parser --------------------------------------------------------------------------------------------------------------------------------
 
 	template <char comment = ';', char separator = ',', char assign = '=', char start = '[', char end = ']'>
-	requires (Details::AreUniqueNonWhitespace(comment, separator, assign, start, end))
+	requires (Details::AreUniqueNonWhitespace<comment, separator, assign, start, end>())
 	class Parser
 	{
 	private:

@@ -38,9 +38,9 @@ namespace Globals
 	address playerPerpVehicle    = 0x0;
 	bool    playerHeatLevelKnown = false;
 
-	// Logging
+	// Logging (for debugging purposes)
 	constexpr bool loggingEnabled = false;
-	BasicLogger::Logger logger(9, 15, 17);
+	BasicLogger::Logger<9, 15, 17> logger;
 
 	// Hackjob floating-point correction coefficient
 	constexpr float floatScale = 1.f + static_cast<float>(1e-6);

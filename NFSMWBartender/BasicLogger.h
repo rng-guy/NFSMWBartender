@@ -1,14 +1,14 @@
 #pragma once
 
 #include <array>
+#include <string>
 #include <format>
 #include <cstdarg>
 #include <cstdint>
 #include <ostream>
 #include <fstream>
-#include <concepts>
 #include <iterator>
-#include <string_view>
+#include <filesystem>
 #include <type_traits>
 
 
@@ -18,18 +18,24 @@ namespace BasicLogger
 
 	// Logger class ---------------------------------------------------------------------------------------------------------------------------------
 
-	template <size_t numIndents>
+	template <size_t... indents>
 	class Logger
 	{
 	private:
 
 		std::fstream file;
 
-		std::array<size_t, numIndents> indents;
+
+		template <typename T>
+		void Print(const T value)
+		{
+			this->file << value;
+		}
 
 
 		template <typename T>
-		void Print(const T value) 
+		requires (not std::is_trivially_copyable_v<T>)
+		void Print(const T& value) 
 		{
 			this->file << value;
 		}
@@ -39,8 +45,7 @@ namespace BasicLogger
 		requires std::is_enum_v<T>
 		void Print(const T value)
 		{
-			using base = std::underlying_type_t<T>;
-			this->Print<base>(static_cast<base>(value));
+			this->Print(static_cast<std::underlying_type_t<T>>(value));
 		}
 
 
@@ -48,19 +53,23 @@ namespace BasicLogger
 		requires std::is_pointer_v<T>
 		void Print(const T value)
 		{
-			this->Print<uintptr_t>(reinterpret_cast<uintptr_t>(value));
+			this->Print(reinterpret_cast<uintptr_t>(value));
 		}
 
 
-		template <>
-		void Print<const char*>(const char* const value)
+		void Print(const char* const value)
 		{
 			this->file << ((value) ? value : "nullptr");
 		}
 
 
-		template <>
-		void Print<uint32_t>(const uint32_t value)
+		void Print(const std::string& value)
+		{
+			this->file << value;
+		}
+
+
+		void Print(const uint32_t value)
 		{
 			this->file << std::format("{:08x}", value);
 		}
@@ -74,10 +83,9 @@ namespace BasicLogger
 		}
 
 
-		template <>
-		void Print<bool>(const bool value)
+		void Print(const bool value)
 		{
-			this->Print<const char*>((value) ? "true" : "false");
+			this->Print((value) ? "true" : "false");
 		}
 
 
@@ -91,12 +99,12 @@ namespace BasicLogger
 		template <typename T, typename ...Ts>
 		void PrintLine
 		(
-			const T     first,
-			const Ts ...rest
+			T&&     first,
+			Ts&& ...rest
 		) {
-			this->Print<T>(first);
+			this->Print(std::forward<T>(first));
 
-			(..., (this->file << ' ', this->Print<Ts>(rest)));
+			(..., (this->file << ' ', this->Print(std::forward<Ts>(rest))));
 
 			this->file << std::endl; // for debugging
 		}
@@ -105,12 +113,10 @@ namespace BasicLogger
 
 	public:
 
-		template <typename ...Ts>
-		requires ((sizeof...(Ts) == numIndents) and ... and std::convertible_to<Ts, size_t>)
-		explicit Logger(const Ts ...numSpaces) : indents(numSpaces...) {}
+		static constexpr std::array<size_t, 1 + sizeof...(indents)> indentWidths = {0, indents...};
 
 
-		bool Open(const std::string_view path)
+		bool Open(const std::filesystem::path& path)
 		{
 			if (this->file.is_open()) return false;
 
@@ -131,25 +137,19 @@ namespace BasicLogger
 
 
 		template <size_t indentLevel = 0, typename ...Ts>
-		void Log(const Ts ...parts)
+		void Log(Ts&& ...parts)
 		{
+			static_assert(indentLevel < this->indentWidths.size(), "Invalid indentLevel");
+
 			if (this->file.is_open())
 			{
-				if constexpr (indentLevel > 0)
-				{
-					static_assert(indentLevel < numIndents + 1, "Invalid indentLevel");
+				constexpr size_t numWhitespaces = this->indentWidths[indentLevel];
 
-					std::fill_n(std::ostreambuf_iterator<char>(this->file), this->indents[indentLevel - 1], ' ');
-				}
+				if constexpr (numWhitespaces > 0)
+					std::fill_n(std::ostreambuf_iterator<char>(this->file), numWhitespaces, ' ');
 
-				this->PrintLine<Ts...>(parts...);
+				this->PrintLine(std::forward<Ts>(parts)...);
 			}
 		}
 	};
-
-
-
-	// Deduction guide
-	template <typename ...Ts>
-	Logger(Ts...) -> Logger<sizeof...(Ts)>;
 }
