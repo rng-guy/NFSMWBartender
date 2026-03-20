@@ -7,7 +7,7 @@ Bartender adds **new customisation options** to pursuits in *Need for Speed: Mos
 
 &nbsp;
 
-Bartender's **default settings** match the vanilla game's, except for the many bug / issue fixes. This means you don't need to configure Bartender at all should you only care about those.
+Bartender's **default settings** match the vanilla game's, except for the many bug / issue fixes. This also means you don't need to configure Bartender at all if those are all you care about.
 
 &nbsp;
 
