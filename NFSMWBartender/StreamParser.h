@@ -2,6 +2,7 @@
 
 #include <tuple>
 #include <array>
+#include <limits>
 #include <ranges>
 #include <vector>
 #include <string>
@@ -80,17 +81,17 @@ namespace StreamParser
 		}
 
 		
-		template <char first, char ...rest>
+		template <char ...chars>
 		consteval bool AreUniqueNonWhitespace() noexcept
 		{
-			if (IsWhitespace(first))
-				return false;
+			std::array<bool, std::numeric_limits<unsigned char>::max() + 1> seen = {};
 
-			else if constexpr (sizeof...(rest) > 0)
-				return (AreUniqueNonWhitespace<rest...>() and ... and (first != rest));
+			const auto IsValid = [&seen](const unsigned char ch) -> bool
+			{
+				return ((not IsWhitespace(ch)) and (not seen[ch]) and (seen[ch] = true));
+			};
 
-			else
-				return true;
+			return (IsValid(chars) and ...);
 		}
 
 
