@@ -48,9 +48,9 @@ namespace StrategyOverrides
 	{
 	private:
 
-		const float pursuitStartTimestamp = Globals::simulationTime;
-
 		size_t nextHeavy3Count = 2;
+
+		const float pursuitStartTimestamp = Globals::simulationTime;
 
 		volatile int& numStrategyVehicles = *reinterpret_cast<volatile int*>(this->pursuit + 0x18C);
 	

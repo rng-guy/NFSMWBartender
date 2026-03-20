@@ -518,7 +518,6 @@ namespace HeatParameters
 			noexcept
 		{
 			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(pair.current);
-
 			return std::tuple(Format<T>(pair.GetValues(forRaces), std::move(defaultValue), pair.limits));
 		}
 
@@ -530,7 +529,6 @@ namespace HeatParameters
 			PointerPair<T>& pair
 		) {
 			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(pair.current);
-
 			return std::tuple(Format<T>(pair.GetValues(forRaces), std::move(defaultValue)));
 		}
 

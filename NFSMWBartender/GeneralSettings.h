@@ -464,8 +464,7 @@ namespace GeneralSettings
 		const auto ParseTracking = [&parser](const std::string_view key, bool& isTracked) -> bool
 		{
 			parser.ParseFromFile<bool>("Pursuits:Races", key, {isTracked});
-
-			return isTracked;
+			return isTracked; // for immediate toggle checking
 		};
 
 		// Pursuit length
