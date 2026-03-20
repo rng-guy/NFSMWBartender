@@ -5,7 +5,7 @@ Bartender adds **new customisation options** to pursuits in *Need for Speed: Mos
 * the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
 * the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables without limits](https://youtu.be/4o4rhrwuMKU).
 
-Bartender's **default settings** match the vanilla game's, except for the many bug / issue fixes.
+Bartender's default settings match the vanilla game's, except for the many bug / issue fixes.
 
 &nbsp;
 
