@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <limits>
 #include <random>
 #include <cstdint>
 #include <type_traits>
@@ -91,15 +92,19 @@ namespace RandomNumbers
 		// For STL compatibility
 		static constexpr uint64_t min() noexcept
 		{
-			return 0;
+			return std::numeric_limits<uint64_t>::min();
 		}
 
 
 		// For STL compatibility
 		static constexpr uint64_t max() noexcept
 		{
-			return uint64_t(-1);
+			return std::numeric_limits<uint64_t>::max();
 		}
+
+
+		// For STL compatibility
+		using result_type = uint64_t;
 	};
 
 
@@ -146,9 +151,7 @@ namespace RandomNumbers
 		(
 			const T min,
 			const T max
-		) 
-			noexcept
-		{
+		) {
 			// ...can generate values from [min, max]
 			return std::uniform_int_distribution<T>{min, max}(this->engine);
 		}
@@ -156,7 +159,7 @@ namespace RandomNumbers
 
 		template <typename T>
 		requires std::is_integral_v<T>
-		bool DoPercentTrial(const T chance) noexcept
+		bool DoPercentTrial(const T chance)
 		{
 			return (this->GenerateNumber<T>(static_cast<T>(1), static_cast<T>(100)) <= chance);
 		}
@@ -168,9 +171,7 @@ namespace RandomNumbers
 		(
 			const T min,
 			const T max
-		) 
-			noexcept
-		{
+		) {
 			// ...can generate values from [min, max)
 			return std::uniform_real_distribution<T>{min, max}(this->engine);
 		}
@@ -178,13 +179,13 @@ namespace RandomNumbers
 
 		template <typename T>
 		requires std::is_floating_point_v<T>
-		bool DoPercentTrial(const T chance) noexcept
+		bool DoPercentTrial(const T chance)
 		{
 			return (this->GenerateNumber<T>(static_cast<T>(0), static_cast<T>(100)) < chance);
 		}
 
 
-		size_t GenerateIndex(const size_t size) noexcept
+		size_t GenerateIndex(const size_t size)
 		{
 			return (size > 1) ? this->GenerateNumber<size_t>(0, size - 1) : 0;
 		}
