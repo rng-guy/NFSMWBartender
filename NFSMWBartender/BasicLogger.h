@@ -27,33 +27,28 @@ namespace BasicLogger
 
 
 		template <typename T>
-		void Print(const T value)
-		{
-			this->file << value;
-		}
-
-
-		template <typename T>
 		requires (not std::is_trivially_copyable_v<T>)
-		void Print(const T& value) 
+		void Print(const T& value)
 		{
 			this->file << value;
 		}
 
 
 		template <typename T>
-		requires std::is_enum_v<T>
+		requires std::is_trivially_copyable_v<T>
 		void Print(const T value)
 		{
-			this->Print(static_cast<std::underlying_type_t<T>>(value));
-		}
+			if constexpr (std::is_enum_v<T>)
+				this->Print(static_cast<std::underlying_type_t<T>>(value));
 
+			else if constexpr (std::is_pointer_v<T>)
+				this->Print(reinterpret_cast<uintptr_t>(value));
 
-		template <typename T>
-		requires std::is_pointer_v<T>
-		void Print(const T value)
-		{
-			this->Print(reinterpret_cast<uintptr_t>(value));
+			else if constexpr (std::is_floating_point_v<T>)
+				this->file << std::format("{:.3f}", value);
+
+			else
+				this->file << value;
 		}
 
 
@@ -63,23 +58,9 @@ namespace BasicLogger
 		}
 
 
-		void Print(const std::string& value)
-		{
-			this->file << value;
-		}
-
-
-		void Print(const uint32_t value)
+		void Print(const uintptr_t value)
 		{
 			this->file << std::format("{:08x}", value);
-		}
-
-
-		template <typename T>
-		requires std::is_floating_point_v<T>
-		void Print(const T value) 
-		{
-			this->file << std::format("{:.3f}", value);
 		}
 
 
@@ -91,8 +72,7 @@ namespace BasicLogger
 
 		void PrintLine()
 		{
-			if (this->file.is_open())
-				this->file << std::endl; // for debugging
+			this->file << std::endl; // for debugging
 		}
 
 
@@ -137,7 +117,7 @@ namespace BasicLogger
 
 
 		template <size_t indentLevel = 0, typename ...Ts>
-		void Log(Ts&& ...parts)
+		void Log(Ts&& ...segments)
 		{
 			static_assert(indentLevel < this->indentWidths.size(), "Invalid indentLevel");
 
@@ -148,7 +128,7 @@ namespace BasicLogger
 				if constexpr (numWhitespaces > 0)
 					std::fill_n(std::ostreambuf_iterator<char>(this->file), numWhitespaces, ' ');
 
-				this->PrintLine(std::forward<Ts>(parts)...);
+				this->PrintLine(std::forward<Ts>(segments)...);
 			}
 		}
 	};

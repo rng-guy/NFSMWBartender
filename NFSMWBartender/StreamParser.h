@@ -325,7 +325,7 @@ namespace StreamParser
 			noexcept(Concepts::AreAllocationFree<Vs...>)
 		{
 			if constexpr (Concepts::AreSeparatorParseable<Vs...>)
-				return ParseFromString<Vs...>(source, separator, values...);
+				return ParseFromString(source, separator, values...);
 
 			else
 				return ParseFromString(source, values...);
