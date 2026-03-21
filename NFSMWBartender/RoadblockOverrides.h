@@ -588,13 +588,11 @@ namespace RoadblockOverrides
 			}
 		}
 
-		// Log parsing result(s)
+		// Log and shrink setup vector
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (not roadblockSetups.empty())
 			{
-				roadblockSetups.shrink_to_fit();
-
 				Globals::logger.Log<3>(static_cast<int>(roadblockSetups.size()), "setup(s) valid");
 
 				Globals::logger.Log<3>(static_cast<int>(counter.numRegular), "regular,", static_cast<int>(counter.numMirrorRegular), "mirrored");
@@ -604,6 +602,8 @@ namespace RoadblockOverrides
 			}
 			else Globals::logger.Log<3>("no setup(s) valid");
 		}
+
+		roadblockSetups.shrink_to_fit();
 
 		return (not roadblockSetups.empty());
 	}
