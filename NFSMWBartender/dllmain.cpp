@@ -40,7 +40,7 @@ static void __cdecl InitialiseBartender
     {
         Globals::logger.Open("BartenderLog.txt");
 
-        Globals::logger.Log("\n SESSION [VER] Bartender v3.02.00");
+        Globals::logger.Log("\n SESSION [VER] Bartender v3.02.01");
     }
 
     constexpr size_t maxNumConfigFiles = 6;

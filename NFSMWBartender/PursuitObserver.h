@@ -413,9 +413,6 @@ namespace PursuitObserver
 		RoadblockOverrides ::Initialise(parser);
 
 		// Code modifications
-		if (not RoadblockOverrides::featureEnabled)
-			RoadblockOverrides::ApplyFixes();
-
 		MemoryTools::MakeRangeJMP<copAddedEntrance,           copAddedExit>          (CopAdded);
 		MemoryTools::MakeRangeJMP<copRemovedEntrance,         copRemovedExit>        (CopRemoved);
 		MemoryTools::MakeRangeJMP<pursuitDestructorEntrance,  pursuitDestructorExit> (PursuitDestructor);

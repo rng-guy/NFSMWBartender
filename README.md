@@ -158,8 +158,9 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **always fixes ten bugs / issues** automatically:
+The "Advanced" feature set **always fixes eleven bugs / issues** automatically:
 * HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
+* the cops no longer stop callling out roadblocks / spikes over the radio,
 * failed roadblock spawn attempts can no longer stall spawns for chasing cops,
 * Challenge Series races now use the Heat level limits defined for them in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),
 * the game no longer ignores VltEd settings for roadblocks and Strategies in races,
@@ -172,8 +173,7 @@ The "Advanced" feature set **always fixes ten bugs / issues** automatically:
 
 &nbsp;
 
-The "Advanced" feature set **can fix five more bugs / issues**, depending on its configuration:
-* the cops no longer stop callling out roadblocks / spikes over the radio,
+The "Advanced" feature set **can fix four more bugs / issues**, depending on its configuration:
 * the game no longer fails to use four of its vanilla roadblock setups in pursuits,
 * the helicopter can no longer waste its spawn attempts by losing you nearly instantly,
 * HeavyStrategy 3 vehicles no longer spawn in passive mode without trying to ram anything, and
@@ -262,7 +262,7 @@ Under certain conditions, Bartender **may require** a mod that replaces the game
 &nbsp;
 
 **To install** Bartender:
-1. download and unzip the `NfSMW_Bartender_v3.02.0.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/latest);
+1. download and unzip the `NfSMW_Bartender_v3.02.1.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/latest);
 2. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
 3. copy the `BartenderSettings` folder and `.asi` file to your game's `scripts` folder;
 4. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file; and

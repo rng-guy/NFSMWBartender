@@ -419,15 +419,13 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 Regarding **roadblock behaviour and setups** (`BartenderSettings\Advanced\Roadblocks.ini`):
 
-* If you delete this file or define no valid roadblock setup(s), Bartender disables this feature.
-
-* If enabled, this feature automatically fixes the vanilla issue where the game would never spawn certain roadblock setups. That's because the vanilla doesn't use width intervals to select a setup; instead, it just picks the first setup in its table which uses the available width the most, and ignores any other setups that might be equally suitable (i.e. wide). Since the vanilla game has three spike-strip setups with exactly the same width, two of them will never appear in pursuits under normal conditions.
-
-* If enabled, this feature automatically fixes the vanilla issue where cops may stop calling out new roadblock spawns or spike strips. This happens due to the game's speech manager reaching a locked state sometimes, which suppresses some callouts.
-
 * The number of active vehicles that joined from roadblocks is limited only at Heat levels for which you define a valid limit value. These limits apply to each pursuit separately. If you also make "Chasers" spawns independent, then the global cop-spawn limit no longer applies to vehicles that join from roadblocks, too; they can always join unless you define a limit.
 
 * Joined roadblock vehicles flee only at Heat levels for which you define valid flee-delay values and "Chasers" thresholds. Joined roadblock vehicles only flee if there would be enough active "Chasers" remaining in the pursuit after their retreat.
+
+* If you delete this file or define no valid roadblock setup(s), Bartender disables the custom-roadblock feature. This includes the vanilla setups, because Bartender doesn't differentiate between those and truly custom roadblock setups internally.
+
+* If enabled, the custom-roadblock feature automatically fixes the vanilla issue where the game would never spawn certain roadblock setups. That's because the vanilla doesn't use width intervals to select a setup; instead, it just picks the first setup in its table which uses the available width the most, and ignores any other setups that might be equally suitable (i.e. wide). Since the vanilla game has three spike-strip setups with exactly the same width, two of them will never appear in pursuits under normal conditions.
 
 * Read the usage comments in this file's header before you change any of its contents. It's very easy to screw up roadblock setups or encounter unexpected behaviour if you don't fully understand how the game goes about selecting roadblock setups to spawn.
 

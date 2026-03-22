@@ -188,7 +188,7 @@ namespace RoadblockOverrides
 				const auto CallOutSpikes = reinterpret_cast<void (__cdecl*)(int)>(0x71DAC0);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("Spikes callout");
+					Globals::logger.Log(pursuit, "[RBL] Spikes callout");
 
 				CallOutSpikes(spikeLane);
 			}
@@ -197,13 +197,13 @@ namespace RoadblockOverrides
 				const auto CallOutRegular = reinterpret_cast<void (*)()>(0x71DAA0);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("Regular callout");
+					Globals::logger.Log(pursuit, "[RBL] Regular callout");
 
 				CallOutRegular();
 			}
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("No callout");
+			Globals::logger.Log(pursuit, "[RBL] No callout");
 	}
 
 
@@ -614,40 +614,34 @@ namespace RoadblockOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	void ApplyFixes()
-	{
-		// Fixes cop-spawn stalling due to failed roadblock spawn attempts
-		MemoryTools::MakeRangeJMP<spawnFailureEntrance, spawnFailureExit>(SpawnFailure);
-	}
-
-
-
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [RBL] RoadblockOverrides");
 
-		if (not parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini")) return false;
+		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Roadblocks:Radio", spawnCalloutChances, spikeCalloutChances);
 
 		// Roadblock setups
-		if (not ParseRoadblockSetups(parser)) return false; // no valid setups; disable feature
+		if (ParseRoadblockSetups(parser))
+		{
+			// Code changes (feature-specific)
+			MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
 
-		// Code Changes
-		MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
+			MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable);
 
+			MemoryTools::MakeRangeJMP<scaleLimitEntrance, scaleLimitExit>(ScaleLimit);
+		}
+
+		// Code Changes (general)
 		MemoryTools::MakeRangeNOP<0x71F184, 0x71F19F>(); // regular callout
 		MemoryTools::MakeRangeNOP<0x71F091, 0x71F096>(); // spikes  callout
 
-		MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable);
-
 		MemoryTools::MakeRangeJMP<spikeLaneEntrance,    spikeLaneExit>   (SpikeLane);
-		MemoryTools::MakeRangeJMP<scaleLimitEntrance,   scaleLimitExit>  (ScaleLimit);
 		MemoryTools::MakeRangeJMP<radioRequestEntrance, radioRequestExit>(RadioRequest);
-
-		ApplyFixes();
+		MemoryTools::MakeRangeJMP<spawnFailureEntrance, spawnFailureExit>(SpawnFailure);
 
 		// Status flag
 		featureEnabled = true;
@@ -663,6 +657,8 @@ namespace RoadblockOverrides
 
 		spawnCalloutChances.Log("spawnCalloutChance      ");
 		spikeCalloutChances.Log("spikeCalloutChance      ");
+
+		if (roadblockSetups.empty()) return;
 
 		Globals::logger.Log<2>("numRegularRoadblocks    ", static_cast<int>(counter.numRegular), '/', static_cast<int>(counter.numMirrorRegular));
 		Globals::logger.Log<2>("numSpikeRoadblocks      ", static_cast<int>(counter.numSpike),   '/', static_cast<int>(counter.numMirrorSpike));

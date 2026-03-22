@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v3.02.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v3.02.01) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -140,8 +140,9 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how likely each roadblock setup is to spawn with vertically mirrored parts instead, and
  • which non-chasing cops are also tracked by the engagement count shown above the pursuit board.
 
-The "Advanced" feature set ALWAYS FIXES TEN BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES ELEVEN BUGS / ISSUES automatically:
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
+ • the cops no longer stop callling out roadblocks / spikes over the radio,
  • failed roadblock spawn attempts can no longer stall spawns for chasing cops,
  • Challenge Series events now use the Heat level limits defined for them in VltEd,
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
@@ -152,8 +153,7 @@ The "Advanced" feature set ALWAYS FIXES TEN BUGS / ISSUES automatically:
  • the engagement count above the pursuit board now always tracks relevant cops accurately, and
  • the pathfinding of new cop vehicles no longer breaks whenever a race pursuit moves to free-roam.
 
-The "Advanced" feature set CAN FIX FIVE MORE BUGS / ISSUES, depending on its configuration:
- • the cops no longer stop callling out roadblocks / spikes over the radio,
+The "Advanced" feature set CAN FIX FOUR MORE BUGS / ISSUES, depending on its configuration:
  • the game no longer fails to use four of its vanilla roadblock setups in pursuits,
  • the helicopter can no longer waste its spawn attempts by losing you nearly instantly,
  • HeavyStrategy 3 vehicles no longer spawn in passive mode without trying to ram anything, and
