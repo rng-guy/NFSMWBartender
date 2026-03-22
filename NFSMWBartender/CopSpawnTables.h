@@ -252,7 +252,7 @@ namespace CopSpawnTables
 
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
-	using Tables    = HeatParameters::Values<SpawnTable>;
+	using Tables    = HeatParameters::Values     <SpawnTable>;
 	using TablePair = HeatParameters::PointerPair<SpawnTable>;
 
 
