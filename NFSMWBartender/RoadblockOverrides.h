@@ -4,7 +4,6 @@
 #include <array>
 #include <vector>
 #include <string>
-#include <format>
 #include <utility>
 #include <optional>
 #include <string_view>
