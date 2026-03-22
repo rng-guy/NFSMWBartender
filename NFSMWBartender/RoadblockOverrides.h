@@ -662,8 +662,6 @@ namespace RoadblockOverrides
 
 		Globals::logger.Log<2>("numRegularRoadblocks    ", static_cast<int>(counter.numRegular), '/', static_cast<int>(counter.numMirrorRegular));
 		Globals::logger.Log<2>("numSpikeRoadblocks      ", static_cast<int>(counter.numSpike),   '/', static_cast<int>(counter.numMirrorSpike));
-
-		counter.ResetCounts();
 	}
 
 
@@ -692,6 +690,10 @@ namespace RoadblockOverrides
 		}
 
 		if constexpr (Globals::loggingEnabled)
+		{
 			LogHeatReport();
+
+			counter.ResetCounts();
+		}
 	}
 }
