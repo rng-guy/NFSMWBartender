@@ -205,6 +205,8 @@ namespace InteractiveMusic
 		else if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<3>("no track(s) provided");
 
+		playlist.shrink_to_fit();
+
 		return (not playlist.empty());
 	}
 
