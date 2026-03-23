@@ -187,7 +187,7 @@ namespace RoadblockOverrides
 				const auto CallOutSpikes = reinterpret_cast<void (__cdecl*)(int)>(0x71DAC0);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(pursuit, "[RBL] Spikes callout");
+					Globals::logger.Log<1>("[RBL] Spikes callout");
 
 				CallOutSpikes(spikeLane);
 			}
@@ -196,13 +196,13 @@ namespace RoadblockOverrides
 				const auto CallOutRegular = reinterpret_cast<void (*)()>(0x71DAA0);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(pursuit, "[RBL] Regular callout");
+					Globals::logger.Log<1>("[RBL] Regular callout");
 
 				CallOutRegular();
 			}
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log(pursuit, "[RBL] No callout");
+			Globals::logger.Log<1>("[RBL] No callout");
 	}
 
 
