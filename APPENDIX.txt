@@ -23,7 +23,7 @@ Last, there are three POSSIBLE CAUSES FOR IN-GAME ISSUES you might encounter wit
 
 To help you SOLVE IN-GAME ISSUES with Bartender, the sections below address these questions:
  1) • What's there to know about Bartender's file parsing?
- 2) • What's there to know about the "Basic" feature set?
+ 2) • What's there to know about the "Basic"    feature set?
  3) • What's there to know about the "Advanced" feature set?
  4) • What changed in each version of Bartender?
 

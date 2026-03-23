@@ -14,7 +14,7 @@ For OPTIMAL CUSTOMISABILITY, use VltEd along with Bartender. Bartender doesn't r
 as Bartender's features are deliberately limited to things you can't do with VltEd alone.
 
 The SECTIONS BELOW address these questions in detail:
- 1) • What does the "Basic" feature set do?
+ 1) • What does the "Basic"    feature set do?
  2) • What does the "Advanced" feature set do?
  3) • What mods are (in)compatible with Bartender?
  4) • What other mods does Bartender depend on?
