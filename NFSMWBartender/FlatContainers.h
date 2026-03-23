@@ -321,7 +321,6 @@ namespace FlatContainers
 		constexpr iterator find(const U& key)
 		{
 			const auto key_matches = [&key](const value_type& p) {return p.first == key;};
-
 			return std::find_if(this->begin(), this->end(), key_matches);
 		}
 
@@ -331,7 +330,6 @@ namespace FlatContainers
 		constexpr const_iterator find(const U& key) const
 		{
 			const auto key_matches = [&key](const value_type& p) {return p.first == key;};
-
 			return std::find_if(this->begin(), this->end(), key_matches);
 		}
 
