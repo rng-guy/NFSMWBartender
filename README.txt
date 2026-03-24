@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v3.02.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v3.03.00) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -117,6 +117,8 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the helicopter can respawn if it loses you,
  • when exactly (if at all) the helicopter can rejoin instead if it loses you,
  • when exactly (if at all) the helicopter can run out of fuel after each (re)spawn,
+ • how far away the helicopter spawns to chase the pursuit target,
+ • how far away the helicopter spawns to search for the pursuit target,
  • whether the presence of roadblocks affects the helicopter's navigation behaviour,
  • the internal cooldown between the helicopter's ramming attempts through HeliStrategy 2,
  • below what racer speed HeavyStrategy 3 vehicles cancel their ramming attempts early,
@@ -243,7 +245,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v3.02.00, replace all old configuration files.
+If you update from a version older than v3.03.00, replace all old configuration files.
 
 
 

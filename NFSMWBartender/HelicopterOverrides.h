@@ -33,6 +33,9 @@ namespace HelicopterOverrides
 
 	constinit HeatParameters::OptionalInterval<float> fuelTimes({1.f}); // seconds
 
+	constinit HeatParameters::Interval<float> chaseSpawnDistances (250.f, 250.f, {0.f, 400.f}); // metres
+	constinit HeatParameters::Interval<float> searchSpawnDistances(250.f, 250.f, {0.f, 400.f}); // metres
+
 	constinit HeatParameters::Pair<bool> affectedByRoadblocks(true);
 
 	constinit HeatParameters::Interval<float> rammingCooldowns(8.f, 8.f, {1.f}); // seconds
@@ -432,6 +435,22 @@ namespace HelicopterOverrides
 
 
 
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	float __fastcall GetSpawnDistance(const address pursuit)
+	{
+		const float distance = (Globals::IsInCooldownMode(pursuit)) ? searchSpawnDistances.GetRandomValue() : chaseSpawnDistances.GetRandomValue();
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log(pursuit, "[HEL] Spawn distance:", distance);
+
+		return distance;
+	}
+
+
+
+
+
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address fuelUpdateEntrance = 0x423519;
@@ -502,6 +521,26 @@ namespace HelicopterOverrides
 
 
 
+	constexpr address spawnDistanceEntrance = 0x426ABF;
+	constexpr address spawnDistanceExit     = 0x426AC4;
+
+	// Sets the spawn distance to the pursuit target
+	__declspec(naked) void SpawnDistance()
+	{
+		__asm
+		{
+			mov ecx, ebp
+			call GetSpawnDistance // ecx: pursuit
+
+			push eax
+			fstp dword ptr [esp]
+
+			jmp dword ptr spawnDistanceExit
+		}
+	}
+
+
+
 	constexpr address roadblockCheckEntrance = 0x419160;
 	constexpr address roadblockCheckExit     = 0x419168;
 
@@ -565,6 +604,9 @@ namespace HelicopterOverrides
 
 		HeatParameters::Parse(parser, "Helicopter:FuelTime", fuelTimes);
 
+		HeatParameters::Parse(parser, "Helicopter:Chasing",   chaseSpawnDistances);
+		HeatParameters::Parse(parser, "Helicopter:Searching", searchSpawnDistances);
+
 		HeatParameters::Parse(parser, "Helicopter:Roadblocks", affectedByRoadblocks);
 
 		HeatParameters::Parse(parser, "Helicopter:Ramming", rammingCooldowns);
@@ -582,6 +624,7 @@ namespace HelicopterOverrides
 		MemoryTools::MakeRangeJMP<fuelUpdateEntrance,      fuelUpdateExit>     (FuelUpdate);
 		MemoryTools::MakeRangeJMP<defaultFuelEntrance,     defaultFuelExit>    (DefaultFuel);
 		MemoryTools::MakeRangeJMP<earlyBailoutEntrance,    earlyBailoutExit>   (EarlyBailout);
+		MemoryTools::MakeRangeJMP<spawnDistanceEntrance,   spawnDistanceExit>  (SpawnDistance);
 		MemoryTools::MakeRangeJMP<roadblockCheckEntrance,  roadblockCheckExit> (RoadblockCheck);
 		MemoryTools::MakeRangeJMP<rammingCooldownEntrance, rammingCooldownExit>(RammingCooldown);
 
@@ -617,6 +660,9 @@ namespace HelicopterOverrides
 
 			fuelTimes.Log("fuelTime                ");
 
+			chaseSpawnDistances .Log("chaseSpawnDistance      ");
+			searchSpawnDistances.Log("searchSpawnDistance     ");
+
 			affectedByRoadblocks.Log("isAffectedByRoadblock   ");
 
 			rammingCooldowns.Log("rammingCooldown         ");
@@ -643,6 +689,9 @@ namespace HelicopterOverrides
 		minRejoinFuelTimes.SetToHeat(isRacing, heatLevel);
 
 		fuelTimes.SetToHeat(isRacing, heatLevel);
+
+		chaseSpawnDistances .SetToHeat(isRacing, heatLevel);
+		searchSpawnDistances.SetToHeat(isRacing, heatLevel);
 
 		affectedByRoadblocks.SetToHeat(isRacing, heatLevel);
 

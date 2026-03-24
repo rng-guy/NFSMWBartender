@@ -95,7 +95,7 @@ namespace Globals
 		const vault  attributeKey   = 0x0,
 		const size_t attributeIndex = 0
 	) {
-		const auto GetVaultNode      = reinterpret_cast<address (__cdecl*)   (vault, vault)>          (0x455FD0);
+		const auto GetVaultNode      = reinterpret_cast<address (__cdecl*)   (vault,   vault)>        (0x455FD0);
 		const auto GetVaultAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454190);
 
 		const address node = GetVaultNode(rootKey, nodeKey);

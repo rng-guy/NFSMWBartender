@@ -28,7 +28,7 @@ namespace GroundSupports
 	constinit HeatParameters::Interval<float> roadblockCooldowns     (8.f,  12.f, {1.f}); // seconds
 	constinit HeatParameters::Pair    <float> roadblockHeavyCooldowns(15.f, {1.f});       // seconds
 
-	constinit HeatParameters::Interval<float> roadblockSpawnDistances(250.f, 250.f, {0.f}); // metres
+	constinit HeatParameters::Interval<float> roadblockSpawnDistances(250.f, 250.f, {0.f, 400.f}); // metres
 
 	constinit HeatParameters::Pair<bool> roadblockEndsFormations(true);
 

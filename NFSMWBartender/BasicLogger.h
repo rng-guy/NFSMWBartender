@@ -54,7 +54,7 @@ namespace BasicLogger
 
 		void Print(const char* const value)
 		{
-			this->file << (value) ? value : "nullptr";
+			this->file << ((value) ? value : "nullptr");
 		}
 
 
@@ -66,7 +66,7 @@ namespace BasicLogger
 
 		void Print(const bool value)
 		{
-			this->file << (value) ? "true" : "false";
+			this->file << ((value) ? "true" : "false");
 		}
 
 
