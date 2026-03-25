@@ -151,22 +151,22 @@ namespace FlatContainers
 		constexpr explicit Set(const size_type cap) : base(cap) {}
 
 
-		constexpr Set(const std::initializer_list<value_type> init)
+		constexpr Set(const std::initializer_list<value_type> list)
 		{
-			this->reserve(init.size());
+			this->reserve(list.size());
 
-			for (const auto& item : init)
+			for (const auto& item : list)
 				this->insert(item);
 		}
 
 
 		// Invalidates all iterators
-		constexpr Set& operator=(const std::initializer_list<value_type> init)
+		constexpr Set& operator=(const std::initializer_list<value_type> list)
 		{
 			this->clear();
-			this->reserve(init.size());
+			this->reserve(list.size());
 
-			for (const auto& item : init)
+			for (const auto& item : list)
 				this->insert(item);
 
 			return *this;
@@ -258,8 +258,7 @@ namespace FlatContainers
 		// Invalidates iterators of erased and final value
 		constexpr reverse_iterator erase(const reverse_iterator rit)
 		{
-			if (rit == this->rend()) return rit;
-			return {this->erase(std::prev(rit.base()))};
+			return (rit != this->rend()) ? reverse_iterator(this->erase(std::prev(rit.base()))) : rit;
 		}
 	};
 
@@ -294,22 +293,22 @@ namespace FlatContainers
 		constexpr explicit Map(const size_type cap) : base(cap) {}
 
 
-		constexpr Map(const std::initializer_list<value_type> init)
+		constexpr Map(const std::initializer_list<value_type> list)
 		{
-			this->reserve(init.size());
+			this->reserve(list.size());
 
-			for (const auto& item : init) 
+			for (const auto& item : list)
 				this->insert(item.first, item.second);
 		}
 
 
 		// Invalidates all iterators
-		constexpr Map& operator=(const std::initializer_list<value_type> init)
+		constexpr Map& operator=(const std::initializer_list<value_type> list)
 		{
 			this->clear();
-			this->reserve(init.size());
+			this->reserve(list.size());
 
-			for (const auto& item : init) 
+			for (const auto& item : list)
 				this->insert(item.first, item.second);
 			
 			return *this;
@@ -320,8 +319,8 @@ namespace FlatContainers
 		requires std::equality_comparable_with<U, key_type>
 		constexpr iterator find(const U& key)
 		{
-			const auto key_matches = [&key](const value_type& p) {return p.first == key;};
-			return std::find_if(this->begin(), this->end(), key_matches);
+			const auto is_match = [&key](const value_type& pair) -> bool {return (pair.first == key);};
+			return std::find_if(this->begin(), this->end(), is_match);
 		}
 
 
@@ -329,8 +328,8 @@ namespace FlatContainers
 		requires std::equality_comparable_with<U, key_type>
 		constexpr const_iterator find(const U& key) const
 		{
-			const auto key_matches = [&key](const value_type& p) {return p.first == key;};
-			return std::find_if(this->begin(), this->end(), key_matches);
+			const auto is_match = [&key](const value_type& pair) -> bool {return (pair.first == key);};
+			return std::find_if(this->begin(), this->end(), is_match);
 		}
 
 
@@ -391,10 +390,9 @@ namespace FlatContainers
 			const auto it = this->find(key);
 			if (it != this->end()) return {it, false};
 
-			// Truly lazy construction of type contained in unique pointer
 			this->data.emplace_back
 			(
-				std::forward<KeyArg>(key), 
+				std::forward    <KeyArg>(key), 
 				std::make_unique<typename mapped_type::element_type>(std::forward<ValArgs>(args)...)
 			);
 
@@ -435,8 +433,7 @@ namespace FlatContainers
 		// Invalidates iterators of erased and final value
 		constexpr reverse_iterator erase(const reverse_iterator rit)
 		{
-			if (rit == this->rend()) return rit;
-			return {this->erase(std::prev(rit.base()))};
+			return (rit != this->rend()) ? reverse_iterator(this->erase(std::prev(rit.base()))) : rit;
 		}
 	};
 }
