@@ -33,8 +33,8 @@ namespace HelicopterOverrides
 
 	constinit HeatParameters::OptionalInterval<float> fuelTimes({1.f}); // seconds
 
-	constinit HeatParameters::Interval<float> chaseSpawnDistances (250.f, 250.f, {0.f, 400.f}); // metres
-	constinit HeatParameters::Interval<float> searchSpawnDistances(250.f, 250.f, {0.f, 400.f}); // metres
+	constinit HeatParameters::Interval<float> chaseSpawnDistances (250.f, 250.f, {0.f, 450.f}); // metres
+	constinit HeatParameters::Interval<float> searchSpawnDistances(250.f, 250.f, {0.f, 450.f}); // metres
 
 	constinit HeatParameters::Pair<bool> affectedByRoadblocks(true);
 
