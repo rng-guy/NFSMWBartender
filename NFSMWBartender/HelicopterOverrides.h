@@ -442,7 +442,7 @@ namespace HelicopterOverrides
 		const float distance = (Globals::IsInCooldownMode(pursuit)) ? searchSpawnDistances.GetRandomValue() : chaseSpawnDistances.GetRandomValue();
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log(pursuit, "[HEL] Spawn distance:", distance);
+			Globals::logger.Log<2>(pursuit, "Spawn distance:", distance);
 
 		return distance;
 	}
@@ -659,14 +659,14 @@ namespace HelicopterOverrides
 			minRejoinFuelTimes.Log("minRejoinFuelTime       ");
 
 			fuelTimes.Log("fuelTime                ");
-
-			chaseSpawnDistances .Log("chaseSpawnDistance      ");
-			searchSpawnDistances.Log("searchSpawnDistance     ");
-
-			affectedByRoadblocks.Log("isAffectedByRoadblock   ");
-
-			rammingCooldowns.Log("rammingCooldown         ");
 		}
+
+		chaseSpawnDistances .Log("chaseSpawnDistance      ");
+		searchSpawnDistances.Log("searchSpawnDistance     ");
+
+		affectedByRoadblocks.Log("isAffectedByRoadblock   ");
+
+		rammingCooldowns.Log("rammingCooldown         ");
 	}
 
 
