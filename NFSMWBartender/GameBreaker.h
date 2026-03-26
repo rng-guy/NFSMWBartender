@@ -71,7 +71,7 @@ namespace GameBreaker
 		const auto  ChargeGameBreaker = reinterpret_cast<void (__thiscall*)(address, float)>(0x6F8F60);
 		const float timeToRatio       = **reinterpret_cast<volatile float* volatile*>(0x6EDDC3);
 
-		ChargeGameBreaker(localPlayer, Globals::floatScale * timeToRatio * amount);
+		ChargeGameBreaker(localPlayer, timeToRatio * amount);
 	}
 
 
@@ -101,15 +101,18 @@ namespace GameBreaker
 			test al, al
 			je conclusion // not player pursuit
 
-			push dword ptr copWreckBreakerChanges.current // amount
-			call ChargeSpeedbreaker
+			fld dword ptr copWreckBreakerChanges.current
+			fmul dword ptr Globals::floatScale
 
 			push dword ptr [esi + 0xF8] // copType
 			mov ecx, offset copTypeToBreakerChange
 			call ModContainers::DefaultCopyVaultMap<float>::GetValue
+			fmul dword ptr Globals::floatScale
+
+			faddp st(1), st(0)
 
 			push eax
-			fstp [esp] // amount
+			fstp dword ptr [esp] // amount
 			call ChargeSpeedbreaker
 
 			conclusion:
