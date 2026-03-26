@@ -30,14 +30,14 @@ namespace StrategyOverrides
 	constinit HeatParameters::OptionalInterval<float> leader7UnblockDelays({1.f}); // seconds
 
 	// Code caves
-	constexpr size_t maxNumVehiclesPerHeavy4 = 6; // cars
-	constexpr size_t numFloatsPerSpawnVector = 4; // floats
+	constexpr size_t maxNumVehiclesPerHeavy4  = 6; // cars
+	constexpr size_t numFloatsPerHeavy3Vector = 4; // floats
 
-	constinit std::vector<float> spawnVectorStackOne;
-	constinit std::vector<float> spawnVectorStackTwo;
+	constinit std::vector<float> heavy3VectorFloatsOne;
+	constinit std::vector<float> heavy3VectorFloatsTwo;
 
-	float* spawnVectorsOne = nullptr;
-	float* spawnVectorsTwo = nullptr;
+	float* heavy3VectorStackOne = nullptr;
+	float* heavy3VectorStackTwo = nullptr;
 
 
 
@@ -416,8 +416,8 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov esi, dword ptr spawnVectorsOne
-			mov edi, dword ptr spawnVectorsTwo
+			mov esi, dword ptr heavy3VectorStackOne
+			mov edi, dword ptr heavy3VectorStackTwo
 
 			add esi, ebx // vector offset
 			add edi, ebx // vector offset
@@ -469,8 +469,8 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov ecx, dword ptr numFloatsPerSpawnVector
-			mov edx, dword ptr spawnVectorsOne
+			mov ecx, dword ptr numFloatsPerHeavy3Vector
+			mov edx, dword ptr heavy3VectorStackOne
 			
 			mov edi, eax
 			add edx, ebp // vector offset
@@ -484,7 +484,7 @@ namespace StrategyOverrides
 			dec ecx
 			jnl negation // elements remaining
 
-			mov eax, dword ptr spawnVectorsTwo
+			mov eax, dword ptr heavy3VectorStackTwo
 
 			mov ecx, edi
 			add eax, ebp // vector offset
@@ -626,16 +626,16 @@ namespace StrategyOverrides
 
 	void InitialiseStackVectors()
 	{
-		const size_t stackSize = numFloatsPerSpawnVector * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
+		const size_t numVectorFloats = numFloatsPerHeavy3Vector * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5);
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("New stack size:", static_cast<int>(stackSize), "floats");
+			Globals::logger.Log<2>("New stack size:", static_cast<int>(numVectorFloats), "floats");
 
-		spawnVectorStackOne.resize(stackSize);
-		spawnVectorStackTwo.resize(stackSize);
+		heavy3VectorFloatsOne.resize(numVectorFloats);
+		heavy3VectorFloatsTwo.resize(numVectorFloats);
 
-		spawnVectorsOne = spawnVectorStackOne.data();
-		spawnVectorsTwo = spawnVectorStackTwo.data();
+		heavy3VectorStackOne = heavy3VectorFloatsOne.data();
+		heavy3VectorStackTwo = heavy3VectorFloatsTwo.data();
 	}
 
 
