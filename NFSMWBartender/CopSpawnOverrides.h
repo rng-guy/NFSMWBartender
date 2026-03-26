@@ -678,10 +678,11 @@ namespace CopSpawnOverrides
 
 	const char* __fastcall UpdateFirstScriptedCopName(size_t heatLevel)
 	{
-		constexpr bool assumeRace = false;
+		constexpr bool assumeRace  = false;
+		const auto&    spawnTables = CopSpawnTables::scriptedSpawnTables.GetValues(assumeRace);
 
 		heatLevel            = std::clamp<size_t>(heatLevel, 1, HeatParameters::maxHeatLevel);
-	    firstScriptedCopName = CopSpawnTables::scriptedSpawnTables.GetValues(assumeRace)[heatLevel - 1].GetNameOfAvailableCop();
+	    firstScriptedCopName = spawnTables[heatLevel - 1].GetNameOfAvailableCop();
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<1>("[SPA] First scripted cop:", firstScriptedCopName);
@@ -745,7 +746,7 @@ namespace CopSpawnOverrides
 		__asm
 		{
 			mov edx, offset squaredChaserSpawnClearance
-			mov eax, 0x891064 // pointer -> 40.f * 40.f
+			mov eax, 0x891064 // pointer to vanilla value
 
 			cmp byte ptr [esp + 0x2C], 0x0
 			cmovne edx, eax // not "Chasers" cop
