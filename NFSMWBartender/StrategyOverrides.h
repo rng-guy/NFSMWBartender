@@ -31,6 +31,7 @@ namespace StrategyOverrides
 
 	// Code caves
 	constexpr size_t maxNumVehiclesPerHeavy4 = 6; // cars
+	constexpr size_t numFloatsPerSpawnVector = 4; // floats
 
 	constinit std::vector<float> spawnVectorStackOne;
 	constinit std::vector<float> spawnVectorStackTwo;
@@ -468,12 +469,12 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
+			mov ecx, dword ptr numFloatsPerSpawnVector
 			mov edx, dword ptr spawnVectorsOne
-
-			mov ecx, 0x3 // max. vector index
-			add edx, ebp // vector offset
-
+			
 			mov edi, eax
+			add edx, ebp // vector offset
+			dec ecx
 
 			negation:
 			fld dword ptr [edx + ecx * 0x4]
@@ -625,7 +626,7 @@ namespace StrategyOverrides
 
 	void InitialiseStackVectors()
 	{
-		const size_t stackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
+		const size_t stackSize = numFloatsPerSpawnVector * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<2>("New stack size:", static_cast<int>(stackSize), "floats");
