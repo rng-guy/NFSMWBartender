@@ -623,7 +623,7 @@ namespace StrategyOverrides
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	void UpdateHeavy3StackVectors()
+	void InitialiseStackVectors()
 	{
 		const size_t stackSize = 4 * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5); // floats
 
@@ -659,7 +659,7 @@ namespace StrategyOverrides
 		HeatParameters::Parse(parser, "Leader7:Unblocking", leader7UnblockDelays);
 
 		// Stack replacements
-		UpdateHeavy3StackVectors();
+		InitialiseStackVectors();
 
 		// Code modifications (general)
 		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4
