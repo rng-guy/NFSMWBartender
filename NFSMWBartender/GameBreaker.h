@@ -56,12 +56,12 @@ namespace GameBreaker
 
 		if (amount > 0.f)
 		{
-			if (isBreakerActive       and (not canGainWhenActives.current))   return;
+			if (isBreakerActive       and (not canGainWhenActives  .current)) return;
 			if ((not isBreakerActive) and (not canGainWhenInactives.current)) return;
 		}
 		else
 		{
-			if (isBreakerActive       and (not canLoseWhenActives.current))   return;
+			if (isBreakerActive       and (not canLoseWhenActives  .current)) return;
 			if ((not isBreakerActive) and (not canLoseWhenInactives.current)) return;
 		}
 
