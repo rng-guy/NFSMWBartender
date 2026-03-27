@@ -355,16 +355,15 @@ namespace StreamParser
 		// Invalidates retrieved const char* and string_view
 		void ParseStream
 		(
-			std::istream&               stream,
-			const std::optional<size_t> sectionCapacity        = std::nullopt,
-			const std::optional<size_t> pairCapacityPerSection = std::nullopt
+			std::istream& stream,
+			const size_t  sectionCapacity        = 0,
+			const size_t  pairCapacityPerSection = 0
 		) {
 			std::string line;
 
 			Section* currentSection = nullptr;
 
-			if (sectionCapacity)
-				this->sections.reserve(this->sections.size() + *sectionCapacity);
+			this->sections.reserve(this->sections.size() + sectionCapacity);
 
 			while (std::getline(stream, line))
 			{
@@ -384,8 +383,8 @@ namespace StreamParser
 						{
 							const auto [pair, wasAdded] = this->sections.try_emplace(section);
 
-							if (wasAdded and pairCapacityPerSection)
-								pair->second.reserve(*pairCapacityPerSection);
+							if (wasAdded)
+								pair->second.reserve(pairCapacityPerSection);
 
 							currentSection = &(pair->second);
 						}
@@ -419,9 +418,9 @@ namespace StreamParser
 
 		Parser
 		(
-			std::istream&               fileStream,
-			const std::optional<size_t> sectionCapacity        = std::nullopt,
-			const std::optional<size_t> pairCapacityPerSection = std::nullopt
+			std::istream& fileStream,
+			const size_t  sectionCapacity        = 0,
+			const size_t  pairCapacityPerSection = 0
 		) {
 			this->ParseStream(fileStream, sectionCapacity, pairCapacityPerSection);
 		}

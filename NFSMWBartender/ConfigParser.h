@@ -116,9 +116,6 @@ namespace ConfigParser
 
 		std::filesystem::path currentPath;
 
-		std::optional<size_t> sectionCapacityPerFile;
-		std::optional<size_t> pairCapacityPerSection;
-
 		FlatContainers::Map<std::filesystem::path, Parser::Sections> pathToSections;
 
 
@@ -139,16 +136,19 @@ namespace ConfigParser
 
 	public:
 
+		size_t sectionCapacityPerFile;
+		size_t pairCapacityPerSection;
+
+
 		explicit Parser
 		(
-			const std::optional<size_t> fileCapacity           = std::nullopt,
-			const std::optional<size_t> sectionCapacityPerFile = std::nullopt,
-			const std::optional<size_t> pairCapacityPerSection = std::nullopt
+			const size_t fileCapacity           = 0,
+			const size_t sectionCapacityPerFile = 0,
+			const size_t pairCapacityPerSection = 0
 		) 
 			: sectionCapacityPerFile(sectionCapacityPerFile), pairCapacityPerSection(pairCapacityPerSection)
 		{
-			if (fileCapacity)
-				this->pathToSections.reserve(*fileCapacity);
+			this->pathToSections.reserve(fileCapacity);
 		}
 
 
