@@ -1130,7 +1130,7 @@ namespace CopSpawnOverrides
 		{
 			if (trackHeavyVehicles)  Globals::logger.Log<2>("Tracking HeavyStrategy");
 			if (trackLeaderVehicles) Globals::logger.Log<2>("Tracking LeaderStrategy");
-			if (trackJoinedVehicles) Globals::logger.Log<2>("Tracking roadblocks");
+			if (trackJoinedVehicles) Globals::logger.Log<2>("Tracking roadblocks cops");
 		}
 	}
 

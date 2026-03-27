@@ -42,9 +42,13 @@ static void __cdecl InitialiseBartender
         Globals::logger.Log ("\n SESSION [VER] Bartender v3.03.00");
     }
 
-    constexpr size_t maxNumConfigFiles = 6;
-    HeatParameters::Parser parser(maxNumConfigFiles);
+    constexpr size_t configFileCapacity     = 6;  // files
+    constexpr size_t sectionCapacityPerFile = 30; // sections
+    constexpr size_t pairCapacityPerSection = 25; // pairs
 
+    HeatParameters::Parser parser(configFileCapacity, sectionCapacityPerFile, pairCapacityPerSection);
+
+    // "Basic" feature set
     Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
     Globals::basicSetEnabled |= RadioChatter      ::Initialise(parser);
     Globals::basicSetEnabled |= CopDetection      ::Initialise(parser);

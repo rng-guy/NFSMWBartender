@@ -116,15 +116,18 @@ namespace ConfigParser
 
 		std::filesystem::path currentPath;
 
+		std::optional<size_t> sectionCapacityPerFile;
+		std::optional<size_t> pairCapacityPerSection;
+
 		FlatContainers::Map<std::filesystem::path, Parser::Sections> pathToSections;
 
 
 		bool UpdatePath
 		(
 			const std::filesystem::path& root,
-			const std::string_view       file
+			const std::string_view       fileName
 		) {
-			std::filesystem::path newPath = root / file;
+			std::filesystem::path newPath = root / fileName;
 			if (this->currentPath == newPath) return false;
 
 			this->currentPath = std::move(newPath);
@@ -136,21 +139,29 @@ namespace ConfigParser
 
 	public:
 
-		Parser() = default;
-
-		explicit Parser(const size_t fileCapacity) : pathToSections(fileCapacity) {}
+		explicit Parser
+		(
+			const std::optional<size_t> fileCapacity           = std::nullopt,
+			const std::optional<size_t> sectionCapacityPerFile = std::nullopt,
+			const std::optional<size_t> pairCapacityPerSection = std::nullopt
+		) 
+			: sectionCapacityPerFile(sectionCapacityPerFile), pairCapacityPerSection(pairCapacityPerSection)
+		{
+			if (fileCapacity)
+				this->pathToSections.reserve(*fileCapacity);
+		}
 
 
 		bool LoadFile
 		(
 			const std::filesystem::path& root,
-			const std::string_view       file
+			const std::string_view       fileName
 		) {
 			// Check against current path
-			if (not this->UpdatePath(root, file))
+			if (not this->UpdatePath(root, fileName))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("Keep:", file);
+					Globals::logger.Log<2>("Keep:", fileName);
 
 				return true;
 			}
@@ -165,7 +176,7 @@ namespace ConfigParser
 				this->sections = pair->second;
 				
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("Load:", file);
+					Globals::logger.Log<2>("Load:", fileName);
 
 				return true;
 			}
@@ -175,16 +186,17 @@ namespace ConfigParser
 
 			if (fileStream.is_open())
 			{
-				this->ParseStream(fileStream);
+				this->ParseStream(fileStream, this->sectionCapacityPerFile, this->pairCapacityPerSection);
+
 				pair->second = this->sections;
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("Open:", file);
+					Globals::logger.Log<2>("Open:", fileName);
 
 				return true;
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Skip:", file);
+				Globals::logger.Log<2>("Skip:", fileName);
 
 			return false;
 		}
