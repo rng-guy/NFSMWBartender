@@ -223,9 +223,9 @@ namespace HeatChangeOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	float GetClampedHeat(const float heatLimit)
+	float ClampHeat(const float heat)
 	{
-		return std::clamp<float>(heatLimit, 1.f, HeatParameters::maxHeat);
+		return std::clamp<float>(heat, 1.f, HeatParameters::maxHeat);
 	}
 
 
@@ -235,8 +235,8 @@ namespace HeatChangeOverrides
 		volatile float& minHeat = *reinterpret_cast<volatile float*>(pursuit + 0x9C);
 		volatile float& maxHeat = *reinterpret_cast<volatile float*>(pursuit + 0xA0);
 
-		minHeat = GetClampedHeat(minHeat);
-		maxHeat = GetClampedHeat(maxHeat);
+		minHeat = ClampHeat(minHeat);
+		maxHeat = ClampHeat(maxHeat);
 
 		if (minHeat > maxHeat)
 			minHeat = maxHeat;
