@@ -285,24 +285,23 @@ namespace HeatChangeOverrides
 	{
 		constexpr bool useUnpausedTime = false;
 
-		const float gameTime = Globals::GetGameTime(useUnpausedTime);
-
-		const size_t   currentHeatLevel = static_cast<size_t>(*reinterpret_cast<float*>(heatMeter + 0x40));
-		const uint32_t animationScript  = (currentHeatLevel != lastAnimatedHeatLevel) ? 0x41E1FEDC : 0x1744B3;
-
+		const float  gameTime         = Globals::GetGameTime(useUnpausedTime);
+		const size_t currentHeatLevel = static_cast<size_t>(*reinterpret_cast<float*>(heatMeter + 0x40));
+		
 		if (gameTime >= animationEndTimestamp)
 		{
 			const auto IsScriptSet = reinterpret_cast<bool (__cdecl*)(address, uint32_t)>      (0x514DA0);
 			const auto SetScript   = reinterpret_cast<void (__cdecl*)(address, uint32_t, bool)>(0x514D10);
 
-			const address interfaceObject = *reinterpret_cast<address*>(heatMeter + 0x44);
+			const address  interfaceObject = *reinterpret_cast<address*>(heatMeter + 0x44);
+			const uint32_t animationScript = (currentHeatLevel != lastAnimatedHeatLevel) ? 0x41E1FEDC : 0x1744B3;
 
 			if (not IsScriptSet(interfaceObject, animationScript))
 			{
 				SetScript(interfaceObject, animationScript, true);
 
 				if (animationScript == 0x41E1FEDC)
-					animationEndTimestamp = gameTime + 2.5f; // animation length
+					animationEndTimestamp = gameTime + 2.5f; // animation length (seconds)
 			}
 		}
 
