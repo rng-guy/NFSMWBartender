@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v3.03.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v3.03.01) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -38,7 +38,7 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • whether player-damaged cop vehicles are destroyed instantly if flipped over,
  • when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
  • when exactly (if at all) racer vehicles are reset if flipped over,
- • whether the Speedbreaker's vanilla recharging mechanics work in pursuits,
+ • whether the Speedbreaker's vanilla recharging mechanics are enabled in pursuits,
  • the Speedbreaker-charge gain / loss from destroying any cop vehicle,
  • which pursuit jurisdiction dispatch announces over radio after a Heat transition,
  • which of the enabled ground supports the cops can request in non-player pursuits,
@@ -185,11 +185,11 @@ The feature set also replaces four specific "pursuitlevels" parameters in all pu
 Most OTHER .ASI MODS should be fully compatible with all Bartender configurations.
 However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
  • For "NFSMW LimitAdjuster" by Zolika1351, see the section about dependencies below.
- • For "XNFSMusicPlayer"     by xan1242,    delete Bartender's "[Music:Playlist]" parameter group.
- • In  "NFSMW Unlimiter"     by nlgxzef,    disable its "EnableCopDestroyedStringHook" feature.
- • In  "NFSMW ExtraOptions"  by ExOptsTeam, disable its "HeatLevelOverride",
-                                                        "PursuitActionMode", and
-                                                        "ZeroBountyFix" features.
+ • For "XNFSMusicPlayer"     by xan1242,    delete Bartender's "[Music:Playlist]" settings.
+ • In  "NFSMW Unlimiter"     by nlgxzef,    disable "EnableCopDestroyedStringHook".
+ • In  "NFSMW ExtraOptions"  by ExOptsTeam, disable "HeatLevelOverride",
+                                                    "PursuitActionMode", and
+                                                    "ZeroBountyFix".
 
 
 
@@ -209,14 +209,17 @@ You likely need one of these two mods if you configure Bartender in any of the f
  • "[Heavy3:Joining]"       in "Strategies.ini": You enable joining from HeavyStrategy 3 requests.
  • "[Heavy3:Unblocking]"    in "Strategies.ini": You define very short unblock delays.
  
-SHOULD YOU CHOOSE "NFSMW LimitAdjuster", you need to configure it to work with Bartender:
+SHOULD YOU INSTALL any car-loader replacement mod, you may need to re-configure other mods:
+ • In "NFSMW Unlimiter"     by nlgxzef,    disable "ExpandMemoryPools" and "RandomizeTraffic".
+ • In "NFSMW ExtraOptions"  by ExOptsTeam, disable "ExpandMemoryPools" and "DoScreenPrintf".
+ • In "NFSMW HDReflections" by Aero,       disable "ExpandMemoryPools".
+
+SHOULD YOU INSTALL "NFSMW LimitAdjuster", you also need to configure it to work with Bartender:
  1) • place "NFSMWLimitAdjuster.asi" / ".ini" into the same folder as "speed.exe" (not "scripts");
  2) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature; 
  3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50 (or higher), 
                                                          "PursuitCops"      to 255, and
                                                          "Vehicles_SoftCap" to 255.
-
-SHOULD YOU CHOOSE "OpenLimitAdjuster", you don't need to configure it to work with Bartender.
 
 
 

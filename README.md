@@ -43,7 +43,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * whether player-damaged cop vehicles are destroyed instantly if flipped over,
 * when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
 * when exactly (if at all) racer vehicles are reset if flipped over,
-* whether the Speedbreaker's vanilla recharging mechanics work in pursuits,
+* whether the Speedbreaker's vanilla recharging mechanics are enabled in pursuits,
 * the Speedbreaker-charge gain / loss from destroying any cop vehicle,
 * which pursuit jurisdiction dispatch announces over radio after a Heat transition,
 * which of the enabled ground supports the cops can request in non-player pursuits,
@@ -211,9 +211,9 @@ Bartender's **"Advanced" feature set** forces the game to no longer ignore the r
 
 Most **other `.asi` mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
 * For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#4---what-other-mods-does-bartender-depend-on) below.
-* For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` parameter group.
-* In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable its `EnableCopDestroyedStringHook` feature.
-* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable its `HeatLevelOverride`, `PursuitActionMode`, and `ZeroBountyFix` features.
+* For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` settings.
+* In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable `EnableCopDestroyedStringHook`.
+* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable `HeatLevelOverride`, `PursuitActionMode`, and `ZeroBountyFix`.
 
 &nbsp;
 
@@ -235,15 +235,18 @@ Under certain conditions, Bartender **may require** a mod that replaces the game
 * `[Heavy3:Unblocking]` in `Strategies.ini`: You define very short unblock delays.
 
 &nbsp;
+
+**Should you install** any car-loader replacement mod, you may need to re-configure other mods:
+* In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable `ExpandMemoryPools` and `RandomizeTraffic`.
+* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable `ExpandMemoryPools` and `DoScreenPrintf`.
+* In [NFSMW HDReflections](https://github.com/AeroWidescreen/NFSHDReflections) by Aero, disable `ExpandMemoryPools`.
+
+&nbsp;
  
-**Should you choose** NFSMW LimitAdjuster, you need to configure it to work with Bartender:
+**Should you install** NFSMW LimitAdjuster, you also need to configure it to work with Bartender:
 1. place `NFSMWLimitAdjuster.asi` / `.ini` into the same folder as `speed.exe` (*not* `scripts`);
 2. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature;
 3. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50 (or higher), `PursuitCops` to 255, and `Vehicles_SoftCap` to 255.
-
-&nbsp;
-
-**Should you choose** OpenLimitAdjuster, you don't need to configure it to work with Bartender.
 
 &nbsp;
 
@@ -264,7 +267,7 @@ Under certain conditions, Bartender **may require** a mod that replaces the game
 &nbsp;
 
 **To install** Bartender:
-1. download and unzip the `NfSMW_Bartender_v3.03.0.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/latest);
+1. download and unzip the `NfSMW_Bartender_v3.03.1.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/latest);
 2. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
 3. copy the `BartenderSettings` folder and `.asi` file to your game's `scripts` folder;
 4. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file; and
