@@ -799,8 +799,8 @@ namespace GroundSupports
 
 
 
-    bool Initialise(HeatParameters::Parser& parser)
-    {
+	bool Initialise(HeatParameters::Parser& parser)
+	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [SUP] GroundSupports");
 
@@ -851,14 +851,14 @@ namespace GroundSupports
 		MemoryTools::MakeRangeJMP<spikesHitReactionEntrance,  spikesHitReactionExit> (SpikesHitReaction);
 		MemoryTools::MakeRangeJMP<roadblockFormationEntrance, roadblockFormationExit>(RoadblockFormation);
 		MemoryTools::MakeRangeJMP<roadblockJoinTimerEntrance, roadblockJoinTimerExit>(RoadblockJoinTimer);
-        
+		
 		ApplyFixes(); // also contains Strategy-selection and roadblock-joining features
-        
+		
 		// Status flag
 		featureEnabled = true;
 
 		return true;
-    }
+	}
 
 
 
@@ -912,7 +912,7 @@ namespace GroundSupports
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-        if (not featureEnabled) return;
+		if (not featureEnabled) return;
 
 		rivalRoadblockEnableds.SetToHeat(isRacing, heatLevel);
 		rivalHeavyEnableds    .SetToHeat(isRacing, heatLevel);
@@ -951,5 +951,5 @@ namespace GroundSupports
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatReport();
-    }
+	}
 }
