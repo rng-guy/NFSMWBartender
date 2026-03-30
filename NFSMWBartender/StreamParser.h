@@ -104,9 +104,7 @@ namespace StreamParser
 
 		constexpr std::string_view GetEnclosed(const std::string_view view) noexcept
 		{
-			if (view.size() <= 2) return {};
-
-			return view.substr(1, view.length() - 2);
+			return (view.size() > 2) ? view.substr(1, view.length() - 2) : std::string_view();
 		}
 
 
@@ -192,12 +190,12 @@ namespace StreamParser
 	{
 		if (source.empty()) return false;
 
-		V result{};
+		auto result = V();
 
 		const auto viewEnd          = source.data() + source.size();
 		const auto [readEnd, error] = std::from_chars(source.data(), viewEnd, result);
 
-		if (error != std::errc{}) return false;
+		if (error != std::errc()) return false;
 		if (readEnd != viewEnd)   return false;
 
 		value = result;
@@ -322,7 +320,7 @@ namespace StreamParser
 
 
 		template <typename ...Vs>
-		requires Concepts::AreParseable<Vs...>
+		requires Concepts::AreSeparatorParseable<Vs...>
 		static bool DispatchToParsing
 		(
 			const std::string&    source,
@@ -330,11 +328,20 @@ namespace StreamParser
 		)
 			noexcept(Concepts::AreAllocationFree<Vs...>)
 		{
-			if constexpr (Concepts::AreSeparatorParseable<Vs...>)
-				return ParseFromString(source, separator, values...);
+			return ParseFromString<Vs...>(source, separator, values...);
+		}
 
-			else
-				return ParseFromString(source, values...);
+
+		template <typename V>
+		requires Concepts::AreLineParseable<V>
+		static bool DispatchToParsing
+		(
+			const std::string& source,
+			V&                 value
+		)
+			noexcept(Concepts::AreAllocationFree<V>)
+		{
+			return ParseFromString(source, value);
 		}
 
 
