@@ -18,7 +18,7 @@ namespace BasicLogger
 
 	// Logger class ---------------------------------------------------------------------------------------------------------------------------------
 
-	template <size_t... indents>
+	template <size_t ...indents>
 	class Logger
 	{
 	private:
@@ -72,7 +72,7 @@ namespace BasicLogger
 
 		void PrintLine()
 		{
-			this->file << std::endl; // for debugging
+			this->file << std::endl; // to flush
 		}
 
 
@@ -86,7 +86,7 @@ namespace BasicLogger
 
 			(..., (this->file << ' ', this->Print(std::forward<Ts>(rest))));
 
-			this->file << std::endl; // for debugging
+			this->file << std::endl; // to flush
 		}
 
 

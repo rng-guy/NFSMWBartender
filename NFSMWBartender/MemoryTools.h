@@ -174,7 +174,7 @@ namespace MemoryTools
 		{
 			MessageBoxA(NULL, "Invalid hooking target. Contact the mod author.", "Fatal hooking error", MB_ICONERROR);
 
-			// Mod corrupted; terminate for safety
+			// Hook failed; terminate host process for safety
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
 
