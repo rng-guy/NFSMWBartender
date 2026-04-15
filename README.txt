@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v3.03.01) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v3.04.00) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -49,6 +49,7 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • when and to what extent (if at all) roadblock vehicles can join pursuits,
  • whether roadblock vehicles react to racers entering "COOLDOWN" mode,
  • whether roadblock vehicles react to racers hitting their spike strips,
+ • the maximum speed for scripted ramming attempts through HeavyStrategy 3,
  • whether HeavyStrategy 3 requests interact with roadblock requests and spawns,
  • which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
  • which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4,
@@ -248,7 +249,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v3.03.00, replace all old configuration files.
+If you update from a version older than v3.04.00, replace all old configuration files.
 
 
 

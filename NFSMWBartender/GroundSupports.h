@@ -44,6 +44,8 @@ namespace GroundSupports
 	
 	constinit HeatParameters::Interval<float> strategyCooldowns(10.f, 10.f, {1.f}); // seconds
 
+	constinit HeatParameters::Pair<float> heavy3SpeedLimits(100.f, {0.f}); // kph
+
 	constinit HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
 	constinit HeatParameters::Pair<bool> heavy3AreBlockables   (true);
 
@@ -58,6 +60,9 @@ namespace GroundSupports
 
 	constinit HeatParameters::PointerPair<std::string> leader7Hench1Vehicles("copsporthench");
 	constinit HeatParameters::PointerPair<std::string> leader7Hench2Vehicles("copsporthench");
+
+	// Conversions
+	float rammingSpeedLimit = heavy3SpeedLimits.current / 3.6f; // mps
 
 
 
@@ -595,6 +600,48 @@ namespace GroundSupports
 
 
 
+	constexpr address heavySpeedSetupEntrance = 0x421526;
+	constexpr address heavySpeedSetupExit     = 0x421545;
+
+	// Sets the initial speed of HeavyStrategy 3 vehicles
+	__declspec(naked) void HeavySpeedSetup()
+	{
+		__asm
+		{
+			fld dword ptr rammingSpeedLimit
+			fcom st(1)
+			fnstsw ax
+			test ah, 0x5
+			je conclusion // not above limit
+
+			fxch st(1)
+
+			conclusion:
+			fstp st(0)
+			fstp dword ptr [esp + 0x4]
+
+			jmp dword ptr heavySpeedSetupExit
+		}
+	}
+
+
+
+	constexpr address heavySpeedUpdateEntrance = 0x4215F6;
+	constexpr address heavySpeedUpdateExit     = 0x4215FB;
+
+	// Updates the speed of HeavyStrategy 3 vehicles
+	__declspec(naked) void HeavySpeedUpdate()
+	{
+		__asm
+		{
+			push dword ptr rammingSpeedLimit
+
+			jmp dword ptr heavySpeedUpdateExit
+		}
+	}
+
+
+
 	constexpr address roadblockCooldownEntrance = 0x419535;
 	constexpr address roadblockCooldownExit     = 0x41954C;
 
@@ -817,6 +864,7 @@ namespace GroundSupports
 		HeatParameters::Parse(parser, "Joining:Definitions",   maxRBJoinDistances,       maxRBJoinElevationDeltas, maxRBJoinCounts);
 
 		HeatParameters::Parse(parser, "Strategies:Cooldown", strategyCooldowns);
+		HeatParameters::Parse(parser, "Heavy3:Speed",        heavy3SpeedLimits);
 		HeatParameters::Parse(parser, "Heavy3:Roadblocks",   heavy3TriggerCooldowns, heavy3AreBlockables);
 		HeatParameters::Parse(parser, "Heavy3:Vehicles",     heavy3LightVehicles,    heavy3HeavyVehicles);
 		HeatParameters::Parse(parser, "Heavy4:Vehicles",     heavy4LightVehicles,    heavy4HeavyVehicles);
@@ -846,12 +894,14 @@ namespace GroundSupports
 		MemoryTools::MakeRangeJMP<crossPriorityEntrance,      crossPriorityExit>     (CrossPriority);
 		MemoryTools::MakeRangeJMP<rivalRoadblockEntrance,     rivalRoadblockExit>    (RivalRoadblock);
 		MemoryTools::MakeRangeJMP<requestCooldownEntrance,    requestCooldownExit>   (RequestCooldown);
+		MemoryTools::MakeRangeJMP<heavySpeedSetupEntrance,    heavySpeedSetupExit>   (HeavySpeedSetup);
+		MemoryTools::MakeRangeJMP<heavySpeedUpdateEntrance,   heavySpeedUpdateExit>  (HeavySpeedUpdate);
 		MemoryTools::MakeRangeJMP<roadblockCooldownEntrance,  roadblockCooldownExit> (RoadblockCooldown);
 		MemoryTools::MakeRangeJMP<roadblockDistanceEntrance,  roadblockDistanceExit> (RoadblockDistance);
 		MemoryTools::MakeRangeJMP<spikesHitReactionEntrance,  spikesHitReactionExit> (SpikesHitReaction);
 		MemoryTools::MakeRangeJMP<roadblockFormationEntrance, roadblockFormationExit>(RoadblockFormation);
 		MemoryTools::MakeRangeJMP<roadblockJoinTimerEntrance, roadblockJoinTimerExit>(RoadblockJoinTimer);
-		
+
 		ApplyFixes(); // also contains Strategy-selection and roadblock-joining features
 		
 		// Status flag
@@ -890,6 +940,8 @@ namespace GroundSupports
 		reactToSpikesHits   .Log("reactToSpikesHit        ");
 
 		strategyCooldowns.Log("strategyCooldown        ");
+
+		heavy3SpeedLimits.Log("heavy3SpeedLimit        ");
 
 		heavy3TriggerCooldowns.Log("heavy3TriggerCooldown   ");
 		heavy3AreBlockables   .Log("heavy3AreBlockable      ");
@@ -935,6 +987,10 @@ namespace GroundSupports
 		reactToSpikesHits   .SetToHeat(isRacing, heatLevel);
 
 		strategyCooldowns.SetToHeat(isRacing, heatLevel);
+
+		heavy3SpeedLimits.SetToHeat(isRacing, heatLevel);
+
+		rammingSpeedLimit = heavy3SpeedLimits.current / 3.6f;
 
 		heavy3TriggerCooldowns.SetToHeat(isRacing, heatLevel);
 		heavy3AreBlockables   .SetToHeat(isRacing, heatLevel);

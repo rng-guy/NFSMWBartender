@@ -1,17 +1,17 @@
 
 ![POV: You hit the RESET button by accident.](Thumbnail.jpg "I'm far too lazy to make another thumbnail for this.")
 
-This file contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](README.md/#3---what-mods-are-incompatible-with-bartender).
+This file contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](README.md/#3---which-mods-are-incompatible-with-bartender).
 
 &nbsp;
 
-You really **only need to read this document** if
+You really **only need to read this** file if
 * you have persistent issues with your game after installing / configuring Bartender, or
 * you are curious about the technicalities and limitations of Bartender or its features.
 
 &nbsp;
 
-First, if Bartender's .asi file gets **falsely flagged as a virus** by your antivirus software, you will need to whitelist the file. If the flagging happens as you attempt to launch your game with Bartender installed, the .asi loader will display a pop-up window with an error message ("Error code: 225") before your antivirus likely (re)moves the .asi file.
+First, if Bartender's .asi file gets **falsely flagged as a virus** by your antivirus software, you need to whitelist the file. If the flagging happens as you attempt to launch your game with Bartender installed, the .asi loader will display a pop-up window with an error message ("Error code: 225") before your antivirus likely (re)moves the .asi file.
 
 &nbsp;
 
@@ -45,13 +45,13 @@ Bartender only recognises **Heat levels** from 1 to 10 (inclusive). If you want 
 
 &nbsp;
 
-Bartender parses its configuration (`.ini`) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure in the configuration files. Each group allows you to define values, either in relation to Heat levels or vehicles.
+Bartender parses its configuration (`.ini`) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure to the configuration files. Each group allows you to define values, either in relation to Heat levels or vehicles.
 
 &nbsp;
 
 Bartender can handle any **invalid / missing parameter groups** in its configuration files:
-* duplicate (e.g. another `[State:Busting]`) and unknown groups are ignored, and
-* missing groups make Bartender count each of their would-be values as omitted.
+* any duplicate / unknown groups are ignored entirely, and
+* all values of any missing groups count as omitted.
 
 &nbsp;
 
@@ -60,24 +60,30 @@ Bartender can handle any **invalid values** you might define in its parameter gr
 * values of incorrect type (e.g. a string instead of a decimal) count as omitted,
 * negative values that should be positive are set to 0 instead of counting as omitted,
 * mismatched interval values (i.e. where `max` < `min`) are each set to the lower value, and
-* comma-separated value pairs / tuples with too many or too few (valid) values count as omitted.
+* comma-separated value pairs / tuples with too many or few (valid) values count as omitted.
 
 &nbsp;
 
-Some parameter groups allow you to define **default values**, indicated by `default` in place of a Heat level or vehicle. These default values then apply to all Heat levels or vehicles for which you don't define explicit values. Bartender parses such parameter groups in three steps:
-1. If you omit it, the `default` value is set to the game's vanilla (i.e. unmodded) value.
+Some **Heat-level parameter groups** allow you to define a default Heat-level value, which is indicated by `default` in place of a Heat level. This default value then applies to all Heat levels without a (valid) value. Bartender parses such parameter groups in three steps:
+1. If you omit it, the `default` value is set to the game's vanilla value.
 2. All free-roam Heat levels (format: `heatXY`) you omit are set to the `default` value.
 3. All race Heat levels (format: `raceXY`) you omit are set to their free-roam values.
 
 &nbsp;
 
-Bartender can handle any **invalid vehicles** you might define in its configuration files, both as values themselves and as something for which you define other values. The sections below mention how Bartender does this on a case-by-case basis, but a vehicle is invalid if
-* it doesn't exist in the game's database (i.e. lacks a VltEd node under `pvehicle`), or
-* it's of the wrong class (e.g. is a helicopter when Bartender expects a regular car).
+Some **vehicle parameter groups** allow you to define a default vehicle value, which is indicated by `default` in place of a vehicle. This default value then applies to all vehicles without a (valid) value. Bartender parses such parameter groups in two steps:
+1. If you omit it, the `default` value is set to the game's vanilla value.
+2. All vehicles you omit are set to the `default` value.
 
 &nbsp;
 
-The **class of a vehicle** depends on the `CLASS` VltEd parameter in its `pvehicle` node. Bartender considers a `CLASS` value of `CHOPPER` to represent a helicopter, and every other value a car. Most vanilla vehicles lack an explicit `CLASS` parameter in their `pvehicle` nodes because they inherit one from parent nodes instead, but you can add one manually to overwrite it if you wish.
+Bartender can handle any **invalid vehicles** you might define in its configuration files, both as values themselves and as something for which you define other values. The sections below mention how Bartender does this on a case-by-case basis, but a vehicle is invalid if
+* it doesn't exist in the game's database (i.e. lacks a VltEd node under `pvehicle`), or
+* it has the wrong class (e.g. is a helicopter when Bartender expects a regular car).
+
+&nbsp;
+
+The **class of a vehicle** depends on the `CLASS` VltEd parameter in its `pvehicle` node. Bartender considers a `CLASS` value of `CHOPPER` to represent a helicopter, and every other value a car. Most vanilla vehicles lack an explicit `CLASS` parameter in their `pvehicle` nodes because they inherit one from a parent node instead, but you can add one manually to overwrite this as needed.
 
 &nbsp;
 
@@ -246,6 +252,8 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 * Roadblock vehicles can react to racers entering "COOLDOWN" mode and / or spike-strip hits. For the former, some vehicles join the pursuit immediately; for the latter, all of them do.
 
 * Roadblock vehicles are affected by the global cop-spawn limit: they may only join a pursuit if the total number of all non-roadblock vehicles is below this global limit. If you enable independent "Chasers" spawns in the "Advanced" feature set, then this limit no longer takes roadblock vehicles, Strategy vehicles, and vehicles of other pursuits into account.
+
+* If you define new maximum-speed values for HeavyStrategy 3 ramming attempts, you may also need to adjust the `aivehicle` VltEd nodes of your HeavyStrategy 3 vehicles. To ensure those vehicles can reach these new speeds, raise their `MAXIMUM_AI_SPEED` and `AccelerationMultiplier` values. Keep in mind, however, that the ramming AI might not be able to deal with excessive speeds.
 
 * All vehicles you define as replacements for HeavyStrategy 3 / 4 spawns should only be used for HeavyStrategy 3 / 4, and all vehicles you define as replacements for LeaderStrategy 5 / 7 spawns should only be used for LeaderStrategy 5 / 7. This is because the game may lose track of how many cops it has currently loaded in memory whenever it tries to recycle a Strategy vehicle as a regular cop (and vice versa). If, for example, you also want to use `copmidsize` as a HeavyStrategy 3 vehicle, then make a copy of its `pvehicle` VltEd node with a different name and use that one for HeavyStrategy 3 instead.
 
