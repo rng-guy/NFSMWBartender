@@ -18,9 +18,9 @@ For **optimal customisability**, use [VltEd](https://nfs-tools.blogspot.com/2019
 The **sections below** address these questions in detail:
 1. [What does the "Basic" feature set do?](#1---what-does-the-basic-feature-set-do)
 2. [What does the "Advanced" feature set do?](#2---what-does-the-advanced-feature-set-do)
-3. [Which mods are (in)compatible with Bartender?](#3---which-mods-are-incompatible-with-bartender)
-4. [Which mods does Bartender depend on?](#4---which-mods-does-bartender-depend-on)
-5. [How do I install Bartender for my game?](#5---how-do-i-install-bartender-for-my-game)
+3. [How do I install Bartender for my game?](#3---how-do-i-install-bartender-for-my-game)
+4. [Which mods are (in)compatible with Bartender?](#4---which-mods-are-incompatible-with-bartender)
+5. [Which mods does Bartender depend on?](#5---which-mods-does-bartender-depend-on)
 6. [How may I share or bundle Bartender?](#6---how-may-i-share-or-bundle-bartender)
 
 &nbsp;
@@ -190,78 +190,11 @@ The "Advanced" feature set **can fix four more bugs / issues**, depending on its
 
 
 
-# 3 - Which mods are (in)compatible with Bartender?
-
-Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations. 
-
-&nbsp;
-
-Bartender's **"Basic" feature set** changes the way the game accesses some VltEd arrays:
-* In `pursuitlevels`, `0x80deb840` now uses the correct value at each Blacklist rank.
-* In `aivehicle`, `RepPointsForDestroying` now uses the correct value at each Heat level.
-
-&nbsp;
-
-Bartender's **"Advanced" feature set** forces the game to no longer ignore the roadblock-related `pursuitlevels` and the Strategy-related `pursuitsupport` VltEd settings in race pursuits. The feature set also replaces four specific `pursuitlevels` parameters in all pursuits:
-* the `cops` array,
-* `HeliFuelTime`,
-* `TimeBetweenHeliActive`, and
-* `SearchModeHeliSpawnChance`.
-
-&nbsp;
-
-Most **other `.asi` mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
-* For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#4---which-mods-does-bartender-depend-on) below.
-* For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` settings.
-* In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable `EnableCopDestroyedStringHook`.
-* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable `HeatLevelOverride`, `PursuitActionMode`, and `ZeroBountyFix`.
-
-&nbsp;
-
-&nbsp;
-
-&nbsp;
-
-
-
-# 4 - Which mods does Bartender depend on?
-
-Under certain conditions, Bartender **may require** a mod that replaces the game's car loader. There are two such mods: [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, and [OpenLimitAdjuster](https://github.com/gaycoderprincess/MostWantedOpenLimitAdjuster) by Chloe. You likely need one of these two mods if you configure Bartender in any of the following ways:
-* cop-vehicle spawn tables in `CarTables.ini` : You define > 3 vehicle types for any Heat level.
-* `[Chasers:Limits]` in `CarSpawns.ini`: You define a global cop-spawn limit > 8.
-* `[Chasers:Independence]` in `CarSpawns.ini`: You enable independent spawns for chasing cops.
-* `[Traffic:Independence]` in `CarSpawns.ini`: You enable independent spawns for traffic cars.
-* `[Heavy3:Count]` in `Strategies.ini`: You define a vehicle count > 2 per request.
-* `[Heavy3:Joining]` in `Strategies.ini`: You enable joining from HeavyStrategy 3 requests.
-* `[Heavy3:Unblocking]` in `Strategies.ini`: You define very short unblock delays.
-
-&nbsp;
-
-**Should you install** any car-loader replacement mod, you may need to re-configure other mods:
-* In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable `ExpandMemoryPools` and `RandomizeTraffic`.
-* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable `ExpandMemoryPools` and `DoScreenPrintf`.
-* In [NFSMW HDReflections](https://github.com/AeroWidescreen/NFSHDReflections) by Aero, disable `ExpandMemoryPools`.
-
-&nbsp;
- 
-**Should you install** NFSMW LimitAdjuster, you also need to configure it to work with Bartender:
-1. place `NFSMWLimitAdjuster.asi` / `.ini` into the same folder as `speed.exe` (*not* `scripts`);
-2. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature;
-3. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50 (or higher), `PursuitCops` to 255, and `Vehicles_SoftCap` to 255.
-
-&nbsp;
-
-&nbsp;
-
-&nbsp;
-
-
-
-# 5 - How do I install Bartender for my game?
+# 3 - How do I install Bartender for my game?
 
 **Before installing** Bartender:
 1. make sure your original copy of the game wasn't a repack or came pre-modified in any way,
-2. read and understand the two sections about [mod (in)compatibilities](#3---which-mods-are-incompatible-with-bartender) and [dependencies](#4---which-mods-does-bartender-depend-on) above,
+2. read and understand the two sections about [mod (in)compatibilities](#4---which-mods-are-incompatible-with-bartender) and [dependencies](#5---which-mods-does-bartender-depend-on) below,
 3. make sure your game's `speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
 4. install an `.asi` loader or any mod with one (e.g. the [WideScreenFix](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) mod by ThirteenAG).
 
@@ -287,6 +220,73 @@ Under certain conditions, Bartender **may require** a mod that replaces the game
 &nbsp;
 
 **To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v3.04.00, replace all old configuration files.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+
+# 4 - Which mods are (in)compatible with Bartender?
+
+Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations. 
+
+&nbsp;
+
+Bartender's **"Basic" feature set** changes the way the game accesses some VltEd arrays:
+* In `pursuitlevels`, `0x80deb840` now uses the correct value at each Blacklist rank.
+* In `aivehicle`, `RepPointsForDestroying` now uses the correct value at each Heat level.
+
+&nbsp;
+
+Bartender's **"Advanced" feature set** forces the game to no longer ignore the roadblock-related `pursuitlevels` and the Strategy-related `pursuitsupport` VltEd settings in race pursuits. The feature set also replaces four specific `pursuitlevels` parameters in all pursuits:
+* the `cops` array,
+* `HeliFuelTime`,
+* `TimeBetweenHeliActive`, and
+* `SearchModeHeliSpawnChance`.
+
+&nbsp;
+
+Most **other `.asi` mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
+* For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#5---which-mods-does-bartender-depend-on) below.
+* For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` settings.
+* In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable `EnableCopDestroyedStringHook`.
+* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable `HeatLevelOverride`, `PursuitActionMode`, and `ZeroBountyFix`.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+
+# 5 - Which mods does Bartender depend on?
+
+Under certain conditions, Bartender **may require** a mod that replaces the game's car loader. There are two such mods: [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, and [OpenLimitAdjuster](https://github.com/gaycoderprincess/MostWantedOpenLimitAdjuster) by Chloe. You likely need one of these two mods if you configure Bartender in any of the following ways:
+* cop-vehicle spawn tables in `CarTables.ini` : You define > 3 vehicle types for any Heat level.
+* `[Chasers:Limits]` in `CarSpawns.ini`: You define a global cop-spawn limit > 8.
+* `[Chasers:Independence]` in `CarSpawns.ini`: You enable independent spawns for chasing cops.
+* `[Traffic:Independence]` in `CarSpawns.ini`: You enable independent spawns for traffic cars.
+* `[Heavy3:Count]` in `Strategies.ini`: You define a vehicle count > 2 per request.
+* `[Heavy3:Joining]` in `Strategies.ini`: You enable joining from HeavyStrategy 3 requests.
+* `[Heavy3:Unblocking]` in `Strategies.ini`: You define very short unblock delays.
+
+&nbsp;
+
+**Should you install** any car-loader replacement mod, you may need to re-configure other mods:
+* In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable `ExpandMemoryPools` and `RandomizeTraffic`.
+* In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable `ExpandMemoryPools` and `DoScreenPrintf`.
+* In [NFSMW HDReflections](https://github.com/AeroWidescreen/NFSHDReflections) by Aero, disable `ExpandMemoryPools`.
+
+&nbsp;
+ 
+**Should you install** NFSMW LimitAdjuster, you also need to configure it to work with Bartender:
+1. place `NFSMWLimitAdjuster.asi` / `.ini` into the same folder as `speed.exe` (*not* `scripts`);
+2. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature;
+3. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50 (or higher), `PursuitCops` to 255, and `Vehicles_SoftCap` to 255.
 
 &nbsp;
 

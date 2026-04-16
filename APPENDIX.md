@@ -1,7 +1,7 @@
 
 ![POV: You hit the RESET button by accident.](Thumbnail.jpg "I'm far too lazy to make another thumbnail for this.")
 
-This file contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](README.md/#3---which-mods-are-incompatible-with-bartender).
+This file contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](README.md/#4---which-mods-are-incompatible-with-bartender).
 
 &nbsp;
 
@@ -337,7 +337,7 @@ Regarding **car (de)spawning behaviour** (`BartenderSettings\Advanced\CarSpawns.
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
-* If you want to use global cop-spawn limits > 8 and / or make "Chasers" / traffic spawns independent of other vehicles, you may also [need](README.md#4---what-other-mods-does-bartender-depend-on) a mod that replaces the game's car loader. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
+* If you want to use global cop-spawn limits > 8 and / or make "Chasers" / traffic spawns independent of other vehicles, you may also [need](README.md#5---which-mods-does-bartender-depend-on) a mod that replaces the game's car loader. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
 
 * Very small spawning clearances for "Chasers" may lead to stacked spawns and congested roads.
 
@@ -389,7 +389,7 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 * Defining low racer-speed thresholds for HeavyStrategy 3 vehicles fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if the racer's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of higher `CollapseSpeed` values and far more aggressive cops.
 
-* If you allow more than 2 vehicles to spawn per HeavyStrategy 3 request, use short unblock delays for HeavyStrategy 3, or enable joining from expired HeavyStrategy 3 requests, then you may also [need](README.md#4---what-other-mods-does-bartender-depend-on) a mod that replaces the game's car loader. You may need such a mod as HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear if their numbers grow beyond a certain point.
+* If you allow more than 2 vehicles to spawn per HeavyStrategy 3 request, use short unblock delays for HeavyStrategy 3, or enable joining from expired HeavyStrategy 3 requests, then you may also [need](README.md#5---which-mods-does-bartender-depend-on) a mod that replaces the game's car loader. You may need such a mod as HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear if their numbers grow beyond a certain point.
 
 * The number of active vehicles from expired HeavyStrategy 3 requests is limited only at Heat levels for which you define a valid limit value. These limits apply to each pursuit separately.
 

@@ -16,9 +16,9 @@ as Bartender's features are deliberately limited to things you can't do with Vlt
 The SECTIONS BELOW address these questions in detail:
  1) • What does the "Basic"    feature set do?
  2) • What does the "Advanced" feature set do?
- 3) • Which mods are (in)compatible with Bartender?
- 4) • Which mods does Bartender depend on?
- 5) • How do I install Bartender for my game?
+ 3) • How do I install Bartender for my game?
+ 4) • Which mods are (in)compatible with Bartender?
+ 5) • Which mods does Bartender depend on?
  6) • How may I share or bundle Bartender?
 
 
@@ -167,7 +167,35 @@ The "Advanced" feature set CAN FIX FOUR MORE BUGS / ISSUES, depending on its con
 
 
 
-── ■ │ 3 - WHICH MODS ARE (IN)COMPATIBLE WITH BARTENDER? │ ■ ──────────────────────────────────────
+── ■ │ 3 - HOW DO I INSTALL BARTENDER FOR MY GAME? │ ■ ────────────────────────────────────────────
+
+BEFORE INSTALLING Bartender:
+ 1) • make sure your original copy of the game wasn't a repack or came pre-modified in any way,
+ 2) • read and understand the two sections about mod (in)compatibilities and dependencies below,
+ 3) • make sure your game's "speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
+ 4) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
+
+TO INSTALL Bartender:
+ 1) • if it doesn't exist already, create a "scripts" folder in your game's installation folder;
+ 2) • copy the contents of Bartender's "scripts" folder to your game's "scripts" folder;
+ 3) • if Bartender's .asi file gets flagged by your antivirus software, whitelist the file; and
+ 4) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
+
+AFTER INSTALLING Bartender:
+ 1) • edit the configuration (.ini) files in the "BartenderSettings" folder to your liking; and
+ 2) • if you encounter any issues or want more feature details, see the "APPENDIX.txt" file.
+
+TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. There's no need
+to remove the optional missing textures, as the game doesn't use them without Bartender.
+
+TO UPDATE Bartender, uninstall it and repeat the installation process above.
+If you update from a version older than v3.04.00, replace all old configuration files.
+
+
+
+
+
+── ■ │ 4 - WHICH MODS ARE (IN)COMPATIBLE WITH BARTENDER? │ ■ ──────────────────────────────────────
 
 Almost all VLTED AND BINARY MODS should be fully compatible with all Bartender configurations.
 
@@ -197,7 +225,7 @@ However, some pursuit-related .asi mods require manual (re)configuration for com
 
 
 
-── ■ │ 4 - WHICH MODS DOES BARTENDER DEPEND ON? │ ■ ───────────────────────────────────────────────
+── ■ │ 5 - WHICH MODS DOES BARTENDER DEPEND ON? │ ■ ───────────────────────────────────────────────
 
 Under certain conditions, Bartender MAY REQUIRE a mod that replaces the game's car loader.
 There are two such mods: "NFSMW LimitAdjuster" by Zolika1351, and "OpenLimitAdjuster" by Chloe.
@@ -221,35 +249,6 @@ SHOULD YOU INSTALL "NFSMW LimitAdjuster", you also need to configure it to work 
  3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50 (or higher), 
                                                          "PursuitCops"      to 255, and
                                                          "Vehicles_SoftCap" to 255.
-
-
-
-
-
-
-── ■ │ 5 - HOW DO I INSTALL BARTENDER FOR MY GAME? │ ■ ────────────────────────────────────────────
-
-BEFORE INSTALLING Bartender:
- 1) • make sure your original copy of the game wasn't a repack or came pre-modified in any way,
- 2) • read and understand the two sections about mod (in)compatibilities and dependencies above,
- 3) • make sure your game's "speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
- 4) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
-
-TO INSTALL Bartender:
- 1) • if it doesn't exist already, create a "scripts" folder in your game's installation folder;
- 2) • copy the contents of Bartender's "scripts" folder to your game's "scripts" folder;
- 3) • if Bartender's .asi file gets flagged by your antivirus software, whitelist the file; and
- 4) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
-
-AFTER INSTALLING Bartender:
- 1) • edit the configuration (.ini) files in the "BartenderSettings" folder to your liking; and
- 2) • if you encounter any issues or want more feature details, see the "APPENDIX.txt" file.
-
-TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. There's no need
-to remove the optional missing textures, as the game doesn't use them without Bartender.
-
-TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v3.04.00, replace all old configuration files.
 
 
 
