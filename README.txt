@@ -17,7 +17,7 @@ The SECTIONS BELOW address these questions in detail:
  1) • What does the "Basic"    feature set do?
  2) • What does the "Advanced" feature set do?
  3) • Which mods are (in)compatible with Bartender?
- 4) • Which other mods does Bartender depend on?
+ 4) • Which mods does Bartender depend on?
  5) • How do I install Bartender for my game?
  6) • How may I share or bundle Bartender?
 
@@ -197,7 +197,7 @@ However, some pursuit-related .asi mods require manual (re)configuration for com
 
 
 
-── ■ │ 4 - WHICH OTHER MODS DOES BARTENDER DEPEND ON? │ ■ ─────────────────────────────────────────
+── ■ │ 4 - WHICH MODS DOES BARTENDER DEPEND ON? │ ■ ───────────────────────────────────────────────
 
 Under certain conditions, Bartender MAY REQUIRE a mod that replaces the game's car loader.
 There are two such mods: "NFSMW LimitAdjuster" by Zolika1351, and "OpenLimitAdjuster" by Chloe.

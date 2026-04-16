@@ -19,7 +19,7 @@ The **sections below** address these questions in detail:
 1. [What does the "Basic" feature set do?](#1---what-does-the-basic-feature-set-do)
 2. [What does the "Advanced" feature set do?](#2---what-does-the-advanced-feature-set-do)
 3. [Which mods are (in)compatible with Bartender?](#3---which-mods-are-incompatible-with-bartender)
-4. [Which other mods does Bartender depend on?](#4---which-other-mods-does-bartender-depend-on)
+4. [Which mods does Bartender depend on?](#4---which-mods-does-bartender-depend-on)
 5. [How do I install Bartender for my game?](#5---how-do-i-install-bartender-for-my-game)
 6. [How may I share or bundle Bartender?](#6---how-may-i-share-or-bundle-bartender)
 
@@ -211,7 +211,7 @@ Bartender's **"Advanced" feature set** forces the game to no longer ignore the r
 &nbsp;
 
 Most **other `.asi` mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
-* For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#4---what-other-mods-does-bartender-depend-on) below.
+* For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#4---which-mods-does-bartender-depend-on) below.
 * For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` settings.
 * In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable `EnableCopDestroyedStringHook`.
 * In [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) by ExOptsTeam, disable `HeatLevelOverride`, `PursuitActionMode`, and `ZeroBountyFix`.
@@ -224,7 +224,7 @@ Most **other `.asi` mods** should be fully compatible with all Bartender configu
 
 
 
-# 4 - Which other mods does Bartender depend on?
+# 4 - Which mods does Bartender depend on?
 
 Under certain conditions, Bartender **may require** a mod that replaces the game's car loader. There are two such mods: [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, and [OpenLimitAdjuster](https://github.com/gaycoderprincess/MostWantedOpenLimitAdjuster) by Chloe. You likely need one of these two mods if you configure Bartender in any of the following ways:
 * cop-vehicle spawn tables in `CarTables.ini` : You define > 3 vehicle types for any Heat level.
@@ -261,7 +261,7 @@ Under certain conditions, Bartender **may require** a mod that replaces the game
 
 **Before installing** Bartender:
 1. make sure your original copy of the game wasn't a repack or came pre-modified in any way,
-2. read and understand the two sections about [mod (in)compatibilities](#3---what-mods-are-incompatible-with-bartender) and [dependencies](#4---what-other-mods-does-bartender-depend-on) above,
+2. read and understand the two sections about [mod (in)compatibilities](#3---which-mods-are-incompatible-with-bartender) and [dependencies](#4---which-mods-does-bartender-depend-on) above,
 3. make sure your game's `speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
 4. install an `.asi` loader or any mod with one (e.g. the [WideScreenFix](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) mod by ThirteenAG).
 

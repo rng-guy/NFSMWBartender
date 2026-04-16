@@ -73,9 +73,9 @@ below mention how Bartender does this on a case-by-case basis, but a vehicle is 
  • it has the wrong class (e.g. is a helicopter when Bartender expects a regular car).
 
 The CLASS OF A VEHICLE depends on the "CLASS" VltEd parameter in its "pvehicle" node. Bartender
-considers a "CLASS" value of "CHOPPER" to represent a helicopter, and every other value a car.
-Most vanilla vehicles lack an explicit "CLASS" parameter in their "pvehicle" nodes because they
-inherit one from a parent node instead, but you can add one manually to overwrite this as needed.
+considers a "CLASS" value of "CHOPPER" to represent a helicopter, while both "CAR" and "TRACTOR"
+represent regular cars instead. Most vanilla vehicles lack an explicit "CLASS" parameter
+in their "pvehicle" nodes because they inherit it from one of their parent nodes.
 
 
 
