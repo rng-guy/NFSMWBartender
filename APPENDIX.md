@@ -253,7 +253,7 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * Roadblock vehicles are affected by the global cop-spawn limit: they may only join a pursuit if the total number of all non-roadblock vehicles is below this global limit. If you enable independent "Chasers" spawns in the "Advanced" feature set, then this limit no longer takes roadblock vehicles, Strategy vehicles, and vehicles of other pursuits into account.
 
-* If you define new maximum-speed values for HeavyStrategy 3 ramming attempts, you may also need to adjust the `aivehicle` VltEd nodes of your HeavyStrategy 3 vehicles. To ensure those vehicles can reach these new speeds, raise their `MAXIMUM_AI_SPEED` and `AccelerationMultiplier` values. Keep in mind, however, that the ramming AI might not be able to deal with excessive speeds.
+* To ensure HeavyStrategy 3 vehicles can actually reach the maximum speeds you define, you also need to adjust the `MAXIMUM_AI_SPEED` and `AccelerationMultiplier` parameters of their `aivehicle` VltEd nodes. At higher speeds, the ramming AI tends to steer worse.
 
 * All vehicles you define as replacements for HeavyStrategy 3 / 4 spawns should only be used for HeavyStrategy 3 / 4, and all vehicles you define as replacements for LeaderStrategy 5 / 7 spawns should only be used for LeaderStrategy 5 / 7. This is because the game may lose track of how many cops it has currently loaded in memory whenever it tries to recycle a Strategy vehicle as a regular cop (and vice versa). If, for example, you also want to use `copmidsize` as a HeavyStrategy 3 vehicle, then make a copy of its `pvehicle` VltEd node with a different name and use that one for HeavyStrategy 3 instead.
 
