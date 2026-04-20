@@ -54,7 +54,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * when and to what extent (if at all) roadblock vehicles can join pursuits,
 * whether roadblock vehicles react to racers entering "COOLDOWN" mode,
 * whether roadblock vehicles react to racers hitting their spike strips,
-* the maximum speed for scripted ramming attempts through HeavyStrategy 3,
+* the maximum speed of scripted ramming attempts through HeavyStrategy 3,
 * whether HeavyStrategy 3 requests interact with roadblock requests and spawns,
 * which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
 * which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4
