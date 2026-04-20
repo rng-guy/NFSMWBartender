@@ -34,9 +34,9 @@ To help you SOLVE IN-GAME ISSUES with Bartender, the sections below address thes
 
 ── ■ 1 - WHAT'S THERE TO KNOW ABOUT BARTENDER'S FILE PARSING? ■ ───────────────────────────────────
 
-Bartender only recognises HEAT LEVELS from 1 to 10 (inclusive). If you want Bartender to recognise
-Heat levels > 10, you need to compile it with the desired "maxHeatLevel" parameter value yourself;
-you can find this parameter at the very top of Bartender's "HeatParameters.h" source file.
+Bartender only recognises HEAT LEVELS from 1 to 10 (inclusive). If you want more Heat levels,
+you must edit the "maxHeatLevel" parameter in Bartender's "HeatParameters.h" source file and 
+compile the mod yourself. Use Microsoft Visual Studio to clone and compile Bartender.
 
 Bartender parses its configuration (.ini) files in PARAMETER GROUPS, indicated by "[GroupName]".
 These groups each contain related parameters and give a logical structure to the configuration
