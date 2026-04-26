@@ -259,7 +259,7 @@ namespace StreamParser
 	constexpr bool ParseFromString
 	(
 		const char* const source,
-		const char*& value
+		const char*&      value
 	)
 		noexcept
 	{

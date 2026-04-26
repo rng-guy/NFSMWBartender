@@ -67,8 +67,8 @@ namespace RoadblockOverrides
 		bool hasSpikes  = false;
 		bool canStretch = true;
 
-		float maxRoadWidth = 0.f;  // metres
-		float mirrorChance = 50.f; // percent
+		float maxRoadWidth = 0.f; // metres
+		float mirrorChance = 0.f; // percent
 
 		HeatParameters::Pair<int> chances{100, {0}}; // relative
 
@@ -226,18 +226,19 @@ namespace RoadblockOverrides
 			Globals::logger.Log<2>("Road width:", roadWidth);
 		}
 
-		// Use both the modded and vanilla methods to find eligible setups
-		int totalChance = 0;
-
+		// Find eligible setups with both the new and the vanilla method
+		int            totalChance   = 0;
 		const RBSetup* vanillaResult = nullptr;
 
 		for (const RBSetup& setup : roadblockSetups)
 		{
-			// Standard / mirrored setups share constraints
-			if (setup.chances.current < 1)                   continue;
-			if (setup.hasSpikes != needsSpikes)              continue;
-			if (setup.standard.minRoadWidth > roadWidth)     continue;
-			if (setup.standard.numCarsRequired > maxNumCars) continue;
+			if (setup.chances.current < 1)      continue;
+			if (setup.hasSpikes != needsSpikes) continue;
+
+			const RBTable& table = setup.standard; // same constraints as mirrored
+
+			if (table.minRoadWidth    > roadWidth)  continue;
+			if (table.numCarsRequired > maxNumCars) continue;
 
 			if (setup.maxRoadWidth > roadWidth)
 			{
@@ -245,17 +246,16 @@ namespace RoadblockOverrides
 				candidates.push_back(&setup);
 			}
 			
-			// The vanilla game picks the setup that fills the road's width the most, ignoring ties
-			if ((not vanillaResult) or (setup.standard.minRoadWidth > vanillaResult->standard.minRoadWidth))
+			// The vanilla method picks the widest setup that fits the road, ignoring ties
+			if ((not vanillaResult) or (table.minRoadWidth > vanillaResult->standard.minRoadWidth))
 				vanillaResult = &setup;
 		}
 
 		// Attempt to select a random eligible setup
 		if (not candidates.empty())
 		{
-			int cumulativeChance = 0;
-
-			const int chanceThreshold = Globals::prng.GenerateNumber<int>(1, totalChance);
+			int       cumulativeChance = 0;
+			const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, totalChance);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>(static_cast<int>(candidates.size()), "candidate(s)");
@@ -525,23 +525,21 @@ namespace RoadblockOverrides
 		// Create mirrored variant (not worth skipping if disabled)
 		setup.mirrored = table;
 
-		for (size_t partID = 0; partID < maxNumParts; ++partID)
+		for (RBPart& part : setup.mirrored.parts)
 		{
-			RBPart& part = setup.mirrored.parts[partID];
-
 			if (part.type == RBPartType::NONE) break; // no more parts
 
-			part.offsetX = -part.offsetX;
+			part.offsetX     = -part.offsetX;
 			part.orientation = 1.f - part.orientation;
 
-			// Mirror spike-strip pattern direction
+			// Mirror spike-strip pattern
 			if (part.type == RBPartType::SPIKES)
 			{
-				if (part.orientation > .5f)
-					part.orientation -= .5f; // clockwise
+				if (part.orientation < .5f)
+					part.orientation += .5f; // counter-clockwise
 
 				else
-					part.orientation += .5f; // counter-clockwise
+					part.orientation -= .5f; // clockwise
 			}
 		}
 

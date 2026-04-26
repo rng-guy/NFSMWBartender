@@ -99,7 +99,6 @@ namespace Globals
 		const auto GetVaultAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454190);
 
 		const address node = GetVaultNode(rootKey, nodeKey);
-
 		return (node and attributeKey) ? GetVaultAttribute(node, attributeKey, attributeIndex) : node;
 	}
 
@@ -115,7 +114,6 @@ namespace Globals
 		const auto GetPursuitAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
 
 		const address node = GetPursuitNode(pursuit);
-
 		return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : 0x0;
 	}
 

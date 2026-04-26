@@ -166,9 +166,8 @@ namespace CopSpawnTables
 		{
 			if (this->HasCapacity())
 			{
-				int cumulativeChance = 0;
-
-				const int chanceThreshold = Globals::prng.GenerateNumber<int>(1, this->currentTotalCopChance);
+				int       cumulativeChance = 0;
+				const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, this->currentTotalCopChance);
 
 				for (const auto& [copType, copEntry] : this->copTypeToEntry)
 				{
