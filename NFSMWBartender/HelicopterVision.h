@@ -42,7 +42,7 @@ namespace HelicopterVision
 		uint32_t colour = 0x0;
 
 		for (size_t channelID = 0; channelID < numChannels; ++channelID)
-			colour |= (static_cast<byte>(baseColour[channelID] + state * colourSpan[channelID]) << (8 * channelID));
+			colour |= static_cast<byte>(baseColour[channelID] + state * colourSpan[channelID]) << (8 * channelID);
 	
 		return colour;
 	}

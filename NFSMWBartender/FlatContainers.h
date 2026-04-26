@@ -32,7 +32,7 @@ namespace FlatContainers
 
 
 
-		// Vector wrapper for boilerplate
+		// Vector wrapper for common boilerplate
 		template <typename T>
 		class Wrapper
 		{
@@ -61,9 +61,9 @@ namespace FlatContainers
 			~Wrapper() = default;
 
 		
-			constexpr explicit Wrapper(const size_type cap)
+			constexpr explicit Wrapper(const size_type capacity)
 			{
-				this->reserve(cap);
+				this->reserve(capacity);
 			}
 
 
@@ -71,9 +71,9 @@ namespace FlatContainers
 		public:
 
 			// May invalidate all iterators
-			constexpr void reserve(const size_type new_cap)
+			constexpr void reserve(const size_type capacity)
 			{
-				this->data.reserve(new_cap);
+				this->data.reserve(capacity);
 			}
 
 
@@ -148,7 +148,7 @@ namespace FlatContainers
 
 		constexpr Set() = default;
 
-		constexpr explicit Set(const size_type cap) : base(cap) {}
+		constexpr explicit Set(const size_type capacity) : base(capacity) {}
 
 
 		constexpr Set(const std::initializer_list<value_type> list)
@@ -290,7 +290,7 @@ namespace FlatContainers
 
 		constexpr Map() = default;
 
-		constexpr explicit Map(const size_type cap) : base(cap) {}
+		constexpr explicit Map(const size_type capacity) : base(capacity) {}
 
 
 		constexpr Map(const std::initializer_list<value_type> list)
