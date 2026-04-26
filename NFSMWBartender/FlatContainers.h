@@ -22,13 +22,13 @@ namespace FlatContainers
 
 		// Concept to filter for unique_ptr
 		template <typename T>
-		struct is_unique_ptr : std::false_type {};
+		struct IsUnique : std::false_type {};
 
-		template <typename T, typename D>
-		struct is_unique_ptr<std::unique_ptr<T, D>> : std::true_type {};
+		template <typename T, class Deleter>
+		struct IsUnique<std::unique_ptr<T, Deleter>> : std::true_type {};
 
 		template <typename T>
-		concept IsUniquePtr = is_unique_ptr<T>::value;
+		concept IsUniquePtr = IsUnique<T>::value;
 
 
 
