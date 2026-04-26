@@ -92,10 +92,11 @@ namespace PursuitObserver
 		}
 
 
-		template <std::derived_from<PursuitReaction> R>
+		template <class Reaction>
+		requires std::derived_from<Reaction, PursuitReaction>
 		void AddPursuitFeature()
 		{
-			this->pursuitReactions.push_back(std::make_unique<R>(this->pursuit));
+			this->pursuitReactions.push_back(std::make_unique<Reaction>(this->pursuit));
 		}
 
 
