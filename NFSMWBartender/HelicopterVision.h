@@ -28,8 +28,8 @@ namespace HelicopterVision
 	float lengthToBase = .2f; // seconds
 	float lengthToEnd  = .2f; // seconds
 
-	constinit BGRA<float> baseColour  = {};
-	constinit BGRA<float> colourRange = {};
+	constinit BGRA<float> baseColour = {};
+	constinit BGRA<float> colourSpan = {};
 
 
 
@@ -42,7 +42,7 @@ namespace HelicopterVision
 		uint32_t colour = 0x0;
 
 		for (size_t channelID = 0; channelID < numChannels; ++channelID)
-			colour |= static_cast<byte>(baseColour[channelID] + state * colourRange[channelID]) << (8 * channelID);
+			colour |= (static_cast<byte>(baseColour[channelID] + state * colourSpan[channelID]) << (8 * channelID));
 	
 		return colour;
 	}
@@ -180,7 +180,7 @@ namespace HelicopterVision
 	bool ParseColours(const HeatParameters::Parser& parser)
 	{
 		// In-sight colour
-		if (not ParseColour(parser, "withinSightColour", colourRange, lengthToEnd))
+		if (not ParseColour(parser, "withinSightColour", colourSpan, lengthToEnd))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("Invalid within-sight colour");
@@ -197,8 +197,9 @@ namespace HelicopterVision
 			return false; // missing colour
 		}
 
+		// We only need the out-of-sight colour and the difference to it
 		for (size_t channelID = 0; channelID < numChannels; ++channelID)
-			colourRange[channelID] -= baseColour[channelID];
+			colourSpan[channelID] -= baseColour[channelID];
 
 		if constexpr (Globals::loggingEnabled)
 		{
