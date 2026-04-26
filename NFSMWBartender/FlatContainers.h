@@ -225,7 +225,23 @@ namespace FlatContainers
 		}
 
 
-		// Invalidates iterators of erased and final value
+		// Invalidates iterators of erased and last element
+		constexpr iterator erase(const iterator it)
+		{
+			if (it == this->end()) return it;
+
+			const auto lastIt = std::prev(this->end());
+
+			if (it != lastIt)
+				*it = std::move(*lastIt);
+
+			this->data.pop_back();
+
+			return it;
+		}
+
+
+		// Invalidates iterators of erased and last element
 		template <typename U>
 		requires std::equality_comparable_with<U, value_type>
 		constexpr bool erase(const U& value)
@@ -239,23 +255,7 @@ namespace FlatContainers
 		}
 
 
-		// Invalidates iterators of erased and final value
-		constexpr iterator erase(const iterator it)
-		{
-			if (it == this->end()) return it;
-
-			const auto last_it = std::prev(this->end());
-
-			if (it != last_it)
-				*it = std::move(*last_it);
-
-			this->data.pop_back();
-
-			return it;
-		}
-
-
-		// Invalidates iterators of erased and final value
+		// Invalidates iterators of erased and last element
 		constexpr reverse_iterator erase(const reverse_iterator rit)
 		{
 			return (rit != this->rend()) ? reverse_iterator(this->erase(std::prev(rit.base()))) : rit;
@@ -319,8 +319,8 @@ namespace FlatContainers
 		requires std::equality_comparable_with<U, key_type>
 		constexpr iterator find(const U& key)
 		{
-			const auto is_match = [&key](const value_type& pair) -> bool {return (pair.first == key);};
-			return std::find_if(this->begin(), this->end(), is_match);
+			const auto keyMatches = [&key](const value_type& pair) -> bool {return (pair.first == key);};
+			return std::find_if(this->begin(), this->end(), keyMatches);
 		}
 
 
@@ -328,8 +328,8 @@ namespace FlatContainers
 		requires std::equality_comparable_with<U, key_type>
 		constexpr const_iterator find(const U& key) const
 		{
-			const auto is_match = [&key](const value_type& pair) -> bool {return (pair.first == key);};
-			return std::find_if(this->begin(), this->end(), is_match);
+			const auto keyMatches = [&key](const value_type& pair) -> bool {return (pair.first == key);};
+			return std::find_if(this->begin(), this->end(), keyMatches);
 		}
 
 
@@ -400,7 +400,23 @@ namespace FlatContainers
 		}
 
 
-		// Invalidates iterators of erased and final value
+		// Invalidates iterators of erased and last element
+		constexpr iterator erase(const iterator it)
+		{
+			if (it == this->end()) return it;
+
+			const auto lastIt = std::prev(this->end());
+
+			if (it != lastIt)
+				*it = std::move(*lastIt);
+
+			this->data.pop_back();
+
+			return it;
+		}
+
+
+		// Invalidates iterators of erased and last element
 		template <typename U>
 		requires std::equality_comparable_with<U, key_type>
 		constexpr bool erase(const U& key)
@@ -414,23 +430,7 @@ namespace FlatContainers
 		}
 
 
-		// Invalidates iterators of erased and final value
-		constexpr iterator erase(const iterator it)
-		{
-			if (it == this->end()) return it;
-
-			const auto final_it = std::prev(this->end());
-
-			if (it != final_it)
-				*it = std::move(*final_it);
-
-			this->data.pop_back();
-
-			return it;
-		}
-
-
-		// Invalidates iterators of erased and final value
+		// Invalidates iterators of erased and last element
 		constexpr reverse_iterator erase(const reverse_iterator rit)
 		{
 			return (rit != this->rend()) ? reverse_iterator(this->erase(std::prev(rit.base()))) : rit;
