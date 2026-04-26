@@ -201,7 +201,7 @@ The "Advanced" feature set **can fix four more bugs / issues**, depending on its
 &nbsp;
 
 **To install** Bartender:
-1. download and unzip the `NfSMW_Bartender_v3.04.0.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/latest);
+1. download and unzip the `NfSMW_Bartender_v3.04.1.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/latest);
 2. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
 3. copy the `BartenderSettings` folder and `.asi` file to your game's `scripts` folder;
 4. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file; and
