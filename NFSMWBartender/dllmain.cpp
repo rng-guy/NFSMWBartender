@@ -68,7 +68,7 @@ static void __cdecl InitialiseBartender
 
 	HeatParameters::Parser parser(configFileCapacity, sectionCapacityPerFile, pairCapacityPerSection);
 
-	// "Basic" feature set
+	// Parse "Basic" feature set
 	Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
 	Globals::basicSetEnabled |= RadioChatter      ::Initialise(parser);
 	Globals::basicSetEnabled |= CopDetection      ::Initialise(parser);
@@ -82,7 +82,7 @@ static void __cdecl InitialiseBartender
 
 	if (Globals::basicSetEnabled)
 	{
-		// Feature-linked fixes
+		// Apply feature-specific fixes
 		if (not RadioChatter::featureEnabled)
 			RadioChatter::ApplyFixes();
 
@@ -106,10 +106,10 @@ static void __cdecl InitialiseBartender
 		MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
 	}
 
-	// "Advanced" feature set
+	// Parse "Advanced" feature set
 	Globals::advancedSetEnabled = PursuitObserver::Initialise(parser);
 
-	// General Heat and state observer
+	// Apply Heat and state observer
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::logger.Log(" FEATURE [INI] Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");

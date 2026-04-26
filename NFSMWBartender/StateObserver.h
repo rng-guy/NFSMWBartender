@@ -89,7 +89,7 @@ namespace StateObserver
 
 	void OnWorldLoadUpdates()
 	{
-		const auto OriginalFunction = reinterpret_cast<void (*)(void)>(OnWorldLoadUpdatesOriginal);
+		const auto OriginalFunction = reinterpret_cast<void (*)()>(OnWorldLoadUpdatesOriginal);
 
 		// Apply hooked logic fist
 		CopSpawnOverrides::FullResetState();
@@ -104,7 +104,7 @@ namespace StateObserver
 
 	void OnRestartUpdates()
 	{
-		const auto OriginalFunction = reinterpret_cast<void (*)(void)>(OnRestartUpdatesOriginal);
+		const auto OriginalFunction = reinterpret_cast<void (*)()>(OnRestartUpdatesOriginal);
 
 		// Apply hooked logic fist
 		playerHeatLevel = 0;
