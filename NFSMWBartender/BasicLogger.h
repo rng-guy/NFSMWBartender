@@ -4,7 +4,6 @@
 #include <string>
 #include <format>
 #include <cstdarg>
-#include <cstdint>
 #include <ostream>
 #include <fstream>
 #include <iterator>

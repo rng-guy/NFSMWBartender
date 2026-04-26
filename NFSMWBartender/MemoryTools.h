@@ -130,7 +130,6 @@ namespace MemoryTools
 	inline void WriteToRange(const byte value)
 	{
 		static_assert(end > start, "Invalid or empty range");
-
 		Details::WriteToRange(value, start, end);
 	}
 
@@ -140,7 +139,6 @@ namespace MemoryTools
 	inline void MakeRangeNOP()
 	{
 		static_assert(end > start, "Invalid or empty range");
-
 		Details::MakeRangeNOP(start, end);
 	}
 
@@ -150,7 +148,6 @@ namespace MemoryTools
 	inline void MakeRangeJMP(const address target)
 	{
 		static_assert(end >= start + sizeof(byte) + sizeof(address), "Cannot accommodate JMP");
-
 		Details::MakeRangeJMP(start, end, target);
 	}
 
