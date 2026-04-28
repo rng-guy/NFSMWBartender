@@ -61,7 +61,7 @@ namespace RoadblockOverrides
 	{
 		std::string name;
 
-		RBTable standard;
+		RBTable original;
 		RBTable mirrored;
 
 		bool hasSpikes  = false;
@@ -86,7 +86,7 @@ namespace RoadblockOverrides
 					Globals::logger.Log<2>("Setup:", this->name);
 			}
 
-			return &((isMirrored) ? this->mirrored : this->standard);
+			return &((isMirrored) ? this->mirrored : this->original);
 		}
 
 
@@ -235,7 +235,7 @@ namespace RoadblockOverrides
 			if (setup.chances.current < 1)      continue;
 			if (setup.hasSpikes != needsSpikes) continue;
 
-			const RBTable& table = setup.standard; // same constraints as mirrored
+			const RBTable& table = setup.original; // same constraints as mirrored
 
 			if (table.minRoadWidth    > roadWidth)  continue;
 			if (table.numCarsRequired > maxNumCars) continue;
@@ -247,7 +247,7 @@ namespace RoadblockOverrides
 			}
 			
 			// The vanilla method picks the widest setup that fits the road, ignoring ties
-			if ((not vanillaResult) or (table.minRoadWidth > vanillaResult->standard.minRoadWidth))
+			if ((not vanillaResult) or (table.minRoadWidth > vanillaResult->original.minRoadWidth))
 				vanillaResult = &setup;
 		}
 
@@ -286,7 +286,7 @@ namespace RoadblockOverrides
 		if (vanillaResult)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Best width:", vanillaResult->standard.minRoadWidth);
+				Globals::logger.Log<2>("Best width:", vanillaResult->original.minRoadWidth);
 
 			maxStretchScale = vanillaResult->GetMaxStretchScale();
 
@@ -422,7 +422,7 @@ namespace RoadblockOverrides
 
 		RBSetup setup(std::string(section.substr(setupPrefix.length())));
 
-		RBTable& table = setup.standard;
+		RBTable& table = setup.original;
 
 		// Parse and validate width values
 		if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {0.f}}, {setup.maxRoadWidth, {0.f}}))

@@ -442,7 +442,7 @@ namespace HelicopterOverrides
 		const float distance = (Globals::IsInCooldownMode(pursuit)) ? searchSpawnDistances.GetRandomValue() : chaseSpawnDistances.GetRandomValue();
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>(pursuit, "Spawn distance:", distance);
+			Globals::logger.Log<2>("Spawn distance:", distance);
 
 		return distance;
 	}

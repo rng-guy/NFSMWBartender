@@ -393,7 +393,7 @@ namespace CopDetection
 
 	void ApplyFixes()
 	{
-		// Also these fix the disappearing helicopter icon
+		// These also fix the disappearing helicopter icon
 		MemoryTools::MakeRangeNOP<0x579EA2, 0x579EAB>(); // early icon-counter check
 
 		MemoryTools::MakeRangeJMP<copVehicleIconEntrance,   copVehicleIconExit>  (CopVehicleIcon);
