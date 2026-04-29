@@ -120,7 +120,8 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>del $(TargetDir)*.asi</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -165,7 +166,8 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>del $(TargetDir)*.asi</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
