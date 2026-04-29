@@ -22,7 +22,7 @@ namespace HeatChangeOverrides
 	bool featureEnabled = false;
 
 	// Heat parameters
-	constinit HeatParameters::Pair<bool> heatTimerEneableds(true);
+	constinit HeatParameters::Pair<bool> heatTimerEnableds(true);
 
 	constinit HeatParameters::Pair<float> chaserHeatChanges    (0.f);
 	constinit HeatParameters::Pair<float> supportHeatChanges   (0.f);
@@ -352,7 +352,7 @@ namespace HeatChangeOverrides
 			test ebx, ebx
 			je conclusion // no pursuit attributes 
 
-			cmp byte ptr heatTimerEneableds.current, 0x0
+			cmp byte ptr heatTimerEnableds.current, 0x0
 
 			conclusion:
 			jmp dword ptr passiveHeatExit
@@ -553,7 +553,7 @@ namespace HeatChangeOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Heat.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Heat:Time",       heatTimerEneableds);
+		HeatParameters::Parse(parser, "Heat:Time",       heatTimerEnableds);
 		HeatParameters::Parse(parser, "Heat:Deployment", chaserHeatChanges,    supportHeatChanges, helicopterHeatChanges);
 		HeatParameters::Parse(parser, "Heat:Roadblocks", roadblockHeatChanges, spikesHeatChanges);
 
@@ -596,7 +596,7 @@ namespace HeatChangeOverrides
 	{
 		Globals::logger.Log("    HEAT [CNG] HeatChangeOverrides");
 
-		heatTimerEneableds.Log("heatTimerEneabled       ");
+		heatTimerEnableds.Log("heatTimerEnabled        ");
 
 		chaserHeatChanges    .Log("chaserHeatChange        ");
 		supportHeatChanges   .Log("supportHeatChange       ");
@@ -624,7 +624,7 @@ namespace HeatChangeOverrides
 	) {
 		if (not featureEnabled) return;
 
-		heatTimerEneableds.SetToHeat(isRacing, heatLevel);
+		heatTimerEnableds.SetToHeat(isRacing, heatLevel);
 
 		chaserHeatChanges    .SetToHeat(isRacing, heatLevel);
 		supportHeatChanges   .SetToHeat(isRacing, heatLevel);
