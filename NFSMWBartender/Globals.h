@@ -39,7 +39,7 @@ namespace Globals
 	bool    playerHeatLevelKnown = false;
 
 	// Logging (for debugging purposes)
-	constexpr bool loggingEnabled = false;
+	constexpr bool loggingEnabled = true;
 	BasicLogger::Logger<9, 15, 17> logger;
 
 	// Hackjob floating-point correction coefficient

@@ -4,11 +4,11 @@
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
 Bartender adds NEW CUSTOMISATION OPTIONS to pursuits. These new options come in two feature sets:
- • the "BASIC" FEATURE SET lets you change many otherwise hard-coded values of the game, and
+ • the "BASIC"    FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
-Bartender's DEFAULT SETTINGS match the vanilla game's, except for the many bug / issue fixes.
-This also means you don't need to configure Bartender at all if those are all you care about.
+Bartender's DEFAULT SETTINGS match the vanilla game's, except for the bug / issue fixes.
+If those fixes are all you care about, then you don't need to configure Bartender at all.
 
 For OPTIMAL CUSTOMISABILITY, use VltEd along with Bartender. Bartender doesn't replace VltEd,
 as Bartender's features are deliberately limited to things you can't do with VltEd alone.
@@ -235,8 +235,8 @@ You likely need one of these two mods if you configure Bartender in any of the f
  • "[Chasers:Independence]" in "CarSpawns.ini" : You enable independent spawns for chasing cops.
  • "[Traffic:Independence]" in "CarSpawns.ini" : You enable independent spawns for traffic cars.
  • "[Heavy3:Count]"         in "Strategies.ini": You define a vehicle count > 2 per request.
- • "[Heavy3:Joining]"       in "Strategies.ini": You enable joining from HeavyStrategy 3 requests.
- • "[Heavy3:Unblocking]"    in "Strategies.ini": You define very short unblock delays.
+ • "[Heavy3:Joining]"       in "Strategies.ini": You enable joining from HeavyStrategy 3.
+ • "[Heavy3:Unblocking]"    in "Strategies.ini": You define any unblock delays.
  
 SHOULD YOU INSTALL any car-loader replacement mod, you may need to re-configure other mods:
  • In "NFSMW Unlimiter"     by nlgxzef,    disable "ExpandMemoryPools" and "RandomizeTraffic".

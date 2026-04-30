@@ -7,7 +7,7 @@ Bartender adds **new customisation options** to pursuits in *Need for Speed: Mos
 
 &nbsp;
 
-Bartender's **default settings** match the vanilla game's, except for the many bug / issue fixes. This also means you don't need to configure Bartender at all if those are all you care about.
+Bartender's **default settings** match the vanilla game's, except for the bug / issue fixes. If those fixes are all you care about, then you don't need to configure Bartender at all.
 
 &nbsp;
 
@@ -271,8 +271,8 @@ Under certain conditions, Bartender **may require** a mod that replaces the game
 * `[Chasers:Independence]` in `CarSpawns.ini`: You enable independent spawns for chasing cops.
 * `[Traffic:Independence]` in `CarSpawns.ini`: You enable independent spawns for traffic cars.
 * `[Heavy3:Count]` in `Strategies.ini`: You define a vehicle count > 2 per request.
-* `[Heavy3:Joining]` in `Strategies.ini`: You enable joining from HeavyStrategy 3 requests.
-* `[Heavy3:Unblocking]` in `Strategies.ini`: You define very short unblock delays.
+* `[Heavy3:Joining]` in `Strategies.ini`: You enable joining from HeavyStrategy 3.
+* `[Heavy3:Unblocking]` in `Strategies.ini`: You define any unblock delays.
 
 &nbsp;
 
@@ -284,7 +284,7 @@ Under certain conditions, Bartender **may require** a mod that replaces the game
 &nbsp;
  
 **Should you install** NFSMW LimitAdjuster, you also need to configure it to work with Bartender:
-1. place `NFSMWLimitAdjuster.asi` / `.ini` into the same folder as `speed.exe` (*not* `scripts`);
+1. place `NFSMWLimitAdjuster.asi` / `.ini` into the same folder as `speed.exe` (not `scripts`);
 2. under `[Options]` in `NFSMWLimitAdjuster.ini`, disable every cop-related feature;
 3. under `[Limits]` in `NFSMWLimitAdjuster.ini`, set `TrafficCars` to 50 (or higher), `PursuitCops` to 255, and `Vehicles_SoftCap` to 255.
 
