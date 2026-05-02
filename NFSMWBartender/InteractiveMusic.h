@@ -185,17 +185,17 @@ namespace InteractiveMusic
 			// Validate and add track IDs
 			for (const auto& [key, value] : pairs)
 			{
-				if (key.find("track") == 0)
+				if (key.find("track") == 0) // key starts with "track"
 				{
 					const auto foundName = nameToIndex.find(value);
 
-					if (foundName != nameToIndex.end())
+					if (foundName != nameToIndex.end()) // value valid
 						playlist.push_back(foundName->second);
 
-					else if constexpr (Globals::loggingEnabled)
+					else if constexpr (Globals::loggingEnabled) // value invalid
 						Globals::logger.Log<3>('-', key, "(invalid value)");
 				}
-				else if constexpr (Globals::loggingEnabled)
+				else if constexpr (Globals::loggingEnabled) // key invalid
 					Globals::logger.Log<3>('-', key, "(invalid format)");
 			}
 

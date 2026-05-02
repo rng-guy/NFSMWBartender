@@ -99,7 +99,6 @@ namespace ModContainers
 		ReturnType GetValue(const K key) const
 		{
 			const auto foundPair = this->map.find(key);
-
 			return (foundPair != this->map.end()) ? foundPair->second : this->defaultValue;
 		}
 
@@ -123,6 +122,7 @@ namespace ModContainers
 			const auto& rawKeys   = keySetup  .rawValues;
 			const auto& rawValues = valueSetup.rawValues;
 
+			// Populate map if key and value counts match
 			if ((not rawKeys.empty() and (rawKeys.size() == rawValues.size())))
 			{
 				const size_t numPairs = rawKeys.size();
@@ -139,23 +139,22 @@ namespace ModContainers
 					const RawK& rawKey = rawKeys[pairID];
 					const V     value  = valueSetup.RawToValue(rawValues[pairID]);
 
-					if (valueSetup.IsValidValue(value))
+					if (valueSetup.IsValidValue(value)) // value valid
 					{
 						const K key = keySetup.RawToValue(rawKey);
 
-						if (key == defaultKey)
+						if (key == defaultKey) // default key
 						{
-							defaultProvided = true;
-
+							defaultProvided    = true;
 							this->defaultValue = value;
 						}
-						else if (keySetup.IsValidValue(key))
+						else if (keySetup.IsValidValue(key)) // key valid
 							this->map.try_emplace(key, value);
 
-						else if constexpr (Globals::loggingEnabled)
+						else if constexpr (Globals::loggingEnabled) // key invalid
 							Globals::logger.Log<3>('-', rawKey, "(invalid key)");
 					}
-					else if constexpr (Globals::loggingEnabled)
+					else if constexpr (Globals::loggingEnabled) // value invalid
 						Globals::logger.Log<3>('-', rawKey, "(invalid value)");
 				}
 

@@ -223,7 +223,6 @@ namespace LeaderOverrides
 			if (this->crossAggroTimer.HasExpired())
 			{
 				this->crossAggroTimer.Stop();
-
 				Globals::EndSupportGoal(this->crossVehicle);
 				
 				if constexpr (Globals::loggingEnabled)

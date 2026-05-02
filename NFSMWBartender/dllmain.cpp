@@ -59,7 +59,19 @@ static void __cdecl InitialiseBartender
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::logger.Open("BartenderLog.txt");
-		Globals::logger.Log ("\n SESSION [VER] Bartender v3.04.01");
+		Globals::logger.Log ("\n SESSION [MOD] Bartender v3.04.01");
+
+		if (MemoryTools::IsModuleLoaded("NFSMWUnlimiter.asi"))
+			Globals::logger.Log<1>("+ Unlimiter");
+
+		if (MemoryTools::IsModuleLoaded("NFSMWExtraOptions.asi"))
+			Globals::logger.Log<1>("+ ExtraOptions");
+
+		if (MemoryTools::IsModuleLoaded("NFSMWLimitAdjuster.asi"))
+			Globals::logger.Log<1>("+ LimitAdjuster");
+
+		if (MemoryTools::IsModuleLoaded("NFSMWOpenLimitAdjuster_gcp.asi"))
+			Globals::logger.Log<1>("+ OpenLimitAdjuster");
 	}
 
 	constexpr size_t configFileCapacity     = 6;  // files
@@ -68,7 +80,7 @@ static void __cdecl InitialiseBartender
 
 	HeatParameters::Parser parser(configFileCapacity, sectionCapacityPerFile, pairCapacityPerSection);
 
-	// Parse "Basic" feature set
+	// Parse and initialise "Basic" feature set
 	Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
 	Globals::basicSetEnabled |= RadioChatter      ::Initialise(parser);
 	Globals::basicSetEnabled |= CopDetection      ::Initialise(parser);
@@ -106,21 +118,20 @@ static void __cdecl InitialiseBartender
 		MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
 	}
 
-	// Parse "Advanced" feature set
+	// Parse and initialise "Advanced" feature set
 	Globals::advancedSetEnabled = PursuitObserver::Initialise(parser);
 
 	// Apply Heat and state observer
 	if constexpr (Globals::loggingEnabled)
 	{
-		Globals::logger.Log(" FEATURE [INI] Basic    feature set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
-		Globals::logger.Log(" FEATURE [INI] Advanced feature set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
+		Globals::logger.Log(" SESSION [MOD] Features");
+
+		Globals::logger.Log<2>("Basic    set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
+		Globals::logger.Log<2>("Advanced set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
 	}
 
 	if (Globals::basicSetEnabled or Globals::advancedSetEnabled)
 		StateObserver::Initialise(parser);
-	
-	else if constexpr (Globals::loggingEnabled)
-		Globals::logger.Log(" SESSION [INI] Bartender disabled");
 }
 
 
@@ -140,8 +151,7 @@ BOOL WINAPI DllMain
 		if (MemoryTools::GetEntryPoint() != 0x3C4040)
 		{
 			MessageBoxA(NULL, "This .exe isn't compatible with Bartender.\nSee Bartender's README for help.", "NFSMW Bartender", MB_ICONERROR);
-
-			return FALSE;
+			return FALSE; // should never happen (assuming the user has actually read the README...)
 		}
 
 		InitialiseBartenderOriginal = MemoryTools::MakeCallHook(0x6665B4, InitialiseBartender); // InitializeEverything (0x665FC0)

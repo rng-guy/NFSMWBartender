@@ -64,8 +64,7 @@ namespace HeatChangeOverrides
 
 			int lastCount = 0;
 
-			const volatile int& count;
-
+			const volatile int&                count;
 			const HeatParameters::Pair<float>& heatPerCounts;
 
 
@@ -262,8 +261,7 @@ namespace HeatChangeOverrides
 			if (pursuit)
 			{
 				const auto NotifyCopDamaged = reinterpret_cast<void (__thiscall*)(address, address)>(0x40AF40);
-
-				NotifyCopDamaged(pursuit, copVehicle);
+				NotifyCopDamaged(pursuit, copVehicle); // for "cops hit" tracking per pursuit
 			}		
 		}
 
@@ -283,10 +281,9 @@ namespace HeatChangeOverrides
 
 	void __fastcall UpdateHeatAnimation(const address heatMeter)
 	{
-		constexpr bool useUnpausedTime = false;
-
-		const float  gameTime         = Globals::GetGameTime(useUnpausedTime);
-		const size_t currentHeatLevel = static_cast<size_t>(*reinterpret_cast<float*>(heatMeter + 0x40));
+		constexpr bool useUnpausedTime  = false;
+		const float    gameTime         = Globals::GetGameTime(useUnpausedTime);
+		const size_t   currentHeatLevel = static_cast<size_t>(*reinterpret_cast<float*>(heatMeter + 0x40));
 		
 		if (gameTime >= animationEndTimestamp)
 		{
@@ -503,7 +500,6 @@ namespace HeatChangeOverrides
 	void ParseDamageChanges(const HeatParameters::Parser& parser)
 	{
 		HeatParameters::Pair<int> damageToHeats(0);
-
 		HeatParameters::Parse(parser, "Heat:Damage", damageToHeats);
 
 		for (const bool forRaces : {false, true})
@@ -525,7 +521,7 @@ namespace HeatChangeOverrides
 
 	bool ParseVehicleChanges(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*> copVehicles; // for game compatibility
+		std::vector<const char*> copVehicles; // C-style for game compatibility
 		std::vector<float>       heatChanges;
 
 		parser.ParseUser<const char*, float>("Wrecking:Vehicles", copVehicles, {heatChanges});

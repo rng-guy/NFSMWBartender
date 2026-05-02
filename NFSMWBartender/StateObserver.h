@@ -73,7 +73,6 @@ namespace StateObserver
 		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
 		{
 			playerIsRacing = (not playerIsRacing);
-
 			OnHeatLevelUpdates();
 		}
 
@@ -107,8 +106,7 @@ namespace StateObserver
 		const auto OriginalFunction = reinterpret_cast<void (*)()>(OnRestartUpdatesOriginal);
 
 		// Apply hooked logic fist
-		playerHeatLevel = 0;
-
+		playerHeatLevel               = 0;
 		Globals::playerHeatLevelKnown = false;
 
 		CopSpawnOverrides::SoftResetState();

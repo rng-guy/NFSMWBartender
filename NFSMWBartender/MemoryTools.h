@@ -110,13 +110,13 @@ namespace MemoryTools
 			const address end,
 			const address target
 		) {
-			const address targetStart = start       + sizeof(byte);
-			const address jumpEnd     = targetStart + sizeof(address);
+			const address jumpTargetOffset = start            + sizeof(byte);
+			const address nextInstruction  = jumpTargetOffset + sizeof(int);
 
 			MakeRangeNOP(start, end);
 
-			Write<byte>   (0xE9, {start}); // jump near, relative
-			Write<address>(target - jumpEnd, {targetStart});
+			Write<byte>(0xE9, {start}); // jump near, relative
+			Write<int> (target - nextInstruction, {jumpTargetOffset});
 		}
 	}
 
@@ -147,7 +147,7 @@ namespace MemoryTools
 	template <address start, address end>
 	inline void MakeRangeJMP(const address target)
 	{
-		static_assert(end >= start + sizeof(byte) + sizeof(address), "Cannot accommodate JMP");
+		static_assert(end >= start + sizeof(byte) + sizeof(int), "Cannot accommodate JMP");
 		Details::MakeRangeJMP(start, end, target);
 	}
 
@@ -162,35 +162,34 @@ namespace MemoryTools
 
 	inline address MakeCallHook
 	(
-		const address location,
+		const address call,
 		const address target
 	) {
-		const byte opcode = *reinterpret_cast<byte*>(location);
+		const byte opcode = *reinterpret_cast<byte*>(call);
 
-		if (opcode != 0xE8)
+		if (opcode != 0xE8) // call near, relative
 		{
 			MessageBoxA(NULL, "Invalid hooking target. Contact the mod author.", "Fatal hooking error", MB_ICONERROR);
 
-			// Hook failed; terminate host process for safety
+			// Hooking failed; terminate process for safety
 			TerminateProcess(GetCurrentProcess(), 1);
 		}
 
-		const address targetStart = location    + sizeof(byte);
-		const address callEnd     = targetStart + sizeof(address);
+		const address callOffset      = call       + sizeof(byte);
+		const address nextInstruction = callOffset + sizeof(int);
+		const int     originalOffset  = *reinterpret_cast<volatile int*>(callOffset);
 
-		const address original = *reinterpret_cast<volatile address*>(targetStart) + callEnd;
+		Write<int>(target - nextInstruction, {callOffset});
 
-		Write<address>(target - callEnd, {targetStart});
-
-		return original;
+		return originalOffset + nextInstruction;
 	}
 
 
 	inline address MakeCallHook
 	(
-		const address     location,
+		const address     call,
 		const void* const target
 	) {
-		return MakeCallHook(location, reinterpret_cast<address>(target));
+		return MakeCallHook(call, reinterpret_cast<address>(target));
 	}
 }

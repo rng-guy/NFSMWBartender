@@ -546,7 +546,7 @@ namespace GeneralSettings
 
 	bool ParsePursuitBreakerImmunities(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*> copVehicles; // for game compatibility
+		std::vector<const char*> copVehicles; // C-style for game compatibility
 		std::vector<bool>        isAffecteds;
 
 		parser.ParseUser<const char*, bool>("Vehicles:Breakers", copVehicles, {isAffecteds});

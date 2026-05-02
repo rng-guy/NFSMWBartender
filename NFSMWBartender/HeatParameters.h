@@ -25,7 +25,7 @@ namespace HeatParameters
 	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
 
 	// Configuration files
-	const char* const configDefaultKey  = "default"; // for game compatibility
+	const char* const configDefaultKey  = "default"; // C-style for game compatibility
 	constexpr size_t  configFormatStart = 1;
 
 	constexpr std::string_view configFormatRoam = "heat{:02}";
@@ -453,8 +453,7 @@ namespace HeatParameters
 		for (const bool forRaces : {false, true})
 		{
 			size_t numReplaced = 0;
-
-			auto& vehicles = pointerPair.GetValues(forRaces);
+			auto&  vehicles    = pointerPair.GetValues(forRaces);
 
 			for (const size_t heatLevel : heatLevels)
 			{
@@ -713,7 +712,6 @@ namespace HeatParameters
 		for (const bool forRaces : {false, true})
 		{
 			const auto isEnableds = Details::ParsePartial<HeatParameters...>(forRaces, parser, section, parameters...);
-
 			(..., (parameters.isEnableds.GetValues(forRaces) = isEnableds));
 		}
 

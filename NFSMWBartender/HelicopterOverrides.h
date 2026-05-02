@@ -71,8 +71,7 @@ namespace HelicopterOverrides
 
 	private:
 		
-		bool isPlayerPursuit = false;
-
+		bool   isPlayerPursuit  = false;
 		Status helicopterStatus = Status::PENDING;
 
 		PursuitFeatures::IntervalTimer spawnTimer;
@@ -131,13 +130,12 @@ namespace HelicopterOverrides
 			this->TakeOwnership(copVehicle);
 
 			hasLimitedFuel = fuelTimes.isEnableds.current;
-
 			this->spawnTimer.LoadInterval(lostRejoinDelays);
 
 			if (hasLimitedFuel)
 				this->SetFuelTime(fuelTimes.GetRandomValue());
 
-			maxBailoutFuelTime = 8.f; // seconds; vanilla value
+			maxBailoutFuelTime = 8.f; // vanilla value
 
 			if (this->spawnTimer.IsIntervalEnabled()) // rejoining enabled
 			{
@@ -163,8 +161,7 @@ namespace HelicopterOverrides
 			if (not helicopterActor) return; // should never happen
 
 			const auto CallOutSweep = reinterpret_cast<void (__thiscall*)(address)>(0x717D40);
-
-			CallOutSweep(helicopterActor);
+			CallOutSweep(helicopterActor); // requests radio callout for helicopter search
 		}
 
 
@@ -334,8 +331,7 @@ namespace HelicopterOverrides
 			else this->ProcessNewHelicopter(copVehicle);
 			
 			this->helicopterStatus = Status::ACTIVE;
-
-			skipBailoutSpeech = false;
+			skipBailoutSpeech      = false;
 		}
 
 
@@ -365,7 +361,6 @@ namespace HelicopterOverrides
 				else if (this->spawnTimer.IsIntervalEnabled()) // lost, rejoining enabled
 				{
 					this->spawnTimer.Start(); // contains rejoin parameters
-
 					const float rejoinDelay = this->spawnTimer.GetLength();
 					
 					if constexpr (Globals::loggingEnabled)
@@ -374,10 +369,7 @@ namespace HelicopterOverrides
 							Globals::logger.Log(this->pursuit, "[HEL] Fuel at despawn:", *fuelTime);
 					}
 
-					this->fuelTimeOnRejoin = *fuelTime;
-
-					if (hasLimitedFuel)
-						this->fuelTimeOnRejoin -= rejoinDelay;
+					this->fuelTimeOnRejoin = (hasLimitedFuel) ? (*fuelTime - rejoinDelay) : *fuelTime;
 
 					if (this->fuelTimeOnRejoin >= this->minRejoinFuelTime) // sufficient fuel to rejoin
 					{

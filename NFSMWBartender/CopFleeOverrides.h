@@ -55,7 +55,8 @@ namespace CopFleeOverrides
 
 			size_t numPendingExpired = 0;
 
-			const address          pursuit;
+			const address pursuit;
+
 			const std::string_view label;
 
 			ModContainers::AddressMap<float> vehicleToTimestamp;
@@ -107,9 +108,8 @@ namespace CopFleeOverrides
 				const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
 				if (not copAIVehiclePursuit) return false; // should never happen
 
-				const auto StartFlee = reinterpret_cast<void(__thiscall*)(address)>(0x423370);
-
-				StartFlee(copAIVehiclePursuit);
+				const auto StartFlee = reinterpret_cast<void (__thiscall*)(address)>(0x423370);
+				StartFlee(copAIVehiclePursuit); // updates vehicle goal(s) accordingly
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[FLE]", this->label, copVehicle, "fleeing");
@@ -198,7 +198,6 @@ namespace CopFleeOverrides
 			void AddVehicle(const address copVehicle)
 			{
 				const float strategyDuration = (this->strategy) ? *reinterpret_cast<volatile float*>(this->strategy + 0x8) : 1.f;
-
 				this->ScheduleVehicle(copVehicle, strategyDuration);
 			}
 
@@ -232,7 +231,7 @@ namespace CopFleeOverrides
 
 		private:
 
-			// Contains all cops in case of Heat transitions
+			// Tracks all cops in case of Heat transitions
 			ModContainers::AddressSet vehicles;
 
 			const HeatParameters::OptionalInterval<float>& fleeDelays;
@@ -262,18 +261,18 @@ namespace CopFleeOverrides
 				: SchedulerBase(pursuit, label), fleeDelays(fleeDelays), thresholds(thresholds)
 			{
 				// Scheduled non-Strategy cops may only expire if the number of "Chaser" cops is above some threshold
-				this->IsExpirationEnabled = [this]()
+				this->IsExpirationEnabled = [this]() -> bool
 				{
-					if (not this->thresholds.isEnableds.current) return true;
+					if (this->thresholds.isEnableds.current)
+						return (static_cast<int>(this->GetNumActiveChasers()) > this->thresholds.values.current);
 
-					return (static_cast<int>(this->GetNumActiveChasers()) > this->thresholds.values.current);
+					return true;
 				};
 
-				// Expired pursuit cops always bail and must also be removed from the extra list
-				this->ShouldBailExpired = [this](const address copVehicle)
+				// Expired pursuit cops always bail and must also be un-tracked
+				this->ShouldBailExpired = [this](const address copVehicle) -> bool
 				{
 					this->vehicles.erase(copVehicle);
-
 					return true;
 				};
 			}
@@ -405,7 +404,6 @@ namespace CopFleeOverrides
 			if (rigidBodyOfTarget)
 			{
 				const auto GetSpeedXZ = reinterpret_cast<float (__thiscall*)(address)>(0x6711F0);
-
 				return (GetSpeedXZ(rigidBodyOfTarget) < ((this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold));
 			}
 			else if constexpr (Globals::loggingEnabled)
@@ -642,7 +640,7 @@ namespace CopFleeOverrides
 		joinedRoadblockFleeDelays.Log("joinedRoadblockFleeDelay");
 		joinedRoadblockThresholds.Log("joinedRoadblockThreshold");
 
-		heavy3SpeedThresholds.Log("heay3SpeedThreshold     ");
+		heavy3SpeedThresholds.Log("heavy3SpeedThreshold    ");
 		heavy3JoiningEnableds.Log("heavy3JoiningEnabled    ");
 
 		if (heavy3JoiningEnableds.current)

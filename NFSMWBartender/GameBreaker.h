@@ -181,7 +181,7 @@ namespace GameBreaker
 
 	bool ParseSpeedbreakerChanges(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*> copVehicles; // for game compatibility
+		std::vector<const char*> copVehicles; // C-style for game compatibility
 		std::vector<float>       changes;
 
 		parser.ParseUser<const char*, float>("Wrecking:Vehicles", copVehicles, {changes});

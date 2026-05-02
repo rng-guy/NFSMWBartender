@@ -187,7 +187,6 @@ namespace ConfigParser
 			if (fileStream.is_open())
 			{
 				this->ParseStream(fileStream, this->sectionCapacityPerFile, this->pairCapacityPerSection);
-
 				pair->second = this->sections;
 
 				if constexpr (Globals::loggingEnabled)
@@ -232,7 +231,6 @@ namespace ConfigParser
 			const
 		{
 			const bool areValid = this->GetValues<Vs...>(section, key, parameters.value...);
-
 			(..., parameters.limits.Enforce(parameters.value));
 
 			return areValid;
@@ -260,8 +258,7 @@ namespace ConfigParser
 				this->GetValues<Vs...>(foundSection->second, defaultKey, {*(parameters.defaultValue)}...);
 
 			// Parse each row column-wise
-			size_t keyIndex = keyStart;
-
+			size_t                    keyIndex    = keyStart;
 			std::array<bool, numRows> isValidRows = {};
 
 			for (size_t rowID = 0; rowID < numRows; ++rowID)
@@ -309,7 +306,6 @@ namespace ConfigParser
 			(..., parameters.values.clear());
 
 			const size_t numReads = this->GetFullSection<K, Vs...>(section, keys, parameters.values...);
-
 			(..., parameters.limits.Enforce(parameters.values));
 
 			return numReads;

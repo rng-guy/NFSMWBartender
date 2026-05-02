@@ -266,9 +266,8 @@ namespace RoadblockOverrides
 
 				if (cumulativeChance >= chanceThreshold)
 				{
-					candidates.clear(); // safe due to immediate return
-
 					maxStretchScale = setup->GetMaxStretchScale();
+					candidates.clear(); // safe due to immediate return
 
 					return setup->GetRandomTable();
 				}
@@ -420,9 +419,8 @@ namespace RoadblockOverrides
 	) {
 		if (section.find(setupPrefix) > 0) return std::nullopt; // not setup
 
-		RBSetup setup(std::string(section.substr(setupPrefix.length())));
-
-		RBTable& table = setup.original;
+		RBSetup  setup(std::string(section.substr(setupPrefix.length())));
+		RBTable& table = setup.original; // mirrored table comes after
 
 		// Parse and validate width values
 		if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {0.f}}, {setup.maxRoadWidth, {0.f}}))
@@ -522,7 +520,7 @@ namespace RoadblockOverrides
 		parser.ParseFromFile<bool> (section, "stretch", {setup.canStretch});
 		parser.ParseFromFile<float>(section, "mirror",  {setup.mirrorChance, {0.f, 100.f}});
 
-		// Create mirrored variant (not worth skipping if disabled)
+		// Create mirrored table (not worth skipping if disabled)
 		setup.mirrored = table;
 
 		for (RBPart& part : setup.mirrored.parts)
@@ -591,7 +589,6 @@ namespace RoadblockOverrides
 			if (not roadblockSetups.empty())
 			{
 				Globals::logger.Log<3>(static_cast<int>(roadblockSetups.size()), "setup(s) valid");
-
 				Globals::logger.Log<3>(static_cast<int>(counter.numRegular), "regular,", static_cast<int>(counter.numMirrorRegular), "mirrored");
 				Globals::logger.Log<3>(static_cast<int>(counter.numSpike),   "spikes, ", static_cast<int>(counter.numMirrorSpike),   "mirrored");
 
@@ -627,7 +624,7 @@ namespace RoadblockOverrides
 			// Code changes (feature-specific)
 			MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
 
-			MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable);
+			MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable); // replaces game function
 
 			MemoryTools::MakeRangeJMP<scaleLimitEntrance, scaleLimitExit>(ScaleLimit);
 		}
@@ -689,7 +686,6 @@ namespace RoadblockOverrides
 		if constexpr (Globals::loggingEnabled)
 		{
 			LogHeatReport();
-
 			counter.ResetCounts();
 		}
 	}

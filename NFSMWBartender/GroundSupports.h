@@ -252,10 +252,9 @@ namespace GroundSupports
 		}
 
 		// Select an eligible Strategy at random
-		const size_t index = Globals::prng.GenerateIndex(candidates.size());
-
-		const address randomStrategy  = candidates[index];
-		const bool    isHeavyStrategy = (index < numHeavyStrategies);
+		const size_t  randomIndex     = Globals::prng.GenerateIndex(candidates.size());
+		const address randomStrategy  = candidates[randomIndex];
+		const bool    isHeavyStrategy = (randomIndex < numHeavyStrategies);
 
 		SetStrategy(pursuit, randomStrategy, isHeavyStrategy);
 
@@ -264,7 +263,7 @@ namespace GroundSupports
 			const int strategyID = *reinterpret_cast<volatile int*>(randomStrategy);
 
 			Globals::logger.Log<0>(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
-			Globals::logger.Log<2>("Candidate", static_cast<int>(index + 1), '/', static_cast<int>(candidates.size()));
+			Globals::logger.Log<2>("Candidate", static_cast<int>(randomIndex + 1), '/', static_cast<int>(candidates.size()));
 		}
 
 		candidates.clear();

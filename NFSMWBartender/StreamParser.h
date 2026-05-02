@@ -112,7 +112,6 @@ namespace StreamParser
 		constexpr std::string_view TrimLeft(const std::string_view view) noexcept
 		{
 			const size_t numChars = std::distance(view.begin(), std::ranges::find_if_not(view, IsWhitespace));
-
 			return view.substr(numChars);
 		}
 
@@ -155,8 +154,7 @@ namespace StreamParser
 					if (endPosition == std::string_view::npos)
 					{
 						segments[segmentID++] = Trim(source.substr(startPosition));
-
-						break;
+						break; // no more segments to parse
 					}
 
 					// The static analyser likes to complain about this despite the preceding bounds check
@@ -238,7 +236,6 @@ namespace StreamParser
 		noexcept(Concepts::AreAllocationFree<V>)
 	{
 		value = source;
-
 		return true;
 	}
 
@@ -251,7 +248,6 @@ namespace StreamParser
 		noexcept
 	{
 		value = source.c_str();
-
 		return true;
 	}
 
@@ -264,7 +260,6 @@ namespace StreamParser
 		noexcept
 	{
 		value = source;
-
 		return true;
 	}
 
@@ -280,8 +275,7 @@ namespace StreamParser
 	) 
 		noexcept(Concepts::AreAllocationFree<Vs...>)
 	{
-		bool allParsed = false;
-
+		bool             allParsed   = false;
 		constexpr size_t numSegments = sizeof...(Vs);
 
 		if (const auto segments = Details::Split<numSegments>(source, separator))

@@ -82,7 +82,6 @@ namespace BasicLogger
 			Ts&& ...rest
 		) {
 			this->Print(std::forward<T>(first));
-
 			(..., (this->file << ' ', this->Print(std::forward<Ts>(rest))));
 
 			this->file << std::endl; // to flush

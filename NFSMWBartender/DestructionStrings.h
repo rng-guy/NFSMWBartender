@@ -58,8 +58,8 @@ namespace DestructionStrings
 
 	bool ParseDestructionKeys(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*> copVehicles;  // for game compatibility
-		std::vector<const char*> binaryLabels; // for game compatibility
+		std::vector<const char*> copVehicles;  // C-style for game compatibility
+		std::vector<const char*> binaryLabels; // C-style for game compatibility
 
 		parser.ParseUser<const char*, const char*>("Vehicles:Strings", copVehicles, {binaryLabels});
 

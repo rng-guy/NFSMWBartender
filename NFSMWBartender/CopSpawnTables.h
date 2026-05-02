@@ -47,8 +47,7 @@ namespace CopSpawnTables
 		static auto RegisterName(const char* const copName)
 		{
 			const auto [pair, wasAdded] = SpawnTable::copTypeToName.try_emplace(Globals::GetVaultKey(copName), copName);
-
-			return pair;
+			return pair; // for immediate iterator access to (potentially) inserted pair
 		}
 
 
@@ -79,8 +78,7 @@ namespace CopSpawnTables
 			if (copCount  < 1) return false;
 			if (copChance < 1) return false;
 			
-			const auto registration = this->RegisterName(copName);
-
+			const auto registration     = this->RegisterName(copName);
 			const auto [pair, wasAdded] = this->copTypeToEntry.try_emplace
 			(
 				registration->first,
@@ -195,8 +193,7 @@ namespace CopSpawnTables
 			const size_t           heatLevel
 		) {
 			size_t numRemoved = 0;
-
-			auto iterator = this->copTypeToEntry.begin();
+			auto   iterator   = this->copTypeToEntry.begin();
 
 			while (iterator != this->copTypeToEntry.end())
 			{
@@ -281,7 +278,7 @@ namespace CopSpawnTables
 		const std::string_view        formatPrefix,
 		Tables&                       tables
 	) {
-		std::vector<const char*> copNames; // for game compatibility
+		std::vector<const char*> copNames; // C-style for game compatibility
 
 		std::vector<int> copCounts;
 		std::vector<int> copChances;

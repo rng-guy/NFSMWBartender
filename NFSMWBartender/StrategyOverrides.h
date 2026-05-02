@@ -84,9 +84,9 @@ namespace StrategyOverrides
 		{
 			if (not this->unblockTimer.IsSet()) return;
 
-			this->unblockTimer.Stop();
-
+			this->unblockTimer             .Stop();
 			this->vehiclesOfCurrentStrategy.clear();
+
 			this->UpdateNumStrategyVehicles();
 		}
 
@@ -186,7 +186,6 @@ namespace StrategyOverrides
 			if (this->unblockTimer.IsSet())
 			{
 				this->vehiclesOfCurrentStrategy.insert(copVehicle);
-
 				this->UpdateNumStrategyVehicles();
 			}
 			else if constexpr (Globals::loggingEnabled)

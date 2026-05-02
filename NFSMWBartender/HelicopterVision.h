@@ -54,12 +54,11 @@ namespace HelicopterVision
 		const address heliAIVehicle,
 		const bool    canSeeTarget
 	) {
-		constexpr bool useUnpausedTime = true;
-
 		static constinit float currentColourState  = 0.f; // ratio
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
-		const float currentTimestamp = Globals::GetGameTime(useUnpausedTime);
+		constexpr bool useUnpausedTime  = true;
+		const float    currentTimestamp = Globals::GetGameTime(useUnpausedTime);
 
 		volatile bool& isKnownHelicopter = *reinterpret_cast<volatile bool*>(heliAIVehicle - 0x4C + 0x769); // padding byte
 

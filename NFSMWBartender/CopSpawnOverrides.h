@@ -1182,7 +1182,7 @@ namespace CopSpawnOverrides
 		MemoryTools::MakeRangeNOP<0x42B74E, 0x42B771>(); // cops-lost increment
 		MemoryTools::MakeRangeNOP<0x4440D7, 0x4440DF>(); // membership check
 
-		MemoryTools::MakeRangeJMP<0x42BA50, 0x42BCEE>(ChasersManager::GetNameOfNewChaser);
+		MemoryTools::MakeRangeJMP<0x42BA50, 0x42BCEE>(ChasersManager::GetNameOfNewChaser); // replaces game function
 
 		MemoryTools::MakeRangeJMP<waveResetEntrance,          waveResetExit>         (WaveReset);
 		MemoryTools::MakeRangeJMP<patrolSpawnEntrance,        patrolSpawnExit>       (PatrolSpawn);

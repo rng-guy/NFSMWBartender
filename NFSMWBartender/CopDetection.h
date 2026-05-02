@@ -104,7 +104,6 @@ namespace CopDetection
 			if (GetSquaredDistance(copPosition, playerPosition) <= iconRange * iconRange)
 			{
 				iconIsKept = settings.keepsIcon;
-
 				return true;
 			}
 		}
@@ -346,7 +345,7 @@ namespace CopDetection
 
 	bool ParseDetectionSettings(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*> copVehicles; // for game compatibility
+		std::vector<const char*> copVehicles; // C-style for game compatibility
 
 		std::vector<float> radarRanges;
 		std::vector<float> patrolIconRanges;

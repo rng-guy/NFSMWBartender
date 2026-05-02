@@ -254,8 +254,6 @@ namespace RadioChatter
 
 	void ParseJurisdictions(const HeatParameters::Parser& parser)
 	{
-		HeatParameters::Pair<std::string_view> jurisdictionNames("city");
-
 		const ModContainers::Map<std::string_view, Jurisdiction> nameToJurisdiction =
 		{
 			{"city",    Jurisdiction::CITY},
@@ -263,6 +261,7 @@ namespace RadioChatter
 			{"federal", Jurisdiction::FEDERAL}
 		};
 
+		HeatParameters::Pair<std::string_view> jurisdictionNames("city");
 		HeatParameters::Parse(parser, "Heat:Jurisdiction", jurisdictionNames);
 
 		// Validate and convert to jurisdiction IDs
@@ -283,7 +282,7 @@ namespace RadioChatter
 
 	bool ParseCallsigns(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*>      copVehicles; // for game compatibility
+		std::vector<const char*>      copVehicles; // C-style for game compatibility
 		std::vector<std::string_view> callsignNames;
 
 		parser.ParseUser<const char*, std::string_view>("Vehicles:Callsigns", copVehicles, {callsignNames});
