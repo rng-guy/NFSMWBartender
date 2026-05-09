@@ -59,19 +59,19 @@ static void __cdecl InitialiseBartender
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::logger.Open("BartenderLog.txt");
-		Globals::logger.Log ("\n SESSION [MOD] Bartender v3.04.01");
+		Globals::logger.Log ("\n SESSION [MOD] Bartender v3.04.02");
 
 		if (MemoryTools::IsModuleLoaded("NFSMWUnlimiter.asi"))
-			Globals::logger.Log<1>("+ Unlimiter");
+			Globals::logger.Log<2>("+ Unlimiter");
 
 		if (MemoryTools::IsModuleLoaded("NFSMWExtraOptions.asi"))
-			Globals::logger.Log<1>("+ ExtraOptions");
+			Globals::logger.Log<2>("+ ExtraOptions");
 
 		if (MemoryTools::IsModuleLoaded("NFSMWLimitAdjuster.asi"))
-			Globals::logger.Log<1>("+ LimitAdjuster");
+			Globals::logger.Log<2>("+ LimitAdjuster");
 
 		if (MemoryTools::IsModuleLoaded("NFSMWOpenLimitAdjuster_gcp.asi"))
-			Globals::logger.Log<1>("+ OpenLimitAdjuster");
+			Globals::logger.Log<2>("+ OpenLimitAdjuster");
 	}
 
 	constexpr size_t configFileCapacity     = 6;  // files

@@ -507,12 +507,12 @@ namespace HeatChangeOverrides
 			const auto& damages = damageToHeats    .GetValues(forRaces);
 			auto&       changes = damageHeatChanges.GetValues(forRaces);
 
-			for (const size_t heatLevel : HeatParameters::heatLevels)
+			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
-				const int damage = damages[heatLevel - 1];
+				const int damage = damages[heatLevelID];
 
 				if (damage != 0)
-					changes[heatLevel - 1] = 1.f / static_cast<float>(damage);
+					changes[heatLevelID] = 1.f / static_cast<float>(damage);
 			}
 		}
 	}

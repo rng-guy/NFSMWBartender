@@ -28,8 +28,8 @@ namespace HelicopterVision
 	float lengthToBase = .2f; // seconds
 	float lengthToEnd  = .2f; // seconds
 
-	constinit BGRA<float> baseColour = {};
-	constinit BGRA<float> colourSpan = {};
+	constinit BGRA<float> baseColour = {}; // out-of-sight
+	constinit BGRA<float> colourSpan = {}; // within-sight (as difference to out-of-sight)
 
 
 
@@ -37,12 +37,12 @@ namespace HelicopterVision
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	uint32_t StateToColour(const float state)
+	uint32_t StateToColour(const float colourState)
 	{
 		uint32_t colour = 0x0;
 
 		for (size_t channelID = 0; channelID < numChannels; ++channelID)
-			colour |= static_cast<byte>(baseColour[channelID] + state * colourSpan[channelID]) << (8 * channelID);
+			colour |= static_cast<byte>(baseColour[channelID] + colourState * colourSpan[channelID]) << (8 * channelID);
 	
 		return colour;
 	}
@@ -54,7 +54,7 @@ namespace HelicopterVision
 		const address heliAIVehicle,
 		const bool    canSeeTarget
 	) {
-		static constinit float currentColourState  = 0.f; // ratio
+		static constinit float currentColourState  = 0.f; // out-of-sight (0) to within-sight (1)
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
 		constexpr bool useUnpausedTime  = true;
@@ -178,22 +178,22 @@ namespace HelicopterVision
 
 	bool ParseColours(const HeatParameters::Parser& parser)
 	{
-		// In-sight colour
-		if (not ParseColour(parser, "withinSightColour", colourSpan, lengthToEnd))
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Invalid within-sight colour");
-
-			return false; // missing colour
-		}
-
 		// Out-of-sight colour
 		if (not ParseColour(parser, "outOfSightColour", baseColour, lengthToBase))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("Invalid out-of-sight colour");
 
-			return false; // missing colour
+			return false; // invalid colour
+		}
+
+		// In-sight colour
+		if (not ParseColour(parser, "withinSightColour", colourSpan, lengthToEnd))
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("Invalid within-sight colour");
+
+			return false; // invalid colour
 		}
 
 		// We only need the out-of-sight colour and the difference to it
@@ -202,8 +202,8 @@ namespace HelicopterVision
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log<2>("Within sight:", StateToColour(1.f), lengthToEnd);
 			Globals::logger.Log<2>("Out of sight:", StateToColour(0.f), lengthToBase);
+			Globals::logger.Log<2>("Within sight:", StateToColour(1.f), lengthToEnd);
 		}
 
 		return true;

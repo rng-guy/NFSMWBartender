@@ -43,6 +43,9 @@ namespace BasicLogger
 			else if constexpr (std::is_pointer_v<T>)
 				this->Print(reinterpret_cast<uintptr_t>(value));
 
+			else if constexpr (std::is_unsigned_v<T>)
+				this->file << std::format("{:0{}x}", value, 2 * sizeof(T));
+
 			else if constexpr (std::is_floating_point_v<T>)
 				this->file << std::format("{:.3f}", value);
 
@@ -54,12 +57,6 @@ namespace BasicLogger
 		void Print(const char* const value)
 		{
 			this->file << ((value) ? value : "nullptr");
-		}
-
-
-		void Print(const uintptr_t value)
-		{
-			this->file << std::format("{:08x}", value);
 		}
 
 

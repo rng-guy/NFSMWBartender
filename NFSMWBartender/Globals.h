@@ -195,7 +195,7 @@ namespace Globals
 		const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault*)>(0x422480);
 
 		static constexpr vault pursuitGoal = 0x492916A2; // "AIGoalPursuit"
-
+	
 		SetSupportGoal(copAIVehiclePursuit, 0x0);
 		SetVehicleGoal(copAIVehicle - 0x4C, &pursuitGoal);
 

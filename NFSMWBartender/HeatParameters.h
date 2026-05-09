@@ -58,17 +58,17 @@ namespace HeatParameters
 
 	// Heat-level indices ---------------------------------------------------------------------------------------------------------------------------
 
-	consteval Values<size_t> GenerateHeatLevels()
+	consteval auto GenerateHeatLevelIDs()
 	{
-		Values<size_t> heatLevels = {};
+		Values<size_t> heatLevelIDs = {};
 
-		for (size_t heatID = 0; heatID < maxHeatLevel; ++heatID)
-			heatLevels[heatID] = heatID + 1;
+		for (size_t heatLevelID = 0; heatLevelID < maxHeatLevel; ++heatLevelID)
+			heatLevelIDs[heatLevelID] = heatLevelID;
 
-		return heatLevels;
+		return heatLevelIDs;
 	}
 
-	constexpr Values<size_t> heatLevels = GenerateHeatLevels();
+	constexpr auto heatLevelIDs = GenerateHeatLevelIDs();
 
 
 
@@ -445,40 +445,38 @@ namespace HeatParameters
 	bool ValidateVehicleTypes
 	(
 		const std::string_view    pairName,
-		PointerPair<std::string>& pointerPair,
+		PointerPair<std::string>& vehiclePair,
 		const Predicate&          IsVehicleTypeValid
 	) {
-		size_t numTotalReplaced = 0;
+		bool allValid = true;
 
 		for (const bool forRaces : {false, true})
 		{
-			size_t numReplaced = 0;
-			auto&  vehicles    = pointerPair.GetValues(forRaces);
+			size_t heatLevel = 1;
 
-			for (const size_t heatLevel : heatLevels)
+			for (std::string& vehicle : vehiclePair.GetValues(forRaces))
 			{
-				std::string& vehicle = vehicles[heatLevel - 1];
+				const vault type = Globals::GetVaultKey(vehicle.c_str());
 
-				if (not IsVehicleTypeValid(Globals::GetVaultKey(vehicle.c_str())))
+				if (not IsVehicleTypeValid(type))
 				{
 					if constexpr (Globals::loggingEnabled)
 					{
-						if (numReplaced == 0)
+						if (allValid)
 							Globals::logger.Log<2>(pairName, (forRaces) ? "(race)" : "(roam)");
 
-						Globals::logger.Log<3>(static_cast<int>(heatLevel), vehicle, "->", pointerPair.current);
+						Globals::logger.Log<3>(static_cast<int>(heatLevel), vehicle, "->", vehiclePair.current);
 					}
 
-					vehicle = pointerPair.current;
-
-					++numReplaced;
+					vehicle  = vehiclePair.current;
+					allValid = false;
 				}
-			}
 
-			numTotalReplaced += numReplaced;
+				++heatLevel;
+			}
 		}
 
-		return (numTotalReplaced == 0);
+		return allValid;
 	}
 
 
@@ -650,8 +648,8 @@ namespace HeatParameters
 				Values<T>&       lowers = minValues.GetValues(forRaces);
 				const Values<T>& uppers = maxValues.GetValues(forRaces);
 
-				for (const size_t heatLevel : heatLevels)
-					lowers[heatLevel - 1] = std::min<T>(lowers[heatLevel - 1], uppers[heatLevel - 1]);
+				for (const size_t heatLevelID : heatLevelIDs)
+					lowers[heatLevelID] = std::min<T>(lowers[heatLevelID], uppers[heatLevelID]);
 			}
 		}
 

@@ -245,11 +245,11 @@ Regarding **ground supports** (`BartenderSettings\Basic\Supports.ini`):
 
 * The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before the game can make non-Strategy roadblock and Strategy requests in a given pursuit.
 
-* Time-based joining from roadblocks happens only at Heat levels for which you define valid time values, and has no bearing on other methods through which roadblock vehicles may join. Only the time racers spend near a roadblock counts towards the trigger for this joining method.
+* Time-based joining from roadblocks happens only at Heat levels for which you define valid time values, and has no bearing on other methods through which roadblock vehicles may join. Only the time spend near a roadblock counts towards the trigger for this joining method.
 
-* Both the definition of when a racer is "near" a roadblock and how many vehicles join per roadblock apply to all methods through which roadblock vehicles can join pursuits.
+* Both the definition of when the pursuit target is "near" a roadblock and how many vehicles join per roadblock apply to all methods through which roadblock vehicles can join pursuits.
 
-* Roadblock vehicles can react to racers entering "COOLDOWN" mode and / or spike-strip hits. For the former, some vehicles join the pursuit immediately; for the latter, all of them do.
+* Roadblocks can react to the pursuit target entering "COOLDOWN" mode and / or spike-strip hits. For the former, some vehicles join the pursuit immediately; for the latter, all of them do.
 
 * Roadblock vehicles are affected by the global cop-spawn limit: they may only join a pursuit if the total number of all non-roadblock vehicles is below this global limit. If you enable independent "Chasers" spawns in the "Advanced" feature set, then this limit no longer takes roadblock vehicles, Strategy vehicles, and vehicles of other pursuits into account.
 
@@ -321,7 +321,7 @@ Regarding **cop spawn tables** (`BartenderSettings\Advanced\CarTables.ini`):
 
 * You shouldn't use fast Heat transitions (`0x80deb840` VltEd parameter set to < 5 seconds), else you might see a mix of cops from more than one "Scripted" spawn table appear in events with pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can also avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
 
-* Bartender uses different spawn tables for each of the two patrol-spawn types in the game: "Patrols" tables replace the free patrols that spawn when there is no active pursuit, and "Chasers" tables replace the searching patrols that spawn in pursuits when racers are in "COOLDOWN" mode. You can control the number of patrol spawns through the `NumPatrolCars` VltEd parameter, but there are two important quirks: Free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count.
+* Bartender uses different spawn tables for each of the two patrol-spawn types in the game: "Patrols" tables replace the free patrols that spawn whenever there is no active pursuit, and "Chasers" tables replace the searching patrols that spawn in pursuits when the target is in "COOLDOWN" mode. You can control the number of patrol spawns through the `NumPatrolCars` VltEd parameter, but there are two important quirks: Free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count.
 
 &nbsp;
 
@@ -373,7 +373,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 * The helicopter also (re)spawns in "COOLDOWN" mode according to its (re)spawn delays.
 
-* The helicopter only ever (re)spawns and rejoins in player pursuits.
+* The helicopter only ever (re)spawns and rejoins in your pursuits.
 
 * Only one helicopter can ever be active at any given time. This is a game limitation; we could technically spawn more, but they would count as cars and behave very oddly.
 
@@ -387,7 +387,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
-* Defining low racer-speed thresholds for HeavyStrategy 3 vehicles fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if the racer's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of higher `CollapseSpeed` values and far more aggressive cops.
+* Defining low pursuit-target speed thresholds for HeavyStrategy 3 vehicles fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if their target's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of much higher `CollapseSpeed` values.
 
 * If you allow more than 2 vehicles to spawn per HeavyStrategy 3 request, use short unblock delays for HeavyStrategy 3, or enable joining from expired HeavyStrategy 3 requests, then you may also [need](README.md#5---which-mods-does-bartender-depend-on) a mod that replaces the game's car loader. You may need such a mod as HeavyStrategy 3 spawns ignore all spawn limits, which may cause stability issues and (partially) invisible cops to appear if their numbers grow beyond a certain point.
 
@@ -443,7 +443,7 @@ Regarding **roadblock behaviour and setups** (`BartenderSettings\Advanced\Roadbl
 
 * You can safely hand-adjust the maximum road width for each roadblock as you see fit. Higher values allow a roadblock to spawn in more locations, but it might not be able to cover the entire road if the maximum width is much greater than its actual width.
 
-* Mirrored roadblock spawns have their part(s) flipped width-wise, adding some variety.
+* Mirrored roadblock spawns have their part(s) flipped horizontally, adding some variety.
 
 * To avoid clipping issues, you shouldn't adjust any roadblock parameters other than the maximum road width, stretching flag, mirror probability, and `chance` values by hand. Vanilla roadblocks use hand-adjusted values, likely because they didn't have an editor.
 
@@ -451,7 +451,7 @@ Regarding **roadblock behaviour and setups** (`BartenderSettings\Advanced\Roadbl
 
 Regarding **Heat gain / loss** (`BartenderSettings\Advanced\Heat.ini`):
 
-* The `0x80deb840` VltEd array and the `TimePerHeatLevel` VltEd parameter control the pace at which racers gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a Heat level passively, while the latter multiplies this base amount by whatever number you define for it.
+* The `0x80deb840` VltEd array and the `TimePerHeatLevel` VltEd parameter control the pace at which you gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a Heat level passively, while the latter multiplies this base amount by whatever number you define for it.
 
 * Both Bartender and the game always respect the minimum and maximum available Heat levels set in VltEd. In Career mode, you can define the maximum Heat level through each rival's `0xe8c24416` VltEd parameter. For Challenge Series events, however, you must use their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters instead.
 
@@ -461,6 +461,6 @@ Regarding **Heat gain / loss** (`BartenderSettings\Advanced\Heat.ini`):
 
 * If you define no wrecking Heats and no `default`, Bartender disables its wrecking feature.
 
-* The features that affect Heat whenever racers hit / wreck a cop vehicle require the game to track the number of cops hit / destroyed in pursuits. The vanilla game doesn't do this in races, but you can enable it with the `[Pursuits:Races]` parameter group in `General.ini`.
+* The features that affect Heat whenever you hit / wreck a cop vehicle require the game to track the number of cops hit / destroyed in pursuits. The vanilla game doesn't do this in races, but you can enable it with the `[Pursuits:Races]` parameter group in `General.ini`.
 
 * Due to the limitations of floating-point math, some Heat changes might be slightly off.

@@ -270,10 +270,10 @@ namespace RadioChatter
 			auto&       jurisIDs   = heatJurisdictionIDs.GetValues(forRaces);
 			const auto& jurisNames = jurisdictionNames  .GetValues(forRaces);
 
-			for (const size_t heatLevel : HeatParameters::heatLevels)
+			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
-				const auto foundName = nameToJurisdiction.find(jurisNames[heatLevel - 1]);
-				jurisIDs[heatLevel - 1] = (foundName != nameToJurisdiction.end()) ? foundName->second : heatJurisdictionIDs.current;
+				const auto foundName  = nameToJurisdiction.find(jurisNames[heatLevelID]);
+				jurisIDs[heatLevelID] = (foundName != nameToJurisdiction.end()) ? foundName->second : heatJurisdictionIDs.current;
 			}
 		}
 	}

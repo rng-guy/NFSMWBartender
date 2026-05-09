@@ -244,7 +244,7 @@ namespace ConfigParser
 		(
 			const std::string_view    section,
 			const std::string_view    defaultKey,
-			const std::string_view    formatKey,
+			const std::string_view    keyFormat,
 			const size_t              keyStart,
 			Format<Vs, numRows>&&  ...parameters
 		) 
@@ -269,7 +269,7 @@ namespace ConfigParser
 					isValidRows[rowID] = this->GetValues<Vs...>
 					(
 						foundSection->second,
-						std::vformat(formatKey, std::make_format_args(keyIndex)),
+						std::vformat(keyFormat, std::make_format_args(keyIndex)),
 						parameters.values[rowID]...
 					);
 

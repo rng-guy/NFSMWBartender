@@ -59,7 +59,7 @@ namespace RoadblockOverrides
 	// Setup (mod-specific)
 	struct RBSetup
 	{
-		std::string name;
+		std::string name; // for logging; not worth removing
 
 		RBTable original;
 		RBTable mirrored;
@@ -419,7 +419,11 @@ namespace RoadblockOverrides
 	) {
 		if (section.find(setupPrefix) > 0) return std::nullopt; // not setup
 
-		RBSetup  setup(std::string(section.substr(setupPrefix.length())));
+		RBSetup setup;
+
+		if constexpr (Globals::loggingEnabled)
+			setup.name = section.substr(setupPrefix.length());
+
 		RBTable& table = setup.original; // mirrored table comes after
 
 		// Parse and validate width values
