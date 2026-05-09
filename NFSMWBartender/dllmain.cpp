@@ -55,7 +55,7 @@ static void __cdecl InitialiseBartender
 	// Call original function first
 	OriginalFunction(numArgs, argArray);
 
-	// Apply hooked logic last
+	// Initialise log and config parser
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::logger.Open("BartenderLog.txt");
