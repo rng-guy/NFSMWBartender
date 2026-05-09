@@ -333,20 +333,15 @@ namespace CopSpawnTables
 		}
 
 		// Replace all (now-)empty spawn tables
-		constexpr auto ReplaceEmptyTables = [](TablePair& tablePair) -> void
+		for (TablePair* const tablePair : {&chaserSpawnTables, &patrolSpawnTables, &scriptedSpawnTables, &roadblockSpawnTables})
 		{
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
 				// all free-roam "Chasers" tables are guaranteed to be non-empty at this point
-				if (tablePair.roam[heatLevelID].IsEmpty()) tablePair.roam[heatLevelID] = chaserSpawnTables.roam[heatLevelID];
-				if (tablePair.race[heatLevelID].IsEmpty()) tablePair.race[heatLevelID] = tablePair        .roam[heatLevelID];
+				if (tablePair->roam[heatLevelID].IsEmpty()) tablePair->roam[heatLevelID] = chaserSpawnTables.roam[heatLevelID];
+				if (tablePair->race[heatLevelID].IsEmpty()) tablePair->race[heatLevelID] = tablePair->roam       [heatLevelID];
 			}
-		};
-
-		ReplaceEmptyTables(chaserSpawnTables);
-		ReplaceEmptyTables(patrolSpawnTables);
-		ReplaceEmptyTables(scriptedSpawnTables);
-		ReplaceEmptyTables(roadblockSpawnTables);
+		}
 
 		return true;
 	}
