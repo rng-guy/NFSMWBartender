@@ -80,8 +80,8 @@ namespace PursuitObserver
 			case 0x43EAF5: // free patrol
 			case 0x43EE97: // first patrol in race
 			case 0x42E872: // scripted event spawn
-			case 0x42EB73: // first cop of milestone / bounty pursuit
-			case 0x4311EC: // pursuit spawn
+			case 0x42EB73: // first cop of milestone pursuit
+			case 0x4311EC: // regular pursuit spawn
 				return CopLabel::CHASER;
 			}
 
@@ -94,7 +94,7 @@ namespace PursuitObserver
 
 		template <class Reaction>
 		requires std::derived_from<Reaction, PursuitReaction>
-		void AddPursuitFeature()
+		void IncludeReaction()
 		{
 			this->pursuitReactions.push_back(std::make_unique<Reaction>(this->pursuit));
 		}
@@ -159,23 +159,12 @@ namespace PursuitObserver
 
 			this->pursuitReactions.reserve(6);
 
-			if (CopSpawnOverrides::featureEnabled)
-				this->AddPursuitFeature<CopSpawnOverrides::ChasersManager>();
-
-			if (CopFleeOverrides::featureEnabled)
-				this->AddPursuitFeature<CopFleeOverrides::MembershipManager>();
-
-			if (HelicopterOverrides::featureEnabled)
-				this->AddPursuitFeature<HelicopterOverrides::HelicopterManager>();
-
-			if (StrategyOverrides::featureEnabled)
-				this->AddPursuitFeature<StrategyOverrides::StrategyManager>();
-
-			if (LeaderOverrides::featureEnabled)
-				this->AddPursuitFeature<LeaderOverrides::LeaderManager>();
-
-			if (HeatChangeOverrides::featureEnabled)
-				this->AddPursuitFeature<HeatChangeOverrides::HeatManager>();
+			if (CopSpawnOverrides  ::featureEnabled) this->IncludeReaction<CopSpawnOverrides  ::ChasersManager>   ();
+			if (CopFleeOverrides   ::featureEnabled) this->IncludeReaction<CopFleeOverrides   ::MembershipManager>();
+			if (HelicopterOverrides::featureEnabled) this->IncludeReaction<HelicopterOverrides::HelicopterManager>();
+			if (StrategyOverrides  ::featureEnabled) this->IncludeReaction<StrategyOverrides  ::StrategyManager>  ();
+			if (LeaderOverrides    ::featureEnabled) this->IncludeReaction<LeaderOverrides    ::LeaderManager>    ();
+			if (HeatChangeOverrides::featureEnabled) this->IncludeReaction<HeatChangeOverrides::HeatManager>      ();
 		}
 
 
