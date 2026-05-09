@@ -39,9 +39,9 @@ namespace CopSpawnOverrides
 		void UpdateSpawnTableCapacity
 		(
 			const vault copType, 
-			const int   amount
+			const int   change
 		) {
-			const bool copTypeInSpawnTable = this->table.UpdateCapacity(copType, amount);
+			const bool copTypeInSpawnTable = this->table.UpdateCapacity(copType, change);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -226,9 +226,9 @@ namespace CopSpawnOverrides
 		}
 
 
-		const char* GetSureNameOfAvailableCop() const
+		const char* GetNameOfAvailableCopWithFallback() const
 		{
-			const char* const copName = this->GetNameOfAvailableCop();
+			const char* const copName = this->table.GetNameOfAvailableCop();
 			return (copName) ? copName : this->source.current->GetNameOfAvailableCop();
 		}
 	};
@@ -658,13 +658,13 @@ namespace CopSpawnOverrides
 				return HelicopterOverrides::HelicopterManager::GetHelicopterName();
 
 			case 0x42EAAD: // first cop of milestone / bounty pursuit
-				return patrolSpawns.GetSureNameOfAvailableCop();
+				return patrolSpawns.GetNameOfAvailableCopWithFallback();
 
 			case 0x430DAD: // free patrol
 				return patrolSpawns.GetNameOfAvailableCop();
 				
 			case 0x43E049: // roadblock
-				return roadblockSpawns.GetSureNameOfAvailableCop();
+				return roadblockSpawns.GetNameOfAvailableCopWithFallback();
 			}
 
 			if constexpr (Globals::loggingEnabled)
@@ -1052,7 +1052,7 @@ namespace CopSpawnOverrides
 			jne conclusion // Heat level unknown
 
 			mov ecx, offset scriptedSpawns
-			call Contingent::GetSureNameOfAvailableCop
+			call Contingent::GetNameOfAvailableCopWithFallback
 			mov esi, eax
 			
 			conclusion:
