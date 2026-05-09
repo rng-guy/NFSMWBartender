@@ -61,17 +61,10 @@ static void __cdecl InitialiseBartender
 		Globals::logger.Open("BartenderLog.txt");
 		Globals::logger.Log ("\n SESSION [MOD] Bartender v3.04.02");
 
-		if (MemoryTools::IsModuleLoaded("NFSMWUnlimiter.asi"))
-			Globals::logger.Log<2>("+ Unlimiter");
-
-		if (MemoryTools::IsModuleLoaded("NFSMWExtraOptions.asi"))
-			Globals::logger.Log<2>("+ ExtraOptions");
-
-		if (MemoryTools::IsModuleLoaded("NFSMWLimitAdjuster.asi"))
-			Globals::logger.Log<2>("+ LimitAdjuster");
-
-		if (MemoryTools::IsModuleLoaded("NFSMWOpenLimitAdjuster_gcp.asi"))
-			Globals::logger.Log<2>("+ OpenLimitAdjuster");
+		if (MemoryTools::IsModuleLoaded("NFSMWUnlimiter.asi"))             Globals::logger.Log<2>("+ Unlimiter");
+		if (MemoryTools::IsModuleLoaded("NFSMWExtraOptions.asi"))          Globals::logger.Log<2>("+ ExtraOptions");
+		if (MemoryTools::IsModuleLoaded("NFSMWLimitAdjuster.asi"))         Globals::logger.Log<2>("+ LimitAdjuster");
+		if (MemoryTools::IsModuleLoaded("NFSMWOpenLimitAdjuster_gcp.asi")) Globals::logger.Log<2>("+ OpenLimitAdjuster");
 	}
 
 	constexpr size_t configFileCapacity     = 6;  // files
@@ -95,20 +88,11 @@ static void __cdecl InitialiseBartender
 	if (Globals::basicSetEnabled)
 	{
 		// Apply feature-specific fixes
-		if (not RadioChatter::featureEnabled)
-			RadioChatter::ApplyFixes();
-
-		if (not CopDetection::featureEnabled)
-			CopDetection::ApplyFixes();
-
-		if (not HelicopterVision::featureEnabled)
-			HelicopterVision::ApplyFixes();
-
-		if (not GeneralSettings::featureEnabled)
-			GeneralSettings::ApplyFixes();
-
-		if (not GroundSupports::featureEnabled)
-			GroundSupports::ApplyFixes();
+		if (not RadioChatter    ::featureEnabled) RadioChatter    ::ApplyFixes();
+		if (not CopDetection    ::featureEnabled) CopDetection    ::ApplyFixes();
+		if (not HelicopterVision::featureEnabled) HelicopterVision::ApplyFixes();
+		if (not GeneralSettings ::featureEnabled) GeneralSettings ::ApplyFixes();
+		if (not GroundSupports  ::featureEnabled) GroundSupports  ::ApplyFixes();
 
 		// Remove static helicopter shadow
 		MemoryTools::Write<float>(0.f, {0x903660});
