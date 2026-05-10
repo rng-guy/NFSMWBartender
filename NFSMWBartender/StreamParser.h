@@ -70,6 +70,26 @@ namespace StreamParser
 	namespace Details
 	{
 
+		inline void SkipByteOrderMark(std::istream& stream)
+		{
+			if (stream.tellg() != 0) return; // not start of stream
+
+			constexpr size_t markSize = 3; // bytes
+
+			char buffer[markSize];
+			stream.read(buffer, markSize);
+
+			// Skip the first three bytes if the UTF-8 BOM is present
+			const auto numReads = static_cast<size_t>(stream.gcount());
+			if (std::string_view(buffer, numReads) == "\xEF\xBB\xBF") return;
+
+			// Reset stream
+			stream.clear();
+			stream.seekg(0);
+		}
+
+
+
 		constexpr bool IsWhitespace(const char ch) noexcept
 		{
 			switch (ch)
@@ -154,7 +174,7 @@ namespace StreamParser
 					if (endPosition == std::string_view::npos)
 					{
 						segments[segmentID++] = Trim(source.substr(startPosition));
-						break; // no more segments to parse
+						break; // no more segments left to parse
 					}
 
 					// The static analyser likes to complain about this despite the preceding bounds check
@@ -370,6 +390,7 @@ namespace StreamParser
 
 			Section* currentSection = nullptr;
 
+			Details::SkipByteOrderMark(stream); // seriously, screw Notepad
 			this->sections.reserve(this->sections.size() + sectionCapacity);
 
 			while (std::getline(stream, line))

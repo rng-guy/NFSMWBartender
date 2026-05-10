@@ -170,9 +170,7 @@ namespace MemoryTools
 		if (opcode != 0xE8) // call near, relative
 		{
 			MessageBoxA(NULL, "Invalid hooking target. Contact the mod author.", "Fatal hooking error", MB_ICONERROR);
-
-			// Hooking failed; terminate process for safety
-			TerminateProcess(GetCurrentProcess(), 1);
+			TerminateProcess(GetCurrentProcess(), 1); // hooking failed; terminate process for safety
 		}
 
 		const address callOffset      = call       + sizeof(byte);
@@ -181,7 +179,7 @@ namespace MemoryTools
 
 		Write<int>(target - nextInstruction, {callOffset});
 
-		return originalOffset + nextInstruction;
+		return nextInstruction + originalOffset;
 	}
 
 
