@@ -46,15 +46,15 @@ namespace Globals
 	constexpr float floatScale = 1.f + static_cast<float>(1e-6);
 
 	// Common function pointers
-	constinit const auto GetVaultKey  = reinterpret_cast<vault  (__cdecl*)(const char*)>(0x5CC240);
-	constinit const auto GetBinaryKey = reinterpret_cast<binary (__cdecl*)(const char*)>(0x460BF0);
+	const auto GetVaultKey  = reinterpret_cast<vault  (__cdecl*)(const char*)>(0x5CC240);
+	const auto GetBinaryKey = reinterpret_cast<binary (__cdecl*)(const char*)>(0x460BF0);
 
-	constinit const auto GetVehicleType = reinterpret_cast<vault       (__thiscall*)(address)>(0x6880A0);
-	constinit const auto GetVehicleName = reinterpret_cast<const char* (__thiscall*)(address)>(0x688090);
+	const auto GetVehicleType = reinterpret_cast<vault       (__thiscall*)(address)>(0x6880A0);
+	const auto GetVehicleName = reinterpret_cast<const char* (__thiscall*)(address)>(0x688090);
 
-	constinit const auto IsPlayerPursuit     = reinterpret_cast<bool (__thiscall*)(address)>(0x40AD80);
-	constinit const auto IsVehicleDestroyed  = reinterpret_cast<bool (__thiscall*)(address)>(0x688170);
-	constinit const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
+	const auto IsPlayerPursuit     = reinterpret_cast<bool (__thiscall*)(address)>(0x40AD80);
+	const auto IsVehicleDestroyed  = reinterpret_cast<bool (__thiscall*)(address)>(0x688170);
+	const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
 
 	// Common data pointers
 	const volatile float&    simulationTime = *reinterpret_cast<volatile float*>   (0x9885D8);

@@ -69,35 +69,32 @@ namespace GeneralSettings
 
 	const char* __fastcall GetRandomArrestScene(const size_t heatLevel)
 	{
+		// Define available cutscenes (C-style for game compatibility)
 		static constexpr std::array<const char*, 8> scenesDefault =
 		{
-			"ArrestM06",  "ArrestM19",
-			"ArrestF06",  "ArrestF07",
-			"ArrestM06b", "ArrestM19b",
-			"ArrestF06b", "ArrestF07b"
+			"ArrestM06",  "ArrestM19",  "ArrestF06",  "ArrestF07",
+			"ArrestM06b", "ArrestM19b", "ArrestF06b", "ArrestF07b"
 		};
 
-		static constexpr std::array<const char*, 8> scenesHeat1 =
+		static constexpr std::array<const char*, 8> scenesLevel1 =
 		{
-			"ArrestM01",  "ArrestM16",
-			"ArrestF02",  "ArrestF18",
-			"ArrestM01b", "ArrestM16b",
-			"ArrestF02b", "ArrestF18b"
+			"ArrestM01",  "ArrestM16",  "ArrestF02",  "ArrestF18",
+			"ArrestM01b", "ArrestM16b", "ArrestF02b", "ArrestF18b"
 		};
 
-		static constexpr std::array<const char*, 4> scenesHeat2 =
+		static constexpr std::array<const char*, 4> scenesLevel2 =
 		{
 			"ArrestM04",  "ArrestF23",
 			"ArrestM04b", "ArrestF23b"
 		};
 
-		static constexpr std::array<const char*, 6> scenesHeat3 =
+		static constexpr std::array<const char*, 6> scenesLevel3 =
 		{
-			"ArrestM07",  "ArrestM14",
-			"ArrestF14",  "ArrestM07b",
-			"ArrestM14b", "ArrestF14b"
+			"ArrestM07",  "ArrestM14",  "ArrestF14",  
+			"ArrestM07b", "ArrestM14b", "ArrestF14b"
 		};
 
+		// Select random cutscene by Heat level
 		auto   candidates    = scenesDefault.data();
 		size_t numCandidates = scenesDefault.size();
 
@@ -105,18 +102,18 @@ namespace GeneralSettings
 		{
 		case 0:
 		case 1:
-			candidates    = scenesHeat1.data();
-			numCandidates = scenesHeat1.size();
+			candidates    = scenesLevel1.data();
+			numCandidates = scenesLevel1.size();
 			break;
 
 		case 2:
-			candidates    = scenesHeat2.data();
-			numCandidates = scenesHeat2.size();
+			candidates    = scenesLevel2.data();
+			numCandidates = scenesLevel2.size();
 			break;
 
 		case 3:
-			candidates    = scenesHeat3.data();
-			numCandidates = scenesHeat3.size();
+			candidates    = scenesLevel3.data();
+			numCandidates = scenesLevel3.size();
 		}
 
 		const auto scene = candidates[Globals::prng.GenerateIndex(numCandidates)];

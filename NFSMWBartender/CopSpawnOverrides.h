@@ -242,9 +242,9 @@ namespace CopSpawnOverrides
 	bool featureEnabled = false;
 
 	// Pursuit-board tracking
-	bool trackHeavyVehicles  = false;
-	bool trackLeaderVehicles = false;
-	bool trackJoinedVehicles = false;
+	bool trackHeavyVehicles     = false;
+	bool trackLeaderVehicles    = false;
+	bool trackRoadblockVehicles = false;
 
 	// Heat parameters
 	constinit HeatParameters::Interval<int>activeChaserCounts(1, 8, {0}); // cars
@@ -431,7 +431,7 @@ namespace CopSpawnOverrides
 				return trackLeaderVehicles;
 
 			case CopLabel::ROADBLOCK:
-				return trackJoinedVehicles;
+				return trackRoadblockVehicles;
 			}
 
 			return false;
@@ -1117,20 +1117,17 @@ namespace CopSpawnOverrides
 
 	void ParseBoardTrackingSettings(const HeatParameters::Parser& parser)
 	{
-		const auto ParseTracking = [&parser](const std::string_view key, bool& isTracked) -> void
-		{
-			parser.ParseFromFile<bool>("Board:Tracking", key, {isTracked});
-		};
+		constexpr std::string_view section = "Board:Tracking";
 
-		ParseTracking("heavyVehicles",  trackHeavyVehicles);
-		ParseTracking("leaderVehicles", trackLeaderVehicles);
-		ParseTracking("joinedVehicles", trackJoinedVehicles);
+		parser.ParseFromFile<bool>(section, "heavyCops",     {trackHeavyVehicles});
+		parser.ParseFromFile<bool>(section, "leaderCops",    {trackLeaderVehicles});
+		parser.ParseFromFile<bool>(section, "roadblockCops", {trackRoadblockVehicles});
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			if (trackHeavyVehicles)  Globals::logger.Log<2>("Tracking HeavyStrategy");
-			if (trackLeaderVehicles) Globals::logger.Log<2>("Tracking LeaderStrategy");
-			if (trackJoinedVehicles) Globals::logger.Log<2>("Tracking roadblocks cops");
+			if (trackHeavyVehicles)     Globals::logger.Log<2>("Tracking HeavyStrategy");
+			if (trackLeaderVehicles)    Globals::logger.Log<2>("Tracking LeaderStrategy");
+			if (trackRoadblockVehicles) Globals::logger.Log<2>("Tracking roadblock cops");
 		}
 	}
 

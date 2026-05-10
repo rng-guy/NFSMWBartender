@@ -40,18 +40,18 @@ The "Basic" feature set **lets you change** (per Heat level)
 * how quickly and below what distance from the cops the red "BUSTED" bar can fill,
 * how quickly the green "EVADE" bar fills when no cops can see the pursuit target,
 * whether hiding spots make the pursuit target completely invisible to the cops,
-* whether player-damaged cop vehicles are destroyed instantly if flipped over,
-* when exactly (if at all) cop vehicles are destroyed regardless of damage if flipped over,
-* when exactly (if at all) racer vehicles are reset if flipped over,
+* whether player-damaged cops are destroyed instantly if flipped over,
+* when exactly (if at all) cops are destroyed regardless of damage if flipped over,
+* when exactly (if at all) racers are automatically reset if flipped over,
 * whether the Speedbreaker's vanilla recharging mechanics apply in pursuits,
-* your Speedbreaker-charge gain / loss from destroying any cop vehicle,
+* how much Speedbreaker charge you gain / lose from destroying any cop vehicle,
 * which pursuit jurisdiction dispatch announces over the radio,
 * which ground supports the cops may request in non-player pursuits,
 * the internal cooldown between non-Strategy roadblock requests,
 * the internal cooldown between Heavy / LeaderStrategy requests,
 * how far away roadblocks can spawn from the pursuit target,
 * whether successful roadblock spawns cancel the current cop formation,
-* when and to what extent (if at all) roadblock vehicles can join pursuits,
+* when and to what extent (if at all) roadblock cops can join pursuits,
 * whether roadblocks react to the pursuit target entering "COOLDOWN" mode,
 * whether roadblocks react to the pursuit target hitting their spike strips,
 * the maximum speed of scripted ramming attempts through HeavyStrategy 3,
@@ -64,12 +64,12 @@ The "Basic" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Basic" feature set **also lets you change** (in general)
+* whether specific cop vehicles are affected by pursuit-breaker instakills;
 * which pursuit stats (e.g. length, bounty, infractions) the game tracks in races;
-* your Speedbreaker-charge gain / loss from destroying a cop vehicle of a given type;
-* whether a given cop vehicle is affected by pursuit-breaker instakills of any kind;
-* which notification string the game displays whenever the you destroy a given cop vehicle;
-* which radio callsigns and chatter a given cop vehicle can trigger in your pursuits;
-* under which conditions (if at all) a given cop vehicle can show up on the radar / mini-map;
+* how much Speedbreaker charge you gain / lose from destroying specific cop vehicles;
+* which notification strings the game displays whenever you destroy specific cop vehicles;
+* which radio callsigns and chatter specific cop vehicles can trigger in your pursuits;
+* under which conditions (if at all) specific cop vehicles can show up on the radar / mini-map;
 * how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and
 * the selection, order, and length of interactive themes that play during your pursuits.
 
@@ -78,11 +78,11 @@ The "Basic" feature set **also lets you change** (in general)
 The "Basic" feature set **always fixes fourteen bugs / issues** automatically:
 * the game no longer fails to select certain arrest cutscenes,
 * the game now always updates the passive bounty increment after races,
-* the (mini-)map icons for cop vehicles now always flash at the correct pace,
+* the (mini-)map icons for cops now always flash at their intended pace,
 * transitions to Heat levels > 5 now trigger their proper radio announcements,
 * the cops no longer announce each Heat level just once per game launch at most,
 * the game now reads [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) arrays correctly at each Blacklist rank and Heat level,
-* vehicles joining pursuits from roadblocks no longer ignore spawn limits for cops,
+* cops joining pursuits from roadblocks no longer ignore all cop-related spawn limits,
 * the helicopter mini-map icon is now always visible whenever a helicopter is active,
 * the helicopter vision-cone icon now always disappears whenever a helicopter is destroyed,
 * helicopters no longer cast static blob-shadows (like cars do) with incorrect placements,
@@ -113,8 +113,8 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * how likely the cops are to call out roadblock / spike spawns over the radio,
 * how many chasing cops can (re)spawn regardless of the remaining engagement count,
 * below what total number of active cops in the world the game can spawn new chasing cops,
-* whether spawning decisions for chasing cops are independent of all other pursuit vehicles,
-* whether spawning decisions for traffic cars are independent of those for cop vehicles,
+* whether spawning decisions for chasing cops are independent of all other cops,
+* whether spawning decisions for traffic cars are independent of those for cops,
 * whether only destroyed chasing cops can decrement the remaining engagement count,
 * whether Heat transitions immediately trigger backup to update the engagement count,
 * how far away new chasing cops must spawn from all already active cops,
@@ -127,18 +127,18 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * which vehicles (ditto again) can spawn as free patrols outside pursuits,
 * which vehicle spawns in place of the regular helicopter,
 * when exactly (if at all) the helicopter can first spawn in your pursuits,
-* when exactly (if at all) the helicopter can respawn if it runs out of fuel,
-* when exactly (if at all) the helicopter can respawn if it gets wrecked,
-* when exactly (if at all) the helicopter can respawn if you lose it,
-* when exactly (if at all) the helicopter can rejoin instead if you lose it,
-* when exactly (if at all) the helicopter can run out of fuel after each (re)spawn,
+* when exactly (if at all) the helicopter can respawn upon running out of fuel,
+* when exactly (if at all) the helicopter can respawn upon being destroyed,
+* when exactly (if at all) the helicopter can respawn upon losing you,
+* when exactly (if at all) the helicopter can rejoin instead upon losing you,
+* when exactly (if at all) the helicopter can run out of fuel upon (re)spawning,
 * how far away the helicopter can spawn to chase you,
 * how far away the helicopter can spawn to search for you,
 * whether the presence of roadblocks affects the helicopter's navigation behaviour,
 * the internal cooldown between the helicopter's ramming attempts through HeliStrategy 2,
-* below what pursuit-target speed HeavyStrategy 3 vehicles cancel their ramming attempts,
-* how many vehicles can spawn through each successful HeavyStrategy 3 request,
-* whether HeavyStrategy 3 vehicles can join the pursuit once their request expires,
+* below what pursuit-target speed HeavyStrategy 3 cops cancel their ramming attempts,
+* how many cops can spawn through each successful HeavyStrategy 3 request,
+* whether HeavyStrategy 3 cops can join the pursuit once their request expires,
 * above what count (if at all) no more cops can join the pursuit from HeavyStrategy 3 requests,
 * when exactly (if at all) and how many cops that joined from HeavyStrategy 3 requests can flee,
 * when exactly (if at all) LeaderStrategy 5 / 7 Cross and / or his henchmen become aggressive,
@@ -147,23 +147,23 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * whether your Heat increases passively over time in active pursuits,
 * how much Heat you gain / lose from cop and roadblock spawns,
 * how much Heat you gain / lose from destroying any cop vehicle,
-* how much Heat you gain / lose from colliding with other vehicles,
-* how much Heat you gain / lose from assaulting a cop vehicle, and
+* how much Heat you gain / lose from colliding with other cars,
+* how much Heat you gain / lose from assaulting any cop, and
 * how much Heat you gain / lose from generic property damage.
 
 &nbsp;
 
 The "Advanced" feature set **also lets you change** (in general)
-* how much Heat you gain / lose from destroying a cop vehicle of a given type,
-* what a given roadblock setup looks like in terms of its parts and their arrangement,
+* how much Heat you gain / lose from destroying specific cop vehicles,
+* what specific roadblock setups look like in terms of parts and their arrangement,
 * how likely each roadblock setup is to spawn with horizontally mirrored parts instead, and
-* which non-chasing cops the engagement count shown above the pursuit board also tracks.
+* which active non-chasing cops the engagement count shown above the pursuit board also tracks.
 
 &nbsp;
 
 The "Advanced" feature set **always fixes eleven bugs / issues** automatically:
 * HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
-* the cops no longer stop callling out roadblocks / spikes over the radio,
+* the cops no longer stop calling out roadblocks / spikes over the radio,
 * failed roadblock spawn attempts can no longer stall spawns for chasing cops,
 * Challenge Series races now use the Heat level limits defined for them in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),
 * the game no longer ignores VltEd settings for roadblocks and Strategies in races,
@@ -172,14 +172,14 @@ The "Advanced" feature set **always fixes eleven bugs / issues** automatically:
 * the game now counts support-vehicle deployments accurately in cost-to-state calculations,
 * early Strategy despawns or cancellations no longer stall the cops from making new requests,
 * the engagement count above the pursuit board now always tracks relevant cops accurately, and
-* the pathfinding of new cop vehicles no longer breaks whenever a race pursuit moves to free-roam.
+* the pathfinding of new cops no longer breaks whenever a race pursuit transitions to free-roam.
 
 &nbsp;
 
 The "Advanced" feature set **can fix four more bugs / issues**, depending on its configuration:
 * the cops no longer inadvertently fail to spawn four of the vanilla roadblock setups,
 * the helicopter can no longer waste its spawns by losing the pursuit target nearly instantly,
-* HeavyStrategy 3 vehicles no longer spawn in passive mode without trying to ram anything, and
+* HeavyStrategy 3 cops no longer spawn in passive mode without trying to ram anything, and
 * traffic spawns no longer slow down or stop at Heat levels with many cops or roadblocks.
 
 &nbsp;
@@ -201,7 +201,7 @@ The "Advanced" feature set **can fix four more bugs / issues**, depending on its
 &nbsp;
 
 **To install** Bartender:
-1. download and unzip the `NfSMW_Bartender_v3.04.2.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/latest);
+1. download and unzip the `NfSMW_Bartender_v3.05.0.7z` file from its [release page](https://github.com/rng-guy/NFSMWBartender/releases/latest);
 2. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
 3. copy the `BartenderSettings` folder and `.asi` file to your game's `scripts` folder;
 4. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file; and
@@ -219,7 +219,7 @@ The "Advanced" feature set **can fix four more bugs / issues**, depending on its
 
 &nbsp;
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v3.04.00, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v3.05.00, replace all old configuration files.
 
 &nbsp;
 

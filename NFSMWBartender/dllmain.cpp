@@ -59,7 +59,7 @@ static void __cdecl InitialiseBartender
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::logger.Open("BartenderLog.txt");
-		Globals::logger.Log ("\n SESSION [MOD] Bartender v3.04.02");
+		Globals::logger.Log ("\n SESSION [MOD] Bartender v3.05.00");
 
 		if (MemoryTools::IsModuleLoaded("NFSMWUnlimiter.asi"))             Globals::logger.Log<2>("+ Unlimiter");
 		if (MemoryTools::IsModuleLoaded("NFSMWExtraOptions.asi"))          Globals::logger.Log<2>("+ ExtraOptions");
