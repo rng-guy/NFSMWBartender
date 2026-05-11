@@ -6,7 +6,6 @@
 #include <utility>
 #include <concepts>
 #include <iterator>
-#include <algorithm>
 #include <type_traits>
 #include <initializer_list>
 
