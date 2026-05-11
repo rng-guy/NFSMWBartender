@@ -491,7 +491,7 @@ namespace CopSpawnOverrides
 
 			this->pursuitToManager.try_emplace(this->pursuit, this);
 
-			// Memory pre-allocation
+			// Container pre-allocation
 			this->chaserSpawns.ReserveTypeCapacity(20);
 		}
 
@@ -1161,7 +1161,7 @@ namespace CopSpawnOverrides
 
 		HeatParameters::Parse(parser, "Joining:Limit", roadblockJoinLimits);
 
-		// Memory pre-allocations
+		// Container pre-allocations
 		patrolSpawns   .ReserveTypeCapacity(20);
 		scriptedSpawns .ReserveTypeCapacity(10);
 		roadblockSpawns.ReserveTypeCapacity(10);

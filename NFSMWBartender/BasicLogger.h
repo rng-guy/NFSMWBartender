@@ -24,6 +24,8 @@ namespace BasicLogger
 
 		std::fstream file;
 
+		static constexpr std::array<size_t, 1 + sizeof...(indents)> indentWidths = {0, indents...};
+
 
 		template <typename T>
 		requires (not std::is_trivially_copyable_v<T>)
@@ -81,21 +83,17 @@ namespace BasicLogger
 			this->Print(std::forward<T>(first));
 			(..., (this->file << ' ', this->Print(std::forward<Ts>(rest))));
 
-			this->file << std::endl; // to flush
+			this->PrintLine();
 		}
 
 
 
 	public:
 
-		static constexpr std::array<size_t, 1 + sizeof...(indents)> indentWidths = {0, indents...};
-
-
 		bool Open(const std::filesystem::path& path)
 		{
-			if (this->file.is_open()) return false;
-
-			this->file.open(path, std::ios::app);
+			if (not this->file.is_open())
+				this->file.open(path, std::ios::app);
 
 			return this->file.is_open();
 		}
@@ -103,9 +101,8 @@ namespace BasicLogger
 
 		bool Close()
 		{
-			if (not this->file.is_open()) return false;
-
-			this->file.close();
+			if (this->file.is_open())
+				this->file.close();
 
 			return (not this->file.is_open());
 		}
