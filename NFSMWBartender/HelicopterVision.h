@@ -179,7 +179,7 @@ namespace HelicopterVision
 	bool ParseColours(const HeatParameters::Parser& parser)
 	{
 		// Out-of-sight colour
-		if (not ParseColour(parser, "outOfSightColour", baseColour, lengthToBase))
+		if (not ParseColour(parser, "outOfSight", baseColour, lengthToBase))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("Invalid out-of-sight colour");
@@ -187,8 +187,8 @@ namespace HelicopterVision
 			return false; // invalid colour
 		}
 
-		// In-sight colour
-		if (not ParseColour(parser, "withinSightColour", colourSpan, lengthToEnd))
+		// Within-sight colour
+		if (not ParseColour(parser, "withinSight", colourSpan, lengthToEnd))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("Invalid within-sight colour");

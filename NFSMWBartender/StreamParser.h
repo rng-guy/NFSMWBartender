@@ -407,14 +407,14 @@ namespace StreamParser
 
 			while (std::getline(stream, line))
 			{
-				if (line.empty()) continue; // empty line
+				if (line.empty()) continue;
 
 				const std::string_view content = this->GetContent(line);
 				if (content.empty()) continue; // only whitespace or comment
 
-				if (const auto section = this->GetSection(content)) // potential new section
+				if (const auto section = this->GetSection(content))
 				{
-					if (not section->empty()) // valid new section
+					if (not section->empty())
 					{
 						const auto [pair, wasAdded] = this->sections.try_emplace(*section);
 
@@ -425,7 +425,7 @@ namespace StreamParser
 					}
 					else currentSection = nullptr; // empty or mangled section
 				}
-				else if (currentSection) // currently in section
+				else if (currentSection)
 				{
 					if (const auto pair = this->GetKeyValuePair(content))
 						currentSection->try_emplace(pair->first, pair->second);
