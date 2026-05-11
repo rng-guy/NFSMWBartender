@@ -425,7 +425,7 @@ namespace StreamParser
 					}
 					else currentSection = nullptr; // empty or mangled section
 				}
-				else if (currentSection) // currently within section
+				else if (currentSection) // currently in section
 				{
 					if (const auto pair = this->GetKeyValuePair(content))
 						currentSection->try_emplace(pair->first, pair->second);
