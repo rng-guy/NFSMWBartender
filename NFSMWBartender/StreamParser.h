@@ -122,13 +122,6 @@ namespace StreamParser
 
 
 
-		constexpr std::string_view GetEnclosed(const std::string_view view) noexcept
-		{
-			return (view.size() > 2) ? view.substr(1, view.length() - 2) : std::string_view();
-		}
-
-
-
 		constexpr std::string_view TrimLeft(const std::string_view view) noexcept
 		{
 			const size_t numChars = std::distance(view.begin(), std::ranges::find_if_not(view, IsWhitespace));
@@ -333,6 +326,30 @@ namespace StreamParser
 		}
 
 
+		static constexpr std::optional<std::string_view> GetSection(const std::string_view content) noexcept
+		{
+			if (not content.starts_with(start)) return std::nullopt;       // not section
+			if (not content.ends_with  (end))   return std::string_view(); // mangled
+
+			return Details::Trim(content.substr(1, content.length() - 2)); // guaranteed long enough
+		}
+
+
+		static constexpr std::optional<std::pair<std::string_view, std::string_view>> GetKeyValuePair(const std::string_view content) noexcept
+		{
+			const size_t firstAssign = content.find(assign);
+			if (firstAssign == std::string_view::npos) return std::nullopt; // not pair
+
+			const std::string_view key = Details::TrimRight(content.substr(0, firstAssign));
+			if (key.empty()) return std::nullopt; // missing key
+
+			const std::string_view value = Details::TrimLeft(content.substr(firstAssign + 1));
+			if (value.empty()) return std::nullopt; // missing value
+
+			return std::pair(key, value);
+		}
+
+
 		template <typename ...Vs>
 		requires Concepts::AreSeparatorParseable<Vs...>
 		static bool DispatchToParsing
@@ -371,12 +388,7 @@ namespace StreamParser
 
 	public:
 
-		// For external access (e.g. inspection)
-		static constexpr char commentStart    = comment;
-		static constexpr char valueSeparator  = separator;
-		static constexpr char valueAssignment = assign;
-		static constexpr char sectionStart    = start;
-		static constexpr char sectionEnd      = end;
+		Parser() = default;
 
 
 		// Invalidates retrieved const char* and string_view
@@ -395,51 +407,31 @@ namespace StreamParser
 
 			while (std::getline(stream, line))
 			{
-				if (line.empty()) continue;
+				if (line.empty()) continue; // empty line
 
 				const std::string_view content = this->GetContent(line);
-				if (content.empty()) continue;
+				if (content.empty()) continue; // only whitespace or comment
 
-				// Check for new section
-				if (content.starts_with(start))
+				if (const auto section = this->GetSection(content)) // potential new section
 				{
-					if (content.ends_with(end))
+					if (not section->empty()) // valid new section
 					{
-						const std::string_view section = Details::Trim(Details::GetEnclosed(content));
+						const auto [pair, wasAdded] = this->sections.try_emplace(*section);
 
-						if (not section.empty())
-						{
-							const auto [pair, wasAdded] = this->sections.try_emplace(section);
+						if (wasAdded)
+							pair->second.reserve(pairCapacityPerSection);
 
-							if (wasAdded)
-								pair->second.reserve(pairCapacityPerSection);
-
-							currentSection = &(pair->second);
-						}
-						else currentSection = nullptr; // empty
+						currentSection = &(pair->second);
 					}
-					else currentSection = nullptr; // mangled
-
-					continue;
+					else currentSection = nullptr; // empty or mangled section
 				}
-				else if (not currentSection) continue;
-
-				// Parse key-value pair
-				const size_t firstAssign = content.find(assign);
-				if (firstAssign == std::string_view::npos) continue;
-
-				const std::string_view key = Details::TrimRight(content.substr(0, firstAssign));
-				if (key.empty()) continue;
-					
-				const std::string_view value = Details::TrimLeft(content.substr(firstAssign + 1));
-				if (value.empty()) continue;
-
-				currentSection->try_emplace(key, value);
+				else if (currentSection) // currently within section
+				{
+					if (const auto pair = this->GetKeyValuePair(content))
+						currentSection->try_emplace(pair->first, pair->second);
+				}
 			}
 		}
-
-
-		Parser() = default;
 
 
 		Parser
