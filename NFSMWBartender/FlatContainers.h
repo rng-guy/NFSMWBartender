@@ -55,9 +55,8 @@ namespace FlatContainers
 			container_type data;
 
 
-			constexpr Wrapper() = default;
-
-			~Wrapper() = default;
+			constexpr  Wrapper() = default;
+			constexpr ~Wrapper() = default;
 
 		
 			constexpr explicit Wrapper(const size_type capacity)
