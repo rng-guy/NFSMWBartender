@@ -74,7 +74,7 @@ namespace Globals
 
 
 
-	[[nodiscard]] float __fastcall GetGameTime(const bool unpaused)
+	[[nodiscard]] float GetGameTime(const bool unpaused)
 	{
 		const float    ticksToTime = *reinterpret_cast<volatile float*>(0x890984);
 		const uint32_t ticks       = (unpaused) ? (gameTicks - pausedTicks) : gameTicks;
