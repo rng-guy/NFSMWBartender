@@ -33,11 +33,8 @@ namespace StrategyOverrides
 	constexpr size_t maxNumVehiclesPerHeavy4  = 6; // cars
 	constexpr size_t numFloatsPerHeavy3Vector = 4; // floats
 
-	constinit std::vector<float> heavy3VectorFloatsOne;
-	constinit std::vector<float> heavy3VectorFloatsTwo;
-
-	float* heavy3VectorStackOne = nullptr;
-	float* heavy3VectorStackTwo = nullptr;
+	float* heavy3SpawnPositions = nullptr;
+	float* heavy3InitialVectors = nullptr;
 
 
 
@@ -415,8 +412,8 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov esi, dword ptr heavy3VectorStackOne
-			mov edi, dword ptr heavy3VectorStackTwo
+			mov esi, dword ptr heavy3SpawnPositions
+			mov edi, dword ptr heavy3InitialVectors
 
 			add esi, ebx // vector offset
 			add edi, ebx // vector offset
@@ -469,7 +466,7 @@ namespace StrategyOverrides
 		__asm
 		{
 			mov ecx, dword ptr numFloatsPerHeavy3Vector
-			mov edx, dword ptr heavy3VectorStackOne
+			mov edx, dword ptr heavy3SpawnPositions
 			
 			mov edi, eax
 			add edx, ebp // vector offset
@@ -483,7 +480,7 @@ namespace StrategyOverrides
 			dec ecx
 			jnl negation // elements remaining
 
-			mov eax, dword ptr heavy3VectorStackTwo
+			mov eax, dword ptr heavy3InitialVectors
 
 			mov ecx, edi
 			add eax, ebp // vector offset
@@ -623,18 +620,19 @@ namespace StrategyOverrides
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	void InitialiseStackVectors()
+	void InitialiseStackReplacements()
 	{
-		const size_t numVectorFloats = numFloatsPerHeavy3Vector * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5);
+		static constinit std::vector<float> vectorStacks;
+
+		const size_t numFloatsPerStack = numFloatsPerHeavy3Vector * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5);
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("New stack size:", static_cast<int>(numVectorFloats), "floats");
+			Globals::logger.Log<2>("New stack size:", static_cast<int>(numFloatsPerStack), "floats");
 
-		heavy3VectorFloatsOne.resize(numVectorFloats);
-		heavy3VectorFloatsTwo.resize(numVectorFloats);
+		vectorStacks.resize(2 * numFloatsPerStack);
 
-		heavy3VectorStackOne = heavy3VectorFloatsOne.data();
-		heavy3VectorStackTwo = heavy3VectorFloatsTwo.data();
+		heavy3SpawnPositions = vectorStacks.data();
+		heavy3InitialVectors = vectorStacks.data() + numFloatsPerStack;
 	}
 
 
@@ -659,7 +657,7 @@ namespace StrategyOverrides
 		HeatParameters::Parse(parser, "Leader7:Unblocking", leader7UnblockDelays);
 
 		// Stack replacements
-		InitialiseStackVectors();
+		InitialiseStackReplacements();
 
 		// Code modifications (general)
 		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4
