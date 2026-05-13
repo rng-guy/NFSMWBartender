@@ -20,27 +20,16 @@ namespace CopDetection
 	{
 	private:
 
-		bool  isNewMapObject;
-		float colourChangeTimestamp;
-
 		const bool useUnpausedTime;
 
+		bool  isNewMapObject        = true;
+		float colourChangeTimestamp = 0.f;
 
+		
 
 	public:
 
-		constexpr void Reset()
-		{
-			this->isNewMapObject        = true;
-			this->colourChangeTimestamp = 0.f;
-		}
-
-
-		constexpr explicit IconColourTracker(const bool useUnpausedTime) : useUnpausedTime(useUnpausedTime)
-		{
-			this->Reset();
-		}
-
+		constexpr explicit IconColourTracker(const bool useUnpausedTime) : useUnpausedTime(useUnpausedTime) {}
 
 		explicit IconColourTracker(const IconColourTracker&)   = delete;
 		IconColourTracker& operator=(const IconColourTracker&) = delete;
@@ -57,13 +46,19 @@ namespace CopDetection
 			{
 				constexpr float targetFrameTime = 1.f / 30.f; // seconds
 
-				this->colourChangeTimestamp = gameTime + targetFrameTime;
 				this->isNewMapObject        = false;
+				this->colourChangeTimestamp = gameTime + targetFrameTime;
 
 				return true;
 			}
 
 			return false;
+		}
+
+
+		void Reset()
+		{
+			this->isNewMapObject = true;
 		}
 	};
 

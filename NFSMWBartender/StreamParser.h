@@ -338,7 +338,7 @@ namespace StreamParser
 		[[nodiscard]] static constexpr std::optional<std::pair<std::string_view, std::string_view>> GetPair(const std::string_view content) noexcept
 		{
 			const size_t firstAssign = content.find(assign);
-			if (firstAssign == std::string_view::npos) return std::nullopt; // not pair
+			if (firstAssign == std::string_view::npos) return std::nullopt; // no delimiter
 
 			const std::string_view key = Details::TrimRight(content.substr(0, firstAssign));
 			if (key.empty()) return std::nullopt; // missing key
