@@ -206,8 +206,8 @@ namespace StreamParser
 		const auto viewEnd          = source.data() + source.size();
 		const auto [readEnd, error] = std::from_chars(source.data(), viewEnd, result);
 
-		if (error != std::errc()) return false;
-		if (readEnd != viewEnd)   return false;
+		if (error   != std::errc()) return false;
+		if (readEnd != viewEnd)     return false;
 
 		value = result;
 
