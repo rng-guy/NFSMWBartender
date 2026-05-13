@@ -222,7 +222,7 @@ namespace HeatChangeOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] constexpr float ClampHeat(const float heat)
+	[[nodiscard]] float ClampHeat(const float heat)
 	{
 		return std::clamp<float>(heat, 1.f, HeatParameters::maxHeat);
 	}

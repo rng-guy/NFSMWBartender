@@ -45,7 +45,7 @@ namespace ConfigParser
 	template <typename T>
 	struct Bounds 
 	{
-		constexpr void Enforce(const auto&) const noexcept {}
+		constexpr void Enforce(const auto&) const {}
 	};
 
 
@@ -57,7 +57,7 @@ namespace ConfigParser
 		std::optional<T> upper;
 
 
-		constexpr void Enforce(T& value) const noexcept
+		constexpr void Enforce(T& value) const
 		{
 			if (this->lower and (value < *(this->lower)))
 				value = *(this->lower);
@@ -67,7 +67,7 @@ namespace ConfigParser
 		}
 
 
-		constexpr void Enforce(std::span<T> values) const noexcept
+		constexpr void Enforce(std::span<T> values) const
 		{
 			for (T& value : values)
 				this->Enforce(value);
@@ -201,19 +201,19 @@ namespace ConfigParser
 		}
 
 
-		[[nodiscard]] const auto& GetCurrentPath() const noexcept
+		[[nodiscard]] const auto& GetCurrentPath() const
 		{
 			return this->currentPath;
 		}
 
 
-		[[nodiscard]] const auto& GetSections() const noexcept
+		[[nodiscard]] const auto& GetSections() const
 		{
 			return this->sections;
 		}
 
 
-		void ClearCachedPaths() noexcept
+		void ClearCachedPaths()
 		{
 			this->pathToSections.clear();
 		}

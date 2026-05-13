@@ -53,7 +53,7 @@ namespace ModContainers
 
 	struct AlwaysTrue
 	{
-		constexpr bool operator()(const auto&) const noexcept 
+		bool operator()(const auto&) const 
 		{
 			return true; 
 		}
