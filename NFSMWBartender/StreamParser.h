@@ -388,7 +388,7 @@ namespace StreamParser
 
 	public:
 
-		Parser() = default;
+		constexpr Parser() = default;
 
 
 		// Invalidates retrieved const char* and string_view
