@@ -4,6 +4,9 @@
 #if !defined(_MSC_VER)
 #error "Bartender requires MSVC."
 
+#elif (_MSC_VER < 1930)
+#error "Bartender requires Visual Studio 2022 or newer."
+
 #elif !defined(_WIN32) || defined(_WIN64)
 #error "Bartender requires 32-bit Windows."
 
