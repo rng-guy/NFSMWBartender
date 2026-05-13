@@ -78,11 +78,11 @@ namespace CopFleeOverrides
 			}
 
 
-			explicit SchedulerBase(const SchedulerBase&)   = delete;
-			SchedulerBase& operator=(const SchedulerBase&) = delete;
+			explicit SchedulerBase(SchedulerBase&&)      = delete;
+			explicit SchedulerBase(const SchedulerBase&) = delete;
 
-			explicit SchedulerBase(SchedulerBase&&)   = delete;
-			SchedulerBase& operator=(SchedulerBase&&) = delete;
+			SchedulerBase& operator=(SchedulerBase&&)      = delete;
+			SchedulerBase& operator=(const SchedulerBase&) = delete;
 
 
 			void ScheduleVehicle

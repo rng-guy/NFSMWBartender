@@ -75,11 +75,11 @@ namespace CopSpawnOverrides
 		}
 
 
-		explicit Contingent(const Contingent&)   = delete;
-		Contingent& operator=(const Contingent&) = delete;
+		explicit Contingent(Contingent&&)      = delete;
+		explicit Contingent(const Contingent&) = delete;
 
-		explicit Contingent(Contingent&&)   = delete;
-		Contingent& operator=(Contingent&&) = delete;
+		Contingent& operator=(Contingent&&)      = delete;
+		Contingent& operator=(const Contingent&) = delete;
 
 
 		~Contingent()

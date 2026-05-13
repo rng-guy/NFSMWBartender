@@ -38,11 +38,11 @@ namespace PursuitFeatures
 
 	public:
 
-		explicit PursuitReaction(const PursuitReaction&)   = delete;
-		PursuitReaction& operator=(const PursuitReaction&) = delete;
+		explicit PursuitReaction(PursuitReaction&&)      = delete;
+		explicit PursuitReaction(const PursuitReaction&) = delete;
 
-		explicit PursuitReaction(PursuitReaction&&)   = delete;
-		PursuitReaction& operator=(PursuitReaction&&) = delete;
+		PursuitReaction& operator=(PursuitReaction&&)      = delete;
+		PursuitReaction& operator=(const PursuitReaction&) = delete;
 
 		virtual ~PursuitReaction() = default;
 

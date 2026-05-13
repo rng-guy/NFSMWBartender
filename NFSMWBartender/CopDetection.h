@@ -31,11 +31,11 @@ namespace CopDetection
 
 		constexpr explicit IconColourTracker(const bool useUnpausedTime) : useUnpausedTime(useUnpausedTime) {}
 
-		explicit IconColourTracker(const IconColourTracker&)   = delete;
+		explicit IconColourTracker(IconColourTracker&&)      = delete;
+		explicit IconColourTracker(const IconColourTracker&) = delete;
+		
+		IconColourTracker& operator=(IconColourTracker&&)      = delete;
 		IconColourTracker& operator=(const IconColourTracker&) = delete;
-
-		explicit IconColourTracker(IconColourTracker&&)   = delete;
-		IconColourTracker& operator=(IconColourTracker&&) = delete;
 
 
 		[[nodiscard]] bool UpdateTimestamp()

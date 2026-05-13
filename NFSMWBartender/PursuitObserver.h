@@ -168,11 +168,11 @@ namespace PursuitObserver
 		}
 
 
-		explicit PursuitObserver(const PursuitObserver&)   = delete;
-		PursuitObserver& operator=(const PursuitObserver&) = delete;
+		explicit PursuitObserver(PursuitObserver&&)      = delete;
+		explicit PursuitObserver(const PursuitObserver&) = delete;
 
-		explicit PursuitObserver(PursuitObserver&&)   = delete;
-		PursuitObserver& operator=(PursuitObserver&&) = delete;
+		PursuitObserver& operator=(PursuitObserver&&)      = delete;
+		PursuitObserver& operator=(const PursuitObserver&) = delete;
 
 
 		static void __fastcall AddPursuit(const address pursuit)

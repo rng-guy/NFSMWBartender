@@ -82,11 +82,11 @@ namespace HeatChangeOverrides
 			}
 
 
-			explicit CountTracker(const CountTracker&)   = delete;
-			CountTracker& operator=(const CountTracker&) = delete;
+			explicit CountTracker(CountTracker&&)      = delete;
+			explicit CountTracker(const CountTracker&) = delete;
 
-			explicit CountTracker(CountTracker&&)   = delete;
-			CountTracker& operator=(CountTracker&&) = delete;
+			CountTracker& operator=(CountTracker&&)      = delete;
+			CountTracker& operator=(const CountTracker&) = delete;
 
 
 			[[nodiscard]] float UpdateCount()
