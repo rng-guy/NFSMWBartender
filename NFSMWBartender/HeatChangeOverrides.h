@@ -89,7 +89,7 @@ namespace HeatChangeOverrides
 			CountTracker& operator=(CountTracker&&) = delete;
 
 
-			float UpdateCount()
+			[[nodiscard]] float UpdateCount()
 			{
 				const int change = this->count - this->lastCount;
 
@@ -140,7 +140,7 @@ namespace HeatChangeOverrides
 		}
 
 
-		static HeatManager* FindManager(const address pursuit)
+		[[nodiscard]] static HeatManager* FindManager(const address pursuit)
 		{
 			const auto foundManager = HeatManager::pursuitToManager.find(pursuit);
 
@@ -195,7 +195,7 @@ namespace HeatChangeOverrides
 		}
 
 
-		static float __fastcall GetPendingHeatChange(const address pursuit)
+		[[nodiscard]] static float __fastcall GetPendingHeatChange(const address pursuit)
 		{
 			if (Globals::IsInCooldownMode(pursuit)) return 0.f;
 
@@ -222,7 +222,7 @@ namespace HeatChangeOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	float ClampHeat(const float heat)
+	[[nodiscard]] constexpr float ClampHeat(const float heat)
 	{
 		return std::clamp<float>(heat, 1.f, HeatParameters::maxHeat);
 	}

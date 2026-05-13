@@ -90,35 +90,35 @@ namespace FlatContainers
 			}
 
 
-			constexpr bool empty() const noexcept
+			[[nodiscard]] constexpr bool empty() const noexcept
 			{
 				return this->data.empty();
 			}
 
 
-			constexpr size_type size() const noexcept
+			[[nodiscard]] constexpr size_type size() const noexcept
 			{
 				return this->data.size();
 			}
 
 
-			constexpr size_type capacity() const noexcept
+			[[nodiscard]] constexpr size_type capacity() const noexcept
 			{
 				return this->data.capacity();
 			}
 
 
-			constexpr iterator begin() {return this->data.begin();}
-			constexpr iterator end()   {return this->data.end();}
+			[[nodiscard]] constexpr iterator begin() {return this->data.begin();}
+			[[nodiscard]] constexpr iterator end  () {return this->data.end();}
 
-			constexpr const_iterator begin() const {return this->data.begin();}
-			constexpr const_iterator end()   const {return this->data.end();}
+			[[nodiscard]] constexpr const_iterator begin() const {return this->data.begin();}
+			[[nodiscard]] constexpr const_iterator end  () const {return this->data.end();}
 
-			constexpr reverse_iterator rbegin() {return this->data.rbegin();}
-			constexpr reverse_iterator rend()   {return this->data.rend();}
+			[[nodiscard]] constexpr reverse_iterator rbegin() {return this->data.rbegin();}
+			[[nodiscard]] constexpr reverse_iterator rend  () {return this->data.rend();}
 
-			constexpr const_reverse_iterator rbegin() const {return this->data.rbegin();}
-			constexpr const_reverse_iterator rend()   const {return this->data.rend();}
+			[[nodiscard]] constexpr const_reverse_iterator rbegin() const {return this->data.rbegin();}
+			[[nodiscard]] constexpr const_reverse_iterator rend  () const {return this->data.rend();}
 		};
 	}
 	
@@ -174,7 +174,7 @@ namespace FlatContainers
 
 		template <typename U>
 		requires std::equality_comparable_with<U, value_type>
-		constexpr iterator find(const U& value)
+		[[nodiscard]] constexpr iterator find(const U& value)
 		{
 			return std::find(this->begin(), this->end(), value);
 		}
@@ -182,7 +182,7 @@ namespace FlatContainers
 
 		template <typename U>
 		requires std::equality_comparable_with<U, value_type>
-		constexpr const_iterator find(const U& value) const
+		[[nodiscard]] constexpr const_iterator find(const U& value) const
 		{
 			return std::find(this->begin(), this->end(), value);
 		}
@@ -190,7 +190,7 @@ namespace FlatContainers
 
 		template <typename U>
 		requires std::equality_comparable_with<U, value_type>
-		constexpr bool contains(const U& value) const
+		[[nodiscard]] constexpr bool contains(const U& value) const
 		{
 			return (this->find(value) != this->end());
 		}
@@ -316,7 +316,7 @@ namespace FlatContainers
   
 		template <typename U>
 		requires std::equality_comparable_with<U, key_type>
-		constexpr iterator find(const U& key)
+		[[nodiscard]] constexpr iterator find(const U& key)
 		{
 			const auto keyMatches = [&key](const value_type& pair) -> bool {return (pair.first == key);};
 			return std::find_if(this->begin(), this->end(), keyMatches);
@@ -325,7 +325,7 @@ namespace FlatContainers
 
 		template <typename U>
 		requires std::equality_comparable_with<U, key_type>
-		constexpr const_iterator find(const U& key) const
+		[[nodiscard]] constexpr const_iterator find(const U& key) const
 		{
 			const auto keyMatches = [&key](const value_type& pair) -> bool {return (pair.first == key);};
 			return std::find_if(this->begin(), this->end(), keyMatches);
@@ -334,7 +334,7 @@ namespace FlatContainers
 
 		template <typename U>
 		requires std::equality_comparable_with<U, key_type>
-		constexpr bool contains(const U& key) const
+		[[nodiscard]] constexpr bool contains(const U& key) const
 		{
 			return (this->find(key) != this->end());
 		}

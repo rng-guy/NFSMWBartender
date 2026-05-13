@@ -37,7 +37,7 @@ namespace HelicopterVision
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	uint32_t StateToColour(const float colourState)
+	[[nodiscard]] uint32_t StateToColour(const float colourState)
 	{
 		uint32_t colour = 0x0;
 

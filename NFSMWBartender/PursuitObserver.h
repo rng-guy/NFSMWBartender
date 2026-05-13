@@ -60,7 +60,7 @@ namespace PursuitObserver
 		inline static constinit ModContainers::StableAddressMap<PursuitObserver> pursuitToObserver;
 
 
-		static CopLabel LabelAddVehicleCall(const address caller)
+		[[nodiscard]] static CopLabel LabelAddVehicleCall(const address caller)
 		{
 			switch (caller)
 			{
@@ -94,7 +94,7 @@ namespace PursuitObserver
 
 		template <class Reaction>
 		requires std::derived_from<Reaction, PursuitReaction>
-		void IncludeReaction()
+		void AttachReaction()
 		{
 			this->pursuitReactions.push_back(std::make_unique<Reaction>(this->pursuit));
 		}
@@ -135,7 +135,7 @@ namespace PursuitObserver
 		}
 
 
-		static PursuitObserver* FindObserver(const address pursuit)
+		[[nodiscard]] static PursuitObserver* FindObserver(const address pursuit)
 		{
 			const auto foundObserver = PursuitObserver::pursuitToObserver.find(pursuit);
 
@@ -159,12 +159,12 @@ namespace PursuitObserver
 
 			this->pursuitReactions.reserve(6);
 
-			if (CopSpawnOverrides  ::featureEnabled) this->IncludeReaction<CopSpawnOverrides  ::ChasersManager>   ();
-			if (CopFleeOverrides   ::featureEnabled) this->IncludeReaction<CopFleeOverrides   ::MembershipManager>();
-			if (HelicopterOverrides::featureEnabled) this->IncludeReaction<HelicopterOverrides::HelicopterManager>();
-			if (StrategyOverrides  ::featureEnabled) this->IncludeReaction<StrategyOverrides  ::StrategyManager>  ();
-			if (LeaderOverrides    ::featureEnabled) this->IncludeReaction<LeaderOverrides    ::LeaderManager>    ();
-			if (HeatChangeOverrides::featureEnabled) this->IncludeReaction<HeatChangeOverrides::HeatManager>      ();
+			if (CopSpawnOverrides  ::featureEnabled) this->AttachReaction<CopSpawnOverrides  ::ChasersManager>   ();
+			if (CopFleeOverrides   ::featureEnabled) this->AttachReaction<CopFleeOverrides   ::MembershipManager>();
+			if (HelicopterOverrides::featureEnabled) this->AttachReaction<HelicopterOverrides::HelicopterManager>();
+			if (StrategyOverrides  ::featureEnabled) this->AttachReaction<StrategyOverrides  ::StrategyManager>  ();
+			if (LeaderOverrides    ::featureEnabled) this->AttachReaction<LeaderOverrides    ::LeaderManager>    ();
+			if (HeatChangeOverrides::featureEnabled) this->AttachReaction<HeatChangeOverrides::HeatManager>      ();
 		}
 
 

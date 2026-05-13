@@ -14,6 +14,63 @@
 namespace CopDetection
 {
 
+	// IconColourTracker class ----------------------------------------------------------------------------------------------------------------------
+
+	class IconColourTracker
+	{
+	private:
+
+		bool  isNewMapObject;
+		float colourChangeTimestamp;
+
+		const bool useUnpausedTime;
+
+
+
+	public:
+
+		constexpr void Reset()
+		{
+			this->isNewMapObject        = true;
+			this->colourChangeTimestamp = 0.f;
+		}
+
+
+		constexpr explicit IconColourTracker(const bool useUnpausedTime) : useUnpausedTime(useUnpausedTime)
+		{
+			this->Reset();
+		}
+
+
+		explicit IconColourTracker(const IconColourTracker&)   = delete;
+		IconColourTracker& operator=(const IconColourTracker&) = delete;
+
+		explicit IconColourTracker(IconColourTracker&&)   = delete;
+		IconColourTracker& operator=(IconColourTracker&&) = delete;
+
+
+		[[nodiscard]] bool UpdateTimestamp()
+		{
+			const float gameTime = Globals::GetGameTime(this->useUnpausedTime);
+
+			if (this->isNewMapObject or (gameTime >= this->colourChangeTimestamp))
+			{
+				constexpr float targetFrameTime = 1.f / 30.f; // seconds
+
+				this->colourChangeTimestamp = gameTime + targetFrameTime;
+				this->isNewMapObject        = false;
+
+				return true;
+			}
+
+			return false;
+		}
+	};
+
+
+
+
+
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool featureEnabled = false;
@@ -28,10 +85,10 @@ namespace CopDetection
 	};
 
 	// Code caves
-	bool isNewMiniMap  = true;
-	bool isNewWorldMap = true;
-
 	bool updateWorldMapColours = false;
+
+	constinit IconColourTracker miniMapCops (false); // only visible when unpaused
+	constinit IconColourTracker worldMapCops(true);  // only visible when paused
 
 	constinit ModContainers::DefaultReferenceVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
 
@@ -41,30 +98,7 @@ namespace CopDetection
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	bool __stdcall ShouldUpdateColours
-	(
-		float&     updateTimestamp,
-		bool&      isFirstQuery,
-		const bool unpaused
-	) {
-		const float gameTime = Globals::GetGameTime(unpaused);
-
-		if (isFirstQuery or (gameTime >= updateTimestamp))
-		{
-			constexpr float targetFrameTime = 1.f / 30.f; // seconds
-
-			updateTimestamp = gameTime + targetFrameTime;
-			isFirstQuery    = false;
-
-			return true;
-		}
-
-		return false;
-	}
-
-
-
-	bool __fastcall GetsMiniMapIcon(const address copVehicle) 
+	[[nodiscard]] bool __fastcall GetsMiniMapIcon(const address copVehicle)
 	{
 		const address copAIVehicle = Globals::GetAIVehicle(copVehicle);
 		if (not copAIVehicle) return false; // should never happen
@@ -113,7 +147,7 @@ namespace CopDetection
 
 
 
-	float __fastcall GetRadarRange(const address copVehicle)
+	[[nodiscard]] float __fastcall GetRadarRange(const address copVehicle)
 	{
 		return copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle)).radarRange;
 	}
@@ -130,14 +164,10 @@ namespace CopDetection
 	// Makes cop icons on the world map flash at a consistent pace
 	__declspec(naked) void WorldMapUpdate()
 	{
-		static constinit float updateTimestamp = 0.f; // seconds
-
 		__asm
 		{
-			push 0x0                    // unpaused
-			push offset isNewWorldMap   // isFirstQuery
-			push offset updateTimestamp // updateTimestamp
-			call ShouldUpdateColours
+			mov ecx, offset worldMapCops
+			call IconColourTracker::UpdateTimestamp
 			mov byte ptr updateWorldMapColours, al
 
 			// Execute original code and resume
@@ -233,16 +263,12 @@ namespace CopDetection
 	// Makes cop icons on the mini-map flash at a consistent pace
 	__declspec(naked) void MiniMapCopColours()
 	{
-		static constinit float updateTimestamp = 0.f; // seconds
-
 		__asm
 		{
 			push eax
 
-			push 0x1                    // unpaused
-			push offset isNewMiniMap    // isFirstQuery
-			push offset updateTimestamp // updateTimestamp
-			call ShouldUpdateColours
+			mov ecx, offset miniMapCops
+			call IconColourTracker::UpdateTimestamp
 			test al, al
 
 			pop ecx
@@ -291,7 +317,8 @@ namespace CopDetection
 	{
 		__asm
 		{
-			mov byte ptr isNewMiniMap, 0x1
+			mov ecx, offset miniMapCops
+			call IconColourTracker::Reset
 
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x1C]
@@ -311,8 +338,13 @@ namespace CopDetection
 	{
 		__asm
 		{
-			mov byte ptr isNewWorldMap, 0x1
+			push eax
 
+			mov ecx, offset worldMapCops
+			call IconColourTracker::Reset
+
+			pop eax
+			
 			// Execute original code and resume
 			mov dword ptr [esi + 0x124], eax
 

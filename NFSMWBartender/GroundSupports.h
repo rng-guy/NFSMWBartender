@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <concepts>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -70,7 +71,7 @@ namespace GroundSupports
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	const char* __fastcall SelectHeavyVehicle(const address heavyStrategy) 
+	[[nodiscard]] const char* __fastcall SelectHeavyVehicle(const address heavyStrategy)
 	{
 		const int strategyID = *reinterpret_cast<volatile int*>(heavyStrategy);
 
@@ -91,7 +92,7 @@ namespace GroundSupports
 
 
 
-	const char* __fastcall SelectCrossVehicle(const address leaderStrategy)
+	[[nodiscard]] const char* __fastcall SelectCrossVehicle(const address leaderStrategy)
 	{
 		const int strategyID = *reinterpret_cast<volatile int*>(leaderStrategy);
 
@@ -109,7 +110,7 @@ namespace GroundSupports
 
 
 
-	bool IsHeavyStrategyAvailable
+	[[nodiscard]] bool IsHeavyStrategyAvailable
 	(
 		const address pursuit,
 		const address heavyStrategy
@@ -131,7 +132,7 @@ namespace GroundSupports
 
 
 
-	bool IsLeaderStrategyAvailable
+	[[nodiscard]] bool IsLeaderStrategyAvailable
 	(
 		const address pursuit,
 		const address leaderStrategy
@@ -273,7 +274,7 @@ namespace GroundSupports
 
 
 
-	int GetGlobalNumPersistentCops()
+	[[nodiscard]] int GetGlobalNumPersistentCops()
 	{
 		if (not Globals::copManager) return 0;
 
@@ -306,7 +307,7 @@ namespace GroundSupports
 
 
 
-	bool __fastcall HasJoinCapacity(const address pursuit)
+	[[nodiscard]] bool __fastcall HasJoinCapacity(const address pursuit)
 	{
 		const int numVehiclesJoined = *reinterpret_cast<volatile int*>(pursuit + 0x23C);
 		if (numVehiclesJoined >= maxRBJoinCounts.current) return false;
@@ -330,7 +331,7 @@ namespace GroundSupports
 
 
 
-	bool __fastcall MayDetachCops(const address roadblock)
+	[[nodiscard]] bool __fastcall MayDetachCops(const address roadblock)
 	{
 		const address pursuit   = *reinterpret_cast<volatile address*>(roadblock + 0x28);
 		const float   joinTimer = *reinterpret_cast<volatile float*>  (roadblock + 0x58);
@@ -811,15 +812,20 @@ namespace GroundSupports
 	{
 		bool allValid = true;
 
-		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 3, light", heavy3LightVehicles, Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 3, heavy", heavy3HeavyVehicles, Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 4, light", heavy4LightVehicles, Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Heavy 4, heavy", heavy4HeavyVehicles, Globals::IsVehicleTypeCar);
+		const auto ValidateTypes = [&allValid](const std::string_view pairName, auto& vehiclePair) -> void
+		{
+			allValid &= HeatParameters::ValidateVehicleTypes(pairName, vehiclePair, Globals::IsVehicleTypeCar);
+		};
 
-		allValid &= HeatParameters::ValidateVehicleTypes("Leader 5, Cross",   leader5CrossVehicles,  Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, Cross",   leader7CrossVehicles,  Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 1", leader7Hench1Vehicles, Globals::IsVehicleTypeCar);
-		allValid &= HeatParameters::ValidateVehicleTypes("Leader 7, hench 2", leader7Hench2Vehicles, Globals::IsVehicleTypeCar);
+		ValidateTypes("Heavy 3, light", heavy3LightVehicles);
+		ValidateTypes("Heavy 3, heavy", heavy3HeavyVehicles);
+		ValidateTypes("Heavy 4, light", heavy4LightVehicles);
+		ValidateTypes("Heavy 4, heavy", heavy4HeavyVehicles);
+
+		ValidateTypes("Leader 5, Cross",   leader5CrossVehicles);
+		ValidateTypes("Leader 7, Cross",   leader7CrossVehicles);
+		ValidateTypes("Leader 7, hench 1", leader7Hench1Vehicles);
+		ValidateTypes("Leader 7, hench 2", leader7Hench2Vehicles);
 
 		if constexpr (Globals::loggingEnabled)
 		{

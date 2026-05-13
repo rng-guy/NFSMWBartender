@@ -37,7 +37,7 @@ namespace InteractiveMusic
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	int GetFirstTrack()
+	[[nodiscard]] int GetFirstTrack()
 	{
 		currentTrackID = (shuffleFirstTrack) ? Globals::prng.GenerateIndex(playlist.size()) : 0;
 
@@ -49,7 +49,7 @@ namespace InteractiveMusic
 
 
 
-	int GetNextTrack()
+	[[nodiscard]] int GetNextTrack()
 	{
 		const size_t numTracks = playlist.size();
 

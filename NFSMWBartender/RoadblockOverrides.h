@@ -73,7 +73,7 @@ namespace RoadblockOverrides
 		HeatParameters::Pair<int> chances{100, {0}}; // relative
 
 
-		const RBTable* GetRandomTable() const
+		[[nodiscard]] const RBTable* GetRandomTable() const
 		{
 			const bool isMirrored = Globals::prng.DoPercentTrial<float>(this->mirrorChance);
 
@@ -90,13 +90,13 @@ namespace RoadblockOverrides
 		}
 
 
-		float GetMaxStretchScale() const
+		[[nodiscard]] float GetMaxStretchScale() const
 		{
 			return (this->canStretch) ? 1.14f : 1.f;
 		}
 
 
-		bool MirrorEnabled() const
+		[[nodiscard]] bool MirrorEnabled() const
 		{
 			return (this->mirrorChance > 0.f);
 		}
@@ -114,7 +114,7 @@ namespace RoadblockOverrides
 		size_t numMirrorSpike   = 0;
 
 
-		void ResetCounts()
+		void Reset()
 		{
 			this->numRegular = 0;
 			this->numSpike   = 0;
@@ -211,7 +211,7 @@ namespace RoadblockOverrides
 
 	// Replacement functions ------------------------------------------------------------------------------------------------------------------------
 
-	const RBTable* __cdecl SelectRoadblockTable
+	[[nodiscard]] const RBTable* __cdecl SelectRoadblockTable
 	(
 		const float  roadWidth, 
 		const size_t maxNumCars, 
@@ -412,7 +412,7 @@ namespace RoadblockOverrides
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	std::optional<RBSetup> ParseRoadblockSetup
+	[[nodiscard]] std::optional<RBSetup> ParseRoadblockSetup
 	(
 		const HeatParameters::Parser& parser,
 		const std::string_view        section
@@ -596,7 +596,7 @@ namespace RoadblockOverrides
 				Globals::logger.Log<3>(static_cast<int>(counter.numRegular), "regular,", static_cast<int>(counter.numMirrorRegular), "mirrored");
 				Globals::logger.Log<3>(static_cast<int>(counter.numSpike),   "spikes, ", static_cast<int>(counter.numMirrorSpike),   "mirrored");
 
-				counter.ResetCounts();
+				counter.Reset();
 			}
 			else Globals::logger.Log<3>("no setup(s) valid");
 		}
@@ -690,7 +690,7 @@ namespace RoadblockOverrides
 		if constexpr (Globals::loggingEnabled)
 		{
 			LogHeatReport();
-			counter.ResetCounts();
+			counter.Reset();
 		}
 	}
 }

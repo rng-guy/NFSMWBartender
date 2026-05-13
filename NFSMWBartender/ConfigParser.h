@@ -201,13 +201,13 @@ namespace ConfigParser
 		}
 
 
-		const auto& GetCurrentPath() const noexcept
+		[[nodiscard]] const auto& GetCurrentPath() const noexcept
 		{
 			return this->currentPath;
 		}
 
 
-		const auto& GetSections() const noexcept
+		[[nodiscard]] const auto& GetSections() const noexcept
 		{
 			return this->sections;
 		}

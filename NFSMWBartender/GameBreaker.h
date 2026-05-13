@@ -37,7 +37,7 @@ namespace GameBreaker
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	address GetLocalPlayer()
+	[[nodiscard]] address GetLocalPlayer()
 	{
 		const bool playerActive = (*reinterpret_cast<volatile size_t*>(0x92D884) > 0);
 		return (playerActive) ? **reinterpret_cast<volatile address* volatile*>(0x92D87C) : 0x0;
@@ -76,7 +76,7 @@ namespace GameBreaker
 
 
 
-	bool IsPlayerInPursuit()
+	[[nodiscard]] bool IsPlayerInPursuit()
 	{
 		const address playerAIVehicle = Globals::GetAIVehicle(Globals::GetPlayerVehicle());
 		return (playerAIVehicle and *reinterpret_cast<volatile address*>(playerAIVehicle + 0x70));

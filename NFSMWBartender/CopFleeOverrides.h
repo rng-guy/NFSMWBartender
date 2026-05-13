@@ -156,7 +156,7 @@ namespace CopFleeOverrides
 			}
 
 
-			size_t GetNumScheduled() const
+			[[nodiscard]] size_t GetNumScheduled() const
 			{
 				return this->vehicleToTimestamp.size() - this->numPendingExpired;
 			}
@@ -208,7 +208,7 @@ namespace CopFleeOverrides
 			}
 
 
-			address GetStrategy() const
+			[[nodiscard]] address GetStrategy() const
 			{
 				return this->strategy;
 			}
@@ -308,7 +308,7 @@ namespace CopFleeOverrides
 			}
 
 
-			address GetNumVehicles() const
+			[[nodiscard]] address GetNumVehicles() const
 			{
 				return this->vehicles.size();
 			}
@@ -347,13 +347,13 @@ namespace CopFleeOverrides
 		const volatile address& pursuitTarget  = *reinterpret_cast<volatile address*>(this->pursuit + 0x74);
 
 
-		static bool IsNotInChasersTable(const address copVehicle)
+		[[nodiscard]] static bool IsNotInChasersTable(const address copVehicle)
 		{
 			return (not CopSpawnTables::chaserSpawnTables.current->ContainsType(Globals::GetVehicleType(copVehicle)));
 		}
 
 
-		bool MayAnotherHeavyJoin() const
+		[[nodiscard]] bool MayAnotherHeavyJoin() const
 		{
 			if (not heavy3JoiningEnableds.current)       return false;
 			if (not heavy3JoinLimits.isEnableds.current) return true;
@@ -378,7 +378,7 @@ namespace CopFleeOverrides
 		}
 
 
-		address GetRigidBodyOfTarget() const
+		[[nodiscard]] address GetRigidBodyOfTarget() const
 		{
 			address rigidBodyOfTarget = 0x0;
 
@@ -397,7 +397,7 @@ namespace CopFleeOverrides
 		}
 
 
-		bool IsSpeedOfTargetBelowThreshold() const
+		[[nodiscard]] bool IsSpeedOfTargetBelowThreshold() const
 		{
 			const address rigidBodyOfTarget = this->GetRigidBodyOfTarget();
 

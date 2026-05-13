@@ -27,14 +27,14 @@ namespace MemoryTools
 
 	// Queries and byte-writing ---------------------------------------------------------------------------------------------------------------------
 
-	inline bool IsModuleLoaded(const char* const name)
+	[[nodiscard]] inline bool IsModuleLoaded(const char* const name)
 	{
 		return GetModuleHandleA(name);
 	}
 
 
 
-	inline address GetEntryPoint()
+	[[nodiscard]] inline address GetEntryPoint()
 	{
 		// Credit: thelink2012 and MWisBest
 		const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleA(NULL));
@@ -160,7 +160,7 @@ namespace MemoryTools
 	
 
 
-	inline address MakeCallHook
+	[[nodiscard]] inline address MakeCallHook
 	(
 		const address call,
 		const address target
@@ -183,7 +183,7 @@ namespace MemoryTools
 	}
 
 
-	inline address MakeCallHook
+	[[nodiscard]] inline address MakeCallHook
 	(
 		const address     call,
 		const void* const target

@@ -14,7 +14,7 @@ namespace PursuitFeatures
 	{
 	public:
 
-		// Classs-specific enum
+		// Class-specific enum
 		enum class CopLabel
 		{
 			UNKNOWN,
@@ -159,31 +159,31 @@ namespace PursuitFeatures
 		}
 
 
-		bool IsSet() const
+		[[nodiscard]] bool IsSet() const
 		{
 			return this->isSet;
 		}
 
 
-		bool IsIntervalEnabled() const
+		[[nodiscard]] bool IsIntervalEnabled() const
 		{
 			return this->isEnabled;
 		}
 
 
-		float GetLength() const
+		[[nodiscard]] float GetLength() const
 		{
 			return this->length;
 		}
 
 
-		float GetTimeLeft() const
+		[[nodiscard]] float GetTimeLeft() const
 		{
 			return (this->endTimestamp - Globals::simulationTime);
 		}
 
 
-		bool HasExpired() const
+		[[nodiscard]] bool HasExpired() const
 		{
 			return (this->isSet and this->isEnabled and (this->GetTimeLeft() <= 0.f));
 		}

@@ -119,7 +119,7 @@ namespace StrategyOverrides
 		}
 
 
-		static StrategyManager* FindManager(const address pursuit)
+		[[nodiscard]] static StrategyManager* FindManager(const address pursuit)
 		{
 			const auto foundManager = StrategyManager::pursuitToManager.find(pursuit);
 
@@ -310,14 +310,14 @@ namespace StrategyOverrides
 		}
 
 
-		static float __fastcall GetFullPursuitLength(const address pursuit)
+		[[nodiscard]] static float __fastcall GetFullPursuitLength(const address pursuit)
 		{
 			const StrategyManager* const manager = StrategyManager::FindManager(pursuit);
 			return (manager) ? (Globals::simulationTime - manager->pursuitStartTimestamp) : 0.f;
 		}
 
 
-		static size_t __fastcall GetNextHeavy3Count(const address pursuit)
+		[[nodiscard]] static size_t __fastcall GetNextHeavy3Count(const address pursuit)
 		{
 			const StrategyManager* const manager = StrategyManager::FindManager(pursuit);
 			return (manager) ? manager->nextHeavy3Count : 2;

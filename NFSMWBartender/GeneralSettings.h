@@ -67,7 +67,7 @@ namespace GeneralSettings
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	const char* __fastcall GetRandomArrestScene(const size_t heatLevel)
+	[[nodiscard]] const char* __fastcall GetRandomArrestScene(const size_t heatLevel)
 	{
 		// Define available cutscenes (C-style for game compatibility)
 		static constexpr std::array<const char*, 8> scenesDefault =

@@ -96,7 +96,7 @@ namespace ModContainers
 
 
 		
-		ReturnType GetValue(const K key) const
+		[[nodiscard]] ReturnType GetValue(const K key) const
 		{
 			const auto foundPair = this->map.find(key);
 			return (foundPair != this->map.end()) ? foundPair->second : this->defaultValue;

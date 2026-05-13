@@ -208,25 +208,25 @@ namespace CopSpawnOverrides
 		}
 
 
-		int GetNumActiveCops() const
+		[[nodiscard]] int GetNumActiveCops() const
 		{
 			return this->numActiveCops;
 		}
 
 
-		bool HasAvailableCop() const
+		[[nodiscard]] bool HasAvailableCop() const
 		{
 			return this->table.HasCapacity();
 		}
 
 
-		const char* GetNameOfAvailableCop() const
+		[[nodiscard]] const char* GetNameOfAvailableCop() const
 		{
 			return this->table.GetNameOfAvailableCop();
 		}
 
 
-		const char* GetNameOfAvailableCopWithFallback() const
+		[[nodiscard]] const char* GetNameOfAvailableCopWithFallback() const
 		{
 			const char* const copName = this->table.GetNameOfAvailableCop();
 			return (copName) ? copName : this->source.current->GetNameOfAvailableCop();
@@ -335,7 +335,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		int GetWaveCapacity() const
+		[[nodiscard]] int GetWaveCapacity() const
 		{
 			int waveCapacity = this->fullWaveCapacity - (this->numCopsLostInWave + this->chaserSpawns.GetNumActiveCops());
 
@@ -362,13 +362,13 @@ namespace CopSpawnOverrides
 		}
 
 
-		int GetNumPersistentCops() const
+		[[nodiscard]] int GetNumPersistentCops() const
 		{
 			return this->chaserSpawns.GetNumActiveCops() + this->numJoinedRoadblockVehicles;
 		}
 
 
-		bool CanNewChaserSpawn() const
+		[[nodiscard]] bool CanNewChaserSpawn() const
 		{
 			if (not Globals::playerHeatLevelKnown) return false;
 
@@ -390,7 +390,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		bool IsBackUpTimerActive() const
+		[[nodiscard]] bool IsBackUpTimerActive() const
 		{
 			return (this->pursuitStatus == 1);
 		}
@@ -413,14 +413,14 @@ namespace CopSpawnOverrides
 		}
 
 
-		static bool HasVehicleEngaged(const address copVehicle)
+		[[nodiscard]] static bool HasVehicleEngaged(const address copVehicle)
 		{
 			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
 			return (copAIVehiclePursuit and *reinterpret_cast<volatile bool*>(copAIVehiclePursuit + 0x22));
 		}
 
 
-		static bool IsAlsoTrackedOnBoard(const CopLabel copLabel)
+		[[nodiscard]] static bool IsAlsoTrackedOnBoard(const CopLabel copLabel)
 		{
 			switch (copLabel)
 			{
@@ -467,7 +467,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		static ChasersManager* FindManager(const address pursuit)
+		[[nodiscard]] static ChasersManager* FindManager(const address pursuit)
 		{
 			const auto foundManager = ChasersManager::pursuitToManager.find(pursuit);
 
@@ -606,14 +606,14 @@ namespace CopSpawnOverrides
 		}
 
 
-		static bool __fastcall IsChaserAvailable(const address pursuit)
+		[[nodiscard]] static bool __fastcall IsChaserAvailable(const address pursuit)
 		{
 			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
 			return (manager and manager->CanNewChaserSpawn());
 		}
 
 
-		static bool __fastcall HasJoinCapacity(const address pursuit)
+		[[nodiscard]] static bool __fastcall HasJoinCapacity(const address pursuit)
 		{
 			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
 			if (not manager) return false; // should never happen
@@ -627,7 +627,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		static const char* __fastcall GetNameOfNewChaser(const address pursuit)
+		[[nodiscard]] static const char* __fastcall GetNameOfNewChaser(const address pursuit)
 		{
 			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
 			return (manager and manager->CanNewChaserSpawn()) ? manager->chaserSpawns.GetNameOfAvailableCop() : nullptr;
@@ -640,7 +640,7 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	bool IsEventActive()
+	[[nodiscard]] bool IsEventActive()
 	{
 		const address raceStatusObject = *reinterpret_cast<volatile address*>(0x91E000);
 		return (raceStatusObject and *reinterpret_cast<volatile int*>(raceStatusObject + 0x1960));
@@ -648,7 +648,7 @@ namespace CopSpawnOverrides
 
 
 
-	const char* __fastcall GetNameOfNewNonChaser(const address caller)
+	[[nodiscard]] const char* __fastcall GetNameOfNewNonChaser(const address caller)
 	{
 		if (Globals::playerHeatLevelKnown)
 		{

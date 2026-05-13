@@ -96,7 +96,7 @@ namespace HelicopterOverrides
 		}
 
 
-		bool IsOwner() const
+		[[nodiscard]] bool IsOwner() const
 		{
 			return (this->helicopterOwner == this->pursuit);
 		}
@@ -188,7 +188,7 @@ namespace HelicopterOverrides
 		}
 
 
-		static volatile float* GetFuelTimePointer()
+		[[nodiscard]] static volatile float* GetFuelTimePointer()
 		{ 
 			return (HelicopterManager::helicopterObject) ? reinterpret_cast<volatile float*>(HelicopterManager::helicopterObject + 0x7D8) : nullptr;
 		}
@@ -406,7 +406,7 @@ namespace HelicopterOverrides
 		}
 
 
-		static const char* GetHelicopterName()
+		[[nodiscard]] static const char* GetHelicopterName()
 		{
 			if (not featureEnabled) return nullptr;
 
@@ -429,7 +429,7 @@ namespace HelicopterOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	float __fastcall GetSpawnDistance(const address pursuit)
+	[[nodiscard]] float __fastcall GetSpawnDistance(const address pursuit)
 	{
 		const float distance = (Globals::IsInCooldownMode(pursuit)) ? searchSpawnDistances.GetRandomValue() : chaseSpawnDistances.GetRandomValue();
 

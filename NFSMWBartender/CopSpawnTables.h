@@ -54,14 +54,14 @@ namespace CopSpawnTables
 
 	public:
 
-		static const char* ConvertTypeToName(const vault copType)
+		[[nodiscard]] static const char* ConvertTypeToName(const vault copType)
 		{
 			const auto foundType = SpawnTable::copTypeToName.find(copType);
 			return (foundType != SpawnTable::copTypeToName.end()) ? foundType->second->c_str() : nullptr;
 		}
 
 
-		bool ContainsType(const vault copType) const
+		[[nodiscard]] bool ContainsType(const vault copType) const
 		{
 			return this->copTypeToEntry.contains(copType);
 		}
@@ -98,26 +98,26 @@ namespace CopSpawnTables
 		}
 
 
-		bool IsEmpty() const 
+		[[nodiscard]] bool IsEmpty() const
 		{
 			return (this->totalCopCount < 1);
 		}
 
 
-		bool HasCapacity() const
+		[[nodiscard]] bool HasCapacity() const
 		{
 			return (this->currentTotalCopChance > 0);
 		}
 
 
-		int GetCount(const vault copType) const
+		[[nodiscard]] int GetCount(const vault copType) const
 		{
 			const auto foundType = this->copTypeToEntry.find(copType);
 			return (foundType != this->copTypeToEntry.end()) ? foundType->second.count : 0;
 		}
 
 
-		int GetCapacity(const vault copType) const
+		[[nodiscard]] int GetCapacity(const vault copType) const
 		{
 			const auto foundType = this->copTypeToEntry.find(copType);
 			return (foundType != this->copTypeToEntry.end()) ? foundType->second.capacity : 0;
@@ -160,7 +160,7 @@ namespace CopSpawnTables
 		}
 
 
-		const char* GetNameOfAvailableCop() const
+		[[nodiscard]] const char* GetNameOfAvailableCop() const
 		{
 			if (this->HasCapacity())
 			{

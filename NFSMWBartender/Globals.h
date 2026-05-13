@@ -67,14 +67,14 @@ namespace Globals
 
 	// State functions ------------------------------------------------------------------------------------------------------------------------------
 
-	bool IsInCooldownMode(const address pursuit)
+	[[nodiscard]] bool IsInCooldownMode(const address pursuit)
 	{
 		return (*reinterpret_cast<volatile int*>(pursuit + 0x218) == 2); // pursuitStatus
 	}
 
 
 
-	float __fastcall GetGameTime(const bool unpaused)
+	[[nodiscard]] float __fastcall GetGameTime(const bool unpaused)
 	{
 		const float    ticksToTime = *reinterpret_cast<volatile float*>(0x890984);
 		const uint32_t ticks       = (unpaused) ? (gameTicks - pausedTicks) : gameTicks;
@@ -88,7 +88,7 @@ namespace Globals
 
 	// Vault functions ------------------------------------------------------------------------------------------------------------------------------
 
-	address GetFromVault
+	[[nodiscard]] address GetFromVault
 	(
 		const vault  rootKey,
 		const vault  nodeKey,
@@ -105,7 +105,7 @@ namespace Globals
 
 
 
-	address GetFromPursuitlevel
+	[[nodiscard]] address GetFromPursuitlevel
 	(
 		const address pursuit,
 		const vault   attributeKey,
@@ -125,7 +125,7 @@ namespace Globals
 
 	// Vehicle-type functions -----------------------------------------------------------------------------------------------------------------------
 
-	vault GetVehicleTypeClass(const vault type)
+	[[nodiscard]] vault GetVehicleTypeClass(const vault type)
 	{
 		const address attribute = GetFromVault(0x4A97EC8F, type, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
 		return (attribute) ? *reinterpret_cast<volatile vault*>(attribute + 0x8) : 0x0;
@@ -133,13 +133,13 @@ namespace Globals
 
 
 
-	bool DoesVehicleTypeExist(const vault type)
+	[[nodiscard]] bool DoesVehicleTypeExist(const vault type)
 	{
 		return GetVehicleTypeClass(type);
 	}
 
 
-	bool IsVehicleTypeCar(const vault type)
+	[[nodiscard]] bool IsVehicleTypeCar(const vault type)
 	{
 		switch (GetVehicleTypeClass(type))
 		{
@@ -152,7 +152,7 @@ namespace Globals
 	}
 
 
-	bool IsVehicleTypeChopper(const vault type)
+	[[nodiscard]] bool IsVehicleTypeChopper(const vault type)
 	{
 		return (GetVehicleTypeClass(type) == 0xB80933AA); // CHOPPER
 	}
@@ -163,19 +163,19 @@ namespace Globals
 
 	// Vehicle-object functions ---------------------------------------------------------------------------------------------------------------------
 
-	address GetPlayerVehicle()
+	[[nodiscard]] address GetPlayerVehicle()
 	{
 		return (playerPerpVehicle) ? *reinterpret_cast<volatile address*>(playerPerpVehicle - 0x758 + 0x4C - 0x4) : 0x0;
 	}
 
 
-	address GetAIVehicle(const address vehicle)
+	[[nodiscard]] address GetAIVehicle(const address vehicle)
 	{
 		return (vehicle) ? *reinterpret_cast<volatile address*>(vehicle + 0x54) : 0x0;
 	}
 
 
-	address GetAIVehiclePursuit(const address copVehicle)
+	[[nodiscard]] address GetAIVehiclePursuit(const address copVehicle)
 	{
 		const address copAIVehicle = GetAIVehicle(copVehicle);
 		return (copAIVehicle) ? (copAIVehicle - 0x4C + 0x758) : 0x0;

@@ -58,7 +58,7 @@ namespace HeatParameters
 
 	// Heat-level indices ---------------------------------------------------------------------------------------------------------------------------
 
-	consteval auto GenerateHeatLevelIDs()
+	[[nodiscard]] consteval auto GenerateHeatLevelIDs()
 	{
 		Values<size_t> heatLevelIDs = {};
 
@@ -113,13 +113,13 @@ namespace HeatParameters
 		Values<T> race = {};
 
 
-		constexpr Values<T>& GetValues(const bool forRaces) noexcept
+		[[nodiscard]] constexpr Values<T>& GetValues(const bool forRaces) noexcept
 		{
 			return (forRaces) ? this->race : this->roam;
 		}
 
 
-		constexpr const Values<T>& GetValues(const bool forRaces) const noexcept
+		[[nodiscard]] constexpr const Values<T>& GetValues(const bool forRaces) const noexcept
 		{
 			return (forRaces) ? this->race : this->roam;
 		}
@@ -159,7 +159,7 @@ namespace HeatParameters
 		}
 
 
-		constexpr T GetMinimum() const noexcept
+		[[nodiscard]] constexpr T GetMinimum() const noexcept
 		{
 			T minimum = this->roam[0];
 
@@ -175,7 +175,7 @@ namespace HeatParameters
 		}
 
 
-		constexpr T GetMaximum() const noexcept
+		[[nodiscard]] constexpr T GetMaximum() const noexcept
 		{
 			T maximum = this->roam[0];
 
@@ -369,19 +369,19 @@ namespace HeatParameters
 		}
 
 
-		constexpr T GetMinimum() const noexcept
+		[[nodiscard]] constexpr T GetMinimum() const noexcept
 		{
 			return this->minValues.GetMinimum();
 		}
 
 
-		constexpr T GetMaximum() const noexcept
+		[[nodiscard]] constexpr T GetMaximum() const noexcept
 		{
 			return this->maxValues.GetMaximum();
 		}
 
 
-		T GetRandomValue() const noexcept
+		[[nodiscard]] T GetRandomValue() const noexcept
 		{
 			return Globals::prng.GenerateNumber<T>(this->minValues.current, this->maxValues.current);
 		}
@@ -421,7 +421,7 @@ namespace HeatParameters
 		}
 
 
-		T GetRandomValue() const noexcept
+		[[nodiscard]] T GetRandomValue() const noexcept
 		{
 			return Globals::prng.GenerateNumber<T>(this->minValues.current, this->maxValues.current);
 		}
@@ -507,7 +507,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		constexpr auto MakeFormatTuple
+		[[nodiscard]] constexpr auto MakeFormatTuple
 		(
 			const bool forRaces,
 			Pair<T>&   pair
@@ -520,7 +520,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		constexpr auto MakeFormatTuple
+		[[nodiscard]] constexpr auto MakeFormatTuple
 		(
 			const bool      forRaces,
 			PointerPair<T>& pair
@@ -531,7 +531,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		constexpr auto MakeFormatTuple
+		[[nodiscard]] constexpr auto MakeFormatTuple
 		(
 			const bool   forRaces,
 			Interval<T>& interval
@@ -547,7 +547,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		constexpr auto MakeFormatTuple
+		[[nodiscard]] constexpr auto MakeFormatTuple
 		(
 			const bool       forRaces,
 			OptionalPair<T>& pair
@@ -559,7 +559,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		constexpr auto MakeFormatTuple
+		[[nodiscard]] constexpr auto MakeFormatTuple
 		(
 			const bool              forRaces,
 			OptionalPointerPair<T>& pair
@@ -569,7 +569,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		constexpr auto MakeFormatTuple
+		[[nodiscard]] constexpr auto MakeFormatTuple
 		(
 			const bool           forRaces,
 			OptionalInterval<T>& interval
