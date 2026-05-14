@@ -60,7 +60,7 @@ namespace PursuitObserver
 		inline static constinit ModContainers::StableAddressMap<PursuitObserver> pursuitToObserver;
 
 
-		[[nodiscard]] static CopLabel LabelAddVehicleCall(const address caller)
+		[[nodiscard]] static CopLabel InferCopLabelFromCaller(const address caller)
 		{
 			switch (caller)
 			{
@@ -238,7 +238,7 @@ namespace PursuitObserver
 			PursuitObserver* const observer = PursuitObserver::FindObserver(pursuit);
 			if (not observer) return; // should never happen
 
-			const CopLabel copLabel         = observer->LabelAddVehicleCall(caller);
+			const CopLabel copLabel         = observer->InferCopLabelFromCaller(caller);
 			const auto     [pair, wasAdded] = observer->copVehicleToLabel.try_emplace(copVehicle, copLabel);
 
 			if (wasAdded)
