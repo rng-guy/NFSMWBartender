@@ -461,13 +461,13 @@ namespace CopFleeOverrides
 			// "Chaser" cops may only be scheduled for expiration if they aren't in the current spawn table
 			this->chaserVehicles.IsSchedulable = MembershipManager::IsNotInChasersTable;
 
-			// Memory pre-allocations
+			// Container pre-allocations
 			this->heavyVehicles .ReserveVehicleCapacity(10);
 			this->leaderVehicles.ReserveVehicleCapacity(10);
 
 			this->chaserVehicles         .ReserveVehicleCapacity(50);
-			this->joinedHeavyVehicles    .ReserveVehicleCapacity(20);
-			this->joinedRoadblockVehicles.ReserveVehicleCapacity(20);
+			this->joinedHeavyVehicles    .ReserveVehicleCapacity(10);
+			this->joinedRoadblockVehicles.ReserveVehicleCapacity(10);
 		}
 
 

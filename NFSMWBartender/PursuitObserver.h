@@ -157,8 +157,11 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>('+', this, "PursuitObserver");
 
-			this->pursuitReactions.reserve(6);
+			// Container pre-allocations
+			this->pursuitReactions .reserve(6);
+			this->copVehicleToLabel.reserve(100);
 
+			// PursuitReaction features
 			if (CopSpawnOverrides  ::featureEnabled) this->AttachReaction<CopSpawnOverrides  ::ChasersManager>   ();
 			if (CopFleeOverrides   ::featureEnabled) this->AttachReaction<CopFleeOverrides   ::MembershipManager>();
 			if (HelicopterOverrides::featureEnabled) this->AttachReaction<HelicopterOverrides::HelicopterManager>();
