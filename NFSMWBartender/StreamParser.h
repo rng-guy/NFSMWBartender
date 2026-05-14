@@ -3,12 +3,10 @@
 #include <tuple>
 #include <array>
 #include <limits>
-#include <ranges>
 #include <vector>
 #include <string>
 #include <istream>
 #include <utility>
-#include <iterator>
 #include <concepts>
 #include <optional>
 #include <algorithm>
@@ -124,17 +122,13 @@ namespace StreamParser
 
 		[[nodiscard]] constexpr std::string_view TrimLeft(const std::string_view view) noexcept
 		{
-			const size_t numChars = std::distance(view.begin(), std::ranges::find_if_not(view, IsWhitespace));
-			return view.substr(numChars);
+			return {std::find_if_not(view.begin(), view.end(), IsWhitespace), view.end()};
 		}
 
 
 		[[nodiscard]] constexpr std::string_view TrimRight(const std::string_view view) noexcept
 		{
-			const auto   reversed = view | std::views::reverse;
-			const size_t numChars = std::distance(reversed.begin(), std::ranges::find_if_not(reversed, IsWhitespace));
-
-			return view.substr(0, view.size() - numChars);
+			return {view.begin(), std::find_if_not(view.rbegin(), view.rend(), IsWhitespace).base()};
 		}
 
 
@@ -167,7 +161,7 @@ namespace StreamParser
 					if (endPosition == std::string_view::npos)
 					{
 						segments[segmentID++] = Trim(source.substr(startPosition));
-						break; // no more segments left to parse
+						break; // no more segments left to parse in view
 					}
 
 					// The static analyser likes to complain about this despite the preceding bounds check

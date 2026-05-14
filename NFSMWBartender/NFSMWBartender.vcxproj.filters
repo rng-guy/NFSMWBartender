@@ -73,7 +73,7 @@
     <ClInclude Include="DestructionStrings.h">
       <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="GroundSupports.h">
+    <ClInclude Include="GroundSupport.h">
       <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="GeneralSettings.h">
@@ -153,7 +153,7 @@
     <None Include="..\BartenderSettings\Basic\Cosmetic.ini">
       <Filter>Configuration\Basic</Filter>
     </None>
-    <None Include="..\BartenderSettings\Basic\Supports.ini">
+    <None Include="..\BartenderSettings\Basic\Support.ini">
       <Filter>Configuration\Basic</Filter>
     </None>
     <None Include="..\BartenderSettings\Advanced\CarTables.ini">

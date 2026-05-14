@@ -8,7 +8,7 @@
 
 #include "GameBreaker.h"
 #include "RadioChatter.h"
-#include "GroundSupports.h"
+#include "GroundSupport.h"
 #include "GeneralSettings.h"
 
 #include "PursuitObserver.h"
@@ -46,7 +46,7 @@ namespace StateObserver
 			RadioChatter::SetToHeat(playerIsRacing, playerHeatLevel);
 
 			GeneralSettings::SetToHeat(playerIsRacing, playerHeatLevel);
-			GroundSupports ::SetToHeat(playerIsRacing, playerHeatLevel);
+			GroundSuppport ::SetToHeat(playerIsRacing, playerHeatLevel);
 			GameBreaker    ::SetToHeat(playerIsRacing, playerHeatLevel);
 			
 			PursuitObserver::SetToHeat(playerIsRacing, playerHeatLevel);
@@ -164,7 +164,7 @@ namespace StateObserver
 
 			mov byte ptr [esi + 0x81], bl // "CopDetection.h"
 			mov byte ptr [esi + 0x82], bl // "CopDetection.h"
-			mov byte ptr [esi + 0x83], bl // "GroundSupports.h"
+			mov byte ptr [esi + 0x83], bl // "GroundSuppport.h"
 
 			jmp dword ptr resetAIVehicleExit
 		}

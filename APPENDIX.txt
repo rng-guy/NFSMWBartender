@@ -246,7 +246,7 @@ Regarding SPEEDBREAKER FEATURES ("BartenderSettings\Basic\Speedbreaker.ini"):
 
 
 
-Regarding GROUND SUPPORTS ("BartenderSettings\Basic\Supports.ini"):
+Regarding GROUND SUPPORT ("BartenderSettings\Basic\Support.ini"):
 
  • Very short spawn distances for roadblocks can cause noticeable pop-in as they spawn.
 

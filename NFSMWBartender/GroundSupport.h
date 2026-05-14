@@ -14,7 +14,7 @@
 
 
 
-namespace GroundSupports
+namespace GroundSuppport
 {
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
@@ -854,12 +854,12 @@ namespace GroundSupports
 	bool Initialise(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [SUP] GroundSupports");
+			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
 
-		if (not parser.LoadFile(HeatParameters::configPathBasic, "Supports.ini")) return false;
+		if (not parser.LoadFile(HeatParameters::configPathBasic, "Support.ini")) return false;
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Supports:Rivals", rivalRoadblockEnableds, rivalHeavyEnableds, rivalLeaderEnableds);
+		HeatParameters::Parse(parser, "Support:Rivals", rivalRoadblockEnableds, rivalHeavyEnableds, rivalLeaderEnableds);
 
 		HeatParameters::Parse(parser, "Roadblocks:Cooldown",   roadblockCooldowns,       roadblockHeavyCooldowns);
 		HeatParameters::Parse(parser, "Roadblocks:Distance",   roadblockSpawnDistances);

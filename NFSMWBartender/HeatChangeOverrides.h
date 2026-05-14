@@ -383,7 +383,7 @@ namespace HeatChangeOverrides
 	constexpr address supportCheckEntrance = 0x423FA2;
 	constexpr address supportCheckExit     = 0x423FF1;
 
-	// Checks for supports to increment deployment counter
+	// Checks for support cops to increment deployment counter
 	__declspec(naked) void SupportCheck()
 	{
 		static constexpr address IsSupportVehicle = 0x419890;

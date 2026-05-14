@@ -30,7 +30,7 @@
 #include "GameBreaker.h"
 #include "RadioChatter.h"
 #include "CopDetection.h"
-#include "GroundSupports.h"
+#include "GroundSupport.h"
 #include "GeneralSettings.h"
 #include "HelicopterVision.h"
 #include "InteractiveMusic.h"
@@ -83,7 +83,7 @@ static void __cdecl InitialiseBartender
 	Globals::basicSetEnabled |= HelicopterVision  ::Initialise(parser);
 	Globals::basicSetEnabled |= InteractiveMusic  ::Initialise(parser);
 	Globals::basicSetEnabled |= GeneralSettings   ::Initialise(parser);
-	Globals::basicSetEnabled |= GroundSupports    ::Initialise(parser);
+	Globals::basicSetEnabled |= GroundSuppport    ::Initialise(parser);
 	Globals::basicSetEnabled |= GameBreaker       ::Initialise(parser);
 
 	parser.ClearCachedPaths();
@@ -95,7 +95,7 @@ static void __cdecl InitialiseBartender
 		if (not CopDetection    ::featureEnabled) CopDetection    ::ApplyFixes();
 		if (not HelicopterVision::featureEnabled) HelicopterVision::ApplyFixes();
 		if (not GeneralSettings ::featureEnabled) GeneralSettings ::ApplyFixes();
-		if (not GroundSupports  ::featureEnabled) GroundSupports  ::ApplyFixes();
+		if (not GroundSuppport  ::featureEnabled) GroundSuppport  ::ApplyFixes();
 
 		// Remove static helicopter shadow
 		MemoryTools::Write<float>(0.f, {0x903660});

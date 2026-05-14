@@ -46,7 +46,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * whether the Speedbreaker's vanilla recharging mechanics apply in pursuits,
 * how much Speedbreaker charge you gain / lose from destroying any cop vehicle,
 * which pursuit jurisdiction dispatch announces over the radio,
-* which ground supports the cops may request in non-player pursuits,
+* which ground support the cops may request in non-player pursuits,
 * the internal cooldown between non-Strategy roadblock requests,
 * the internal cooldown between Heavy / LeaderStrategy requests,
 * how far away roadblocks can spawn from the pursuit target,
