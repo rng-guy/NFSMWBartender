@@ -264,6 +264,9 @@ namespace HelicopterOverrides
 
 	public:
 
+		inline static constinit const bool& isEnabled = featureEnabled;
+
+
 		explicit HelicopterManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)

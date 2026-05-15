@@ -82,8 +82,8 @@ namespace CopDetection
 	// Code caves
 	bool updateWorldMapColours = false;
 
-	constinit IconColourTracker miniMapCops (false); // only visible when unpaused
-	constinit IconColourTracker worldMapCops(true);  // only visible when paused
+	constinit IconColourTracker miniMapCops (/* useUnpausedTime = */ false);
+	constinit IconColourTracker worldMapCops(/* useUnpausedTime = */ true);
 
 	constinit ModContainers::DefaultReferenceVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
 

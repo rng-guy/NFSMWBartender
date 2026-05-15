@@ -440,6 +440,9 @@ namespace CopFleeOverrides
 
 	public:
 
+		inline static constinit const bool& isEnabled = featureEnabled;
+
+
 		explicit MembershipManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)

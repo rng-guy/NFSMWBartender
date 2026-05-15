@@ -133,6 +133,9 @@ namespace StrategyOverrides
 
 	public:
 
+		inline static constinit const bool& isEnabled = featureEnabled;
+
+
 		explicit StrategyManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
 			this->vehiclesOfCurrentStrategy.reserve(10);

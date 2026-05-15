@@ -157,6 +157,9 @@ namespace HeatChangeOverrides
 
 	public:
 
+		inline static constinit const bool& isEnabled = featureEnabled;
+
+
 		explicit HeatManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
@@ -243,7 +246,7 @@ namespace HeatChangeOverrides
 
 
 
-	bool __stdcall ProcessCollision
+	[[nodiscard]] bool __stdcall ShouldCollisionTriggerInfraction
 	(
 		const address pursuit,
 		const address copVehicle,
@@ -261,7 +264,7 @@ namespace HeatChangeOverrides
 			if (pursuit)
 			{
 				const auto NotifyCopDamaged = reinterpret_cast<void (__thiscall*)(address, address)>(0x40AF40);
-				NotifyCopDamaged(pursuit, copVehicle); // for "cops hit" tracking per pursuit
+				NotifyCopDamaged(pursuit, copVehicle); // for "cops hit" tracking in pursuit
 			}		
 		}
 
@@ -281,21 +284,20 @@ namespace HeatChangeOverrides
 
 	void __fastcall UpdateHeatAnimation(const address heatMeter)
 	{
-		constexpr bool useUnpausedTime  = false;
-		const float    gameTime         = Globals::GetGameTime(useUnpausedTime);
-		const size_t   currentHeatLevel = static_cast<size_t>(*reinterpret_cast<float*>(heatMeter + 0x40));
+		const float  gameTime         = Globals::GetGameTime(/* unpaused = */ false);
+		const size_t currentHeatLevel = static_cast<size_t>(*reinterpret_cast<float*>(heatMeter + 0x40));
 		
 		if (gameTime >= animationEndTimestamp)
 		{
-			const auto IsScriptSet = reinterpret_cast<bool (__cdecl*)(address, uint32_t)>      (0x514DA0);
-			const auto SetScript   = reinterpret_cast<void (__cdecl*)(address, uint32_t, bool)>(0x514D10);
+			const auto IsFEngScriptSet = reinterpret_cast<bool (__cdecl*)(address, uint32_t)>      (0x514DA0);
+			const auto SetFEngScript   = reinterpret_cast<void (__cdecl*)(address, uint32_t, bool)>(0x514D10);
 
 			const address  interfaceObject = *reinterpret_cast<address*>(heatMeter + 0x44);
 			const uint32_t animationScript = (currentHeatLevel != lastAnimatedHeatLevel) ? 0x41E1FEDC : 0x1744B3;
 
-			if (not IsScriptSet(interfaceObject, animationScript))
+			if (not IsFEngScriptSet(interfaceObject, animationScript))
 			{
-				SetScript(interfaceObject, animationScript, true);
+				SetFEngScript(interfaceObject, animationScript, true);
 
 				if (animationScript == 0x41E1FEDC)
 					animationEndTimestamp = gameTime + 2.5f; // animation length (seconds)
@@ -419,7 +421,7 @@ namespace HeatChangeOverrides
 			push eax // racerAtFault
 			push edi // copVehicle
 			push ebx // pursuit
-			call ProcessCollision
+			call ShouldCollisionTriggerInfraction
 			test al, al
 
 			jmp dword ptr perpCollisionExit

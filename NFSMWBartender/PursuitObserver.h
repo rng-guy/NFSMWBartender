@@ -96,7 +96,8 @@ namespace PursuitObserver
 		requires std::derived_from<Reaction, PursuitReaction>
 		void AttachReaction()
 		{
-			this->pursuitReactions.push_back(std::make_unique<Reaction>(this->pursuit));
+			if (Reaction::isEnabled)
+				this->pursuitReactions.push_back(std::make_unique<Reaction>(this->pursuit));
 		}
 
 
@@ -162,12 +163,12 @@ namespace PursuitObserver
 			this->copVehicleToLabel.reserve(100);
 
 			// PursuitReaction features
-			if (CopSpawnOverrides  ::featureEnabled) this->AttachReaction<CopSpawnOverrides  ::ChasersManager>   ();
-			if (CopFleeOverrides   ::featureEnabled) this->AttachReaction<CopFleeOverrides   ::MembershipManager>();
-			if (HelicopterOverrides::featureEnabled) this->AttachReaction<HelicopterOverrides::HelicopterManager>();
-			if (StrategyOverrides  ::featureEnabled) this->AttachReaction<StrategyOverrides  ::StrategyManager>  ();
-			if (LeaderOverrides    ::featureEnabled) this->AttachReaction<LeaderOverrides    ::LeaderManager>    ();
-			if (HeatChangeOverrides::featureEnabled) this->AttachReaction<HeatChangeOverrides::HeatManager>      ();
+			this->AttachReaction<CopSpawnOverrides  ::ChasersManager>   ();
+			this->AttachReaction<CopFleeOverrides   ::MembershipManager>();
+			this->AttachReaction<HelicopterOverrides::HelicopterManager>();
+			this->AttachReaction<StrategyOverrides  ::StrategyManager>  ();
+			this->AttachReaction<LeaderOverrides    ::LeaderManager>    ();
+			this->AttachReaction<HeatChangeOverrides::HeatManager>      ();
 		}
 
 

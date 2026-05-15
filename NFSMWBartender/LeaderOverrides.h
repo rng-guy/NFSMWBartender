@@ -313,6 +313,9 @@ namespace LeaderOverrides
 
 	public:
 
+		inline static constinit const bool& isEnabled = featureEnabled;
+
+
 		explicit LeaderManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
 		{
 			this->passiveHenchmenVehicles.reserve(2);

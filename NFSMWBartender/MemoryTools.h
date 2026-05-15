@@ -175,9 +175,9 @@ namespace MemoryTools
 
 		const address callOffset      = call       + sizeof(byte);
 		const address nextInstruction = callOffset + sizeof(int);
-		const int     originalOffset  = *reinterpret_cast<volatile int*>(callOffset);
 
-		Write<int>(target - nextInstruction, {callOffset});
+		const int originalOffset = *reinterpret_cast<volatile int*>(callOffset);
+		Write<int>(target - nextInstruction, {callOffset}); // overwrites offset
 
 		return nextInstruction + originalOffset;
 	}
