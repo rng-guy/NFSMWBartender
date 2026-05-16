@@ -14,9 +14,9 @@
 #include "PursuitFeatures.h"
 #include "CopSpawnOverrides.h"
 #include "CopFleeOverrides.h"
-#include "LeaderOverrides.h"
-#include "StrategyOverrides.h"
 #include "HelicopterOverrides.h"
+#include "StrategyOverrides.h"
+#include "LeaderOverrides.h"
 #include "HeatChangeOverrides.h"
 #include "RoadblockOverrides.h"
 
