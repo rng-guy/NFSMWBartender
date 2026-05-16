@@ -33,8 +33,6 @@ namespace HelicopterVision
 	};
 
 	// Code caves
-	const auto SetFEngColour = reinterpret_cast<void (__cdecl*)(address, uint32_t)>(0x5157E0);
-
 	constinit Colour outOfSight;
 	constinit Colour withinSight;
 
