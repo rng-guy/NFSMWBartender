@@ -496,6 +496,7 @@ namespace HeatParameters
 			const bool forRaces,
 			Pair<T>&   pair
 		) {
+			// Regular pairs have one array per setting (race / roam), a default value, and limits
 			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(pair.current);
 			return std::tuple(Format<T>(pair.GetValues(forRaces), std::move(defaultValue), pair.limits));
 		}
@@ -507,6 +508,7 @@ namespace HeatParameters
 			const bool      forRaces,
 			PointerPair<T>& pair
 		) {
+			// Regular pointer-pairs have no limits
 			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(pair.current);
 			return std::tuple(Format<T>(pair.GetValues(forRaces), std::move(defaultValue)));
 		}
@@ -518,6 +520,7 @@ namespace HeatParameters
 			const bool   forRaces,
 			Interval<T>& interval
 		) {
+			// Regular intervals consist of two regular pairs
 			return std::tuple_cat
 			(
 				MakeFormatTuple<T>(forRaces, interval.minValues), 
@@ -532,6 +535,7 @@ namespace HeatParameters
 			const bool       forRaces,
 			OptionalPair<T>& pair
 		) {
+			// Optional pairs have no default value
 			return std::tuple(Format<T>(pair.values.GetValues(forRaces), std::nullopt, pair.values.limits));
 		}
 
@@ -542,6 +546,7 @@ namespace HeatParameters
 			const bool              forRaces,
 			OptionalPointerPair<T>& pair
 		) {
+			// Optional pointer-pairs have no default value and no limits
 			return std::tuple(Format<T>(pair.values.GetValues(forRaces), std::nullopt));
 		}
 
@@ -552,6 +557,7 @@ namespace HeatParameters
 			const bool           forRaces,
 			OptionalInterval<T>& interval
 		) {
+			// Optional intervals consist of two pairs without default values
 			return std::tuple
 			(
 				Format<T>(interval.minValues.GetValues(forRaces), std::nullopt, interval.minValues.limits),
@@ -564,6 +570,7 @@ namespace HeatParameters
 		template <typename T>
 		void CopyRoamToRaceValues(Pair<T>& pair)
 		{
+			// The race values of regular pairs fall back to their roam values
 			pair.race = pair.roam;
 		}
 
@@ -571,6 +578,7 @@ namespace HeatParameters
 		template <typename T>
 		void CopyRoamToRaceValues(PointerPair<T>& pair)
 		{
+			// The race values of regular pointer-pairs fall back to their roam values
 			pair.race = pair.roam;
 		}
 
@@ -578,6 +586,7 @@ namespace HeatParameters
 		template <typename T>
 		void CopyRoamToRaceValues(Interval<T>& interval)
 		{
+			// The race values of regular intervals fall back to their roam values
 			interval.minValues.race = interval.minValues.roam;
 			interval.maxValues.race = interval.maxValues.roam;
 		}
@@ -612,7 +621,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		void CheckIntervals
+		void OrderIntervals
 		(
 			Pair<T>&       minValues,
 			const Pair<T>& maxValues
@@ -629,20 +638,22 @@ namespace HeatParameters
 
 
 
-		void FinaliseParameters(const auto&) {}
+		void PostProcessIntervals(const auto&) {}
 
 
 		template <typename T>
-		void FinaliseParameters(Interval<T>& interval)
+		void PostProcessIntervals(Interval<T>& interval)
 		{
-			CheckIntervals<T>(interval.minValues, interval.maxValues);
+			// Regular intervals must have correctly ordered values
+			OrderIntervals<T>(interval.minValues, interval.maxValues);
 		}
 
 
 		template <typename T>
-		void FinaliseParameters(OptionalInterval<T>& interval)
+		void PostProcessIntervals(OptionalInterval<T>& interval)
 		{
-			CheckIntervals<T>(interval.minValues, interval.maxValues);
+			// Optional intervals must have correctly ordered values
+			OrderIntervals<T>(interval.minValues, interval.maxValues);
 		}
 	}
 
@@ -660,15 +671,17 @@ namespace HeatParameters
 		const std::string_view    section,
 		HeatParameters&        ...parameters
 	) {
-		for (const bool forRaces : {false, true})
-		{
-			if (forRaces)
-				(..., Details::CopyRoamToRaceValues(parameters));
+		// Parse roam values, using internal default values as fallback
+		Details::ParsePartial<HeatParameters...>(/* forRaces = */ false, parser, section, parameters...);
 
-			Details::ParsePartial<HeatParameters...>(forRaces, parser, section, parameters...);
-		}
-			
-		(..., Details::FinaliseParameters(parameters));
+		// Use roam values as initial race values
+		(..., Details::CopyRoamToRaceValues(parameters));
+
+		// Parse race values, using copied roam values as fallback
+		Details::ParsePartial<HeatParameters...>(/* forRaces = */ true, parser, section, parameters...);
+
+		// Enforce proper value ordering in intervals
+		(..., Details::PostProcessIntervals(parameters));
 	}
 
 
@@ -683,10 +696,14 @@ namespace HeatParameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
+			// Parse roam / race values without fallbacks, storing which ones could be parsed successfully
 			const auto isEnableds = Details::ParsePartial<HeatParameters...>(forRaces, parser, section, parameters...);
+
+			// Mark successfully parsed values as enabled
 			(..., (parameters.isEnableds.GetValues(forRaces) = isEnableds));
 		}
 
-		(..., Details::FinaliseParameters(parameters));
+		// Enforce proper value ordering in intervals
+		(..., Details::PostProcessIntervals(parameters));
 	}
 }
