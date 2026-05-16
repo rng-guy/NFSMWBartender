@@ -138,8 +138,8 @@ namespace HelicopterVision
 			call dword ptr [edx + 0x7C] // AIVehicleHelicopter::CanSeeTarget
 
 			pop ecx
-			mov dl, al
-			call UpdateColourBySight // ecx: copAIVehicle, dl: canSeeTarget
+			movzx edx, al
+			call UpdateColourBySight // ecx: copAIVehicle, edx: canSeeTarget
 
 			colour:
 			mov ecx, dword ptr [ebx + 0xCC]
