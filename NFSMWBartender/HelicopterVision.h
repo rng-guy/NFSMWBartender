@@ -19,7 +19,7 @@ namespace HelicopterVision
 
 	bool featureEnabled = false;
 
-	// Data structures
+	// Types and structs
 	constexpr size_t numChannels = 4;
 
 	template <typename T>

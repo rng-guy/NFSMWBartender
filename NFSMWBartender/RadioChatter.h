@@ -17,15 +17,15 @@ namespace RadioChatter
 
 	bool featureEnabled = false;
 
-	// Data structures
-	enum Jurisdiction // as above
+	// Types and structs
+	enum Jurisdiction // C-style for ASM
 	{
 		CITY    = 0,
 		STATE   = 1,
 		FEDERAL = 2
 	};
 	
-	enum Callsigns // C-style for ASM
+	enum Callsigns // as above
 	{
 		UNKNOWN,
 		PATROL,

@@ -70,7 +70,7 @@ namespace CopDetection
 
 	bool featureEnabled = false;
 
-	// Data structures
+	// Types and structs
 	struct Settings
 	{
 		float radarRange;
