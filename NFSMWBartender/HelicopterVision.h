@@ -70,9 +70,9 @@ namespace HelicopterVision
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
 		const float    currentTimestamp  = Globals::GetGameTime(/* unpaused = */ true);
-		volatile bool& isKnownHelicopter = *reinterpret_cast<volatile bool*>(copAIVehicle - 0x4C + 0x769); // padding byte
+		volatile bool& isKnownCopVehicle = *reinterpret_cast<volatile bool*>(copAIVehicle - 0x4C + 0x769); // padding byte
 
-		if (isKnownHelicopter)
+		if (isKnownCopVehicle)
 		{
 			const float timeDelta = currentTimestamp - lastUpdateTimestamp;
 
@@ -86,7 +86,7 @@ namespace HelicopterVision
 		}
 		else
 		{
-			isKnownHelicopter  = true;
+			isKnownCopVehicle  = true;
 			currentColourState = (canSeeTarget) ? 1.f : 0.f;
 		}
 
@@ -96,10 +96,10 @@ namespace HelicopterVision
 
 
 
-	void __fastcall ApplyColour(const address coneObject)
+	void __fastcall ApplyColour(const address interfaceObject)
 	{
 		const auto SetFEngColour = reinterpret_cast<void (__cdecl*)(address, uint32_t)>(0x5157E0);
-		SetFEngColour(coneObject, currentColour); // persists until overridden with another call
+		SetFEngColour(interfaceObject, currentColour); // persists until overridden with another call
 	}
 
 
@@ -143,7 +143,7 @@ namespace HelicopterVision
 
 			colour:
 			mov ecx, dword ptr [ebx + 0xCC]
-			call ApplyColour // ecx: vision-cone object
+			call ApplyColour // ecx: interfaceObject
 
 			// Execute original code and resume
 			mov byte ptr [esp + 0x13], 0x1
@@ -167,7 +167,7 @@ namespace HelicopterVision
 			jne conclusion // skip drawing icon
 
 			mov ecx, dword ptr [esi + 0x3C]
-			call ApplyColour // ecx: coneObject
+			call ApplyColour // ecx: interfaceObject
 
 			xor eax, eax // restore zero flag
 
