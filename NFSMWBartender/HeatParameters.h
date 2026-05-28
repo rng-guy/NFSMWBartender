@@ -163,9 +163,7 @@ namespace HeatParameters
 
 			for (const bool forRaces : {false, true})
 			{
-				const Values<T>& values = this->GetValues(forRaces);
-
-				for (const T value : values)
+				for (const T value : this->GetValues(forRaces))
 					minimum = std::min<T>(minimum, value);
 			}
 
@@ -179,9 +177,7 @@ namespace HeatParameters
 
 			for (const bool forRaces : {false, true})
 			{
-				const Values<T>& values = this->GetValues(forRaces);
-
-				for (const T value : values)
+				for (const T value : this->GetValues(forRaces))
 					maximum = std::max<T>(maximum, value);
 			}
 

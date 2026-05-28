@@ -1,12 +1,11 @@
 #pragma once
 
 #include <vector>
-#include <string>
+#include <optional>
 #include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "ModContainers.h"
 #include "HeatParameters.h"
 #include "ConfigParser.h"
 
@@ -160,53 +159,56 @@ namespace InteractiveMusic
 
 	bool ParsePlaylist(const HeatParameters::Parser& parser)
 	{
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<2>("Playlist parsing:");
+
 		const auto& sections     = parser.GetSections();
 		const auto  foundSection = sections.find("Music:Playlist");
 
-		// Parse track IDs if playlist section exists
-		if (foundSection != sections.end())
+		if (foundSection == sections.end())
 		{
-			const ModContainers::Map<std::string_view, int> nameToIndex =
-			{
-				{"theme1", 0},
-				{"theme2", 1},
-				{"theme3", 2},
-				{"theme4", 3}
-			};
-
-			const auto& pairs = foundSection->second;
-
 			if constexpr (Globals::loggingEnabled)
-			{
-				Globals::logger.Log<2>("Playlist parsing:");
-				Globals::logger.Log<3>(static_cast<int>(pairs.size()), "track(s) provided");
-			}
+				Globals::logger.Log<3>("no section provided");
 
-			// Validate and add track IDs
-			for (const auto& [key, value] : pairs)
-			{
-				if (key.find("track") == 0) // key starts with "track"
-				{
-					const auto foundName = nameToIndex.find(value);
-
-					if (foundName != nameToIndex.end()) // value valid
-						playlist.push_back(foundName->second);
-
-					else if constexpr (Globals::loggingEnabled) // value invalid
-						Globals::logger.Log<3>('-', key, "(invalid value)");
-				}
-				else if constexpr (Globals::loggingEnabled) // key invalid
-					Globals::logger.Log<3>('-', key, "(invalid format)");
-			}
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>(static_cast<int>(playlist.size()), "track(s) valid");
+			return false; // missing section; disable feature
 		}
-		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<3>("no track(s) provided");
+
+		// Validate and add track IDs
+		const auto& pairs = foundSection->second;
+		playlist.reserve(pairs.size());
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<3>(static_cast<int>(pairs.size()), "track(s) provided");
+
+		constexpr auto NameToTrackID = [](const std::string_view name) -> std::optional<int>
+		{
+			if (name == "theme1") return 0;
+			if (name == "theme2") return 1;
+			if (name == "theme3") return 2;
+			if (name == "theme4") return 3;
+
+			return std::nullopt;
+		};
+
+		for (const auto& [key, value] : pairs)
+		{
+			if (key.find("track") == 0) // key starts with "track"
+			{
+				if (const auto trackID = NameToTrackID(value)) // value valid
+					playlist.push_back(*trackID);
+
+				else if constexpr (Globals::loggingEnabled) // value invalid
+					Globals::logger.Log<3>('-', key, "(invalid value)");
+			}
+			else if constexpr (Globals::loggingEnabled) // key invalid
+				Globals::logger.Log<3>('-', key, "(invalid format)");
+		}
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<3>(static_cast<int>(playlist.size()), "track(s) valid");
 
 		playlist.shrink_to_fit();
-
+	
 		return (not playlist.empty());
 	}
 

@@ -254,27 +254,34 @@ namespace RadioChatter
 
 	void ParseJurisdictions(const HeatParameters::Parser& parser)
 	{
-		const ModContainers::Map<std::string_view, Jurisdiction> nameToJurisdiction =
+		Jurisdiction defaultJurisdiction = Jurisdiction::CITY;
+
+		const auto NameToJurisdiction = [&defaultJurisdiction](const std::string_view name) -> Jurisdiction
 		{
-			{"city",    Jurisdiction::CITY},
-			{"state",   Jurisdiction::STATE},
-			{"federal", Jurisdiction::FEDERAL}
+			if (name == "city")    return Jurisdiction::CITY;
+			if (name == "state")   return Jurisdiction::STATE;
+			if (name == "federal") return Jurisdiction::FEDERAL;
+
+			return defaultJurisdiction;
 		};
 
+		constexpr std::string_view section = "Heat:Jurisdiction";
+
+		// Parse string representations of jurisdictions first
 		HeatParameters::Pair<std::string_view> jurisdictionNames("city");
-		HeatParameters::Parse(parser, "Heat:Jurisdiction", jurisdictionNames);
+		HeatParameters::Parse(parser, section, jurisdictionNames);
 
-		// Validate and convert to jurisdiction IDs
-		for (const bool forRaces : {false, true})
+		// Validate and convert new "default" value (if applicable)
+		std::string_view newDefaultName;
+
+		if (parser.ParseFromFile<std::string_view>(section, HeatParameters::configDefaultKey, {newDefaultName}))
+			defaultJurisdiction = NameToJurisdiction(newDefaultName);
+
+		// Validate and convert Heat-level values
+		for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 		{
-			auto&       jurisIDs   = heatJurisdictionIDs.GetValues(forRaces);
-			const auto& jurisNames = jurisdictionNames  .GetValues(forRaces);
-
-			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
-			{
-				const auto foundName  = nameToJurisdiction.find(jurisNames[heatLevelID]);
-				jurisIDs[heatLevelID] = (foundName != nameToJurisdiction.end()) ? foundName->second : heatJurisdictionIDs.current;
-			}
+			heatJurisdictionIDs.roam[heatLevelID] = NameToJurisdiction(jurisdictionNames.roam[heatLevelID]);
+			heatJurisdictionIDs.race[heatLevelID] = NameToJurisdiction(jurisdictionNames.race[heatLevelID]);
 		}
 	}
 
@@ -287,19 +294,15 @@ namespace RadioChatter
 
 		parser.ParseUser<const char*, std::string_view>("Vehicles:Callsigns", copVehicles, {callsignNames});
 
-		const ModContainers::Map<std::string_view, Callsigns> nameToCallsigns =
-		{
-			{"patrol", Callsigns::PATROL},
-			{"elite",  Callsigns::ELITE},
-			{"rhino",  Callsigns::RHINO},
-			{"cross",  Callsigns::CROSS}
-		};
-
 		// Populate callsign map
-		const auto RawValueToCallsigns = [&nameToCallsigns](const std::string_view rawValue) -> Callsigns
+		constexpr auto NameToCallsigns = [](const std::string_view name) -> Callsigns
 		{
-			const auto foundName = nameToCallsigns.find(rawValue);
-			return (foundName != nameToCallsigns.end()) ? foundName->second : Callsigns::UNKNOWN;
+			if (name == "patrol") return Callsigns::PATROL;
+			if (name == "elite")  return Callsigns::ELITE;
+			if (name == "rhino")  return Callsigns::RHINO;
+			if (name == "cross")  return Callsigns::CROSS;
+
+			return Callsigns::UNKNOWN;
 		};
 
 		constexpr auto AreCallsignsValid = [](const Callsigns value) -> bool {return (value != Callsigns::UNKNOWN);};
@@ -309,7 +312,7 @@ namespace RadioChatter
 			"Vehicle-to-callsign",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
 			ModContainers::FillSetup(copVehicles,   Globals::GetVaultKey, Globals::IsVehicleTypeCar),
-			ModContainers::FillSetup(callsignNames, RawValueToCallsigns,  AreCallsignsValid)
+			ModContainers::FillSetup(callsignNames, NameToCallsigns,      AreCallsignsValid)
 		);
 	}
 
