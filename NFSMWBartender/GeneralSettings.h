@@ -608,7 +608,7 @@ namespace GeneralSettings
 		// Pursuit-breaker immunity
 		if (ParsePursuitBreakerImmunities(parser))
 		{
-			// Code modifications (feature-specific)
+			// Code modifications (conditional)
 			MemoryTools::MakeRangeJMP<pursuitBreakerCheckEntrance, pursuitBreakerCheckExit>(PursuitBreakerCheck);
 		}
 

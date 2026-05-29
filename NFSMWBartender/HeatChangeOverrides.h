@@ -565,7 +565,7 @@ namespace HeatChangeOverrides
 		// Vehicle-specific Heat changes
 		if (ParseVehicleChanges(parser))
 		{
-			// Code modifications (feature-specific)
+			// Code modifications (conditional)
 			MemoryTools::MakeRangeJMP<typeDestructionEntrance, typeDestructionExit>(TypeDestruction);
 		}
 

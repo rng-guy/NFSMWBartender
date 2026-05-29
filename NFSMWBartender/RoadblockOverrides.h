@@ -625,7 +625,7 @@ namespace RoadblockOverrides
 		// Roadblock setups
 		if (ParseRoadblockSetups(parser))
 		{
-			// Code changes (feature-specific)
+			// Code changes (conditional)
 			MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
 
 			MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable); // replaces game function

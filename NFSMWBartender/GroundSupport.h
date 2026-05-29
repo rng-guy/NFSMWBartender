@@ -879,7 +879,7 @@ namespace GroundSuppport
 		// Check whether vehicles are cars
 		ValidateVehicleTypes();
 
-		// Code modifications (feature-specific)
+		// Code modifications (conditional)
 		if constexpr (Globals::loggingEnabled)
 			MemoryTools::MakeRangeJMP<priorityOutcomeEntrance, priorityOutcomeExit>(PriorityOutcome);
 

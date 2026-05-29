@@ -47,6 +47,26 @@ namespace RadioChatter
 
 
 
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	int __fastcall GetCallsignsOffset(const Callsigns callsigns)
+	{
+		switch (callsigns)
+		{
+		case Callsigns::PATROL:
+			return -0x1;
+
+		case Callsigns::RHINO:
+			return 0x20;
+		}
+
+		return 0x10; // e.g. ELITE, CROSS
+	}
+
+
+
+
+
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address heatCheckEntrance = 0x71D370;
@@ -122,11 +142,11 @@ namespace RadioChatter
 
 
 
-	constexpr address crossCallsignEntrance = 0x71FB01;
-	constexpr address crossCallsignExit     = 0x71FB06;
+	constexpr address callsignsCheckEntrance = 0x71FB01;
+	constexpr address callsignsCheckExit     = 0x71FB06;
 
-	// Checks whether the current vehicle gets Cross' callsign
-	__declspec(naked) void CrossCallsign()
+	// Retrieves the current vehicle's callsign
+	__declspec(naked) void CallsignsCheck()
 	{
 		__asm
 		{
@@ -135,64 +155,52 @@ namespace RadioChatter
 			call ModContainers::DefaultCopyVaultMap<Callsigns>::GetValue
 			cmp eax, CROSS
 
-			mov dword ptr [esp + 0x28], eax // repurposed variable
+			mov dword ptr [esp + 0x28], eax // freed variable
 
-			jmp dword ptr crossCallsignExit
+			jmp dword ptr callsignsCheckExit
 		}
 	}
 
 
 
-	constexpr address firstCallsignEntrance = 0x71FB27;
-	constexpr address firstCallsignExit     = 0x71FB76;
+	constexpr address firstCallsignsEntrance = 0x71FB27;
+	constexpr address firstCallsignsExit     = 0x71FB76;
 
-	// The first callsign-specific part of the assignment function
-	__declspec(naked) void FirstCallsign()
+	// The first callsigns-specific part of the assignment function
+	__declspec(naked) void FirstCallsigns()
 	{
-		static constexpr address firstCallsignSkip = 0x71FB8B;
+		static constexpr address firstCallsignsSkip = 0x71FB8B;
 
 		__asm
 		{
-			mov edx, dword ptr [esp + 0x28] // from "CrossCallsign"
+			mov ecx, dword ptr [esp + 0x28] // from "CallsignsCheck"
 
-			cmp edx, PATROL
+			cmp ecx, PATROL
 			je conclusion // is "patrol"
 
-			mov eax, 0x10
+			call GetCallsignsOffset // ecx: callsigns
 
-			mov ecx, 0x20
-			cmp edx, RHINO
-			cmove eax, ecx // is "rhino"
-
-			jmp dword ptr firstCallsignSkip
+			jmp dword ptr firstCallsignsSkip
 
 			conclusion:
-			jmp dword ptr firstCallsignExit
+			jmp dword ptr firstCallsignsExit
 		}
 	}
 
 
 
-	constexpr address secondCallsignEntrance = 0x71FCCD;
-	constexpr address secondCallsignExit     = 0x71FCDD;
+	constexpr address secondCallsignsEntrance = 0x71FCCD;
+	constexpr address secondCallsignsExit     = 0x71FCDD;
 
-	// The second callsign-specific part of the assignment function
-	__declspec(naked) void SecondCallsign()
+	// The second callsigns-specific part of the assignment function
+	__declspec(naked) void SecondCallsigns()
 	{
 		__asm
 		{
-			mov eax, 0x10
-			mov edx, dword ptr [esp + 0x28] // from "CrossCallsign"
+			mov ecx, dword ptr [esp + 0x28] // from "CallsignsCheck"
+			call GetCallsignsOffset         // ecx: callsigns
 
-			mov ecx, -0x1
-			cmp edx, PATROL
-			cmove eax, ecx // is "patrol"
-
-			mov ecx, 0x20
-			cmp edx, RHINO
-			cmove eax, ecx // is "rhino"
-
-			jmp dword ptr secondCallsignExit
+			jmp dword ptr secondCallsignsExit
 		}
 	}
 
@@ -347,12 +355,12 @@ namespace RadioChatter
 		// Callsigns
 		if (ParseCallsigns(parser))
 		{
-			// Code modifications (feature-specific)
+			// Code modifications (conditional)
 			MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up stack variable
 
-			MemoryTools::MakeRangeJMP<crossCallsignEntrance,    crossCallsignExit>   (CrossCallsign);
-			MemoryTools::MakeRangeJMP<firstCallsignEntrance,    firstCallsignExit>   (FirstCallsign);
-			MemoryTools::MakeRangeJMP<secondCallsignEntrance,   secondCallsignExit>  (SecondCallsign);
+			MemoryTools::MakeRangeJMP<callsignsCheckEntrance,   callsignsCheckExit>  (CallsignsCheck);
+			MemoryTools::MakeRangeJMP<firstCallsignsEntrance,   firstCallsignsExit>  (FirstCallsigns);
+			MemoryTools::MakeRangeJMP<secondCallsignsEntrance,  secondCallsignsExit> (SecondCallsigns);
 			MemoryTools::MakeRangeJMP<collisionCalloutEntrance, collisionCalloutExit>(CollisionCallout);
 		}
 

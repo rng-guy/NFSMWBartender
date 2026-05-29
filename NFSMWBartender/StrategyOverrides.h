@@ -682,7 +682,7 @@ namespace StrategyOverrides
 		MemoryTools::MakeRangeJMP<heavyStrategy3Entrance, heavyStrategy3Exit>(HeavyStrategy3);
 		MemoryTools::MakeRangeJMP<heavyStrategy4Entrance, heavyStrategy4Exit>(HeavyStrategy4);
 
-		// Code modifications (feature-specific)
+		// Code modifications (conditional)
 		if (not GeneralSettings::trackPursuitLength)
 		{
 			MemoryTools::MakeRangeJMP<minStrategyDelayEntrance,   minStrategyDelayExit>  (MinStrategyDelay);
