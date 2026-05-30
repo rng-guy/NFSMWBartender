@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -17,36 +18,42 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves 
-	constinit ModContainers::DefaultCopyVaultMap<binary> copTypeToDestructionKey(0x0);
-
-
+	constinit ModContainers::DefaultReferenceVaultMap<std::string> copTypeToString({});
 	
+
+
+
+
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	const char* __fastcall GetDestructionString(const vault copType)
+	{
+		return copTypeToString.GetValue(copType).c_str();
+	}
+
+
+
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
 	constexpr address copDestructionEntrance = 0x595B0D;
-	constexpr address copDestructionExit     = 0x595C37;
+	constexpr address copDestructionExit     = 0x595C41;
 
 	// Looks up notification strings for destroyed cop vehicles
 	__declspec(naked) void CopDestruction()
 	{
-		static constexpr address copDestructionSkip = 0x595CB3;
-
 		__asm
 		{
-			push dword ptr [esp + 0x54] // copType
-			mov ecx, offset copTypeToDestructionKey
-			call ModContainers::DefaultCopyVaultMap<binary>::GetValue
+			mov ecx, dword ptr [esp + 0x54] // copType
+			call GetDestructionString
 			test eax, eax
-			je skip                     // string invalid
+			je conclusion
 
-			push eax
+			cmp byte ptr [eax], '\0'
 
+			conclusion:
 			jmp dword ptr copDestructionExit
-
-			skip:
-			jmp dword ptr copDestructionSkip
 		}
 	}
 
@@ -58,23 +65,30 @@ namespace DestructionStrings
 
 	bool ParseDestructionKeys(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*> copVehicles;  // C-style for game compatibility
-		std::vector<const char*> binaryLabels; // C-style for game compatibility
+		std::vector<const char*> copVehicles; // C-style for game compatibility
+		std::vector<const char*> rawStrings;  // C-style for game compatibility
 
-		parser.ParseUser<const char*, const char*>("Vehicles:Strings", copVehicles, {binaryLabels});
+		parser.ParseUser<const char*, const char*>("Vehicles:Strings", copVehicles, {rawStrings});
 
-		const auto IsBinaryKeyValid = [](const binary key) -> bool
+		const auto RawToDestructionString = [](const char* const rawString) -> std::string
 		{
-			const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
-			return GetBinaryString(0, key); // first argument is unused placeholder value
+			const auto        GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
+			const char* const binaryString    = GetBinaryString(0, Globals::GetBinaryKey(rawString));
+
+			return (binaryString) ? binaryString : rawString;
 		};
 
-		return copTypeToDestructionKey.FillFromVectors
+		constexpr auto IsDestructionStringValid = [](const std::string& destructionString) -> bool
+		{
+			return (not destructionString.empty());
+		};
+
+		return copTypeToString.FillFromVectors
 		(
 			"Vehicle-to-label",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::FillSetup(copVehicles,  Globals::GetVaultKey,  Globals::DoesVehicleTypeExist),
-			ModContainers::FillSetup(binaryLabels, Globals::GetBinaryKey, IsBinaryKeyValid)
+			ModContainers::FillSetup(copVehicles, Globals::GetVaultKey,   Globals::DoesVehicleTypeExist),
+			ModContainers::FillSetup(rawStrings,  RawToDestructionString, IsDestructionStringValid)
 		);
 	}
 
@@ -91,8 +105,8 @@ namespace DestructionStrings
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
-		// Destruction (binary) keys
-		if (not ParseDestructionKeys(parser)) return false; // no valid keys; disable feature
+		// Destruction strings
+		if (not ParseDestructionKeys(parser)) return false; // no valid string(s); disable feature
 	
 		// Code modifications 
 		MemoryTools::MakeRangeJMP<copDestructionEntrance, copDestructionExit>(CopDestruction);

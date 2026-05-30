@@ -77,7 +77,7 @@ namespace ModContainers
 	// DefaultMap class -----------------------------------------------------------------------------------------------------------------------------
 
 	template <typename K, typename V, bool returnReferences>
-	requires (std::is_trivially_copyable_v<K> and std::is_trivially_copyable_v<V>)
+	requires (std::is_trivially_copyable_v<K> and (std::is_trivially_copyable_v<V> or returnReferences))
 	class DefaultMap
 	{
 	private:
@@ -146,10 +146,10 @@ namespace ModContainers
 						if (key == defaultKey) // default key
 						{
 							defaultProvided    = true;
-							this->defaultValue = value;
+							this->defaultValue = std::move(value);
 						}
 						else if (keySetup.IsValidValue(key)) // key valid
-							this->map.try_emplace(key, value);
+							this->map.try_emplace(key, std::move(value));
 
 						else if constexpr (Globals::loggingEnabled) // key invalid
 							Globals::logger.Log<3>('-', rawKey, "(invalid key)");
