@@ -319,8 +319,8 @@ namespace RadioChatter
 		(
 			"Vehicle-to-callsign",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::FillSetup(copVehicles,   Globals::GetVaultKey, Globals::IsVehicleTypeCar),
-			ModContainers::FillSetup(callsignNames, NameToCallsigns,      AreCallsignsValid)
+			ModContainers::MapFillSetup(copVehicles,   Globals::GetVaultKey, Globals::IsVehicleTypeCar),
+			ModContainers::MapFillSetup(callsignNames, NameToCallsigns,      AreCallsignsValid)
 		);
 	}
 

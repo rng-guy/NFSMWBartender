@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <fstream>
+#include <functional>
 #include <string_view>
 
 #include "Globals.h"
@@ -406,8 +407,8 @@ namespace CopDetection
 		(
 			"Vehicle-to-settings",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::IsVehicleTypeCar),
-			ModContainers::FillSetup(settings)
+			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultKey, Globals::IsVehicleTypeCar),
+			ModContainers::MapFillSetup(settings,    std::identity{},      ModContainers::AlwaysValid{})
 		);
 	}
 

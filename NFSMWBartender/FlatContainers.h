@@ -171,25 +171,25 @@ namespace FlatContainers
 		}
 
 
-		template <typename U>
-		requires std::equality_comparable_with<U, value_type>
-		[[nodiscard]] constexpr iterator find(const U& value)
+		template <typename ValArg>
+		requires std::equality_comparable_with<ValArg, value_type>
+		[[nodiscard]] constexpr iterator find(const ValArg& value)
 		{
 			return std::find(this->begin(), this->end(), value);
 		}
 
 
-		template <typename U>
-		requires std::equality_comparable_with<U, value_type>
-		[[nodiscard]] constexpr const_iterator find(const U& value) const
+		template <typename ValArg>
+		requires std::equality_comparable_with<ValArg, value_type>
+		[[nodiscard]] constexpr const_iterator find(const ValArg& value) const
 		{
 			return std::find(this->begin(), this->end(), value);
 		}
 
 
-		template <typename U>
-		requires std::equality_comparable_with<U, value_type>
-		[[nodiscard]] constexpr bool contains(const U& value) const
+		template <typename ValArg>
+		requires std::equality_comparable_with<ValArg, value_type>
+		[[nodiscard]] constexpr bool contains(const ValArg& value) const
 		{
 			return (this->find(value) != this->end());
 		}
@@ -209,10 +209,10 @@ namespace FlatContainers
 
 
 		// May invalidate all iterators
-		template <typename... Args>
-		constexpr std::pair<iterator, bool> emplace(Args&&... args)
+		template <typename... ValArgs>
+		constexpr std::pair<iterator, bool> emplace(ValArgs&&... args)
 		{
-			value_type temp(std::forward<Args>(args)...);
+			value_type temp(std::forward<ValArgs>(args)...);
 
 			const auto it = this->find(temp);
 			if (it != this->end()) return {it, false};
@@ -240,9 +240,9 @@ namespace FlatContainers
 
 
 		// Invalidates iterators of erased and last element
-		template <typename U>
-		requires std::equality_comparable_with<U, value_type>
-		constexpr bool erase(const U& value)
+		template <typename ValArg>
+		requires std::equality_comparable_with<ValArg, value_type>
+		constexpr bool erase(const ValArg& value)
 		{
 			const auto it = this->find(value);
 			if (it == this->end()) return false;
@@ -313,27 +313,27 @@ namespace FlatContainers
 		}
 
   
-		template <typename U>
-		requires std::equality_comparable_with<U, key_type>
-		[[nodiscard]] constexpr iterator find(const U& key)
+		template <typename KeyArg>
+		requires std::equality_comparable_with<KeyArg, key_type>
+		[[nodiscard]] constexpr iterator find(const KeyArg& key)
 		{
 			const auto keyMatches = [&key](const value_type& pair) -> bool {return (pair.first == key);};
 			return std::find_if(this->begin(), this->end(), keyMatches);
 		}
 
 
-		template <typename U>
-		requires std::equality_comparable_with<U, key_type>
-		[[nodiscard]] constexpr const_iterator find(const U& key) const
+		template <typename KeyArg>
+		requires std::equality_comparable_with<KeyArg, key_type>
+		[[nodiscard]] constexpr const_iterator find(const KeyArg& key) const
 		{
 			const auto keyMatches = [&key](const value_type& pair) -> bool {return (pair.first == key);};
 			return std::find_if(this->begin(), this->end(), keyMatches);
 		}
 
 
-		template <typename U>
-		requires std::equality_comparable_with<U, key_type>
-		[[nodiscard]] constexpr bool contains(const U& key) const
+		template <typename KeyArg>
+		requires std::equality_comparable_with<KeyArg, key_type>
+		[[nodiscard]] constexpr bool contains(const KeyArg& key) const
 		{
 			return (this->find(key) != this->end());
 		}
@@ -415,9 +415,9 @@ namespace FlatContainers
 
 
 		// Invalidates iterators of erased and last element
-		template <typename U>
-		requires std::equality_comparable_with<U, key_type>
-		constexpr bool erase(const U& key)
+		template <typename KeyArg>
+		requires std::equality_comparable_with<KeyArg, key_type>
+		constexpr bool erase(const KeyArg& key)
 		{
 			const auto it = this->find(key);
 			if (it == this->end()) return false;

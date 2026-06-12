@@ -51,7 +51,7 @@ namespace ModContainers
 
 	// Helper structs -------------------------------------------------------------------------------------------------------------------------------
 
-	struct AlwaysTrue
+	struct AlwaysValid
 	{
 		bool operator()(const auto&) const 
 		{
@@ -61,13 +61,14 @@ namespace ModContainers
 
 
 
-	template <typename T, class Converter = std::identity, class Validator = AlwaysTrue>
-	struct FillSetup
+	template <typename RawType, class Converter, class Validator>
+	requires (std::invocable<Converter, RawType> and std::predicate<Validator, std::invoke_result_t<Converter, RawType>>)
+	struct MapFillSetup
 	{
-		const std::vector<T>& rawValues;
+		const std::vector<RawType>& rawData;
 
-		Converter RawToValue   = {};
-		Validator IsValidValue = {};
+		Converter ConvertFromRaw{};
+		Validator IsValidResult {};
 	};
 
 
@@ -78,104 +79,94 @@ namespace ModContainers
 
 	template <typename K, typename V, bool returnReferences>
 	requires (std::is_trivially_copyable_v<K> and (std::is_trivially_copyable_v<V> or returnReferences))
-	class DefaultMap
+	class DefaultMap : protected Map<K, V>
 	{
 	private:
 
 		V defaultValue;
 
-		Map<K, V> map;
-
 		
 
 	public:
 
-		using ReturnType = std::conditional_t<returnReferences, const V&, V>;
-
 		constexpr explicit DefaultMap(const V defaultValue) : defaultValue(defaultValue) {}
 
-
 		
-		[[nodiscard]] ReturnType GetValue(const K key) const
+		[[nodiscard]] std::conditional_t<returnReferences, const V&, V> GetValue(const K key) const
 		{
-			const auto foundPair = this->map.find(key);
-			return (foundPair != this->map.end()) ? foundPair->second : this->defaultValue;
+			const auto foundPair = this->find(key);
+			return (foundPair != this->end()) ? foundPair->second : this->defaultValue;
 		}
 
 
 		template <typename RawK, class ConK, class ValK, typename RawV, class ConV, class ValV>
-		requires (std::predicate<ValK, K> and std::predicate<ValV, V>)
 		bool FillFromVectors
 		(
-			const std::string_view            mapName,
-			const K&                          defaultKey,
-			const FillSetup<RawK, ConK, ValK> keySetup,
-			const FillSetup<RawV, ConV, ValV> valueSetup
+			const std::string_view               mapName,
+			const K                              defaultKey,
+			const MapFillSetup<RawK, ConK, ValK> keySetup,
+			const MapFillSetup<RawV, ConV, ValV> valueSetup
 		) {
-			this->map.clear();
-
-			bool mapIsValid = false;
+			bool mapIsValid         = false;
+			bool newDefaultProvided = false;
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>(mapName, "map:");
 
-			const auto& rawKeys   = keySetup  .rawValues;
-			const auto& rawValues = valueSetup.rawValues;
+			const auto& rawKeys   = keySetup  .rawData;
+			const auto& rawValues = valueSetup.rawData;
 
-			// Populate map if key and value counts match
-			if ((not rawKeys.empty() and (rawKeys.size() == rawValues.size())))
+			const size_t numPairs = std::min<size_t>(rawKeys.size(), rawValues.size());
+
+			this->clear();
+			this->reserve(numPairs);
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<3>(static_cast<int>(numPairs), "pair(s) provided");
+
+			// Pair validation and insertion
+			for (size_t pairID = 0; pairID < numPairs; ++pairID)
 			{
-				const size_t numPairs = rawKeys.size();
-				this->map.reserve(numPairs);
+				const K    key          = keySetup.ConvertFromRaw(rawKeys[pairID]);
+				const bool isDefaultKey = (key == defaultKey);
 
-				bool defaultProvided = false;
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<3>(static_cast<int>(numPairs), "pair(s) provided");
-
-				// Key-value insertion
-				for (size_t pairID = 0; pairID < numPairs; ++pairID)
+				if (isDefaultKey or keySetup.IsValidResult(key))
 				{
-					const RawK& rawKey = rawKeys[pairID];
-					const V     value  = valueSetup.RawToValue(rawValues[pairID]);
+					const V value = valueSetup.ConvertFromRaw(rawValues[pairID]);
 
-					if (valueSetup.IsValidValue(value)) // value valid
+					if (valueSetup.IsValidResult(value)) // value valid
 					{
-						const K key = keySetup.RawToValue(rawKey);
-
-						if (key == defaultKey) // default key
+						if (isDefaultKey) // default key
 						{
-							defaultProvided    = true;
+							newDefaultProvided = true;
 							this->defaultValue = std::move(value);
 						}
-						else if (keySetup.IsValidValue(key)) // key valid
-							this->map.try_emplace(key, std::move(value));
-
-						else if constexpr (Globals::loggingEnabled) // key invalid
-							Globals::logger.Log<3>('-', rawKey, "(invalid key)");
+						else this->try_emplace(key, std::move(value)); // regular key
 					}
 					else if constexpr (Globals::loggingEnabled) // value invalid
-						Globals::logger.Log<3>('-', rawKey, "(invalid value)");
+						Globals::logger.Log<3>('-', rawKeys[pairID], "(invalid value)");
 				}
+				else if constexpr (Globals::loggingEnabled) // key invalid
+					Globals::logger.Log<3>('-', rawKeys[pairID], "(invalid key)");
+			}
 
-				// Concluding validation
-				if (defaultProvided or (not this->map.empty()))
+			// Size validation
+			if (newDefaultProvided or (not this->empty()))
+			{
+				mapIsValid = true;
+
+				if constexpr (Globals::loggingEnabled)
 				{
-					mapIsValid = true;
+					const size_t numValidPairs = (newDefaultProvided) ? (this->size() + 1) : this->size();
 
-					if constexpr (Globals::loggingEnabled)
-					{
-						Globals::logger.Log<3>(static_cast<int>(this->map.size()) + defaultProvided, "pair(s) valid");
-						Globals::logger.Log<3>("default value:", this->defaultValue);
-					}
+					Globals::logger.Log<3>(static_cast<int>(numValidPairs), "pair(s) valid");
+					Globals::logger.Log<3>("default value:", this->defaultValue);
 				}
-				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<3>("no pair(s) valid");
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>("no pair(s) provided");
+				Globals::logger.Log<3>("no pair(s) valid");
 
-			this->map.shrink_to_fit();
+			this->shrink_to_fit();
 
 			return mapIsValid;
 		}

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <functional>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -18,7 +19,7 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves 
-	constinit ModContainers::DefaultReferenceVaultMap<std::string> copTypeToString({});
+	constinit ModContainers::DefaultReferenceVaultMap<std::string> copTypeToStringOrName({});
 	
 
 
@@ -28,7 +29,12 @@ namespace DestructionStrings
 
 	const char* __fastcall GetDestructionString(const vault copType)
 	{
-		return copTypeToString.GetValue(copType).c_str();
+		const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
+
+		const char* const stringOrName = copTypeToStringOrName.GetValue(copType).c_str();
+		const char* const binaryString = GetBinaryString(0, Globals::GetBinaryKey(stringOrName));
+
+		return (binaryString) ? binaryString : stringOrName;
 	}
 
 
@@ -45,14 +51,10 @@ namespace DestructionStrings
 	{
 		__asm
 		{
-			mov ecx, dword ptr [esp + 0x54] // copType
-			call GetDestructionString
-			test eax, eax
-			je conclusion
-
+			mov ecx, dword ptr [esp + 0x54]
+			call GetDestructionString // ecx: copType
 			cmp byte ptr [eax], '\0'
 
-			conclusion:
 			jmp dword ptr copDestructionExit
 		}
 	}
@@ -65,30 +67,22 @@ namespace DestructionStrings
 
 	bool ParseDestructionKeys(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*> copVehicles; // C-style for game compatibility
-		std::vector<const char*> rawStrings;  // C-style for game compatibility
+		std::vector<const char*> copVehicles;   // C-style for game compatibility
+		std::vector<const char*> stringOrNames; // C-style for game compatibility
 
-		parser.ParseUser<const char*, const char*>("Vehicles:Strings", copVehicles, {rawStrings});
+		parser.ParseUser<const char*, const char*>("Vehicles:Strings", copVehicles, {stringOrNames});
 
-		const auto RawToDestructionString = [](const char* const rawString) -> std::string
+		constexpr auto IsStringOrNameValid = [](const std::string& stringOrName) -> bool
 		{
-			const auto        GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
-			const char* const binaryString    = GetBinaryString(0, Globals::GetBinaryKey(rawString));
-
-			return (binaryString) ? binaryString : rawString;
+			return (not stringOrName.empty());
 		};
 
-		constexpr auto IsDestructionStringValid = [](const std::string& destructionString) -> bool
-		{
-			return (not destructionString.empty());
-		};
-
-		return copTypeToString.FillFromVectors
+		return copTypeToStringOrName.FillFromVectors
 		(
-			"Vehicle-to-label",
+			"Vehicle-to-string",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::FillSetup(copVehicles, Globals::GetVaultKey,   Globals::DoesVehicleTypeExist),
-			ModContainers::FillSetup(rawStrings,  RawToDestructionString, IsDestructionStringValid)
+			ModContainers::MapFillSetup(copVehicles,   Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(stringOrNames, std::identity{},      IsStringOrNameValid)
 		);
 	}
 

@@ -552,8 +552,8 @@ namespace GeneralSettings
 		(
 			"Vehicle-to-immunity",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
-			ModContainers::FillSetup(isAffecteds, std::logical_not<bool>{})
+			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultKey,     Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(isAffecteds, std::logical_not<bool>{}, ModContainers::AlwaysValid{})
 		);
 	}
 

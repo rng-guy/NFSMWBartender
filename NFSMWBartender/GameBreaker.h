@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -190,8 +191,8 @@ namespace GameBreaker
 		(
 			"Vehicle-to-change",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
-			ModContainers::FillSetup(changes)
+			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(changes,     std::identity{},      ModContainers::AlwaysValid{})
 		);
 	}
 

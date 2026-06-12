@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <algorithm>
+#include <functional>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -532,8 +533,8 @@ namespace HeatChangeOverrides
 		(
 			"Vehicle-to-change",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::FillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
-			ModContainers::FillSetup(heatChanges)
+			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(heatChanges, std::identity{},      ModContainers::AlwaysValid{})
 		);
 	}
 
