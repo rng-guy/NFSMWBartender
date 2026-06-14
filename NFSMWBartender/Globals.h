@@ -8,13 +8,14 @@
 
 
 
-// Macros
+// In debug releases, Visual Studio forces an unconditional dynamic allocation for compatible types.
+// This makes all dynamically allocating types (e.g. std::vector, std::string) constinit-incompatible.
 #ifdef _DEBUG
-	// In debug releases, Visual Studio forces an unconditional dynamic allocation for compatible types.
-	// This makes all dynamically allocating types (e.g. std::vector, std::string) constinit-incompatible.
-	#define RELEASE_CONSTINIT
+#define RELEASE_CONSTINIT
+
 #else
-	#define RELEASE_CONSTINIT constinit
+#define RELEASE_CONSTINIT constinit
+
 #endif
 
 
@@ -49,7 +50,7 @@ namespace Globals
 	address playerPerpVehicle    = 0x0;
 	bool    playerHeatLevelKnown = false;
 
-	// Logging (for debugging purposes)
+	// Logging (e.g. for debugging)
 	constexpr bool loggingEnabled = false;
 	BasicLogger::Logger<9, 15, 17> logger;
 

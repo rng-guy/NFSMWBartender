@@ -24,7 +24,7 @@
 #include <Windows.h>
 
 #ifdef _DEBUG
-	#include <debugapi.h>
+#include <debugapi.h>
 #endif
 
 #include "Globals.h"
@@ -64,7 +64,7 @@ static void __cdecl InitialiseBartender
 
 	// Halt until debugger is attached
 	#ifdef _DEBUG
-		while (not IsDebuggerPresent());
+	while (not IsDebuggerPresent());
 	#endif
 
 	// Initialise log and config parser
