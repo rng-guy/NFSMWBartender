@@ -41,7 +41,7 @@ namespace RadioChatter
 	size_t lastReportedHeatLevel = 1;
 	int    lastJurisdictionID    = 0;
 
-	constinit ModContainers::DefaultCopyVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
+	constinit ModContainers::DefaultVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
 
 
 
@@ -152,7 +152,7 @@ namespace RadioChatter
 		{
 			push eax // copType
 			mov ecx, offset copTypeToCallsignID
-			call ModContainers::DefaultCopyVaultMap<Callsigns>::GetValue
+			call ModContainers::DefaultVaultMap<Callsigns>::GetValue
 			cmp eax, CROSS
 
 			mov dword ptr [esp + 0x28], eax // freed variable
@@ -216,7 +216,7 @@ namespace RadioChatter
 		{
 			push eax                   // copType
 			mov ecx, offset copTypeToCallsignID
-			call ModContainers::DefaultCopyVaultMap<Callsigns>::GetValue
+			call ModContainers::DefaultVaultMap<Callsigns>::GetValue
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B] // is "rhino"
 

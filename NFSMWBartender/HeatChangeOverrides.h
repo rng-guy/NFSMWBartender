@@ -46,7 +46,7 @@ namespace HeatChangeOverrides
 	size_t lastAnimatedHeatLevel = 0;
 	float  animationEndTimestamp = 0.f;
 
-	constinit ModContainers::DefaultCopyVaultMap<float> copTypeToHeatChange(0.f);
+	constinit ModContainers::DefaultVaultMap<float> copTypeToHeatChange(0.f);
 
 
 
@@ -285,10 +285,10 @@ namespace HeatChangeOverrides
 
 	void __fastcall UpdateHeatAnimation(const address heatMeter)
 	{
-		const float  gameTime         = Globals::GetGameTime(/* unpaused = */ false);
+		const float  totalGameTime    = Globals::GetTotalGameTime();
 		const size_t currentHeatLevel = static_cast<size_t>(*reinterpret_cast<float*>(heatMeter + 0x40));
 		
-		if (gameTime >= animationEndTimestamp)
+		if (totalGameTime >= animationEndTimestamp)
 		{
 			const auto IsFEngScriptSet = reinterpret_cast<bool (__cdecl*)(address, uint32_t)>      (0x514DA0);
 			const auto SetFEngScript   = reinterpret_cast<void (__cdecl*)(address, uint32_t, bool)>(0x514D10);
@@ -301,7 +301,7 @@ namespace HeatChangeOverrides
 				SetFEngScript(interfaceObject, animationScript, true);
 
 				if (animationScript == 0x41E1FEDC)
-					animationEndTimestamp = gameTime + 2.5f; // animation length (seconds)
+					animationEndTimestamp = totalGameTime + 2.5f; // animation length (seconds)
 			}
 		}
 
@@ -483,7 +483,7 @@ namespace HeatChangeOverrides
 
 			push eax // copType
 			mov ecx, offset copTypeToHeatChange
-			call ModContainers::DefaultCopyVaultMap<float>::GetValue
+			call ModContainers::DefaultVaultMap<float>::GetValue
 
 			push eax
 			fstp dword ptr [esp] // amount

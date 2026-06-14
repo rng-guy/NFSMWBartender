@@ -77,8 +77,8 @@ namespace ModContainers
 
 	// DefaultMap class -----------------------------------------------------------------------------------------------------------------------------
 
-	template <typename K, typename V, bool returnReferences>
-	requires (std::is_trivially_copyable_v<K> and (std::is_trivially_copyable_v<V> or returnReferences))
+	template <typename K, typename V>
+	requires std::is_trivially_copyable_v<K>
 	class DefaultMap : protected Map<K, V>
 	{
 	private:
@@ -89,13 +89,20 @@ namespace ModContainers
 
 	public:
 
-		constexpr explicit DefaultMap(const V defaultValue) : defaultValue(defaultValue) {}
+		template <typename T>
+		constexpr explicit DefaultMap(T&& defaultValue) : defaultValue(std::forward<T>(defaultValue)) {}
 
-		
-		[[nodiscard]] std::conditional_t<returnReferences, const V&, V> GetValue(const K key) const
+
+		[[nodiscard]] const V& GetReference(const K key) const
 		{
 			const auto foundPair = this->find(key);
 			return (foundPair != this->end()) ? foundPair->second : this->defaultValue;
+		}
+
+
+		[[nodiscard]] V GetValue(const K key) const
+		{
+			return this->GetReference(key);
 		}
 
 
@@ -178,23 +185,9 @@ namespace ModContainers
 
 	// Derived (scoped) aliases ---------------------------------------------------------------------------------------------------------------------
 
-	template<typename K, typename V>
-	using DefaultCopyMap = DefaultMap<K, V, false>;
+	template <typename V>
+	using DefaultVaultMap = DefaultMap<vault, V>;
 
 	template <typename V>
-	using DefaultCopyVaultMap = DefaultCopyMap<vault, V>;
-
-	template <typename V>
-	using DefaultCopyAddressMap = DefaultCopyMap<address, V>;
-
-
-
-	template<typename K, typename V>
-	using DefaultReferenceMap = DefaultMap<K, V, true>;
-
-	template <typename V>
-	using DefaultReferenceVaultMap = DefaultReferenceMap<vault, V>;
-
-	template <typename V>
-	using DefaultReferenceAddressMap = DefaultReferenceMap<address, V>;
+	using DefaultAddressMap = DefaultMap<address, V>;
 }

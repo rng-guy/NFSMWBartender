@@ -30,7 +30,7 @@ namespace GameBreaker
 	constinit HeatParameters::Pair<bool> canLoseWhenInactives(true);
 
 	// Code caves
-	constinit ModContainers::DefaultCopyVaultMap<float> copTypeToBreakerChange(0.f); // seconds
+	constinit ModContainers::DefaultVaultMap<float> copTypeToBreakerChange(0.f); // seconds
 
 
 
@@ -107,7 +107,7 @@ namespace GameBreaker
 
 			push dword ptr [esi + 0xF8] // copType
 			mov ecx, offset copTypeToBreakerChange
-			call ModContainers::DefaultCopyVaultMap<float>::GetValue
+			call ModContainers::DefaultVaultMap<float>::GetValue
 			fmul dword ptr Globals::floatScale
 
 			faddp st(1), st(0)

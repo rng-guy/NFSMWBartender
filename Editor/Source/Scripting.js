@@ -6,7 +6,7 @@ const IMPORT_REGEX = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?\d+(\.\d+)?)\s*,\s
 const SELECTION_COLOUR = '#258CF4';
 const CONTRAST_COLOUR  = '#EB47EB';
 
-const ANIMATION_TIMER = 2000; /* ms */
+const ANIMATION_TIMER = 2000; // ms
 
 const WIDTH_THRESHOLDS = [6.0, 10.0, 15.0, 22.0, 28.0];
 

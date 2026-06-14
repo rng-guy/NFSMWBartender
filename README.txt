@@ -3,7 +3,7 @@
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
-Bartender adds NEW CUSTOMISATION OPTIONS to pursuits. These new options come in two feature sets:
+Bartender adds NEW CUSTOMISATION OPTIONS for pursuits. These new options come in two feature sets:
  • the "BASIC"    FEATURE SET lets you change many otherwise hard-coded values of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
@@ -60,7 +60,7 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • whether specific cop vehicles are affected by pursuit-breaker instakills;
  • which pursuit stats (e.g. length, bounty, infractions) the game tracks in races;
  • how much Speedbreaker charge you gain / lose from destroying specific cop vehicles;
- • which notification strings the game displays whenever you destroy specific cop vehicles;
+ • what notification strings the game displays whenever you destroy specific cop vehicles;
  • which radio callsigns and chatter specific cop vehicles can trigger in your pursuits;
  • under which conditions (if at all) specific cop vehicles can show up on the radar / mini-map;
  • how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and

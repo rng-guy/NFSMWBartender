@@ -69,7 +69,7 @@ namespace HelicopterVision
 		static constinit float currentColourState  = 0.f; // out-of-sight (0) to within-sight (1)
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
-		const float    currentTimestamp  = Globals::GetGameTime(/* unpaused = */ true);
+		const float    currentTimestamp  = Globals::GetUnpausedGameTime();
 		volatile bool& isKnownCopVehicle = *reinterpret_cast<volatile bool*>(copAIVehicle - 0x4C + 0x769); // padding byte
 
 		if (isKnownCopVehicle)

@@ -41,7 +41,7 @@ namespace CopDetection
 
 		[[nodiscard]] bool UpdateTimestamp()
 		{
-			const float gameTime = Globals::GetGameTime(this->useUnpausedTime);
+			const float gameTime = (this->useUnpausedTime) ? Globals::GetUnpausedGameTime() : Globals::GetTotalGameTime();
 
 			if (this->isNewMapObject or (gameTime >= this->colourChangeTimestamp))
 			{
@@ -86,7 +86,7 @@ namespace CopDetection
 	constinit IconColourTracker miniMapCops (/* useUnpausedTime = */ false);
 	constinit IconColourTracker worldMapCops(/* useUnpausedTime = */ true);
 
-	constinit ModContainers::DefaultReferenceVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
+	constinit ModContainers::DefaultVaultMap<Settings> copTypeToSettings(Settings{300.f, 0.f, 300.f, true}); // metres (x3)
 
 
 
@@ -116,7 +116,7 @@ namespace CopDetection
 		// Fetch icon-range data for vehicle type
 		if (not Globals::playerPerpVehicle) return false; // should never happen
 
-		const Settings& settings  = copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle));
+		const Settings& settings  = copTypeToSettings.GetReference(Globals::GetVehicleType(copVehicle));
 		const float     iconRange = (hasBeenInPursuit) ? settings.pursuitIconRange : settings.patrolIconRange;
 
 		// Check whether vehicle is in icon range
@@ -145,7 +145,7 @@ namespace CopDetection
 
 	[[nodiscard]] float __fastcall GetRadarRange(const address copVehicle)
 	{
-		return copTypeToSettings.GetValue(Globals::GetVehicleType(copVehicle)).radarRange;
+		return copTypeToSettings.GetReference(Globals::GetVehicleType(copVehicle)).radarRange;
 	}
 
 

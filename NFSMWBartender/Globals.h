@@ -57,9 +57,10 @@ namespace Globals
 	const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
 
 	// Common data pointers
-	const volatile float&    simulationTime = *reinterpret_cast<volatile float*>   (0x9885D8);
+	const volatile float&    simulationTime = *reinterpret_cast<volatile float*>   (0x9885D8); // seconds
 	const volatile address&  copManager     = *reinterpret_cast<volatile address*> (0x90D5F4);
 	const volatile uint32_t& gameTicks      = *reinterpret_cast<volatile uint32_t*>(0x925B14);
+	const volatile float&    ticksToTime    = *reinterpret_cast<volatile float*>   (0x890984); // seconds / tick
 
 
 
@@ -69,17 +70,20 @@ namespace Globals
 
 	[[nodiscard]] bool IsInCooldownMode(const address pursuit)
 	{
-		return (*reinterpret_cast<volatile int*>(pursuit + 0x218) == 2); // pursuitStatus
+		return (*reinterpret_cast<volatile int*>(pursuit + 0x218) == 2); // pursuit status
 	}
 
 
 
-	[[nodiscard]] float GetGameTime(const bool unpaused)
+	[[nodiscard]] float GetTotalGameTime()
 	{
-		const float    ticksToTime = *reinterpret_cast<volatile float*>(0x890984);
-		const uint32_t totalTicks  = (unpaused) ? (gameTicks - pausedTicks) : gameTicks;
+		return ticksToTime * static_cast<float>(gameTicks);
+	}
 
-		return ticksToTime * static_cast<float>(totalTicks);
+
+	[[nodiscard]] float GetUnpausedGameTime()
+	{
+		return ticksToTime * static_cast<float>(gameTicks - pausedTicks);
 	}
 
 

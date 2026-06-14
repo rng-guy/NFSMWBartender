@@ -59,7 +59,7 @@ namespace GeneralSettings
 	float halfEvadeRate = .5f / evadeTimers.current; // hertz
 
 	// Code caves
-	constinit ModContainers::DefaultCopyVaultMap<bool> copTypeToIsBreakerImmune(false);
+	constinit ModContainers::DefaultVaultMap<bool> copTypeToIsBreakerImmune(false);
 
 
 
@@ -408,7 +408,7 @@ namespace GeneralSettings
 
 			push eax // copType
 			mov ecx, offset copTypeToIsBreakerImmune
-			call ModContainers::DefaultCopyVaultMap<bool>::GetValue
+			call ModContainers::DefaultVaultMap<bool>::GetValue
 			test al, al
 
 			conclusion:

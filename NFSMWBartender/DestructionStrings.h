@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <string>
-#include <functional>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -19,7 +18,7 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves 
-	constinit ModContainers::DefaultReferenceVaultMap<std::string> copTypeToStringOrName({});
+	constinit ModContainers::DefaultVaultMap<std::string> copTypeToNotification(std::string{});
 	
 
 
@@ -29,12 +28,7 @@ namespace DestructionStrings
 
 	const char* __fastcall GetDestructionString(const vault copType)
 	{
-		const auto GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
-
-		const char* const stringOrName = copTypeToStringOrName.GetValue(copType).c_str();
-		const char* const binaryString = GetBinaryString(0, Globals::GetBinaryKey(stringOrName));
-
-		return (binaryString) ? binaryString : stringOrName;
+		return copTypeToNotification.GetReference(copType).c_str();
 	}
 
 
@@ -70,19 +64,22 @@ namespace DestructionStrings
 		std::vector<const char*> copVehicles;   // C-style for game compatibility
 		std::vector<const char*> stringOrNames; // C-style for game compatibility
 
-		parser.ParseUser<const char*, const char*>("Vehicles:Strings", copVehicles, {stringOrNames});
+		parser.ParseUser<const char*, const char*>("Vehicles:Notifications", copVehicles, {stringOrNames});
 
-		constexpr auto IsStringOrNameValid = [](const std::string& stringOrName) -> bool
+		const auto StringOrNameToNotification = [](const char* const stringOrName) -> std::string
 		{
-			return (not stringOrName.empty());
+			const auto        GetBinaryString = reinterpret_cast<const char* (__fastcall*)(int, binary)>(0x56BB80);
+			const char* const binaryString    = GetBinaryString(0, Globals::GetBinaryKey(stringOrName));
+
+			return (binaryString) ? binaryString : stringOrName;
 		};
 
-		return copTypeToStringOrName.FillFromVectors
+		return copTypeToNotification.FillFromVectors
 		(
-			"Vehicle-to-string",
+			"Vehicle-to-notification",
 			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::MapFillSetup(copVehicles,   Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
-			ModContainers::MapFillSetup(stringOrNames, std::identity{},      IsStringOrNameValid)
+			ModContainers::MapFillSetup(copVehicles,   Globals::GetVaultKey,       Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(stringOrNames, StringOrNameToNotification, ModContainers::AlwaysValid{})
 		);
 	}
 

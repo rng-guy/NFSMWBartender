@@ -119,15 +119,19 @@ Regarding the "Basic" feature set **as a whole**:
 
 Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
-* The cop-destruction string feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Strings]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
+* The notification-string feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Notifications]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
 
-* You can use the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy to edit the game's strings and add new ones.
+* You can define notification strings directly or use the names of existing game strings: If a string you define matches the name of a game string, Bartender uses the game string; if not, Bartender uses the string itself to generate an in-game notification instead.
 
-* For the vehicle strings, Bartender ignores vehicles / strings that don't exist in VltEd / Binary.
+* You can use the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy to browse, edit, and expand the game's strings.
+
+* When the game displays a notification, `^` becomes a line break and `%$d` the bounty amount.
+
+* For notifications, Bartender ignores strings for vehicles that don't exist in VltEd.
 
 * If you don't define a valid `default` string, string-less vehicles won't trigger notifications.
 
-* If you define no valid vehicle strings and no `default`, Bartender disables its string feature.
+* If you define no valid strings and no `default`, Bartender disables its notification feature.
 
 * You might hear cops use callsigns you didn't assign to them. This is vanilla behaviour: The game maintains a pool of "actors" that it constantly shuffles between all active cops. This is also the reason why you may still hear Cross or helicopter lines even if they are gone, and why dispatch may sometimes refer to Cross by the callsign of another unrelated cop vehicle.
 
