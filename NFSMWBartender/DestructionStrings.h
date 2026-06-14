@@ -18,7 +18,7 @@ namespace DestructionStrings
 	bool featureEnabled = false;
 
 	// Code caves 
-	constinit ModContainers::DefaultVaultMap<std::string> copTypeToNotification(std::string{});
+	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<std::string> copTypeToNotification(std::string{});
 	
 
 

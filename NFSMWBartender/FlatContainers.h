@@ -228,14 +228,15 @@ namespace FlatContainers
 		{
 			if (it == this->end()) return it;
 
-			const auto lastIt = std::prev(this->end());
+			const size_type index  = std::distance(this->data.begin(), it);
+			const auto      lastIt = std::prev    (this->end());
 
 			if (it != lastIt)
 				*it = std::move(*lastIt);
 
 			this->data.pop_back();
 
-			return it;
+			return this->data.begin() + index;
 		}
 
 
@@ -403,14 +404,15 @@ namespace FlatContainers
 		{
 			if (it == this->end()) return it;
 
-			const auto lastIt = std::prev(this->end());
+			const size_type index  = std::distance(this->data.begin(), it);
+			const auto      lastIt = std::prev    (this->end());
 
 			if (it != lastIt)
 				*it = std::move(*lastIt);
 
 			this->data.pop_back();
 
-			return it;
+			return this->data.begin() + index;
 		}
 
 

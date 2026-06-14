@@ -23,6 +23,10 @@
 
 #include <Windows.h>
 
+#ifdef _DEBUG
+	#include <debugapi.h>
+#endif
+
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "HeatParameters.h"
@@ -57,6 +61,11 @@ static void __cdecl InitialiseBartender
 
 	// Call original function first
 	OriginalFunction(numArgs, argArray);
+
+	// Halt until debugger is attached
+	#ifdef _DEBUG
+		while (not IsDebuggerPresent());
+	#endif
 
 	// Initialise log and config parser
 	if constexpr (Globals::loggingEnabled)

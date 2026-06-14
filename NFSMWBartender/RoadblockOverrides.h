@@ -159,7 +159,7 @@ namespace RoadblockOverrides
 	constexpr std::string_view setupPrefix = "Setups:";
 	
 	// Code caves
-	constinit std::vector<RBSetup> roadblockSetups;
+	RELEASE_CONSTINIT std::vector<RBSetup> roadblockSetups;
 
 	float maxStretchScale = 1.14f;
 
@@ -217,7 +217,7 @@ namespace RoadblockOverrides
 		const size_t maxNumCars, 
 		const bool   needsSpikes
 	) {
-		static constinit std::vector<const RBSetup*> candidates;
+		static RELEASE_CONSTINIT std::vector<const RBSetup*> candidates;
 
 		if constexpr (Globals::loggingEnabled)
 		{

@@ -46,7 +46,7 @@ namespace HeatChangeOverrides
 	size_t lastAnimatedHeatLevel = 0;
 	float  animationEndTimestamp = 0.f;
 
-	constinit ModContainers::DefaultVaultMap<float> copTypeToHeatChange(0.f);
+	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<float> copTypeToHeatChange(0.f);
 
 
 
@@ -124,7 +124,7 @@ namespace HeatChangeOverrides
 			CountTracker{this->pursuit, 0x174, damageHeatChanges}
 		};
 	
-		inline static constinit ModContainers::AddressMap<HeatManager*> pursuitToManager;
+		inline static RELEASE_CONSTINIT ModContainers::AddressMap<HeatManager*> pursuitToManager;
 
 
 		void UpdateTrackers()

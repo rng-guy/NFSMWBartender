@@ -8,6 +8,17 @@
 
 
 
+// Macros
+#ifdef _DEBUG
+	// In debug releases, Visual Studio forces an unconditional dynamic allocation for compatible types.
+	// This makes all dynamically allocating types (e.g. std::vector, std::string) constinit-incompatible.
+	#define RELEASE_CONSTINIT
+#else
+	#define RELEASE_CONSTINIT constinit
+#endif
+
+
+
 // Unscoped aliases
 using vault  = uint32_t;
 using binary = uint32_t;

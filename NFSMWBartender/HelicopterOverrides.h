@@ -21,7 +21,7 @@ namespace HelicopterOverrides
 	bool featureEnabled = false;
 
 	// Heat parameters
-	constinit HeatParameters::PointerPair<std::string> helicopterVehicles("copheli");
+	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> helicopterVehicles("copheli");
 
 	constinit HeatParameters::OptionalInterval<float> firstSpawnDelays  ({1.f}); // seconds
 	constinit HeatParameters::OptionalInterval<float> fuelRespawnDelays ({1.f}); // seconds

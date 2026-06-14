@@ -59,7 +59,7 @@ namespace StrategyOverrides
 
 		ModContainers ::AddressSet vehiclesOfCurrentStrategy;
 
-		inline static constinit ModContainers::AddressMap<StrategyManager*> pursuitToManager;
+		inline static RELEASE_CONSTINIT ModContainers::AddressMap<StrategyManager*> pursuitToManager;
 
 
 		void UpdateNextHeavy3Count()
@@ -625,7 +625,7 @@ namespace StrategyOverrides
 
 	void InitialiseStackReplacements()
 	{
-		static constinit std::vector<float> vectorStacks;
+		static RELEASE_CONSTINIT std::vector<float> vectorStacks;
 
 		const size_t numFloatsPerStack = numFloatsPerHeavy3Vector * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5);
 

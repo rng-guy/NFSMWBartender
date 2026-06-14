@@ -302,7 +302,7 @@ namespace CopSpawnOverrides
 
 		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTables, this->pursuit};
 
-		inline static constinit ModContainers::AddressMap<ChasersManager*> pursuitToManager;
+		inline static RELEASE_CONSTINIT ModContainers::AddressMap<ChasersManager*> pursuitToManager;
 
 
 		void UpdateSpawnTable()

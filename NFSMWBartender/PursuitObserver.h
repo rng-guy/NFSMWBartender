@@ -57,7 +57,7 @@ namespace PursuitObserver
 
 		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
 
-		inline static constinit ModContainers::StableAddressMap<PursuitObserver> pursuitToObserver;
+		inline static RELEASE_CONSTINIT ModContainers::StableAddressMap<PursuitObserver> pursuitToObserver;
 
 
 		[[nodiscard]] static CopLabel InferCopLabelFromCaller(const address caller)

@@ -30,7 +30,7 @@ namespace GameBreaker
 	constinit HeatParameters::Pair<bool> canLoseWhenInactives(true);
 
 	// Code caves
-	constinit ModContainers::DefaultVaultMap<float> copTypeToBreakerChange(0.f); // seconds
+	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<float> copTypeToBreakerChange(0.f); // seconds
 
 
 

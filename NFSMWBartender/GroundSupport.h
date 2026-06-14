@@ -50,17 +50,17 @@ namespace GroundSuppport
 	constinit HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
 	constinit HeatParameters::Pair<bool> heavy3AreBlockables   (true);
 
-	constinit HeatParameters::PointerPair<std::string> heavy3LightVehicles("copsuvl");
-	constinit HeatParameters::PointerPair<std::string> heavy3HeavyVehicles("copsuv");
+	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> heavy3LightVehicles("copsuvl");
+	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> heavy3HeavyVehicles("copsuv");
 
-	constinit HeatParameters::PointerPair<std::string> heavy4LightVehicles("copsuvl");
-	constinit HeatParameters::PointerPair<std::string> heavy4HeavyVehicles("copsuv");
+	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> heavy4LightVehicles("copsuvl");
+	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> heavy4HeavyVehicles("copsuv");
 
-	constinit HeatParameters::PointerPair<std::string> leader5CrossVehicles("copcross");
-	constinit HeatParameters::PointerPair<std::string> leader7CrossVehicles("copcross");
+	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> leader5CrossVehicles("copcross");
+	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> leader7CrossVehicles("copcross");
 
-	constinit HeatParameters::PointerPair<std::string> leader7Hench1Vehicles("copsporthench");
-	constinit HeatParameters::PointerPair<std::string> leader7Hench2Vehicles("copsporthench");
+	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> leader7Hench1Vehicles("copsporthench");
+	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> leader7Hench2Vehicles("copsporthench");
 
 	// Conversions
 	float rammingSpeedLimit = heavy3SpeedLimits.current / 3.6f; // mps
@@ -227,7 +227,7 @@ namespace GroundSuppport
 
 	bool __fastcall SetRandomStrategy(const address pursuit) 
 	{
-		static constinit std::vector<address> candidates;
+		static RELEASE_CONSTINIT std::vector<address> candidates;
 
 		// Marshal all currently eligible Strategies
 		const bool isPlayerPursuit = Globals::IsPlayerPursuit(pursuit);

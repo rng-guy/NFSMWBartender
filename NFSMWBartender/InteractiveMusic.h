@@ -19,7 +19,7 @@ namespace InteractiveMusic
 	bool featureEnabled = false;
 	
 	// General	
-	constinit std::vector<int> playlist;
+	RELEASE_CONSTINIT std::vector<int> playlist;
 
 	bool  transitionsEnabled = true;
 	float lengthPerTrack     = 600.f; // seconds

@@ -59,7 +59,7 @@ namespace GeneralSettings
 	float halfEvadeRate = .5f / evadeTimers.current; // hertz
 
 	// Code caves
-	constinit ModContainers::DefaultVaultMap<bool> copTypeToIsBreakerImmune(false);
+	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<bool> copTypeToIsBreakerImmune(false);
 
 
 
