@@ -1,16 +1,16 @@
 
 // Compatibility checks -----------------------------------------------------------------------------------------------------------------------------
 
-#if !defined(_MSC_VER)
+#ifndef _MSC_VER
 #error "Bartender requires MSVC."
 
 #elif (_MSC_VER < 1930)
 #error "Bartender requires Visual Studio 2022 or newer."
 
-#elif !defined(_WIN32) || defined(_WIN64)
+#elif ((not defined(_WIN32)) or defined(_WIN64))
 #error "Bartender requires 32-bit Windows."
 
-#elif !defined(_MSVC_LANG) || (_MSVC_LANG < 202002L)
+#elif ((not defined(_MSVC_LANG)) or (_MSVC_LANG < 202002L))
 #error "Bartender requires C++20 or newer."
 
 #endif
