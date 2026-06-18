@@ -8,8 +8,8 @@
 
 
 
-// In debug releases, Visual Studio forces an unconditional dynamic allocation for compatible types.
-// This makes all dynamically allocating types (e.g. std::vector, std::string) constinit-incompatible.
+// In debug builds, Visual Studio forces an unconditional dynamic allocation for all suitable types.
+// This makes dynamic containers (e.g. std::vector, std::string) constinit-incompatible, even if empty.
 #ifdef _DEBUG
 #define RELEASE_CONSTINIT
 
