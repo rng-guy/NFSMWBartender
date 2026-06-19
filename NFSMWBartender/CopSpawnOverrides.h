@@ -812,7 +812,7 @@ namespace CopSpawnOverrides
 			mov ecx, offset scriptedSpawns
 			call Contingent::AddVehicle
 
-			mov al, 0x1
+			mov al, 0x1 // restore value
 
 			mov ecx, dword ptr [esi + 0x54]       // AIVehicle
 			mov byte ptr [ecx - 0x4C + 0x76B], al // padding byte: "Scripted" flag

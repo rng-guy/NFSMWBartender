@@ -354,11 +354,11 @@ namespace RoadblockOverrides
 			mov ecx, dword ptr [esp + 0x4C4]
 			call RequestCallout // ecx: pursuit
 
-			mov al, 0x1
+			mov al, 0x1 // restore value
 
 			conclusion:
 			// Execute original code and resume
-			lea ecx, dword ptr [esp + 0x4B4]
+			mov ecx, dword ptr [esp + 0x4B4]
 
 			jmp dword ptr radioRequestExit
 		}
@@ -398,7 +398,7 @@ namespace RoadblockOverrides
 			mov dword ptr [edx + 0xB8], ecx // max. car count
 
 			restore:
-			xor ecx, ecx
+			xor ecx, ecx // restore zero flag
 			
 			conclusion:
 			mov byte ptr hasSpikes, 0x0
