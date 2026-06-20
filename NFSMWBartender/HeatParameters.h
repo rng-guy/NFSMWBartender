@@ -3,6 +3,7 @@
 #include <array>
 #include <tuple>
 #include <string>
+#include <format>
 #include <utility>
 #include <optional>
 #include <concepts>
@@ -25,11 +26,11 @@ namespace HeatParameters
 	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
 
 	// Configuration files
-	const char* const configDefaultKey  = "default"; // C-style for game compatibility
-	constexpr size_t  configFormatStart = 1;
+	constexpr const char* configDefaultKey  = "default"; // C-style for game compatibility
+	constexpr size_t      configFormatStart = 1;
 
-	constexpr std::string_view configFormatRoam = "heat{:02}";
-	constexpr std::string_view configFormatRace = "race{:02}";
+	constexpr std::format_string<size_t> configFormatRoam = "heat{:02}";
+	constexpr std::format_string<size_t> configFormatRace = "race{:02}";
 
 	const std::filesystem::path configPathMain     = "scripts/BartenderSettings";
 	const std::filesystem::path configPathBasic    = configPathMain / "Basic";

@@ -242,11 +242,11 @@ namespace ConfigParser
 		requires Concepts::AreParseable<Vs...>
 		std::array<bool, numRows> ParseFormat
 		(
-			const std::string_view    section,
-			const std::string_view    defaultKey,
-			const std::string_view    keyFormat,
-			const size_t              keyStart,
-			Format<Vs, numRows>&&  ...parameters
+			const std::string_view              section,
+			const std::string_view              defaultKey,
+			const std::format_string<size_t>    keyFormat,
+			const size_t                        keyStartIndex,
+			Format<Vs, numRows>&&            ...parameters
 		) 
 			const 
 		{
@@ -258,7 +258,6 @@ namespace ConfigParser
 				this->GetValues<Vs...>(foundSection->second, defaultKey, {*(parameters.defaultValue)}...);
 
 			// Parse each row column-wise
-			size_t                    keyIndex    = keyStart;
 			std::array<bool, numRows> isValidRows = {};
 
 			for (size_t rowID = 0; rowID < numRows; ++rowID)
@@ -269,11 +268,9 @@ namespace ConfigParser
 					isValidRows[rowID] = this->GetValues<Vs...>
 					(
 						foundSection->second,
-						std::vformat(keyFormat, std::make_format_args(keyIndex)),
+						std::format(keyFormat, keyStartIndex + rowID),
 						parameters.values[rowID]...
 					);
-
-					++keyIndex;
 				}
 
 				// Apply default to invalid row (if available)
@@ -281,7 +278,7 @@ namespace ConfigParser
 				{
 					(..., (parameters.values[rowID] = *(parameters.defaultValue)));
 
-					isValidRows[rowID] = true;
+					isValidRows[rowID] = true; // row now valid
 				}
 			}
 

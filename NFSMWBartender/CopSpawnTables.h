@@ -284,13 +284,12 @@ namespace CopSpawnTables
 
 		for (const bool forRaces : {false, true})
 		{
-			Tables&                tables = tablePair.GetValues(forRaces);
-			const std::string_view format = (forRaces) ? "Race{:02}:{}" : "Heat{:02}:{}";
+			Tables& tables = tablePair.GetValues(forRaces);
 
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
-				const size_t      heatLevel  = heatLevelID + 1; // make_format_args doesn't accept rvalues
-				const std::string section    = std::vformat(format, std::make_format_args(heatLevel, tableName));
+				const size_t      heatLevel  = heatLevelID + 1;
+				const std::string section    = std::format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
 				const size_t      numEntries = parser.ParseUser<const char*, int, int>(section, copNames, {copCounts, {0}}, {copChances, {0}});
 
 				for (size_t entryID = 0; entryID < numEntries; ++entryID)
