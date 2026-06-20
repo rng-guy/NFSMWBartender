@@ -635,11 +635,11 @@ namespace HeatParameters
 
 
 
-		void PostProcessIntervals(const auto&) {}
+		void ValidateIntervals(const auto&) {}
 
 
 		template <typename T>
-		void PostProcessIntervals(Interval<T>& interval)
+		void ValidateIntervals(Interval<T>& interval)
 		{
 			// Regular intervals must have correctly ordered values
 			OrderIntervals<T>(interval.minValues, interval.maxValues);
@@ -647,7 +647,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		void PostProcessIntervals(OptionalInterval<T>& interval)
+		void ValidateIntervals(OptionalInterval<T>& interval)
 		{
 			// Optional intervals must have correctly ordered values
 			OrderIntervals<T>(interval.minValues, interval.maxValues);
@@ -677,8 +677,8 @@ namespace HeatParameters
 		// Parse race values, using copied roam values as fallback
 		Details::ParsePartial<HeatParameters...>(/* forRaces = */ true, parser, section, parameters...);
 
-		// Enforce proper value ordering in intervals
-		(..., Details::PostProcessIntervals(parameters));
+		// Enforce proper value-ordering in intervals
+		(..., Details::ValidateIntervals(parameters));
 	}
 
 
@@ -700,7 +700,7 @@ namespace HeatParameters
 			(..., (parameters.isEnableds.GetValues(forRaces) = isEnableds));
 		}
 
-		// Enforce proper value ordering in intervals
-		(..., Details::PostProcessIntervals(parameters));
+		// Enforce proper value-ordering in intervals
+		(..., Details::ValidateIntervals(parameters));
 	}
 }
