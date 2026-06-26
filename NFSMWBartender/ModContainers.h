@@ -3,7 +3,6 @@
 #include <memory>
 #include <vector>
 #include <concepts>
-#include <functional>
 #include <string_view>
 #include <type_traits>
 
@@ -89,8 +88,7 @@ namespace ModContainers
 
 	public:
 
-		template <typename T>
-		constexpr explicit DefaultMap(T&& defaultValue) : defaultValue(std::forward<T>(defaultValue)) {}
+		constexpr explicit DefaultMap(V defaultValue) : defaultValue(std::move(defaultValue)) {}
 
 
 		[[nodiscard]] const V& GetReference(const K key) const

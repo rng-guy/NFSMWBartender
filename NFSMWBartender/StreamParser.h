@@ -92,7 +92,7 @@ namespace StreamParser
 		{
 			switch (ch)
 			{
-			case ' ':  // space
+			case  ' ': // space
 			case '\t': // horizontal tab
 			case '\n': // line feed
 			case '\v': // vertical tab

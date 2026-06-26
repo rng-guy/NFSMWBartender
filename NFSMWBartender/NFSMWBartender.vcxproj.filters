@@ -70,7 +70,7 @@
     <ClInclude Include="ConfigParser.h">
       <Filter>Headers\General</Filter>
     </ClInclude>
-    <ClInclude Include="DestructionStrings.h">
+    <ClInclude Include="CopNotifications.h">
       <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="GroundSupport.h">

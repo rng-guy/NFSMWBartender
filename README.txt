@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v3.05.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v3.06.00) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -60,7 +60,8 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • whether specific cop vehicles are affected by pursuit-breaker instakills;
  • which pursuit stats (e.g. length, bounty, infractions) the game tracks in races;
  • how much Speedbreaker charge you gain / lose from destroying specific cop vehicles;
- • what notification strings the game displays whenever you destroy specific cop vehicles;
+ • what  notification strings the game displays whenever you destroy specific cop vehicles;
+ • which notification icons   the game displays whenever you destroy specific cop vehicles;
  • which radio callsigns and chatter specific cop vehicles can trigger in your pursuits;
  • under which conditions (if at all) specific cop vehicles can show up on the radar / mini-map;
  • how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and
@@ -189,7 +190,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v3.05.00, replace all old configuration files.
+If you update from a version older than v3.06.00, replace all old configuration files.
 
 
 

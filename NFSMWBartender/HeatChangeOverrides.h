@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <functional>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -524,17 +525,17 @@ namespace HeatChangeOverrides
 
 	bool ParseVehicleChanges(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*> copVehicles; // C-style for game compatibility
-		std::vector<float>       heatChanges;
+		std::vector<std::string_view> copVehicles;
+		std::vector<float>            heatChanges;
 
-		parser.ParseUser<const char*, float>("Wrecking:Vehicles", copVehicles, {heatChanges});
+		parser.ParseUser<std::string_view, float>("Wrecking:Vehicles", copVehicles, {heatChanges});
 
 		return copTypeToHeatChange.FillFromVectors
 		(
 			"Vehicle-to-change",
-			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
-			ModContainers::MapFillSetup(heatChanges, std::identity{},      ModContainers::AlwaysValid{})
+			HeatParameters::configDefaultVaultHash,
+			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultHash, Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(heatChanges, std::identity{},       ModContainers::AlwaysValid{})
 		);
 	}
 

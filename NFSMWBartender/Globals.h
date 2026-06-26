@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string_view>
 
 #include "MemoryTools.h"
 #include "BasicLogger.h"
@@ -58,9 +59,6 @@ namespace Globals
 	constexpr float floatScale = 1.f + static_cast<float>(1e-6);
 
 	// Common function pointers
-	const auto GetVaultKey  = reinterpret_cast<vault  (__cdecl*)(const char*)>(0x5CC240);
-	const auto GetBinaryKey = reinterpret_cast<binary (__cdecl*)(const char*)>(0x460BF0);
-
 	const auto GetVehicleType = reinterpret_cast<vault       (__thiscall*)(address)>(0x6880A0);
 	const auto GetVehicleName = reinterpret_cast<const char* (__thiscall*)(address)>(0x688090);
 
@@ -73,6 +71,105 @@ namespace Globals
 	const volatile address&  copManager     = *reinterpret_cast<volatile address*> (0x90D5F4);
 	const volatile uint32_t& gameTicks      = *reinterpret_cast<volatile uint32_t*>(0x925B14);
 	const volatile float&    ticksToTime    = *reinterpret_cast<volatile float*>   (0x890984); // seconds / tick
+
+
+
+
+
+	// Hash functions -------------------------------------------------------------------------------------------------------------------------------
+	
+	[[nodiscard]] constexpr vault GetVaultHash(std::string_view input)
+	{
+		if (input.empty()) return 0x0;
+
+		vault a = 0x9E3779B9;
+		vault b = a;
+		vault c = 0xABCDEF00; // MW-specific seed
+
+		const auto Shift = [&input](const size_t i, const size_t n) -> vault
+		{
+			// force zero extension first to avoid underflow in second cast
+			return (static_cast<vault>(static_cast<unsigned char>(input[i])) << n);
+		};
+
+		const auto MixValues = [&a, &b, &c]() -> void
+		{
+			a -= b; a -= c; a ^= (c >> 13);
+			b -= c; b -= a; b ^= (a <<  8);
+			c -= a; c -= b; c ^= (b >> 13);
+			a -= b; a -= c; a ^= (c >> 12);
+			b -= c; b -= a; b ^= (a << 16);
+			c -= a; c -= b; c ^= (b >>  5);
+			a -= b; a -= c; a ^= (c >>  3);
+			b -= c; b -= a; b ^= (a << 10);
+			c -= a; c -= b; c ^= (b >> 15);
+		};
+
+		const size_t size = input.size();
+
+		while (input.size() >= 12)
+		{
+			a += Shift(0, 0) + Shift(1, 8) + Shift( 2, 16) + Shift( 3, 24);
+			b += Shift(4, 0) + Shift(5, 8) + Shift( 6, 16) + Shift( 7, 24);
+			c += Shift(8, 0) + Shift(9, 8) + Shift(10, 16) + Shift(11, 24);
+
+			MixValues();
+
+			input.remove_prefix(12);
+		}
+
+		switch (input.size())
+		{
+			case 11: c += Shift(10, 24); [[fallthrough]];
+			case 10: c += Shift( 9, 16); [[fallthrough]];
+			case  9: c += Shift( 8,  8); [[fallthrough]];
+			case  8: b += Shift( 7, 24); [[fallthrough]];
+			case  7: b += Shift( 6, 16); [[fallthrough]];
+			case  6: b += Shift( 5,  8); [[fallthrough]];
+			case  5: b += Shift( 4,  0); [[fallthrough]];
+			case  4: a += Shift( 3, 24); [[fallthrough]];
+			case  3: a += Shift( 2, 16); [[fallthrough]];
+			case  2: a += Shift( 1,  8); [[fallthrough]];
+			case  1: a += Shift( 0,  0); [[fallthrough]];
+			default: c += size;
+		}
+
+		MixValues();
+
+		return c;
+	}
+
+
+	[[nodiscard]] consteval vault operator""_vlt
+	(
+		const char* const string,
+		const size_t      length
+	) {
+		return GetVaultHash(string);
+	}
+
+
+
+	[[nodiscard]] constexpr binary GetBinaryHash(const std::string_view input)
+	{
+		if (input.empty()) return 0x0;
+
+		binary hash = 0xFFFFFFFF; // MW-specific seed
+
+		for (const char ch : input)
+			hash += (hash << 5) + static_cast<unsigned char>(ch);
+
+		return hash;
+	}
+
+
+	[[nodiscard]] consteval binary operator""_bin
+	(
+		const char* const string,
+		const size_t      length
+	) {
+		return GetBinaryHash(string);
+	}
 
 
 
@@ -143,7 +240,7 @@ namespace Globals
 
 	[[nodiscard]] vault GetVehicleTypeClass(const vault type)
 	{
-		const address attribute = GetFromVault(0x4A97EC8F, type, 0x0EF6DDF2); // fetches "CLASS" from "pvehicle"
+		const address attribute = GetFromVault("pvehicle"_vlt, type, "CLASS"_vlt);
 		return (attribute) ? *reinterpret_cast<volatile vault*>(attribute + 0x8) : 0x0;
 	}
 
@@ -159,8 +256,8 @@ namespace Globals
 	{
 		switch (GetVehicleTypeClass(type))
 		{
-		case 0x336FCACF: // CAR
-		case 0x89E87652: // TRACTOR
+		case     "CAR"_vlt:
+		case "TRACTOR"_vlt:
 			return true;
 		}
 
@@ -170,7 +267,7 @@ namespace Globals
 
 	[[nodiscard]] bool IsVehicleTypeChopper(const vault type)
 	{
-		return (GetVehicleTypeClass(type) == 0xB80933AA); // CHOPPER
+		return (GetVehicleTypeClass(type) == "CHOPPER"_vlt);
 	}
 
 
@@ -210,7 +307,7 @@ namespace Globals
 		const auto SetSupportGoal = reinterpret_cast<void (__thiscall*)(address, vault)>       (0x409850);
 		const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault*)>(0x422480);
 
-		static constexpr vault pursuitGoal = 0x492916A2; // "AIGoalPursuit"
+		constexpr vault pursuitGoal = "AIGoalPursuit"_vlt;
 	
 		SetSupportGoal(copAIVehiclePursuit, 0x0);
 		SetVehicleGoal(copAIVehicle - 0x4C, &pursuitGoal);
@@ -218,3 +315,9 @@ namespace Globals
 		return true;
 	}
 }
+
+
+
+// Unscoped operators
+using Globals::operator""_vlt;
+using Globals::operator""_bin;

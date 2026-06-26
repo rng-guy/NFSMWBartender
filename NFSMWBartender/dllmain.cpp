@@ -38,7 +38,7 @@
 #include "GeneralSettings.h"
 #include "HelicopterVision.h"
 #include "InteractiveMusic.h"
-#include "DestructionStrings.h"
+#include "CopNotifications.h"
 
 #include "PursuitObserver.h"
 
@@ -71,7 +71,7 @@ static void __cdecl InitialiseBartender
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::logger.Open("BartenderLog.txt");
-		Globals::logger.Log ("\n SESSION [MOD] Bartender v3.05.00");
+		Globals::logger.Log ("\n SESSION [MOD] Bartender v3.06.00");
 
 		if (MemoryTools::IsModuleLoaded("NFSMWUnlimiter.asi"))             Globals::logger.Log<2>("+ Unlimiter");
 		if (MemoryTools::IsModuleLoaded("NFSMWExtraOptions.asi"))          Globals::logger.Log<2>("+ ExtraOptions");
@@ -86,14 +86,14 @@ static void __cdecl InitialiseBartender
 	HeatParameters::Parser parser(configFileCapacity, sectionCapacityPerFile, pairCapacityPerSection);
 
 	// Parse and initialise "Basic" feature set
-	Globals::basicSetEnabled |= DestructionStrings::Initialise(parser);
-	Globals::basicSetEnabled |= RadioChatter      ::Initialise(parser);
-	Globals::basicSetEnabled |= CopDetection      ::Initialise(parser);
-	Globals::basicSetEnabled |= HelicopterVision  ::Initialise(parser);
-	Globals::basicSetEnabled |= InteractiveMusic  ::Initialise(parser);
-	Globals::basicSetEnabled |= GeneralSettings   ::Initialise(parser);
-	Globals::basicSetEnabled |= GroundSuppport    ::Initialise(parser);
-	Globals::basicSetEnabled |= GameBreaker       ::Initialise(parser);
+	Globals::basicSetEnabled |= CopNotifications::Initialise(parser);
+	Globals::basicSetEnabled |= RadioChatter    ::Initialise(parser);
+	Globals::basicSetEnabled |= CopDetection    ::Initialise(parser);
+	Globals::basicSetEnabled |= HelicopterVision::Initialise(parser);
+	Globals::basicSetEnabled |= InteractiveMusic::Initialise(parser);
+	Globals::basicSetEnabled |= GeneralSettings ::Initialise(parser);
+	Globals::basicSetEnabled |= GroundSuppport  ::Initialise(parser);
+	Globals::basicSetEnabled |= GameBreaker     ::Initialise(parser);
 
 	parser.ClearCachedPaths();
 
@@ -106,7 +106,7 @@ static void __cdecl InitialiseBartender
 		if (not GeneralSettings ::featureEnabled) GeneralSettings ::ApplyFixes();
 		if (not GroundSuppport  ::featureEnabled) GroundSuppport  ::ApplyFixes();
 
-		// Remove static helicopter shadow
+		// Remove helicopter blob-shadow
 		MemoryTools::Write<float>(0.f, {0x903660});
 
 		// Prevent Heat-level resets (credit: ExOptsTeam)

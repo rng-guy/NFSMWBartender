@@ -25,7 +25,7 @@ namespace CopSpawnTables
 		// Internal struct
 		struct Entry
 		{
-			const char* name;
+			const char* name; // C-style for game compatibility
 
 			int count;    // max. cars
 			int chance;   // relative
@@ -44,10 +44,12 @@ namespace CopSpawnTables
 		inline static RELEASE_CONSTINIT ModContainers::StableVaultMap<const std::string> copTypeToName;
 		
 
-		static auto RegisterName(const char* const copName)
+		static auto RegisterName(const std::string_view copName)
 		{
-			const auto [pair, wasAdded] = SpawnTable::copTypeToName.try_emplace(Globals::GetVaultKey(copName), copName);
-			return pair; // for immediate iterator access to (potentially) inserted pair
+			const vault copType          = Globals::GetVaultHash(copName);
+			const auto  [pair, wasAdded] = SpawnTable::copTypeToName.try_emplace(copType, copName);
+
+			return pair;
 		}
 
 
@@ -69,16 +71,15 @@ namespace CopSpawnTables
 
 		bool AddTypeByName
 		(
-			const char* const copName,
-			const int         copCount, 
-			const int         copChance
+			const std::string_view copName,
+			const int              copCount, 
+			const int              copChance
 		) {
-			if (not copName) return false;
-
 			if (copCount  < 1) return false;
 			if (copChance < 1) return false;
 			
-			const auto registration     = this->RegisterName(copName);
+			const auto registration = this->RegisterName(copName);
+
 			const auto [pair, wasAdded] = this->copTypeToEntry.try_emplace
 			(
 				registration->first,
@@ -278,9 +279,9 @@ namespace CopSpawnTables
 	) {
 		bool allValid = true;
 
-		std::vector<const char*> copNames; // C-style for game compatibility
-		std::vector<int>         copCounts;
-		std::vector<int>         copChances;
+		std::vector<std::string_view> copNames;
+		std::vector<int>              copCounts;
+		std::vector<int>              copChances;
 
 		for (const bool forRaces : {false, true})
 		{
@@ -290,7 +291,7 @@ namespace CopSpawnTables
 			{
 				const size_t      heatLevel  = heatLevelID + 1;
 				const std::string section    = std::format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
-				const size_t      numEntries = parser.ParseUser<const char*, int, int>(section, copNames, {copCounts, {0}}, {copChances, {0}});
+				const size_t      numEntries = parser.ParseUser<std::string_view, int, int>(section, copNames, {copCounts, {0}}, {copChances, {0}});
 
 				for (size_t entryID = 0; entryID < numEntries; ++entryID)
 					tables[heatLevelID].AddTypeByName(copNames[entryID], copCounts[entryID], copChances[entryID]);

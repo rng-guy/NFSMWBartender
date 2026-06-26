@@ -27,8 +27,7 @@ namespace CopSpawnOverrides
 
 		int numActiveCops = 0;
 
-		const address pursuit;
-
+		const address                    pursuit;
 		const CopSpawnTables::TablePair& source;
 		
 		CopSpawnTables::SpawnTable table = *(this->source.current);
@@ -151,9 +150,9 @@ namespace CopSpawnOverrides
 		}
 
 
-		void AddVehicleByName(const char* const copName)
+		void AddVehicleByName(const std::string_view copName)
 		{
-			this->AddVehicleByType(Globals::GetVaultKey(copName));
+			this->AddVehicleByType(Globals::GetVaultHash(copName));
 		}
 
 
@@ -196,9 +195,9 @@ namespace CopSpawnOverrides
 		}
 
 
-		bool RemoveVehicleByName(const char* const copName)
+		bool RemoveVehicleByName(const std::string_view copName)
 		{
-			return this->RemoveVehicleByType(Globals::GetVaultKey(copName));
+			return this->RemoveVehicleByType(Globals::GetVaultHash(copName));
 		}
 
 
@@ -259,6 +258,12 @@ namespace CopSpawnOverrides
 	constinit HeatParameters::Pair<bool> trafficIgnoresRoadblocks(false);
 
 	constinit HeatParameters::OptionalPair<int> roadblockJoinLimits({0}); // cars
+
+	// Inline hashes for ASM
+	enum : vault
+	{
+		AIGOALPATROL = "AIGoalPatrol"_vlt
+	};
 
 	// Code caves
 	bool        eventHasScriptedPursuit     = false;   // scripted free-roam pursuits request a cop before they know their Heat level,
@@ -321,9 +326,8 @@ namespace CopSpawnOverrides
 
 		void UpdateNumPatrolCars()
 		{
-			const address attribute = Globals::GetFromPursuitlevel(this->pursuit, 0x24F7A1BC); // fetches "NumPatrolCars"
-
-			this->maxNumPatrolCars = (attribute) ? *reinterpret_cast<volatile int*>(attribute) : 0;
+			const address attribute = Globals::GetFromPursuitlevel(this->pursuit, "NumPatrolCars"_vlt);
+			this->maxNumPatrolCars  = (attribute) ? *reinterpret_cast<volatile int*>(attribute) : 1;
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -837,8 +841,8 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			cmp eax, 0x9AF1BF40 // AIGoalPatrol
-			jne conclusion      // not patrol goal
+			cmp eax, AIGOALPATROL
+			jne conclusion // not patrol goal
 
 			mov eax, dword ptr [edi + 0x4C - 0x4] // PVehicle
 			cmp dword ptr [eax + 0x94], 0x2       // driver class
@@ -869,8 +873,9 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			cmp dword ptr [esi + 0x78], 0x9AF1BF40 // AIGoalPatrol
-			jne conclusion                         // not patrol goal
+
+			cmp dword ptr [esi + 0x78], AIGOALPATROL
+			jne conclusion // not patrol goal
 
 			mov eax, dword ptr [esi - 0x4]  // PVehicle
 			cmp dword ptr [eax + 0x94], 0x2 // driver class

@@ -19,7 +19,7 @@ namespace HelicopterVision
 
 	bool featureEnabled = false;
 
-	// Types and structs
+	// Types and aliases
 	constexpr size_t numChannels = 4;
 
 	template <typename T>
@@ -220,7 +220,7 @@ namespace HelicopterVision
 		if (not ParseColour(parser, "outOfSight", outOfSight))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Invalid out-of-sight colour");
+				Globals::logger.Log<2>("No valid out-of-sight colour");
 
 			return false; // invalid colour
 		}
@@ -229,7 +229,7 @@ namespace HelicopterVision
 		if (not ParseColour(parser, "withinSight", withinSight))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Invalid within-sight colour");
+				Globals::logger.Log<2>("No valid within-sight colour");
 
 			return false; // invalid colour
 		}

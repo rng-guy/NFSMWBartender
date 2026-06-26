@@ -26,11 +26,13 @@ namespace HeatParameters
 	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
 
 	// Configuration files
-	constexpr const char* configDefaultKey  = "default"; // C-style for game compatibility
-	constexpr size_t      configFormatStart = 1;
-
-	constexpr std::format_string<size_t> configFormatRoam = "heat{:02}";
-	constexpr std::format_string<size_t> configFormatRace = "race{:02}";
+	constexpr std::string_view configDefaultKey         = "default";
+	constexpr vault            configDefaultVaultHash   = Globals::GetVaultHash (configDefaultKey);
+	constexpr binary           configDefaultBinarytHash = Globals::GetBinaryHash(configDefaultKey);
+	
+	constexpr size_t                     configFormatStart = 1;
+	constexpr std::format_string<size_t> configFormatRoam  = "heat{:02}";
+	constexpr std::format_string<size_t> configFormatRace  = "race{:02}";
 
 	const std::filesystem::path configPathMain     = "scripts/BartenderSettings";
 	const std::filesystem::path configPathBasic    = configPathMain / "Basic";
@@ -421,13 +423,13 @@ namespace HeatParameters
 
 	// Validation functions -------------------------------------------------------------------------------------------------------------------------
 
-	template <typename Predicate>
-	requires std::predicate<Predicate, vault>
+	template <class Validator>
+	requires std::predicate<Validator, vault>
 	bool ValidateVehicleTypes
 	(
 		const std::string_view    pairName,
 		PointerPair<std::string>& vehiclePair,
-		const Predicate&          IsVehicleTypeValid
+		Validator                 IsVehicleTypeValid
 	) {
 		bool allValid = true;
 
@@ -437,7 +439,7 @@ namespace HeatParameters
 
 			for (std::string& vehicle : vehiclePair.GetValues(forRaces))
 			{
-				const vault type = Globals::GetVaultKey(vehicle.c_str());
+				const vault type = Globals::GetVaultHash(vehicle);
 
 				if (not IsVehicleTypeValid(type))
 				{

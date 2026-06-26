@@ -39,6 +39,12 @@ namespace CopFleeOverrides
 	float baseSpeedThreshold = heavy3SpeedThresholds.current / 3.6f; // mps
 	float jerkSpeedThreshold = baseSpeedThreshold * .625f;           // mps
 
+	// Inline hashes for ASM
+	enum : vault
+	{
+		AIGOALFLEEPURSUIT = "AIGoalFleePursuit"_vlt
+	};
+
 
 
 
@@ -584,7 +590,7 @@ namespace CopFleeOverrides
 			test edi, edi
 			je conclusion // invalid AIVehiclePursuit
 
-			cmp dword ptr [edi - 0x758 + 0xC4], 0x88C018A9 // AIGoalFleePursuit
+			cmp dword ptr [edi - 0x758 + 0xC4], AIGOALFLEEPURSUIT
 
 			conclusion:
 			jmp dword ptr goalUpdateExit

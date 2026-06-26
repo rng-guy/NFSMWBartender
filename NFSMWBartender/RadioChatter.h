@@ -17,15 +17,15 @@ namespace RadioChatter
 
 	bool featureEnabled = false;
 
-	// Types and structs
-	enum Jurisdiction // C-style for ASM
+	// Enums (C-style for ASM)
+	enum Jurisdiction
 	{
 		CITY    = 0,
 		STATE   = 1,
 		FEDERAL = 2
 	};
 	
-	enum Callsigns // as above
+	enum Callsigns
 	{
 		UNKNOWN,
 		PATROL,
@@ -297,10 +297,10 @@ namespace RadioChatter
 
 	bool ParseCallsigns(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*>      copVehicles; // C-style for game compatibility
+		std::vector<std::string_view> copVehicles;
 		std::vector<std::string_view> callsignNames;
 
-		parser.ParseUser<const char*, std::string_view>("Vehicles:Callsigns", copVehicles, {callsignNames});
+		parser.ParseUser<std::string_view, std::string_view>("Vehicles:Callsigns", copVehicles, {callsignNames});
 
 		// Populate callsign map
 		constexpr auto NameToCallsigns = [](const std::string_view name) -> Callsigns
@@ -318,9 +318,9 @@ namespace RadioChatter
 		return copTypeToCallsignID.FillFromVectors
 		(
 			"Vehicle-to-callsign",
-			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::MapFillSetup(copVehicles,   Globals::GetVaultKey, Globals::IsVehicleTypeCar),
-			ModContainers::MapFillSetup(callsignNames, NameToCallsigns,      AreCallsignsValid)
+			HeatParameters::configDefaultVaultHash,
+			ModContainers::MapFillSetup(copVehicles,   Globals::GetVaultHash, Globals::IsVehicleTypeCar),
+			ModContainers::MapFillSetup(callsignNames, NameToCallsigns,       AreCallsignsValid)
 		);
 	}
 

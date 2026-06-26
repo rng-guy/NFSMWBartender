@@ -121,7 +121,7 @@
     <ClInclude Include="CopDetection.h" />
     <ClInclude Include="MemoryTools.h" />
     <ClInclude Include="HelicopterOverrides.h" />
-    <ClInclude Include="DestructionStrings.h" />
+    <ClInclude Include="CopNotifications.h" />
     <ClInclude Include="HeatParameters.h" />
     <ClInclude Include="GeneralSettings.h" />
     <ClInclude Include="GroundSupport.h" />

@@ -133,16 +133,6 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * If you define no valid strings and no `default`, Bartender disables its notification feature.
 
-* You might hear cops use callsigns you didn't assign to them. This is vanilla behaviour: The game maintains a pool of "actors" that it constantly shuffles between all active cops. This is also the reason why you may still hear Cross or helicopter lines even if they are gone, and why dispatch may sometimes refer to Cross by the callsign of another unrelated cop vehicle.
-
-* The game automatically assigns the helicopter-exclusive callsigns to all helicopters.
-
-* For callsigns, Bartender ignores vehicles that are helicopters or don't exist in VltEd. Bartender also ignores all callsigns other than `patrol`, `elite`, `rhino`, and `cross`.
-
-* If you don't define valid `default` callsigns, Bartender uses `patrol` instead.
-
-* If you define no valid callsigns and no `default`, Bartender disables its callsign feature.
-
 * You might see cops receive or lose their icons when they shouldn't. This happens because the game only draws the mini-map icons of the first 8 currently flagged cops in its memory, so some of them may suddenly (dis)appear if any cops before them get or lose their flags.
 
 * For cop detection, Bartender ignores vehicles that are helicopters or don't exist in VltEd.
@@ -152,6 +142,16 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 * If you don't define colours for both sight states, Bartender disables its vision-cone feature.
 
 * The actual visual range of helicopters can differ from what the vision-cone icon might suggest; the `heliLOSdistance` VltEd parameter controls the visual range the game uses for calculations.
+
+* You might hear cops use callsigns you didn't assign to them. This is vanilla behaviour: The game maintains a pool of "actors" that it constantly shuffles between all active cops. This is also the reason why you may still hear Cross or helicopter lines even if they are gone, and why dispatch may sometimes refer to Cross by the callsign of another unrelated cop vehicle.
+
+* The game automatically assigns the helicopter-exclusive callsigns to all helicopters.
+
+* For callsigns, Bartender ignores vehicles that are helicopters or don't exist in VltEd. Bartender also ignores all callsigns other than `patrol`, `elite`, `rhino`, and `cross`.
+
+* If you don't define valid `default` callsigns, Bartender uses `patrol` instead.
+
+* If you define no valid callsigns and no `default`, Bartender disables its callsign feature.
 
 * Dispatch may not always acknowledge a change in jurisdiction over the radio. This is because there's randomness involved, and because each pursuit is limited to just one acknowledgement.
 

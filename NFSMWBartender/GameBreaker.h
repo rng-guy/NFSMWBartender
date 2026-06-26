@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <functional>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -182,17 +183,17 @@ namespace GameBreaker
 
 	bool ParseSpeedbreakerChanges(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*> copVehicles; // C-style for game compatibility
-		std::vector<float>       changes;
+		std::vector<std::string_view> copVehicles;
+		std::vector<float>            changes;
 
-		parser.ParseUser<const char*, float>("Wrecking:Vehicles", copVehicles, {changes});
+		parser.ParseUser<std::string_view, float>("Wrecking:Vehicles", copVehicles, {changes});
 
 		return copTypeToBreakerChange.FillFromVectors
 		(
 			"Vehicle-to-change",
-			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultKey, Globals::DoesVehicleTypeExist),
-			ModContainers::MapFillSetup(changes,     std::identity{},      ModContainers::AlwaysValid{})
+			HeatParameters::configDefaultVaultHash,
+			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultHash, Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(changes,     std::identity{},       ModContainers::AlwaysValid{})
 		);
 	}
 

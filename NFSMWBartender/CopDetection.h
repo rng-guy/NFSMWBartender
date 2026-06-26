@@ -71,7 +71,7 @@ namespace CopDetection
 
 	bool featureEnabled = false;
 
-	// Types and structs
+	// Types
 	struct Settings
 	{
 		float radarRange;
@@ -80,13 +80,19 @@ namespace CopDetection
 		bool  keepsIcon;
 	};
 
+	// Inline hashes for ASM
+	enum : vault
+	{
+		CHOPPER = "CHOPPER"_vlt
+	};
+
 	// Code caves
 	bool updateWorldMapColours = false;
 
 	constinit IconColourTracker miniMapCops (/* useUnpausedTime = */ false);
 	constinit IconColourTracker worldMapCops(/* useUnpausedTime = */ true);
 
-	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<Settings> copTypeToSettings(Settings{300.f, 0.f, 300.f, true}); // metres (x3)
+	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
 
 
 
@@ -186,8 +192,8 @@ namespace CopDetection
 		__asm
 		{
 			// Execute original code first
-			cmp eax, 0xB80933AA // "CHOPPER" class
-			je conclusion       // is helicopter
+			cmp eax, CHOPPER
+			je conclusion // is helicopter
 
 			cmp byte ptr featureEnabled, 0x1
 			jne limitation // map feature disabled
@@ -373,14 +379,13 @@ namespace CopDetection
 
 	bool ParseDetectionSettings(const HeatParameters::Parser& parser)
 	{
-		std::vector<const char*> copVehicles; // C-style for game compatibility
+		std::vector<std::string_view> copVehicles;
+		std::vector<float>            radarRanges;
+		std::vector<float>            patrolIconRanges;
+		std::vector<float>            pursuitIconRanges;
+		std::vector<bool>             keepsIcons;
 
-		std::vector<float> radarRanges;
-		std::vector<float> patrolIconRanges;
-		std::vector<float> pursuitIconRanges;
-		std::vector<bool>  keepsIcons;
-
-		const size_t numCopVehicles = parser.ParseUser<const char*, float, float, float, bool>
+		const size_t numCopVehicles = parser.ParseUser<std::string_view, float, float, float, bool>
 		(
 			"Vehicles:Detection",
 			copVehicles,
@@ -406,9 +411,9 @@ namespace CopDetection
 		return copTypeToSettings.FillFromVectors
 		(
 			"Vehicle-to-settings",
-			Globals::GetVaultKey(HeatParameters::configDefaultKey),
-			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultKey, Globals::IsVehicleTypeCar),
-			ModContainers::MapFillSetup(settings,    std::identity{},      ModContainers::AlwaysValid{})
+			HeatParameters::configDefaultVaultHash,
+			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultHash, Globals::IsVehicleTypeCar),
+			ModContainers::MapFillSetup(settings,    std::identity{},       ModContainers::AlwaysValid{})
 		);
 	}
 

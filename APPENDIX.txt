@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT'S THIS APPENDIX ABOUT? (v3.05.00) │ ■ ─────────────────────────────────────────────────
+── ■ │ WHAT'S THIS APPENDIX ABOUT? (v3.06.00) │ ■ ─────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -142,6 +142,19 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
 
  • If you define no valid strings and no "default", Bartender disables its notification feature.
 
+ • You might see cops receive or lose their icons when they shouldn't. This happens because
+   the game only draws the mini-map icons of the first 8 currently flagged cops in its memory,
+   so some of them may suddenly (dis)appear if any cops before them get or lose their flags.
+
+ • For cop detection, Bartender ignores vehicles that are helicopters or don't exist in VltEd.
+
+ • If you define no vehicle settings and no "default", Bartender disables its detection feature.
+
+ • If you don't define colours for both sight states, Bartender disables its vision-cone feature.
+
+ • The actual visual range of helicopters can differ from what the vision-cone icon might suggest;
+   the "heliLOSdistance" VltEd parameter controls the visual range the game uses for calculations.
+
  • You might hear cops use callsigns you didn't assign to them. This is vanilla behaviour:
    The game maintains a pool of "actors" that it constantly shuffles between all active cops.
    This is also the reason why you may still hear Cross or helicopter lines even if they are gone,
@@ -155,19 +168,6 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
  • If you don't define valid "default" callsigns, Bartender uses "patrol" instead.
 
  • If you define no valid callsigns and no "default", Bartender disables its callsign feature.
-
- • You might see cops receive or lose their icons when they shouldn't. This happens because
-   the game only draws the mini-map icons of the first 8 currently flagged cops in its memory,
-   so some of them may suddenly (dis)appear if any cops before them get or lose their flags.
-
- • For cop detection, Bartender ignores vehicles that are helicopters or don't exist in VltEd.
-
- • If you define no vehicle settings and no "default", Bartender disables its detection feature.
-
- • If you don't define colours for both sight states, Bartender disables its vision-cone feature.
-
- • The actual visual range of helicopters can differ from what the vision-cone icon might suggest;
-   the "heliLOSdistance" VltEd parameter controls the visual range the game uses for calculations.
 
  • Dispatch may not always acknowledge a change in jurisdiction over the radio. This is because
    there's randomness involved, and because each pursuit is limited to just one acknowledgement.
@@ -798,3 +798,5 @@ v1.00.00: Initial release
       01: Adjusted default values for the mirroring of roadblock setups
 
    05.00: Made Binary optional for destruction strings and overhauled many mod internals
+
+   06.00: Added feature for cop-destruction notification icons
