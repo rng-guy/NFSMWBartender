@@ -731,7 +731,7 @@ namespace CopSpawnOverrides
 			mov ecx, esi
 			call ChasersManager::NotifyOfWaveReset // ecx: pursuit
 
-			jmp dword ptr waveResetExit
+			jmp dword ptr [waveResetExit]
 		}
 	}
 
@@ -752,7 +752,7 @@ namespace CopSpawnOverrides
 			// Execute original code and resume
 			inc dword ptr [ebp + 0x94] // cops loaded
 
-			jmp dword ptr patrolSpawnExit
+			jmp dword ptr [patrolSpawnExit]
 		}
 	}
 
@@ -774,7 +774,7 @@ namespace CopSpawnOverrides
 
 			fcomp dword ptr [edx]
 
-			jmp dword ptr copClearanceExit
+			jmp dword ptr [copClearanceExit]
 		}
 	}
 
@@ -790,12 +790,12 @@ namespace CopSpawnOverrides
 		{
 			xor eax, eax
 
-			cmp byte ptr chasersAreIndependents.current, 0x1
+			cmp byte ptr [chasersAreIndependents.current], 0x1
 			cmovne eax, dword ptr [edi + 0x94] // "Chasers" not independent
 
-			cmp eax, dword ptr activeChaserCounts.maxValues.current
+			cmp eax, dword ptr [activeChaserCounts.maxValues.current]
 
-			jmp dword ptr copSpawnLimitExit
+			jmp dword ptr [copSpawnLimitExit]
 		}
 	}
 
@@ -821,13 +821,13 @@ namespace CopSpawnOverrides
 			mov ecx, dword ptr [esi + 0x54]       // AIVehicle
 			mov byte ptr [ecx - 0x4C + 0x76B], al // padding byte: "Scripted" flag
 
-			mov byte ptr scriptedPursuitInitialised, al // guaranteed by this point
+			mov byte ptr [scriptedPursuitInitialised], al // guaranteed by this point
 
 			conclusion:
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x314]
 
-			jmp dword ptr scriptedSpawnExit
+			jmp dword ptr [scriptedSpawnExit]
 		}
 	}
 
@@ -859,7 +859,7 @@ namespace CopSpawnOverrides
 			// Execute original code and resume
 			mov ecx, dword ptr [edi + 0xB8]
 
-			jmp dword ptr patrolPursuitExit
+			jmp dword ptr [patrolPursuitExit]
 		}
 	}
 
@@ -892,7 +892,7 @@ namespace CopSpawnOverrides
 			// Execute original code and resume
 			xor eax, eax
 
-			jmp dword ptr patrolDespawnExit
+			jmp dword ptr [patrolDespawnExit]
 		}
 	}
 
@@ -924,7 +924,7 @@ namespace CopSpawnOverrides
 			lea eax, dword ptr [esp + 0x1C]
 			push eax
 			lea ecx, dword ptr [esp + 0x48]
-			call dword ptr AddVehicleToRoadblock
+			call dword ptr [AddVehicleToRoadblock]
 
 			conclusion:
 			dec edi
@@ -933,10 +933,10 @@ namespace CopSpawnOverrides
 			mov ecx, offset roadblockSpawns
 			call Contingent::ClearVehicles
 
-			jmp dword ptr roadblockSpawnExit
+			jmp dword ptr [roadblockSpawnExit]
 
 			skip:
-			jmp dword ptr roadblockSpawnSkip
+			jmp dword ptr [roadblockSpawnSkip]
 		}
 	}
 
@@ -950,14 +950,14 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			cmp byte ptr trafficIgnoresChasers.current, 0x1
+			cmp byte ptr [trafficIgnoresChasers.current], 0x1
 			je roadblock // "Chasers" ignored
 
-			cmp byte ptr chasersAreIndependents.current, 0x1
+			cmp byte ptr [chasersAreIndependents.current], 0x1
 			je chasers // "Chasers" independent
 
 			mov eax, dword ptr [ebx - 0x54 + 0x94] // cops loaded
-			cmp eax, dword ptr activeChaserCounts.maxValues.current
+			cmp eax, dword ptr [activeChaserCounts.maxValues.current]
 			jge roadblock                          // at or above spawn limit
 
 			chasers:
@@ -967,13 +967,13 @@ namespace CopSpawnOverrides
 			jne conclusion                         // pending "Chasers" spawn
 
 			roadblock:
-			cmp byte ptr trafficIgnoresRoadblocks.current, 0x1
+			cmp byte ptr [trafficIgnoresRoadblocks.current], 0x1
 			je conclusion // roadblocks ignored
 
 			cmp byte ptr [edi + 0x190], 0x0 // roadblock pending
 
 			conclusion:
-			jmp dword ptr trafficDensityExit
+			jmp dword ptr [trafficDensityExit]
 		}
 	}
 
@@ -993,7 +993,7 @@ namespace CopSpawnOverrides
 			// Execute original code and resume
 			mov eax, dword ptr [esi + 0x54]
 
-			jmp dword ptr copConstructorExit
+			jmp dword ptr [copConstructorExit]
 		}
 	}
 
@@ -1017,7 +1017,7 @@ namespace CopSpawnOverrides
 			cmp al, byte ptr [esi + 0xA9] // padding byte: creation context
 
 			conclusion:
-			jmp dword ptr recyclingCheckExit
+			jmp dword ptr [recyclingCheckExit]
 		}
 	}
 
@@ -1042,10 +1042,10 @@ namespace CopSpawnOverrides
 
 			push eax
 			mov ecx, dword ptr [esp + 0x8]
-			call dword ptr GetAvailableCopVehicleByName
+			call dword ptr [GetAvailableCopVehicleByName]
 
 			conclusion:
-			jmp dword ptr byClassRequestExit
+			jmp dword ptr [byClassRequestExit]
 		}
 	}
 
@@ -1063,19 +1063,19 @@ namespace CopSpawnOverrides
 			mov dword ptr [esp + 0x28], eax
 			lea esi, dword ptr [edi + 0x18]
 
-			cmp byte ptr eventHasScriptedPursuit, 0x0
+			cmp byte ptr [eventHasScriptedPursuit], 0x0
 			je replacement // not scripted pursuit
 
-			cmp byte ptr scriptedPursuitInitialised, 0x1
+			cmp byte ptr [scriptedPursuitInitialised], 0x1
 			je replacement // do not override scripted cops
 
-			mov eax, dword ptr firstScriptedPursuitCopName
+			mov eax, dword ptr [firstScriptedPursuitCopName]
 			test eax, eax
 			cmovne esi, eax // prefetched name valid
 			jmp conclusion  // cop name overridden
 
 			replacement:
-			cmp byte ptr Globals::playerHeatLevelKnown, 0x1
+			cmp byte ptr [Globals::playerHeatLevelKnown], 0x1
 			jne conclusion // Heat level unknown
 
 			mov ecx, offset scriptedSpawns
@@ -1085,7 +1085,7 @@ namespace CopSpawnOverrides
 			conclusion:
 			mov ecx, ebp
 
-			jmp dword ptr scriptedRequestExit
+			jmp dword ptr [scriptedRequestExit]
 		}
 	}
 
@@ -1102,10 +1102,10 @@ namespace CopSpawnOverrides
 			mov ecx, dword ptr [eax]
 			call PrefetchEventPursuitInfo // ecx: heatLevel
 
-			mov eax, dword ptr firstScriptedPursuitCopName
+			mov eax, dword ptr [firstScriptedPursuitCopName]
 			test eax, eax
 
-			jmp dword ptr firstScriptedCopExit
+			jmp dword ptr [firstScriptedCopExit]
 		}
 	}
 
@@ -1134,7 +1134,7 @@ namespace CopSpawnOverrides
 			mov ecx, dword ptr [eax]
 			mov edx, dword ptr [eax + 0x4]
 
-			jmp dword ptr scriptedSpawnResetExit
+			jmp dword ptr [scriptedSpawnResetExit]
 		}
 	}
 

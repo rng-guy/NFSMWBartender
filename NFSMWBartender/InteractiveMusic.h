@@ -77,7 +77,7 @@ namespace InteractiveMusic
 		{
 			call GetNextTrack
 
-			jmp dword ptr nextTrackExit
+			jmp dword ptr [nextTrackExit]
 		}
 	}
 
@@ -97,7 +97,7 @@ namespace InteractiveMusic
 			mov ecx, dword ptr [esp + 0x2C]
 			add esp, 0x14
 
-			jmp dword ptr firstTrackExit
+			jmp dword ptr [firstTrackExit]
 		}
 	}
 
@@ -113,16 +113,16 @@ namespace InteractiveMusic
 		{
 			mov dword ptr [esi + 0xC], eax
 
-			cmp byte ptr transitionsEnabled, 0x1
+			cmp byte ptr [transitionsEnabled], 0x1
 			jne conclusion // transitions disabled
 
 			fld dword ptr [esi + 0x48] // current track time
-			fcomp dword ptr lengthPerTrack
+			fcomp dword ptr [lengthPerTrack]
 			fnstsw ax
 			test ah, 0x41
 
 			conclusion:
-			jmp dword ptr mainTransitionExit
+			jmp dword ptr [mainTransitionExit]
 		}
 	}
 
@@ -138,16 +138,16 @@ namespace InteractiveMusic
 		{
 			mov dword ptr [esi + 0xC], eax
 
-			cmp byte ptr transitionsEnabled, 0x1
+			cmp byte ptr [transitionsEnabled], 0x1
 			jne conclusion // transitions disabled
 
 			fld dword ptr [esi + 0x48] // current track time
-			fcomp dword ptr lengthPerTrack
+			fcomp dword ptr [lengthPerTrack]
 			fnstsw ax
 			test ah, 0x41
 
 			conclusion:
-			jmp dword ptr otherTransitionExit
+			jmp dword ptr [otherTransitionExit]
 		}
 	}
 

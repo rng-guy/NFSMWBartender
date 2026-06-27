@@ -593,7 +593,7 @@ namespace CopFleeOverrides
 			cmp dword ptr [edi - 0x758 + 0xC4], AIGOALFLEEPURSUIT
 
 			conclusion:
-			jmp dword ptr goalUpdateExit
+			jmp dword ptr [goalUpdateExit]
 		}
 	}
 

@@ -51,7 +51,7 @@ namespace CopNotifications
 			call GetNotificationText // ecx: copType
 			cmp byte ptr [eax], '\0'
 
-			jmp dword ptr notificationTextExit
+			jmp dword ptr [notificationTextExit]
 		}
 	}
 
@@ -69,7 +69,7 @@ namespace CopNotifications
 			mov ecx, offset copTypeToNotificationIcon
 			call ModContainers::DefaultVaultMap<binary>::GetValue
 
-			jmp dword ptr notificationIconExit
+			jmp dword ptr [notificationIconExit]
 		}
 	}
 

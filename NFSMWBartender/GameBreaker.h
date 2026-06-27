@@ -103,13 +103,13 @@ namespace GameBreaker
 			test al, al
 			je conclusion // not player pursuit
 
-			fld dword ptr copWreckBreakerChanges.current
-			fmul dword ptr Globals::floatScale
+			fld dword ptr [copWreckBreakerChanges.current]
+			fmul dword ptr [Globals::floatScale]
 
 			push dword ptr [esi + 0xF8] // copType
 			mov ecx, offset copTypeToBreakerChange
 			call ModContainers::DefaultVaultMap<float>::GetValue
-			fmul dword ptr Globals::floatScale
+			fmul dword ptr [Globals::floatScale]
 
 			faddp st(1), st(0)
 
@@ -121,7 +121,7 @@ namespace GameBreaker
 			// Execute original code and resume
 			fld dword ptr [esi + 0xEC]
 
-			jmp dword ptr wreckChangeExit
+			jmp dword ptr [wreckChangeExit]
 		}
 	}
 
@@ -139,14 +139,14 @@ namespace GameBreaker
 			test ah, 0x41
 			jne conclusion // below speed threshold
 
-			cmp byte ptr driftRechargeEnableds.current, 0x1
+			cmp byte ptr [driftRechargeEnableds.current], 0x1
 			je conclusion // drift recharging unrestricted
 
 			call IsPlayerInPursuit
 			test al, al
 
 			conclusion:
-			jmp dword ptr driftRechargeExit
+			jmp dword ptr [driftRechargeExit]
 		}
 	}
 
@@ -164,14 +164,14 @@ namespace GameBreaker
 			test ah, 0x41
 			jne conclusion // below speed threshold
 
-			cmp byte ptr passiveRechargeEnableds.current, 0x1
+			cmp byte ptr [passiveRechargeEnableds.current], 0x1
 			je conclusion // passive recharging unrestricted
 
 			call IsPlayerInPursuit
 			test al, al
 
 			conclusion:
-			jmp dword ptr passiveRechargeExit
+			jmp dword ptr [passiveRechargeExit]
 		}
 	}
 

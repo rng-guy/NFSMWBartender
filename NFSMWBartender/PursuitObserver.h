@@ -307,7 +307,7 @@ namespace PursuitObserver
 			sub ecx, 0x1C
 			mov eax, dword ptr [ecx]
 
-			jmp dword ptr copAddedExit
+			jmp dword ptr [copAddedExit]
 		}
 	}
 
@@ -332,7 +332,7 @@ namespace PursuitObserver
 			sub ecx, 0x1C
 			mov eax, dword ptr [ecx]
 
-			jmp dword ptr copRemovedExit
+			jmp dword ptr [copRemovedExit]
 		}
 	}
 
@@ -358,7 +358,7 @@ namespace PursuitObserver
 			push ebx
 			push esi
 
-			jmp dword ptr pursuitDestructorExit
+			jmp dword ptr [pursuitDestructorExit]
 		}
 	}
 
@@ -383,7 +383,7 @@ namespace PursuitObserver
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x8]
 
-			jmp dword ptr pursuitConstructorExit
+			jmp dword ptr [pursuitConstructorExit]
 		}
 	}
 

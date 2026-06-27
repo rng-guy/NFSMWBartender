@@ -331,7 +331,7 @@ namespace HeatChangeOverrides
 			mov ecx, esi
 			mov dword ptr [esi + 0xE0], ebx
 			
-			jmp dword ptr heatLimitsExit
+			jmp dword ptr [heatLimitsExit]
 		}
 	}
 
@@ -353,10 +353,10 @@ namespace HeatChangeOverrides
 			test ebx, ebx
 			je conclusion // no pursuit attributes 
 
-			cmp byte ptr heatTimerEnableds.current, 0x0
+			cmp byte ptr [heatTimerEnableds.current], 0x0
 
 			conclusion:
-			jmp dword ptr passiveHeatExit
+			jmp dword ptr [passiveHeatExit]
 		}
 	}
 
@@ -378,7 +378,7 @@ namespace HeatChangeOverrides
 			inc dword ptr [edx + 0x17C]      // spike strips deployed
 
 			conclusion:
-			jmp dword ptr spikeCounterExit
+			jmp dword ptr [spikeCounterExit]
 		}
 	}
 
@@ -400,10 +400,10 @@ namespace HeatChangeOverrides
 
 			push edi // copVehicle
 			lea ecx, dword ptr [esi + 0x10]
-			call dword ptr IsSupportVehicle
+			call dword ptr [IsSupportVehicle]
 			cmp al, 0x1
 
-			jmp dword ptr supportCheckExit
+			jmp dword ptr [supportCheckExit]
 		}
 	}
 
@@ -426,7 +426,7 @@ namespace HeatChangeOverrides
 			call ShouldCollisionTriggerInfraction
 			test al, al
 
-			jmp dword ptr perpCollisionExit
+			jmp dword ptr [perpCollisionExit]
 		}
 	}
 
@@ -445,10 +445,10 @@ namespace HeatChangeOverrides
 			xor ebx, ebx
 			lea edi, dword ptr [esi + 0x8]
 
-			mov dword ptr lastAnimatedHeatLevel, ebx
-			mov dword ptr animationEndTimestamp, ebx
+			mov dword ptr [lastAnimatedHeatLevel], ebx
+			mov dword ptr [animationEndTimestamp], ebx
 
-			jmp dword ptr heatMeterResetExit
+			jmp dword ptr [heatMeterResetExit]
 		}
 	}
 
@@ -465,7 +465,7 @@ namespace HeatChangeOverrides
 			mov ecx, esi
 			call UpdateHeatAnimation // ecx: heatMeter
 
-			jmp dword ptr heatMeterUpdateExit
+			jmp dword ptr [heatMeterUpdateExit]
 		}
 	}
 
@@ -491,7 +491,7 @@ namespace HeatChangeOverrides
 			push esi             // pursuit
 			call HeatManager::AddToPendingHeatChange
 
-			jmp dword ptr typeDestructionExit
+			jmp dword ptr [typeDestructionExit]
 		}
 	}
 

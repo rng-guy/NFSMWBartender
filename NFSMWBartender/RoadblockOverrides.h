@@ -311,13 +311,13 @@ namespace RoadblockOverrides
 	{
 		__asm
 		{
-			mov byte ptr hasSpikes, 0x1
-			mov dword ptr spikeLane, eax
+			mov byte ptr [hasSpikes], 0x1
+			mov dword ptr [spikeLane], eax
 
 			// Execute original code and resume
 			lea ecx, dword ptr [esp + 0xA4]
 
-			jmp dword ptr spikeLaneExit
+			jmp dword ptr [spikeLaneExit]
 		}
 	}
 
@@ -331,10 +331,10 @@ namespace RoadblockOverrides
 	{
 		__asm
 		{
-			mov eax, dword ptr maxStretchScale
+			mov eax, dword ptr [maxStretchScale]
 			mov dword ptr [esp + 0x2C], eax
 
-			jmp dword ptr scaleLimitExit
+			jmp dword ptr [scaleLimitExit]
 		}
 	}
 
@@ -360,7 +360,7 @@ namespace RoadblockOverrides
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x4B4]
 
-			jmp dword ptr radioRequestExit
+			jmp dword ptr [radioRequestExit]
 		}
 	}
 
@@ -401,9 +401,9 @@ namespace RoadblockOverrides
 			xor ecx, ecx // restore zero flag
 			
 			conclusion:
-			mov byte ptr hasSpikes, 0x0
+			mov byte ptr [hasSpikes], 0x0
 
-			jmp dword ptr spawnFailureExit
+			jmp dword ptr [spawnFailureExit]
 		}
 	}
 

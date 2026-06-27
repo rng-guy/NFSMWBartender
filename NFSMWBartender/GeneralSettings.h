@@ -138,7 +138,7 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov ecx, dword ptr maxBountyMultipliers.current
+			mov ecx, dword ptr [maxBountyMultipliers.current]
 			mov eax, dword ptr [esi + 0xF0] // combo count
 
 			inc eax
@@ -147,7 +147,7 @@ namespace GeneralSettings
 
 			mov dword ptr [esi + 0xF0], ecx
 
-			jmp dword ptr copComboExit
+			jmp dword ptr [copComboExit]
 		}
 	}
 
@@ -170,7 +170,7 @@ namespace GeneralSettings
 			mov byte ptr [esi + 0x254], dl   // Cross priority flag
 
 			conclusion:
-			jmp dword ptr heatUpdateExit
+			jmp dword ptr [heatUpdateExit]
 		}
 	}
 
@@ -186,11 +186,11 @@ namespace GeneralSettings
 
 		__asm
 		{
-			cmp byte ptr copFlipByTimers.isEnableds.current, 0x1
+			cmp byte ptr [copFlipByTimers.isEnableds.current], 0x1
 			jne damaged // time check disabled
 
 			fld dword ptr [esi + 0xB8] // time spent flipped
-			fcomp dword ptr copFlipByTimers.values.current
+			fcomp dword ptr [copFlipByTimers.values.current]
 			fnstsw ax
 			test ah, 0x41
 			jne damaged                // delay has yet to expire
@@ -201,14 +201,14 @@ namespace GeneralSettings
 			jmp conclusion              // cop was destroyed
 
 			damaged:
-			cmp byte ptr copFlipByDamageEnableds.current, 0x1
+			cmp byte ptr [copFlipByDamageEnableds.current], 0x1
 			jne skip // damage check disabled
 
 			conclusion:
-			jmp dword ptr copFlippingExit
+			jmp dword ptr [copFlippingExit]
 
 			skip:
-			jmp dword ptr copFlippingSkip
+			jmp dword ptr [copFlippingSkip]
 		}
 	}
 
@@ -230,7 +230,7 @@ namespace GeneralSettings
 			call GetRandomArrestScene // ecx: heatLevel
 			push eax
 
-			jmp dword ptr arrestSceneExit
+			jmp dword ptr [arrestSceneExit]
 		}
 	}
 
@@ -244,7 +244,7 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			cmp byte ptr rivalPursuitsEnableds.current, 0x0
+			cmp byte ptr [rivalPursuitsEnableds.current], 0x0
 			je conclusion // rival pursuits disabled
 
 			// Execute original and resume
@@ -252,7 +252,7 @@ namespace GeneralSettings
 			test ecx, ecx
 
 			conclusion:
-			jmp dword ptr rivalPursuitExit
+			jmp dword ptr [rivalPursuitExit]
 		}
 	}
 
@@ -266,16 +266,16 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			cmp byte ptr racerFlipResetDelays.isEnableds.current, 0x1
+			cmp byte ptr [racerFlipResetDelays.isEnableds.current], 0x1
 			jne conclusion // flipping resets disabled
 
 			fld dword ptr [esi + 0x54] // time spent flipped
-			fcomp dword ptr racerFlipResetDelays.values.current
+			fcomp dword ptr [racerFlipResetDelays.values.current]
 			fnstsw ax
 			test ah, 0x41
 
 			conclusion:
-			jmp dword ptr racerFlippingExit
+			jmp dword ptr [racerFlippingExit]
 		}
 	}
 
@@ -300,7 +300,7 @@ namespace GeneralSettings
 			call dword ptr [edx + 0x3C] // AIPerpVehicle::AddToPendingRepPointsNormal
 
 			conclusion:
-			jmp dword ptr passiveBountyExit
+			jmp dword ptr [passiveBountyExit]
 		}
 	}
 
@@ -321,13 +321,13 @@ namespace GeneralSettings
 			jne conclusion               // evading
 
 			fstp st(0)
-			fld dword ptr maxBustDistances.current
+			fld dword ptr [maxBustDistances.current]
 			
 			// Execute original code and resume
 			conclusion:
 			test bl, bl
 
-			jmp dword ptr maxBustDistanceExit
+			jmp dword ptr [maxBustDistanceExit]
 		}
 	}
 	
@@ -346,7 +346,7 @@ namespace GeneralSettings
 			dec eax
 			cmovl eax, edx // Blacklist index negative
 
-			jmp dword ptr heatEscalationExit
+			jmp dword ptr [heatEscalationExit]
 		}
 	}
 
@@ -366,7 +366,7 @@ namespace GeneralSettings
 			dec edi
 			cmovl edi, ecx // Heat index negative
 
-			jmp dword ptr destructionBountyExit
+			jmp dword ptr [destructionBountyExit]
 		}
 	}
 
@@ -380,10 +380,10 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov al, byte ptr carsAffectedByHidings.current
+			mov al, byte ptr [carsAffectedByHidings.current]
 			test al, byte ptr [edi + 0x2C] // hidden from cars
 
-			jmp dword ptr hiddenFromCarsExit
+			jmp dword ptr [hiddenFromCarsExit]
 		}
 	}
 
@@ -412,7 +412,7 @@ namespace GeneralSettings
 			test al, al
 
 			conclusion:
-			jmp dword ptr pursuitBreakerCheckExit
+			jmp dword ptr [pursuitBreakerCheckExit]
 		}
 	}
 
@@ -426,10 +426,10 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov al, byte ptr carsAffectedByHidings.current
+			mov al, byte ptr [carsAffectedByHidings.current]
 			test al, byte ptr [ebp + 0x2C] // hidden from cars
 
-			jmp dword ptr hiddenFromRoadblocksExit
+			jmp dword ptr [hiddenFromRoadblocksExit]
 		}
 	}
 
@@ -443,10 +443,10 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov al, byte ptr helisAffectedByHidings.current
+			mov al, byte ptr [helisAffectedByHidings.current]
 			test al, byte ptr [esi + 0x2D] // hidden from helicopters
 
-			jmp dword ptr hiddenFromHelicoptersExit
+			jmp dword ptr [hiddenFromHelicoptersExit]
 		}
 	}
 

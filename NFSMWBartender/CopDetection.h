@@ -170,12 +170,12 @@ namespace CopDetection
 		{
 			mov ecx, offset worldMapCops
 			call IconColourTracker::UpdateTimestamp
-			mov byte ptr updateWorldMapColours, al
+			mov byte ptr [updateWorldMapColours], al
 
 			// Execute original code and resume
 			mov edi, dword ptr [esi + 0x154]
 
-			jmp dword ptr worldMapUpdateExit
+			jmp dword ptr [worldMapUpdateExit]
 		}
 	}
 
@@ -195,7 +195,7 @@ namespace CopDetection
 			cmp eax, CHOPPER
 			je conclusion // is helicopter
 
-			cmp byte ptr featureEnabled, 0x1
+			cmp byte ptr [featureEnabled], 0x1
 			jne limitation // map feature disabled
 
 			mov ecx, dword ptr [esi]
@@ -208,10 +208,10 @@ namespace CopDetection
 			jge skip                        // at icon cap
 
 			conclusion:
-			jmp dword ptr copVehicleIconExit
+			jmp dword ptr [copVehicleIconExit]
 
 			skip:
-			jmp dword ptr copVehicleIconSkip
+			jmp dword ptr [copVehicleIconSkip]
 		}
 	}
 
@@ -230,7 +230,7 @@ namespace CopDetection
 			fxch st(1)
 			fcompp
 
-			jmp dword ptr copVehicleRadarExit
+			jmp dword ptr [copVehicleRadarExit]
 		}
 	}
 
@@ -253,7 +253,7 @@ namespace CopDetection
 			cmp al, 0x1
 
 			conclusion:
-			jmp dword ptr destructionCheckExit
+			jmp dword ptr [destructionCheckExit]
 		}
 	}
 
@@ -281,7 +281,7 @@ namespace CopDetection
 			conclusion:
 			cmp ecx, 0x9
 
-			jmp dword ptr miniMapCopColoursExit
+			jmp dword ptr [miniMapCopColoursExit]
 		}
 	}
 
@@ -297,7 +297,7 @@ namespace CopDetection
 		{
 			mov ecx, dword ptr [esi + 0x38]
 
-			cmp byte ptr updateWorldMapColours, 0x1
+			cmp byte ptr [updateWorldMapColours], 0x1
 			jne conclusion // not yet time
 
 			inc ecx
@@ -305,7 +305,7 @@ namespace CopDetection
 			conclusion:
 			mov eax, ecx
 
-			jmp dword ptr worldMapcopColoursExit
+			jmp dword ptr [worldMapcopColoursExit]
 		}
 	}
 
@@ -326,7 +326,7 @@ namespace CopDetection
 			mov ecx, dword ptr [esp + 0x1C]
 			pop edi
 
-			jmp dword ptr miniMapConstructorExit
+			jmp dword ptr [miniMapConstructorExit]
 		}
 	}
 
@@ -350,7 +350,7 @@ namespace CopDetection
 			// Execute original code and resume
 			mov dword ptr [esi + 0x124], eax
 
-			jmp dword ptr worldMapConstructorExit
+			jmp dword ptr [worldMapConstructorExit]
 		}
 	}
 

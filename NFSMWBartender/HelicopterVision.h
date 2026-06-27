@@ -116,16 +116,16 @@ namespace HelicopterVision
 	{
 		__asm
 		{
-			mov dword ptr currentColour, 0x0 // invisible
+			mov dword ptr [currentColour], 0x0 // invisible
 
 			mov ecx, dword ptr [esi]
 			call Globals::IsVehicleDestroyed
 			test al, al
 			jne colour // helicopter destroyed
 
-			mov dword ptr currentColour, 0xFF90B8FF // vanilla
+			mov dword ptr [currentColour], 0xFF90B8FF // vanilla
 
-			cmp byte ptr featureEnabled, 0x1
+			cmp byte ptr [featureEnabled], 0x1
 			jne colour // cone feature disabled
 
 			mov eax, dword ptr [esi]
@@ -148,7 +148,7 @@ namespace HelicopterVision
 			// Execute original code and resume
 			mov byte ptr [esp + 0x13], 0x1
 
-			jmp dword ptr colourUpdateExit
+			jmp dword ptr [colourUpdateExit]
 		}
 	}
 
@@ -172,7 +172,7 @@ namespace HelicopterVision
 			xor eax, eax // restore zero flag
 
 			conclusion:
-			jmp dword ptr worldMapIconExit
+			jmp dword ptr [worldMapIconExit]
 		}
 	}
 

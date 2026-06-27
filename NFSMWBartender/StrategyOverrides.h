@@ -356,10 +356,10 @@ namespace StrategyOverrides
 			mov ebx, esp
 			push 0x0
 
-			jmp dword ptr goalResetExit
+			jmp dword ptr [goalResetExit]
 
 			skip:
-			jmp dword ptr goalResetSkip
+			jmp dword ptr [goalResetSkip]
 		}
 	}
 
@@ -376,7 +376,7 @@ namespace StrategyOverrides
 			mov edx, dword ptr [esp + 0x10]
 			mov eax, dword ptr [edx]
 
-			jmp dword ptr heavyGoalExit
+			jmp dword ptr [heavyGoalExit]
 		}
 	}
 
@@ -401,7 +401,7 @@ namespace StrategyOverrides
 			// Execute original code and resume
 			mov dword ptr [esp + 0x10], 0x8EB1BC
 
-			jmp dword ptr heavy3CountExit
+			jmp dword ptr [heavy3CountExit]
 		}
 	}
 
@@ -415,13 +415,13 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov esi, dword ptr heavy3SpawnPositions
-			mov edi, dword ptr heavy3InitialVectors
+			mov esi, dword ptr [heavy3SpawnPositions]
+			mov edi, dword ptr [heavy3InitialVectors]
 
 			add esi, ebx // vector offset
 			add edi, ebx // vector offset
 
-			jmp dword ptr heavy3SetupExit
+			jmp dword ptr [heavy3SetupExit]
 		}
 	}
 
@@ -454,7 +454,7 @@ namespace StrategyOverrides
 			conclusion:
 			test cl, cl
 
-			jmp dword ptr clearRequestExit
+			jmp dword ptr [clearRequestExit]
 		}
 	}
 
@@ -468,8 +468,8 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov ecx, dword ptr numFloatsPerHeavy3Vector
-			mov edx, dword ptr heavy3SpawnPositions
+			mov ecx, dword ptr [numFloatsPerHeavy3Vector]
+			mov edx, dword ptr [heavy3SpawnPositions]
 			
 			mov edi, eax
 			add edx, ebp // vector offset
@@ -483,7 +483,7 @@ namespace StrategyOverrides
 			dec ecx
 			jnl negation // elements remaining
 
-			mov eax, dword ptr heavy3InitialVectors
+			mov eax, dword ptr [heavy3InitialVectors]
 
 			mov ecx, edi
 			add eax, ebp // vector offset
@@ -491,7 +491,7 @@ namespace StrategyOverrides
 			push edx
 			push eax
 
-			jmp dword ptr heavy3PositionExit
+			jmp dword ptr [heavy3PositionExit]
 		}
 	}
 
@@ -511,7 +511,7 @@ namespace StrategyOverrides
 			// Execute original code and resume
 			mov eax, dword ptr [esp + 0x94]
 
-			jmp dword ptr leaderStrategyExit
+			jmp dword ptr [leaderStrategyExit]
 		}
 	}
 
@@ -531,7 +531,7 @@ namespace StrategyOverrides
 			// Execute original code and resume
 			mov eax, dword ptr [esp + 0xC8]
 
-			jmp dword ptr heavyStrategy3Exit
+			jmp dword ptr [heavyStrategy3Exit]
 		}
 	}
 
@@ -552,7 +552,7 @@ namespace StrategyOverrides
 			mov ecx, dword ptr [esi]
 			mov dword ptr [esi + 0x78], 0x2 // Strategy request status
 
-			jmp dword ptr heavyStrategy4Exit
+			jmp dword ptr [heavyStrategy4Exit]
 		}
 	}
 
@@ -571,7 +571,7 @@ namespace StrategyOverrides
 			fxch st(1)
 			fcompp
 
-			jmp dword ptr minStrategyDelayExit
+			jmp dword ptr [minStrategyDelayExit]
 		}
 	}
 
@@ -590,7 +590,7 @@ namespace StrategyOverrides
 			fxch st(1)
 			fcompp
 
-			jmp dword ptr minRoadblockDelayExit
+			jmp dword ptr [minRoadblockDelayExit]
 		}
 	}
 
@@ -613,7 +613,7 @@ namespace StrategyOverrides
 
 			pop ecx
 
-			jmp dword ptr crossPriorityDelayExit
+			jmp dword ptr [crossPriorityDelayExit]
 		}
 	}
 

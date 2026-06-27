@@ -434,7 +434,7 @@ namespace HelicopterOverrides
 
 	[[nodiscard]] float __fastcall GetSpawnDistance(const address pursuit)
 	{
-		const float distance = (Globals::IsInCooldownMode(pursuit)) ? searchSpawnDistances.GetRandomValue() : chaseSpawnDistances.GetRandomValue();
+		const float distance = ((Globals::IsInCooldownMode(pursuit)) ? searchSpawnDistances : chaseSpawnDistances).GetRandomValue();
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<2>("Spawn distance:", distance);
@@ -456,7 +456,7 @@ namespace HelicopterOverrides
 	{
 		__asm
 		{
-			cmp byte ptr hasLimitedFuel, 0x1
+			cmp byte ptr [hasLimitedFuel], 0x1
 			jne conclusion // unlimited fuel
 
 			// Execute original code and resume
@@ -464,7 +464,7 @@ namespace HelicopterOverrides
 			fst dword ptr [esi + 0x7D8] // helicopter fuel
 
 			conclusion:
-			jmp dword ptr fuelUpdateExit
+			jmp dword ptr [fuelUpdateExit]
 		}
 	}
 
@@ -480,10 +480,10 @@ namespace HelicopterOverrides
 
 		__asm
 		{
-			mov ecx, dword ptr fuelTime
+			mov ecx, dword ptr [fuelTime]
 			mov dword ptr [esi + 0x34], ecx // helicopter fuel
 
-			jmp dword ptr defaultFuelExit
+			jmp dword ptr [defaultFuelExit]
 		}
 	}
 
@@ -499,7 +499,7 @@ namespace HelicopterOverrides
 
 		__asm
 		{
-			cmp byte ptr skipBailoutSpeech, 0x1
+			cmp byte ptr [skipBailoutSpeech], 0x1
 			je skip // speech disabled
 
 			// Execute original code and resume
@@ -507,10 +507,10 @@ namespace HelicopterOverrides
 			push esi
 			mov esi, ecx
 
-			jmp dword ptr earlyBailoutExit
+			jmp dword ptr [earlyBailoutExit]
 
 			skip:
-			jmp dword ptr earlyBailoutSkip
+			jmp dword ptr [earlyBailoutSkip]
 		}
 	}
 
@@ -530,7 +530,7 @@ namespace HelicopterOverrides
 			push eax
 			fstp dword ptr [esp]
 
-			jmp dword ptr spawnDistanceExit
+			jmp dword ptr [spawnDistanceExit]
 		}
 	}
 
@@ -544,7 +544,7 @@ namespace HelicopterOverrides
 	{
 		__asm
 		{
-			cmp byte ptr affectedByRoadblocks.current, 0x0
+			cmp byte ptr [affectedByRoadblocks.current], 0x0
 			je conclusion // helicopter unaffected
 
 			// Execute original code and resume
@@ -552,7 +552,7 @@ namespace HelicopterOverrides
 			test eax, eax
 
 			conclusion:
-			jmp dword ptr roadblockCheckExit
+			jmp dword ptr [roadblockCheckExit]
 		}
 	}
 
@@ -570,7 +570,7 @@ namespace HelicopterOverrides
 			call HeatParameters::Interval<float>::GetRandomValue
 			fstp dword ptr [esi + 0x64] // HeliStrategy 2 cooldown
 
-			jmp dword ptr rammingCooldownExit
+			jmp dword ptr [rammingCooldownExit]
 		}
 	}
 

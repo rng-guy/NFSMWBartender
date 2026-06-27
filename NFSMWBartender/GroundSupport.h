@@ -363,7 +363,7 @@ namespace GroundSuppport
 	{
 		__asm
 		{
-			cmp byte ptr LeaderOverrides::featureEnabled, 0x1
+			cmp byte ptr [LeaderOverrides::featureEnabled], 0x1
 			je conclusion // flag managed by "Advanced" feature set
 
 			mov edx, dword ptr [edi + 0x54]       // AIVehicle
@@ -376,7 +376,7 @@ namespace GroundSuppport
 			// Execute original code and resume
 			fild dword ptr [esi + 0x148]
 
-			jmp dword ptr onAttachedExit
+			jmp dword ptr [onAttachedExit]
 		}
 	}
 
@@ -397,7 +397,7 @@ namespace GroundSuppport
 			mov eax, dword ptr [esi + 0x54]       // AIVehicle
 			cmp byte ptr [eax - 0x4C + 0x83], 0x1 // padding byte: Cross flag (car)
 
-			jmp dword ptr onDetachedExit
+			jmp dword ptr [onDetachedExit]
 		}
 	}
 
@@ -420,7 +420,7 @@ namespace GroundSuppport
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x90]
 
-			jmp dword ptr crossSpawnExit
+			jmp dword ptr [crossSpawnExit]
 		}
 	}
 
@@ -436,8 +436,8 @@ namespace GroundSuppport
 		{
 			push esi
 
-			mov eax, dword ptr leader7Hench1Vehicles.current
-			mov edx, dword ptr leader7Hench2Vehicles.current
+			mov eax, dword ptr [leader7Hench1Vehicles.current]
+			mov edx, dword ptr [leader7Hench2Vehicles.current]
 
 			// Only LeaderStrategy 7 reads these
 			mov dword ptr [esp + 0x24], eax
@@ -445,7 +445,7 @@ namespace GroundSuppport
 
 			mov esi, dword ptr [esp + 0x60]
 
-			jmp dword ptr henchmenSubExit
+			jmp dword ptr [henchmenSubExit]
 		}
 	}
 
@@ -462,7 +462,7 @@ namespace GroundSuppport
 			mov ecx, dword ptr [esi]
 			call SelectHeavyVehicle // ecx: heavyStrategy
 
-			jmp dword ptr heavySelectorExit
+			jmp dword ptr [heavySelectorExit]
 		}
 	}
 
@@ -485,7 +485,7 @@ namespace GroundSuppport
 			test edi, edi
 			mov eax, edi
 
-			jmp dword ptr crossSelectorExit
+			jmp dword ptr [crossSelectorExit]
 		}
 	}
 
@@ -503,7 +503,7 @@ namespace GroundSuppport
 		{
 			jne skip // priority flag set
 
-			cmp byte ptr rivalLeaderEnableds.current, 0x1
+			cmp byte ptr [rivalLeaderEnableds.current], 0x1
 			je conclusion // no rival discrimination
 
 			mov ecx, esi
@@ -516,10 +516,10 @@ namespace GroundSuppport
 			mov ecx, ebp
 			xor ebx, ebx
 
-			jmp dword ptr crossPriorityExit
+			jmp dword ptr [crossPriorityExit]
 
 			skip:
-			jmp dword ptr crossPrioritySkip
+			jmp dword ptr [crossPrioritySkip]
 		}
 	}
 
@@ -535,7 +535,7 @@ namespace GroundSuppport
 
 		__asm
 		{
-			cmp byte ptr rivalRoadblockEnableds.current, 0x1
+			cmp byte ptr [rivalRoadblockEnableds.current], 0x1
 			je conclusion // no rival discrimination
 
 			call Globals::IsPlayerPursuit
@@ -550,10 +550,10 @@ namespace GroundSuppport
 			call dword ptr [edx + 0x28] // AIPursuit::IsPerpInSight
 			cmp al, 0x1
 
-			jmp dword ptr rivalRoadblockExit
+			jmp dword ptr [rivalRoadblockExit]
 
 			skip:
-			jmp dword ptr rivalRoadblockSkip
+			jmp dword ptr [rivalRoadblockSkip]
 		}
 	}
 
@@ -573,7 +573,7 @@ namespace GroundSuppport
 			mov ecx, esi
 			call ReportPriorityOutcome // ecx: pursuit
 
-			jmp dword ptr priorityOutcomeExit
+			jmp dword ptr [priorityOutcomeExit]
 		}
 	}
 
@@ -594,7 +594,7 @@ namespace GroundSuppport
 			// Execute original code and resume
 			lea ecx, dword ptr [esi - 0x48]
 
-			jmp dword ptr requestCooldownExit
+			jmp dword ptr [requestCooldownExit]
 		}
 	}
 
@@ -608,7 +608,7 @@ namespace GroundSuppport
 	{
 		__asm
 		{
-			fld dword ptr rammingSpeedLimit
+			fld dword ptr [rammingSpeedLimit]
 			fcom st(1)
 			fnstsw ax
 			test ah, 0x5
@@ -620,7 +620,7 @@ namespace GroundSuppport
 			fstp st(0)
 			fstp dword ptr [esp + 0x4]
 
-			jmp dword ptr heavySpeedSetupExit
+			jmp dword ptr [heavySpeedSetupExit]
 		}
 	}
 
@@ -634,9 +634,9 @@ namespace GroundSuppport
 	{
 		__asm
 		{
-			push dword ptr rammingSpeedLimit
+			push dword ptr [rammingSpeedLimit]
 
-			jmp dword ptr heavySpeedUpdateExit
+			jmp dword ptr [heavySpeedUpdateExit]
 		}
 	}
 
@@ -653,7 +653,7 @@ namespace GroundSuppport
 			mov ecx, offset roadblockCooldowns
 			call HeatParameters::Interval<float>::GetRandomValue
 
-			jmp dword ptr roadblockCooldownExit
+			jmp dword ptr [roadblockCooldownExit]
 		}
 	}
 
@@ -675,7 +675,7 @@ namespace GroundSuppport
 			mov ecx, dword ptr [esp]
 			fstp dword ptr [esp]
 
-			jmp dword ptr roadblockDistanceExit
+			jmp dword ptr [roadblockDistanceExit]
 		}
 	}
 
@@ -696,7 +696,7 @@ namespace GroundSuppport
 			xor edi, edi
 			sub edi, eax
 
-			jmp dword ptr strategySelectionExit
+			jmp dword ptr [strategySelectionExit]
 		}
 	}
 
@@ -717,20 +717,20 @@ namespace GroundSuppport
 			test eax, eax
 			je conclusion                   // no pursuit
 
-			cmp byte ptr reactToSpikesHits.current, 0x0
+			cmp byte ptr [reactToSpikesHits.current], 0x0
 			je conclusion // reaction disabled
 
 			mov edx, eax
 
-			fld dword ptr [edx + 0x7C] // distance to racer
-			fcomp dword ptr maxJoinRange
+			fld dword ptr [edx + 0x7C] // distance to target
+			fcomp dword ptr [maxJoinRange]
 			fnstsw ax
 			test ah, 0x41
 
 			mov eax, edx
 
 			conclusion:
-			jmp dword ptr spikesHitReactionExit
+			jmp dword ptr [spikesHitReactionExit]
 		}
 	}
 
@@ -744,7 +744,7 @@ namespace GroundSuppport
 	{
 		__asm
 		{
-			cmp byte ptr roadblockEndsFormations.current, 0x1
+			cmp byte ptr [roadblockEndsFormations.current], 0x1
 			jne conclusion // keep formation
 
 			// Execute original code and resume
@@ -754,7 +754,7 @@ namespace GroundSuppport
 			test al, al
 
 			conclusion:
-			jmp dword ptr roadblockFormationExit
+			jmp dword ptr [roadblockFormationExit]
 		}
 	}
 
@@ -775,10 +775,10 @@ namespace GroundSuppport
 			test al, al
 			je skip              // may not join
 
-			jmp dword ptr roadblockJoinCountExit
+			jmp dword ptr [roadblockJoinCountExit]
 
 			skip:
-			jmp dword ptr roadblockJoinCountSkip
+			jmp dword ptr [roadblockJoinCountSkip]
 		}
 	}
 
@@ -798,7 +798,7 @@ namespace GroundSuppport
 			call MayDetachCops // ecx: roadblock
 			cmp al, 0x1
 
-			jmp dword ptr roadblockJoinTimerExit
+			jmp dword ptr [roadblockJoinTimerExit]
 		}
 	}
 

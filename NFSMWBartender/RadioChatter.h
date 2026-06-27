@@ -81,10 +81,10 @@ namespace RadioChatter
 		{
 			mov ebp, dword ptr [esi + 0x104] // current Heat level
 
-			cmp ebp, dword ptr lastReportedHeatLevel
+			cmp ebp, dword ptr [lastReportedHeatLevel]
 			je skip // already reported
 
-			mov dword ptr lastReportedHeatLevel, ebp
+			mov dword ptr [lastReportedHeatLevel], ebp
 
 			cmp ebp, 0xA
 			jg skip // new Heat Level > 10
@@ -92,10 +92,10 @@ namespace RadioChatter
 			sub ebp, 0x2
 			jl skip // new Heat level < 2
 
-			jmp dword ptr heatCheckExit
+			jmp dword ptr [heatCheckExit]
 
 			skip:
-			jmp dword ptr heatCheckSkip
+			jmp dword ptr [heatCheckSkip]
 		}
 	}
 
@@ -116,7 +116,7 @@ namespace RadioChatter
 
 			mov ecx, ebp
 
-			jmp dword ptr heatReportExit
+			jmp dword ptr [heatReportExit]
 		}
 	}
 
@@ -130,13 +130,13 @@ namespace RadioChatter
 	{
 		__asm
 		{
-			mov dword ptr lastReportedHeatLevel, 0x1
-			mov dword ptr lastJurisdictionID, CITY
+			mov dword ptr [lastReportedHeatLevel], 0x1
+			mov dword ptr [lastJurisdictionID], CITY
 
 			// Execute original code and resume
 			mov dword ptr [esi + 0x130], edi
 
-			jmp dword ptr playerPursuitExit
+			jmp dword ptr [playerPursuitExit]
 		}
 	}
 
@@ -157,7 +157,7 @@ namespace RadioChatter
 
 			mov dword ptr [esp + 0x28], eax // freed variable
 
-			jmp dword ptr callsignsCheckExit
+			jmp dword ptr [callsignsCheckExit]
 		}
 	}
 
@@ -180,10 +180,10 @@ namespace RadioChatter
 
 			call GetCallsignsOffset // ecx: callsigns
 
-			jmp dword ptr firstCallsignsSkip
+			jmp dword ptr [firstCallsignsSkip]
 
 			conclusion:
-			jmp dword ptr firstCallsignsExit
+			jmp dword ptr [firstCallsignsExit]
 		}
 	}
 
@@ -200,7 +200,7 @@ namespace RadioChatter
 			mov ecx, dword ptr [esp + 0x28] // from "CallsignsCheck"
 			call GetCallsignsOffset         // ecx: callsigns
 
-			jmp dword ptr secondCallsignsExit
+			jmp dword ptr [secondCallsignsExit]
 		}
 	}
 
@@ -220,7 +220,7 @@ namespace RadioChatter
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B] // is "rhino"
 
-			jmp dword ptr collisionCalloutExit
+			jmp dword ptr [collisionCalloutExit]
 		}
 	}
 
@@ -236,21 +236,21 @@ namespace RadioChatter
 
 		__asm
 		{
-			mov eax, dword ptr heatJurisdictionIDs.current
-			cmp eax, dword ptr lastJurisdictionID
+			mov eax, dword ptr [heatJurisdictionIDs.current]
+			cmp eax, dword ptr [lastJurisdictionID]
 			je skip // same jurisdiction
 
-			mov dword ptr lastJurisdictionID, eax
+			mov dword ptr [lastJurisdictionID], eax
 
 			cmp eax, CITY
 			je skip // default jurisdiction
 
 			push eax
 
-			jmp dword ptr jurisdictionReportExit
+			jmp dword ptr [jurisdictionReportExit]
 
 			skip:
-			jmp dword ptr jurisdictionReportSkip
+			jmp dword ptr [jurisdictionReportSkip]
 		}
 	}
 

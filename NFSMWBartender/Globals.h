@@ -42,7 +42,7 @@ namespace Globals
 	bool advancedSetEnabled = false;
 
 	// Game timer
-	uint32_t pausedTicks = 0;
+	uint32_t numPausedTicks = 0;
 
 	// Random-number generator
 	RandomNumbers::Generator prng;
@@ -69,7 +69,7 @@ namespace Globals
 	// Common data pointers
 	const volatile float&    simulationTime = *reinterpret_cast<volatile float*>   (0x9885D8); // seconds
 	const volatile address&  copManager     = *reinterpret_cast<volatile address*> (0x90D5F4);
-	const volatile uint32_t& gameTicks      = *reinterpret_cast<volatile uint32_t*>(0x925B14);
+	const volatile uint32_t& numGameTicks   = *reinterpret_cast<volatile uint32_t*>(0x925B14);
 	const volatile float&    ticksToTime    = *reinterpret_cast<volatile float*>   (0x890984); // seconds / tick
 
 
@@ -131,7 +131,7 @@ namespace Globals
 			case  3: a += Shift( 2, 16); [[fallthrough]];
 			case  2: a += Shift( 1,  8); [[fallthrough]];
 			case  1: a += Shift( 0,  0); [[fallthrough]];
-			default: c += size;
+			case  0: c += size;
 		}
 
 		MixValues();
@@ -186,13 +186,13 @@ namespace Globals
 
 	[[nodiscard]] float GetTotalGameTime()
 	{
-		return ticksToTime * static_cast<float>(gameTicks);
+		return ticksToTime * static_cast<float>(numGameTicks);
 	}
 
 
 	[[nodiscard]] float GetUnpausedGameTime()
 	{
-		return ticksToTime * static_cast<float>(gameTicks - pausedTicks);
+		return ticksToTime * static_cast<float>(numGameTicks - numPausedTicks);
 	}
 
 
