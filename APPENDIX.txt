@@ -123,7 +123,7 @@ Regarding the "Basic" feature set AS A WHOLE:
 
 Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
 
- • The notification-string feature is incompatible with the "EnableCopDestroyedStringHook"
+ • Both notification-related features are incompatible with the "EnableCopDestroyedStringHook"
    feature of the "NFSMW Unlimiter" mod by nlgxzef. To resolve this conflict, either delete 
    Bartender's "[Vehicles:Notifications]" parameter group or disable Unlimiter's version
    of the feature by editing its "NFSMWUnlimiterSettings.ini" configuration file.
@@ -136,11 +136,18 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
 
  • When the game displays a notification, "^" becomes a line break and "%$d" the bounty amount.
 
- • For notifications, Bartender ignores strings for vehicles that don't exist in VltEd.
+ • For notification strings, Bartender ignores strings for vehicles that don't exist in VltEd.
 
  • If you don't define a valid "default" string, string-less vehicles won't trigger notifications.
 
- • If you define no valid strings and no "default", Bartender disables its notification feature.
+ • If you define no valid strings and no "default", Bartender disables its string feature.
+
+ • For notification icons, Bartender ignores icons for vehicles that don't exist in VltEd.
+
+ • If you define no valid icons and no "default", Bartender disables its icon feature.
+
+ • For an icon to be valid, it must exist in the game's "GLOBALB.LZC" file. You can browse, 
+   edit, and expand the icons contained in this file with the "Binary" tool by MaxHwoy.
 
  • You might see cops receive or lose their icons when they shouldn't. This happens because
    the game only draws the mini-map icons of the first 8 currently flagged cops in its memory,

@@ -119,7 +119,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
-* The notification-string feature is incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Notifications]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
+* Both notification-related features are incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Notifications]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
 
 * You can define notification strings directly or use the names of existing game strings: If a string you define matches the name of a game string, Bartender uses the game string; if not, Bartender uses the string itself to generate an in-game notification instead.
 
@@ -127,11 +127,17 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * When the game displays a notification, `^` becomes a line break and `%$d` the bounty amount.
 
-* For notifications, Bartender ignores strings for vehicles that don't exist in VltEd.
+* For notification strings, Bartender ignores strings for vehicles that don't exist in VltEd.
 
 * If you don't define a valid `default` string, string-less vehicles won't trigger notifications.
 
-* If you define no valid strings and no `default`, Bartender disables its notification feature.
+* If you define no valid strings and no `default`, Bartender disables its string feature.
+
+* For notification icons, Bartender ignores icons for vehicles that don't exist in VltEd.
+
+* If you define no valid icons and no `default`, Bartender disables its icon feature.
+
+* For an icon to be valid, it must exist in the game's `GLOBALB.LZC` file. You can browse, edit, and expand the icons contained in this file with the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy.
 
 * You might see cops receive or lose their icons when they shouldn't. This happens because the game only draws the mini-map icons of the first 8 currently flagged cops in its memory, so some of them may suddenly (dis)appear if any cops before them get or lose their flags.
 

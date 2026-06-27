@@ -116,7 +116,7 @@ namespace GeneralSettings
 			numCandidates = scenesLevel3.size();
 		}
 
-		const auto scene = candidates[Globals::prng.GenerateIndex(numCandidates)];
+		const char* const scene = candidates[Globals::prng.GenerateIndex(numCandidates)];
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<1>("[GEN] Arrest cutscene:", scene);
