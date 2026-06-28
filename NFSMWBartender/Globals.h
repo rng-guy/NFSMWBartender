@@ -59,12 +59,12 @@ namespace Globals
 	constexpr float floatScale = 1.f + static_cast<float>(1e-6);
 
 	// Common function pointers
-	const auto GetVehicleType = reinterpret_cast<vault       (__thiscall*)(address)>(0x6880A0);
-	const auto GetVehicleName = reinterpret_cast<const char* (__thiscall*)(address)>(0x688090);
-
 	const auto IsPlayerPursuit     = reinterpret_cast<bool (__thiscall*)(address)>(0x40AD80);
 	const auto IsVehicleDestroyed  = reinterpret_cast<bool (__thiscall*)(address)>(0x688170);
 	const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
+
+	const auto GetVehicleType = reinterpret_cast<vault       (__thiscall*)(address)>(0x6880A0);
+	const auto GetVehicleName = reinterpret_cast<const char* (__thiscall*)(address)>(0x688090);
 
 	// Common data pointers
 	const volatile float&    simulationTime = *reinterpret_cast<volatile float*>   (0x9885D8); // seconds

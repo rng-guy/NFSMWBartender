@@ -178,7 +178,7 @@ The "Advanced" feature set **always fixes eleven bugs / issues** automatically:
 &nbsp;
 
 The "Advanced" feature set **can fix four more bugs / issues**, depending on its configuration:
-* the cops no longer inadvertently fail to spawn four of the vanilla roadblock setups,
+* the cops no longer inadvertently fail to request four of the vanilla roadblock setups,
 * the helicopter can no longer waste its spawns by losing the pursuit target nearly instantly,
 * HeavyStrategy 3 cops no longer spawn in passive mode without trying to ram anything, and
 * traffic spawns no longer slow down or stop at Heat levels with many cops or roadblocks.
