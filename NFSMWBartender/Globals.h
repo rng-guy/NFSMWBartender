@@ -52,7 +52,7 @@ namespace Globals
 	bool    playerHeatLevelKnown = false;
 
 	// Logging (e.g. for debugging)
-	constexpr bool loggingEnabled = false;
+	constexpr bool loggingEnabled = true;
 	BasicLogger::Logger<9, 15, 17> logger;
 
 	// Hackjob floating-point correction coefficient
@@ -305,12 +305,10 @@ namespace Globals
 		if (not copAIVehiclePursuit) return false; // should never happen
 
 		const auto SetSupportGoal = reinterpret_cast<void (__thiscall*)(address, vault)>       (0x409850);
-		const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault*)>(0x422480);
-
-		constexpr vault pursuitGoal = "AIGoalPursuit"_vlt;
-	
+		const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault&)>(0x422480);
+		
 		SetSupportGoal(copAIVehiclePursuit, 0x0);
-		SetVehicleGoal(copAIVehicle - 0x4C, &pursuitGoal);
+		SetVehicleGoal(copAIVehicle - 0x4C, "AIGoalPursuit"_vlt);
 
 		return true;
 	}
