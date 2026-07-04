@@ -65,13 +65,13 @@ namespace CopFleeOverrides
 
 			const std::string_view label;
 
-			ModContainers::AddressMap<float> vehicleToTimestamp;
+			ModContainers::AddressMap<float> copVehicleToTimestamp;
 
 			// Whether currently scheduled cops should be checked for expiration
-			std::function<bool ()> IsExpirationEnabled = []() -> bool {return true;};
+			std::function<bool ()> ShouldCheckForExpiration = []() -> bool {return true;};
 
-			// Whether a given expired cop should actually be forced to bail the pursuit
-			std::function<bool (const address)> ShouldBailExpired = [](const address copVehicle) -> bool {return true;};
+			// Whether a given expired cop vehicle should actually be forced to bail the pursuit
+			std::function<bool (const address)> ShouldExpiredVehicleBail = [](const address copVehicle) -> bool {return true;};
 
 
 			explicit SchedulerBase
@@ -96,11 +96,11 @@ namespace CopFleeOverrides
 				const address copVehicle,
 				const float   fleeTimer
 			) {
-				const auto [pair, wasAdded] = this->vehicleToTimestamp.try_emplace(copVehicle, Globals::simulationTime + fleeTimer);
+				const auto [pairIt, isNewVehicle] = this->copVehicleToTimestamp.try_emplace(copVehicle, Globals::simulationTime + fleeTimer);
 
 				if constexpr (Globals::loggingEnabled)
 				{
-					if (wasAdded)
+					if (isNewVehicle)
 						Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", fleeTimer);
 
 					else
@@ -115,7 +115,7 @@ namespace CopFleeOverrides
 				if (not copAIVehiclePursuit) return false; // should never happen
 
 				const auto StartFlee = reinterpret_cast<void (__thiscall*)(address)>(0x423370);
-				StartFlee(copAIVehiclePursuit); // updates vehicle goal(s) accordingly
+				StartFlee(copAIVehiclePursuit); // also updates vehicle goal(s) accordingly
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[FLE]", this->label, copVehicle, "fleeing");
@@ -129,42 +129,42 @@ namespace CopFleeOverrides
 
 			void CheckTimestamps()
 			{
-				auto iterator = this->vehicleToTimestamp.begin();
+				auto pairIt = this->copVehicleToTimestamp.begin();
 
-				while ((iterator != this->vehicleToTimestamp.end()) and this->IsExpirationEnabled())
+				while ((pairIt != this->copVehicleToTimestamp.end()) and this->ShouldCheckForExpiration())
 				{
-					if (Globals::simulationTime >= iterator->second)
-					{
-						const address copVehicle = iterator->first;
+					const auto& [copVehicle, timestamp] = *pairIt;
 
-						if (this->ShouldBailExpired(copVehicle))		
+					if (Globals::simulationTime >= timestamp)
+					{
+						if (this->ShouldExpiredVehicleBail(copVehicle))
 							this->MakeVehicleBail(copVehicle);
 						
-						iterator = this->vehicleToTimestamp.erase(iterator);
+						pairIt = this->copVehicleToTimestamp.erase(pairIt);
 					}
-					else ++iterator;
+					else ++pairIt;
 				}
 			}
 
 
 			void ForceTriggerExpiration()
 			{
-				for (const auto& [copVehicle, timestamp] : this->vehicleToTimestamp)
+				for (const auto& [copVehicle, timestamp] : this->copVehicleToTimestamp)
 				{
-					if (this->ShouldBailExpired(copVehicle)) 
+					if (this->ShouldExpiredVehicleBail(copVehicle))
 						this->MakeVehicleBail(copVehicle);
 
 					++(this->numPendingExpired);
 				}
 
-				this->vehicleToTimestamp.clear();
+				this->copVehicleToTimestamp.clear();
 				this->numPendingExpired = 0;
 			}
 
 
 			[[nodiscard]] size_t GetNumScheduled() const
 			{
-				return this->vehicleToTimestamp.size() - this->numPendingExpired;
+				return this->copVehicleToTimestamp.size() - this->numPendingExpired;
 			}
 		};
 
@@ -181,7 +181,7 @@ namespace CopFleeOverrides
 
 		public:
 
-			using SchedulerBase::ShouldBailExpired;
+			using SchedulerBase::ShouldExpiredVehicleBail;
 
 
 			explicit StrategyScheduler
@@ -197,7 +197,7 @@ namespace CopFleeOverrides
 
 			void ReserveVehicleCapacity(const size_t numVehicles)
 			{
-				this->vehicleToTimestamp.reserve(numVehicles);
+				this->copVehicleToTimestamp.reserve(numVehicles);
 			}
 
 
@@ -210,7 +210,7 @@ namespace CopFleeOverrides
 
 			void RemoveVehicle(const address copVehicle)
 			{
-				this->vehicleToTimestamp.erase(copVehicle);
+				this->copVehicleToTimestamp.erase(copVehicle);
 			}
 
 
@@ -227,10 +227,10 @@ namespace CopFleeOverrides
 		{
 		public:
 
-			// Total number of active "Chaser" cops
+			// Total number of active "Chasers"
 			std::function<size_t ()> GetNumActiveChasers = []() -> size_t {return 8;};
 
-			// Whether a given cop may be scheduled for expiration
+			// Whether a given cop vehicle may be scheduled for expiration
 			std::function<bool (const address)> IsSchedulable = [](const address copVehicle) -> bool {return true;};
 
 
@@ -238,7 +238,7 @@ namespace CopFleeOverrides
 		private:
 
 			// Tracks all cops in case of Heat transitions
-			ModContainers::AddressSet vehicles;
+			ModContainers::AddressSet copVehicles;
 
 			const HeatParameters::OptionalInterval<float>& fleeDelays;
 			const HeatParameters::OptionalPair    <int>&   thresholds;
@@ -266,8 +266,8 @@ namespace CopFleeOverrides
 			)
 				: SchedulerBase(pursuit, label), fleeDelays(fleeDelays), thresholds(thresholds)
 			{
-				// Scheduled non-Strategy cops may only expire if the number of "Chaser" cops is above some threshold
-				this->IsExpirationEnabled = [this]() -> bool
+				// Scheduled non-Strategy cops may only expire if the number of "Chasers" is above some threshold
+				this->ShouldCheckForExpiration = [this]() -> bool
 				{
 					if (this->thresholds.isEnableds.current)
 						return (static_cast<int>(this->GetNumActiveChasers()) > this->thresholds.values.current);
@@ -276,47 +276,56 @@ namespace CopFleeOverrides
 				};
 
 				// Expired pursuit cops always bail and must also be un-tracked
-				this->ShouldBailExpired = [this](const address copVehicle) -> bool
+				this->ShouldExpiredVehicleBail = [this](const address copVehicle) -> bool
 				{
-					this->vehicles.erase(copVehicle);
-					return true;
+					return this->copVehicles.erase(copVehicle);
 				};
 			}
 
 
+			explicit PursuitScheduler
+			(
+				const address, 
+				const std::string_view, 
+				const HeatParameters::OptionalInterval<float>&&, 
+				const HeatParameters::OptionalPair    <int>&&
+			) 
+				= delete;
+
+
 			void ReserveVehicleCapacity(const size_t numVehicles)
 			{
-				this->vehicles          .reserve(numVehicles);
-				this->vehicleToTimestamp.reserve(numVehicles);
+				this->copVehicles          .reserve(numVehicles);
+				this->copVehicleToTimestamp.reserve(numVehicles);
 			}
 
 
 			void ReviewAllVehicles()
 			{
-				this->vehicleToTimestamp.clear();
+				this->copVehicleToTimestamp.clear();
 
-				for (const address copVehicle : this->vehicles)
+				for (const address copVehicle : this->copVehicles)
 					this->ReviewVehicle(copVehicle);
 			}
 
 
 			void AddVehicle(const address copVehicle)
 			{
-				this->vehicles.insert(copVehicle);
+				this->copVehicles.insert(copVehicle);
 				this->ReviewVehicle(copVehicle);
 			}
 
 
 			void RemoveVehicle(const address copVehicle)
 			{
-				this->vehicles          .erase(copVehicle);
-				this->vehicleToTimestamp.erase(copVehicle);
+				this->copVehicles          .erase(copVehicle);
+				this->copVehicleToTimestamp.erase(copVehicle);
 			}
 
 
 			[[nodiscard]] address GetNumVehicles() const
 			{
-				return this->vehicles.size();
+				return this->copVehicles.size();
 			}
 		};
 
@@ -353,7 +362,7 @@ namespace CopFleeOverrides
 		const volatile address& pursuitTarget  = *reinterpret_cast<volatile address*>(this->pursuit + 0x74);
 
 
-		[[nodiscard]] static bool IsNotInChasersTable(const address copVehicle)
+		[[nodiscard]] static bool IsNotInChaserTable(const address copVehicle)
 		{
 			return (not CopSpawnTables::chaserSpawnTables.current->ContainsType(Globals::GetVehicleType(copVehicle)));
 		}
@@ -409,8 +418,10 @@ namespace CopFleeOverrides
 
 			if (rigidBodyOfTarget)
 			{
-				const auto GetSpeedXZ = reinterpret_cast<float (__thiscall*)(address)>(0x6711F0);
-				return (GetSpeedXZ(rigidBodyOfTarget) < ((this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold));
+				const auto  GetSpeedXZ     = reinterpret_cast<float (__thiscall*)(address)>(0x6711F0);
+				const float speedThreshold = (this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold;
+
+				return (GetSpeedXZ(rigidBodyOfTarget) < speedThreshold);
 			}
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [FLE] Invalid RigidBody for", this->pursuitTarget, "in", this->pursuit);
@@ -455,20 +466,20 @@ namespace CopFleeOverrides
 				Globals::logger.Log<2>('+', this, "MembershipManager");
 
 			// Expired Heavy3 vehicles only bail if they cannot join as pursuit cops
-			this->heavyVehicles.ShouldBailExpired = [this](const address copVehicle) -> bool
+			this->heavyVehicles.ShouldExpiredVehicleBail = [this](const address copVehicle) -> bool
 			{
 				return (not this->MakeHeavyVehicleJoin(copVehicle));
 			};
 
-			// Scheduled non-Strategy cops may only expire if the number of "Chaser" cops is above some threshold
+			// Scheduled non-Strategy cops may only expire if the number of "Chasers" is above some threshold
 			const auto GetNumActiveChasers = [this]() -> size_t {return this->chaserVehicles.GetNumVehicles();};
 
 			this->chaserVehicles         .GetNumActiveChasers = GetNumActiveChasers;
 			this->joinedHeavyVehicles    .GetNumActiveChasers = GetNumActiveChasers;
 			this->joinedRoadblockVehicles.GetNumActiveChasers = GetNumActiveChasers;
 
-			// "Chaser" cops may only be scheduled for expiration if they aren't in the current spawn table
-			this->chaserVehicles.IsSchedulable = MembershipManager::IsNotInChasersTable;
+			// "Chasers" may only be scheduled for expiration if they aren't in the current spawn table
+			this->chaserVehicles.IsSchedulable = MembershipManager::IsNotInChaserTable;
 
 			// Container pre-allocations
 			this->heavyVehicles .ReserveVehicleCapacity(10);

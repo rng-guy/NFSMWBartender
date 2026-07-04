@@ -25,7 +25,7 @@ namespace RadioChatter
 		FEDERAL = 2
 	};
 	
-	enum Callsigns
+	enum Battalion
 	{
 		UNKNOWN,
 		PATROL,
@@ -41,7 +41,7 @@ namespace RadioChatter
 	size_t lastReportedHeatLevel = 1;
 	int    lastJurisdictionID    = 0;
 
-	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<Callsigns> copTypeToCallsignID(Callsigns::PATROL);
+	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<Battalion> copTypeToBattalion(Battalion::PATROL);
 
 
 
@@ -49,14 +49,14 @@ namespace RadioChatter
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	int __fastcall GetCallsignsOffset(const Callsigns callsigns)
+	int __fastcall GetCallsignsOffset(const Battalion battalion)
 	{
-		switch (callsigns)
+		switch (battalion)
 		{
-		case Callsigns::PATROL:
+		case Battalion::PATROL:
 			return -0x1;
 
-		case Callsigns::RHINO:
+		case Battalion::RHINO:
 			return 0x20;
 		}
 
@@ -86,10 +86,10 @@ namespace RadioChatter
 
 			mov dword ptr [lastReportedHeatLevel], ebp
 
-			cmp ebp, 0xA
+			cmp ebp, 10
 			jg skip // new Heat Level > 10
 
-			sub ebp, 0x2
+			sub ebp, 2
 			jl skip // new Heat level < 2
 
 			jmp dword ptr [heatCheckExit]
@@ -111,7 +111,7 @@ namespace RadioChatter
 		{
 			xchg ecx, ebp // ebp from "HeatCheck"
 
-			mov eax, 0x1
+			mov eax, 1
 			shl eax, cl
 
 			mov ecx, ebp
@@ -130,7 +130,7 @@ namespace RadioChatter
 	{
 		__asm
 		{
-			mov dword ptr [lastReportedHeatLevel], 0x1
+			mov dword ptr [lastReportedHeatLevel], 1
 			mov dword ptr [lastJurisdictionID], CITY
 
 			// Execute original code and resume
@@ -151,8 +151,8 @@ namespace RadioChatter
 		__asm
 		{
 			push eax // copType
-			mov ecx, offset copTypeToCallsignID
-			call ModContainers::DefaultVaultMap<Callsigns>::GetValue
+			mov ecx, offset copTypeToBattalion
+			call ModContainers::DefaultVaultMap<Battalion>::GetValue
 			cmp eax, CROSS
 
 			mov dword ptr [esp + 0x28], eax // freed variable
@@ -215,8 +215,8 @@ namespace RadioChatter
 		__asm
 		{
 			push eax                   // copType
-			mov ecx, offset copTypeToCallsignID
-			call ModContainers::DefaultVaultMap<Callsigns>::GetValue
+			mov ecx, offset copTypeToBattalion
+			call ModContainers::DefaultVaultMap<Battalion>::GetValue
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B] // is "rhino"
 
@@ -298,29 +298,29 @@ namespace RadioChatter
 	bool ParseCallsigns(const HeatParameters::Parser& parser)
 	{
 		std::vector<std::string_view> copVehicles;
-		std::vector<std::string_view> callsignNames;
+		std::vector<std::string_view> battalionNames;
 
-		parser.ParseUser<std::string_view, std::string_view>("Vehicles:Callsigns", copVehicles, {callsignNames});
+		parser.ParseUser<std::string_view, std::string_view>("Vehicles:Callsigns", copVehicles, {battalionNames});
 
 		// Populate callsign map
-		constexpr auto NameToCallsigns = [](const std::string_view name) -> Callsigns
+		constexpr auto NameToBattalion = [](const std::string_view name) -> Battalion
 		{
-			if (name == "patrol") return Callsigns::PATROL;
-			if (name == "elite")  return Callsigns::ELITE;
-			if (name == "rhino")  return Callsigns::RHINO;
-			if (name == "cross")  return Callsigns::CROSS;
+			if (name == "patrol") return Battalion::PATROL;
+			if (name == "elite")  return Battalion::ELITE;
+			if (name == "rhino")  return Battalion::RHINO;
+			if (name == "cross")  return Battalion::CROSS;
 
-			return Callsigns::UNKNOWN;
+			return Battalion::UNKNOWN;
 		};
 
-		constexpr auto AreCallsignsValid = [](const Callsigns value) -> bool {return (value != Callsigns::UNKNOWN);};
+		constexpr auto IsBattalionValid = [](const Battalion value) -> bool {return (value != Battalion::UNKNOWN);};
 
-		return copTypeToCallsignID.FillFromVectors
+		return copTypeToBattalion.FillFromVectors
 		(
 			"Vehicle-to-callsign",
 			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copVehicles,   Globals::GetVaultHash, Globals::IsVehicleTypeCar),
-			ModContainers::MapFillSetup(callsignNames, NameToCallsigns,       AreCallsignsValid)
+			ModContainers::MapFillSetup(copVehicles,    Globals::GetVaultHash, Globals::IsVehicleTypeCar),
+			ModContainers::MapFillSetup(battalionNames, NameToBattalion,       IsBattalionValid)
 		);
 	}
 

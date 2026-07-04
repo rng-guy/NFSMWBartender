@@ -27,10 +27,10 @@ namespace CopSpawnOverrides
 
 		int numActiveCops = 0;
 
-		const address                    pursuit;
-		const CopSpawnTables::TablePair& source;
+		const address                          pursuit;
+		const CopSpawnTables::TablePair* const source; // can't be a reference, else MSVC claims constinit-incompatibility
 		
-		CopSpawnTables::SpawnTable table = *(this->source.current);
+		CopSpawnTables::SpawnTable table;
 
 		ModContainers::VaultMap<int> copTypeToCurrentCount;
 
@@ -59,12 +59,14 @@ namespace CopSpawnOverrides
 
 	public:
 
+		constexpr explicit Contingent(const CopSpawnTables::TablePair& source) : source(&source), pursuit(0x0) {}
+
 		explicit Contingent
 		(
 			const CopSpawnTables::TablePair& source,
-			const address                    pursuit = 0x0
+			const address                    pursuit
 		) 
-			: source(source), pursuit(pursuit)
+			: source(&source), pursuit(pursuit), table(*(source.current))
 		{
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -72,6 +74,16 @@ namespace CopSpawnOverrides
 					Globals::logger.Log<2>('+', this, "Contingent");
 			}
 		}
+
+
+		constexpr explicit Contingent(const CopSpawnTables::TablePair&&) = delete;
+
+		explicit Contingent
+		(
+			const CopSpawnTables::TablePair&&, 
+			const address
+		) 
+			= delete;
 
 
 		explicit Contingent(Contingent&&)      = delete;
@@ -99,33 +111,39 @@ namespace CopSpawnOverrides
 
 		void UpdateSpawnTable()
 		{
-			this->table = *(this->source.current);
+			this->table = *(this->source->current);
 
-			for (const auto& pair : this->copTypeToCurrentCount)
+			for (const auto& [copType, currentCount] : this->copTypeToCurrentCount)
 			{
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->pursuit)
 					{
-						const char* const copName = this->table.ConvertTypeToName(pair.first);
+						const char* const copName = this->table.ConvertTypeToName(copType);
 
 						if (copName)
-							Globals::logger.Log(this->pursuit, "[CON] Copying", pair.second, copName);
+							Globals::logger.Log(this->pursuit, "[CON] Copying", currentCount, copName);
 
 						else
-							Globals::logger.Log(this->pursuit, "[CON] Copying", pair.second, pair.first);
+							Globals::logger.Log(this->pursuit, "[CON] Copying", currentCount, copType);
 					}
 				}
 
-				this->UpdateSpawnTableCapacity(pair.first, -(pair.second));
+				this->UpdateSpawnTableCapacity(copType, -currentCount);
 			}
 		}
 
 
 		void ClearVehicles()
 		{
-			for (const auto& pair : this->copTypeToCurrentCount)
-				this->table.UpdateCapacity(pair.first, pair.second);
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->pursuit)
+					Globals::logger.Log(this->pursuit, "[CON] Clearing all vehicles");
+			}
+
+			for (const auto& [copType, currentCount] : this->copTypeToCurrentCount)
+				this->table.UpdateCapacity(copType, +currentCount);
 
 			this->copTypeToCurrentCount.clear();
 			this->numActiveCops = 0;
@@ -134,10 +152,11 @@ namespace CopSpawnOverrides
 
 		void AddVehicleByType(const vault copType)
 		{
-			const auto [pair, wasAdded] = this->copTypeToCurrentCount.try_emplace(copType, 1);
+			const auto [pairIt, isNewType] = this->copTypeToCurrentCount.try_emplace(copType, 1);
+			int&       currentCount        = pairIt->second;
 
-			if (not wasAdded)
-				++(pair->second);
+			if (not isNewType)
+				++currentCount;
 
 			this->UpdateSpawnTableCapacity(copType, -1);
 			++(this->numActiveCops);
@@ -145,7 +164,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.Log<2>("Type ratio:", pair->second, '/', this->numActiveCops);
+					Globals::logger.Log<2>("Type ratio:", currentCount, '/', this->numActiveCops);
 			}
 		}
 
@@ -168,18 +187,20 @@ namespace CopSpawnOverrides
 
 			if (foundType != this->copTypeToCurrentCount.end())
 			{
-				--(foundType->second);
-				
+				int& currentCount = foundType->second;
+
+				--currentCount;
+
 				this->UpdateSpawnTableCapacity(copType, +1);
 				--(this->numActiveCops);
 
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->pursuit)
-						Globals::logger.Log<2>("Type ratio:", foundType->second, '/', this->numActiveCops);
+						Globals::logger.Log<2>("Type ratio:", currentCount, '/', this->numActiveCops);
 				}
 
-				if (foundType->second < 1)
+				if (currentCount < 1)
 					this->copTypeToCurrentCount.erase(foundType);
 
 				return true;
@@ -228,7 +249,7 @@ namespace CopSpawnOverrides
 		[[nodiscard]] const char* GetNameOfAvailableCopWithFallback() const
 		{
 			const char* const copName = this->table.GetNameOfAvailableCop();
-			return (copName) ? copName : this->source.current->GetNameOfAvailableCop();
+			return (copName) ? copName : this->source->current->GetNameOfAvailableCop();
 		}
 	};
 
@@ -270,9 +291,9 @@ namespace CopSpawnOverrides
 	bool        scriptedPursuitInitialised  = true;    // so we must prefetch a valid cop name using their event's Heat level instead
 	const char* firstScriptedPursuitCopName = nullptr; // (this is completely unrelated to knowing the player vehicle's Heat level)
 	
-	Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTables);
-	Contingent scriptedSpawns (CopSpawnTables::scriptedSpawnTables);
-	Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTables);
+	RELEASE_CONSTINIT Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTables);
+	RELEASE_CONSTINIT Contingent scriptedSpawns (CopSpawnTables::scriptedSpawnTables);
+	RELEASE_CONSTINIT Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTables);
 
 	// Conversions
 	float squaredChaserSpawnClearance = chaserSpawnClearances.current * chaserSpawnClearances.current; // metres²
@@ -281,7 +302,7 @@ namespace CopSpawnOverrides
 
 
 
-	// ChaserManager class --------------------------------------------------------------------------------------------------------------------------
+	// ChasersManager class -------------------------------------------------------------------------------------------------------------------------
 
 	class ChasersManager : public PursuitFeatures::PursuitReaction
 	{
@@ -726,7 +747,7 @@ namespace CopSpawnOverrides
 		__asm
 		{
 			// Execute original code first
-			mov dword ptr [esi + 0x14C], 0x0 // blackup flag
+			mov dword ptr [esi + 0x14C], 0 // blackup flag
 
 			mov ecx, esi
 			call ChasersManager::NotifyOfWaveReset // ecx: pursuit
@@ -769,7 +790,7 @@ namespace CopSpawnOverrides
 			mov edx, offset squaredChaserSpawnClearance
 			mov eax, 0x891064 // pointer to vanilla value
 
-			cmp byte ptr [esp + 0x2C], 0x0
+			cmp byte ptr [esp + 0x2C], 0
 			cmovne edx, eax // not "Chasers" cop
 
 			fcomp dword ptr [edx]
@@ -790,7 +811,7 @@ namespace CopSpawnOverrides
 		{
 			xor eax, eax
 
-			cmp byte ptr [chasersAreIndependents.current], 0x1
+			cmp byte ptr [chasersAreIndependents.current], 1
 			cmovne eax, dword ptr [edi + 0x94] // "Chasers" not independent
 
 			cmp eax, dword ptr [activeChaserCounts.maxValues.current]
@@ -816,7 +837,7 @@ namespace CopSpawnOverrides
 			mov ecx, offset scriptedSpawns
 			call Contingent::AddVehicle
 
-			mov al, 0x1 // restore value
+			mov al, 1 // restore value
 
 			mov ecx, dword ptr [esi + 0x54]       // AIVehicle
 			mov byte ptr [ecx - 0x4C + 0x76B], al // padding byte: "Scripted" flag
@@ -845,11 +866,11 @@ namespace CopSpawnOverrides
 			jne conclusion // not patrol goal
 
 			mov eax, dword ptr [edi + 0x4C - 0x4] // PVehicle
-			cmp dword ptr [eax + 0x94], 0x2       // driver class
+			cmp dword ptr [eax + 0x94], 2         // driver class
 			jne conclusion                        // not cop
 
-			cmp byte ptr [edi + 0x76B], 0x1 // padding byte: "Scripted" flag
-			je conclusion                   // "Scripted" cop
+			cmp byte ptr [edi + 0x76B], 1 // padding byte: "Scripted" flag
+			je conclusion                 // "Scripted" cop
 
 			push eax // copVehicle
 			mov ecx, offset patrolSpawns
@@ -877,12 +898,12 @@ namespace CopSpawnOverrides
 			cmp dword ptr [esi + 0x78], AIGOALPATROL
 			jne conclusion // not patrol goal
 
-			mov eax, dword ptr [esi - 0x4]  // PVehicle
-			cmp dword ptr [eax + 0x94], 0x2 // driver class
-			jne conclusion                  // not cop
+			mov eax, dword ptr [esi - 0x4] // PVehicle
+			cmp dword ptr [eax + 0x94], 2  // driver class
+			jne conclusion                 // not cop
 
-			cmp byte ptr [esi - 0x4C + 0x76B], 0x1 // padding byte: "Scripted" flag
-			je conclusion                          // "Scripted" cop
+			cmp byte ptr [esi - 0x4C + 0x76B], 1 // padding byte: "Scripted" flag
+			je conclusion                        // "Scripted" cop
 
 			push eax // copVehicle
 			mov ecx, offset patrolSpawns
@@ -950,10 +971,10 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			cmp byte ptr [trafficIgnoresChasers.current], 0x1
+			cmp byte ptr [trafficIgnoresChasers.current], 1
 			je roadblock // "Chasers" ignored
 
-			cmp byte ptr [chasersAreIndependents.current], 0x1
+			cmp byte ptr [chasersAreIndependents.current], 1
 			je chasers // "Chasers" independent
 
 			mov eax, dword ptr [ebx - 0x54 + 0x94] // cops loaded
@@ -967,10 +988,10 @@ namespace CopSpawnOverrides
 			jne conclusion                         // pending "Chasers" spawn
 
 			roadblock:
-			cmp byte ptr [trafficIgnoresRoadblocks.current], 0x1
+			cmp byte ptr [trafficIgnoresRoadblocks.current], 1
 			je conclusion // roadblocks ignored
 
-			cmp byte ptr [edi + 0x190], 0x0 // roadblock pending
+			cmp byte ptr [edi + 0x190], 0 // roadblock pending
 
 			conclusion:
 			jmp dword ptr [trafficDensityExit]
@@ -1063,10 +1084,10 @@ namespace CopSpawnOverrides
 			mov dword ptr [esp + 0x28], eax
 			lea esi, dword ptr [edi + 0x18]
 
-			cmp byte ptr [eventHasScriptedPursuit], 0x0
+			cmp byte ptr [eventHasScriptedPursuit], 0
 			je replacement // not scripted pursuit
 
-			cmp byte ptr [scriptedPursuitInitialised], 0x1
+			cmp byte ptr [scriptedPursuitInitialised], 1
 			je replacement // do not override scripted cops
 
 			mov eax, dword ptr [firstScriptedPursuitCopName]
@@ -1075,7 +1096,7 @@ namespace CopSpawnOverrides
 			jmp conclusion  // cop name overridden
 
 			replacement:
-			cmp byte ptr [Globals::playerHeatLevelKnown], 0x1
+			cmp byte ptr [Globals::playerHeatLevelKnown], 1
 			jne conclusion // Heat level unknown
 
 			mov ecx, offset scriptedSpawns
@@ -1119,8 +1140,8 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			cmp dword ptr [esi + 0x70], 0x1 // "Scripted" cops in queue
-			jg conclusion                   // was not final spawn
+			cmp dword ptr [esi + 0x70], 1 // "Scripted" cops in queue
+			jg conclusion                 // was not final spawn
 
 			push eax
 

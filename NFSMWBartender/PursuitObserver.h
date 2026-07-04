@@ -184,11 +184,11 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     NEW [OBS] Pursuit", pursuit);
 
-			const auto [pair, wasAdded] = PursuitObserver::pursuitToObserver.try_emplace(pursuit, pursuit);
+			const auto [pairIt, isNewPursuit] = PursuitObserver::pursuitToObserver.try_emplace(pursuit, pursuit);
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (not wasAdded)
+				if (not isNewPursuit)
 					Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
 			}
 		}
@@ -218,15 +218,15 @@ namespace PursuitObserver
 
 		static void NotifyOfHeatChange()
 		{
-			for (auto& pair : PursuitObserver::pursuitToObserver)
-				pair.second->UpdateOnHeatChange();
+			for (const auto& [pursuit, observer] : PursuitObserver::pursuitToObserver)
+				observer->UpdateOnHeatChange();
 		}
 
 
 		static void NotifyOfGameplay()
 		{
-			for (auto& pair : PursuitObserver::pursuitToObserver)
-				pair.second->UpdateOnGameplay();
+			for (const auto& [pursuit, observer] : PursuitObserver::pursuitToObserver)
+				observer->UpdateOnGameplay();
 		}
 
 
@@ -239,10 +239,10 @@ namespace PursuitObserver
 			PursuitObserver* const observer = PursuitObserver::FindObserver(pursuit);
 			if (not observer) return; // should never happen
 
-			const CopLabel copLabel         = observer->InferCopLabelFromCaller(caller);
-			const auto     [pair, wasAdded] = observer->copVehicleToLabel.try_emplace(copVehicle, copLabel);
-
-			if (wasAdded)
+			const CopLabel copLabel               = observer->InferCopLabelFromCaller(caller);
+			const auto     [pairIt, isNewVehicle] = observer->copVehicleToLabel.try_emplace(copVehicle, copLabel);
+			
+			if (isNewVehicle)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(pursuit, "[OBS] +", copVehicle, copLabel, Globals::GetVehicleName(copVehicle));
@@ -251,7 +251,7 @@ namespace PursuitObserver
 					reaction->ReactToAddedVehicle(copVehicle, copLabel);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[OBS] =", copVehicle, copLabel, "is already", pair->second);		
+				Globals::logger.Log(pursuit, "[OBS] =", copVehicle, copLabel, "is already", pairIt->second);
 		}
 
 

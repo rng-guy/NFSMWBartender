@@ -113,7 +113,7 @@ namespace InteractiveMusic
 		{
 			mov dword ptr [esi + 0xC], eax
 
-			cmp byte ptr [transitionsEnabled], 0x1
+			cmp byte ptr [transitionsEnabled], 1
 			jne conclusion // transitions disabled
 
 			fld dword ptr [esi + 0x48] // current track time
@@ -138,7 +138,7 @@ namespace InteractiveMusic
 		{
 			mov dword ptr [esi + 0xC], eax
 
-			cmp byte ptr [transitionsEnabled], 0x1
+			cmp byte ptr [transitionsEnabled], 1
 			jne conclusion // transitions disabled
 
 			fld dword ptr [esi + 0x48] // current track time

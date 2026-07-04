@@ -169,11 +169,12 @@ namespace ConfigParser
 			this->ClearParsedStrings();
 
 			// Attempt to retrieve file from cache
-			const auto [pair, wasAdded] = this->pathToSections.try_emplace(this->currentPath);
+			const auto [pairIt, isNewPath] = this->pathToSections.try_emplace(this->currentPath);
+			auto&      section             = pairIt->second;
 
-			if (not wasAdded)
+			if (not isNewPath)
 			{
-				this->sections = pair->second;
+				this->sections = section;
 				
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Load:", fileName);
@@ -187,7 +188,8 @@ namespace ConfigParser
 			if (fileStream.is_open())
 			{
 				this->ParseStream(fileStream, this->sectionCapacityPerFile, this->pairCapacityPerSection);
-				pair->second = this->sections;
+
+				section = this->sections;
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Open:", fileName);

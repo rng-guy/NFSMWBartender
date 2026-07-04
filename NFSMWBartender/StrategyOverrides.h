@@ -354,7 +354,7 @@ namespace StrategyOverrides
 			reset:
 			push ecx
 			mov ebx, esp
-			push 0x0
+			push 0
 
 			jmp dword ptr [goalResetExit]
 
@@ -550,7 +550,7 @@ namespace StrategyOverrides
 
 			// Execute original code and resume
 			mov ecx, dword ptr [esi]
-			mov dword ptr [esi + 0x78], 0x2 // Strategy request status
+			mov dword ptr [esi + 0x78], 2 // Strategy request status
 
 			jmp dword ptr [heavyStrategy4Exit]
 		}

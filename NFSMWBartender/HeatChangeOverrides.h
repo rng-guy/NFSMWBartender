@@ -84,6 +84,15 @@ namespace HeatChangeOverrides
 			}
 
 
+			explicit CountTracker
+			(
+				const address, 
+				const int, 
+				const HeatParameters::Pair<float>&&
+			) 
+				= delete;
+
+
 			explicit CountTracker(CountTracker&&)      = delete;
 			explicit CountTracker(const CountTracker&) = delete;
 
@@ -353,7 +362,7 @@ namespace HeatChangeOverrides
 			test ebx, ebx
 			je conclusion // no pursuit attributes 
 
-			cmp byte ptr [heatTimerEnableds.current], 0x0
+			cmp byte ptr [heatTimerEnableds.current], 0
 
 			conclusion:
 			jmp dword ptr [passiveHeatExit]
@@ -371,8 +380,8 @@ namespace HeatChangeOverrides
 		__asm
 		{
 			mov ecx, dword ptr [esp + 0x10]
-			cmp dword ptr [ecx], 0x3 // prop ID
-			jne conclusion           // prop not spike strip
+			cmp dword ptr [ecx], 3 // prop ID
+			jne conclusion         // prop not spike strip
 
 			mov edx, dword ptr [esp + 0x4C4] // roadblock pursuit
 			inc dword ptr [edx + 0x17C]      // spike strips deployed
@@ -401,7 +410,7 @@ namespace HeatChangeOverrides
 			push edi // copVehicle
 			lea ecx, dword ptr [esi + 0x10]
 			call dword ptr [IsSupportVehicle]
-			cmp al, 0x1
+			cmp al, 1
 
 			jmp dword ptr [supportCheckExit]
 		}

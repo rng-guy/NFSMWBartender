@@ -125,7 +125,7 @@ namespace HelicopterVision
 
 			mov dword ptr [currentColour], 0xFF90B8FF // vanilla
 
-			cmp byte ptr [featureEnabled], 0x1
+			cmp byte ptr [featureEnabled], 1
 			jne colour // cone feature disabled
 
 			mov eax, dword ptr [esi]
@@ -146,7 +146,7 @@ namespace HelicopterVision
 			call ApplyColour // ecx: interfaceObject
 
 			// Execute original code and resume
-			mov byte ptr [esp + 0x13], 0x1
+			mov byte ptr [esp + 0x13], 1
 
 			jmp dword ptr [colourUpdateExit]
 		}
@@ -163,7 +163,7 @@ namespace HelicopterVision
 		__asm
 		{
 			// Execute original code first
-			cmp byte ptr [esi + 0x34], 0x0
+			cmp byte ptr [esi + 0x34], 0
 			jne conclusion // skip drawing icon
 
 			mov ecx, dword ptr [esi + 0x3C]

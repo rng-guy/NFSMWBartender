@@ -44,12 +44,12 @@ namespace CopSpawnTables
 		inline static RELEASE_CONSTINIT ModContainers::StableVaultMap<const std::string> copTypeToName;
 		
 
-		static auto RegisterName(const std::string_view copName)
+		static auto FindOrAddTypeByName(const std::string_view copName)
 		{
-			const vault copType          = Globals::GetVaultHash(copName);
-			const auto  [pair, wasAdded] = SpawnTable::copTypeToName.try_emplace(copType, copName);
+			const vault copType             = Globals::GetVaultHash(copName);
+			const auto  [pairIt, isNewType] = SpawnTable::copTypeToName.try_emplace(copType, copName);
 
-			return pair;
+			return pairIt;
 		}
 
 
@@ -78,24 +78,24 @@ namespace CopSpawnTables
 			if (copCount  < 1) return false;
 			if (copChance < 1) return false;
 			
-			const auto registration = this->RegisterName(copName);
+			const auto foundType = this->FindOrAddTypeByName(copName);
 
-			const auto [pair, wasAdded] = this->copTypeToEntry.try_emplace
+			const auto [pairIt, isNewType] = this->copTypeToEntry.try_emplace
 			(
-				registration->first,
-				registration->second->c_str(), // safe due to pointer stability
+				foundType->first,
+				foundType->second->c_str(), // safe due to pointer stability
 				copCount, 
 				copChance, 
 				copCount
 			);
 
-			if (wasAdded)
+			if (isNewType)
 			{
 				this->totalCopCount         += copCount;
 				this->currentTotalCopChance += copChance;
 			}
 
-			return wasAdded;
+			return isNewType;
 		}
 
 
@@ -194,14 +194,14 @@ namespace CopSpawnTables
 			const size_t           heatLevel
 		) {
 			bool allValid = true;
-			auto iterator = this->copTypeToEntry.begin();
+			auto pairIt   = this->copTypeToEntry.begin();
 
-			while (iterator != this->copTypeToEntry.end())
+			while (pairIt != this->copTypeToEntry.end())
 			{
-				if (not Globals::IsVehicleTypeCar(iterator->first))
-				{
-					const Entry& copEntry = iterator->second;
+				const auto& [copType, copEntry] = *pairIt;
 
+				if (not Globals::IsVehicleTypeCar(copType))
+				{
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (allValid)
@@ -215,10 +215,10 @@ namespace CopSpawnTables
 					if (copEntry.capacity > 0)
 						this->currentTotalCopChance -= copEntry.chance;
 
-					iterator = this->copTypeToEntry.erase(iterator);
+					pairIt   = this->copTypeToEntry.erase(pairIt);
 					allValid = false;
 				}
-				else ++iterator;
+				else ++pairIt;
 			}
 
 			if constexpr (Globals::loggingEnabled)

@@ -6,6 +6,7 @@
 #include <utility>
 #include <concepts>
 #include <iterator>
+#include <algorithm>
 #include <type_traits>
 #include <initializer_list>
 
@@ -153,8 +154,8 @@ namespace FlatContainers
 		{
 			this->reserve(list.size());
 
-			for (const auto& item : list)
-				this->insert(item);
+			for (const value_type& value : list)
+				this->insert(value);
 		}
 
 
@@ -164,8 +165,8 @@ namespace FlatContainers
 			this->clear();
 			this->reserve(list.size());
 
-			for (const auto& item : list)
-				this->insert(item);
+			for (const value_type& value : list)
+				this->insert(value);
 
 			return *this;
 		}
@@ -212,12 +213,12 @@ namespace FlatContainers
 		template <typename... ValArgs>
 		constexpr std::pair<iterator, bool> emplace(ValArgs&&... args)
 		{
-			value_type temp(std::forward<ValArgs>(args)...);
+			value_type value(std::forward<ValArgs>(args)...);
 
-			const auto it = this->find(temp);
+			const auto it = this->find(value);
 			if (it != this->end()) return {it, false};
 
-			this->data.emplace_back(std::move(temp));
+			this->data.emplace_back(std::move(value));
 
 			return {std::prev(this->end()), true};
 		}
@@ -296,8 +297,8 @@ namespace FlatContainers
 		{
 			this->reserve(list.size());
 
-			for (const auto& item : list)
-				this->insert(item.first, item.second);
+			for (const auto& [key, value] : list)
+				this->insert(key, value);
 		}
 
 
@@ -307,8 +308,8 @@ namespace FlatContainers
 			this->clear();
 			this->reserve(list.size());
 
-			for (const auto& item : list)
-				this->insert(item.first, item.second);
+			for (const auto& [key, value] : list)
+				this->insert(key, value);
 			
 			return *this;
 		}
@@ -347,8 +348,8 @@ namespace FlatContainers
 			KeyArg&& key, 
 			ValArg&& value
 		) {
-			const auto it = this->find(key);
-			if (it != this->end()) return {it, false};
+			const auto pairIt = this->find(key);
+			if (pairIt != this->end()) return {pairIt, false};
 
 			this->data.emplace_back(std::forward<KeyArg>(key), std::forward<ValArg>(value));
 
@@ -364,8 +365,8 @@ namespace FlatContainers
 			KeyArg&&     key, 
 			ValArgs&& ...args
 		) {
-			const auto it = this->find(key);
-			if (it != this->end()) return {it, false};
+			const auto pairIt = this->find(key);
+			if (pairIt != this->end()) return {pairIt, false};
 
 			this->data.emplace_back
 			(
@@ -386,8 +387,8 @@ namespace FlatContainers
 			KeyArg&&     key, 
 			ValArgs&& ...args
 		) {
-			const auto it = this->find(key);
-			if (it != this->end()) return {it, false};
+			const auto pairIt = this->find(key);
+			if (pairIt != this->end()) return {pairIt, false};
 
 			this->data.emplace_back
 			(
@@ -404,11 +405,11 @@ namespace FlatContainers
 		{
 			if (it == this->end()) return it;
 
-			const size_type index  = std::distance(this->data.begin(), it);
-			const auto      lastIt = std::prev    (this->end());
+			const size_type index      = std::distance(this->data.begin(), it);
+			const auto      lastPairIt = std::prev    (this->end());
 
-			if (it != lastIt)
-				*it = std::move(*lastIt);
+			if (it != lastPairIt)
+				*it = std::move(*lastPairIt);
 
 			this->data.pop_back();
 
@@ -421,10 +422,10 @@ namespace FlatContainers
 		requires std::equality_comparable_with<KeyArg, key_type>
 		constexpr bool erase(const KeyArg& key)
 		{
-			const auto it = this->find(key);
-			if (it == this->end()) return false;
+			const auto pairIt = this->find(key);
+			if (pairIt == this->end()) return false;
 
-			this->erase(it);
+			this->erase(pairIt);
 
 			return true;
 		}

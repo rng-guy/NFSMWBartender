@@ -363,14 +363,14 @@ namespace GroundSuppport
 	{
 		__asm
 		{
-			cmp byte ptr [LeaderOverrides::featureEnabled], 0x1
+			cmp byte ptr [LeaderOverrides::featureEnabled], 1
 			je conclusion // flag managed by "Advanced" feature set
 
-			mov edx, dword ptr [edi + 0x54]       // AIVehicle
-			cmp byte ptr [edx - 0x4C + 0x83], 0x1 // padding byte: Cross flag (car)
-			jne conclusion                        // not Cross' vehicle
+			mov edx, dword ptr [edi + 0x54]     // AIVehicle
+			cmp byte ptr [edx - 0x4C + 0x83], 1 // padding byte: Cross flag (car)
+			jne conclusion                      // not Cross' vehicle
 
-			mov dword ptr [esi + 0x174], 0x1 // Cross flag (pursuit)
+			mov dword ptr [esi + 0x174], 1 // Cross flag (pursuit)
 			
 			conclusion:
 			// Execute original code and resume
@@ -394,8 +394,8 @@ namespace GroundSuppport
 			mov ecx, esi
 			mov edx, dword ptr [esi]
 
-			mov eax, dword ptr [esi + 0x54]       // AIVehicle
-			cmp byte ptr [eax - 0x4C + 0x83], 0x1 // padding byte: Cross flag (car)
+			mov eax, dword ptr [esi + 0x54]     // AIVehicle
+			cmp byte ptr [eax - 0x4C + 0x83], 1 // padding byte: Cross flag (car)
 
 			jmp dword ptr [onDetachedExit]
 		}
@@ -503,7 +503,7 @@ namespace GroundSuppport
 		{
 			jne skip // priority flag set
 
-			cmp byte ptr [rivalLeaderEnableds.current], 0x1
+			cmp byte ptr [rivalLeaderEnableds.current], 1
 			je conclusion // no rival discrimination
 
 			mov ecx, esi
@@ -535,7 +535,7 @@ namespace GroundSuppport
 
 		__asm
 		{
-			cmp byte ptr [rivalRoadblockEnableds.current], 0x1
+			cmp byte ptr [rivalRoadblockEnableds.current], 1
 			je conclusion // no rival discrimination
 
 			call Globals::IsPlayerPursuit
@@ -548,7 +548,7 @@ namespace GroundSuppport
 			conclusion:
 			// Execute original code and resume
 			call dword ptr [edx + 0x28] // AIPursuit::IsPerpInSight
-			cmp al, 0x1
+			cmp al, 1
 
 			jmp dword ptr [rivalRoadblockExit]
 
@@ -717,7 +717,7 @@ namespace GroundSuppport
 			test eax, eax
 			je conclusion                   // no pursuit
 
-			cmp byte ptr [reactToSpikesHits.current], 0x0
+			cmp byte ptr [reactToSpikesHits.current], 0
 			je conclusion // reaction disabled
 
 			mov edx, eax
@@ -744,7 +744,7 @@ namespace GroundSuppport
 	{
 		__asm
 		{
-			cmp byte ptr [roadblockEndsFormations.current], 0x1
+			cmp byte ptr [roadblockEndsFormations.current], 1
 			jne conclusion // keep formation
 
 			// Execute original code and resume
@@ -796,7 +796,7 @@ namespace GroundSuppport
 
 			mov ecx, ebp
 			call MayDetachCops // ecx: roadblock
-			cmp al, 0x1
+			cmp al, 1
 
 			jmp dword ptr [roadblockJoinTimerExit]
 		}

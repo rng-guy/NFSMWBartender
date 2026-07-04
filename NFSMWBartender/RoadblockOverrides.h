@@ -311,7 +311,7 @@ namespace RoadblockOverrides
 	{
 		__asm
 		{
-			mov byte ptr [hasSpikes], 0x1
+			mov byte ptr [hasSpikes], 1
 			mov dword ptr [spikeLane], eax
 
 			// Execute original code and resume
@@ -354,7 +354,7 @@ namespace RoadblockOverrides
 			mov ecx, dword ptr [esp + 0x4C4]
 			call RequestCallout // ecx: pursuit
 
-			mov al, 0x1 // restore value
+			mov al, 1 // restore value
 
 			conclusion:
 			// Execute original code and resume
@@ -401,7 +401,7 @@ namespace RoadblockOverrides
 			xor ecx, ecx // restore zero flag
 			
 			conclusion:
-			mov byte ptr [hasSpikes], 0x0
+			mov byte ptr [hasSpikes], 0
 
 			jmp dword ptr [spawnFailureExit]
 		}

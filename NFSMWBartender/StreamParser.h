@@ -320,7 +320,7 @@ namespace StreamParser
 		}
 
 
-		[[nodiscard]] static constexpr std::optional<std::string_view> GetSection(const std::string_view content) noexcept
+		[[nodiscard]] static constexpr std::optional<std::string_view> GetSectionName(const std::string_view content) noexcept
 		{
 			if (content.starts_with(start) and content.ends_with(end))
 				return Details::Trim(content.substr(1, content.length() - 2));
@@ -406,16 +406,17 @@ namespace StreamParser
 				const std::string_view content = this->GetContent(line);
 				if (content.empty()) continue; // only whitespace or comment
 
-				if (const auto section = this->GetSection(content))
+				if (const auto sectionName = this->GetSectionName(content))
 				{
-					if (not section->empty())
+					if (not sectionName->empty())
 					{
-						const auto [pair, wasAdded] = this->sections.try_emplace(*section);
+						const auto [pairIt, isNewName] = this->sections.try_emplace(*sectionName);
+						Section&   section             = pairIt->second;
 
-						if (wasAdded)
-							pair->second.reserve(pairCapacityPerSection);
+						if (isNewName)
+							section.reserve(pairCapacityPerSection);
 
-						currentSection = &(pair->second);
+						currentSection = &section;
 					}
 					else currentSection = nullptr; // empty section name
 				}

@@ -60,7 +60,7 @@ namespace MemoryTools
 
 		for (const address location : locations)
 		{
-			DWORD previousSetting = 0x0;
+			DWORD previousSetting = PAGE_READONLY; // arbitrary
 			void* memoryLocation  = reinterpret_cast<void*>(location);
 
 			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE,  &previousSetting);
@@ -86,7 +86,7 @@ namespace MemoryTools
 		) {
 			const size_t numBytes = end - start;
 
-			DWORD previousSetting = 0x0;
+			DWORD previousSetting = PAGE_READONLY; // arbitrary
 			void* memoryLocation  = reinterpret_cast<void*>(start);
 
 			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE, &previousSetting);

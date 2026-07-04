@@ -69,7 +69,7 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
 
 The "Basic" feature set ALWAYS FIXES FOURTEEN BUGS / ISSUES automatically:
  • the game no longer fails to select certain arrest cutscenes,
- • the game now always updates the passive bounty increment after races,
+ • the game now always updates the passive-bounty increment after races,
  • the (mini-)map icons for cop cars now always flash at their intended pace,
  • transitions to Heat levels > 5 now trigger their proper radio announcements,
  • the cops no longer announce each Heat level just once per game launch at most,

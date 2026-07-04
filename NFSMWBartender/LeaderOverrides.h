@@ -439,15 +439,15 @@ namespace LeaderOverrides
 	void LogHeatReport()
 	{
 		if (
-			leader5CrossAggroDelays.isEnableds.current
+			leader5CrossAggroDelays    .isEnableds.current
 			or leader5ExpireResetDelays.isEnableds.current
-			or leader5WreckResetDelays.isEnableds.current
-			or leader5LostResetDelays.isEnableds.current
-			or leader7CrossAggroDelays.isEnableds.current
-			or leader7HenchAggroDelays.isEnableds.current
+			or leader5WreckResetDelays .isEnableds.current
+			or leader5LostResetDelays  .isEnableds.current
+			or leader7CrossAggroDelays .isEnableds.current
+			or leader7HenchAggroDelays. isEnableds.current
 			or leader7ExpireResetDelays.isEnableds.current
-			or leader7WreckResetDelays.isEnableds.current
-			or leader7LostResetDelays.isEnableds.current
+			or leader7WreckResetDelays. isEnableds.current
+			or leader7LostResetDelays  .isEnableds.current
 		   )
 		{
 			Globals::logger.Log("    HEAT [LDR] LeaderOverrides");

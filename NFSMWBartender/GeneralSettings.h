@@ -186,7 +186,7 @@ namespace GeneralSettings
 
 		__asm
 		{
-			cmp byte ptr [copFlipByTimers.isEnableds.current], 0x1
+			cmp byte ptr [copFlipByTimers.isEnableds.current], 1
 			jne damaged // time check disabled
 
 			fld dword ptr [esi + 0xB8] // time spent flipped
@@ -201,7 +201,7 @@ namespace GeneralSettings
 			jmp conclusion              // cop was destroyed
 
 			damaged:
-			cmp byte ptr [copFlipByDamageEnableds.current], 0x1
+			cmp byte ptr [copFlipByDamageEnableds.current], 1
 			jne skip // damage check disabled
 
 			conclusion:
@@ -244,7 +244,7 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			cmp byte ptr [rivalPursuitsEnableds.current], 0x0
+			cmp byte ptr [rivalPursuitsEnableds.current], 0
 			je conclusion // rival pursuits disabled
 
 			// Execute original and resume
@@ -266,7 +266,7 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			cmp byte ptr [racerFlipResetDelays.isEnableds.current], 0x1
+			cmp byte ptr [racerFlipResetDelays.isEnableds.current], 1
 			jne conclusion // flipping resets disabled
 
 			fld dword ptr [esi + 0x54] // time spent flipped

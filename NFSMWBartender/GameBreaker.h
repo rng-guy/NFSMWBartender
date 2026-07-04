@@ -139,7 +139,7 @@ namespace GameBreaker
 			test ah, 0x41
 			jne conclusion // below speed threshold
 
-			cmp byte ptr [driftRechargeEnableds.current], 0x1
+			cmp byte ptr [driftRechargeEnableds.current], 1
 			je conclusion // drift recharging unrestricted
 
 			call IsPlayerInPursuit
@@ -164,7 +164,7 @@ namespace GameBreaker
 			test ah, 0x41
 			jne conclusion // below speed threshold
 
-			cmp byte ptr [passiveRechargeEnableds.current], 0x1
+			cmp byte ptr [passiveRechargeEnableds.current], 1
 			je conclusion // passive recharging unrestricted
 
 			call IsPlayerInPursuit

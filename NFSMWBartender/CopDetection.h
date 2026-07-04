@@ -195,7 +195,7 @@ namespace CopDetection
 			cmp eax, CHOPPER
 			je conclusion // is helicopter
 
-			cmp byte ptr [featureEnabled], 0x1
+			cmp byte ptr [featureEnabled], 1
 			jne limitation // map feature disabled
 
 			mov ecx, dword ptr [esi]
@@ -204,8 +204,8 @@ namespace CopDetection
 			je skip              // no icon
 
 			limitation:
-			cmp dword ptr [esp + 0x18], 0x8 // icon count
-			jge skip                        // at icon cap
+			cmp dword ptr [esp + 0x18], 8 // icon count
+			jge skip                      // at icon cap
 
 			conclusion:
 			jmp dword ptr [copVehicleIconExit]
@@ -245,12 +245,12 @@ namespace CopDetection
 		__asm
 		{
 			// Execute original code first
-			cmp byte ptr [edi + 0x8], 0x0
+			cmp byte ptr [edi + 0x8], 0
 			je conclusion // not in pursuit
 
 			mov ecx, dword ptr [esi]
 			call Globals::IsVehicleDestroyed
-			cmp al, 0x1
+			cmp al, 1
 
 			conclusion:
 			jmp dword ptr [destructionCheckExit]
@@ -279,7 +279,7 @@ namespace CopDetection
 			inc ecx
 
 			conclusion:
-			cmp ecx, 0x9
+			cmp ecx, 8 + 1 // colour ticks
 
 			jmp dword ptr [miniMapCopColoursExit]
 		}
@@ -297,7 +297,7 @@ namespace CopDetection
 		{
 			mov ecx, dword ptr [esi + 0x38]
 
-			cmp byte ptr [updateWorldMapColours], 0x1
+			cmp byte ptr [updateWorldMapColours], 1
 			jne conclusion // not yet time
 
 			inc ecx

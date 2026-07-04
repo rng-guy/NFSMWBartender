@@ -456,7 +456,7 @@ namespace HelicopterOverrides
 	{
 		__asm
 		{
-			cmp byte ptr [hasLimitedFuel], 0x1
+			cmp byte ptr [hasLimitedFuel], 1
 			jne conclusion // unlimited fuel
 
 			// Execute original code and resume
@@ -499,7 +499,7 @@ namespace HelicopterOverrides
 
 		__asm
 		{
-			cmp byte ptr [skipBailoutSpeech], 0x1
+			cmp byte ptr [skipBailoutSpeech], 1
 			je skip // speech disabled
 
 			// Execute original code and resume
@@ -544,7 +544,7 @@ namespace HelicopterOverrides
 	{
 		__asm
 		{
-			cmp byte ptr [affectedByRoadblocks.current], 0x0
+			cmp byte ptr [affectedByRoadblocks.current], 0
 			je conclusion // helicopter unaffected
 
 			// Execute original code and resume
@@ -634,11 +634,11 @@ namespace HelicopterOverrides
 	void LogHeatReport()
 	{
 		if (
-			firstSpawnDelays.isEnableds.current
-			or fuelRespawnDelays.isEnableds.current
+			firstSpawnDelays     .isEnableds.current
+			or fuelRespawnDelays .isEnableds.current
 			or wreckRespawnDelays.isEnableds.current
-			or lostRejoinDelays.isEnableds.current
-			or fuelTimes.isEnableds.current
+			or lostRejoinDelays  .isEnableds.current
+			or fuelTimes         .isEnableds.current
 		   )
 		{
 			Globals::logger.Log("    HEAT [HEL] HelicopterOverrides");

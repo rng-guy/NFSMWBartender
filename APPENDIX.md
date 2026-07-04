@@ -135,6 +135,8 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * For notification icons, Bartender ignores icons for vehicles that don't exist in VltEd.
 
+* If you don't define a valid `default` icon, Bartender uses `COPS_TAKENOUT_ICON` instead.
+
 * If you define no valid icons and no `default`, Bartender disables its icon feature.
 
 * For an icon to be valid, it must exist in the game's `GLOBALB.LZC` file. You can browse, edit, and expand the icons contained in this file with the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy.
@@ -151,13 +153,13 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 * You might hear cops use callsigns you didn't assign to them. This is vanilla behaviour: The game maintains a pool of "actors" that it constantly shuffles between all active cops. This is also the reason why you may still hear Cross or helicopter lines even if they are gone, and why dispatch may sometimes refer to Cross by the callsign of another unrelated cop vehicle.
 
-* The game automatically assigns the helicopter-exclusive callsigns to all helicopters.
+* The game automatically puts all helicopters into a helicopter-exclusive battalion.
 
-* For callsigns, Bartender ignores vehicles that are helicopters or don't exist in VltEd. Bartender also ignores all callsigns other than `patrol`, `elite`, `rhino`, and `cross`.
+* For callsigns, Bartender ignores vehicles that are helicopters or don't exist in VltEd. Bartender also ignores all battalions other than `patrol`, `elite`, `rhino`, and `cross`.
 
-* If you don't define valid `default` callsigns, Bartender uses `patrol` instead.
+* If you don't define a valid `default` battalion, Bartender uses `patrol` instead.
 
-* If you define no valid callsigns and no `default`, Bartender disables its callsign feature.
+* If you define no valid battalions and no `default`, Bartender disables its callsigns feature.
 
 * Dispatch may not always acknowledge a change in jurisdiction over the radio. This is because there's randomness involved, and because each pursuit is limited to just one acknowledgement.
 
