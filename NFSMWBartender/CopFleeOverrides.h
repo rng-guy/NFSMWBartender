@@ -54,16 +54,15 @@ namespace CopFleeOverrides
 	namespace Details
 	{
 
-		// SchedulerBase class
+		// Base expiration-time tracker for cops
 		class SchedulerBase
 		{
 		protected:
 
 			size_t numPendingExpired = 0;
 
-			const address pursuit;
-
-			const std::string_view label;
+			const address          pursuit;
+			const std::string_view vehicleLabel;
 
 			ModContainers::AddressMap<float> copVehicleToTimestamp;
 
@@ -77,9 +76,9 @@ namespace CopFleeOverrides
 			explicit SchedulerBase
 			(
 				const address          pursuit,
-				const std::string_view label
+				const std::string_view vehicleLabel
 			)
-				: pursuit(pursuit), label(label)
+				: pursuit(pursuit), vehicleLabel(vehicleLabel)
 			{
 			}
 
@@ -118,7 +117,7 @@ namespace CopFleeOverrides
 				StartFlee(copAIVehiclePursuit); // also updates vehicle goal(s) accordingly
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[FLE]", this->label, copVehicle, "fleeing");
+					Globals::logger.Log(this->pursuit, "[FLE]", this->vehicleLabel, copVehicle, "fleeing");
 
 				return true;
 			}
@@ -169,7 +168,7 @@ namespace CopFleeOverrides
 
 
 
-		// StrategyScheduler class for Strategy cops
+		// Expiration-time tracker for Strategy cops
 		class StrategyScheduler : public SchedulerBase
 		{
 		private:
@@ -185,10 +184,10 @@ namespace CopFleeOverrides
 			explicit StrategyScheduler
 			(
 				const address          pursuit,
-				const std::string_view label,
+				const std::string_view vehicleLabel,
 				const int              strategyOffset
 			)
-				: SchedulerBase(pursuit, label), strategy(*reinterpret_cast<volatile address*>(pursuit + strategyOffset))
+				: SchedulerBase(pursuit, vehicleLabel), strategy(*reinterpret_cast<volatile address*>(pursuit + strategyOffset))
 			{
 			}
 
@@ -220,7 +219,7 @@ namespace CopFleeOverrides
 
 
 
-		// PursuitScheduler class for non-Strategy cops
+		// Expiration-time tracker for non-Strategy cops
 		class PursuitScheduler : public SchedulerBase
 		{
 		public:
@@ -256,11 +255,11 @@ namespace CopFleeOverrides
 			explicit PursuitScheduler
 			(
 				const address                                  pursuit,
-				const std::string_view                         label,
+				const std::string_view                         vehicleLabel,
 				const HeatParameters::OptionalInterval<float>& fleeDelays,
 				const HeatParameters::OptionalPair    <int>&   thresholds
 			)
-				: SchedulerBase(pursuit, label), fleeDelays(fleeDelays), thresholds(thresholds)
+				: SchedulerBase(pursuit, vehicleLabel), fleeDelays(fleeDelays), thresholds(thresholds)
 			{
 				// Scheduled non-Strategy cops may only expire if the number of "Chasers" is above some threshold
 				this->ShouldCheckForExpiration = [this]() -> bool

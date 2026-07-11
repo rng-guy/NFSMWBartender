@@ -59,7 +59,7 @@ namespace HeatChangeOverrides
 	{
 	private:
 
-		// Internal CostTracker class for event-based Heat changes
+		// Tracker for event-based Heat changes
 		class CountTracker
 		{
 		private:
