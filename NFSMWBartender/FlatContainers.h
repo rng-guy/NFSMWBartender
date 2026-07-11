@@ -50,7 +50,6 @@ namespace FlatContainers
 			using const_reverse_iterator = container_type::const_reverse_iterator;
 
 
-
 		protected:
 			
 			container_type data;
@@ -64,7 +63,6 @@ namespace FlatContainers
 			{
 				this->reserve(capacity);
 			}
-
 
 
 		public:

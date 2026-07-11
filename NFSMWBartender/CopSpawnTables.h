@@ -33,7 +33,6 @@ namespace CopSpawnTables
 		};
 
 
-
 	private:
 
 		int totalCopCount         = 0;
@@ -41,35 +40,16 @@ namespace CopSpawnTables
 
 		ModContainers::VaultMap<Entry> copTypeToEntry;
 
-		inline static RELEASE_CONSTINIT ModContainers::StableVaultMap<const std::string> copTypeToName;
-		
-
-		static auto FindOrAddTypeByName(const std::string_view copName)
-		{
-			const vault copType             = Globals::GetVaultHash(copName);
-			const auto  [pairIt, isNewType] = SpawnTable::copTypeToName.try_emplace(copType, copName);
-
-			return pairIt;
-		}
-
-
 
 	public:
 
-		[[nodiscard]] static const char* ConvertTypeToName(const vault copType)
-		{
-			const auto foundType = SpawnTable::copTypeToName.find(copType);
-			return (foundType != SpawnTable::copTypeToName.end()) ? foundType->second->c_str() : nullptr;
-		}
-
-
-		[[nodiscard]] bool ContainsType(const vault copType) const
+		[[nodiscard]] bool ContainsCopType(const vault copType) const
 		{
 			return this->copTypeToEntry.contains(copType);
 		}
 
 
-		bool AddTypeByName
+		bool AddCopTypeByName
 		(
 			const std::string_view copName,
 			const int              copCount, 
@@ -78,12 +58,12 @@ namespace CopSpawnTables
 			if (copCount  < 1) return false;
 			if (copChance < 1) return false;
 			
-			const auto foundType = this->FindOrAddTypeByName(copName);
+			const auto [copType, safeName] = HeatParameters::EmplaceSafeString(copName);
 
 			const auto [pairIt, isNewType] = this->copTypeToEntry.try_emplace
 			(
-				foundType->first,
-				foundType->second->c_str(), // safe due to pointer stability
+				copType, 
+				safeName.c_str(), 
 				copCount, 
 				copChance, 
 				copCount
@@ -294,7 +274,7 @@ namespace CopSpawnTables
 				const size_t      numEntries = parser.ParseUser<std::string_view, int, int>(section, copNames, {copCounts, {0}}, {copChances, {0}});
 
 				for (size_t entryID = 0; entryID < numEntries; ++entryID)
-					tables[heatLevelID].AddTypeByName(copNames[entryID], copCounts[entryID], copChances[entryID]);
+					tables[heatLevelID].AddCopTypeByName(copNames[entryID], copCounts[entryID], copChances[entryID]);
 
 				allValid &= tables[heatLevelID].Validate(tableName, forRaces, heatLevel); // removes invalid vehicles
 			}

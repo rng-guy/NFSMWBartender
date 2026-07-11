@@ -53,7 +53,6 @@ namespace RandomNumbers
 		}
 
 
-
 	public:
 
 		constexpr Xoshiro256ss() = default;
@@ -129,7 +128,6 @@ namespace RandomNumbers
 		{
 			return ((static_cast<uint64_t>(upper) << 32) | lower);
 		}
-
 
 
 	public:

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <limits>
 #include <algorithm>
 #include <string_view>
@@ -21,7 +20,7 @@ namespace HelicopterOverrides
 	bool featureEnabled = false;
 
 	// Heat parameters
-	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> helicopterVehicles("copheli");
+	constinit HeatParameters::Pair<const char*> helicopterVehicles("copheli");
 
 	constinit HeatParameters::OptionalInterval<float> firstSpawnDelays  ({1.f}); // seconds
 	constinit HeatParameters::OptionalInterval<float> fuelRespawnDelays ({1.f}); // seconds
@@ -66,7 +65,6 @@ namespace HelicopterOverrides
 			LOST,
 			REJOINING
 		};
-
 
 
 	private:
@@ -259,7 +257,6 @@ namespace HelicopterOverrides
 					Globals::logger.Log(this->pursuit, "[HEL]", timerName, "suspended");
 			}
 		}
-
 
 
 	public:

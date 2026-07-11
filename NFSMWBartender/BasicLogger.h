@@ -85,7 +85,6 @@ namespace BasicLogger
 		}
 
 
-
 	public:
 
 		bool Open(const std::filesystem::path& path)

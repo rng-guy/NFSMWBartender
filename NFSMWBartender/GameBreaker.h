@@ -183,17 +183,17 @@ namespace GameBreaker
 
 	bool ParseSpeedbreakerChanges(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string_view> copVehicles;
+		std::vector<std::string_view> copNames;
 		std::vector<float>            changes;
 
-		parser.ParseUser<std::string_view, float>("Wrecking:Vehicles", copVehicles, {changes});
+		parser.ParseUser<std::string_view, float>("Wrecking:Vehicles", copNames, {changes});
 
 		return copTypeToBreakerChange.FillFromVectors
 		(
 			"Vehicle-to-change",
 			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultHash, Globals::DoesVehicleTypeExist),
-			ModContainers::MapFillSetup(changes,     std::identity{},       ModContainers::AlwaysValid{})
+			ModContainers::MapFillSetup(copNames, Globals::GetVaultHash, Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(changes,  std::identity{},       ModContainers::AlwaysValid{})
 		);
 	}
 

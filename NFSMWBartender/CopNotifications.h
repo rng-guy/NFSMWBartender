@@ -81,10 +81,10 @@ namespace CopNotifications
 
 	bool ParseNotificationTexts(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string_view> copVehicles;
+		std::vector<std::string_view> copNames;
 		std::vector<std::string_view> stringOrNames;
 
-		parser.ParseUser<std::string_view, std::string_view>("Vehicles:Notifications", copVehicles, {stringOrNames});
+		parser.ParseUser<std::string_view, std::string_view>("Vehicles:Notifications", copNames, {stringOrNames});
 
 		const auto StringOrNameToNotification = [](const std::string_view stringOrName) -> std::string
 		{
@@ -98,7 +98,7 @@ namespace CopNotifications
 		(
 			"Vehicle-to-text",
 			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copVehicles,   Globals::GetVaultHash,      Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(copNames,      Globals::GetVaultHash,      Globals::DoesVehicleTypeExist),
 			ModContainers::MapFillSetup(stringOrNames, StringOrNameToNotification, ModContainers::AlwaysValid{})
 		);
 	}
@@ -107,10 +107,10 @@ namespace CopNotifications
 
 	bool ParseNotificationIcons(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string_view> copVehicles;
+		std::vector<std::string_view> copNames;
 		std::vector<std::string_view> iconLabels;
 
-		parser.ParseUser<std::string_view, std::string_view>("Notifications:Icons", copVehicles, {iconLabels});
+		parser.ParseUser<std::string_view, std::string_view>("Notifications:Icons", copNames, {iconLabels});
 
 		const auto IsValidGlobalTexture = [](const binary iconKey) -> bool
 		{
@@ -122,7 +122,7 @@ namespace CopNotifications
 		(
 			"Vehicle-to-icon",
 			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultHash,  Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(copNames,    Globals::GetVaultHash,  Globals::DoesVehicleTypeExist),
 			ModContainers::MapFillSetup(iconLabels,  Globals::GetBinaryHash, IsValidGlobalTexture)
 		);
 	}

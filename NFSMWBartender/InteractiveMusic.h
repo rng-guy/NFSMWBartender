@@ -180,8 +180,12 @@ namespace InteractiveMusic
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<3>(static_cast<int>(pairs.size()), "track(s) provided");
 
-		constexpr auto NameToTrackID = [](const std::string_view name) -> std::optional<int>
+		constexpr auto ValuesToTrackID = [](const auto& values) -> std::optional<int>
 		{
+			if (values.size() != 1) return std::nullopt;
+
+			const auto& name = values[0];
+
 			if (name == "theme1") return 0;
 			if (name == "theme2") return 1;
 			if (name == "theme3") return 2;
@@ -190,11 +194,11 @@ namespace InteractiveMusic
 			return std::nullopt;
 		};
 
-		for (const auto& [key, value] : pairs)
+		for (const auto& [key, values] : pairs)
 		{
 			if (key.find("track") == 0) // key starts with "track"
 			{
-				if (const auto trackID = NameToTrackID(value)) // value valid
+				if (const auto trackID = ValuesToTrackID(values)) // value valid
 					playlist.push_back(*trackID);
 
 				else if constexpr (Globals::loggingEnabled) // value invalid

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <vector>
 #include <concepts>
 #include <string_view>
@@ -50,17 +49,17 @@ namespace GroundSuppport
 	constinit HeatParameters::Pair<bool> heavy3TriggerCooldowns(true);
 	constinit HeatParameters::Pair<bool> heavy3AreBlockables   (true);
 
-	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> heavy3LightVehicles("copsuvl");
-	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> heavy3HeavyVehicles("copsuv");
+	constinit HeatParameters::Pair<const char*> heavy3LightVehicles("copsuvl");
+	constinit HeatParameters::Pair<const char*> heavy3HeavyVehicles("copsuv");
 
-	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> heavy4LightVehicles("copsuvl");
-	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> heavy4HeavyVehicles("copsuv");
+	constinit HeatParameters::Pair<const char*> heavy4LightVehicles("copsuvl");
+	constinit HeatParameters::Pair<const char*> heavy4HeavyVehicles("copsuv");
 
-	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> leader5CrossVehicles("copcross");
-	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> leader7CrossVehicles("copcross");
+	constinit HeatParameters::Pair<const char*> leader5CrossVehicles("copcross");
 
-	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> leader7Hench1Vehicles("copsporthench");
-	RELEASE_CONSTINIT HeatParameters::PointerPair<std::string> leader7Hench2Vehicles("copsporthench");
+	constinit HeatParameters::Pair<const char*> leader7CrossVehicles ("copcross");
+	constinit HeatParameters::Pair<const char*> leader7Hench1Vehicles("copsporthench");
+	constinit HeatParameters::Pair<const char*> leader7Hench2Vehicles("copsporthench");
 
 	// Conversions
 	float rammingSpeedLimit = heavy3SpeedLimits.current / 3.6f; // mps

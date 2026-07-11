@@ -130,7 +130,6 @@ namespace StrategyOverrides
 		}
 
 
-
 	public:
 
 		inline static constinit const bool& isEnabled = featureEnabled;

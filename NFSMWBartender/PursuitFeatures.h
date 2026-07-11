@@ -26,14 +26,12 @@ namespace PursuitFeatures
 		};
 
 
-
 	protected:
 
 		const address pursuit;
 
 
-		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {};
-
+		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {}
 
 
 	public:
@@ -91,7 +89,6 @@ namespace PursuitFeatures
 			this->length       = Globals::prng.GenerateNumber<float>(this->minLength, this->maxLength);
 			this->endTimestamp = this->startTimestamp + this->length;
 		}
-
 
 
 	public:

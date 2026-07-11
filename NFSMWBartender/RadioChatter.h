@@ -297,10 +297,10 @@ namespace RadioChatter
 
 	bool ParseCallsigns(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string_view> copVehicles;
+		std::vector<std::string_view> copNames;
 		std::vector<std::string_view> battalionNames;
 
-		parser.ParseUser<std::string_view, std::string_view>("Vehicles:Callsigns", copVehicles, {battalionNames});
+		parser.ParseUser<std::string_view, std::string_view>("Vehicles:Callsigns", copNames, {battalionNames});
 
 		// Populate callsign map
 		constexpr auto NameToBattalion = [](const std::string_view name) -> Battalion
@@ -319,7 +319,7 @@ namespace RadioChatter
 		(
 			"Vehicle-to-callsign",
 			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copVehicles,    Globals::GetVaultHash, Globals::IsVehicleTypeCar),
+			ModContainers::MapFillSetup(copNames,       Globals::GetVaultHash, Globals::IsVehicleTypeCar),
 			ModContainers::MapFillSetup(battalionNames, NameToBattalion,       IsBattalionValid)
 		);
 	}

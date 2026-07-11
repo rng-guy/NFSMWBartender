@@ -44,7 +44,6 @@ namespace PursuitObserver
 		using CopLabel        = PursuitReaction::CopLabel;
 
 
-
 	private:
 
 		const address pursuit;
@@ -148,7 +147,6 @@ namespace PursuitObserver
 
 			return nullptr;
 		}
-
 
 
 	public:

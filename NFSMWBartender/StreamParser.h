@@ -42,14 +42,7 @@ namespace StreamParser
 		concept IsPureArithmetic = (std::is_arithmetic_v<V> and std::same_as<V, std::remove_cvref_t<V>>);
 
 		template <typename ...Vs>
-		concept AreLineParseable = ((sizeof...(Vs) == 1) and ... and (IsPureArithmetic<Vs> or IsAnyStringOrView<Vs>));
-
-		// Cannot convert views of split source strings to C-style strings
-		template <typename ...Vs>
-		concept AreSeparatorParseable = ((sizeof...(Vs) > 1) and ... and (IsPureArithmetic<Vs> or IsModernStringOrView<Vs>));
-
-		template <typename ...Vs>
-		concept AreParseable = (AreLineParseable<Vs...> or AreSeparatorParseable<Vs...>);
+		concept AreParseable = ((sizeof...(Vs) > 0) and ... and (IsAnyStringOrView<Vs> or IsPureArithmetic<Vs>));
 
 		template <typename K, typename... Vs>
 		concept AreSectionParseable = (IsAnyStringOrView<K> and AreParseable<Vs...>);
@@ -139,40 +132,29 @@ namespace StreamParser
 
 
 
-		template <size_t numSegments>
-		[[nodiscard]] constexpr std::optional<std::array<std::string_view, numSegments>> Split
+		[[nodiscard]] std::optional<std::vector<std::string_view>> Split
 		(
 			const std::string_view source,
 			const char             separator
-		) 
-			noexcept
-		{
-			size_t segmentID     = 0;
+		) {
 			size_t startPosition = 0;
 
-			std::array<std::string_view, numSegments> segments;
+			std::vector<std::string_view> segments;
 
 			while (startPosition <= source.length())
 			{
-				if (segmentID < numSegments)
-				{
-					const size_t endPosition = source.find(separator, startPosition);
+				const size_t endPosition    = source.find(separator, startPosition);
+				const bool   isFinalSegment = (endPosition == std::string_view::npos);
+				const size_t segmentLength  = (isFinalSegment) ? std::string_view::npos : (endPosition - startPosition);
 
-					if (endPosition == std::string_view::npos)
-					{
-						segments[segmentID++] = Trim(source.substr(startPosition));
-						break; // no more segments left to parse in view
-					}
+				const std::string_view segment = Trim(source.substr(startPosition, segmentLength));
+				if (segment.empty()) return std::nullopt;
 
-					// The static analyser likes to complain about this despite the preceding bounds check
-					segments[segmentID++] = Trim(source.substr(startPosition, endPosition - startPosition));
+				segments.push_back(segment);
+				if (isFinalSegment) break;
 
-					startPosition = endPosition + 1;
-				}
-				else return std::nullopt;
+				startPosition = endPosition + 1;
 			}
-
-			if (segmentID != numSegments) return std::nullopt;
 
 			return segments;
 		}
@@ -259,39 +241,26 @@ namespace StreamParser
 	}
 
 
-	constexpr bool ParseFromString
-	(
-		const char* const source,
-		const char*&      value
-	)
-		noexcept
-	{
-		value = source;
-		return true;
-	}
-
-
 
 	template <typename ...Vs>
-	requires Concepts::AreSeparatorParseable<Vs...>
-	inline bool ParseFromString
+	requires Concepts::AreParseable<Vs...>
+	inline bool ParseFromStrings
 	(
-		const std::string_view    source,
-		const char                separator,
-		Vs&                    ...values
+		const std::vector<std::string>&    sources,
+		Vs&                             ...values
 	) 
 		noexcept(Concepts::AreAllocationFree<Vs...>)
 	{
 		bool             allParsed   = false;
 		constexpr size_t numSegments = sizeof...(Vs);
 
-		if (const auto segments = Details::Split<numSegments>(source, separator))
+		if (numSegments == sources.size())
 		{
 			[&]<size_t... segmentID>(std::index_sequence<segmentID...>)
 			{
 				std::tuple<Vs...> candidates;
 
-				allParsed = (ParseFromString((*segments)[segmentID], std::get<segmentID>(candidates)) and ...);
+				allParsed = (ParseFromString(sources[segmentID], std::get<segmentID>(candidates)) and ...);
 
 				if (allParsed)
 					(..., (values = std::move(std::get<segmentID>(candidates))));
@@ -312,6 +281,14 @@ namespace StreamParser
 	requires (Details::AreUniqueNonWhitespace<comment, separator, assign, start, end>())
 	class Parser
 	{
+	protected:
+
+		using Section  = FlatContainers::Map<std::string, std::vector<std::string>>;
+		using Sections = FlatContainers::Map<std::string, Section>;
+
+		Sections sections;
+
+
 	private:
 
 		[[nodiscard]] static constexpr std::string_view GetContent(const std::string_view line) noexcept
@@ -329,7 +306,7 @@ namespace StreamParser
 		}
 
 
-		[[nodiscard]] static constexpr std::optional<std::pair<std::string_view, std::string_view>> GetPair(const std::string_view content) noexcept
+		[[nodiscard]] static std::optional<std::pair<std::string_view, std::vector<std::string_view>>> GetPair(const std::string_view content)
 		{
 			const size_t firstAssign = content.find(assign);
 			if (firstAssign == std::string_view::npos) return std::nullopt; // missing delimiter
@@ -337,47 +314,13 @@ namespace StreamParser
 			const std::string_view key = Details::TrimRight(content.substr(0, firstAssign));
 			if (key.empty()) return std::nullopt; // missing key
 
-			const std::string_view value = Details::TrimLeft(content.substr(firstAssign + 1));
-			if (value.empty()) return std::nullopt; // missing value
+			const std::string_view values = Details::TrimLeft(content.substr(firstAssign + 1));
+			if (values.empty()) return std::nullopt; // missing value(s)
 
-			return std::pair(key, value);
+			if (auto views = Details::Split(values, separator)) return std::pair(key, std::move(*views));
+			
+			return std::nullopt;
 		}
-
-
-		template <typename ...Vs>
-		requires Concepts::AreSeparatorParseable<Vs...>
-		static bool DispatchToParsing
-		(
-			const std::string&    source,
-			Vs&                ...values
-		)
-			noexcept(Concepts::AreAllocationFree<Vs...>)
-		{
-			return ParseFromString<Vs...>(source, separator, values...);
-		}
-
-
-		template <typename V>
-		requires Concepts::AreLineParseable<V>
-		static bool DispatchToParsing
-		(
-			const std::string& source,
-			V&                 value
-		)
-			noexcept(Concepts::AreAllocationFree<V>)
-		{
-			return ParseFromString(source, value);
-		}
-
-
-
-	protected:
-
-		using Section  = FlatContainers::Map<std::string, std::string>;
-		using Sections = FlatContainers::Map<std::string, Section>;
-
-		Sections sections;
-
 
 
 	public:
@@ -406,6 +349,7 @@ namespace StreamParser
 				const std::string_view content = this->GetContent(line);
 				if (content.empty()) continue; // only whitespace or comment
 
+				// Check whether the line content defines a new section
 				if (const auto sectionName = this->GetSectionName(content))
 				{
 					if (not sectionName->empty())
@@ -418,12 +362,27 @@ namespace StreamParser
 
 						currentSection = &section;
 					}
-					else currentSection = nullptr; // empty section name
+					else currentSection = nullptr;
+
+					continue; // section updated
 				}
-				else if (currentSection)
+				
+				// Attempt to parse the line content as a key-value pair
+				if (not currentSection) continue; // no active section
+
+				if (const auto pair = this->GetPair(content))
 				{
-					if (const auto pair = this->GetPair(content))
-						currentSection->try_emplace(pair->first, pair->second);
+					const auto& [   key,     views] = *pair;
+					const auto& [pairIt, isNewPair] = currentSection->try_emplace(key);
+
+					if (isNewPair)
+					{
+						auto& strings = pairIt->second;
+						strings.reserve(views.size());
+
+						for (const std::string_view view : views)
+							strings.emplace_back(view);
+					}
 				}
 			}
 		}
@@ -452,7 +411,7 @@ namespace StreamParser
 			const auto foundKey = section.find(key);
 			if (foundKey == section.end()) return false;
 
-			return Parser::DispatchToParsing<Vs...>(foundKey->second, values...);
+			return ParseFromStrings<Vs...>(foundKey->second, values...);
 		}
 
 
@@ -492,9 +451,9 @@ namespace StreamParser
 			{
 				std::tuple<Vs...> candidates;
 
-				for (const auto& [key, value] : section)
+				for (const auto& [key, strings] : section)
 				{
-					if (Parser::DispatchToParsing<Vs...>(value, std::get<columnIDs>(candidates)...))
+					if (ParseFromStrings<Vs...>(strings, std::get<columnIDs>(candidates)...))
 					{
 						(..., values.push_back(std::move(std::get<columnIDs>(candidates))));
 

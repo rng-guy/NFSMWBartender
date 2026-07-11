@@ -70,7 +70,6 @@ namespace HeatChangeOverrides
 			const HeatParameters::Pair<float>& heatPerCounts;
 
 
-
 		public:
 
 			explicit CountTracker
@@ -110,7 +109,6 @@ namespace HeatChangeOverrides
 				return Globals::floatScale * static_cast<float>(change) * this->heatPerCounts.current;
 			}
 		};
-
 
 
 	private:
@@ -163,7 +161,6 @@ namespace HeatChangeOverrides
 
 			return nullptr;
 		}
-
 
 
 	public:
@@ -534,16 +531,16 @@ namespace HeatChangeOverrides
 
 	bool ParseVehicleChanges(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string_view> copVehicles;
+		std::vector<std::string_view> copNames;
 		std::vector<float>            heatChanges;
 
-		parser.ParseUser<std::string_view, float>("Wrecking:Vehicles", copVehicles, {heatChanges});
+		parser.ParseUser<std::string_view, float>("Wrecking:Vehicles", copNames, {heatChanges});
 
 		return copTypeToHeatChange.FillFromVectors
 		(
 			"Vehicle-to-change",
 			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultHash, Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(copNames,    Globals::GetVaultHash, Globals::DoesVehicleTypeExist),
 			ModContainers::MapFillSetup(heatChanges, std::identity{},       ModContainers::AlwaysValid{})
 		);
 	}

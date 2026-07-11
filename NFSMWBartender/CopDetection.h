@@ -26,7 +26,6 @@ namespace CopDetection
 		bool  isNewMapObject        = true;
 		float colourChangeTimestamp = 0.f;
 
-		
 
 	public:
 
@@ -379,7 +378,7 @@ namespace CopDetection
 
 	bool ParseDetectionSettings(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string_view> copVehicles;
+		std::vector<std::string_view> copNames;
 		std::vector<float>            radarRanges;
 		std::vector<float>            patrolIconRanges;
 		std::vector<float>            pursuitIconRanges;
@@ -388,7 +387,7 @@ namespace CopDetection
 		const size_t numCopVehicles = parser.ParseUser<std::string_view, float, float, float, bool>
 		(
 			"Vehicles:Detection",
-			copVehicles,
+			copNames,
 			{radarRanges,       {0.f}},
 			{patrolIconRanges,  {0.f}},
 			{pursuitIconRanges, {0.f}},
@@ -412,8 +411,8 @@ namespace CopDetection
 		(
 			"Vehicle-to-settings",
 			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultHash, Globals::IsVehicleTypeCar),
-			ModContainers::MapFillSetup(settings,    std::identity{},       ModContainers::AlwaysValid{})
+			ModContainers::MapFillSetup(copNames , Globals::GetVaultHash, Globals::IsVehicleTypeCar),
+			ModContainers::MapFillSetup(settings,  std::identity{},       ModContainers::AlwaysValid{})
 		);
 	}
 

@@ -543,16 +543,16 @@ namespace GeneralSettings
 
 	bool ParsePursuitBreakerImmunities(const HeatParameters::Parser& parser)
 	{
-		std::vector<std::string_view> copVehicles;
+		std::vector<std::string_view> copNames;
 		std::vector<bool>             isAffecteds;
 
-		parser.ParseUser<std::string_view, bool>("Vehicles:Breakers", copVehicles, {isAffecteds});
+		parser.ParseUser<std::string_view, bool>("Vehicles:Breakers", copNames, {isAffecteds});
 
 		return copTypeToIsBreakerImmune.FillFromVectors
 		(
 			"Vehicle-to-immunity",
 			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copVehicles, Globals::GetVaultHash,    Globals::DoesVehicleTypeExist),
+			ModContainers::MapFillSetup(copNames,    Globals::GetVaultHash,    Globals::DoesVehicleTypeExist),
 			ModContainers::MapFillSetup(isAffecteds, std::logical_not<bool>{}, ModContainers::AlwaysValid{})
 		);
 	}

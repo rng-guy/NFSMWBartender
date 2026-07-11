@@ -124,7 +124,6 @@ namespace CopFleeOverrides
 			}
 
 
-
 		public:
 
 			void CheckTimestamps()
@@ -176,7 +175,6 @@ namespace CopFleeOverrides
 		private:
 
 			const volatile address& strategy;
-
 
 
 		public:
@@ -234,7 +232,6 @@ namespace CopFleeOverrides
 			std::function<bool (const address)> IsSchedulable = [](const address copVehicle) -> bool {return true;};
 
 
-
 		private:
 
 			// Tracks all cops in case of Heat transitions
@@ -252,7 +249,6 @@ namespace CopFleeOverrides
 
 				this->ScheduleVehicle(copVehicle, this->fleeDelays.GetRandomValue());
 			}
-
 
 
 		public:
@@ -323,7 +319,7 @@ namespace CopFleeOverrides
 			}
 
 
-			[[nodiscard]] address GetNumVehicles() const
+			[[nodiscard]] size_t GetNumVehicles() const
 			{
 				return this->copVehicles.size();
 			}
@@ -346,7 +342,6 @@ namespace CopFleeOverrides
 		using PursuitScheduler  = Details::PursuitScheduler;
 
 
-
 	private:
 
 		bool pursuitTargetKnown = false;
@@ -364,16 +359,19 @@ namespace CopFleeOverrides
 
 		[[nodiscard]] static bool IsNotInChaserTable(const address copVehicle)
 		{
-			return (not CopSpawnTables::chaserSpawnTables.current->ContainsType(Globals::GetVehicleType(copVehicle)));
+			const vault copType = Globals::GetVehicleType(copVehicle);
+			return (not CopSpawnTables::chaserSpawnTables.current->ContainsCopType(copType));
 		}
 
 
 		[[nodiscard]] bool MayAnotherHeavyJoin() const
 		{
-			if (not heavy3JoiningEnableds.current)       return false;
+			if (not heavy3JoiningEnableds      .current) return false;
 			if (not heavy3JoinLimits.isEnableds.current) return true;
 
-			return (static_cast<int>(this->joinedHeavyVehicles.GetNumVehicles()) < heavy3JoinLimits.values.current);
+			const int numJoinedHeavy3s = static_cast<int>(this->joinedHeavyVehicles.GetNumVehicles());
+
+			return (numJoinedHeavy3s < heavy3JoinLimits.values.current);
 		}
 
 
@@ -452,7 +450,6 @@ namespace CopFleeOverrides
 				}
 			}
 		}
-
 
 
 	public:

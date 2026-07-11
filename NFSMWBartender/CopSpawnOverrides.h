@@ -56,7 +56,6 @@ namespace CopSpawnOverrides
 		}
 
 
-
 	public:
 
 		constexpr explicit Contingent(const CopSpawnTables::TablePair& source) : source(&source), pursuit(0x0) {}
@@ -119,10 +118,10 @@ namespace CopSpawnOverrides
 				{
 					if (this->pursuit)
 					{
-						const char* const copName = this->table.ConvertTypeToName(copType);
+						const auto copName = HeatParameters::GetSafeStringByVaultHash(copType);
 
 						if (copName)
-							Globals::logger.Log(this->pursuit, "[CON] Copying", currentCount, copName);
+							Globals::logger.Log(this->pursuit, "[CON] Copying", currentCount, *copName);
 
 						else
 							Globals::logger.Log(this->pursuit, "[CON] Copying", currentCount, copType);
@@ -158,7 +157,7 @@ namespace CopSpawnOverrides
 			if (not isNewType)
 				++currentCount;
 
-			this->UpdateSpawnTableCapacity(copType, -1);
+			this->UpdateSpawnTableCapacity(copType, /* change = */ -1);
 			++(this->numActiveCops);
 
 			if constexpr (Globals::loggingEnabled)
@@ -171,13 +170,15 @@ namespace CopSpawnOverrides
 
 		void AddVehicleByName(const std::string_view copName)
 		{
-			this->AddVehicleByType(Globals::GetVaultHash(copName));
+			const vault copType = Globals::GetVaultHash(copName);
+			this->AddVehicleByType(copType);
 		}
 
 
 		void AddVehicle(const address copVehicle)
 		{
-			this->AddVehicleByType(Globals::GetVehicleType(copVehicle));
+			const vault copType = Globals::GetVehicleType(copVehicle);
+			this->AddVehicleByType(copType);
 		}
 
 
@@ -191,7 +192,7 @@ namespace CopSpawnOverrides
 
 				--currentCount;
 
-				this->UpdateSpawnTableCapacity(copType, +1);
+				this->UpdateSpawnTableCapacity(copType, /* change = */ +1);
 				--(this->numActiveCops);
 
 				if constexpr (Globals::loggingEnabled)
@@ -218,13 +219,15 @@ namespace CopSpawnOverrides
 
 		bool RemoveVehicleByName(const std::string_view copName)
 		{
-			return this->RemoveVehicleByType(Globals::GetVaultHash(copName));
+			const vault copType = Globals::GetVaultHash(copName);
+			return this->RemoveVehicleByType(copType);
 		}
 
 
 		bool RemoveVehicle(const address copVehicle)
 		{
-			return this->RemoveVehicleByType(Globals::GetVehicleType(copVehicle));
+			const vault copType = Globals::GetVehicleType(copVehicle);
+			return this->RemoveVehicleByType(copType);
 		}
 
 
@@ -363,7 +366,8 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] int GetWaveCapacity() const
 		{
-			int waveCapacity = this->fullWaveCapacity - (this->numCopsLostInWave + this->chaserSpawns.GetNumActiveCops());
+			const int numActiveChasers = this->chaserSpawns.GetNumActiveCops();
+			int       waveCapacity     = this->fullWaveCapacity - (this->numCopsLostInWave + numActiveChasers);
 
 			if (this->waveParametersKnown)
 				waveCapacity -= this->numActiveNonChasers;
@@ -446,7 +450,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		[[nodiscard]] static bool IsAlsoTrackedOnBoard(const CopLabel copLabel)
+		[[nodiscard]] static bool IsTrackedNonChaser(const CopLabel copLabel)
 		{
 			switch (copLabel)
 			{
@@ -461,6 +465,23 @@ namespace CopSpawnOverrides
 			}
 
 			return false;
+		}
+
+
+		void UpdateNonChaserTracking
+		(
+			const CopLabel copLabel,
+			const int      change
+		) {
+			if (not IsTrackedNonChaser(copLabel)) return;
+
+			this->numActiveNonChasers += change;
+
+			if (this->waveParametersKnown)
+			{
+				this->fullWaveCapacity       += change;
+				this->numCopsToTriggerBackup += change;
+			}
 		}
 
 
@@ -505,7 +526,6 @@ namespace CopSpawnOverrides
 
 			return nullptr;
 		}
-
 
 
 	public:
@@ -567,16 +587,7 @@ namespace CopSpawnOverrides
 				[[fallthrough]];
 
 			default:
-				if (this->IsAlsoTrackedOnBoard(copLabel))
-				{
-					++(this->numActiveNonChasers);
-
-					if (this->waveParametersKnown)
-					{
-						++(this->fullWaveCapacity);
-						++(this->numCopsToTriggerBackup);
-					}
-				}
+				this->UpdateNonChaserTracking(copLabel, /* change = */ +1);
 			}
 		}
 
@@ -599,16 +610,7 @@ namespace CopSpawnOverrides
 				[[fallthrough]];
 
 			default:
-				if (this->IsAlsoTrackedOnBoard(copLabel))
-				{
-					--(this->numActiveNonChasers);
-
-					if (this->waveParametersKnown)
-					{
-						--(this->fullWaveCapacity);
-						--(this->numCopsToTriggerBackup);
-					}
-				}
+				this->UpdateNonChaserTracking(copLabel, /* change = */ -1);
 			}
 		}
 

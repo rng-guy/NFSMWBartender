@@ -84,7 +84,6 @@ namespace ModContainers
 
 		V defaultValue;
 
-		
 
 	public:
 

@@ -133,7 +133,6 @@ namespace ConfigParser
 		}
 
 
-
 	public:
 
 		size_t sectionCapacityPerFile;

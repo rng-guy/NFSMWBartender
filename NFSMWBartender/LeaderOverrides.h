@@ -51,7 +51,6 @@ namespace LeaderOverrides
 		};
 
 
-
 	private:
 
 		int lastStrategyID = 5;
@@ -308,7 +307,6 @@ namespace LeaderOverrides
 				}
 			}
 		}
-
 
 
 	public:
