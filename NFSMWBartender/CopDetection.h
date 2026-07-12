@@ -80,7 +80,7 @@ namespace CopDetection
 	};
 
 	// Inline hashes for ASM
-	enum : vault
+	enum class VaultHash : vault
 	{
 		CHOPPER = "CHOPPER"_vlt
 	};
@@ -187,6 +187,8 @@ namespace CopDetection
 	__declspec(naked) void CopVehicleIcon()
 	{
 		static constexpr address copVehicleIconSkip = 0x57A09F;
+
+		using enum VaultHash;
 
 		__asm
 		{

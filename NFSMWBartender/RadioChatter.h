@@ -17,15 +17,15 @@ namespace RadioChatter
 
 	bool featureEnabled = false;
 
-	// Enums (C-style for ASM)
-	enum Jurisdiction
+	// Enums
+	enum Jurisdiction : int // C-style for implicit casting
 	{
 		CITY    = 0,
 		STATE   = 1,
 		FEDERAL = 2
 	};
 	
-	enum Battalion
+	enum class Battalion
 	{
 		UNKNOWN,
 		PATROL,
@@ -148,6 +148,8 @@ namespace RadioChatter
 	// Retrieves the current vehicle's callsign
 	__declspec(naked) void CallsignsCheck()
 	{
+		using enum Battalion;
+
 		__asm
 		{
 			push eax // copType
@@ -170,6 +172,8 @@ namespace RadioChatter
 	__declspec(naked) void FirstCallsigns()
 	{
 		static constexpr address firstCallsignsSkip = 0x71FB8B;
+
+		using enum Battalion;
 
 		__asm
 		{
@@ -212,6 +216,8 @@ namespace RadioChatter
 	// Picks radio callouts in response to collisions with racers
 	__declspec(naked) void CollisionCallout()
 	{
+		using enum Battalion;
+
 		__asm
 		{
 			push eax                   // copType

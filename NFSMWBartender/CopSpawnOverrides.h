@@ -284,7 +284,7 @@ namespace CopSpawnOverrides
 	constinit HeatParameters::OptionalPair<int> roadblockJoinLimits({0}); // cars
 
 	// Inline hashes for ASM
-	enum : vault
+	enum class VaultHash : vault
 	{
 		AIGOALPATROL = "AIGoalPatrol"_vlt
 	};
@@ -862,6 +862,8 @@ namespace CopSpawnOverrides
 	// Notifies "Patrols" contingent of "Patrols" joining pursuits
 	__declspec(naked) void PatrolPursuit()
 	{
+		using enum VaultHash;
+
 		__asm
 		{
 			cmp eax, AIGOALPATROL
@@ -894,9 +896,10 @@ namespace CopSpawnOverrides
 	// Notifies "Patrols" contingent of "Patrols" despawns
 	__declspec(naked) void PatrolDespawn()
 	{
+		using enum VaultHash;
+
 		__asm
 		{
-
 			cmp dword ptr [esi + 0x78], AIGOALPATROL
 			jne conclusion // not patrol goal
 

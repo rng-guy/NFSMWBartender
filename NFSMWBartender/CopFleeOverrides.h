@@ -40,7 +40,7 @@ namespace CopFleeOverrides
 	float jerkSpeedThreshold = baseSpeedThreshold * .625f;           // mps
 
 	// Inline hashes for ASM
-	enum : vault
+	enum class VaultHash : vault
 	{
 		AIGOALFLEEPURSUIT = "AIGoalFleePursuit"_vlt
 	};
@@ -591,6 +591,8 @@ namespace CopFleeOverrides
 	// Prevents formations from overriding flee goals
 	__declspec(naked) void GoalUpdate()
 	{
+		using enum VaultHash;
+
 		__asm
 		{
 			mov edi, dword ptr [ebp]

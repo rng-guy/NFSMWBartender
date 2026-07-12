@@ -19,8 +19,8 @@ namespace RoadblockOverrides
 
 	// Roadblock (part) structs ---------------------------------------------------------------------------------------------------------------------
 
-	// Parts (matches vanilla layout)
-	enum RBPartType
+	// Part (matches vanilla layout)
+	enum RBPartType : int // C-style for implicit casting
 	{
 		NONE     = 0,
 		CAR      = 1,
