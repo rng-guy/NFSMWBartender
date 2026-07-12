@@ -4,6 +4,7 @@
 #include <limits>
 #include <random>
 #include <cstdint>
+#include <algorithm>
 #include <type_traits>
 
 
@@ -17,18 +18,8 @@ namespace RandomNumbers
 	{
 	private:
 
+		uint64_t                seed  = 0x0;
 		std::array<uint64_t, 4> state = {};
-
-
-		[[nodiscard]] static constexpr uint64_t Join
-		(
-			const uint32_t upper,
-			const uint32_t lower
-		) 
-			noexcept
-		{
-			return (static_cast<uint64_t>(upper) << 32) bitor lower;
-		}
 
 
 		[[nodiscard]] static constexpr uint64_t Rotate
@@ -38,7 +29,7 @@ namespace RandomNumbers
 		)
 			noexcept
 		{
-			return (x << k) bitor (x >> (64 - k));
+			return (x << k) | (x >> (64 - k));
 		}
 
 
@@ -46,20 +37,19 @@ namespace RandomNumbers
 		{
 			uint64_t z = (state += 0x9e3779b97f4a7c15);
 
-			z = (z xor (z >> 30)) * 0xbf58476d1ce4e5b9;
-			z = (z xor (z >> 27)) * 0x94d049bb133111eb;
+			z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
+			z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
 
-			return z xor (z >> 31);
+			return z ^ (z >> 31);
 		}
 
 
 	public:
 
-		constexpr Xoshiro256ss() = default;
-
-
-		constexpr void SeedState(uint64_t seed)
+		constexpr void SetSeed(uint64_t seed)
 		{
+			this->seed = seed;
+
 			for (uint64_t& value : this->state)
 				value = this->ApplySplitmix64(seed);
 		}
@@ -67,7 +57,13 @@ namespace RandomNumbers
 
 		constexpr explicit Xoshiro256ss(const uint64_t seed)
 		{
-			this->SeedState(seed);
+			this->SetSeed(seed);
+		}
+
+
+		[[nodiscard]] constexpr uint64_t GetSeed() const noexcept
+		{
+			return this->seed;
 		}
 
 
@@ -112,35 +108,31 @@ namespace RandomNumbers
 
 	// Generator wrapper class ----------------------------------------------------------------------------------------------------------------------
 
+	template <class Engine = Xoshiro256ss>
+	requires std::uniform_random_bit_generator<Engine>
 	class Generator
 	{
 	private:
 
-		Xoshiro256ss engine;
+		Engine engine;
 		
 
-		[[nodiscard]] static constexpr uint64_t Join
-		(
-			const uint32_t upper,
-			const uint32_t lower
-		)
-			noexcept
+		[[nodiscard]] static uint64_t GenerateSeed()
 		{
-			return ((static_cast<uint64_t>(upper) << 32) | lower);
+			std::random_device rng;
+
+			const uint32_t lower = rng();
+			const uint32_t upper = rng();
+
+			return (static_cast<uint64_t>(upper) << 32) | lower;
 		}
 
 
 	public:
 
-		Generator()
-		{
-			std::random_device rng;
+		Generator() : engine(this->GenerateSeed()) {}
 
-			this->engine.SeedState(this->Join(rng(), rng()));
-		}
-
-
-		explicit Generator(const uint64_t seed) : engine(seed) {}
+		constexpr explicit Generator(const uint64_t seed) : engine(seed) {}
 
 
 		// Samples from [min, max]
@@ -183,10 +175,10 @@ namespace RandomNumbers
 		}
 
 
-		// Samples from [0, size]
+		// Samples from [0, size)
 		[[nodiscard]] size_t GenerateIndex(const size_t size)
 		{
-			return (size > 1) ? this->GenerateNumber<size_t>(0, size - 1) : 0;
+			return this->GenerateNumber<size_t>(0, size - 1);
 		}
 	};
 }
