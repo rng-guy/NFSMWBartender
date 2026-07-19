@@ -121,7 +121,7 @@ Regarding **cosmetic features** ([`BartenderSettings\Basic\Cosmetic.ini`](Barten
 
 * You can define notification strings directly or use the names of existing game strings: If a string you define matches the name of a game string, Bartender uses the game string; if not, Bartender uses the string itself to generate an in-game notification instead.
 
-* You can use the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy to browse, edit, and expand the game's strings.
+* You can use the [Binary](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) tool by MaxHwoy to browse, edit, and expand the game's strings.
 
 * When the game displays a notification, `^` becomes a line break and `%$d` the bounty amount.
 
@@ -137,7 +137,7 @@ Regarding **cosmetic features** ([`BartenderSettings\Basic\Cosmetic.ini`](Barten
 
 * If you define no valid icons and no `default`, Bartender disables its icon feature.
 
-* For an icon to be valid, it must exist in the game's `GLOBALB.LZC` file. You can browse, edit, and expand the icons contained in this file with the [Binary tool](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) by MaxHwoy.
+* For an icon to be valid, it must exist in the game's `GLOBALB.LZC` file. You can browse, edit, and expand the icons contained in this file with the [Binary](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) tool by MaxHwoy.
 
 * You might see cops receive or lose their icons when they shouldn't. This happens because the game only draws the mini-map icons of the first 8 currently flagged cops in its memory, so some of them may suddenly (dis)appear if any cops before them get or lose their flags.
 
