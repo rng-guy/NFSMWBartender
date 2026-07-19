@@ -111,7 +111,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 * The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, use VltEd to set the maximum available Heat level instead: For free-roam and most Career races, the `0xe8c24416` parameter of a given `race_bin_XY` VltEd node controls the maximum Heat level while you are progressing Blacklist rival #XY. For Challenge Series events and a few specific Career races, their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters can control or temporarily override the maximum Heat level instead.
 
-* If you don't install the optional missing textures ([`FixMissingTextures.end`](Binary/Source/FixMissingTextures.end)), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures doesn't affect the Heat-level reset fix in any way.
+* If you don't install the optional missing textures (`FixMissingTextures.end`), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures doesn't affect the Heat-level reset fix in any way.
 
 &nbsp;
 
@@ -449,7 +449,7 @@ Regarding **roadblock behaviour and setups** ([`BartenderSettings\Advanced\Roadb
 
 * Read the usage comments in this file's header before you change any of its contents. It's very easy to screw up roadblock setups or encounter unexpected behaviour if you don't fully understand how the game goes about selecting roadblock setups to spawn.
 
-* I highly suggest you use Bartender's [`RoadblockEditor.html`](Editor/RoadblockEditor.html) file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
+* I highly suggest you use Bartender's `RoadblockEditor.html` file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
 
 * The game may re-scale horizontal offsets in roadblocks. The degree of change depends on the spawn location, its width, and the (relative) width of the roadblock setup itself; the resulting scaling coefficient is, however, always between 1.0 and 1.14 (inclusive). Disabling stretching ensures a given setup always spawns exactly as you designed it.
 
