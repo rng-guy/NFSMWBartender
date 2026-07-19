@@ -419,7 +419,7 @@ Regarding COP SPAWN TABLES ("BartenderSettings\Advanced\CarTables.ini"):
 
 
 
-Regarding CAR (DE)SPAWNING BEHAVIOUR ("BartenderSettings\Advanced\CarSpawns.ini"):
+Regarding CAR (DE)SPAWNING ("BartenderSettings\Advanced\CarSpawns.ini"):
 
  • The engagement count shown above the pursuit board is purely cosmetic: Bartender tracks
    all "Chasers" accurately behind the scenes and ensures that backups trigger as intended.
