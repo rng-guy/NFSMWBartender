@@ -290,9 +290,9 @@ namespace CopSpawnOverrides
 	};
 
 	// Code caves
-	bool        eventHasScriptedPursuit     = false;   // scripted free-roam pursuits request a cop before they know their Heat level,
-	bool        scriptedPursuitInitialised  = true;    // so we must prefetch a valid cop name using their event's Heat level instead
-	const char* firstScriptedPursuitCopName = nullptr; // (this is completely unrelated to knowing the player vehicle's Heat level)
+	bool        eventHasScriptedPursuit = false;   // scripted free-roam pursuits request a cop before they know their Heat level,
+	bool        usePrefetchedCopName    = false;   // so we must prefetch a valid cop name using their event's Heat level instead
+	const char* prefetchedCopName       = nullptr; // (this is completely unrelated to knowing the player vehicle's Heat level)
 	
 	RELEASE_CONSTINIT Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTables);
 	RELEASE_CONSTINIT Contingent scriptedSpawns (CopSpawnTables::scriptedSpawnTables);
@@ -705,7 +705,7 @@ namespace CopSpawnOverrides
 
 
 
-	[[nodiscard]] bool IsCurrentEventPursuit()
+	[[nodiscard]] bool CurrentEventForcesPursuit()
 	{
 		const address raceStatus = *reinterpret_cast<volatile address*>(0x91E000);
 		if (not raceStatus) return false; // should never happen
@@ -718,20 +718,20 @@ namespace CopSpawnOverrides
 
 
 
-	void __fastcall PrefetchEventPursuitInfo(size_t heatLevel)
+	void __fastcall UpdatePrefetchedCopName(const size_t eventHeatLevel)
 	{
-		eventHasScriptedPursuit    = IsCurrentEventPursuit();
-		scriptedPursuitInitialised = (not eventHasScriptedPursuit);
+		eventHasScriptedPursuit = CurrentEventForcesPursuit();
+		usePrefetchedCopName    = eventHasScriptedPursuit;
 
 		if (eventHasScriptedPursuit)
 		{
-			heatLevel                   = std::clamp<size_t>(heatLevel, 1, HeatParameters::maxHeatLevel);
-			firstScriptedPursuitCopName = CopSpawnTables::scriptedSpawnTables.roam[heatLevel - 1].GetNameOfAvailableCop();
+			const size_t safeHeatLevel = std::clamp<size_t>(eventHeatLevel, 1, HeatParameters::maxHeatLevel);
+			prefetchedCopName          = CopSpawnTables::scriptedSpawnTables.roam[safeHeatLevel - 1].GetNameOfAvailableCop();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<1>("[SPA] First scripted cop:", firstScriptedPursuitCopName);
+				Globals::logger.Log<1>("[SPA] First scripted cop:", prefetchedCopName);
 		}
-		else firstScriptedPursuitCopName = nullptr;
+		else prefetchedCopName = nullptr;
 	}
 
 
@@ -844,7 +844,7 @@ namespace CopSpawnOverrides
 			mov ecx, dword ptr [esi + 0x54]       // AIVehicle
 			mov byte ptr [ecx - 0x4C + 0x76B], al // padding byte: "Scripted" flag
 
-			mov byte ptr [scriptedPursuitInitialised], al // guaranteed by this point
+			mov byte ptr [usePrefetchedCopName], 0 // no longer needed
 
 			conclusion:
 			// Execute original code and resume
@@ -1092,13 +1092,13 @@ namespace CopSpawnOverrides
 			cmp byte ptr [eventHasScriptedPursuit], 0
 			je replacement // not scripted pursuit
 
-			cmp byte ptr [scriptedPursuitInitialised], 1
-			je replacement // do not override scripted cops
+			cmp byte ptr [usePrefetchedCopName], 0
+			je replacement // do not use prefetched name
 
-			mov eax, dword ptr [firstScriptedPursuitCopName]
+			mov eax, dword ptr [prefetchedCopName]
 			test eax, eax
 			cmovne esi, eax // prefetched name valid
-			jmp conclusion  // cop name overridden
+			jmp conclusion  // prefetched name used
 
 			replacement:
 			cmp byte ptr [Globals::playerHeatLevelKnown], 1
@@ -1126,9 +1126,9 @@ namespace CopSpawnOverrides
 		__asm
 		{
 			mov ecx, dword ptr [eax]
-			call PrefetchEventPursuitInfo // ecx: heatLevel
+			call UpdatePrefetchedCopName // ecx: eventHeatLevel
 
-			mov eax, dword ptr [firstScriptedPursuitCopName]
+			mov eax, dword ptr [prefetchedCopName]
 			test eax, eax
 
 			jmp dword ptr [firstScriptedCopExit]
@@ -1312,7 +1312,7 @@ namespace CopSpawnOverrides
 	{
 		if (not featureEnabled) return;
 
-		scriptedPursuitInitialised = (not eventHasScriptedPursuit);
+		usePrefetchedCopName = eventHasScriptedPursuit;
 
 		patrolSpawns   .ClearVehicles();
 		scriptedSpawns .ClearVehicles();
@@ -1325,8 +1325,8 @@ namespace CopSpawnOverrides
 	{
 		if (not featureEnabled) return;
 
-		eventHasScriptedPursuit     = false;
-		firstScriptedPursuitCopName = nullptr;
+		eventHasScriptedPursuit = false;
+		prefetchedCopName       = nullptr;
 
 		SoftResetState();
 	}

@@ -29,7 +29,7 @@ To help you **solve in-game issues** with Bartender, the sections below address 
 
 &nbsp;
 
-For a detailed **version history** of Bartender, see the plain-text version of this document (`APPENDIX.txt`).
+For a detailed **version history** of Bartender, see the [plain-text version](APPENDIX.txt) of this document.
 
 &nbsp;
 
@@ -41,11 +41,9 @@ For a detailed **version history** of Bartender, see the plain-text version of t
 
 # 1 - What's there to know about Bartender's file parsing?
 
-Bartender only recognises **Heat levels** from 1 to 10 (inclusive). If you want more Heat levels, you must edit the `maxHeatLevel` parameter in Bartender's `HeatParameters.h` source file and compile the mod yourself. Use [Microsoft Visual Studio](https://visualstudio.microsoft.com/) to clone and compile Bartender.
+Bartender only recognises **Heat levels** from 1 to 10 (inclusive). If you want more Heat levels, you must edit the `maxHeatLevel` parameter in Bartender's [`HeatParameters.h`](NFSMWBartender/HeatParameters.h) source file and compile the mod yourself. To clone and compile Bartender, use [Microsoft Visual Studio](https://visualstudio.microsoft.com/).
 
-&nbsp;
-
-Bartender parses its configuration (`.ini`) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure to the configuration files. Each group allows you to define values, either in relation to Heat levels or vehicles.
+Bartender parses its configuration (`.ini`) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure to the configuration files. Each group allows you to define values, either in relation to Heat levels or vehicles. There are also a select few parameter groups that allow you to define standalone values.
 
 &nbsp;
 
@@ -58,7 +56,7 @@ Bartender can handle any **invalid / missing parameter groups** in its configura
 Bartender can handle any **invalid values** you might define in its parameter groups:
 * duplicates (e.g. another `heat02` value) within parameter groups are ignored,
 * values of incorrect type (e.g. a string instead of a decimal) count as omitted,
-* negative values that should be positive are set to 0 instead of counting as omitted,
+* values of incorrect magnitude (e.g. negative instead of positive) are auto-corrected,
 * mismatched interval values (i.e. where `max` < `min`) are each set to the lower value, and
 * comma-separated value pairs / tuples with too many or few (valid) values count as omitted.
 
@@ -73,13 +71,13 @@ Some **Heat-level parameter groups** allow you to define a default Heat-level va
 
 Some **vehicle parameter groups** allow you to define a default vehicle value, which is indicated by `default` in place of a vehicle. This default value then applies to all vehicles without a (valid) value. Bartender parses such parameter groups in two steps:
 1. If you omit it, the `default` value is set to the game's vanilla value.
-2. All vehicles you omit are set to the `default` value.
+2. All other in-game vehicles you omit are set to the `default` value.
 
 &nbsp;
 
-Bartender can handle any **invalid vehicles** you might define in its configuration files, both as values themselves and as something for which you define other values. The sections below mention how Bartender does this on a case-by-case basis, but a vehicle is invalid if
-* it doesn't exist in the game's database (i.e. lacks a VltEd node under `pvehicle`), or
-* it has the wrong class (e.g. is a helicopter when Bartender expects a regular car).
+Bartender can handle any **invalid vehicles** you might define in its configuration files, both as values themselves and as something for which you define other values. The sections below mention how Bartender does this on a case-by-case basis, but a vehicle is invalid if it
+* doesn't exist in the game's database (i.e. lacks a VltEd node under `pvehicle`), or
+* has the wrong class (e.g. is a helicopter when Bartender expects a regular car).
 
 &nbsp;
 
@@ -107,17 +105,17 @@ Regarding the "Basic" feature set **as a whole**:
 
 * As long as this feature set isn't disabled, all its automatic fixes apply.
 
-* With this feature set enabled, the game accesses the values of the `0x80deb840` VltEd arrays in `pursuitlevels` correctly: The game now uses the value at `[14]` for Sonny, at `[13]` for Taz, and so on. Before, everyone but Sonny would get an incorrect value: Taz got `[14]`, Vic `[13]`, and so on; the value at `[0]` (intended for Razor) was never used.
+* With this feature set enabled, the game accesses the values of the `0x80deb840` VltEd arrays in `pursuitlevels` correctly: The game now uses the value at `[14]` for Sonny, at `[13]` for Taz, and so on. Before, everyone but Sonny would get an incorrect value: Taz got `[14]`, Vic `[13]`, and so on; the value at `[0]` (intended for Razor) was completely unused.
 
 * With this feature set enabled, the game accesses the values of the `RepPointsForDestroying` VltEd arrays in `aivehicle` correctly: The game now uses the value at `[0]` for Heat level 1, at `[1]` for Heat level 2, and so on. Before, every Heat level's value was off by one: `[1]` for Heat level 1, `[2]` for Heat level 2, and so on; Heat level 10 wouldn't get any value.
 
 * The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, use VltEd to set the maximum available Heat level instead: For free-roam and most Career races, the `0xe8c24416` parameter of a given `race_bin_XY` VltEd node controls the maximum Heat level while you are progressing Blacklist rival #XY. For Challenge Series events and a few specific Career races, their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters can control or temporarily override the maximum Heat level instead.
 
-* If you don't install the optional missing textures (`FixMissingTextures.end`), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures doesn't affect the Heat-level reset fix in any way.
+* If you don't install the optional missing textures ([`FixMissingTextures.end`](Binary/Source/FixMissingTextures.end)), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures doesn't affect the Heat-level reset fix in any way.
 
 &nbsp;
 
-Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
+Regarding **cosmetic features** ([`BartenderSettings\Basic\Cosmetic.ini`](BartenderSettings/Basic/Cosmetic.ini)):
 
 * Both notification-related features are incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Notifications]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
 
@@ -181,7 +179,7 @@ Regarding **cosmetic features** (`BartenderSettings\Basic\Cosmetic.ini`):
 
 &nbsp;
 
-Regarding **general features** (`BartenderSettings\Basic\General.ini`):
+Regarding **general features** ([`BartenderSettings\Basic\General.ini`](BartenderSettings/Basic/General.ini)):
 
 * The `0x1e2a1051` VltEd parameter defines how much passive bounty you gain after each interval.
 
@@ -215,7 +213,7 @@ Regarding **general features** (`BartenderSettings\Basic\General.ini`):
 
 &nbsp;
 
-Regarding **Speedbreaker features** (`BartenderSettings\Basic\Speedbreaker.ini`):
+Regarding **Speedbreaker features** ([`BartenderSettings\Basic\Speedbreaker.ini`](BartenderSettings/Basic/Speedbreaker.ini)):
 
 * In the vanilla game, you can recharge the Speedbreaker by driving fast enough or by drifting.
 
@@ -233,7 +231,7 @@ Regarding **Speedbreaker features** (`BartenderSettings\Basic\Speedbreaker.ini`)
 
 &nbsp;
 
-Regarding **ground support** (`BartenderSettings\Basic\Support.ini`):
+Regarding **ground support** ([`BartenderSettings\Basic\Support.ini`](BartenderSettings/Basic/Support.ini)):
 
 * Very short spawn distances for roadblocks can cause noticeable pop-in as they spawn.
 
@@ -305,7 +303,7 @@ Regarding the "Advanced" feature set **as a whole**:
 
 &nbsp;
 
-Regarding **cop spawn tables** (`BartenderSettings\Advanced\CarTables.ini`):
+Regarding **cop spawn tables** ([`BartenderSettings\Advanced\CarTables.ini`](BartenderSettings/Advanced/CarTables.ini)):
 
 * Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Scripted", and "Patrols" spawn tables you leave empty.
 
@@ -327,11 +325,11 @@ Regarding **cop spawn tables** (`BartenderSettings\Advanced\CarTables.ini`):
  
 * Bartender temporarily ignores the `count` values in a "Roadblocks" / "Scripted" spawn table whenever a roadblock / script requests more vehicles in total than they would otherwise allow. This ensures the game cannot get stuck trying to spawn a roadblock or start a scripted event.
 
-* Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock setup. This is because the game processes roadblock spawns in a fixed, setup-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position that happens to be processed first. This doesn't apply to vehicles with `count` values of at least 5, as no roadblock consists of more than 5 cars.
+* Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position of a given roadblock setup. This is because the game processes roadblock spawns in a fixed, setup-dependent order, making it (e.g.) more likely for vehicles with low `count` and high `chance` values to spawn in any position the game happens to process first. This doesn't apply to vehicles with `count` values of at least 6, as no roadblock consists of more than 6 cars.
 
 * Rarely, vehicles that are not in a "Roadblocks" spawn table may still show up in roadblocks. This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it's processing a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
-* To be precise, the "Scripted" spawn tables apply to each LUA script that requests cop spawns. This includes pre-generated cops in Challenge Series pursuits and patrols in prologue races.
+* To be precise, the "Scripted" spawn tables apply to LUA scripts that force cops to spawn; examples are pre-generated cops in Challenge Series pursuits and patrols in prologue races.
 
 * You shouldn't use fast Heat transitions (`0x80deb840` VltEd parameter set to < 5 seconds), else you might see a mix of cops from more than one "Scripted" spawn table appear in events with pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can also avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
 
@@ -339,7 +337,7 @@ Regarding **cop spawn tables** (`BartenderSettings\Advanced\CarTables.ini`):
 
 &nbsp;
 
-Regarding **car (de)spawning behaviour** (`BartenderSettings\Advanced\CarSpawns.ini`):
+Regarding **car (de)spawning behaviour** ([`BartenderSettings\Advanced\CarSpawns.ini`](BartenderSettings/Advanced/CarSpawns.ini)):
 
 * The engagement count shown above the pursuit board is purely cosmetic: Bartender tracks all "Chasers" accurately behind the scenes and ensures that backups trigger as intended.
 
@@ -363,7 +361,7 @@ Regarding **car (de)spawning behaviour** (`BartenderSettings\Advanced\CarSpawns.
 
 &nbsp;
 
-Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopter.ini`):
+Regarding **helicopter (de / re)spawning** ([`BartenderSettings\Advanced\Helicopter.ini`](BartenderSettings/Advanced/Helicopter.ini)):
 
 * Bartender uses separate, random timers for (re)spawning the helicopter and setting its fuel. Each despawn context (e.g. the helicopter getting destroyed) has its own respawn-delay interval.
 
@@ -399,7 +397,7 @@ Regarding **helicopter (de / re)spawning** (`BartenderSettings\Advanced\Helicopt
 
 &nbsp;
 
-Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
+Regarding **strategy requests** ([`BartenderSettings\Advanced\Strategies.ini`](BartenderSettings/Advanced/Strategies.ini)):
 
 * Defining low pursuit-target speed thresholds for HeavyStrategy 3 cops fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if their target's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of much higher `CollapseSpeed` values.
 
@@ -439,7 +437,7 @@ Regarding **strategy requests** (`BartenderSettings\Advanced\Strategies.ini`):
 
 &nbsp;
 
-Regarding **roadblock behaviour and setups** (`BartenderSettings\Advanced\Roadblocks.ini`):
+Regarding **roadblock behaviour and setups** ([`BartenderSettings\Advanced\Roadblocks.ini`](BartenderSettings/Advanced/Roadblocks.ini)):
 
 * The number of active cops that joined from roadblocks is limited only at Heat levels for which you define a valid limit value. These limits apply to each pursuit separately. If you also make "Chasers" spawns independent, then the global cop-spawn limit no longer applies to cops that join from roadblocks, too; they can always join unless you define a limit.
 
@@ -451,7 +449,7 @@ Regarding **roadblock behaviour and setups** (`BartenderSettings\Advanced\Roadbl
 
 * Read the usage comments in this file's header before you change any of its contents. It's very easy to screw up roadblock setups or encounter unexpected behaviour if you don't fully understand how the game goes about selecting roadblock setups to spawn.
 
-* I highly suggest you use Bartender's `RoadblockEditor.html` file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
+* I highly suggest you use Bartender's [`RoadblockEditor.html`](Editor/RoadblockEditor.html) file to create roadblock setups; just open it in any browser, build your roadblock setup, and copy-paste the configuration.
 
 * The game may re-scale horizontal offsets in roadblocks. The degree of change depends on the spawn location, its width, and the (relative) width of the roadblock setup itself; the resulting scaling coefficient is, however, always between 1.0 and 1.14 (inclusive). Disabling stretching ensures a given setup always spawns exactly as you designed it.
 
@@ -463,7 +461,7 @@ Regarding **roadblock behaviour and setups** (`BartenderSettings\Advanced\Roadbl
 
 &nbsp;
 
-Regarding **Heat gain / loss** (`BartenderSettings\Advanced\Heat.ini`):
+Regarding **Heat gain / loss** ([`BartenderSettings\Advanced\Heat.ini`](BartenderSettings/Advanced/Heat.ini)):
 
 * The `0x80deb840` VltEd array and the `TimePerHeatLevel` VltEd parameter control the pace at which you gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a Heat level passively, while the latter multiplies this base amount by whatever number you define for it.
 

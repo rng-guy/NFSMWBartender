@@ -73,7 +73,7 @@ namespace RoadblockOverrides
 		HeatParameters::Pair<int> chances{100, {0}}; // relative
 
 
-		[[nodiscard]] const RBTable* GetRandomTable() const
+		[[nodiscard]] const RBTable& GetRandomTable() const
 		{
 			const bool isMirrored = Globals::prng.DoPercentTrial<float>(this->mirrorChance);
 
@@ -86,7 +86,7 @@ namespace RoadblockOverrides
 					Globals::logger.Log<2>("Setup:", this->name);
 			}
 
-			return &((isMirrored) ? this->mirrored : this->original);
+			return (isMirrored) ? this->mirrored : this->original;
 		}
 
 
@@ -266,10 +266,12 @@ namespace RoadblockOverrides
 
 				if (cumulativeChance >= chanceThreshold)
 				{
-					maxStretchScale = setup->GetMaxStretchScale();
+					const auto table = &(setup->GetRandomTable());
+					maxStretchScale  = setup->GetMaxStretchScale();
+					
 					candidates.clear(); // safe due to immediate return
 
-					return setup->GetRandomTable();
+					return table; // use random table
 				}
 			}
 
@@ -287,9 +289,10 @@ namespace RoadblockOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("Best width:", vanillaResult->original.minRoadWidth);
 
-			maxStretchScale = vanillaResult->GetMaxStretchScale();
+			const auto table = &(vanillaResult->GetRandomTable());
+			maxStretchScale  = vanillaResult->GetMaxStretchScale();
 
-			return vanillaResult->GetRandomTable();
+			return table; // use vanilla result
 		}
 		else if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<2>("No best fit");

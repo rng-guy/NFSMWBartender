@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -35,24 +36,27 @@ namespace StateObserver
 
 	void OnHeatLevelUpdates()
 	{
-		// Shouldn't be necessary, but this is a BlackBox game..
-		if ((playerHeatLevel >= 1) and (playerHeatLevel <= HeatParameters::maxHeatLevel))
+		const size_t safeHeatLevel = std::clamp<size_t>(playerHeatLevel, 1, HeatParameters::maxHeatLevel);
+
+		if constexpr (Globals::loggingEnabled)
 		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("    HEAT [STA] Heat level now", static_cast<int>(playerHeatLevel), (playerIsRacing) ? "(race)" : "(roam)");
+			if (safeHeatLevel != playerHeatLevel)
+				Globals::logger.Log("WARNING: [STA] Heat level", static_cast<int>(playerHeatLevel), "out of range");
 
-			Globals::playerHeatLevelKnown = true;
-
-			RadioChatter::SetToHeat(playerIsRacing, playerHeatLevel);
-
-			GeneralSettings::SetToHeat(playerIsRacing, playerHeatLevel);
-			GroundSuppport ::SetToHeat(playerIsRacing, playerHeatLevel);
-			GameBreaker    ::SetToHeat(playerIsRacing, playerHeatLevel);
-			
-			PursuitObserver::SetToHeat(playerIsRacing, playerHeatLevel);
+			Globals::logger.Log("    HEAT [STA] Heat level now", static_cast<int>(safeHeatLevel), (playerIsRacing) ? "(race)" : "(roam)");
 		}
-		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("WARNING: [STA] Invalid Heat level", static_cast<int>(playerHeatLevel), (playerIsRacing) ? "(race)" : "(roam)");
+
+		// Update Heat-level flag
+		Globals::playerHeatLevelKnown = true;
+
+		// Update Heat parameters
+		RadioChatter::SetToHeat(playerIsRacing, safeHeatLevel);
+
+		GeneralSettings::SetToHeat(playerIsRacing, safeHeatLevel);
+		GroundSuppport ::SetToHeat(playerIsRacing, safeHeatLevel);
+		GameBreaker    ::SetToHeat(playerIsRacing, safeHeatLevel);
+			
+		PursuitObserver::SetToHeat(playerIsRacing, safeHeatLevel);
 	}
 
 
@@ -67,14 +71,14 @@ namespace StateObserver
 		// Update tracker for paused game ticks
 		static constinit uint32_t numTicksOnPaused = 0;
 
-		if (newStateID == 4)
+		if (newStateID == 4) // paused
 		{
 			numTicksOnPaused = Globals::numGameTicks;
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<1>("[STA] Game paused");
 		}
-		else if (oldStateID == 4)
+		else if (oldStateID == 4) // unpaused
 		{
 			Globals::numPausedTicks += Globals::numGameTicks - numTicksOnPaused;
 

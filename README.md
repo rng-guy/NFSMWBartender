@@ -9,8 +9,6 @@ Bartender adds **new customisation options** for pursuits to *Need for Speed: Mo
 
 Bartender's **default settings** match the vanilla game's, except for the bug / issue fixes. If those fixes are all you care about, then you don't need to configure Bartender at all.
 
-&nbsp;
-
 For **optimal customisability**, use [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) along with Bartender. Bartender doesn't replace VltEd, as Bartender's features are deliberately limited to things you can't do with VltEd alone.
 
 &nbsp;
@@ -217,8 +215,6 @@ The "Advanced" feature set **can fix four more bugs / issues**, depending on its
 &nbsp;
 
 **To uninstall** Bartender, remove its files from your game's `scripts` folder. There's no need to remove the optional missing textures, as the game doesn't use them without Bartender.
-
-&nbsp;
 
 **To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v3.06.00, replace all old configuration files.
 

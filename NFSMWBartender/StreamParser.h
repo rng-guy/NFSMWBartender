@@ -71,7 +71,7 @@ namespace StreamParser
 			stream.read(buffer, markSize);
 
 			// Skip the first three bytes if the UTF-8 BOM is present
-			const auto numReads = static_cast<size_t>(stream.gcount());
+			const size_t numReads = static_cast<size_t>(stream.gcount());
 			if (std::string_view(buffer, numReads) == "\xEF\xBB\xBF") return;
 
 			// Reset stream
@@ -256,7 +256,7 @@ namespace StreamParser
 
 		if (numSegments == sources.size())
 		{
-			[&]<size_t... segmentID>(std::index_sequence<segmentID...>)
+			[&]<size_t ...segmentID>(std::index_sequence<segmentID...>)
 			{
 				std::tuple<Vs...> candidates;
 

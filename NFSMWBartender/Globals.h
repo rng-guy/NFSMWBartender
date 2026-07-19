@@ -9,7 +9,7 @@
 
 
 
-// In debug builds, Visual Studio forces an unconditional dynamic allocation for all suitable types.
+// In debug builds, Visual Studio forces an unconditional dynamic allocation for each suitable type.
 // This makes dynamic containers (e.g. std::vector, std::string) constinit-incompatible, even if empty.
 #ifndef _DEBUG
 #define RELEASE_CONSTINIT constinit
@@ -88,7 +88,7 @@ namespace Globals
 
 		const auto Shift = [&input](const size_t i, const size_t n) -> vault
 		{
-			// force zero extension first to avoid underflow in second cast
+			// force zero-extension first to avoid underflow in second cast
 			return (static_cast<vault>(static_cast<unsigned char>(input[i])) << n);
 		};
 
@@ -208,12 +208,12 @@ namespace Globals
 		const vault  attributeKey   = 0x0,
 		const size_t attributeIndex = 0
 	) {
-		const auto GetVaultNode      = reinterpret_cast<address (__cdecl*)   (vault,   vault)>        (0x455FD0);
-		const auto GetVaultAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454190);
+		const auto GetVaultNode          = reinterpret_cast<address (__cdecl*)   (vault,   vault)>        (0x455FD0);
+		const auto GetVaultNodeAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454190);
 
 		const address node = GetVaultNode(rootKey, nodeKey);
 
-		return (node and attributeKey) ? GetVaultAttribute(node, attributeKey, attributeIndex) : node;
+		return (node and attributeKey) ? GetVaultNodeAttribute(node, attributeKey, attributeIndex) : node;
 	}
 
 
@@ -224,12 +224,12 @@ namespace Globals
 		const vault   attributeKey,
 		const size_t  attributeIndex = 0
 	) {
-		const auto GetPursuitNode      = reinterpret_cast<address (__thiscall*)(address)>               (0x418E90);
-		const auto GetPursuitAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
+		const auto GetPursuitNode          = reinterpret_cast<address (__thiscall*)(address)>               (0x418E90);
+		const auto GetPursuitNodeAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
 
 		const address node = GetPursuitNode(pursuit);
 
-		return (node) ? GetPursuitAttribute(node, attributeKey, attributeIndex) : 0x0;
+		return (node) ? GetPursuitNodeAttribute(node, attributeKey, attributeIndex) : 0x0;
 	}
 
 	

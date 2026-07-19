@@ -552,7 +552,7 @@ namespace HeatParameters
 		) {
 			auto formats = std::tuple_cat(MakeFormatTuple(forRaces, parameters)...);
 
-			return [&]<size_t... formatIDs>(std::index_sequence<formatIDs...>) -> Values<bool>
+			return [&]<size_t ...formatIDs>(std::index_sequence<formatIDs...>) -> Values<bool>
 			{
 				return parser.ParseFormat<maxHeatLevel>
 				(

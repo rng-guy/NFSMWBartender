@@ -66,7 +66,7 @@ namespace HelicopterVision
 		const address copAIVehicle,
 		const bool    canSeeTarget
 	) {
-		static constinit float currentColourState  = 0.f; // out-of-sight (0) to within-sight (1)
+		static constinit float currentVisionState  = 0.f; // out-of-sight (0) to within-sight (1)
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
 		const float    currentTimestamp  = Globals::GetUnpausedGameTime();
@@ -77,21 +77,21 @@ namespace HelicopterVision
 			const float timeDelta = currentTimestamp - lastUpdateTimestamp;
 
 			if (canSeeTarget)
-				currentColourState += timeDelta / withinSight.transitionLength;
+				currentVisionState += timeDelta / withinSight.transitionLength;
 
 			else
-				currentColourState -= timeDelta / outOfSight.transitionLength;
+				currentVisionState -= timeDelta / outOfSight.transitionLength;
 
-			currentColourState = std::clamp<float>(currentColourState, 0.f, 1.f);
+			currentVisionState = std::clamp<float>(currentVisionState, 0.f, 1.f);
 		}
 		else
 		{
 			isKnownCopVehicle  = true;
-			currentColourState = (canSeeTarget) ? 1.f : 0.f;
+			currentVisionState = 0.f;
 		}
 
+		currentColour       = InterpolateColour(currentVisionState);
 		lastUpdateTimestamp = currentTimestamp;
-		currentColour       = InterpolateColour(currentColourState);
 	}
 
 
