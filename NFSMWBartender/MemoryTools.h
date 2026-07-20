@@ -27,6 +27,36 @@ namespace MemoryTools
 
 
 
+	// Game-memory casting --------------------------------------------------------------------------------------------------------------------------
+
+	template <typename T>
+	requires std::is_object_v<T>
+	[[nodiscard]] inline volatile T* AsPointer(const address location)
+	{
+		return reinterpret_cast<volatile T*>(location);
+	}
+
+
+	template <typename T>
+	requires std::is_object_v<T>
+	[[nodiscard]] inline volatile T& AsVolatile(const address location)
+	{
+		return *AsPointer<T>(location);
+	}
+
+
+
+	template <typename T>
+	requires std::is_function_v<T>
+	[[nodiscard]] inline T* AsFunction(const address location)
+	{
+		return reinterpret_cast<T*>(location);
+	}
+
+
+
+
+
 	// Queries and byte-writing ---------------------------------------------------------------------------------------------------------------------
 
 	[[nodiscard]] inline bool IsModuleLoaded(const char* const name)
@@ -113,12 +143,12 @@ namespace MemoryTools
 			const address target
 		) {
 			const address jumpTargetOffset = start            + sizeof(byte);
-			const address nextInstruction  = jumpTargetOffset + sizeof(int);
+			const address nextInstruction  = jumpTargetOffset + sizeof(ptrdiff_t);
 
 			MakeRangeNOP(start, end);
 
-			Write<byte>(0xE9, {start}); // jump near, relative
-			Write<int> (target - nextInstruction, {jumpTargetOffset});
+			Write<byte>     (0xE9, {start}); // jump near, relative
+			Write<ptrdiff_t>(target - nextInstruction, {jumpTargetOffset});
 		}
 	}
 
@@ -167,7 +197,7 @@ namespace MemoryTools
 		const address call,
 		const address target
 	) {
-		const byte opcode = *reinterpret_cast<byte*>(call);
+		const byte opcode = AsVolatile<byte>(call);
 
 		if (opcode != 0xE8) // call near, relative
 		{
@@ -176,10 +206,10 @@ namespace MemoryTools
 		}
 
 		const address callOffset      = call       + sizeof(byte);
-		const address nextInstruction = callOffset + sizeof(int);
+		const address nextInstruction = callOffset + sizeof(ptrdiff_t);
 
-		const int originalOffset = *reinterpret_cast<volatile int*>(callOffset);
-		Write<int>(target - nextInstruction, {callOffset}); // overwrites offset
+		const ptrdiff_t originalOffset = AsVolatile<ptrdiff_t>(callOffset);
+		Write<ptrdiff_t>(target - nextInstruction, {callOffset}); // overwrites offset
 
 		return nextInstruction + originalOffset;
 	}

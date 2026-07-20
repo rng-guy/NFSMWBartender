@@ -75,10 +75,10 @@ namespace HeatChangeOverrides
 			explicit CountTracker
 			(
 				const address                      pursuit,
-				const int                          offset,
+				const ptrdiff_t                    offset,
 				const HeatParameters::Pair<float>& heatPerCounts
 			)
-				: count(*reinterpret_cast<volatile int*>(pursuit + offset)), heatPerCounts(heatPerCounts)
+				: count(AsVolatile<int>(pursuit + offset)), heatPerCounts(heatPerCounts)
 			{
 			}
 
@@ -86,7 +86,7 @@ namespace HeatChangeOverrides
 			explicit CountTracker
 			(
 				const address, 
-				const int, 
+				const ptrdiff_t,
 				const HeatParameters::Pair<float>&&
 			) 
 				= delete;
@@ -242,8 +242,8 @@ namespace HeatChangeOverrides
 
 	void __fastcall ClampHeatLimits(const address pursuit)
 	{
-		volatile float& minHeat = *reinterpret_cast<volatile float*>(pursuit + 0x9C);
-		volatile float& maxHeat = *reinterpret_cast<volatile float*>(pursuit + 0xA0);
+		volatile float& minHeat = AsVolatile<float>(pursuit + 0x9C);
+		volatile float& maxHeat = AsVolatile<float>(pursuit + 0xA0);
 
 		minHeat = ClampHeat(minHeat);
 		maxHeat = ClampHeat(maxHeat);
@@ -263,7 +263,7 @@ namespace HeatChangeOverrides
 		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
 		if (not copAIVehiclePursuit) return false; // should never happen
 
-		volatile bool& damagedByRacer = *reinterpret_cast<volatile bool*>(copAIVehiclePursuit + 0xB);
+		volatile bool& damagedByRacer = AsVolatile<bool>(copAIVehiclePursuit + 0xB);
 
 		if (not damagedByRacer)
 		{
@@ -271,14 +271,14 @@ namespace HeatChangeOverrides
 
 			if (pursuit)
 			{
-				const auto NotifyCopDamaged = reinterpret_cast<void (__thiscall*)(address, address)>(0x40AF40);
+				const auto NotifyCopDamaged = AsFunction<void (__thiscall)(address, address)>(0x40AF40);
 				NotifyCopDamaged(pursuit, copVehicle); // for "cops hit" tracking in pursuit
 			}		
 		}
 
 		if (not racerAtFault) return false;
 
-		volatile bool& assaultedByRacer = *reinterpret_cast<volatile bool*>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
+		volatile bool& assaultedByRacer = AsVolatile<bool>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
 
 		if (pursuit and (not (onlyOneAssaultPerCops.current and assaultedByRacer)))
 			HeatManager::AddToPendingHeatChange(pursuit, heatChangePerAssaults.current);
@@ -293,14 +293,14 @@ namespace HeatChangeOverrides
 	void __fastcall UpdateHeatAnimation(const address heatMeter)
 	{
 		const float  totalGameTime    = Globals::GetTotalGameTime();
-		const size_t currentHeatLevel = static_cast<size_t>(*reinterpret_cast<float*>(heatMeter + 0x40));
+		const size_t currentHeatLevel = static_cast<size_t>(AsVolatile<float>(heatMeter + 0x40));
 		
 		if (totalGameTime >= animationEndTimestamp)
 		{
-			const auto IsFEngScriptSet = reinterpret_cast<bool (__cdecl*)(address, uint32_t)>      (0x514DA0);
-			const auto SetFEngScript   = reinterpret_cast<void (__cdecl*)(address, uint32_t, bool)>(0x514D10);
+			const auto IsFEngScriptSet = AsFunction<bool (__cdecl)(address, uint32_t)>      (0x514DA0);
+			const auto SetFEngScript   = AsFunction<void (__cdecl)(address, uint32_t, bool)>(0x514D10);
 
-			const address  interfaceObject = *reinterpret_cast<address*>(heatMeter + 0x44);
+			const address  interfaceObject = AsVolatile<address>(heatMeter + 0x44);
 			const uint32_t animationScript = (currentHeatLevel != lastAnimatedHeatLevel) ? 0x41E1FEDC : 0x1744B3;
 
 			if (not IsFEngScriptSet(interfaceObject, animationScript))

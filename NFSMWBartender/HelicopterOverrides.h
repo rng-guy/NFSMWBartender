@@ -77,12 +77,12 @@ namespace HelicopterOverrides
 		float fuelTimeOnRejoin  = 0.f;  // seconds
 		float minRejoinFuelTime = 10.f; // seconds
 
-		volatile int& numHelisDeployed = *reinterpret_cast<volatile int*>(this->pursuit + 0x150);
+		volatile int& numHelisDeployed = AsVolatile<int>(this->pursuit + 0x150);
 
 		inline static constinit address     helicopterOwner   = 0x0;
 		inline static constinit const char* helicopterVehicle = nullptr;
 
-		inline static const volatile address& helicopterObject = *reinterpret_cast<volatile address*>(0x90D61C);
+		inline static const volatile address& helicopterObject = AsVolatile<address>(0x90D61C);
 
 
 		void VerifyPursuit()
@@ -152,13 +152,13 @@ namespace HelicopterOverrides
 		{
 			if (not Globals::IsInCooldownMode(this->pursuit)) return;
 
-			const address soundAI = *reinterpret_cast<volatile address*>(0x993CC8);
+			const address soundAI = AsVolatile<address>(0x993CC8);
 			if (not soundAI) return; // should never happen
 
-			const address helicopterActor = *reinterpret_cast<volatile address*>(soundAI + 0xE0);
+			const address helicopterActor = AsVolatile<address>(soundAI + 0xE0);
 			if (not helicopterActor) return; // should never happen
 
-			const auto CallOutSweep = reinterpret_cast<void (__thiscall*)(address)>(0x717D40);
+			const auto CallOutSweep = AsFunction<void (__thiscall)(address)>(0x717D40);
 			CallOutSweep(helicopterActor); // requests radio callout for helicopter search
 		}
 
@@ -173,7 +173,7 @@ namespace HelicopterOverrides
 
 			if (Globals::copManager)
 			{ 
-				const auto SpawnHelicopter = reinterpret_cast<bool (__thiscall*)(address, address)>(0x4269A0);
+				const auto SpawnHelicopter = AsFunction<bool (__thiscall)(address, address)>(0x4269A0);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[HEL] Requesting helicopter");
@@ -188,7 +188,7 @@ namespace HelicopterOverrides
 
 		[[nodiscard]] static volatile float* GetFuelTimePointer()
 		{ 
-			return (HelicopterManager::helicopterObject) ? reinterpret_cast<volatile float*>(HelicopterManager::helicopterObject + 0x7D8) : nullptr;
+			return (HelicopterManager::helicopterObject) ? AsPointer<float>(HelicopterManager::helicopterObject + 0x7D8) : nullptr;
 		}
 
 

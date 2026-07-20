@@ -50,10 +50,10 @@ namespace StrategyOverrides
 
 		const float pursuitStartTimestamp = Globals::simulationTime;
 
-		volatile int& numStrategyVehicles = *reinterpret_cast<volatile int*>(this->pursuit + 0x18C);
+		volatile int& numStrategyVehicles = AsVolatile<int>(this->pursuit + 0x18C);
 	
-		const volatile address& heavyStrategy  = *reinterpret_cast<volatile address*>(this->pursuit + 0x194);
-		const volatile address& leaderStrategy = *reinterpret_cast<volatile address*>(this->pursuit + 0x198);
+		const volatile address& heavyStrategy  = AsVolatile<address>(this->pursuit + 0x194);
+		const volatile address& leaderStrategy = AsVolatile<address>(this->pursuit + 0x198);
 
 		PursuitFeatures::IntervalTimer unblockTimer;
 
@@ -227,7 +227,7 @@ namespace StrategyOverrides
 				return; // should never happen
 			}
 
-			const int strategyID = *reinterpret_cast<volatile int*>(manager->heavyStrategy);
+			const int strategyID = AsVolatile<int>(manager->heavyStrategy);
 
 			switch (strategyID)
 			{
@@ -271,7 +271,7 @@ namespace StrategyOverrides
 				return; // should never happen
 			}
 
-			const int strategyID = *reinterpret_cast<volatile int*>(manager->leaderStrategy);
+			const int strategyID = AsVolatile<int>(manager->leaderStrategy);
 
 			switch (strategyID)
 			{

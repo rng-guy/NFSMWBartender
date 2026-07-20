@@ -104,16 +104,16 @@ namespace CopDetection
 		const address copAIVehicle = Globals::GetAIVehicle(copVehicle);
 		if (not copAIVehicle) return false; // should never happen
 
-		volatile bool& iconIsKept = *reinterpret_cast<volatile bool*>(copAIVehicle - 0x4C + 0x81); // padding byte
+		volatile bool& iconIsKept = AsVolatile<bool>(copAIVehicle - 0x4C + 0x81); // padding byte
 		if (iconIsKept) return true; // mini-map icon already kept
 
 		// Update whether the vehicle's been in a pursuit before
-		bool& hasBeenInPursuit = *reinterpret_cast<bool*>(copAIVehicle - 0x4C + 0x82); // padding byte
+		volatile bool& hasBeenInPursuit = AsVolatile<bool>(copAIVehicle - 0x4C + 0x82); // padding byte
 
 		if (not hasBeenInPursuit)
 		{
-			const bool hasPursuit  = *reinterpret_cast<volatile address*>(copAIVehicle + 0x70);
-			const bool isRoadblock = *reinterpret_cast<volatile address*>(copAIVehicle + 0x74);
+			const bool hasPursuit  = AsVolatile<address>(copAIVehicle + 0x70);
+			const bool isRoadblock = AsVolatile<address>(copAIVehicle + 0x74);
 
 			hasBeenInPursuit = (hasPursuit or isRoadblock);
 		}
@@ -127,8 +127,8 @@ namespace CopDetection
 		// Check whether vehicle is in icon range
 		if (iconRange > 0.f)
 		{
-			const auto GetVehiclePosition = reinterpret_cast<address (__thiscall*)(address)>         (0x688340);
-			const auto GetSquaredDistance = reinterpret_cast<float   (__cdecl*)   (address, address)>(0x401930);
+			const auto GetVehiclePosition = AsFunction<address (__thiscall)(address)>         (0x688340);
+			const auto GetSquaredDistance = AsFunction<float   (__cdecl)   (address, address)>(0x401930);
 
 			const address copPosition = GetVehiclePosition(copVehicle);
 			if (not copPosition) return false; // should never happen

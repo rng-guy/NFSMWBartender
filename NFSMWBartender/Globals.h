@@ -21,7 +21,7 @@
 
 
 
-// Unscoped aliases
+// Unscoped aliases and functions
 using vault  = uint32_t;
 using binary = uint32_t;
 
@@ -29,6 +29,10 @@ using byte = MemoryTools::byte;
 using word = MemoryTools::word;
 
 using address = MemoryTools::address;
+
+using MemoryTools::AsPointer;
+using MemoryTools::AsVolatile;
+using MemoryTools::AsFunction;
 
 
 
@@ -59,18 +63,18 @@ namespace Globals
 	constexpr float floatScale = 1.f + static_cast<float>(1e-6);
 
 	// Common function pointers
-	const auto IsPlayerPursuit     = reinterpret_cast<bool (__thiscall*)(address)>(0x40AD80);
-	const auto IsVehicleDestroyed  = reinterpret_cast<bool (__thiscall*)(address)>(0x688170);
-	const auto ClearSupportRequest = reinterpret_cast<void (__thiscall*)(address)>(0x42BCF0);
+	const auto IsPlayerPursuit     = AsFunction<bool (__thiscall)(address)>(0x40AD80);
+	const auto IsVehicleDestroyed  = AsFunction<bool (__thiscall)(address)>(0x688170);
+	const auto ClearSupportRequest = AsFunction<void (__thiscall)(address)>(0x42BCF0);
 
-	const auto GetVehicleType = reinterpret_cast<vault       (__thiscall*)(address)>(0x6880A0);
-	const auto GetVehicleName = reinterpret_cast<const char* (__thiscall*)(address)>(0x688090);
+	const auto GetVehicleType = AsFunction<vault       (__thiscall)(address)>(0x6880A0);
+	const auto GetVehicleName = AsFunction<const char* (__thiscall)(address)>(0x688090);
 
 	// Common data pointers
-	const volatile float&    simulationTime = *reinterpret_cast<volatile float*>   (0x9885D8); // seconds
-	const volatile address&  copManager     = *reinterpret_cast<volatile address*> (0x90D5F4);
-	const volatile uint32_t& numGameTicks   = *reinterpret_cast<volatile uint32_t*>(0x925B14);
-	const volatile float&    ticksToTime    = *reinterpret_cast<volatile float*>   (0x890984); // seconds / tick
+	const volatile float&    simulationTime = AsVolatile<float>   (0x9885D8); // seconds
+	const volatile address&  copManager     = AsVolatile<address> (0x90D5F4);
+	const volatile uint32_t& numGameTicks   = AsVolatile<uint32_t>(0x925B14);
+	const volatile float&    ticksToTime    = AsVolatile<float>   (0x890984); // seconds / tick
 
 
 
@@ -179,7 +183,8 @@ namespace Globals
 
 	[[nodiscard]] bool IsInCooldownMode(const address pursuit)
 	{
-		return (*reinterpret_cast<volatile int*>(pursuit + 0x218) == 2); // pursuit status
+		const int pursuitStatus = AsVolatile<int>(pursuit + 0x218);
+		return (pursuitStatus == 2); // "COOLDOWN" mode
 	}
 
 
@@ -208,12 +213,13 @@ namespace Globals
 		const vault  attributeKey   = 0x0,
 		const size_t attributeIndex = 0
 	) {
-		const auto GetVaultNode          = reinterpret_cast<address (__cdecl*)   (vault,   vault)>        (0x455FD0);
-		const auto GetVaultNodeAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454190);
+		const auto GetVaultNode          = AsFunction<address (__cdecl)   (vault,   vault)>        (0x455FD0);
+		const auto GetVaultNodeAttribute = AsFunction<address (__thiscall)(address, vault, size_t)>(0x454190);
 
 		const address node = GetVaultNode(rootKey, nodeKey);
+		if (not node) return 0x0; // unknown node
 
-		return (node and attributeKey) ? GetVaultNodeAttribute(node, attributeKey, attributeIndex) : node;
+		return (attributeKey != 0x0) ? GetVaultNodeAttribute(node, attributeKey, attributeIndex) : node;
 	}
 
 
@@ -224,12 +230,13 @@ namespace Globals
 		const vault   attributeKey,
 		const size_t  attributeIndex = 0
 	) {
-		const auto GetPursuitNode          = reinterpret_cast<address (__thiscall*)(address)>               (0x418E90);
-		const auto GetPursuitNodeAttribute = reinterpret_cast<address (__thiscall*)(address, vault, size_t)>(0x454810);
+		const auto GetPursuitNode          = AsFunction<address (__thiscall)(address)>               (0x418E90);
+		const auto GetPursuitNodeAttribute = AsFunction<address (__thiscall)(address, vault, size_t)>(0x454810);
 
 		const address node = GetPursuitNode(pursuit);
+		if (not node) return 0x0; // unknown node
 
-		return (node) ? GetPursuitNodeAttribute(node, attributeKey, attributeIndex) : 0x0;
+		return GetPursuitNodeAttribute(node, attributeKey, attributeIndex);
 	}
 
 	
@@ -241,7 +248,7 @@ namespace Globals
 	[[nodiscard]] vault GetVehicleTypeClass(const vault type)
 	{
 		const address attribute = GetFromVault("pvehicle"_vlt, type, "CLASS"_vlt);
-		return (attribute) ? *reinterpret_cast<volatile vault*>(attribute + 0x8) : 0x0;
+		return (attribute) ? AsVolatile<vault>(attribute + 0x8) : 0x0;
 	}
 
 
@@ -278,13 +285,13 @@ namespace Globals
 
 	[[nodiscard]] address GetPlayerVehicle()
 	{
-		return (playerPerpVehicle) ? *reinterpret_cast<volatile address*>(playerPerpVehicle - 0x758 + 0x4C - 0x4) : 0x0;
+		return (playerPerpVehicle) ? AsVolatile<address>(playerPerpVehicle - 0x758 + 0x4C - 0x4) : 0x0;
 	}
 
 
 	[[nodiscard]] address GetAIVehicle(const address vehicle)
 	{
-		return (vehicle) ? *reinterpret_cast<volatile address*>(vehicle + 0x54) : 0x0;
+		return (vehicle) ? AsVolatile<address>(vehicle + 0x54) : 0x0;
 	}
 
 
@@ -304,8 +311,8 @@ namespace Globals
 		const address copAIVehiclePursuit = GetAIVehiclePursuit(copVehicle);
 		if (not copAIVehiclePursuit) return false; // should never happen
 
-		const auto SetSupportGoal = reinterpret_cast<void (__thiscall*)(address, vault)>       (0x409850);
-		const auto SetVehicleGoal = reinterpret_cast<void (__thiscall*)(address, const vault&)>(0x422480);
+		const auto SetSupportGoal = AsFunction<void (__thiscall)(address, vault)>       (0x409850);
+		const auto SetVehicleGoal = AsFunction<void (__thiscall)(address, const vault&)>(0x422480);
 		
 		SetSupportGoal(copAIVehiclePursuit, ""_vlt); // empty goal
 		SetVehicleGoal(copAIVehicle - 0x4C, "AIGoalPursuit"_vlt);

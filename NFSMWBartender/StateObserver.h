@@ -97,10 +97,10 @@ namespace StateObserver
 
 	void __fastcall OnGameplayUpdates(const address soundAI)
 	{
-		const auto OriginalFunction = reinterpret_cast<void (__thiscall*)(address)>(OnGameplayUpdatesOriginal);
+		const auto OriginalFunction = AsFunction<void (__thiscall)(address)>(OnGameplayUpdatesOriginal);
 
 		// Apply hooked logic fist
-		const auto IsRacing = reinterpret_cast<bool (__thiscall*)(address)>(0x409500);
+		const auto IsRacing = AsFunction<bool (__thiscall)(address)>(0x409500);
 
 		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
 		{
@@ -120,7 +120,7 @@ namespace StateObserver
 
 	void OnWorldLoadUpdates()
 	{
-		const auto OriginalFunction = reinterpret_cast<void (*)()>(OnWorldLoadUpdatesOriginal);
+		const auto OriginalFunction = AsFunction<void ()>(OnWorldLoadUpdatesOriginal);
 
 		// Apply hooked logic fist
 		CopSpawnOverrides::FullResetState();
@@ -135,7 +135,7 @@ namespace StateObserver
 
 	void OnRestartUpdates()
 	{
-		const auto OriginalFunction = reinterpret_cast<void (*)()>(OnRestartUpdatesOriginal);
+		const auto OriginalFunction = AsFunction<void ()>(OnRestartUpdatesOriginal);
 
 		// Apply hooked logic fist
 		playerHeatLevel               = 0;

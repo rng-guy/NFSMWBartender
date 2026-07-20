@@ -57,7 +57,7 @@ static void __cdecl InitialiseBartender
 	const size_t  numArgs,
 	const address argArray
 ) {
-	const auto OriginalFunction = reinterpret_cast<void (__cdecl*)(size_t, address)>(InitialiseBartenderOriginal);
+	const auto OriginalFunction = AsFunction<void (__cdecl)(size_t, address)>(InitialiseBartenderOriginal);
 
 	// Call original function first
 	OriginalFunction(numArgs, argArray);

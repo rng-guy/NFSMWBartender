@@ -70,7 +70,7 @@ namespace HelicopterVision
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
 		const float    currentTimestamp  = Globals::GetUnpausedGameTime();
-		volatile bool& isKnownCopVehicle = *reinterpret_cast<volatile bool*>(copAIVehicle - 0x4C + 0x769); // padding byte
+		volatile bool& isKnownCopVehicle = AsVolatile<bool>(copAIVehicle - 0x4C + 0x769); // padding byte
 
 		if (isKnownCopVehicle)
 		{
@@ -98,7 +98,7 @@ namespace HelicopterVision
 
 	void __fastcall ApplyColour(const address interfaceObject)
 	{
-		const auto SetFEngColour = reinterpret_cast<void (__cdecl*)(address, uint32_t)>(0x5157E0);
+		const auto SetFEngColour = AsFunction<void (__cdecl)(address, uint32_t)>(0x5157E0);
 		SetFEngColour(interfaceObject, currentColour); // persists until overridden with another call
 	}
 

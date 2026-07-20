@@ -317,17 +317,17 @@ namespace CopSpawnOverrides
 		int numActiveNonChasers        = 0;
 		int numJoinedRoadblockVehicles = 0;
 
-		volatile int&   pursuitStatus = *reinterpret_cast<volatile int*>  (this->pursuit + 0x218);
-		volatile float& backupTimer   = *reinterpret_cast<volatile float*>(this->pursuit + 0x21C);
+		volatile int&   pursuitStatus = AsVolatile<int>  (this->pursuit + 0x218);
+		volatile float& backupTimer   = AsVolatile<float>(this->pursuit + 0x21C);
 
-		volatile int& fullWaveCapacity       = *reinterpret_cast<volatile int*>(this->pursuit + 0x144);
-		volatile int& numCopsLostInWave      = *reinterpret_cast<volatile int*>(this->pursuit + 0x14C);
-		volatile int& numCopsToTriggerBackup = *reinterpret_cast<volatile int*>(this->pursuit + 0x148);
+		volatile int& fullWaveCapacity       = AsVolatile<int>(this->pursuit + 0x144);
+		volatile int& numCopsLostInWave      = AsVolatile<int>(this->pursuit + 0x14C);
+		volatile int& numCopsToTriggerBackup = AsVolatile<int>(this->pursuit + 0x148);
 
-		const volatile bool&  isPerpBusted      = *reinterpret_cast<volatile bool*> (this->pursuit + 0xE8);
-		const volatile bool&  bailingPursuit    = *reinterpret_cast<volatile bool*> (this->pursuit + 0xE9);
-		const volatile bool&  isFreeRoamPursuit = *reinterpret_cast<volatile bool*> (this->pursuit + 0xA8);
-		const volatile float& copSpawnCooldown  = *reinterpret_cast<volatile float*>(this->pursuit + 0xCC);
+		const volatile bool&  isPerpBusted      = AsVolatile<bool> (this->pursuit + 0xE8);
+		const volatile bool&  bailingPursuit    = AsVolatile<bool> (this->pursuit + 0xE9);
+		const volatile bool&  isFreeRoamPursuit = AsVolatile<bool> (this->pursuit + 0xA8);
+		const volatile float& copSpawnCooldown  = AsVolatile<float>(this->pursuit + 0xCC);
 
 		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTables, this->pursuit};
 
@@ -351,7 +351,7 @@ namespace CopSpawnOverrides
 		void UpdateNumPatrolCars()
 		{
 			const address attribute = Globals::GetFromPursuitlevel(this->pursuit, "NumPatrolCars"_vlt);
-			this->maxNumPatrolCars  = (attribute) ? *reinterpret_cast<volatile int*>(attribute) : 1;
+			this->maxNumPatrolCars  = (attribute) ? AsVolatile<int>(attribute) : 1;
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -428,7 +428,7 @@ namespace CopSpawnOverrides
 
 		void ForceTriggerBackup() const
 		{
-			const auto LockInPursuitAttributes = reinterpret_cast<void (__thiscall*)(address)>(0x40A9B0);
+			const auto LockInPursuitAttributes = AsFunction<void (__thiscall)(address)>(0x40A9B0);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[SPA] Force-triggering backup");
@@ -446,7 +446,7 @@ namespace CopSpawnOverrides
 		[[nodiscard]] static bool HasVehicleEngaged(const address copVehicle)
 		{
 			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
-			return (copAIVehiclePursuit and *reinterpret_cast<volatile bool*>(copAIVehiclePursuit + 0x22));
+			return (copAIVehiclePursuit and AsVolatile<bool>(copAIVehiclePursuit + 0x22));
 		}
 
 
@@ -671,8 +671,8 @@ namespace CopSpawnOverrides
 
 	[[nodiscard]] bool IsEventActive()
 	{
-		const address raceStatusObject = *reinterpret_cast<volatile address*>(0x91E000);
-		return (raceStatusObject and *reinterpret_cast<volatile int*>(raceStatusObject + 0x1960));
+		const address raceStatusObject = AsVolatile<address>(0x91E000);
+		return (raceStatusObject and (AsVolatile<int>(raceStatusObject + 0x1960) != 0));
 	}
 
 
@@ -707,11 +707,11 @@ namespace CopSpawnOverrides
 
 	[[nodiscard]] bool CurrentEventForcesPursuit()
 	{
-		const address raceStatus = *reinterpret_cast<volatile address*>(0x91E000);
+		const address raceStatus = AsVolatile<address>(0x91E000);
 		if (not raceStatus) return false; // should never happen
 
-		const auto    IsPursuitEvent = reinterpret_cast<bool (__thiscall*)(address)>(0x5FBE70);
-		const address raceParameters = *reinterpret_cast<volatile address*>(raceStatus + 0x1968);
+		const auto    IsPursuitEvent = AsFunction<bool (__thiscall)(address)>(0x5FBE70);
+		const address raceParameters = AsVolatile<address>                   (raceStatus + 0x1968);
 
 		return IsPursuitEvent(raceParameters);
 	}

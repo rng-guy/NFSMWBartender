@@ -103,25 +103,27 @@ namespace StreamParser
 		{
 			std::array<bool, std::numeric_limits<unsigned char>::max() + 1> seen = {};
 
-			const auto IsValid = [&seen](const unsigned char ch) -> bool
+			const auto IsUniqueNonWhitespace = [&seen](const unsigned char ch) -> bool
 			{
 				return ((not IsWhitespace(ch)) and (not seen[ch]) and (seen[ch] = true));
 			};
 
-			return (IsValid(chars) and ...);
+			return (IsUniqueNonWhitespace(chars) and ...);
 		}
 
 
 
 		[[nodiscard]] constexpr std::string_view TrimLeft(const std::string_view view) noexcept
 		{
-			return {std::find_if_not(view.begin(), view.end(), IsWhitespace), view.end()};
+			const auto startIt = std::find_if_not(view.begin(), view.end(), IsWhitespace);
+			return {startIt, view.end()};
 		}
 
 
 		[[nodiscard]] constexpr std::string_view TrimRight(const std::string_view view) noexcept
 		{
-			return {view.begin(), std::find_if_not(view.rbegin(), view.rend(), IsWhitespace).base()};
+			const auto endIt = std::find_if_not(view.rbegin(), view.rend(), IsWhitespace);
+			return {view.begin(), endIt.base()};
 		}
 
 

@@ -113,7 +113,7 @@ namespace CopFleeOverrides
 				const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
 				if (not copAIVehiclePursuit) return false; // should never happen
 
-				const auto StartFlee = reinterpret_cast<void (__thiscall*)(address)>(0x423370);
+				const auto StartFlee = AsFunction<void (__thiscall)(address)>(0x423370);
 				StartFlee(copAIVehiclePursuit); // also updates vehicle goal(s) accordingly
 
 				if constexpr (Globals::loggingEnabled)
@@ -185,9 +185,9 @@ namespace CopFleeOverrides
 			(
 				const address          pursuit,
 				const std::string_view vehicleLabel,
-				const int              strategyOffset
+				const ptrdiff_t        strategyOffset
 			)
-				: SchedulerBase(pursuit, vehicleLabel), strategy(*reinterpret_cast<volatile address*>(pursuit + strategyOffset))
+				: SchedulerBase(pursuit, vehicleLabel), strategy(AsVolatile<address>(pursuit + strategyOffset))
 			{
 			}
 
@@ -200,8 +200,8 @@ namespace CopFleeOverrides
 
 			void AddVehicle(const address copVehicle)
 			{
-				const float strategyDuration = (this->strategy) ? *reinterpret_cast<volatile float*>(this->strategy + 0x8) : 1.f;
-				this->ScheduleVehicle(copVehicle, strategyDuration);
+				const float strategyDuration = (this->strategy) ? AsVolatile<float>(this->strategy + 0x8) : 1.f;
+				this->ScheduleVehicle(copVehicle, strategyDuration); // should never be 1.f (unless user-defined)
 			}
 
 
@@ -352,8 +352,8 @@ namespace CopFleeOverrides
 		PursuitScheduler joinedHeavyVehicles    {this->pursuit, "Joined H3", joinedHeavy3FleeDelays,    joinedHeavy3Thresholds};
 		PursuitScheduler joinedRoadblockVehicles{this->pursuit, "Joined RB", joinedRoadblockFleeDelays, joinedRoadblockThresholds};
 
-		const volatile bool&    isJerk         = *reinterpret_cast<volatile bool*>   (this->pursuit + 0x238);
-		const volatile address& pursuitTarget  = *reinterpret_cast<volatile address*>(this->pursuit + 0x74);
+		const volatile bool&    isJerk         = AsVolatile<bool>   (this->pursuit + 0x238);
+		const volatile address& pursuitTarget  = AsVolatile<address>(this->pursuit + 0x74);
 
 
 		[[nodiscard]] static bool IsNotInChaserTable(const address copVehicle)
@@ -396,10 +396,10 @@ namespace CopFleeOverrides
 
 			if (this->pursuitTargetKnown)
 			{
-				const address physicsObject = *reinterpret_cast<volatile address*>(this->pursuitTarget + 0x1C);
+				const address physicsObject = AsVolatile<address>(this->pursuitTarget + 0x1C);
 				
 				if (physicsObject)
-					rigidBodyOfTarget = *reinterpret_cast<volatile address*>(physicsObject + 0x4C);
+					rigidBodyOfTarget = AsVolatile<address>(physicsObject + 0x4C);
 
 				else if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [FLE] Invalid PhysicsObject for", this->pursuitTarget, "in", this->pursuit);
@@ -415,7 +415,7 @@ namespace CopFleeOverrides
 
 			if (rigidBodyOfTarget)
 			{
-				const auto  GetSpeedXZ     = reinterpret_cast<float (__thiscall*)(address)>(0x6711F0);
+				const auto  GetSpeedXZ     = AsFunction<float (__thiscall)(address)>(0x6711F0);
 				const float speedThreshold = (this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold;
 
 				return (GetSpeedXZ(rigidBodyOfTarget) < speedThreshold);
@@ -442,7 +442,7 @@ namespace CopFleeOverrides
 
 				if (heavyStrategy)
 				{
-					const int strategyID = *reinterpret_cast<volatile int*>(heavyStrategy);
+					const int strategyID = AsVolatile<int>(heavyStrategy);
 
 					if (strategyID == 3) // ramming SUVs
 						Globals::ClearSupportRequest(this->pursuit);

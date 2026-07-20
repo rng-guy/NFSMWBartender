@@ -60,10 +60,10 @@ namespace LeaderOverrides
 
 		float expirationTimestamp = Globals::simulationTime;
 
-		volatile int&  crossFlag    = *reinterpret_cast<volatile int*> (this->pursuit + 0x164);
-		volatile bool& skipPriority = *reinterpret_cast<volatile bool*>(this->pursuit + 0x214);
+		volatile int&  crossFlag    = AsVolatile<int> (this->pursuit + 0x164);
+		volatile bool& skipPriority = AsVolatile<bool>(this->pursuit + 0x214);
 
-		const volatile address& leaderStrategy = *reinterpret_cast<volatile address*>(this->pursuit + 0x198);
+		const volatile address& leaderStrategy = AsVolatile<address>(this->pursuit + 0x198);
 
 		ModContainers::AddressSet passiveHenchmenVehicles;
 
@@ -243,8 +243,8 @@ namespace LeaderOverrides
 
 			if (this->leaderStrategy)
 			{
-				this->lastStrategyID       = *reinterpret_cast<volatile int*>  (this->leaderStrategy);
-				this->expirationTimestamp += *reinterpret_cast<volatile float*>(this->leaderStrategy + 0x8);
+				this->lastStrategyID       = AsVolatile<int>  (this->leaderStrategy);
+				this->expirationTimestamp += AsVolatile<float>(this->leaderStrategy + 0x8);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[LDR] Strategy ID now", this->lastStrategyID);
