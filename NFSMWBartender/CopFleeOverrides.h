@@ -113,7 +113,7 @@ namespace CopFleeOverrides
 				const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
 				if (not copAIVehiclePursuit) return false; // should never happen
 
-				const auto StartFlee = AsFunction<void (__thiscall)(address)>(0x423370);
+				const auto StartFlee = AsFunction<void __thiscall (address)>(0x423370);
 				StartFlee(copAIVehiclePursuit); // also updates vehicle goal(s) accordingly
 
 				if constexpr (Globals::loggingEnabled)
@@ -415,7 +415,7 @@ namespace CopFleeOverrides
 
 			if (rigidBodyOfTarget)
 			{
-				const auto  GetSpeedXZ     = AsFunction<float (__thiscall)(address)>(0x6711F0);
+				const auto  GetSpeedXZ     = AsFunction<float __thiscall (address)>(0x6711F0);
 				const float speedThreshold = (this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold;
 
 				return (GetSpeedXZ(rigidBodyOfTarget) < speedThreshold);

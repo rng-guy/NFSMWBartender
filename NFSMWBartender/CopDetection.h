@@ -127,8 +127,8 @@ namespace CopDetection
 		// Check whether vehicle is in icon range
 		if (iconRange > 0.f)
 		{
-			const auto GetVehiclePosition = AsFunction<address (__thiscall)(address)>         (0x688340);
-			const auto GetSquaredDistance = AsFunction<float   (__cdecl)   (address, address)>(0x401930);
+			const auto GetVehiclePosition = AsFunction<address __thiscall (address)>         (0x688340);
+			const auto GetSquaredDistance = AsFunction<float   __cdecl    (address, address)>(0x401930);
 
 			const address copPosition = GetVehiclePosition(copVehicle);
 			if (not copPosition) return false; // should never happen

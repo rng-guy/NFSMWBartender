@@ -184,7 +184,7 @@ namespace RoadblockOverrides
 		{
 			if (hasSpikes and Globals::prng.DoPercentTrial<float>(spikeCalloutChances.current))
 			{
-				const auto CallOutSpikes = AsFunction<void (__cdecl)(int)>(0x71DAC0);
+				const auto CallOutSpikes = AsFunction<void __cdecl (int)>(0x71DAC0);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<1>("[RBL] Spikes callout");

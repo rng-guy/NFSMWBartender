@@ -67,12 +67,12 @@ namespace Globals
 	constexpr float floatScale = 1.f + static_cast<float>(1e-6);
 
 	// Common function pointers
-	const auto IsPlayerPursuit     = AsFunction<bool (__thiscall)(address)>(0x40AD80);
-	const auto IsVehicleDestroyed  = AsFunction<bool (__thiscall)(address)>(0x688170);
-	const auto ClearSupportRequest = AsFunction<void (__thiscall)(address)>(0x42BCF0);
+	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80);
+	const auto IsVehicleDestroyed  = AsFunction<bool __thiscall (address)>(0x688170);
+	const auto ClearSupportRequest = AsFunction<void __thiscall (address)>(0x42BCF0);
 
-	const auto GetVehicleType = AsFunction<vault       (__thiscall)(address)>(0x6880A0);
-	const auto GetVehicleName = AsFunction<const char* (__thiscall)(address)>(0x688090);
+	const auto GetVehicleType = AsFunction<vault       __thiscall (address)>(0x6880A0);
+	const auto GetVehicleName = AsFunction<const char* __thiscall (address)>(0x688090);
 
 	// Common data pointers
 	const volatile float&    simulationTime = AsVolatile<float>   (0x9885D8); // seconds
@@ -217,8 +217,8 @@ namespace Globals
 		const vault  attributeKey   = 0x0,
 		const size_t attributeIndex = 0
 	) {
-		const auto GetVaultNode          = AsFunction<address (__cdecl)   (vault,   vault)>        (0x455FD0);
-		const auto GetVaultNodeAttribute = AsFunction<address (__thiscall)(address, vault, size_t)>(0x454190);
+		const auto GetVaultNode          = AsFunction<address __cdecl    (vault,   vault)>        (0x455FD0);
+		const auto GetVaultNodeAttribute = AsFunction<address __thiscall (address, vault, size_t)>(0x454190);
 
 		const address node = GetVaultNode(rootKey, nodeKey);
 		if (not node) return 0x0; // unknown node
@@ -234,8 +234,8 @@ namespace Globals
 		const vault   attributeKey,
 		const size_t  attributeIndex = 0
 	) {
-		const auto GetPursuitNode          = AsFunction<address (__thiscall)(address)>               (0x418E90);
-		const auto GetPursuitNodeAttribute = AsFunction<address (__thiscall)(address, vault, size_t)>(0x454810);
+		const auto GetPursuitNode          = AsFunction<address __thiscall (address)>               (0x418E90);
+		const auto GetPursuitNodeAttribute = AsFunction<address __thiscall (address, vault, size_t)>(0x454810);
 
 		const address node = GetPursuitNode(pursuit);
 		if (not node) return 0x0; // unknown node
@@ -317,8 +317,8 @@ namespace Globals
 		const address copAIVehiclePursuit = GetAIVehiclePursuit(copVehicle);
 		if (not copAIVehiclePursuit) return false; // should never happen
 
-		const auto SetSupportGoal = AsFunction<void (__thiscall)(address, vault)>       (0x409850);
-		const auto SetVehicleGoal = AsFunction<void (__thiscall)(address, const vault&)>(0x422480);
+		const auto SetSupportGoal = AsFunction<void __thiscall (address, vault)>       (0x409850);
+		const auto SetVehicleGoal = AsFunction<void __thiscall (address, const vault&)>(0x422480);
 		
 		SetSupportGoal(copAIVehiclePursuit, ""_vlt); // empty goal
 		SetVehicleGoal(copAIVehicle - 0x4C, "AIGoalPursuit"_vlt);

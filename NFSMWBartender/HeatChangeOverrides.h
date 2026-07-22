@@ -271,7 +271,7 @@ namespace HeatChangeOverrides
 
 			if (pursuit)
 			{
-				const auto NotifyCopDamaged = AsFunction<void (__thiscall)(address, address)>(0x40AF40);
+				const auto NotifyCopDamaged = AsFunction<void __thiscall (address, address)>(0x40AF40);
 				NotifyCopDamaged(pursuit, copVehicle); // for "cops hit" tracking in pursuit
 			}		
 		}
@@ -297,8 +297,8 @@ namespace HeatChangeOverrides
 		
 		if (totalGameTime >= animationEndTimestamp)
 		{
-			const auto IsFEngScriptSet = AsFunction<bool (__cdecl)(address, uint32_t)>      (0x514DA0);
-			const auto SetFEngScript   = AsFunction<void (__cdecl)(address, uint32_t, bool)>(0x514D10);
+			const auto IsFEngScriptSet = AsFunction<bool __cdecl (address, uint32_t)>      (0x514DA0);
+			const auto SetFEngScript   = AsFunction<void __cdecl (address, uint32_t, bool)>(0x514D10);
 
 			const address  interfaceObject = AsVolatile<address>(heatMeter + 0x44);
 			const uint32_t animationScript = (currentHeatLevel != lastAnimatedHeatLevel) ? 0x41E1FEDC : 0x1744B3;

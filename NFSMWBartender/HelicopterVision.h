@@ -98,7 +98,7 @@ namespace HelicopterVision
 
 	void __fastcall ApplyColour(const address interfaceObject)
 	{
-		const auto SetFEngColour = AsFunction<void (__cdecl)(address, uint32_t)>(0x5157E0);
+		const auto SetFEngColour = AsFunction<void __cdecl (address, uint32_t)>(0x5157E0);
 		SetFEngColour(interfaceObject, currentColour); // persists until overridden with another call
 	}
 

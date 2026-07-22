@@ -158,7 +158,7 @@ namespace HelicopterOverrides
 			const address helicopterActor = AsVolatile<address>(soundAI + 0xE0);
 			if (not helicopterActor) return; // should never happen
 
-			const auto CallOutSweep = AsFunction<void (__thiscall)(address)>(0x717D40);
+			const auto CallOutSweep = AsFunction<void __thiscall (address)>(0x717D40);
 			CallOutSweep(helicopterActor); // requests radio callout for helicopter search
 		}
 
@@ -173,7 +173,7 @@ namespace HelicopterOverrides
 
 			if (Globals::copManager)
 			{ 
-				const auto SpawnHelicopter = AsFunction<bool (__thiscall)(address, address)>(0x4269A0);
+				const auto SpawnHelicopter = AsFunction<bool __thiscall (address, address)>(0x4269A0);
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[HEL] Requesting helicopter");

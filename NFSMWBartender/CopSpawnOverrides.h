@@ -428,7 +428,7 @@ namespace CopSpawnOverrides
 
 		void ForceTriggerBackup() const
 		{
-			const auto LockInPursuitAttributes = AsFunction<void (__thiscall)(address)>(0x40A9B0);
+			const auto LockInPursuitAttributes = AsFunction<void __thiscall (address)>(0x40A9B0);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[SPA] Force-triggering backup");
@@ -710,8 +710,8 @@ namespace CopSpawnOverrides
 		const address raceStatus = AsVolatile<address>(0x91E000);
 		if (not raceStatus) return false; // should never happen
 
-		const auto    IsPursuitEvent = AsFunction<bool (__thiscall)(address)>(0x5FBE70);
-		const address raceParameters = AsVolatile<address>                   (raceStatus + 0x1968);
+		const auto    IsPursuitEvent = AsFunction<bool __thiscall (address)>(0x5FBE70);
+		const address raceParameters = AsVolatile<address>                  (raceStatus + 0x1968);
 
 		return IsPursuitEvent(raceParameters);
 	}

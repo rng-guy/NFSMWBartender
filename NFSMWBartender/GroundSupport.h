@@ -175,13 +175,13 @@ namespace GroundSuppport
 		const address         pursuit,
 		std::vector<address>& candidates
 	) {
-		const auto GetSupportNode = AsFunction<address (__thiscall)(address)>(0x418EE0);
+		const auto GetSupportNode = AsFunction<address __thiscall (address)>(0x418EE0);
 
 		const address supportNode = GetSupportNode(pursuit - 0x48);
 		if (not supportNode) return; // should never happen
 
-		const auto GetNumStrategies = AsFunction<size_t  (__thiscall)(address)>        (CountFunction);
-		const auto GetStrategy      = AsFunction<address (__thiscall)(address, size_t)>(RetrievalFunction);
+		const auto GetNumStrategies = AsFunction<size_t  __thiscall (address)>        (CountFunction);
+		const auto GetStrategy      = AsFunction<address __thiscall (address, size_t)>(RetrievalFunction);
 
 		const size_t numStrategies = GetNumStrategies(supportNode);
 

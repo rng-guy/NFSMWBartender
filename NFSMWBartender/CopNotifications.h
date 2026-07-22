@@ -88,7 +88,7 @@ namespace CopNotifications
 
 		const auto StringOrNameToNotification = [](const std::string_view stringOrName) -> std::string
 		{
-			const auto        GetBinaryString = AsFunction<const char* (__fastcall)(int, binary)>(0x56BB80);
+			const auto        GetBinaryString = AsFunction<const char* __fastcall (int, binary)>(0x56BB80);
 			const char* const binaryString    = GetBinaryString(0, Globals::GetBinaryHash(stringOrName));
 
 			return (binaryString) ? std::string(binaryString) : std::string(stringOrName);
@@ -114,7 +114,7 @@ namespace CopNotifications
 
 		const auto IsValidGlobalTexture = [](const binary iconKey) -> bool
 		{
-			const auto GetTextureInfo = AsFunction<address (__cdecl)(binary, bool, bool)>(0x503400);
+			const auto GetTextureInfo = AsFunction<address __cdecl (binary, bool, bool)>(0x503400);
 			return GetTextureInfo(iconKey, /* includeUnloadedTextures = */ false, /* returnDefaultIfNotFound = */ false);
 		};
 

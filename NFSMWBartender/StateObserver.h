@@ -97,10 +97,10 @@ namespace StateObserver
 
 	void __fastcall OnGameplayUpdates(const address soundAI)
 	{
-		const auto OriginalFunction = AsFunction<void (__thiscall)(address)>(OnGameplayUpdatesOriginal);
+		const auto OriginalFunction = AsFunction<void __thiscall (address)>(OnGameplayUpdatesOriginal);
 
 		// Apply hooked logic fist
-		const auto IsRacing = AsFunction<bool (__thiscall)(address)>(0x409500);
+		const auto IsRacing = AsFunction<bool __thiscall (address)>(0x409500);
 
 		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
 		{

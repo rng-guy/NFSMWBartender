@@ -70,8 +70,8 @@ namespace GameBreaker
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<1>("[GBR] Speedbreaker change:", amount);
 
-		const auto  ChargeGameBreaker = AsFunction <void (__thiscall)(address, float)>(0x6F8F60);
-		const float timeToRatio       = *AsVolatile<volatile float*>                  (0x6EDDC3);
+		const auto  ChargeGameBreaker = AsFunction <void __thiscall (address, float)>(0x6F8F60);
+		const float timeToRatio       = *AsVolatile<volatile float*>                 (0x6EDDC3);
 
 		ChargeGameBreaker(localPlayer, timeToRatio * amount);
 	}
