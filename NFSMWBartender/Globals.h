@@ -67,12 +67,12 @@ namespace Globals
 	constexpr float floatScale = 1.f + static_cast<float>(1e-6);
 
 	// Common function pointers
-	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80);
-	const auto IsVehicleDestroyed  = AsFunction<bool __thiscall (address)>(0x688170);
-	const auto ClearSupportRequest = AsFunction<void __thiscall (address)>(0x42BCF0);
+	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // Pursuit
+	const auto IsVehicleDestroyed  = AsFunction<bool __thiscall (address)>(0x688170); // PVehicle
+	const auto ClearSupportRequest = AsFunction<void __thiscall (address)>(0x42BCF0); // Pursuit
 
-	const auto GetVehicleType = AsFunction<vault       __thiscall (address)>(0x6880A0);
-	const auto GetVehicleName = AsFunction<const char* __thiscall (address)>(0x688090);
+	const auto GetVehicleType = AsFunction<vault       __thiscall (address)>(0x6880A0); // PVehicle
+	const auto GetVehicleName = AsFunction<const char* __thiscall (address)>(0x688090); // PVehicle
 
 	// Common data pointers
 	const volatile float&    simulationTime = AsVolatile<float>   (0x9885D8); // seconds
