@@ -178,7 +178,7 @@ namespace InteractiveMusic
 		playlist.reserve(pairs.size());
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<3>(static_cast<int>(pairs.size()), "track(s) provided");
+			Globals::logger.Log<3>(DecFormat(pairs.size()), "track(s) provided");
 
 		constexpr auto ValuesToTrackID = [](const auto& values) -> std::optional<int>
 		{
@@ -209,7 +209,7 @@ namespace InteractiveMusic
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<3>(static_cast<int>(playlist.size()), "track(s) valid");
+			Globals::logger.Log<3>(DecFormat(playlist.size()), "track(s) valid");
 
 		playlist.shrink_to_fit();
 	
@@ -232,7 +232,7 @@ namespace InteractiveMusic
 			Globals::logger.Log<2>("Playlist:");
 
 			for (size_t trackID = 0; trackID < playlist.size(); ++trackID)
-				Globals::logger.Log<3>("track", static_cast<int>(trackID + 1), "= theme", playlist[trackID] + 1);
+				Globals::logger.Log<3>("track", DecFormat(trackID + 1), "= theme", playlist[trackID] + 1);
 
 			if (transitionsEnabled)
 				Globals::logger.Log<2>("Length per track:", lengthPerTrack);

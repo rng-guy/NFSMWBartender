@@ -430,7 +430,7 @@ namespace HeatParameters
 						if (allValid)
 							Globals::logger.Log<2>(pairName, (forRaces) ? "(race)" : "(roam)");
 
-						Globals::logger.Log<3>(static_cast<int>(heatLevel), vehicleName, "->", vehiclePair.current);
+						Globals::logger.Log<3>(DecFormat(heatLevel), vehicleName, "->", vehiclePair.current);
 					}
 
 					vehicleName = vehiclePair.current;

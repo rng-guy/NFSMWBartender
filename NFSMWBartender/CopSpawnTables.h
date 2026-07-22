@@ -185,7 +185,7 @@ namespace CopSpawnTables
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (allValid)
-							Globals::logger.Log<2>(tableName, static_cast<int>(heatLevel), (forRaces) ? "(race)" : "(roam)");
+							Globals::logger.Log<2>(tableName, DecFormat(heatLevel), (forRaces) ? "(race)" : "(roam)");
 
 						Globals::logger.Log<3>('-', copEntry.name, copEntry.capacity, copEntry.chance);
 					}
@@ -204,7 +204,7 @@ namespace CopSpawnTables
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (not allValid)
-					Globals::logger.Log<3>(static_cast<int>(this->copTypeToEntry.size()), "type(s) left");
+					Globals::logger.Log<3>(DecFormat(this->copTypeToEntry.size()), "type(s) left");
 			}
 
 			this->copTypeToEntry.shrink_to_fit();
@@ -295,7 +295,7 @@ namespace CopSpawnTables
 			if (chaserSpawnTables.roam[heatLevelID].IsEmpty())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("No Chasers for Heat level", static_cast<int>(heatLevelID + 1));
+					Globals::logger.Log<2>("No Chasers for Heat level", DecFormat(heatLevelID + 1));
 
 				return false; // empty free-roam "Chasers" table
 			}

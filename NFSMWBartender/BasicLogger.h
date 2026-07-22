@@ -13,6 +13,41 @@
 namespace BasicLogger
 {
 
+	// Format wrappers ------------------------------------------------------------------------------------------------------------------------------
+
+	template<typename T>
+	requires std::is_integral_v<T>
+	struct BinFormat
+	{
+		T value;
+
+		constexpr explicit BinFormat(const T value) noexcept : value(value) {}
+	};
+
+
+	template<typename T>
+	requires std::is_integral_v<T>
+	struct DecFormat
+	{
+		T value;
+
+		constexpr explicit DecFormat(const T value) noexcept : value(value) {}
+	};
+
+
+	template<typename T>
+	requires std::is_integral_v<T>
+	struct HexFormat
+	{
+		T value;
+
+		constexpr explicit HexFormat(const T value) noexcept : value(value) {}
+	};
+
+
+
+
+
 	// Logger class ---------------------------------------------------------------------------------------------------------------------------------
 
 	template <size_t ...indents>
@@ -23,6 +58,27 @@ namespace BasicLogger
 		std::fstream file;
 
 		static constexpr std::array<size_t, 1 + sizeof...(indents)> indentWidths = {0, indents...};
+
+
+		template <typename T>
+		void Print(const BinFormat<T> wrapper)
+		{
+			this->file << std::format("{:#0{}b}", wrapper.value, 8 * sizeof(T));
+		}
+
+
+		template <typename T>
+		void Print(const DecFormat<T> wrapper) noexcept
+		{
+			this->file << wrapper.value;
+		}
+
+
+		template <typename T>
+		void Print(const HexFormat<T> wrapper)
+		{
+			this->file << std::format("{:0{}x}", wrapper.value, 2 * sizeof(T));
+		}
 
 
 		template <typename T>
@@ -44,7 +100,7 @@ namespace BasicLogger
 				this->Print(reinterpret_cast<uintptr_t>(value));
 
 			else if constexpr (std::is_unsigned_v<T>)
-				this->file << std::format("{:0{}x}", value, 2 * sizeof(T));
+				this->Print(HexFormat(value));
 
 			else if constexpr (std::is_floating_point_v<T>)
 				this->file << std::format("{:.3f}", value);
@@ -54,19 +110,19 @@ namespace BasicLogger
 		}
 
 
-		void Print(const char* const value)
+		void Print(const char* const value) noexcept
 		{
 			this->file << ((value) ? value : "nullptr");
 		}
 
 
-		void Print(const bool value)
+		void Print(const bool value) noexcept
 		{
 			this->file << ((value) ? "true" : "false");
 		}
 
 
-		void PrintLine()
+		void PrintLine() noexcept
 		{
 			this->file << std::endl; // to flush
 		}
@@ -87,7 +143,7 @@ namespace BasicLogger
 
 	public:
 
-		bool Open(const std::filesystem::path& path)
+		bool Open(const std::filesystem::path& path) noexcept
 		{
 			if (not this->file.is_open())
 				this->file.open(path, std::ios::app);
@@ -96,7 +152,7 @@ namespace BasicLogger
 		}
 
 
-		bool Close()
+		bool Close() noexcept
 		{
 			if (this->file.is_open())
 				this->file.close();

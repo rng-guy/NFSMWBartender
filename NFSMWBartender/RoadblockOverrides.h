@@ -222,7 +222,7 @@ namespace RoadblockOverrides
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::logger.Log<1>("[RBL] Roadblock request", (needsSpikes) ? "(spikes)" : "(regular)");
-			Globals::logger.Log<2>("Max. cars:", static_cast<int>(maxNumCars));
+			Globals::logger.Log<2>("Max. cars:",  DecFormat(maxNumCars));
 			Globals::logger.Log<2>("Road width:", roadWidth);
 		}
 
@@ -258,7 +258,7 @@ namespace RoadblockOverrides
 			const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, totalChance);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>(static_cast<int>(candidates.size()), "candidate(s)");
+				Globals::logger.Log<2>(DecFormat(candidates.size()), "candidate(s)");
 
 			for (const RBSetup* const setup : candidates)
 			{
@@ -574,7 +574,7 @@ namespace RoadblockOverrides
 			return false; // no setups; disable feature
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<3>(static_cast<int>(maxNumSetups), "setup(s) provided");
+			Globals::logger.Log<3>(DecFormat(maxNumSetups), "setup(s) provided");
 
 		// Parse and validate setups
 		roadblockSetups.reserve(maxNumSetups);
@@ -595,9 +595,9 @@ namespace RoadblockOverrides
 		{
 			if (not roadblockSetups.empty())
 			{
-				Globals::logger.Log<3>(static_cast<int>(roadblockSetups.size()), "setup(s) valid");
-				Globals::logger.Log<3>(static_cast<int>(counter.numRegular), "regular,", static_cast<int>(counter.numMirrorRegular), "mirrored");
-				Globals::logger.Log<3>(static_cast<int>(counter.numSpike),   "spikes, ", static_cast<int>(counter.numMirrorSpike),   "mirrored");
+				Globals::logger.Log<3>(DecFormat(roadblockSetups.size()), "setup(s) valid");
+				Globals::logger.Log<3>(DecFormat(counter.numRegular), "regular,", DecFormat(counter.numMirrorRegular), "mirrored");
+				Globals::logger.Log<3>(DecFormat(counter.numSpike),   "spikes, ", DecFormat(counter.numMirrorSpike),   "mirrored");
 
 				counter.Reset();
 			}
@@ -661,8 +661,8 @@ namespace RoadblockOverrides
 
 		if (roadblockSetups.empty()) return;
 
-		Globals::logger.Log<2>("numRegularRoadblocks    ", static_cast<int>(counter.numRegular), '/', static_cast<int>(counter.numMirrorRegular));
-		Globals::logger.Log<2>("numSpikeRoadblocks      ", static_cast<int>(counter.numSpike),   '/', static_cast<int>(counter.numMirrorSpike));
+		Globals::logger.Log<2>("numRegularRoadblocks    ", DecFormat(counter.numRegular), '/', DecFormat(counter.numMirrorRegular));
+		Globals::logger.Log<2>("numSpikeRoadblocks      ", DecFormat(counter.numSpike),   '/', DecFormat(counter.numMirrorSpike));
 	}
 
 

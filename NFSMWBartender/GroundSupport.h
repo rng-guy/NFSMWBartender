@@ -263,7 +263,7 @@ namespace GroundSuppport
 			const int strategyID = AsVolatile<int>(randomStrategy);
 
 			Globals::logger.Log<0>(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
-			Globals::logger.Log<2>("Candidate", static_cast<int>(randomIndex + 1), '/', static_cast<int>(candidates.size()));
+			Globals::logger.Log<2>("Candidate", DecFormat(randomIndex + 1), '/', DecFormat(candidates.size()));
 		}
 
 		candidates.clear();

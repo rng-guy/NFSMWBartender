@@ -41,9 +41,9 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (safeHeatLevel != playerHeatLevel)
-				Globals::logger.Log("WARNING: [STA] Heat level", static_cast<int>(playerHeatLevel), "out of range");
+				Globals::logger.Log("WARNING: [STA] Heat level", DecFormat(playerHeatLevel), "out of range");
 
-			Globals::logger.Log("    HEAT [STA] Heat level now", static_cast<int>(safeHeatLevel), (playerIsRacing) ? "(race)" : "(roam)");
+			Globals::logger.Log("    HEAT [STA] Heat level now", DecFormat(safeHeatLevel), (playerIsRacing) ? "(race)" : "(roam)");
 		}
 
 		// Update Heat-level flag

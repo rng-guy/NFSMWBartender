@@ -126,7 +126,7 @@ namespace ModContainers
 			this->reserve(numPairs);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>(static_cast<int>(numPairs), "pair(s) provided");
+				Globals::logger.Log<3>(DecFormat(numPairs), "pair(s) provided");
 
 			// Pair validation and insertion
 			for (size_t pairID = 0; pairID < numPairs; ++pairID)
@@ -163,8 +163,8 @@ namespace ModContainers
 				{
 					const size_t numValidPairs = (newDefaultProvided) ? (this->size() + 1) : this->size();
 
-					Globals::logger.Log<3>(static_cast<int>(numValidPairs), "pair(s) valid");
-					Globals::logger.Log<3>("default value:", this->defaultValue);
+					Globals::logger.Log<3>(DecFormat(numValidPairs), "pair(s) valid");
+					Globals::logger.Log<3>("default value:",         this->defaultValue);
 				}
 			}
 			else if constexpr (Globals::loggingEnabled)

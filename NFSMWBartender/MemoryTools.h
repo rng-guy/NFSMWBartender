@@ -5,6 +5,7 @@
 #include <libloaderapi.h>
 #include <processthreadsapi.h>
 
+#include <cstdint>
 #include <cstdarg>
 #include <cstring>
 #include <type_traits>
@@ -18,8 +19,8 @@ namespace MemoryTools
 
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
-	using byte = unsigned char;
-	using word = unsigned short;
+	using byte = uint8_t;
+	using word = uint16_t;
 
 	using address = uintptr_t;
 
@@ -31,7 +32,7 @@ namespace MemoryTools
 
 	template <typename T>
 	requires std::is_object_v<T>
-	[[nodiscard]] inline volatile T* AsPointer(const address location)
+	[[nodiscard]] inline volatile T* AsPointer(const address location) noexcept
 	{
 		return reinterpret_cast<volatile T*>(location);
 	}
@@ -39,7 +40,7 @@ namespace MemoryTools
 
 	template <typename T>
 	requires std::is_object_v<T>
-	[[nodiscard]] inline volatile T& AsVolatile(const address location)
+	[[nodiscard]] inline volatile T& AsVolatile(const address location) noexcept
 	{
 		return *AsPointer<T>(location);
 	}
@@ -48,7 +49,7 @@ namespace MemoryTools
 
 	template <typename T>
 	requires std::is_function_v<T>
-	[[nodiscard]] inline T* AsFunction(const address location)
+	[[nodiscard]] inline T* AsFunction(const address location) noexcept
 	{
 		return reinterpret_cast<T*>(location);
 	}
@@ -69,7 +70,7 @@ namespace MemoryTools
 	[[nodiscard]] inline address GetEntryPoint()
 	{
 		// Credit: thelink2012 and MWisBest
-		const auto base = reinterpret_cast<uintptr_t>(GetModuleHandleA(NULL));
+		const address base = reinterpret_cast<address>(GetModuleHandleA(NULL));
 
 		const auto dos = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
 		const auto nt  = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dos->e_lfanew);
@@ -179,7 +180,7 @@ namespace MemoryTools
 	template <address start, address end>
 	inline void MakeRangeJMP(const address target)
 	{
-		static_assert(end >= start + sizeof(byte) + sizeof(int), "Cannot accommodate JMP");
+		static_assert(end >= start + sizeof(byte) + sizeof(ptrdiff_t), "Cannot accommodate JMP");
 		Details::MakeRangeJMP(start, end, target);
 	}
 

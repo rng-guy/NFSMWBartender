@@ -132,7 +132,7 @@ namespace RandomNumbers
 
 		Generator() : engine(this->GenerateSeed()) {}
 
-		constexpr explicit Generator(const uint64_t seed) : engine(seed) {}
+		explicit Generator(const uint64_t seed) : engine(seed) {}
 
 
 		// Samples from [min, max]

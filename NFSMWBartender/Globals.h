@@ -21,7 +21,7 @@
 
 
 
-// Unscoped aliases and functions
+// Unscoped aliases
 using vault  = uint32_t;
 using binary = uint32_t;
 
@@ -33,6 +33,10 @@ using address = MemoryTools::address;
 using MemoryTools::AsPointer;
 using MemoryTools::AsVolatile;
 using MemoryTools::AsFunction;
+
+using BasicLogger::BinFormat;
+using BasicLogger::DecFormat;
+using BasicLogger::HexFormat;
 
 
 
@@ -255,13 +259,15 @@ namespace Globals
 
 	[[nodiscard]] bool DoesVehicleTypeExist(const vault type)
 	{
-		return GetVehicleTypeClass(type);
+		return (GetVehicleTypeClass(type) != 0x0);
 	}
 
 
 	[[nodiscard]] bool IsVehicleTypeCar(const vault type)
 	{
-		switch (GetVehicleTypeClass(type))
+		const vault typeClass = GetVehicleTypeClass(type);
+
+		switch (typeClass)
 		{
 		case     "CAR"_vlt:
 		case "TRACTOR"_vlt:
