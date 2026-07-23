@@ -30,10 +30,12 @@ using word = MemoryTools::word;
 
 using address = MemoryTools::address;
 
+// Unscoped functions
 using MemoryTools::AsPointer;
 using MemoryTools::AsVolatile;
 using MemoryTools::AsFunction;
 
+// Unscoped types
 using BasicLogger::BinFormat;
 using BasicLogger::DecFormat;
 using BasicLogger::HexFormat;
@@ -67,12 +69,12 @@ namespace Globals
 	constexpr float floatScale = 1.f + static_cast<float>(1e-6);
 
 	// Common function pointers
-	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // Pursuit
-	const auto IsVehicleDestroyed  = AsFunction<bool __thiscall (address)>(0x688170); // PVehicle
-	const auto ClearSupportRequest = AsFunction<void __thiscall (address)>(0x42BCF0); // Pursuit
+	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // for Pursuit
+	const auto IsVehicleDestroyed  = AsFunction<bool __thiscall (address)>(0x688170); // for PVehicle
+	const auto ClearSupportRequest = AsFunction<void __thiscall (address)>(0x42BCF0); // for Pursuit
 
-	const auto GetVehicleType = AsFunction<vault       __thiscall (address)>(0x6880A0); // PVehicle
-	const auto GetVehicleName = AsFunction<const char* __thiscall (address)>(0x688090); // PVehicle
+	const auto GetVehicleType = AsFunction<vault       __thiscall (address)>(0x6880A0); // for PVehicle
+	const auto GetVehicleName = AsFunction<const char* __thiscall (address)>(0x688090); // for PVehicle
 
 	// Common data pointers
 	const volatile float&    simulationTime = AsVolatile<float>   (0x9885D8); // seconds
@@ -90,7 +92,7 @@ namespace Globals
 	{
 		if (input.empty()) return 0x0;
 
-		vault a = 0x9E3779B9;
+		vault a = 0x9E3779B9; // golden ratio
 		vault b = a;
 		vault c = 0xABCDEF00; // MW-specific seed
 
@@ -153,7 +155,7 @@ namespace Globals
 		const char* const string,
 		const size_t      length
 	) {
-		return GetVaultHash(string);
+		return GetVaultHash({string, length});
 	}
 
 
@@ -176,7 +178,7 @@ namespace Globals
 		const char* const string,
 		const size_t      length
 	) {
-		return GetBinaryHash(string);
+		return GetBinaryHash({string, length});
 	}
 
 
