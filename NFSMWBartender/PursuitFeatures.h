@@ -142,7 +142,7 @@ namespace PursuitFeatures
 
 		void LoadInterval(const HeatParameters::Interval<float>& interval)
 		{
-			this->UpdateParameters(true, interval.minValues.current, interval.maxValues.current);
+			this->UpdateParameters(Globals::playerHeatLevelKnown, interval.minValues.current, interval.maxValues.current);
 		}
 
 
