@@ -87,23 +87,26 @@ namespace HeatParameters
 	[[nodiscard]] const std::string* GetSafeStringByVaultHash(const vault hash)
 	{
 		const auto foundHash = vaultHashToSafeString.find(hash);
-		return (foundHash != vaultHashToSafeString.end()) ? foundHash->second.get() : nullptr;
+		if (foundHash == vaultHashToSafeString.end()) return nullptr;
+
+		return foundHash->second.get();
 	}
 
 
 
-	[[nodiscard]] std::pair<vault, const std::string&> EmplaceSafeString(const std::string_view string)
-	{
-		const vault hash                = Globals::GetVaultHash(string);
-		const auto  [pairIt, isNewHash] = vaultHashToSafeString.try_emplace(hash, string);
-
-		return {pairIt->first, *(pairIt->second)};
+	[[nodiscard]] const std::string& CreateSafeString
+	(
+		const vault            hash,
+		const std::string_view string
+	) {
+		const auto [pairIt, isNewHash] = vaultHashToSafeString.try_emplace(hash, string);
+		return *(pairIt->second); // guaranteed to stay valid until game is closed
 	}
 
 
 	[[nodiscard]] const std::string& CreateSafeString(const std::string_view string)
 	{
-		return EmplaceSafeString(string).second;
+		return CreateSafeString(Globals::GetVaultHash(string), string);
 	}
 
 
@@ -181,12 +184,11 @@ namespace HeatParameters
 		{
 		}
 
-
 		constexpr explicit Pair(const T original) 
 		requires (not Concepts::IsBoundsCompatible<T>) : current(original), limits({}) {}
 
 
-		void SetToHeat
+		void SetToHeatState
 		(
 			const bool   forRaces,
 			const size_t heatLevel
@@ -238,7 +240,7 @@ namespace HeatParameters
 		const T* current = nullptr;
 
 
-		void SetToHeat
+		void SetToHeatState
 		(
 			const bool   forRaces,
 			const size_t heatLevel
@@ -261,18 +263,17 @@ namespace HeatParameters
 		constexpr explicit OptionalPair(const Bounds<T> limits = {})
 		requires (Concepts::IsBoundsCompatible<T>) : values(T(), limits) {}
 
-
 		constexpr OptionalPair() 
 		requires (not Concepts::IsBoundsCompatible<T>) : values(T()) {}
 
 
-		void SetToHeat
+		void SetToHeatState
 		(
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->isEnableds.SetToHeat(forRaces, heatLevel);
-			this->values    .SetToHeat(forRaces, heatLevel);
+			this->isEnableds.SetToHeatState(forRaces, heatLevel);
+			this->values    .SetToHeatState(forRaces, heatLevel);
 		}
 
 
@@ -294,13 +295,13 @@ namespace HeatParameters
 		PointerPair<T> values;
 
 
-		void SetToHeat
+		void SetToHeatState
 		(
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->isEnableds.SetToHeat(forRaces, heatLevel);
-			this->values    .SetToHeat(forRaces, heatLevel);
+			this->isEnableds.SetToHeatState(forRaces, heatLevel);
+			this->values    .SetToHeatState(forRaces, heatLevel);
 		}
 	};
 
@@ -326,13 +327,13 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeat
+		void SetToHeatState
 		(
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->minValues.SetToHeat(forRaces, heatLevel);
-			this->maxValues.SetToHeat(forRaces, heatLevel);
+			this->minValues.SetToHeatState(forRaces, heatLevel);
+			this->maxValues.SetToHeatState(forRaces, heatLevel);
 		}
 
 
@@ -375,14 +376,14 @@ namespace HeatParameters
 		constexpr explicit OptionalInterval(const Bounds<T> limits = {}) : minValues(T(), limits), maxValues(T(), limits) {}
 
 
-		void SetToHeat
+		void SetToHeatState
 		(
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->isEnableds.SetToHeat(forRaces, heatLevel);
-			this->minValues .SetToHeat(forRaces, heatLevel);
-			this->maxValues .SetToHeat(forRaces, heatLevel);
+			this->isEnableds.SetToHeatState(forRaces, heatLevel);
+			this->minValues .SetToHeatState(forRaces, heatLevel);
+			this->maxValues .SetToHeatState(forRaces, heatLevel);
 		}
 
 
@@ -413,35 +414,37 @@ namespace HeatParameters
 		Pair<const char*>&     vehiclePair,
 		Validator              IsVehicleTypeValid
 	) {
-		bool allValid = true;
+		bool allTypesValid = true;
 
 		for (const bool forRaces : {false, true})
 		{
 			size_t heatLevel = 1;
 
-			for (auto& vehicleName : vehiclePair.GetValues(forRaces))
+			for (const char*& vehicleName : vehiclePair.GetValues(forRaces))
 			{
-				const vault type = Globals::GetVaultHash(vehicleName);
+				const vault vehicleType = Globals::GetVaultHash(vehicleName);
 
-				if (not IsVehicleTypeValid(type))
+				if (not IsVehicleTypeValid(vehicleType))
 				{
 					if constexpr (Globals::loggingEnabled)
 					{
-						if (allValid)
+						if (allTypesValid)
 							Globals::logger.Log<2>(pairName, (forRaces) ? "(race)" : "(roam)");
 
 						Globals::logger.Log<3>(DecFormat(heatLevel), vehicleName, "->", vehiclePair.current);
 					}
 
-					vehicleName = vehiclePair.current;
-					allValid    = false;
+					vehicleName   = vehiclePair.current; // vanilla value
+					allTypesValid = false;
 				}
+
+				vehicleName = CreateSafeString(vehicleType, vehicleName).c_str();
 
 				++heatLevel;
 			}
 		}
 
-		return allValid;
+		return allTypesValid;
 	}
 
 
@@ -454,15 +457,15 @@ namespace HeatParameters
 	{
 
 		template <typename T> struct IsRegular              : std::false_type {};
-		template <typename T> struct IsRegular<Interval<T>> : std::true_type  {};
 		template <typename T> struct IsRegular<Pair    <T>> : std::true_type  {};
+		template <typename T> struct IsRegular<Interval<T>> : std::true_type  {};
 
 		template <typename ...T>
 		concept AreRegular = (IsRegular<T>::value and ...);
 
 		template <typename T> struct IsOptional                      : std::false_type {};
-		template <typename T> struct IsOptional<OptionalInterval<T>> : std::true_type  {};
 		template <typename T> struct IsOptional<OptionalPair    <T>> : std::true_type  {};
+		template <typename T> struct IsOptional<OptionalInterval<T>> : std::true_type  {};
 
 		template <typename ...T>
 		concept AreOptional = (IsOptional<T>::value and ...);
@@ -587,48 +590,6 @@ namespace HeatParameters
 
 
 		void DoPostProcessing(const auto&) {}
-
-
-		void DoPostProcessing(Pair<const char*>& pair)
-		{
-			// We assume all C-style strings are vehicle names, which must be stable
-			for (const bool forRaces : {false, true})
-			{
-				for (auto& name : pair.GetValues(forRaces))
-				{
-					if (name)
-						name = CreateSafeString(name).c_str();
-
-					else if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log("WARNING: [HPA] nullptr in vehicle pair");
-				}
-			}
-		}
-
-
-		void DoPostProcessing(OptionalPair<const char*>& pair)
-		{
-			// We assume all C-style strings are vehicle names, which must be stable
-			for (const bool forRaces : {false, true})
-			{
-				const auto& isEnableds = pair.isEnableds.GetValues(forRaces);
-				auto&       names      = pair.values    .GetValues(forRaces);
-
-				for (const size_t heatLevelID : heatLevelIDs)
-				{
-					auto& name = names[heatLevelID];
-
-					if (isEnableds[heatLevelID])
-					{
-						if (name)
-							name = CreateSafeString(name).c_str();
-
-						else if constexpr (Globals::loggingEnabled)
-							Globals::logger.Log("WARNING: [HPA] nullptr in vehicle pair");
-					}
-				}
-			}
-		}
 
 
 		template <typename T>

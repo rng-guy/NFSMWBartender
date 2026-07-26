@@ -22,7 +22,7 @@ namespace StateObserver
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Code caves
 	size_t playerHeatLevel = 0;
@@ -34,7 +34,7 @@ namespace StateObserver
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	void OnHeatLevelUpdates()
+	void ProcessHeatStateUpdate()
 	{
 		const size_t safeHeatLevel = std::clamp<size_t>(playerHeatLevel, 1, HeatParameters::maxHeatLevel);
 
@@ -50,18 +50,18 @@ namespace StateObserver
 		Globals::playerHeatLevelKnown = true;
 
 		// Update Heat parameters
-		RadioChatter::SetToHeat(playerIsRacing, safeHeatLevel);
+		RadioChatter::SetToHeatState(playerIsRacing, safeHeatLevel);
 
-		GeneralSettings::SetToHeat(playerIsRacing, safeHeatLevel);
-		GroundSuppport ::SetToHeat(playerIsRacing, safeHeatLevel);
-		GameBreaker    ::SetToHeat(playerIsRacing, safeHeatLevel);
+		GeneralSettings::SetToHeatState(playerIsRacing, safeHeatLevel);
+		GroundSuppport ::SetToHeatState(playerIsRacing, safeHeatLevel);
+		GameBreaker    ::SetToHeatState(playerIsRacing, safeHeatLevel);
 			
-		PursuitObserver::SetToHeat(playerIsRacing, safeHeatLevel);
+		PursuitObserver::SetToHeatState(playerIsRacing, safeHeatLevel);
 	}
 
 
 
-	void __fastcall OnGameStateUpdates
+	void __fastcall ProcessGameStateUpdate
 	(
 		const int newStateID, 
 		const int oldStateID
@@ -93,11 +93,11 @@ namespace StateObserver
 
 	// Hooking functions ----------------------------------------------------------------------------------------------------------------------------
 
-	address OnGameplayUpdatesOriginal = 0x0;
+	address ProcessGameplayOriginal = 0x0;
 
-	void __fastcall OnGameplayUpdates(const address soundAI)
+	void __fastcall ProcessGameplay(const address soundAI)
 	{
-		const auto OriginalFunction = AsFunction<void __thiscall (address)>(OnGameplayUpdatesOriginal);
+		const auto OriginalFunction = AsFunction<void __thiscall (address)>(ProcessGameplayOriginal);
 
 		// Apply hooked logic fist
 		const auto IsRacing = AsFunction<bool __thiscall (address)>(0x409500);
@@ -105,10 +105,10 @@ namespace StateObserver
 		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
 		{
 			playerIsRacing = (not playerIsRacing);
-			OnHeatLevelUpdates();
+			ProcessHeatStateUpdate();
 		}
 
-		PursuitObserver::UpdateState();
+		PursuitObserver::UpdateFeatureState();
 
 		// Call original function last
 		OriginalFunction(soundAI);
@@ -116,14 +116,14 @@ namespace StateObserver
 
 
 
-	address OnWorldLoadUpdatesOriginal = 0x0;
+	address ProcessWorldLoadOriginal = 0x0;
 
-	void OnWorldLoadUpdates()
+	void ProcessWorldLoad()
 	{
-		const auto OriginalFunction = AsFunction<void ()>(OnWorldLoadUpdatesOriginal);
+		const auto OriginalFunction = AsFunction<void ()>(ProcessWorldLoadOriginal);
 
 		// Apply hooked logic fist
-		CopSpawnOverrides::FullResetState();
+		CopSpawnOverrides::FullResetFeatureState();
 
 		// Call original function last
 		OriginalFunction();
@@ -131,17 +131,17 @@ namespace StateObserver
 
 
 
-	address OnRestartUpdatesOriginal = 0x0;
+	address ProcessEventRestartOriginal = 0x0;
 
-	void OnRestartUpdates()
+	void ProcessEventRestart()
 	{
-		const auto OriginalFunction = AsFunction<void ()>(OnRestartUpdatesOriginal);
+		const auto OriginalFunction = AsFunction<void ()>(ProcessEventRestartOriginal);
 
 		// Apply hooked logic fist
 		playerHeatLevel               = 0;
 		Globals::playerHeatLevelKnown = false;
 
-		CopSpawnOverrides::SoftResetState();
+		CopSpawnOverrides::SoftResetFeatureState();
 
 		// Call original function last
 		OriginalFunction();
@@ -220,7 +220,7 @@ namespace StateObserver
 			mov dword ptr [esi + 0x2C], eax
 
 			mov ecx, eax
-			call OnGameStateUpdates // ecx: newState; edx: oldState
+			call ProcessGameStateUpdate // ecx: newState; edx: oldState
 
 			conclusion:
 			jmp dword ptr [gameStateUpdateExit]
@@ -276,7 +276,7 @@ namespace StateObserver
 			je conclusion                        // not true Heat
 
 			mov dword ptr [playerHeatLevel], ebp
-			call OnHeatLevelUpdates
+			call ProcessHeatStateUpdate
 
 			conclusion:
 			// Execute original code and resume
@@ -338,12 +338,12 @@ namespace StateObserver
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(const HeatParameters::Parser& parser)
+	bool InitialiseFeatures(const HeatParameters::Parser& parser)
 	{
 		// Code modifications 
-		OnGameplayUpdatesOriginal  = MemoryTools::MakeCallHook(0x721609, OnGameplayUpdates);  // SoundAI::SyncPursuit (0x720850)
-		OnWorldLoadUpdatesOriginal = MemoryTools::MakeCallHook(0x662ADC, OnWorldLoadUpdates); // nullsub_174          (0x6C39C0)
-		OnRestartUpdatesOriginal   = MemoryTools::MakeCallHook(0x63090B, OnRestartUpdates);   // World_RestoreProps   (0x74D320)
+		ProcessGameplayOriginal     = MemoryTools::MakeCallHook(0x721609, ProcessGameplay);     // SoundAI::SyncPursuit (0x720850)
+		ProcessWorldLoadOriginal    = MemoryTools::MakeCallHook(0x662ADC, ProcessWorldLoad);    // nullsub_174          (0x6C39C0)
+		ProcessEventRestartOriginal = MemoryTools::MakeCallHook(0x63090B, ProcessEventRestart); // World_RestoreProps   (0x74D320)
 
 		MemoryTools::MakeRangeJMP<heatEqualiserEntrance,         heatEqualiserExit>        (HeatEqualiser);
 		MemoryTools::MakeRangeJMP<resetAIVehicleEntrance,        resetAIVehicleExit>       (ResetAIVehicle);
@@ -354,7 +354,7 @@ namespace StateObserver
 		MemoryTools::MakeRangeJMP<resetAIVehiclePursuitEntrance, resetAIVehiclePursuitExit>(ResetAIVehiclePursuit);
 		
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}

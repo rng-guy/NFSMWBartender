@@ -18,7 +18,7 @@ namespace GroundSuppport
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::Pair<bool> rivalRoadblockEnableds(true);
@@ -315,7 +315,7 @@ namespace GroundSuppport
 		if (distanceToRoadblock > maxRBJoinDistances.current) return false;
 
 		// Consult ChasersManager for cop capacity (if enabled)
-		if (CopSpawnOverrides::featureEnabled)
+		if (CopSpawnOverrides::anyFeatureEnabled)
 		{
 			if (not CopSpawnOverrides::ChasersManager::HasJoinCapacity(pursuit)) 
 				return false;
@@ -364,7 +364,7 @@ namespace GroundSuppport
 	{
 		__asm
 		{
-			cmp byte ptr [LeaderOverrides::featureEnabled], 1
+			cmp byte ptr [LeaderOverrides::anyFeatureEnabled], 1
 			je conclusion // flag managed by "Advanced" feature set
 
 			mov edx, dword ptr [edi + 0x54]     // AIVehicle
@@ -820,10 +820,12 @@ namespace GroundSuppport
 
 		ValidateTypes("Heavy 3, light", heavy3LightVehicles);
 		ValidateTypes("Heavy 3, heavy", heavy3HeavyVehicles);
+
 		ValidateTypes("Heavy 4, light", heavy4LightVehicles);
 		ValidateTypes("Heavy 4, heavy", heavy4HeavyVehicles);
 
-		ValidateTypes("Leader 5, Cross",   leader5CrossVehicles);
+		ValidateTypes("Leader 5, Cross", leader5CrossVehicles);
+
 		ValidateTypes("Leader 7, Cross",   leader7CrossVehicles);
 		ValidateTypes("Leader 7, hench 1", leader7Hench1Vehicles);
 		ValidateTypes("Leader 7, hench 2", leader7Hench2Vehicles);
@@ -852,7 +854,7 @@ namespace GroundSuppport
 
 
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
@@ -911,14 +913,14 @@ namespace GroundSuppport
 		ApplyFixes(); // also contains Strategy-selection and roadblock-joining features
 		
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void LogHeatReport()
+	void LogHeatStateReport()
 	{
 		Globals::logger.Log("    HEAT [SUP] GroundSupport");
 
@@ -954,10 +956,12 @@ namespace GroundSuppport
 
 		heavy3LightVehicles.Log("heavy3LightVehicle      ");
 		heavy3HeavyVehicles.Log("heavy3HeavyVehicle      ");
+
 		heavy4LightVehicles.Log("heavy4LightVehicle      ");
 		heavy4HeavyVehicles.Log("heavy4HeavyVehicle      ");
 
-		leader5CrossVehicles .Log("leader5CrossVehicle     ");
+		leader5CrossVehicles.Log("leader5CrossVehicle     ");
+
 		leader7CrossVehicles .Log("leader7CrossVehicle     ");
 		leader7Hench1Vehicles.Log("leader7Hench1Vehicle    ");
 		leader7Hench2Vehicles.Log("leader7Hench2Vehicle    ");
@@ -965,53 +969,55 @@ namespace GroundSuppport
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
-		rivalRoadblockEnableds.SetToHeat(isRacing, heatLevel);
-		rivalHeavyEnableds    .SetToHeat(isRacing, heatLevel);
-		rivalLeaderEnableds   .SetToHeat(isRacing, heatLevel);
+		rivalRoadblockEnableds.SetToHeatState(isRacing, heatLevel);
+		rivalHeavyEnableds    .SetToHeatState(isRacing, heatLevel);
+		rivalLeaderEnableds   .SetToHeatState(isRacing, heatLevel);
 
-		roadblockCooldowns     .SetToHeat(isRacing, heatLevel);
-		roadblockHeavyCooldowns.SetToHeat(isRacing, heatLevel);
+		roadblockCooldowns     .SetToHeatState(isRacing, heatLevel);
+		roadblockHeavyCooldowns.SetToHeatState(isRacing, heatLevel);
 
-		roadblockSpawnDistances.SetToHeat(isRacing, heatLevel);
-		roadblockEndsFormations.SetToHeat(isRacing, heatLevel);
+		roadblockSpawnDistances.SetToHeatState(isRacing, heatLevel);
+		roadblockEndsFormations.SetToHeatState(isRacing, heatLevel);
 
-		maxRBJoinDistances      .SetToHeat(isRacing, heatLevel);
-		maxRBJoinElevationDeltas.SetToHeat(isRacing, heatLevel);
-		maxRBJoinCounts         .SetToHeat(isRacing, heatLevel);
+		maxRBJoinDistances      .SetToHeatState(isRacing, heatLevel);
+		maxRBJoinElevationDeltas.SetToHeatState(isRacing, heatLevel);
+		maxRBJoinCounts         .SetToHeatState(isRacing, heatLevel);
 
-		regularRBJoinTimers.SetToHeat(isRacing, heatLevel);
-		backupRBJoinTimers .SetToHeat(isRacing, heatLevel);
+		regularRBJoinTimers.SetToHeatState(isRacing, heatLevel);
+		backupRBJoinTimers .SetToHeatState(isRacing, heatLevel);
 
-		reactToCooldownModes.SetToHeat(isRacing, heatLevel);
-		reactToSpikesHits   .SetToHeat(isRacing, heatLevel);
+		reactToCooldownModes.SetToHeatState(isRacing, heatLevel);
+		reactToSpikesHits   .SetToHeatState(isRacing, heatLevel);
 
-		strategyCooldowns.SetToHeat(isRacing, heatLevel);
+		strategyCooldowns.SetToHeatState(isRacing, heatLevel);
 
-		heavy3SpeedLimits.SetToHeat(isRacing, heatLevel);
+		heavy3SpeedLimits.SetToHeatState(isRacing, heatLevel);
 
 		rammingSpeedLimit = heavy3SpeedLimits.current / 3.6f;
 
-		heavy3TriggerCooldowns.SetToHeat(isRacing, heatLevel);
-		heavy3AreBlockables   .SetToHeat(isRacing, heatLevel);
+		heavy3TriggerCooldowns.SetToHeatState(isRacing, heatLevel);
+		heavy3AreBlockables   .SetToHeatState(isRacing, heatLevel);
 
-		heavy3LightVehicles.SetToHeat(isRacing, heatLevel);
-		heavy3HeavyVehicles.SetToHeat(isRacing, heatLevel);
-		heavy4LightVehicles.SetToHeat(isRacing, heatLevel);
-		heavy4HeavyVehicles.SetToHeat(isRacing, heatLevel);
+		heavy3LightVehicles.SetToHeatState(isRacing, heatLevel);
+		heavy3HeavyVehicles.SetToHeatState(isRacing, heatLevel);
 
-		leader5CrossVehicles .SetToHeat(isRacing, heatLevel);
-		leader7CrossVehicles .SetToHeat(isRacing, heatLevel);
-		leader7Hench1Vehicles.SetToHeat(isRacing, heatLevel);
-		leader7Hench2Vehicles.SetToHeat(isRacing, heatLevel);
+		heavy4LightVehicles.SetToHeatState(isRacing, heatLevel);
+		heavy4HeavyVehicles.SetToHeatState(isRacing, heatLevel);
+
+		leader5CrossVehicles.SetToHeatState(isRacing, heatLevel);
+
+		leader7CrossVehicles .SetToHeatState(isRacing, heatLevel);
+		leader7Hench1Vehicles.SetToHeatState(isRacing, heatLevel);
+		leader7Hench2Vehicles.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-			LogHeatReport();
+			LogHeatStateReport();
 	}
 }

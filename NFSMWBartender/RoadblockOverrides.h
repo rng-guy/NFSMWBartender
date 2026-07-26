@@ -149,7 +149,7 @@ namespace RoadblockOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::Pair<float> spawnCalloutChances(100.f, {0.f, 100.f}); // percent
@@ -615,7 +615,7 @@ namespace RoadblockOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [RBL] RoadblockOverrides");
@@ -645,14 +645,14 @@ namespace RoadblockOverrides
 		MemoryTools::MakeRangeJMP<spawnFailureEntrance, spawnFailureExit>(SpawnFailure);
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void LogHeatReport()
+	void LogHeatStateReport()
 	{
 		Globals::logger.Log("    HEAT [RBL] RoadblockOverrides");
 
@@ -667,21 +667,21 @@ namespace RoadblockOverrides
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
 		// Heat parameters
-		spawnCalloutChances.SetToHeat(isRacing, heatLevel);
-		spikeCalloutChances.SetToHeat(isRacing, heatLevel);
+		spawnCalloutChances.SetToHeatState(isRacing, heatLevel);
+		spikeCalloutChances.SetToHeatState(isRacing, heatLevel);
 
 		// Roadblock setups
 		for (RBSetup& setup : roadblockSetups)
 		{
-			setup.chances.SetToHeat(isRacing, heatLevel);
+			setup.chances.SetToHeatState(isRacing, heatLevel);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -692,7 +692,7 @@ namespace RoadblockOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			LogHeatReport();
+			LogHeatStateReport();
 			counter.Reset();
 		}
 	}

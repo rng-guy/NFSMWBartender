@@ -17,7 +17,7 @@ namespace HelicopterVision
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Types and aliases
 	constexpr size_t numChannels = 4;
@@ -125,7 +125,7 @@ namespace HelicopterVision
 
 			mov dword ptr [currentColour], 0xFF90B8FF // vanilla
 
-			cmp byte ptr [featureEnabled], 1
+			cmp byte ptr [anyFeatureEnabled], 1
 			jne colour // cone feature disabled
 
 			mov eax, dword ptr [esi]
@@ -257,7 +257,7 @@ namespace HelicopterVision
 
 
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [VIS] HelicopterVision");
@@ -273,7 +273,7 @@ namespace HelicopterVision
 		MemoryTools::MakeRangeJMP<worldMapIconEntrance, worldMapIconExit>(WorldMapIcon);
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}

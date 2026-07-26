@@ -16,7 +16,7 @@ namespace InteractiveMusic
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 	
 	// General	
 	RELEASE_CONSTINIT std::vector<int> playlist;
@@ -50,9 +50,10 @@ namespace InteractiveMusic
 
 	[[nodiscard]] int GetNextTrack()
 	{
-		const size_t numTracks = playlist.size();
+		const size_t numTracks      = playlist.size();
+		const bool   needsShuffling = (shuffleAfterFirst and (numTracks > 2));
 
-		currentTrackID += (shuffleAfterFirst and (numTracks > 2)) ? Globals::prng.GenerateNumber<size_t>(1, numTracks - 1) : 1;
+		currentTrackID += (needsShuffling) ? Globals::prng.GenerateNumber<size_t>(1, numTracks - 1) : 1;
 		currentTrackID %= numTracks;
 
 		if constexpr (Globals::loggingEnabled)
@@ -182,7 +183,7 @@ namespace InteractiveMusic
 
 		constexpr auto ValuesToTrackID = [](const auto& values) -> std::optional<int>
 		{
-			if (values.size() != 1) return std::nullopt;
+			if (values.size() != 1) return std::nullopt; // value-count mismatch
 
 			const auto& name = values[0];
 
@@ -251,7 +252,7 @@ namespace InteractiveMusic
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [MUS] InteractiveMusic");
@@ -270,7 +271,7 @@ namespace InteractiveMusic
 		MemoryTools::MakeRangeJMP<otherTransitionEntrance, otherTransitionExit>(OtherTransition);
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}

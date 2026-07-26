@@ -189,7 +189,10 @@ namespace Globals
 
 	[[nodiscard]] bool IsInCooldownMode(const address pursuit)
 	{
+		if (not pursuit) return false; // should never happen
+
 		const int pursuitStatus = AsVolatile<int>(pursuit + 0x218);
+
 		return (pursuitStatus == 2); // "COOLDOWN" mode
 	}
 
@@ -216,7 +219,7 @@ namespace Globals
 	(
 		const vault  rootKey,
 		const vault  nodeKey,
-		const vault  attributeKey   = 0x0,
+		const vault  attributeKey   = ""_vlt,
 		const size_t attributeIndex = 0
 	) {
 		const auto GetVaultNode          = AsFunction<address __cdecl    (vault,   vault)>        (0x455FD0);
@@ -225,7 +228,7 @@ namespace Globals
 		const address node = GetVaultNode(rootKey, nodeKey);
 		if (not node) return 0x0; // unknown node
 
-		return (attributeKey != 0x0) ? GetVaultNodeAttribute(node, attributeKey, attributeIndex) : node;
+		return (attributeKey != ""_vlt) ? GetVaultNodeAttribute(node, attributeKey, attributeIndex) : node;
 	}
 
 
@@ -254,14 +257,14 @@ namespace Globals
 	[[nodiscard]] vault GetVehicleTypeClass(const vault type)
 	{
 		const address attribute = GetFromVault("pvehicle"_vlt, type, "CLASS"_vlt);
-		return (attribute) ? AsVolatile<vault>(attribute + 0x8) : 0x0;
+		return (attribute) ? AsVolatile<vault>(attribute + 0x8) : ""_vlt;
 	}
 
 
 
 	[[nodiscard]] bool DoesVehicleTypeExist(const vault type)
 	{
-		return (GetVehicleTypeClass(type) != 0x0);
+		return (GetVehicleTypeClass(type) != ""_vlt);
 	}
 
 
@@ -293,20 +296,24 @@ namespace Globals
 
 	[[nodiscard]] address GetPlayerVehicle()
 	{
-		return (playerPerpVehicle) ? AsVolatile<address>(playerPerpVehicle - 0x758 + 0x4C - 0x4) : 0x0;
+		if (not playerPerpVehicle) return 0x0; // should never happen
+		return AsVolatile<address>(playerPerpVehicle - (0x758 - 0x4C) - 0x4);
 	}
 
 
 	[[nodiscard]] address GetAIVehicle(const address vehicle)
 	{
-		return (vehicle) ? AsVolatile<address>(vehicle + 0x54) : 0x0;
+		if (not vehicle) return 0x0; // should never happen
+		return AsVolatile<address>(vehicle + 0x54);
 	}
 
 
 	[[nodiscard]] address GetAIVehiclePursuit(const address copVehicle)
 	{
 		const address copAIVehicle = GetAIVehicle(copVehicle);
-		return (copAIVehicle) ? (copAIVehicle - 0x4C + 0x758) : 0x0;
+		if (not copAIVehicle) return 0x0; // should never happen
+
+		return copAIVehicle + (0x758 - 0x4C);
 	}
 
 

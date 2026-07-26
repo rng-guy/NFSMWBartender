@@ -16,7 +16,7 @@ namespace LeaderOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::OptionalInterval<float> leader5CrossAggroDelays ({1.f}); // seconds
@@ -311,7 +311,7 @@ namespace LeaderOverrides
 
 	public:
 
-		inline static constinit const bool& isEnabled = featureEnabled;
+		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
 		explicit LeaderManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
@@ -330,14 +330,14 @@ namespace LeaderOverrides
 		}
 
 
-		void UpdateOnGameplay() override
+		void ReactToGameplay() override
 		{
 			this->CheckAggroTimers();
 			this->CheckFlagResetTimer();
 		}
 
 
-		void UpdateOnHeatChange() override
+		void ReactToHeatStateUpdate() override
 		{
 			this->UpdateFlagResetTimer();
 			this->CheckFlagResetTimer();
@@ -402,7 +402,7 @@ namespace LeaderOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [LDR] LeaderOverrides");
@@ -427,14 +427,14 @@ namespace LeaderOverrides
 		MemoryTools::MakeRangeNOP<0x42B631, 0x42B643>(); //              2
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void LogHeatReport()
+	void LogHeatStateReport()
 	{
 		if (
 			leader5CrossAggroDelays    .isEnableds.current
@@ -465,25 +465,25 @@ namespace LeaderOverrides
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
-		leader5CrossAggroDelays .SetToHeat(isRacing, heatLevel);
-		leader5ExpireResetDelays.SetToHeat(isRacing, heatLevel);
-		leader5WreckResetDelays .SetToHeat(isRacing, heatLevel);
-		leader5LostResetDelays  .SetToHeat(isRacing, heatLevel);
+		leader5CrossAggroDelays .SetToHeatState(isRacing, heatLevel);
+		leader5ExpireResetDelays.SetToHeatState(isRacing, heatLevel);
+		leader5WreckResetDelays .SetToHeatState(isRacing, heatLevel);
+		leader5LostResetDelays  .SetToHeatState(isRacing, heatLevel);
 
-		leader7CrossAggroDelays .SetToHeat(isRacing, heatLevel);
-		leader7HenchAggroDelays .SetToHeat(isRacing, heatLevel);
-		leader7ExpireResetDelays.SetToHeat(isRacing, heatLevel);
-		leader7WreckResetDelays .SetToHeat(isRacing, heatLevel);
-		leader7LostResetDelays  .SetToHeat(isRacing, heatLevel);
+		leader7CrossAggroDelays .SetToHeatState(isRacing, heatLevel);
+		leader7HenchAggroDelays .SetToHeatState(isRacing, heatLevel);
+		leader7ExpireResetDelays.SetToHeatState(isRacing, heatLevel);
+		leader7WreckResetDelays .SetToHeatState(isRacing, heatLevel);
+		leader7LostResetDelays  .SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-			LogHeatReport();
+			LogHeatStateReport();
 	}
 }

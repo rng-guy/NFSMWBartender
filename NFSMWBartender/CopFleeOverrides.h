@@ -18,7 +18,7 @@ namespace CopFleeOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::OptionalInterval<float> chaserFleeDelays({1.f}); // seconds
@@ -376,17 +376,15 @@ namespace CopFleeOverrides
 
 		bool MakeHeavyVehicleJoin(const address copVehicle)
 		{
-			if (this->MayAnotherHeavyJoin() and Globals::EndSupportGoal(copVehicle))
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[FLE] Heavy", copVehicle, "joined");
+			if (not this->MayAnotherHeavyJoin())         return false;
+			if (not Globals::EndSupportGoal(copVehicle)) return false;
 
-				this->joinedHeavyVehicles.AddVehicle(copVehicle);
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[FLE] Heavy", copVehicle, "joined");
 
-				return true;
-			}
+			this->joinedHeavyVehicles.AddVehicle(copVehicle);
 
-			return false;
+			return true;
 		}
 
 
@@ -453,7 +451,7 @@ namespace CopFleeOverrides
 
 	public:
 
-		inline static constinit const bool& isEnabled = featureEnabled;
+		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
 		explicit MembershipManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
@@ -494,7 +492,7 @@ namespace CopFleeOverrides
 		}
 
 
-		void UpdateOnGameplay() override 
+		void ReactToGameplay() override 
 		{
 			this->CheckForHeavyCancellation();
 
@@ -507,7 +505,7 @@ namespace CopFleeOverrides
 		}
 
 
-		void UpdateOnHeatChange() override 
+		void ReactToHeatStateUpdate() override 
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[FLE] Reviewing all vehicles");
@@ -518,7 +516,7 @@ namespace CopFleeOverrides
 		}
 
 
-		void UpdateOncePerPursuit() override
+		void ReactToPursuitStartWithDelay() override
 		{
 			this->pursuitTargetKnown = true;
 		}
@@ -612,7 +610,7 @@ namespace CopFleeOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [FLE] CopFleeOverrides");
@@ -639,16 +637,16 @@ namespace CopFleeOverrides
 		MemoryTools::MakeRangeJMP<goalUpdateEntrance, goalUpdateExit>(GoalUpdate);
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void LogHeatReport()
+	void LogHeatStateReport()
 	{
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
 		Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
 
@@ -670,29 +668,29 @@ namespace CopFleeOverrides
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
-		chaserFleeDelays.SetToHeat(isRacing, heatLevel);
-		chaserThresholds.SetToHeat(isRacing, heatLevel);
+		chaserFleeDelays.SetToHeatState(isRacing, heatLevel);
+		chaserThresholds.SetToHeatState(isRacing, heatLevel);
 
-		joinedRoadblockFleeDelays.SetToHeat(isRacing, heatLevel);
-		joinedRoadblockThresholds.SetToHeat(isRacing, heatLevel);
+		joinedRoadblockFleeDelays.SetToHeatState(isRacing, heatLevel);
+		joinedRoadblockThresholds.SetToHeatState(isRacing, heatLevel);
 
-		heavy3SpeedThresholds .SetToHeat(isRacing, heatLevel);
-		heavy3JoiningEnableds .SetToHeat(isRacing, heatLevel);
-		heavy3JoinLimits      .SetToHeat(isRacing, heatLevel);
-		joinedHeavy3FleeDelays.SetToHeat(isRacing, heatLevel);
-		joinedHeavy3Thresholds.SetToHeat(isRacing, heatLevel);
+		heavy3SpeedThresholds .SetToHeatState(isRacing, heatLevel);
+		heavy3JoiningEnableds .SetToHeatState(isRacing, heatLevel);
+		heavy3JoinLimits      .SetToHeatState(isRacing, heatLevel);
+		joinedHeavy3FleeDelays.SetToHeatState(isRacing, heatLevel);
+		joinedHeavy3Thresholds.SetToHeatState(isRacing, heatLevel);
 
 		baseSpeedThreshold = heavy3SpeedThresholds.current / 3.6f;
 		jerkSpeedThreshold = baseSpeedThreshold * .625f;
 
 		if constexpr (Globals::loggingEnabled)
-			LogHeatReport();
+			LogHeatStateReport();
 	}
 }

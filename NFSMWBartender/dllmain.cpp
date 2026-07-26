@@ -86,25 +86,25 @@ static void __cdecl InitialiseBartender
 	HeatParameters::Parser parser(configFileCapacity, sectionCapacityPerFile, pairCapacityPerSection);
 
 	// Parse and initialise "Basic" feature set
-	Globals::basicSetEnabled |= CopNotifications::Initialise(parser);
-	Globals::basicSetEnabled |= RadioChatter    ::Initialise(parser);
-	Globals::basicSetEnabled |= CopDetection    ::Initialise(parser);
-	Globals::basicSetEnabled |= HelicopterVision::Initialise(parser);
-	Globals::basicSetEnabled |= InteractiveMusic::Initialise(parser);
-	Globals::basicSetEnabled |= GeneralSettings ::Initialise(parser);
-	Globals::basicSetEnabled |= GroundSuppport  ::Initialise(parser);
-	Globals::basicSetEnabled |= GameBreaker     ::Initialise(parser);
+	Globals::basicSetEnabled |= CopNotifications::InitialiseFeatures(parser);
+	Globals::basicSetEnabled |= RadioChatter    ::InitialiseFeatures(parser);
+	Globals::basicSetEnabled |= CopDetection    ::InitialiseFeatures(parser);
+	Globals::basicSetEnabled |= HelicopterVision::InitialiseFeatures(parser);
+	Globals::basicSetEnabled |= InteractiveMusic::InitialiseFeatures(parser);
+	Globals::basicSetEnabled |= GeneralSettings ::InitialiseFeatures(parser);
+	Globals::basicSetEnabled |= GroundSuppport  ::InitialiseFeatures(parser);
+	Globals::basicSetEnabled |= GameBreaker     ::InitialiseFeatures(parser);
 
 	parser.ClearCachedPaths();
 
 	if (Globals::basicSetEnabled)
 	{
 		// Apply feature-specific fixes
-		if (not RadioChatter    ::featureEnabled) RadioChatter    ::ApplyFixes();
-		if (not CopDetection    ::featureEnabled) CopDetection    ::ApplyFixes();
-		if (not HelicopterVision::featureEnabled) HelicopterVision::ApplyFixes();
-		if (not GeneralSettings ::featureEnabled) GeneralSettings ::ApplyFixes();
-		if (not GroundSuppport  ::featureEnabled) GroundSuppport  ::ApplyFixes();
+		if (not RadioChatter    ::anyFeatureEnabled) RadioChatter    ::ApplyFixes();
+		if (not CopDetection    ::anyFeatureEnabled) CopDetection    ::ApplyFixes();
+		if (not HelicopterVision::anyFeatureEnabled) HelicopterVision::ApplyFixes();
+		if (not GeneralSettings ::anyFeatureEnabled) GeneralSettings ::ApplyFixes();
+		if (not GroundSuppport  ::anyFeatureEnabled) GroundSuppport  ::ApplyFixes();
 
 		// Remove helicopter blob-shadow
 		MemoryTools::Write<float>(0.f, {0x903660});
@@ -115,7 +115,7 @@ static void __cdecl InitialiseBartender
 	}
 
 	// Parse and initialise "Advanced" feature set
-	Globals::advancedSetEnabled = PursuitObserver::Initialise(parser);
+	Globals::advancedSetEnabled = PursuitObserver::InitialiseFeatures(parser);
 
 	// Apply Heat and state observer
 	if constexpr (Globals::loggingEnabled)
@@ -127,7 +127,7 @@ static void __cdecl InitialiseBartender
 	}
 
 	if (Globals::basicSetEnabled or Globals::advancedSetEnabled)
-		StateObserver::Initialise(parser);
+		StateObserver::InitialiseFeatures(parser);
 }
 
 

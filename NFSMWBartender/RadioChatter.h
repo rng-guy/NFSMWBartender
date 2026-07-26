@@ -15,7 +15,7 @@ namespace RadioChatter
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Enums
 	enum Jurisdiction : int // C-style for implicit casting
@@ -268,7 +268,7 @@ namespace RadioChatter
 
 	void ParseJurisdictions(const HeatParameters::Parser& parser)
 	{
-		Jurisdiction defaultJurisdiction = Jurisdiction::CITY;
+		auto defaultJurisdiction = Jurisdiction::CITY;
 
 		const auto NameToJurisdiction = [&defaultJurisdiction](const std::string_view name) -> Jurisdiction
 		{
@@ -348,7 +348,7 @@ namespace RadioChatter
 
 
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [RAD] CopRadio");
@@ -376,21 +376,21 @@ namespace RadioChatter
 		ApplyFixes(); // fixes announcements for Heat levels > 5
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
-		heatJurisdictionIDs.SetToHeat(isRacing, heatLevel);
+		heatJurisdictionIDs.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 		{

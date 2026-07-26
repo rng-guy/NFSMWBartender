@@ -19,7 +19,7 @@ namespace StrategyOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1, 20});
@@ -57,7 +57,7 @@ namespace StrategyOverrides
 
 		PursuitFeatures::IntervalTimer unblockTimer;
 
-		ModContainers ::AddressSet vehiclesOfCurrentStrategy;
+		ModContainers::AddressSet vehiclesOfCurrentStrategy;
 
 		inline static RELEASE_CONSTINIT ModContainers::AddressMap<StrategyManager*> pursuitToManager;
 
@@ -126,13 +126,13 @@ namespace StrategyOverrides
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [STR] No manager for pursuit", pursuit);
 
-			return nullptr;
+			return nullptr; // should never happen
 		}
 
 
 	public:
 
-		inline static constinit const bool& isEnabled = featureEnabled;
+		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
 		explicit StrategyManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
@@ -155,19 +155,19 @@ namespace StrategyOverrides
 		}
 
 
-		void UpdateOnGameplay() override
+		void ReactToGameplay() override
 		{
 			this->CheckUnblockTimer();
 		}
 
 
-		void UpdateOnHeatChange() override
+		void ReactToHeatStateUpdate() override
 		{
 			this->UpdateNextHeavy3Count();
 		}
 
 
-		void UpdateOncePerPursuit() override
+		void ReactToPursuitStartWithDelay() override
 		{
 			this->UpdateNextHeavy3Count();
 		}
@@ -214,7 +214,7 @@ namespace StrategyOverrides
 
 		static void __fastcall WatchHeavyStrategy(const address pursuit)
 		{
-			StrategyManager* const manager = StrategyManager::FindManager(pursuit);
+			auto* const manager = StrategyManager::FindManager(pursuit);
 			if (not manager) return; // should never happen
 
 			manager->StopUnblockTimer();
@@ -258,7 +258,7 @@ namespace StrategyOverrides
 
 		static void __fastcall WatchLeaderStrategy(const address pursuit)
 		{
-			StrategyManager* const manager = StrategyManager::FindManager(pursuit);
+			auto* const manager = StrategyManager::FindManager(pursuit);
 			if (not manager) return; // should never happen
 
 			manager->StopUnblockTimer();
@@ -299,7 +299,7 @@ namespace StrategyOverrides
 
 		static void __fastcall ClearWatchedStrategy(const address pursuit)
 		{
-			StrategyManager* const manager = StrategyManager::FindManager(pursuit);
+			auto* const manager = StrategyManager::FindManager(pursuit);
 			if (not manager) return; // should never happen
 
 			manager->StopUnblockTimer();
@@ -311,15 +311,19 @@ namespace StrategyOverrides
 
 		[[nodiscard]] static float __fastcall GetFullPursuitLength(const address pursuit)
 		{
-			const StrategyManager* const manager = StrategyManager::FindManager(pursuit);
-			return (manager) ? (Globals::simulationTime - manager->pursuitStartTimestamp) : 0.f;
+			const auto* const manager = StrategyManager::FindManager(pursuit);
+			if (not manager) return 0.f; // should never happen
+
+			return Globals::simulationTime - manager->pursuitStartTimestamp;
 		}
 
 
 		[[nodiscard]] static size_t __fastcall GetNextHeavy3Count(const address pursuit)
 		{
-			const StrategyManager* const manager = StrategyManager::FindManager(pursuit);
-			return (manager) ? manager->nextHeavy3Count : 2;
+			const auto* const manager = StrategyManager::FindManager(pursuit);
+			if (not manager) return 2; // should never happen
+
+			return manager->nextHeavy3Count;
 		}
 	};
 
@@ -643,7 +647,7 @@ namespace StrategyOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [STR] StrategyOverrides");
@@ -690,14 +694,14 @@ namespace StrategyOverrides
 		}
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void LogHeatReport()
+	void LogHeatStateReport()
 	{
 		Globals::logger.Log("    HEAT [STR] StrategyOverrides");
 
@@ -711,21 +715,21 @@ namespace StrategyOverrides
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
-		numVehiclesPerHeavy3s.SetToHeat(isRacing, heatLevel);
+		numVehiclesPerHeavy3s.SetToHeatState(isRacing, heatLevel);
 
-		heavy3UnblockDelays .SetToHeat(isRacing, heatLevel);
-		heavy4UnblockDelays .SetToHeat(isRacing, heatLevel);
-		leader5UnblockDelays.SetToHeat(isRacing, heatLevel);
-		leader7UnblockDelays.SetToHeat(isRacing, heatLevel);
+		heavy3UnblockDelays .SetToHeatState(isRacing, heatLevel);
+		heavy4UnblockDelays .SetToHeatState(isRacing, heatLevel);
+		leader5UnblockDelays.SetToHeatState(isRacing, heatLevel);
+		leader7UnblockDelays.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-			LogHeatReport();
+			LogHeatStateReport();
 	}
 }

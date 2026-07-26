@@ -16,22 +16,11 @@ namespace CopNotifications
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Code caves 
-	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<std::string> copTypeToNotificationText({});
+	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<const char*> copTypeToNotificationText(""); // C-style for game compatibility
 	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<binary>      copTypeToNotificationIcon("COPS_TAKENOUT_ICON"_bin);
-
-
-
-
-
-	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
-
-	const char* __fastcall GetNotificationText(const vault copType)
-	{
-		return copTypeToNotificationText.GetReference(copType).c_str();
-	}
 
 
 
@@ -47,8 +36,9 @@ namespace CopNotifications
 	{
 		__asm
 		{
-			mov ecx, dword ptr [esp + 0x54]
-			call GetNotificationText // ecx: copType
+			push dword ptr [esp + 0x54] // copType
+			mov ecx, offset copTypeToNotificationText
+			call ModContainers::DefaultVaultMap<const char*>::GetValue
 			cmp byte ptr [eax], '\0'
 
 			jmp dword ptr [notificationTextExit]
@@ -86,12 +76,12 @@ namespace CopNotifications
 
 		parser.ParseUser<std::string_view, std::string_view>("Vehicles:Notifications", copNames, {stringOrNames});
 
-		const auto StringOrNameToNotification = [](const std::string_view stringOrName) -> std::string
+		const auto StringOrNameToNotification = [](const std::string_view stringOrName) -> const char*
 		{
 			const auto        GetBinaryString = AsFunction<const char* __fastcall (int, binary)>(0x56BB80);
 			const char* const binaryString    = GetBinaryString(0, Globals::GetBinaryHash(stringOrName));
 
-			return (binaryString) ? std::string(binaryString) : std::string(stringOrName);
+			return HeatParameters::CreateSafeString((binaryString) ? binaryString : stringOrName).c_str();
 		};
 
 		return copTypeToNotificationText.FillFromVectors
@@ -146,7 +136,7 @@ namespace CopNotifications
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [NTF] CopNotifications");
@@ -157,7 +147,7 @@ namespace CopNotifications
 		if (not ParseNotifications(parser)) return false; // no valid notifications; disable feature
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}

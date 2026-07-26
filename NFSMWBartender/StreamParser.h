@@ -1,5 +1,6 @@
 #pragma once
 
+#include <span>
 #include <tuple>
 #include <array>
 #include <limits>
@@ -38,18 +39,23 @@ namespace StreamParser
 		template <typename T>
 		concept IsAnyStringOrView = (IsLegacyString<T> or IsModernStringOrView<T>);
 
+		template <typename T>
+		concept IsTerminatedString = (IsLegacyString<T> or IsModernString<T>);
+
 		template <typename V>
 		concept IsPureArithmetic = (std::is_arithmetic_v<V> and std::same_as<V, std::remove_cvref_t<V>>);
 
 		template <typename ...Vs>
 		concept AreParseable = ((sizeof...(Vs) > 0) and ... and (IsAnyStringOrView<Vs> or IsPureArithmetic<Vs>));
 
+		template <typename S, typename ...Vs>
+		concept AreCompatible = (IsTerminatedString<S> or (not (IsTerminatedString<Vs> or ...)));
+
 		template <typename K, typename... Vs>
 		concept AreSectionParseable = (IsAnyStringOrView<K> and AreParseable<Vs...>);
 
-		// For noexcept equlifiers due to potential allocation(s)
-		template <typename ...Ts>
-		concept AreAllocationFree = ((not IsModernString<Ts>) and ...);
+		template <typename ...Vs>
+		concept AreNonAllocating = ((not IsModernString<Vs>) and ...);
 	}
 
 
@@ -105,7 +111,12 @@ namespace StreamParser
 
 			const auto IsUniqueNonWhitespace = [&seen](const unsigned char ch) -> bool
 			{
-				return ((not IsWhitespace(ch)) and (not seen[ch]) and (seen[ch] = true));
+				if (IsWhitespace(ch)) return false;
+				if (seen[ch])         return false;
+
+				seen[ch] = true;
+
+				return true;
 			};
 
 			return (IsUniqueNonWhitespace(chars) and ...);
@@ -181,8 +192,10 @@ namespace StreamParser
 
 		auto result = V();
 
-		const auto viewEnd          = source.data() + source.size();
-		const auto [readEnd, error] = std::from_chars(source.data(), viewEnd, result);
+		const char* const viewBegin = source.data();
+		const char* const viewEnd   = viewBegin + source.size();
+
+		const auto [readEnd, error] = std::from_chars(viewBegin, viewEnd, result);
 
 		if (error   != std::errc()) return false;
 		if (readEnd != viewEnd)     return false;
@@ -224,7 +237,7 @@ namespace StreamParser
 		const std::string_view source,
 		V&                     value
 	) 
-		noexcept(Concepts::AreAllocationFree<V>)
+		noexcept(Concepts::AreNonAllocating<V>)
 	{
 		value = source;
 		return true;
@@ -243,34 +256,43 @@ namespace StreamParser
 	}
 
 
+	constexpr bool ParseFromString
+	(
+		const char* const source,
+		const char*&      value
+	)
+		noexcept
+	{
+		value = source;
+		return true;
+	}
 
-	template <typename ...Vs>
-	requires Concepts::AreParseable<Vs...>
+
+
+	template <typename S, typename ...Vs>
+	requires (Concepts::IsAnyStringOrView<S> and Concepts::AreParseable<Vs...> and Concepts::AreCompatible<S, Vs...>)
 	inline bool ParseFromStrings
 	(
-		const std::vector<std::string>&    sources,
-		Vs&                             ...values
+		const std::span<const S>    sources,
+		Vs&                      ...values
 	) 
-		noexcept(Concepts::AreAllocationFree<Vs...>)
+		noexcept(Concepts::AreNonAllocating<Vs...>)
 	{
-		bool             allParsed   = false;
 		constexpr size_t numSegments = sizeof...(Vs);
+		if (numSegments != sources.size()) return false;
 
-		if (numSegments == sources.size())
+		return [&]<size_t ...segmentID>(std::index_sequence<segmentID...>) -> bool
 		{
-			[&]<size_t ...segmentID>(std::index_sequence<segmentID...>)
-			{
-				std::tuple<Vs...> candidates;
+			std::tuple<Vs...> candidates;
 
-				allParsed = (ParseFromString(sources[segmentID], std::get<segmentID>(candidates)) and ...);
+			const bool allParsed = (ParseFromString(sources[segmentID], std::get<segmentID>(candidates)) and ...);
 
-				if (allParsed)
-					(..., (values = std::move(std::get<segmentID>(candidates))));
-			}
-			(std::make_index_sequence<numSegments>{});
+			if (allParsed)
+				(..., (values = std::move(std::get<segmentID>(candidates))));
+
+			return allParsed;
 		}
-
-		return allParsed;
+		(std::make_index_sequence<numSegments>{});
 	}
 
 
@@ -321,7 +343,7 @@ namespace StreamParser
 
 			if (auto views = Details::Split(values, separator)) return std::pair(key, std::move(*views));
 			
-			return std::nullopt;
+			return std::nullopt; // unsplittable
 		}
 
 
@@ -408,12 +430,12 @@ namespace StreamParser
 			const std::string_view    key,
 			Vs&                    ...values
 		) 
-			noexcept(Concepts::AreAllocationFree<Vs...>)
+			noexcept(Concepts::AreNonAllocating<Vs...>)
 		{
 			const auto foundKey = section.find(key);
 			if (foundKey == section.end()) return false;
 
-			return ParseFromStrings<Vs...>(foundKey->second, values...);
+			return ParseFromStrings<std::string, Vs...>(foundKey->second, values...);
 		}
 
 
@@ -425,7 +447,7 @@ namespace StreamParser
 			const std::string_view    key,
 			Vs&                    ...values
 		) 
-			const noexcept(Concepts::AreAllocationFree<Vs...>)
+			const noexcept(Concepts::AreNonAllocating<Vs...>)
 		{
 			const auto foundSection = this->sections.find(section);
 			if (foundSection == this->sections.end()) return false;
@@ -455,18 +477,17 @@ namespace StreamParser
 
 				for (const auto& [key, strings] : section)
 				{
-					if (ParseFromStrings<Vs...>(strings, std::get<columnIDs>(candidates)...))
-					{
-						(..., values.push_back(std::move(std::get<columnIDs>(candidates))));
+					if (not ParseFromStrings<std::string, Vs...>(strings, std::get<columnIDs>(candidates)...)) continue;
 
-						if constexpr (Concepts::IsLegacyString<K>)
-							keys.push_back(key.c_str());
+					(..., values.push_back(std::move(std::get<columnIDs>(candidates))));
 
-						else
-							keys.emplace_back(key);
+					if constexpr (Concepts::IsLegacyString<K>)
+						keys.push_back(key.c_str());
 
-						++numReads;
-					}
+					else
+						keys.emplace_back(key);
+
+					++numReads;
 				}
 			}
 			(std::make_index_sequence<numColumns>{});

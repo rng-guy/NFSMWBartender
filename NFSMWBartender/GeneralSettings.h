@@ -1,5 +1,6 @@
 #pragma once
 
+#include <span>
 #include <array>
 #include <vector>
 #include <algorithm>
@@ -18,7 +19,7 @@ namespace GeneralSettings
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Pursuit behaviour
 	bool trackPursuitLength  = false;
@@ -69,7 +70,6 @@ namespace GeneralSettings
 
 	[[nodiscard]] const char* __fastcall GetRandomArrestScene(const size_t heatLevel)
 	{
-		// Define available cutscenes (C-style for game compatibility)
 		static constexpr std::array<const char*, 8> scenesDefault =
 		{
 			"ArrestM06",  "ArrestM19",  "ArrestF06",  "ArrestF07",
@@ -95,33 +95,30 @@ namespace GeneralSettings
 		};
 
 		// Select random cutscene by Heat level
-		auto   candidates    = scenesDefault.data();
-		size_t numCandidates = scenesDefault.size();
+		std::span<const char* const> candidates = scenesDefault;
 
 		switch (heatLevel)
 		{
 		case 0:
 		case 1:
-			candidates    = scenesLevel1.data();
-			numCandidates = scenesLevel1.size();
+			candidates = scenesLevel1;
 			break;
 
 		case 2:
-			candidates    = scenesLevel2.data();
-			numCandidates = scenesLevel2.size();
+			candidates = scenesLevel2;
 			break;
 
 		case 3:
-			candidates    = scenesLevel3.data();
-			numCandidates = scenesLevel3.size();
+			candidates = scenesLevel3;
 		}
 
-		const char* const scene = candidates[Globals::prng.GenerateIndex(numCandidates)];
+		const size_t      randomIndex = Globals::prng.GenerateIndex(candidates.size());
+		const char* const randomScene = candidates[randomIndex];
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<1>("[GEN] Arrest cutscene:", scene);
+			Globals::logger.Log<1>("[GEN] Arrest scene:", randomScene);
 
-		return scene;
+		return randomScene;
 	}
 
 
@@ -581,7 +578,7 @@ namespace GeneralSettings
 
 
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [GEN] GeneralSettings");
@@ -635,14 +632,14 @@ namespace GeneralSettings
 		ApplyFixes(); // also contains bust-distance feature
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void LogHeatReport()
+	void LogHeatStateReport()
 	{
 		Globals::logger.Log("    HEAT [GEN] GeneralSettings");
 
@@ -665,39 +662,39 @@ namespace GeneralSettings
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
-		rivalPursuitsEnableds.SetToHeat(isRacing, heatLevel);
+		rivalPursuitsEnableds.SetToHeatState(isRacing, heatLevel);
 
-		bountyIntervals     .SetToHeat(isRacing, heatLevel);
-		maxBountyMultipliers.SetToHeat(isRacing, heatLevel);
+		bountyIntervals     .SetToHeatState(isRacing, heatLevel);
+		maxBountyMultipliers.SetToHeatState(isRacing, heatLevel);
 
 		bountyFrequency = 1.f / bountyIntervals.current;
 
-		bustTimers      .SetToHeat(isRacing, heatLevel);
-		maxBustDistances.SetToHeat(isRacing, heatLevel);
+		bustTimers      .SetToHeatState(isRacing, heatLevel);
+		maxBustDistances.SetToHeatState(isRacing, heatLevel);
 
 		bustRate          = 1.f / bustTimers.current;
 		resetBustScale    = std::max<float>(bustTimers.current / 1.25f, 4.f);
 		recoveryBustDelta = -.25f * std::max<float>(bustTimers.current / 2.5f, 2.f);
 
-		evadeTimers.SetToHeat(isRacing, heatLevel);
+		evadeTimers.SetToHeatState(isRacing, heatLevel);
 
 		halfEvadeRate = .5f / evadeTimers.current;
 
-		carsAffectedByHidings .SetToHeat(isRacing, heatLevel);
-		helisAffectedByHidings.SetToHeat(isRacing, heatLevel);
+		carsAffectedByHidings .SetToHeatState(isRacing, heatLevel);
+		helisAffectedByHidings.SetToHeatState(isRacing, heatLevel);
 
-		copFlipByDamageEnableds.SetToHeat(isRacing, heatLevel);
-		copFlipByTimers        .SetToHeat(isRacing, heatLevel);
-		racerFlipResetDelays   .SetToHeat(isRacing, heatLevel);
+		copFlipByDamageEnableds.SetToHeatState(isRacing, heatLevel);
+		copFlipByTimers        .SetToHeatState(isRacing, heatLevel);
+		racerFlipResetDelays   .SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-			LogHeatReport();
+			LogHeatStateReport();
 	}
 }

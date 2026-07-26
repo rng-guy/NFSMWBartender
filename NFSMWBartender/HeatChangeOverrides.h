@@ -21,7 +21,7 @@ namespace HeatChangeOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::Pair<bool> heatTimerEnableds(true);
@@ -99,7 +99,7 @@ namespace HeatChangeOverrides
 			CountTracker& operator=(const CountTracker&) = delete;
 
 
-			[[nodiscard]] float UpdateCount()
+			[[nodiscard]] float GetHeatChange()
 			{
 				const int change = this->count - this->lastCount;
 
@@ -141,8 +141,8 @@ namespace HeatChangeOverrides
 
 			float totalHeatChange = 0.f;
 
-			for (auto& tracker : this->trackers)
-				totalHeatChange += tracker.UpdateCount();
+			for (CountTracker& tracker : this->trackers)
+				totalHeatChange += tracker.GetHeatChange();
 
 			if (not Globals::IsInCooldownMode(this->pursuit))
 				this->pendingHeatChange += totalHeatChange;
@@ -159,13 +159,13 @@ namespace HeatChangeOverrides
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [CNG] No manager for pursuit", pursuit);
 
-			return nullptr;
+			return nullptr; // should never happen
 		}
 
 
 	public:
 
-		inline static constinit const bool& isEnabled = featureEnabled;
+		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
 		explicit HeatManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
@@ -186,7 +186,7 @@ namespace HeatChangeOverrides
 		}
 
 
-		void UpdateOnGameplay() override
+		void ReactToGameplay() override
 		{
 			this->UpdateTrackers();
 		}
@@ -199,7 +199,7 @@ namespace HeatChangeOverrides
 		) {
 			if (Globals::IsInCooldownMode(pursuit)) return;
 
-			HeatManager* const manager = HeatManager::FindManager(pursuit);
+			auto* const manager = HeatManager::FindManager(pursuit);
 			if (not manager) return; // should never happen
 
 			manager->pendingHeatChange += Globals::floatScale * amount;
@@ -210,7 +210,7 @@ namespace HeatChangeOverrides
 		{
 			if (Globals::IsInCooldownMode(pursuit)) return 0.f;
 
-			HeatManager* const manager = HeatManager::FindManager(pursuit);
+			auto* const manager = HeatManager::FindManager(pursuit);
 			if (not manager) return 0.f; // should never happen
 
 			const float heatChange = manager->pendingHeatChange;
@@ -551,7 +551,7 @@ namespace HeatChangeOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [CNG] HeatChangeOverrides");
@@ -591,14 +591,14 @@ namespace HeatChangeOverrides
 		MemoryTools::MakeRangeJMP<heatMeterUpdateEntrance, heatMeterUpdateExit>(HeatMeterUpdate);
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void LogHeatReport()
+	void LogHeatStateReport()
 	{
 		Globals::logger.Log("    HEAT [CNG] HeatChangeOverrides");
 
@@ -623,33 +623,33 @@ namespace HeatChangeOverrides
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
-		heatTimerEnableds.SetToHeat(isRacing, heatLevel);
+		heatTimerEnableds.SetToHeatState(isRacing, heatLevel);
 
-		chaserHeatChanges    .SetToHeat(isRacing, heatLevel);
-		supportHeatChanges   .SetToHeat(isRacing, heatLevel);
-		helicopterHeatChanges.SetToHeat(isRacing, heatLevel);
+		chaserHeatChanges    .SetToHeatState(isRacing, heatLevel);
+		supportHeatChanges   .SetToHeatState(isRacing, heatLevel);
+		helicopterHeatChanges.SetToHeatState(isRacing, heatLevel);
 
-		roadblockHeatChanges.SetToHeat(isRacing, heatLevel);
-		spikesHeatChanges   .SetToHeat(isRacing, heatLevel);
+		roadblockHeatChanges.SetToHeatState(isRacing, heatLevel);
+		spikesHeatChanges   .SetToHeatState(isRacing, heatLevel);
 
-		copWreckHeatChanges.SetToHeat(isRacing, heatLevel);
+		copWreckHeatChanges.SetToHeatState(isRacing, heatLevel);
 
-		copHitHeatChanges    .SetToHeat(isRacing, heatLevel);
-		trafficHitHeatChanges.SetToHeat(isRacing, heatLevel);
+		copHitHeatChanges    .SetToHeatState(isRacing, heatLevel);
+		trafficHitHeatChanges.SetToHeatState(isRacing, heatLevel);
 
-		heatChangePerAssaults.SetToHeat(isRacing, heatLevel);
-		onlyOneAssaultPerCops.SetToHeat(isRacing, heatLevel);
+		heatChangePerAssaults.SetToHeatState(isRacing, heatLevel);
+		onlyOneAssaultPerCops.SetToHeatState(isRacing, heatLevel);
 
-		damageHeatChanges.SetToHeat(isRacing, heatLevel);
+		damageHeatChanges.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-			LogHeatReport();
+			LogHeatStateReport();
 	}
 }

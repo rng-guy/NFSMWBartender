@@ -31,6 +31,7 @@ namespace CopDetection
 
 		constexpr explicit IconColourTracker(const bool useUnpausedTime) : useUnpausedTime(useUnpausedTime) {}
 
+
 		explicit IconColourTracker(IconColourTracker&&)      = delete;
 		explicit IconColourTracker(const IconColourTracker&) = delete;
 		
@@ -68,7 +69,7 @@ namespace CopDetection
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Types
 	struct Settings
@@ -196,7 +197,7 @@ namespace CopDetection
 			cmp eax, CHOPPER
 			je conclusion // is helicopter
 
-			cmp byte ptr [featureEnabled], 1
+			cmp byte ptr [anyFeatureEnabled], 1
 			jne limitation // map feature disabled
 
 			mov ecx, dword ptr [esi]
@@ -442,7 +443,7 @@ namespace CopDetection
 
 
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [DET] CopDetection");
@@ -463,7 +464,7 @@ namespace CopDetection
 		ApplyFixes(); // also contains map-icon feature
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}

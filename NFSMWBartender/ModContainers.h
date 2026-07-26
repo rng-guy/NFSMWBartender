@@ -64,7 +64,7 @@ namespace ModContainers
 	requires (std::invocable<Converter, RawType> and std::predicate<Validator, std::invoke_result_t<Converter, RawType>>)
 	struct MapFillSetup
 	{
-		const std::vector<RawType>& rawData;
+		const std::vector<RawType>& rawData; // no std::span because of std::vector<bool>...
 
 		Converter ConvertFromRaw{};
 		Validator IsValidResult {};
@@ -93,7 +93,9 @@ namespace ModContainers
 		[[nodiscard]] const V& GetReference(const K key) const
 		{
 			const auto foundPair = this->find(key);
-			return (foundPair != this->end()) ? foundPair->second : this->defaultValue;
+			if (foundPair == this->end()) return this->defaultValue;
+
+			return foundPair->second;
 		}
 
 

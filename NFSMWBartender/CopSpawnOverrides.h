@@ -25,29 +25,29 @@ namespace CopSpawnOverrides
 	{
 	private:
 
-		int numActiveCops = 0;
+		int numTotalActiveCops = 0;
 
 		const address                          pursuit;
 		const CopSpawnTables::TablePair* const source; // can't be a reference, else MSVC claims constinit-incompatibility
 		
 		CopSpawnTables::SpawnTable table;
 
-		ModContainers::VaultMap<int> copTypeToCurrentCount;
+		ModContainers::VaultMap<int> copTypeToNumActive; // for Heat transitions and cops not in table
 
 
-		void UpdateSpawnTableCapacity
+		void ChangeActiveCopCountInSpawnTable
 		(
 			const vault copType, 
 			const int   change
 		) {
-			const bool copTypeInSpawnTable = this->table.UpdateCapacity(copType, change);
-
+			const bool copTypeInSpawnTable = this->table.ChangeActiveCopCount(copType, change);
+			
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
 				{
 					if (copTypeInSpawnTable)
-						Globals::logger.Log(this->pursuit, "[CON] Type capacity:", this->table.GetCapacity(copType));
+						Globals::logger.Log(this->pursuit, "[CON] Type capacity:", this->table.GetNumAvailableCops(copType));
 
 					else
 						Globals::logger.Log(this->pursuit, "[CON] Type capacity undefined");
@@ -104,7 +104,7 @@ namespace CopSpawnOverrides
 
 		void ReserveTypeCapacity(const size_t numTypes)
 		{
-			this->copTypeToCurrentCount.reserve(numTypes);
+			this->copTypeToNumActive.reserve(numTypes);
 		}
 
 
@@ -112,7 +112,7 @@ namespace CopSpawnOverrides
 		{
 			this->table = *(this->source->current);
 
-			for (const auto& [copType, currentCount] : this->copTypeToCurrentCount)
+			for (const auto& [copType, currentCount] : this->copTypeToNumActive)
 			{
 				if constexpr (Globals::loggingEnabled)
 				{
@@ -128,7 +128,7 @@ namespace CopSpawnOverrides
 					}
 				}
 
-				this->UpdateSpawnTableCapacity(copType, -currentCount);
+				this->ChangeActiveCopCountInSpawnTable(copType, +currentCount);
 			}
 		}
 
@@ -141,105 +141,101 @@ namespace CopSpawnOverrides
 					Globals::logger.Log(this->pursuit, "[CON] Clearing all vehicles");
 			}
 
-			for (const auto& [copType, currentCount] : this->copTypeToCurrentCount)
-				this->table.UpdateCapacity(copType, +currentCount);
+			this->table.ResetActiveCopCounts();
 
-			this->copTypeToCurrentCount.clear();
-			this->numActiveCops = 0;
+			this->copTypeToNumActive.clear();
+			this->numTotalActiveCops = 0;
 		}
 
 
 		void AddVehicleByType(const vault copType)
 		{
-			const auto [pairIt, isNewType] = this->copTypeToCurrentCount.try_emplace(copType, 1);
-			int&       currentCount        = pairIt->second;
+			const auto [pairIt, isNewType] = this->copTypeToNumActive.try_emplace(copType, 1);
+			int&       numActiveCops       = pairIt->second;
 
 			if (not isNewType)
-				++currentCount;
+				++numActiveCops;
 
-			this->UpdateSpawnTableCapacity(copType, /* change = */ -1);
-			++(this->numActiveCops);
+			++(this->numTotalActiveCops);
+
+			this->ChangeActiveCopCountInSpawnTable(copType, /* change = */ +1);
 
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.Log<2>("Type ratio:", currentCount, '/', this->numActiveCops);
+					Globals::logger.Log<2>("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
 			}
 		}
 
 
 		void AddVehicleByName(const std::string_view copName)
 		{
-			const vault copType = Globals::GetVaultHash(copName);
-			this->AddVehicleByType(copType);
+			this->AddVehicleByType(Globals::GetVaultHash(copName));
 		}
 
 
 		void AddVehicle(const address copVehicle)
 		{
-			const vault copType = Globals::GetVehicleType(copVehicle);
-			this->AddVehicleByType(copType);
+			this->AddVehicleByType(Globals::GetVehicleType(copVehicle));
 		}
 
 
 		bool RemoveVehicleByType(const vault copType)
 		{
-			const auto foundType = this->copTypeToCurrentCount.find(copType);
+			const auto foundType = this->copTypeToNumActive.find(copType);
 
-			if (foundType != this->copTypeToCurrentCount.end())
+			if (foundType == this->copTypeToNumActive.end())
 			{
-				int& currentCount = foundType->second;
-
-				--currentCount;
-
-				this->UpdateSpawnTableCapacity(copType, /* change = */ +1);
-				--(this->numActiveCops);
-
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->pursuit)
-						Globals::logger.Log<2>("Type ratio:", currentCount, '/', this->numActiveCops);
+						Globals::logger.Log("WARNING: [CON] Unknown type", copType, "in", this->pursuit);
 				}
 
-				if (currentCount < 1)
-					this->copTypeToCurrentCount.erase(foundType);
-
-				return true;
+				return false; // should never happen
 			}
-			
+
+			int& numActiveCops = foundType->second;
+
+			--numActiveCops;
+			--(this->numTotalActiveCops);
+
+			this->ChangeActiveCopCountInSpawnTable(copType, /* change = */ -1);
+				
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.Log("WARNING: [CON] Unknown type", copType, "in", this->pursuit);
+					Globals::logger.Log<2>("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
 			}
 
-			return false;
+			if (numActiveCops < 1)
+				this->copTypeToNumActive.erase(foundType);
+
+			return true;
 		}
 
 
 		bool RemoveVehicleByName(const std::string_view copName)
 		{
-			const vault copType = Globals::GetVaultHash(copName);
-			return this->RemoveVehicleByType(copType);
+			return this->RemoveVehicleByType(Globals::GetVaultHash(copName));
 		}
 
 
 		bool RemoveVehicle(const address copVehicle)
 		{
-			const vault copType = Globals::GetVehicleType(copVehicle);
-			return this->RemoveVehicleByType(copType);
+			return this->RemoveVehicleByType(Globals::GetVehicleType(copVehicle));
 		}
 
 
-		[[nodiscard]] int GetNumActiveCops() const
+		[[nodiscard]] int GetNumTotalActiveCops() const
 		{
-			return this->numActiveCops;
+			return this->numTotalActiveCops;
 		}
 
 
-		[[nodiscard]] bool HasAvailableCop() const
+		[[nodiscard]] bool IsAnyCopAvailable() const
 		{
-			return this->table.HasCapacity();
+			return this->table.IsAnyCopAvailable();
 		}
 
 
@@ -262,7 +258,7 @@ namespace CopSpawnOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Pursuit-board tracking
 	bool trackHeavyVehicles     = false;
@@ -366,7 +362,7 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] int GetWaveCapacity() const
 		{
-			const int numActiveChasers = this->chaserSpawns.GetNumActiveCops();
+			const int numActiveChasers = this->chaserSpawns.GetNumTotalActiveCops();
 			int       waveCapacity     = this->fullWaveCapacity - (this->numCopsLostInWave + numActiveChasers);
 
 			if (this->waveParametersKnown)
@@ -394,7 +390,7 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] int GetNumPersistentCops() const
 		{
-			return this->chaserSpawns.GetNumActiveCops() + this->numJoinedRoadblockVehicles;
+			return this->chaserSpawns.GetNumTotalActiveCops() + this->numJoinedRoadblockVehicles;
 		}
 
 
@@ -406,9 +402,9 @@ namespace CopSpawnOverrides
 			if (this->bailingPursuit)         return false;
 			if (this->copSpawnCooldown > 0.f) return false;
 
-			if (not this->chaserSpawns.HasAvailableCop()) return false;
+			if (not this->chaserSpawns.IsAnyCopAvailable()) return false;
 
-			const int numActiveChasers  = this->chaserSpawns.GetNumActiveCops();
+			const int numActiveChasers  = this->chaserSpawns.GetNumTotalActiveCops();
 			const int numActiveVehicles = (chasersAreIndependents.current) ? numActiveChasers : this->GetNumPersistentCops();
 
 			if (numActiveVehicles >= activeChaserCounts.maxValues.current) return false;
@@ -446,7 +442,9 @@ namespace CopSpawnOverrides
 		[[nodiscard]] static bool HasVehicleEngaged(const address copVehicle)
 		{
 			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
-			return (copAIVehiclePursuit and AsVolatile<bool>(copAIVehiclePursuit + 0x22));
+			if (not copAIVehiclePursuit) return false; // should never happen
+
+			return AsVolatile<bool>(copAIVehiclePursuit + 0x22);
 		}
 
 
@@ -524,13 +522,13 @@ namespace CopSpawnOverrides
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [SPA] No manager for pursuit", pursuit);
 
-			return nullptr;
+			return nullptr; // should never happen
 		}
 
 
 	public:
 
-		inline static constinit const bool& isEnabled = featureEnabled;
+		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
 		explicit ChasersManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
@@ -554,13 +552,13 @@ namespace CopSpawnOverrides
 		}
 
 
-		void UpdateOnHeatChange() override 
+		void ReactToHeatStateUpdate() override 
 		{
 			this->UpdateSpawnTable();
 		}
 
 
-		void UpdateOncePerHeatLevel() override
+		void ReactToHeatStateUpdateWithDelay() override
 		{
 			this->UpdateNumPatrolCars();
 
@@ -617,7 +615,7 @@ namespace CopSpawnOverrides
 
 		static void __fastcall NotifyOfWaveReset(const address pursuit)
 		{
-			ChasersManager* const manager = ChasersManager::FindManager(pursuit);
+			auto* const manager = ChasersManager::FindManager(pursuit);
 			if (not manager) return; // should never happen
 
 			if constexpr (Globals::loggingEnabled)
@@ -637,14 +635,16 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] static bool __fastcall IsChaserAvailable(const address pursuit)
 		{
-			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
-			return (manager and manager->CanNewChaserSpawn());
+			const auto* const manager = ChasersManager::FindManager(pursuit);
+			if (not manager) return false; // should never happen
+
+			return manager->CanNewChaserSpawn();
 		}
 
 
 		[[nodiscard]] static bool __fastcall HasJoinCapacity(const address pursuit)
 		{
-			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
+			const auto* const manager = ChasersManager::FindManager(pursuit);
 			if (not manager) return false; // should never happen
 
 			const bool hasCapacity = (chasersAreIndependents.current or (manager->GetNumPersistentCops() < activeChaserCounts.maxValues.current));
@@ -658,8 +658,10 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] static const char* __fastcall GetNameOfNewChaser(const address pursuit)
 		{
-			const ChasersManager* const manager = ChasersManager::FindManager(pursuit);
-			return (manager and manager->CanNewChaserSpawn()) ? manager->chaserSpawns.GetNameOfAvailableCop() : nullptr;
+			const auto* const manager = ChasersManager::FindManager(pursuit);
+			if (not manager) return nullptr; // should never happen
+
+			return (manager->CanNewChaserSpawn()) ? manager->chaserSpawns.GetNameOfAvailableCop() : nullptr;
 		}
 	};
 
@@ -1192,7 +1194,7 @@ namespace CopSpawnOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [SPA] CopSpawnOverrides");
@@ -1253,14 +1255,14 @@ namespace CopSpawnOverrides
 		MemoryTools::MakeRangeJMP<scriptedSpawnResetEntrance, scriptedSpawnResetExit>(ScriptedSpawnReset);
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void LogHeatReport()
+	void LogHeatStateReport()
 	{
 		Globals::logger.Log("    HEAT [SPA] CopSpawnOverrides");
 
@@ -1278,39 +1280,39 @@ namespace CopSpawnOverrides
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
 		patrolSpawns   .UpdateSpawnTable();
 		scriptedSpawns .UpdateSpawnTable();
 		roadblockSpawns.UpdateSpawnTable();
 
-		activeChaserCounts       .SetToHeat(isRacing, heatLevel);
-		chasersAreIndependents   .SetToHeat(isRacing, heatLevel);
-		onlyDestroyedDecrements  .SetToHeat(isRacing, heatLevel);
-		transitionTriggersBackups.SetToHeat(isRacing, heatLevel);
-		chaserSpawnClearances    .SetToHeat(isRacing, heatLevel);
+		activeChaserCounts       .SetToHeatState(isRacing, heatLevel);
+		chasersAreIndependents   .SetToHeatState(isRacing, heatLevel);
+		onlyDestroyedDecrements  .SetToHeatState(isRacing, heatLevel);
+		transitionTriggersBackups.SetToHeatState(isRacing, heatLevel);
+		chaserSpawnClearances    .SetToHeatState(isRacing, heatLevel);
 
 		squaredChaserSpawnClearance = chaserSpawnClearances.current * chaserSpawnClearances.current;
 
-		trafficIgnoresChasers   .SetToHeat(isRacing, heatLevel);
-		trafficIgnoresRoadblocks.SetToHeat(isRacing, heatLevel);
+		trafficIgnoresChasers   .SetToHeatState(isRacing, heatLevel);
+		trafficIgnoresRoadblocks.SetToHeatState(isRacing, heatLevel);
 
-		roadblockJoinLimits.SetToHeat(isRacing, heatLevel);
+		roadblockJoinLimits.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-			LogHeatReport();
+			LogHeatStateReport();
 	}
 
 
 
-	void SoftResetState()
+	void SoftResetFeatureState()
 	{
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
 		usePrefetchedCopName = eventHasScriptedPursuit;
 
@@ -1321,13 +1323,13 @@ namespace CopSpawnOverrides
 
 
 
-	void FullResetState()
+	void FullResetFeatureState()
 	{
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
 		eventHasScriptedPursuit = false;
 		prefetchedCopName       = nullptr;
 
-		SoftResetState();
+		SoftResetFeatureState();
 	}
 }

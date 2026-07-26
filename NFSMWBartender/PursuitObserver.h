@@ -27,7 +27,7 @@ namespace PursuitObserver
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 
 
@@ -48,9 +48,9 @@ namespace PursuitObserver
 
 		const address pursuit;
 
-		bool isFirstGameplayUpdate     = true;
-		bool perPursuitUpdatePending   = true;
-		bool perHeatLevelUpdatePending = true;
+		bool firstGameplayUpdatePending    = true;
+		bool delayedPursuitUpdatePending   = true;
+		bool delayedHeatStateUpdatePending = true;
 
 		ModContainers::AddressMap<CopLabel> copVehicleToLabel;
 
@@ -100,38 +100,37 @@ namespace PursuitObserver
 		}
 
 
-		void UpdateOnHeatChange()
+		void ProcessHeatStateUpdate()
 		{
 			for (const auto& reaction : this->pursuitReactions)
-				reaction->UpdateOnHeatChange();
+				reaction->ReactToHeatStateUpdate();
 
-			this->perHeatLevelUpdatePending = true;
+			this->delayedHeatStateUpdatePending = true;
 		}
 
 
-		void UpdateOnGameplay()
+		void ProcessGameplay()
 		{
 			for (const auto& reaction : this->pursuitReactions)
 			{
-				if (not this->isFirstGameplayUpdate)
+				if (not this->firstGameplayUpdatePending)
 				{
-					if (this->perPursuitUpdatePending)
-						reaction->UpdateOncePerPursuit();
+					if (this->delayedPursuitUpdatePending)
+						reaction->ReactToPursuitStartWithDelay();
 
-					if (this->perHeatLevelUpdatePending)
-						reaction->UpdateOncePerHeatLevel();
+					if (this->delayedHeatStateUpdatePending)
+						reaction->ReactToHeatStateUpdateWithDelay();
 				}
 
-				reaction->UpdateOnGameplay();
+				reaction->ReactToGameplay();
 			}
 
-			if (not this->isFirstGameplayUpdate)
+			if (not this->firstGameplayUpdatePending)
 			{
-				this->perPursuitUpdatePending   = false;
-				this->perHeatLevelUpdatePending = false;
+				this->delayedPursuitUpdatePending   = false;
+				this->delayedHeatStateUpdatePending = false;
 			}
-			
-			this->isFirstGameplayUpdate = false;
+			else this->firstGameplayUpdatePending = false;
 		}
 
 
@@ -145,7 +144,7 @@ namespace PursuitObserver
 			else if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [OBS] No observer for pursuit", pursuit);
 
-			return nullptr;
+			return nullptr; // should never happen
 		}
 
 
@@ -204,7 +203,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     DEL [OBS] Pursuit", pursuit);
 
-			const auto wasRemoved = PursuitObserver::pursuitToObserver.erase(pursuit);
+			const bool wasRemoved = PursuitObserver::pursuitToObserver.erase(pursuit);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -214,17 +213,17 @@ namespace PursuitObserver
 		}
 
 
-		static void NotifyOfHeatChange()
+		static void NotifyOfHeatStateUpdate()
 		{
 			for (const auto& [pursuit, observer] : PursuitObserver::pursuitToObserver)
-				observer->UpdateOnHeatChange();
+				observer->ProcessHeatStateUpdate();
 		}
 
 
 		static void NotifyOfGameplay()
 		{
 			for (const auto& [pursuit, observer] : PursuitObserver::pursuitToObserver)
-				observer->UpdateOnGameplay();
+				observer->ProcessGameplay();
 		}
 
 
@@ -234,7 +233,7 @@ namespace PursuitObserver
 			const address copVehicle,
 			const address caller
 		) {
-			PursuitObserver* const observer = PursuitObserver::FindObserver(pursuit);
+			auto* const observer = PursuitObserver::FindObserver(pursuit);
 			if (not observer) return; // should never happen
 
 			const CopLabel copLabel               = observer->InferCopLabelFromCaller(caller);
@@ -258,7 +257,7 @@ namespace PursuitObserver
 			const address pursuit,
 			const address copVehicle
 		) {
-			PursuitObserver* const observer = PursuitObserver::FindObserver(pursuit);
+			auto* const observer = PursuitObserver::FindObserver(pursuit);
 			if (not observer) return; // should never happen
 
 			const auto foundVehicle = observer->copVehicleToLabel.find(copVehicle);
@@ -391,18 +390,18 @@ namespace PursuitObserver
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
-		if (not CopSpawnTables::Initialise(parser)) return false;
+		if (not CopSpawnTables::InitialiseFeatures(parser)) return false;
 
-		// Subheaders
-		CopSpawnOverrides  ::Initialise(parser);
-		CopFleeOverrides   ::Initialise(parser);
-		LeaderOverrides    ::Initialise(parser);
-		StrategyOverrides  ::Initialise(parser);
-		HelicopterOverrides::Initialise(parser);
-		HeatChangeOverrides::Initialise(parser);
-		RoadblockOverrides ::Initialise(parser);
+		// Initialise sub-features
+		CopSpawnOverrides  ::InitialiseFeatures(parser);
+		CopFleeOverrides   ::InitialiseFeatures(parser);
+		LeaderOverrides    ::InitialiseFeatures(parser);
+		StrategyOverrides  ::InitialiseFeatures(parser);
+		HelicopterOverrides::InitialiseFeatures(parser);
+		HeatChangeOverrides::InitialiseFeatures(parser);
+		RoadblockOverrides ::InitialiseFeatures(parser);
 
 		// Code modifications
 		MemoryTools::MakeRangeJMP<copAddedEntrance,           copAddedExit>          (CopAdded);
@@ -411,37 +410,37 @@ namespace PursuitObserver
 		MemoryTools::MakeRangeJMP<pursuitConstructorEntrance, pursuitConstructorExit>(PursuitConstructor);
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
-		CopSpawnTables     ::SetToHeat(isRacing, heatLevel);
-		CopSpawnOverrides  ::SetToHeat(isRacing, heatLevel);
-		CopFleeOverrides   ::SetToHeat(isRacing, heatLevel);
-		HelicopterOverrides::SetToHeat(isRacing, heatLevel);
-		StrategyOverrides  ::SetToHeat(isRacing, heatLevel);
-		LeaderOverrides    ::SetToHeat(isRacing, heatLevel);
-		HeatChangeOverrides::SetToHeat(isRacing, heatLevel);
-		RoadblockOverrides ::SetToHeat(isRacing, heatLevel);
+		CopSpawnTables     ::SetToHeatState(isRacing, heatLevel);
+		CopSpawnOverrides  ::SetToHeatState(isRacing, heatLevel);
+		CopFleeOverrides   ::SetToHeatState(isRacing, heatLevel);
+		HelicopterOverrides::SetToHeatState(isRacing, heatLevel);
+		StrategyOverrides  ::SetToHeatState(isRacing, heatLevel);
+		LeaderOverrides    ::SetToHeatState(isRacing, heatLevel);
+		HeatChangeOverrides::SetToHeatState(isRacing, heatLevel);
+		RoadblockOverrides ::SetToHeatState(isRacing, heatLevel);
 
-		PursuitObserver::NotifyOfHeatChange();
+		PursuitObserver::NotifyOfHeatStateUpdate();
 	}
 
 
 
-	void UpdateState() 
+	void UpdateFeatureState() 
 	{
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
 		PursuitObserver::NotifyOfGameplay();
 	}

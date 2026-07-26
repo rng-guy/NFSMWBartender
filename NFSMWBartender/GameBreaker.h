@@ -16,7 +16,7 @@ namespace GameBreaker
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::Pair<bool> passiveRechargeEnableds(true);
@@ -203,7 +203,7 @@ namespace GameBreaker
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [GBR] GameBreaker");
@@ -226,14 +226,14 @@ namespace GameBreaker
 		MemoryTools::MakeRangeJMP<passiveRechargeEntrance, passiveRechargeExit>(PassiveRecharge);
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void LogHeatReport()
+	void LogHeatStateReport()
 	{
 		Globals::logger.Log("    HEAT [GBR] GameBreaker");
 
@@ -251,25 +251,25 @@ namespace GameBreaker
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
-		passiveRechargeEnableds.SetToHeat(isRacing, heatLevel);
-		driftRechargeEnableds  .SetToHeat(isRacing, heatLevel);
+		passiveRechargeEnableds.SetToHeatState(isRacing, heatLevel);
+		driftRechargeEnableds  .SetToHeatState(isRacing, heatLevel);
 
-		copWreckBreakerChanges.SetToHeat(isRacing, heatLevel);
+		copWreckBreakerChanges.SetToHeatState(isRacing, heatLevel);
 
-		canGainWhenActives  .SetToHeat(isRacing, heatLevel);
-		canGainWhenInactives.SetToHeat(isRacing, heatLevel);
+		canGainWhenActives  .SetToHeatState(isRacing, heatLevel);
+		canGainWhenInactives.SetToHeatState(isRacing, heatLevel);
 
-		canLoseWhenActives  .SetToHeat(isRacing, heatLevel);
-		canLoseWhenInactives.SetToHeat(isRacing, heatLevel);
+		canLoseWhenActives  .SetToHeatState(isRacing, heatLevel);
+		canLoseWhenInactives.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-			LogHeatReport();
+			LogHeatStateReport();
 	}
 }

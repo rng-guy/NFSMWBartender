@@ -256,7 +256,12 @@ namespace FlatContainers
 		// Invalidates iterators of erased and last element
 		constexpr reverse_iterator erase(const reverse_iterator rit)
 		{
-			return (rit != this->rend()) ? reverse_iterator(this->erase(std::prev(rit.base()))) : rit;
+			if (rit == this->rend()) return rit;
+
+			const auto it     = std::prev(rit.base());
+			const auto nextIt = this->erase(it);
+
+			return reverse_iterator(nextIt);
 		}
 	};
 
@@ -432,7 +437,12 @@ namespace FlatContainers
 		// Invalidates iterators of erased and last element
 		constexpr reverse_iterator erase(const reverse_iterator rit)
 		{
-			return (rit != this->rend()) ? reverse_iterator(this->erase(std::prev(rit.base()))) : rit;
+			if (rit == this->rend()) return rit;
+			
+			const auto pairIt = std::prev(rit.base());
+			const auto nextIt = this->erase(pairIt);
+
+			return reverse_iterator(nextIt);
 		}
 	};
 }

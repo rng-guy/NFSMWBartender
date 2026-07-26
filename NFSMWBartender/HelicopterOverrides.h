@@ -17,7 +17,7 @@ namespace HelicopterOverrides
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	bool featureEnabled = false;
+	bool anyFeatureEnabled = false;
 
 	// Heat parameters
 	constinit HeatParameters::Pair<const char*> helicopterVehicles("copheli");
@@ -188,7 +188,8 @@ namespace HelicopterOverrides
 
 		[[nodiscard]] static volatile float* GetFuelTimePointer()
 		{ 
-			return (HelicopterManager::helicopterObject) ? AsPointer<float>(HelicopterManager::helicopterObject + 0x7D8) : nullptr;
+			if (not HelicopterManager::helicopterObject) return nullptr; // should never happen
+			return AsPointer<float>(HelicopterManager::helicopterObject + 0x7D8);
 		}
 
 
@@ -196,7 +197,7 @@ namespace HelicopterOverrides
 		{
 			if (not this->IsOwner()) return;
 
-			volatile float* const fuelTime = this->GetFuelTimePointer();
+			auto* const fuelTime = this->GetFuelTimePointer();
 
 			if (fuelTime)
 			{
@@ -261,7 +262,7 @@ namespace HelicopterOverrides
 
 	public:
 
-		inline static constinit const bool& isEnabled = featureEnabled;
+		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
 		explicit HelicopterManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
@@ -280,19 +281,19 @@ namespace HelicopterOverrides
 		}
 
 
-		void UpdateOnGameplay() override 
+		void ReactToGameplay() override 
 		{
 			this->MakeSpawnAttempt();
 		}
 
 
-		void UpdateOnHeatChange() override 
+		void ReactToHeatStateUpdate() override 
 		{
 			this->UpdateSpawnTimer();
 		}
 
 
-		void UpdateOncePerPursuit() override
+		void ReactToPursuitStartWithDelay() override
 		{
 			this->VerifyPursuit();
 			this->UpdateSpawnTimer();
@@ -351,7 +352,7 @@ namespace HelicopterOverrides
 			}
 			else // not destroyed
 			{
-				const volatile float* const fuelTime = this->GetFuelTimePointer();
+				const auto* const fuelTime = this->GetFuelTimePointer();
 
 				if (not (fuelTime and (*fuelTime > 0.f))) // expired
 				{
@@ -408,7 +409,7 @@ namespace HelicopterOverrides
 
 		[[nodiscard]] static const char* GetHelicopterName()
 		{
-			if (not featureEnabled) return nullptr;
+			if (not anyFeatureEnabled) return nullptr;
 
 			if (HelicopterManager::helicopterOwner)
 			{
@@ -577,7 +578,7 @@ namespace HelicopterOverrides
 
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [HEL] HelicopterOverrides");
@@ -621,14 +622,14 @@ namespace HelicopterOverrides
 		MemoryTools::MakeRangeJMP<rammingCooldownEntrance, rammingCooldownExit>(RammingCooldown);
 
 		// Status flag
-		featureEnabled = true;
+		anyFeatureEnabled = true;
 
 		return true;
 	}
 
 
 
-	void LogHeatReport()
+	void LogHeatStateReport()
 	{
 		if (
 			firstSpawnDelays     .isEnableds.current
@@ -663,33 +664,33 @@ namespace HelicopterOverrides
 
 
 
-	void SetToHeat
+	void SetToHeatState
 	(
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		if (not featureEnabled) return;
+		if (not anyFeatureEnabled) return;
 
-		helicopterVehicles.SetToHeat(isRacing, heatLevel);
+		helicopterVehicles.SetToHeatState(isRacing, heatLevel);
 		
-		firstSpawnDelays  .SetToHeat(isRacing, heatLevel);
-		fuelRespawnDelays .SetToHeat(isRacing, heatLevel);
-		wreckRespawnDelays.SetToHeat(isRacing, heatLevel);
-		lostRespawnDelays .SetToHeat(isRacing, heatLevel);
+		firstSpawnDelays  .SetToHeatState(isRacing, heatLevel);
+		fuelRespawnDelays .SetToHeatState(isRacing, heatLevel);
+		wreckRespawnDelays.SetToHeatState(isRacing, heatLevel);
+		lostRespawnDelays .SetToHeatState(isRacing, heatLevel);
 
-		lostRejoinDelays  .SetToHeat(isRacing, heatLevel);
-		minRejoinFuelTimes.SetToHeat(isRacing, heatLevel);
+		lostRejoinDelays  .SetToHeatState(isRacing, heatLevel);
+		minRejoinFuelTimes.SetToHeatState(isRacing, heatLevel);
 
-		fuelTimes.SetToHeat(isRacing, heatLevel);
+		fuelTimes.SetToHeatState(isRacing, heatLevel);
 
-		chaseSpawnDistances .SetToHeat(isRacing, heatLevel);
-		searchSpawnDistances.SetToHeat(isRacing, heatLevel);
+		chaseSpawnDistances .SetToHeatState(isRacing, heatLevel);
+		searchSpawnDistances.SetToHeatState(isRacing, heatLevel);
 
-		affectedByRoadblocks.SetToHeat(isRacing, heatLevel);
+		affectedByRoadblocks.SetToHeatState(isRacing, heatLevel);
 
-		rammingCooldowns.SetToHeat(isRacing, heatLevel);
+		rammingCooldowns.SetToHeatState(isRacing, heatLevel);
 		
 		if constexpr (Globals::loggingEnabled)
-			LogHeatReport();
+			LogHeatStateReport();
 	}
 }

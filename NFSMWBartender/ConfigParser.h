@@ -151,6 +151,7 @@ namespace ConfigParser
 		}
 
 
+		// May invalidate retrieved const char* and string_view
 		bool LoadFile
 		(
 			const std::filesystem::path& root,
@@ -168,12 +169,12 @@ namespace ConfigParser
 			this->ClearParsedStrings();
 
 			// Attempt to retrieve file from cache
-			const auto [pairIt, isNewPath] = this->pathToSections.try_emplace(this->currentPath);
-			auto&      section             = pairIt->second;
+			const auto        [pairIt, isNewPath] = this->pathToSections.try_emplace(this->currentPath);
+			Parser::Sections& cachedFileSections  = pairIt->second;
 
 			if (not isNewPath)
 			{
-				this->sections = section;
+				this->sections = cachedFileSections;
 				
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Load:", fileName);
@@ -188,7 +189,7 @@ namespace ConfigParser
 			{
 				this->ParseStream(fileStream, this->sectionCapacityPerFile, this->pairCapacityPerSection);
 
-				section = this->sections;
+				cachedFileSections = this->sections;
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Open:", fileName);

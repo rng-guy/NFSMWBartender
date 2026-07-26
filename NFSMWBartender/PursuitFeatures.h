@@ -42,13 +42,14 @@ namespace PursuitFeatures
 		PursuitReaction& operator=(PursuitReaction&&)      = delete;
 		PursuitReaction& operator=(const PursuitReaction&) = delete;
 
+
 		virtual ~PursuitReaction() = default;
 
 
-		virtual void UpdateOnGameplay()       {}
-		virtual void UpdateOnHeatChange()     {}
-		virtual void UpdateOncePerPursuit()   {}
-		virtual void UpdateOncePerHeatLevel() {}
+		virtual void ReactToGameplay()                 {}
+		virtual void ReactToHeatStateUpdate()          {}
+		virtual void ReactToPursuitStartWithDelay()    {}
+		virtual void ReactToHeatStateUpdateWithDelay() {}
 
 
 		virtual void ReactToAddedVehicle
@@ -176,13 +177,16 @@ namespace PursuitFeatures
 
 		[[nodiscard]] float GetTimeLeft() const
 		{
-			return (this->endTimestamp - Globals::simulationTime);
+			return this->endTimestamp - Globals::simulationTime;
 		}
 
 
 		[[nodiscard]] bool HasExpired() const
 		{
-			return (this->isSet and this->isEnabled and (this->GetTimeLeft() <= 0.f));
+			if (not this->isSet)     return false;
+			if (not this->isEnabled) return false;
+
+			return (this->GetTimeLeft() <= 0.f);
 		}
 	};
 }
