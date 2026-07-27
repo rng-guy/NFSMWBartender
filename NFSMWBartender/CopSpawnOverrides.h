@@ -35,12 +35,12 @@ namespace CopSpawnOverrides
 		ModContainers::VaultMap<int> copTypeToNumActive; // for Heat transitions and cops not in table
 
 
-		void ChangeActiveCopCountInSpawnTable
+		void ChangeNumActiveCopsInSpawnTable
 		(
 			const vault copType, 
 			const int   change
 		) {
-			const bool copTypeInSpawnTable = this->table.ChangeActiveCopCount(copType, change);
+			const bool copTypeInSpawnTable = this->table.ChangeNumActiveCops(copType, change);
 			
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -118,7 +118,7 @@ namespace CopSpawnOverrides
 				{
 					if (this->pursuit)
 					{
-						const auto copName = HeatParameters::GetSafeStringByVaultHash(copType);
+						const auto* const copName = HeatParameters::GetPersistentStringByVaultHash(copType);
 
 						if (copName)
 							Globals::logger.Log(this->pursuit, "[CON] Copying", currentCount, *copName);
@@ -128,7 +128,7 @@ namespace CopSpawnOverrides
 					}
 				}
 
-				this->ChangeActiveCopCountInSpawnTable(copType, +currentCount);
+				this->ChangeNumActiveCopsInSpawnTable(copType, +currentCount);
 			}
 		}
 
@@ -158,7 +158,7 @@ namespace CopSpawnOverrides
 
 			++(this->numTotalActiveCops);
 
-			this->ChangeActiveCopCountInSpawnTable(copType, /* change = */ +1);
+			this->ChangeNumActiveCopsInSpawnTable(copType, /* change = */ +1);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -200,7 +200,7 @@ namespace CopSpawnOverrides
 			--numActiveCops;
 			--(this->numTotalActiveCops);
 
-			this->ChangeActiveCopCountInSpawnTable(copType, /* change = */ -1);
+			this->ChangeNumActiveCopsInSpawnTable(copType, /* change = */ -1);
 				
 			if constexpr (Globals::loggingEnabled)
 			{

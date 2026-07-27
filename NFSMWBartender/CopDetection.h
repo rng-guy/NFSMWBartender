@@ -23,8 +23,8 @@ namespace CopDetection
 
 		const bool useUnpausedTime;
 
-		bool  isNewMapObject        = true;
-		float colourChangeTimestamp = 0.f;
+		bool  isNewMapObject      = true;
+		float nextUpdateTimestamp = 0.f;
 
 
 	public:
@@ -39,21 +39,17 @@ namespace CopDetection
 		IconColourTracker& operator=(const IconColourTracker&) = delete;
 
 
-		[[nodiscard]] bool UpdateTimestamp()
+		[[nodiscard]] bool ShouldUpdateColour()
 		{
 			const float gameTime = (this->useUnpausedTime) ? Globals::GetUnpausedGameTime() : Globals::GetTotalGameTime();
+			if ((gameTime < this->nextUpdateTimestamp) and (not this->isNewMapObject)) return false;
 
-			if (this->isNewMapObject or (gameTime >= this->colourChangeTimestamp))
-			{
-				constexpr float targetFrameTime = 1.f / 30.f; // seconds
+			constexpr float frameTime = 1.f / 30.f; // seconds
+			this->nextUpdateTimestamp = gameTime + frameTime;
 
-				this->isNewMapObject        = false;
-				this->colourChangeTimestamp = gameTime + targetFrameTime;
+			this->isNewMapObject = false;
 
-				return true;
-			}
-
-			return false;
+			return true;
 		}
 
 
@@ -125,26 +121,23 @@ namespace CopDetection
 		const Settings& settings  = copTypeToSettings.GetReference(Globals::GetVehicleType(copVehicle));
 		const float     iconRange = (hasBeenInPursuit) ? settings.pursuitIconRange : settings.patrolIconRange;
 
-		// Check whether vehicle is in icon range
-		if (iconRange > 0.f)
-		{
-			const auto GetVehiclePosition = AsFunction<address __thiscall (address)>         (0x688340);
-			const auto GetSquaredDistance = AsFunction<float   __cdecl    (address, address)>(0x401930);
+		if (iconRange <= 0.f) return false;
 
-			const address copPosition = GetVehiclePosition(copVehicle);
-			if (not copPosition) return false; // should never happen
+		// Check distance to player vehicle
+		const auto GetVehiclePosition = AsFunction<address __thiscall (address)>(0x688340);
+	
+		const address copPosition = GetVehiclePosition(copVehicle);
+		if (not copPosition) return false; // should never happen
 
-			const address playerPosition = GetVehiclePosition(Globals::GetPlayerVehicle());
-			if (not playerPosition) return false; // should never happen
+		const address playerPosition = GetVehiclePosition(Globals::GetPlayerVehicle());
+		if (not playerPosition) return false; // should never happen
 
-			if (GetSquaredDistance(copPosition, playerPosition) <= iconRange * iconRange)
-			{
-				iconIsKept = settings.keepsIcon;
-				return true;
-			}
-		}
+		const auto GetSquaredDistance = AsFunction<float __cdecl (address, address)>(0x401930);
+		if (GetSquaredDistance(copPosition, playerPosition) > iconRange * iconRange) return false;
 		
-		return false;
+		iconIsKept = settings.keepsIcon;
+
+		return true;
 	}
 
 
@@ -169,7 +162,7 @@ namespace CopDetection
 		__asm
 		{
 			mov ecx, offset worldMapCops
-			call IconColourTracker::UpdateTimestamp
+			call IconColourTracker::ShouldUpdateColour
 			mov byte ptr [updateWorldMapColours], al
 
 			// Execute original code and resume
@@ -272,7 +265,7 @@ namespace CopDetection
 			push eax
 
 			mov ecx, offset miniMapCops
-			call IconColourTracker::UpdateTimestamp
+			call IconColourTracker::ShouldUpdateColour
 			test al, al
 
 			pop ecx

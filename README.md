@@ -7,7 +7,7 @@ Bartender adds **new customisation options** for pursuits to *Need for Speed: Mo
 
 &nbsp;
 
-Bartender's **default settings** match the vanilla game's, except for the bug / issue fixes. If those fixes are all you care about, then you don't need to configure Bartender at all.
+Bartender's **default settings** match the vanilla game's, except for the bug / issue fixes. If you only care about those fixes, then you don't need to configure Bartender at all.
 
 For **optimal customisability**, use [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) along with Bartender. Bartender doesn't replace VltEd, as Bartender's features are deliberately limited to things you can't do with VltEd alone.
 

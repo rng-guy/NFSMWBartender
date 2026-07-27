@@ -63,29 +63,25 @@ namespace CopSpawnTables
 
 		bool AddCopEntry
 		(
-			const std::string_view copName,
-			const int              copCount, 
-			const int              copChance
+			const char* copName,
+			const int   copCount, 
+			const int   copChance
 		) {
-			if (copName.empty()) return false;
-			if (copCount  < 1)   return false;
-			if (copChance < 1)   return false;
-			
 			const vault copType = Globals::GetVaultHash(copName);
 			if (not Globals::IsVehicleTypeCar(copType)) return false;
 
-			const std::string& safeName = HeatParameters::CreateSafeString(copType, copName);
+			HeatParameters::MakePersistentString(copType, copName);
 
 			const auto [pairIt, isNewType] = this->copTypeToEntry.try_emplace
 			(
 				copType, 
-				safeName.c_str(),
+				copName,
 				/* numActive = */ 0,  
 				copCount,
 				copChance
 			);
 
-			if (isNewType)
+			if (isNewType and (copCount > 0))
 				this->currentTotalCopChance += copChance;
 
 			return isNewType;
@@ -139,7 +135,7 @@ namespace CopSpawnTables
 		}
 
 
-		bool ChangeActiveCopCount
+		bool ChangeNumActiveCops
 		(
 			const vault copType,
 			const int   change
@@ -151,6 +147,12 @@ namespace CopSpawnTables
 			const bool wasAvailable = copEntry.IsAvailable();
 
 			copEntry.numActive += change;
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (copEntry.numActive < 0)
+					Globals::logger.Log("WARNING: [TAB] Negative active count for", copEntry.copName);
+			}
 
 			if (wasAvailable != copEntry.IsAvailable())
 			{
@@ -234,7 +236,7 @@ namespace CopSpawnTables
 	RELEASE_CONSTINIT TablePair roadblockSpawnTables;
 
 
-
+	
 
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
@@ -247,9 +249,9 @@ namespace CopSpawnTables
 	) {
 		bool allEntriesValid = true;
 
-		std::vector<std::string_view> copNames;
-		std::vector<int>              copCounts;
-		std::vector<int>              copChances;
+		std::vector<const char*> copNames; // C-style for game compatibility
+		std::vector<int>         copCounts;
+		std::vector<int>         copChances;
 
 		for (const bool forRaces : {false, true})
 		{
@@ -259,7 +261,7 @@ namespace CopSpawnTables
 			{
 				const size_t      heatLevel  = heatLevelID + 1;
 				const std::string section    = std::format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
-				const size_t      numEntries = parser.ParseUser<std::string_view, int, int>(section, copNames, {copCounts, {0}}, {copChances, {0}});
+				const size_t      numEntries = parser.ParseUser<const char*, int, int>(section, copNames, {copCounts, {1}}, {copChances, {1}});
 
 				// Attempt to add new entries to table
 				bool theseEntriesValid = true;
@@ -297,7 +299,7 @@ namespace CopSpawnTables
 	bool ParseSpawnTables(const HeatParameters::Parser& parser)
 	{
 		// All free-roam "Chasers" tables must be non-empty to serve as fallbacks
-		bool allValid = ParseTablePair(parser, "Chasers", chaserSpawnTables);
+		bool allPairEntriesValid = ParseTablePair(parser, "Chasers", chaserSpawnTables);
 
 		for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 		{
@@ -310,13 +312,13 @@ namespace CopSpawnTables
 		}
 		
 		// Parse non-"Chasers" tables (may be empty)
-		allValid &= ParseTablePair(parser, "Patrols",    patrolSpawnTables);
-		allValid &= ParseTablePair(parser, "Scripted",   scriptedSpawnTables);
-		allValid &= ParseTablePair(parser, "Roadblocks", roadblockSpawnTables);
+		allPairEntriesValid &= ParseTablePair(parser, "Patrols",    patrolSpawnTables);
+		allPairEntriesValid &= ParseTablePair(parser, "Scripted",   scriptedSpawnTables);
+		allPairEntriesValid &= ParseTablePair(parser, "Roadblocks", roadblockSpawnTables);
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			if (allValid)
+			if (allPairEntriesValid)
 				Globals::logger.Log<2>("All vehicles valid");
 		}
 

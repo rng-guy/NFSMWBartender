@@ -108,8 +108,10 @@ namespace HelicopterOverrides
 					Globals::logger.Log("WARNING: [HEL] Owner mismatch:", this->helicopterOwner, '/', this->pursuit);
 			}
 
+			const char* const copName = Globals::GetVehicleName(copVehicle);
+
 			this->helicopterOwner   = this->pursuit;
-			this->helicopterVehicle = Globals::GetVehicleName(copVehicle);
+			this->helicopterVehicle = HeatParameters::CreatePersistentString(copName).c_str();
 		}
 
 
@@ -604,8 +606,8 @@ namespace HelicopterOverrides
 
 		HeatParameters::Parse(parser, "Helicopter:Ramming", rammingCooldowns);
 
-		// Check whether vehicles are helicopters
-		if (HeatParameters::ValidateVehicleTypes("Helicopters", helicopterVehicles, Globals::IsVehicleTypeChopper))
+		// Check and make vehicle names persistent
+		if (HeatParameters::ResolveVehicleNames("Helicopters", helicopterVehicles, Globals::IsVehicleTypeChopper))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("All vehicles valid");

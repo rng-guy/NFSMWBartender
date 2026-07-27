@@ -40,8 +40,8 @@ namespace HeatParameters
 	const std::filesystem::path configPathBasic    = configPathMain / "Basic";
 	const std::filesystem::path configPathAdvanced = configPathMain / "Advanced";
 
-	// Shared runtime storage for (e.g.) vehicle-name Heat parameters
-	RELEASE_CONSTINIT ModContainers::StableVaultMap<const std::string> vaultHashToSafeString;
+	// Shared persistent storage for (e.g.) vehicle-name Heat parameters
+	RELEASE_CONSTINIT ModContainers::StableVaultMap<const std::string> vaultHashToPersistentString;
 
 
 
@@ -82,37 +82,6 @@ namespace HeatParameters
 
 
 
-	// String management ----------------------------------------------------------------------------------------------------------------------------
-
-	[[nodiscard]] const std::string* GetSafeStringByVaultHash(const vault hash)
-	{
-		const auto foundHash = vaultHashToSafeString.find(hash);
-		if (foundHash == vaultHashToSafeString.end()) return nullptr;
-
-		return foundHash->second.get();
-	}
-
-
-
-	[[nodiscard]] const std::string& CreateSafeString
-	(
-		const vault            hash,
-		const std::string_view string
-	) {
-		const auto [pairIt, isNewHash] = vaultHashToSafeString.try_emplace(hash, string);
-		return *(pairIt->second); // guaranteed to stay valid until game is closed
-	}
-
-
-	[[nodiscard]] const std::string& CreateSafeString(const std::string_view string)
-	{
-		return CreateSafeString(Globals::GetVaultHash(string), string);
-	}
-
-
-
-
-
 	// Concepts -------------------------------------------------------------------------------------------------------------------------------------
 
 	namespace Concepts
@@ -122,13 +91,78 @@ namespace HeatParameters
 		concept IsBoundsCompatible = ConfigParser::Concepts::IsBoundsCompatible<T>;
 
 		template <typename T>
-		concept IsPureArithmetic = (std::is_arithmetic_v<T> and std::same_as<T, std::remove_cvref_t<T>>);;
+		concept IsPureArithmetic = (std::is_arithmetic_v<T> and std::same_as<T, std::remove_cvref_t<T>>);
+		
+		template <typename T>
+		concept IsNonOwningString = (std::same_as<T, const char*> or std::same_as<T, std::string_view>);
 
 		template <typename T>
-		concept IsIntervalCompatible = (IsPureArithmetic<T> and IsBoundsCompatible<T>);
+		concept IsCopyPairCompatible = (IsPureArithmetic<T> or IsNonOwningString<T>);
+	}
 
-		template <typename T>
-		concept IsCopyPairCompatible = (IsPureArithmetic<T> or std::same_as<T, const char*> or std::same_as<T, std::string_view>);
+
+
+
+
+	// String management ----------------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] const std::string* GetPersistentStringByVaultHash(const vault hash)
+	{
+		const auto foundHash = vaultHashToPersistentString.find(hash);
+		if (foundHash == vaultHashToPersistentString.end()) return nullptr;
+
+		return foundHash->second.get();
+	}
+
+
+
+	[[nodiscard]] const std::string& CreatePersistentString
+	(
+		const vault            hash,
+		const std::string_view string
+	) {
+		const auto [pairIt, isNewHash] = vaultHashToPersistentString.try_emplace(hash, string);
+		return *(pairIt->second); // guaranteed to stay valid until game process terminates
+	}
+
+
+	[[nodiscard]] const std::string& CreatePersistentString(const std::string_view string)
+	{
+		return CreatePersistentString(Globals::GetVaultHash(string), string);
+	}
+
+	
+
+	void MakePersistentString
+	(
+		const vault       hash, 
+		std::string_view& string
+	) {
+		string = CreatePersistentString(hash, string);
+	}
+
+
+	void MakePersistentString(std::string_view& string)
+	{
+		MakePersistentString(Globals::GetVaultHash(string), string);
+	}
+
+
+
+	void MakePersistentString
+	(
+		const vault  hash,
+		const char*& string
+	) {
+		if (not string) return; // UB with std::string_view constructor
+		string = CreatePersistentString(hash, string).c_str();
+	}
+
+
+	void MakePersistentString(const char*& string)
+	{
+		if (not string) return; // UB with std::string_view constructor
+		MakePersistentString(Globals::GetVaultHash(string), string);
 	}
 
 
@@ -176,16 +210,16 @@ namespace HeatParameters
 
 		constexpr explicit Pair
 		(
-			const T         original, 
+			const T         vanilla, 
 			const Bounds<T> limits = {}
 		) 
 			requires (Concepts::IsBoundsCompatible<T>) 
-			: current(original), limits(limits) 
+			: current(vanilla), limits(limits) 
 		{
 		}
 
-		constexpr explicit Pair(const T original) 
-		requires (not Concepts::IsBoundsCompatible<T>) : current(original), limits({}) {}
+		constexpr explicit Pair(const T vanilla) 
+		requires (not Concepts::IsBoundsCompatible<T>) : current(vanilla), limits({}) {}
 
 
 		void SetToHeatState
@@ -198,6 +232,7 @@ namespace HeatParameters
 
 
 		[[nodiscard]] T GetMinimum() const
+		requires Concepts::IsPureArithmetic<T>
 		{
 			T minimum = std::numeric_limits<T>::max();
 
@@ -212,6 +247,7 @@ namespace HeatParameters
 
 
 		[[nodiscard]] T GetMaximum() const
+		requires Concepts::IsPureArithmetic<T>
 		{
 			T maximum = std::numeric_limits<T>::min();
 
@@ -308,7 +344,7 @@ namespace HeatParameters
 	
 
 	template <typename T>
-	requires Concepts::IsIntervalCompatible<T>
+	requires Concepts::IsBoundsCompatible<T>
 	struct Interval
 	{
 		Pair<T> minValues;
@@ -317,12 +353,12 @@ namespace HeatParameters
 
 		constexpr explicit Interval
 		(
-			const T         originalMin,
-			const T         originalMax,
+			const T         vanillaMin,
+			const T         vanillaMax,
 			const Bounds<T> limits = {}
 		) 
-			: minValues(originalMin, limits),
-			  maxValues(originalMax, limits)
+			: minValues(vanillaMin, limits),
+			  maxValues(vanillaMax, limits)
 		{
 		}
 
@@ -364,7 +400,7 @@ namespace HeatParameters
 
 
 	template <typename T>
-	requires Concepts::IsIntervalCompatible<T>
+	requires Concepts::IsBoundsCompatible<T>
 	struct OptionalInterval
 	{
 		Pair<bool> isEnableds{false};
@@ -404,17 +440,19 @@ namespace HeatParameters
 
 
 
-	// Validation functions -------------------------------------------------------------------------------------------------------------------------
+	// Resolution functions -------------------------------------------------------------------------------------------------------------------------
 
 	template <class Validator>
 	requires std::predicate<Validator, vault>
-	bool ValidateVehicleTypes
+	bool ResolveVehicleNames
 	(
 		const std::string_view pairName,
 		Pair<const char*>&     vehiclePair,
-		Validator              IsVehicleTypeValid
+		const Validator        IsVehicleTypeValid
 	) {
 		bool allTypesValid = true;
+
+		MakePersistentString(vehiclePair.current); // vanilla value by default
 
 		for (const bool forRaces : {false, true})
 		{
@@ -434,11 +472,10 @@ namespace HeatParameters
 						Globals::logger.Log<3>(DecFormat(heatLevel), vehicleName, "->", vehiclePair.current);
 					}
 
-					vehicleName   = vehiclePair.current; // vanilla value
+					vehicleName   = vehiclePair.current; // already persistent
 					allTypesValid = false;
 				}
-
-				vehicleName = CreateSafeString(vehicleType, vehicleName).c_str();
+				else MakePersistentString(vehicleType, vehicleName);
 
 				++heatLevel;
 			}

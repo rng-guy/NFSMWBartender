@@ -81,7 +81,7 @@ namespace CopNotifications
 			const auto        GetBinaryString = AsFunction<const char* __fastcall (int, binary)>(0x56BB80);
 			const char* const binaryString    = GetBinaryString(0, Globals::GetBinaryHash(stringOrName));
 
-			return HeatParameters::CreateSafeString((binaryString) ? binaryString : stringOrName).c_str();
+			return HeatParameters::CreatePersistentString((binaryString) ? binaryString : stringOrName).c_str();
 		};
 
 		return copTypeToNotificationText.FillFromVectors

@@ -809,30 +809,30 @@ namespace GroundSuppport
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	void ValidateVehicleTypes()
+	void ResolveAllVehicleNames()
 	{
-		bool allValid = true;
+		bool allTypesValid = true;
 
-		const auto ValidateTypes = [&allValid](const std::string_view pairName, auto& vehiclePair) -> void
+		const auto Validate = [&allTypesValid](const std::string_view pairName, auto& vehiclePair) -> void
 		{
-			allValid &= HeatParameters::ValidateVehicleTypes(pairName, vehiclePair, Globals::IsVehicleTypeCar);
+			allTypesValid &= HeatParameters::ResolveVehicleNames(pairName, vehiclePair, Globals::IsVehicleTypeCar);
 		};
 
-		ValidateTypes("Heavy 3, light", heavy3LightVehicles);
-		ValidateTypes("Heavy 3, heavy", heavy3HeavyVehicles);
+		Validate("Heavy 3, light", heavy3LightVehicles);
+		Validate("Heavy 3, heavy", heavy3HeavyVehicles);
 
-		ValidateTypes("Heavy 4, light", heavy4LightVehicles);
-		ValidateTypes("Heavy 4, heavy", heavy4HeavyVehicles);
+		Validate("Heavy 4, light", heavy4LightVehicles);
+		Validate("Heavy 4, heavy", heavy4HeavyVehicles);
 
-		ValidateTypes("Leader 5, Cross", leader5CrossVehicles);
+		Validate("Leader 5, Cross", leader5CrossVehicles);
 
-		ValidateTypes("Leader 7, Cross",   leader7CrossVehicles);
-		ValidateTypes("Leader 7, hench 1", leader7Hench1Vehicles);
-		ValidateTypes("Leader 7, hench 2", leader7Hench2Vehicles);
+		Validate("Leader 7, Cross",   leader7CrossVehicles);
+		Validate("Leader 7, hench 1", leader7Hench1Vehicles);
+		Validate("Leader 7, hench 2", leader7Hench2Vehicles);
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			if (allValid)
+			if (allTypesValid)
 				Globals::logger.Log<2>("All vehicles valid");
 		}
 	}
@@ -879,8 +879,8 @@ namespace GroundSuppport
 		HeatParameters::Parse(parser, "Leader5:Vehicle",     leader5CrossVehicles);
 		HeatParameters::Parse(parser, "Leader7:Vehicles",    leader7CrossVehicles,   leader7Hench1Vehicles, leader7Hench2Vehicles);
 
-		// Check whether vehicles are cars
-		ValidateVehicleTypes();
+		// Check and make vehicle names persistent
+		ResolveAllVehicleNames();
 
 		// Code modifications (conditional)
 		if constexpr (Globals::loggingEnabled)
