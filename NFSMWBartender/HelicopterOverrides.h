@@ -607,8 +607,8 @@ namespace HelicopterOverrides
 
 		HeatParameters::Parse(parser, "Helicopter:FuelTime", fuelTime);
 
-		HeatParameters::Parse(parser, "Helicopter:Chasing", chaseSpawnDistance)
-			;
+		HeatParameters::Parse(parser, "Helicopter:Chasing", chaseSpawnDistance);
+
 		HeatParameters::Parse(parser, "Helicopter:Searching", searchSpawnDistance);
 
 		HeatParameters::Parse(parser, "Helicopter:Roadblocks", affectedByRoadblock);

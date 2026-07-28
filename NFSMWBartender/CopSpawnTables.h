@@ -222,8 +222,11 @@ namespace CopSpawnTables
 
 	// Heat parameters
 	RELEASE_CONSTINIT HeatParameters::Pointer<SpawnTable> chaserSpawnTable;
+
 	RELEASE_CONSTINIT HeatParameters::Pointer<SpawnTable> patrolSpawnTable;
+
 	RELEASE_CONSTINIT HeatParameters::Pointer<SpawnTable> scriptedSpawnTable;
+
 	RELEASE_CONSTINIT HeatParameters::Pointer<SpawnTable> roadblockSpawnTable;
 
 
@@ -246,20 +249,22 @@ namespace CopSpawnTables
 
 		for (const bool forRaces : {false, true})
 		{
-			auto& tables = tablePointer.GetHeatLevelArray(forRaces);
+			auto& tableArray = tablePointer.GetHeatLevelArray(forRaces);
 
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
+				// Parse spawn-table entries
 				const size_t      heatLevel  = heatLevelID + 1;
 				const std::string section    = std::format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
 				const size_t      numEntries = parser.ParseUser<const char*, int, int>(section, copNames, {copCounts, {1}}, {copChances, {1}});
 
 				// Attempt to add new entries to table
-				bool theseEntriesValid = true;
+				bool  theseEntriesValid = true;
+				auto& levelTable        = tableArray[heatLevelID];
 
 				for (size_t entryID = 0; entryID < numEntries; ++entryID)
 				{
-					if (tables[heatLevelID].AddCopEntry(copNames[entryID], copCounts[entryID], copChances[entryID])) continue;
+					if (levelTable.AddCopEntry(copNames[entryID], copCounts[entryID], copChances[entryID])) continue;
 
 					if constexpr (Globals::loggingEnabled)
 					{
@@ -275,7 +280,7 @@ namespace CopSpawnTables
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (not theseEntriesValid)
-						Globals::logger.Log<3>(DecFormat(tables[heatLevelID].GetNumCopEntries()), "type(s) left");
+						Globals::logger.Log<3>(DecFormat(levelTable.GetNumCopEntries()), "type(s) left");
 				}
 
 				allEntriesValid &= theseEntriesValid;
@@ -358,9 +363,12 @@ namespace CopSpawnTables
 	{
 		Globals::logger.Log("    HEAT [TAB] CopSpawnTables");
 
-		chaserSpawnTable   .current->Log("Chasers                 ");
-		patrolSpawnTable   .current->Log("Patrols                 ");
-		scriptedSpawnTable .current->Log("Scripted                ");
+		chaserSpawnTable.current->Log("Chasers                 ");
+
+		patrolSpawnTable.current->Log("Patrols                 ");
+
+		scriptedSpawnTable.current->Log("Scripted                ");
+
 		roadblockSpawnTable.current->Log("Roadblocks              ");
 	}
 
@@ -373,9 +381,12 @@ namespace CopSpawnTables
 	) {
 		if (not anyFeatureEnabled) return;
 
-		chaserSpawnTable   .SetToHeatState(isRacing, heatLevel);
-		patrolSpawnTable   .SetToHeatState(isRacing, heatLevel);
-		scriptedSpawnTable .SetToHeatState(isRacing, heatLevel);
+		chaserSpawnTable.SetToHeatState(isRacing, heatLevel);
+
+		patrolSpawnTable.SetToHeatState(isRacing, heatLevel);
+
+		scriptedSpawnTable.SetToHeatState(isRacing, heatLevel);
+
 		roadblockSpawnTable.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)

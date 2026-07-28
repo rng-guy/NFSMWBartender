@@ -49,10 +49,8 @@ namespace HeatParameters
 
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
-	using Parser = ConfigParser::Parser;
-
-	template <typename T>
-	using Bounds = ConfigParser::Bounds<T>;
+	using ConfigParser::Parser;
+	using ConfigParser::Bounds;
 
 	template <typename T>
 	using HeatLevelArray = std::array<T, maxHeatLevel>;
@@ -87,11 +85,8 @@ namespace HeatParameters
 	namespace Concepts
 	{
 
-		template <typename T>
-		concept IsBoundsCompatible = ConfigParser::Concepts::IsBoundsCompatible<T>;
-
-		template <typename T>
-		concept IsPureArithmetic = (std::is_arithmetic_v<T> and std::same_as<T, std::remove_cvref_t<T>>);
+		using ConfigParser::Concepts::IsPureArithmetic;
+		using ConfigParser::Concepts::IsBoundsCompatible;
 		
 		template <typename T>
 		concept IsNonOwningString = (std::same_as<T, const char*> or std::same_as<T, std::string_view>);
@@ -180,21 +175,21 @@ namespace HeatParameters
 		HeatLevelArray<T> roam = {};
 		HeatLevelArray<T> race = {};
 
-		Bounds<T> limits;
+		[[no_unique_address]] Bounds<T> limits;
 
 
 		constexpr explicit Value
 		(
-			const T         vanilla, 
+			const T         vanillaValue,
 			const Bounds<T> limits = {}
 		) 
-			requires (Concepts::IsBoundsCompatible<T>) 
-			: current(vanilla), limits(limits) 
+			requires Concepts::IsBoundsCompatible<T> 
+			: current(vanillaValue), limits(limits)
 		{
 		}
 
-		constexpr explicit Value(const T vanilla) 
-		requires (not Concepts::IsBoundsCompatible<T>) : current(vanilla), limits({}) {}
+		constexpr explicit Value(const T vanillaValue) 
+		requires (not Concepts::IsBoundsCompatible<T>) : current(vanillaValue) {}
 
 
 		[[nodiscard]] auto& GetHeatLevelArray(const bool forRaces)
@@ -214,7 +209,8 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->current = this->GetHeatLevelArray(forRaces)[heatLevel - 1];
+			const auto& levelArray = this->GetHeatLevelArray(forRaces);
+			this->current = levelArray[heatLevel - 1];
 		}
 
 
@@ -225,8 +221,8 @@ namespace HeatParameters
 
 			for (const bool forRaces : {false, true})
 			{
-				for (const T value : this->GetHeatLevelArray(forRaces))
-					minimum = std::min<T>(minimum, value);
+				for (const T levelValue : this->GetHeatLevelArray(forRaces))
+					minimum = std::min<T>(minimum, levelValue);
 			}
 
 			return minimum;
@@ -240,8 +236,8 @@ namespace HeatParameters
 
 			for (const bool forRaces : {false, true})
 			{
-				for (const T value : this->GetHeatLevelArray(forRaces))
-					maximum = std::max<T>(maximum, value);
+				for (const T levelValue : this->GetHeatLevelArray(forRaces))
+					maximum = std::max<T>(maximum, levelValue);
 			}
 
 			return maximum;
@@ -253,8 +249,8 @@ namespace HeatParameters
 		{
 			for (const bool forRaces : {false, true})
 			{
-				for (const T value : this->GetHeatLevelArray(forRaces))
-					if (value) return true;
+				for (const bool levelFlag : this->GetHeatLevelArray(forRaces))
+					if (levelFlag) return true;
 			}
 
 			return false;
@@ -266,8 +262,8 @@ namespace HeatParameters
 		{
 			for (const bool forRaces : {false, true})
 			{
-				for (const T value : this->GetHeatLevelArray(forRaces))
-					if (not value) return false;
+				for (const bool levelFlag : this->GetHeatLevelArray(forRaces))
+					if (not levelFlag) return false;
 			}
 
 			return true;
@@ -281,8 +277,8 @@ namespace HeatParameters
 
 			for (const bool forRaces : {false, true})
 			{
-				for (T& value : this->GetHeatLevelArray(forRaces))
-					MakePersistentString(value);
+				for (T& levelString : this->GetHeatLevelArray(forRaces))
+					MakePersistentString(levelString);
 			}
 		}
 
@@ -305,7 +301,7 @@ namespace HeatParameters
 
 
 		constexpr explicit OptionalValue(const Bounds<T> limits = {})
-		requires (Concepts::IsBoundsCompatible<T>) : value(T(), limits) {}
+		requires Concepts::IsBoundsCompatible<T> : value(T(), limits) {}
 
 		constexpr OptionalValue()
 		requires (not Concepts::IsBoundsCompatible<T>) : value(T()) {}
@@ -357,7 +353,8 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->current = &(this->GetHeatLevelArray(forRaces)[heatLevel - 1]);
+			const auto& levelArray = this->GetHeatLevelArray(forRaces);
+			this->current = &(levelArray[heatLevel - 1]);
 		}
 	};
 
@@ -499,9 +496,9 @@ namespace HeatParameters
 		{
 			size_t heatLevel = 1;
 
-			for (T& vehicleName : vehicleValue.GetHeatLevelArray(forRaces))
+			for (T& levelVehicleName : vehicleValue.GetHeatLevelArray(forRaces))
 			{
-				const vault vehicleType = Globals::GetVaultHash(vehicleName);
+				const vault vehicleType = Globals::GetVaultHash(levelVehicleName);
 
 				if (not IsVehicleTypeValid(vehicleType))
 				{
@@ -510,13 +507,13 @@ namespace HeatParameters
 						if (allTypesValid)
 							Globals::logger.Log<2>(valueName, (forRaces) ? "(race)" : "(roam)");
 
-						Globals::logger.Log<3>(DecFormat(heatLevel), vehicleName, "->", vehicleValue.current);
+						Globals::logger.Log<3>(DecFormat(heatLevel), levelVehicleName, "->", vehicleValue.current);
 					}
 
-					vehicleName   = vehicleValue.current; // already persistent
-					allTypesValid = false;
+					levelVehicleName = vehicleValue.current; // already persistent
+					allTypesValid    = false;
 				}
-				else MakePersistentString(vehicleType, vehicleName);
+				else MakePersistentString(vehicleType, levelVehicleName);
 
 				++heatLevel;
 			}
@@ -609,7 +606,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		void CopyRoamToRaceArray(Value<T>& value)
+		void CopyRoamToRaceArrays(Value<T>& value)
 		{
 			// Regular race arrays fall back to their roam counterparts
 			value.race = value.roam;
@@ -617,7 +614,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		void CopyRoamToRaceArray(Interval<T>& interval)
+		void CopyRoamToRaceArrays(Interval<T>& interval)
 		{
 			// The race arrays of regular intervals fall back to their roam counterparts
 			interval.min.race = interval.min.roam;
@@ -661,11 +658,11 @@ namespace HeatParameters
 		) {
 			for (const bool forRaces : {false, true})
 			{
-				auto&       lowers = minValue.GetHeatLevelArray(forRaces);
-				const auto& uppers = maxValue.GetHeatLevelArray(forRaces);
+				auto&       minArray = minValue.GetHeatLevelArray(forRaces);
+				const auto& maxArray = maxValue.GetHeatLevelArray(forRaces);
 
 				for (const size_t heatLevelID : heatLevelIDs)
-					lowers[heatLevelID] = std::min<T>(lowers[heatLevelID], uppers[heatLevelID]);
+					minArray[heatLevelID] = std::min<T>(minArray[heatLevelID], maxArray[heatLevelID]);
 			}
 		}
 
@@ -704,11 +701,11 @@ namespace HeatParameters
 		const std::string_view    section,
 		HeatParameters&        ...parameters
 	) {
-		// Parse roam arrays, using internal default values as fallback
+		// Parse roam arrays, using internal default (i.e. vanilla) values as fallback
 		Details::ParseHeatLevelArray<HeatParameters...>(/* forRaces = */ false, parser, section, parameters...);
 
-		// Use roam arrays as initial race arrays
-		(..., Details::CopyRoamToRaceArray(parameters));
+		// Use parsed roam arrays as initial race arrays
+		(..., Details::CopyRoamToRaceArrays(parameters));
 
 		// Parse race arrays, using copied roam arrays as fallback
 		Details::ParseHeatLevelArray<HeatParameters...>(/* forRaces = */ true, parser, section, parameters...);
@@ -729,10 +726,10 @@ namespace HeatParameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
-			// Parse roam / race arrays without fallbacks, storing only those we can parse successfully
+			// Parse roam / race arrays without fallbacks
 			const HeatLevelArray<bool> isEnableds = Details::ParseHeatLevelArray<HeatParameters...>(forRaces, parser, section, parameters...);
 
-			// Mark successfully parsed Heat levels as enabled
+			// Flag successfully parsed Heat levels
 			(..., (parameters.isEnabled.GetHeatLevelArray(forRaces) = isEnableds));
 		}
 

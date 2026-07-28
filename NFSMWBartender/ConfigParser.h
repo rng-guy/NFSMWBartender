@@ -25,15 +25,13 @@ namespace ConfigParser
 	namespace Concepts
 	{
 
-		// Bool doesn't require bounds-checking
+		using StreamParser::Concepts::IsPureArithmetic;
+		
 		template <typename V>
-		concept IsBoundsCompatible = (StreamParser::Concepts::IsPureArithmetic<V> and (not std::same_as<V, bool>));
+		concept IsBoundsCompatible = (IsPureArithmetic<V> and (not std::same_as<V, bool>));
 
-		template <typename ...Vs>
-		concept AreParseable = StreamParser::Concepts::AreParseable<Vs...>;
-
-		template <typename K, typename ...Vs>
-		concept AreUserParseable = StreamParser::Concepts::AreSectionParseable<K, Vs...>;
+		using StreamParser::Concepts::AreParseable;
+		using StreamParser::Concepts::AreSectionParseable;
 	}
 
 	
@@ -45,7 +43,7 @@ namespace ConfigParser
 	template <typename T>
 	struct Bounds 
 	{
-		constexpr void Enforce(const auto&) const {}
+		constexpr void Enforce(auto&) const {}
 	};
 
 
@@ -57,17 +55,17 @@ namespace ConfigParser
 		std::optional<T> upper;
 
 
-		constexpr void Enforce(T& value) const
+		void Enforce(T& value) const
 		{
-			if (this->lower and (value < *(this->lower)))
-				value = *(this->lower);
+			const auto& lower = this->lower;
+			const auto& upper = this->upper;
 
-			if (this->upper and (value > *(this->upper)))
-				value = *(this->upper);
+			if (lower and (value < *lower)) value = *lower;
+			if (upper and (value > *upper)) value = *upper;
 		}
 
 
-		constexpr void Enforce(std::span<T> values) const
+		void Enforce(const std::span<T> values) const
 		{
 			for (T& value : values)
 				this->Enforce(value);
@@ -77,31 +75,33 @@ namespace ConfigParser
 
 
 	template <typename T>
+	requires Concepts::AreParseable<T>
 	struct Parameter
 	{
 		T& value;
 
-		const Bounds<T> limits = {};
+		[[no_unique_address]] Bounds<T> limits;
 	};
 
 
 	template <typename T, size_t numRows>
+	requires Concepts::AreParseable<T>
 	struct Format
 	{
-		std::array<T, numRows>& values;
+		std::array   <T, numRows>& values;
+		std::optional<T>           defaultValue;
 
-		std::optional<T> defaultValue;
-
-		const Bounds<T> limits = {};
+		[[no_unique_address]] Bounds<T> limits;
 	};
 
 
 	template <typename T>
+	requires Concepts::AreParseable<T>
 	struct User
 	{
 		std::vector<T>& values;
 
-		const Bounds<T> limits = {};
+		[[no_unique_address]] Bounds<T> limits;
 	};
 
 
@@ -293,7 +293,7 @@ namespace ConfigParser
 		
 		// User-defined key-value pair(s) from parsed file
 		template <typename K, typename ...Vs>
-		requires Concepts::AreUserParseable<K, Vs...>
+		requires Concepts::AreSectionParseable<K, Vs...>
 		size_t ParseUser
 		(
 			const std::string_view    section,
