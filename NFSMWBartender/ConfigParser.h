@@ -114,20 +114,20 @@ namespace ConfigParser
 	{
 	private:
 
-		std::filesystem::path currentPath;
+		std::filesystem::path currentFile;
 
 		FlatContainers::Map<std::filesystem::path, Parser::Sections> pathToSections;
 
 
-		bool UpdatePath
+		bool UpdateFilePath
 		(
 			const std::filesystem::path& root,
 			const std::string_view       fileName
 		) {
 			std::filesystem::path newPath = root / fileName;
-			if (this->currentPath == newPath) return false;
+			if (this->currentFile == newPath) return false;
 
-			this->currentPath = std::move(newPath);
+			this->currentFile = std::move(newPath);
 
 			return true;
 		}
@@ -158,18 +158,18 @@ namespace ConfigParser
 			const std::string_view       fileName
 		) {
 			// Check against current path
-			if (not this->UpdatePath(root, fileName))
+			if (not this->UpdateFilePath(root, fileName))
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Keep:", fileName);
 
-				return true;
+				return true; // file already loaded
 			}
 
 			this->ClearParsedStrings();
 
 			// Attempt to retrieve file from cache
-			const auto        [pairIt, isNewPath] = this->pathToSections.try_emplace(this->currentPath);
+			const auto        [pairIt, isNewPath] = this->pathToSections.try_emplace(this->currentFile);
 			Parser::Sections& cachedFileSections  = pairIt->second;
 
 			if (not isNewPath)
@@ -179,11 +179,11 @@ namespace ConfigParser
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Load:", fileName);
 
-				return true;
+				return true; // file already cached
 			}
 			
 			// Attempt to parse new file
-			std::ifstream fileStream(this->currentPath);
+			std::ifstream fileStream(this->currentFile);
 
 			if (fileStream.is_open())
 			{
@@ -194,18 +194,19 @@ namespace ConfigParser
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log<2>("Open:", fileName);
 
-				return true;
+				return true; // new file exists
 			}
-			else if constexpr (Globals::loggingEnabled)
+
+			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>("Skip:", fileName);
 
-			return false;
+			return false; // new file doesn't exist
 		}
 
 
-		[[nodiscard]] const auto& GetCurrentPath() const
+		[[nodiscard]] const auto& GetCurrentFilePath() const
 		{
-			return this->currentPath;
+			return this->currentFile;
 		}
 
 

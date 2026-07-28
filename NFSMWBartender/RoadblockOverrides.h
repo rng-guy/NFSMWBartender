@@ -96,7 +96,7 @@ namespace RoadblockOverrides
 		}
 
 
-		[[nodiscard]] bool MirrorEnabled() const
+		[[nodiscard]] bool IsMirrorEnabled() const
 		{
 			return (this->mirrorChance > 0.f);
 		}
@@ -130,14 +130,14 @@ namespace RoadblockOverrides
 			{
 				++numSpike;
 
-				if (setup.MirrorEnabled())
+				if (setup.IsMirrorEnabled())
 					++numMirrorSpike;
 			}
 			else
 			{
 				++numRegular;
 
-				if (setup.MirrorEnabled())
+				if (setup.IsMirrorEnabled())
 					++numMirrorRegular;
 			}
 		}
