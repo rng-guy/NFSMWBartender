@@ -55,7 +55,7 @@ namespace HeatParameters
 	using Bounds = ConfigParser::Bounds<T>;
 
 	template <typename T>
-	using Values = std::array<T, maxHeatLevel>;
+	using HeatLevelArray = std::array<T, maxHeatLevel>;
 
 	template <typename T>
 	using Format = ConfigParser::Format<T, maxHeatLevel>;
@@ -68,7 +68,7 @@ namespace HeatParameters
 
 	[[nodiscard]] consteval auto GenerateHeatLevelIDs()
 	{
-		Values<size_t> heatLevelIDs = {};
+		HeatLevelArray<size_t> heatLevelIDs = {};
 
 		for (size_t heatLevelID = 0; heatLevelID < maxHeatLevel; ++heatLevelID)
 			heatLevelIDs[heatLevelID] = heatLevelID;
@@ -97,7 +97,7 @@ namespace HeatParameters
 		concept IsNonOwningString = (std::same_as<T, const char*> or std::same_as<T, std::string_view>);
 
 		template <typename T>
-		concept IsCopyPairCompatible = (IsPureArithmetic<T> or IsNonOwningString<T>);
+		concept IsCopyCompatible = (IsPureArithmetic<T> or IsNonOwningString<T>);
 	}
 
 
@@ -172,43 +172,18 @@ namespace HeatParameters
 	// HeatParameter structs ------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
-	struct BasePair
-	{
-	protected:
-
-		constexpr BasePair() = default;
-
-
-	public:
-
-		Values<T> roam = {};
-		Values<T> race = {};
-
-
-		[[nodiscard]] Values<T>& GetValues(const bool forRaces)
-		{
-			return (forRaces) ? this->race : this->roam;
-		}
-
-
-		[[nodiscard]] const Values<T>& GetValues(const bool forRaces) const
-		{
-			return (forRaces) ? this->race : this->roam;
-		}
-	};
-
-
-
-	template <typename T>
-	requires Concepts::IsCopyPairCompatible<T>
-	struct Pair : public BasePair<T>
+	requires Concepts::IsCopyCompatible<T>
+	struct Value
 	{
 		T current;
+
+		HeatLevelArray<T> roam = {};
+		HeatLevelArray<T> race = {};
 
 		Bounds<T> limits;
 
 
-		constexpr explicit Pair
+		constexpr explicit Value
 		(
 			const T         vanilla, 
 			const Bounds<T> limits = {}
@@ -218,8 +193,20 @@ namespace HeatParameters
 		{
 		}
 
-		constexpr explicit Pair(const T vanilla) 
+		constexpr explicit Value(const T vanilla) 
 		requires (not Concepts::IsBoundsCompatible<T>) : current(vanilla), limits({}) {}
+
+
+		[[nodiscard]] auto& GetHeatLevelArray(const bool forRaces)
+		{
+			return (forRaces) ? this->race : this->roam;
+		}
+
+
+		[[nodiscard]] const auto& GetHeatLevelArray(const bool forRaces) const
+		{
+			return (forRaces) ? this->race : this->roam;
+		}
 
 
 		void SetToHeatState
@@ -227,7 +214,7 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->current = this->GetValues(forRaces)[heatLevel - 1];
+			this->current = this->GetHeatLevelArray(forRaces)[heatLevel - 1];
 		}
 
 
@@ -238,7 +225,7 @@ namespace HeatParameters
 
 			for (const bool forRaces : {false, true})
 			{
-				for (const T value : this->GetValues(forRaces))
+				for (const T value : this->GetHeatLevelArray(forRaces))
 					minimum = std::min<T>(minimum, value);
 			}
 
@@ -253,7 +240,7 @@ namespace HeatParameters
 
 			for (const bool forRaces : {false, true})
 			{
-				for (const T value : this->GetValues(forRaces))
+				for (const T value : this->GetHeatLevelArray(forRaces))
 					maximum = std::max<T>(maximum, value);
 			}
 
@@ -261,74 +248,82 @@ namespace HeatParameters
 		}
 
 
-		void Log(const std::string_view pairName) const
+		void MakePersistent()
+		requires Concepts::IsNonOwningString<T>
 		{
-			Globals::logger.Log<2>(pairName, this->current);
+			MakePersistentString(this->current);
+
+			for (const bool forRaces : {false, true})
+			{
+				for (T& value : this->GetHeatLevelArray(forRaces))
+					MakePersistentString(value);
+			}
+		}
+
+
+		void Log(const std::string_view valueName) const
+		{
+			Globals::logger.Log<2>(valueName, this->current);
 		}
 	};
 
 
 
 	template <typename T>
-	requires (not Concepts::IsCopyPairCompatible<T>)
-	struct PointerPair : public BasePair<T>
+	requires Concepts::IsCopyCompatible<T>
+	struct OptionalValue
+	{
+		Value<bool> isEnabled{false};
+
+		Value<T> value;
+
+
+		constexpr explicit OptionalValue(const Bounds<T> limits = {})
+		requires (Concepts::IsBoundsCompatible<T>) : value(T(), limits) {}
+
+		constexpr OptionalValue()
+		requires (not Concepts::IsBoundsCompatible<T>) : value(T()) {}
+
+
+		void SetToHeatState
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->isEnabled.SetToHeatState(forRaces, heatLevel);
+			this->value    .SetToHeatState(forRaces, heatLevel);
+		}
+
+
+		void Log(const std::string_view valueName) const
+		{
+			if (this->isEnabled.current)
+				Globals::logger.Log<2>(valueName, this->value.current);
+		}
+	};
+
+
+
+	template <typename T>
+	requires (not Concepts::IsCopyCompatible<T>)
+	struct Pointer
 	{
 		const T* current = nullptr;
 
-
-		void SetToHeatState
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->current = &(this->GetValues(forRaces)[heatLevel - 1]);
-		}
-	};
+		HeatLevelArray<T> roam = {};
+		HeatLevelArray<T> race = {};
 
 
-
-	template <typename T>
-	requires Concepts::IsCopyPairCompatible<T>
-	struct OptionalPair
-	{
-		Pair<bool> isEnableds{false};
-
-		Pair<T> values;
-
-
-		constexpr explicit OptionalPair(const Bounds<T> limits = {})
-		requires (Concepts::IsBoundsCompatible<T>) : values(T(), limits) {}
-
-		constexpr OptionalPair() 
-		requires (not Concepts::IsBoundsCompatible<T>) : values(T()) {}
-
-
-		void SetToHeatState
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->isEnableds.SetToHeatState(forRaces, heatLevel);
-			this->values    .SetToHeatState(forRaces, heatLevel);
-		}
-
-
-		void Log(const std::string_view optionalName) const
+		[[nodiscard]] auto& GetHeatLevelArray(const bool forRaces)
 		{
-			if (this->isEnableds.current)
-				Globals::logger.Log<2>(optionalName, this->values.current);
+			return (forRaces) ? this->race : this->roam;
 		}
-	};
 
 
-
-	template <typename T>
-	requires (not Concepts::IsCopyPairCompatible<T>)
-	struct OptionalPointerPair
-	{
-		Pair<bool> isEnableds{false};
-
-		PointerPair<T> values;
+		[[nodiscard]] const auto& GetHeatLevelArray(const bool forRaces) const
+		{
+			return (forRaces) ? this->race : this->roam;
+		}
 
 
 		void SetToHeatState
@@ -336,8 +331,28 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->isEnableds.SetToHeatState(forRaces, heatLevel);
-			this->values    .SetToHeatState(forRaces, heatLevel);
+			this->current = &(this->GetHeatLevelArray(forRaces)[heatLevel - 1]);
+		}
+	};
+
+	
+
+	template <typename T>
+	requires (not Concepts::IsCopyCompatible<T>)
+	struct OptionalPointer
+	{
+		Value<bool> isEnabled{false};
+
+		Pointer<T> pointer;
+
+
+		void SetToHeatState
+		(
+			const bool   forRaces,
+			const size_t heatLevel
+		) {
+			this->isEnabled.SetToHeatState(forRaces, heatLevel);
+			this->pointer  .SetToHeatState(forRaces, heatLevel);
 		}
 	};
 
@@ -347,8 +362,8 @@ namespace HeatParameters
 	requires Concepts::IsBoundsCompatible<T>
 	struct Interval
 	{
-		Pair<T> minValues;
-		Pair<T> maxValues;
+		Value<T> min;
+		Value<T> max;
 
 
 		constexpr explicit Interval
@@ -357,8 +372,8 @@ namespace HeatParameters
 			const T         vanillaMax,
 			const Bounds<T> limits = {}
 		) 
-			: minValues(vanillaMin, limits),
-			  maxValues(vanillaMax, limits)
+			: min(vanillaMin, limits),
+			  max(vanillaMax, limits)
 		{
 		}
 
@@ -368,32 +383,32 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->minValues.SetToHeatState(forRaces, heatLevel);
-			this->maxValues.SetToHeatState(forRaces, heatLevel);
+			this->min.SetToHeatState(forRaces, heatLevel);
+			this->max.SetToHeatState(forRaces, heatLevel);
 		}
 
 
 		[[nodiscard]] T GetMinimum() const
 		{
-			return this->minValues.GetMinimum();
+			return this->min.GetMinimum();
 		}
 
 
 		[[nodiscard]] T GetMaximum() const
 		{
-			return this->maxValues.GetMaximum();
+			return this->max.GetMaximum();
 		}
 
 
 		[[nodiscard]] T GetRandomValue() const
 		{
-			return Globals::prng.GenerateNumber<T>(this->minValues.current, this->maxValues.current);
+			return Globals::prng.GenerateNumber<T>(this->min.current, this->max.current);
 		}
 
 
 		void Log(const std::string_view intervalName) const
 		{
-			Globals::logger.Log<2>(intervalName, this->minValues.current, "to", this->maxValues.current);
+			Globals::logger.Log<2>(intervalName, this->min.current, "to", this->max.current);
 		}
 	};
 
@@ -403,13 +418,13 @@ namespace HeatParameters
 	requires Concepts::IsBoundsCompatible<T>
 	struct OptionalInterval
 	{
-		Pair<bool> isEnableds{false};
+		Value<bool> isEnabled{false};
 
-		Pair<T> minValues;
-		Pair<T> maxValues;
+		Value<T> min;
+		Value<T> max;
 
 
-		constexpr explicit OptionalInterval(const Bounds<T> limits = {}) : minValues(T(), limits), maxValues(T(), limits) {}
+		constexpr explicit OptionalInterval(const Bounds<T> limits = {}) : min(T(), limits), max(T(), limits) {}
 
 
 		void SetToHeatState
@@ -417,22 +432,22 @@ namespace HeatParameters
 			const bool   forRaces,
 			const size_t heatLevel
 		) {
-			this->isEnableds.SetToHeatState(forRaces, heatLevel);
-			this->minValues .SetToHeatState(forRaces, heatLevel);
-			this->maxValues .SetToHeatState(forRaces, heatLevel);
+			this->isEnabled.SetToHeatState(forRaces, heatLevel);
+			this->min      .SetToHeatState(forRaces, heatLevel);
+			this->max      .SetToHeatState(forRaces, heatLevel);
 		}
 
 
 		[[nodiscard]] T GetRandomValue() const
 		{
-			return Globals::prng.GenerateNumber<T>(this->minValues.current, this->maxValues.current);
+			return Globals::prng.GenerateNumber<T>(this->min.current, this->max.current);
 		}
 
 
 		void Log(const std::string_view intervalName) const
 		{
-			if (this->isEnableds.current)
-				Globals::logger.Log<2>(intervalName, this->minValues.current, "to", this->maxValues.current);
+			if (this->isEnabled.current)
+				Globals::logger.Log<2>(intervalName, this->min.current, "to", this->max.current);
 		}
 	};
 
@@ -442,23 +457,23 @@ namespace HeatParameters
 
 	// Resolution functions -------------------------------------------------------------------------------------------------------------------------
 
-	template <class Validator>
-	requires std::predicate<Validator, vault>
+	template <typename T, class Validator>
+	requires (Concepts::IsNonOwningString<T> and std::predicate<Validator, vault>)
 	bool ResolveVehicleNames
 	(
-		const std::string_view pairName,
-		Pair<const char*>&     vehiclePair,
+		const std::string_view valueName,
+		Value<T>&              vehicleValue,
 		const Validator        IsVehicleTypeValid
 	) {
 		bool allTypesValid = true;
 
-		MakePersistentString(vehiclePair.current); // vanilla value by default
+		MakePersistentString(vehicleValue.current); // vanilla value by default
 
 		for (const bool forRaces : {false, true})
 		{
 			size_t heatLevel = 1;
 
-			for (const char*& vehicleName : vehiclePair.GetValues(forRaces))
+			for (T& vehicleName : vehicleValue.GetHeatLevelArray(forRaces))
 			{
 				const vault vehicleType = Globals::GetVaultHash(vehicleName);
 
@@ -467,12 +482,12 @@ namespace HeatParameters
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (allTypesValid)
-							Globals::logger.Log<2>(pairName, (forRaces) ? "(race)" : "(roam)");
+							Globals::logger.Log<2>(valueName, (forRaces) ? "(race)" : "(roam)");
 
-						Globals::logger.Log<3>(DecFormat(heatLevel), vehicleName, "->", vehiclePair.current);
+						Globals::logger.Log<3>(DecFormat(heatLevel), vehicleName, "->", vehicleValue.current);
 					}
 
-					vehicleName   = vehiclePair.current; // already persistent
+					vehicleName   = vehicleValue.current; // already persistent
 					allTypesValid = false;
 				}
 				else MakePersistentString(vehicleType, vehicleName);
@@ -494,14 +509,14 @@ namespace HeatParameters
 	{
 
 		template <typename T> struct IsRegular              : std::false_type {};
-		template <typename T> struct IsRegular<Pair    <T>> : std::true_type  {};
+		template <typename T> struct IsRegular<Value   <T>> : std::true_type  {};
 		template <typename T> struct IsRegular<Interval<T>> : std::true_type  {};
 
 		template <typename ...T>
 		concept AreRegular = (IsRegular<T>::value and ...);
 
 		template <typename T> struct IsOptional                      : std::false_type {};
-		template <typename T> struct IsOptional<OptionalPair    <T>> : std::true_type  {};
+		template <typename T> struct IsOptional<OptionalValue   <T>> : std::true_type  {};
 		template <typename T> struct IsOptional<OptionalInterval<T>> : std::true_type  {};
 
 		template <typename ...T>
@@ -510,89 +525,93 @@ namespace HeatParameters
 
 
 		template <typename T>
-		[[nodiscard]] auto MakeFormatTuple
+		[[nodiscard]] auto CreateFormatTuple
 		(
 			const bool forRaces,
-			Pair<T>&   pair
+			Value<T>&  value
 		) {
-			// Regular pairs have one array per setting (race / roam), a default value, and limits
-			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(pair.current);
-			return std::tuple(Format<T>(pair.GetValues(forRaces), defaultValue, pair.limits));
+			// Regular values have one array per setting (race / roam), a default value, and limits
+			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(value.current);
+			return std::tuple(Format<T>(value.GetHeatLevelArray(forRaces), defaultValue, value.limits));
 		}
 
 
 		template <typename T>
-		[[nodiscard]] auto MakeFormatTuple
+		[[nodiscard]] auto CreateFormatTuple
+		(
+			const bool        forRaces,
+			OptionalValue<T>& optionalValue
+		) {
+			// Optional values have no default value
+			auto& value = optionalValue.value;
+			return std::tuple(Format<T>(value.GetHeatLevelArray(forRaces), std::nullopt, value.limits));
+		}
+
+
+		template <typename T>
+		[[nodiscard]] auto CreateFormatTuple
 		(
 			const bool   forRaces,
 			Interval<T>& interval
 		) {
-			// Regular intervals consist of two regular pairs
+			// Regular intervals consist of two regular values
 			return std::tuple_cat
 			(
-				MakeFormatTuple<T>(forRaces, interval.minValues), 
-				MakeFormatTuple<T>(forRaces, interval.maxValues)
+				CreateFormatTuple<T>(forRaces, interval.min),
+				CreateFormatTuple<T>(forRaces, interval.max)
 			);
 		}
 
 
 		template <typename T>
-		[[nodiscard]] auto MakeFormatTuple
-		(
-			const bool       forRaces,
-			OptionalPair<T>& pair
-		) {
-			// Optional pairs have no default value
-			return std::tuple(Format<T>(pair.values.GetValues(forRaces), std::nullopt, pair.values.limits));
-		}
-
-
-		template <typename T>
-		[[nodiscard]] auto MakeFormatTuple
+		[[nodiscard]] auto CreateFormatTuple
 		(
 			const bool           forRaces,
-			OptionalInterval<T>& interval
+			OptionalInterval<T>& optionalInterval
 		) {
-			// Optional intervals consist of two pairs without default values
+			// Optional intervals consist of two regular values without default values
+			auto& min = optionalInterval.min;
+			auto& max = optionalInterval.max;
+
 			return std::tuple
 			(
-				Format<T>(interval.minValues.GetValues(forRaces), std::nullopt, interval.minValues.limits),
-				Format<T>(interval.maxValues.GetValues(forRaces), std::nullopt, interval.maxValues.limits)
+				Format<T>(min.GetHeatLevelArray(forRaces), std::nullopt, min.limits),
+				Format<T>(max.GetHeatLevelArray(forRaces), std::nullopt, max.limits)
 			);
 		}
 
 
 
 		template <typename T>
-		void CopyRoamToRaceValues(Pair<T>& pair)
+		void CopyRoamToRaceArray(Value<T>& value)
 		{
-			// The race values of regular pairs fall back to their roam values
-			pair.race = pair.roam;
+			// Regular race arrays fall back to their roam counterparts
+			value.race = value.roam;
 		}
 
 
 		template <typename T>
-		void CopyRoamToRaceValues(Interval<T>& interval)
+		void CopyRoamToRaceArray(Interval<T>& interval)
 		{
-			// The race values of regular intervals fall back to their roam values
-			interval.minValues.race = interval.minValues.roam;
-			interval.maxValues.race = interval.maxValues.roam;
+			// The race arrays of regular intervals fall back to their roam counterparts
+			interval.min.race = interval.min.roam;
+			interval.max.race = interval.max.roam;
 		}
 
 
 
 		template <class ...HeatParameters>
 		requires (AreRegular<HeatParameters...> or AreOptional<HeatParameters...>)
-		Values<bool> ParsePartial
+		HeatLevelArray<bool> ParseHeatLevelArray
 		(
 			const bool                forRaces,
 			const Parser&             parser,
 			const std::string_view    section,
 			HeatParameters&        ...parameters
 		) {
-			auto formats = std::tuple_cat(MakeFormatTuple(forRaces, parameters)...);
+			auto formats = std::tuple_cat(CreateFormatTuple(forRaces, parameters)...);
 
-			return [&]<size_t ...formatIDs>(std::index_sequence<formatIDs...>) -> Values<bool>
+			return [&]<size_t ...formatIDs>(std::index_sequence<formatIDs...>) -> HeatLevelArray<bool>
 			{
 				return parser.ParseFormat<maxHeatLevel>
 				(
@@ -609,15 +628,15 @@ namespace HeatParameters
 
 
 		template <typename T>
-		void OrderIntervals
+		void OrderIntervalValues
 		(
-			Pair<T>&       minValues,
-			const Pair<T>& maxValues
+			Value<T>&       minValue,
+			const Value<T>& maxValue
 		) {
 			for (const bool forRaces : {false, true})
 			{
-				Values<T>&       lowers = minValues.GetValues(forRaces);
-				const Values<T>& uppers = maxValues.GetValues(forRaces);
+				auto&       lowers = minValue.GetHeatLevelArray(forRaces);
+				const auto& uppers = maxValue.GetHeatLevelArray(forRaces);
 
 				for (const size_t heatLevelID : heatLevelIDs)
 					lowers[heatLevelID] = std::min<T>(lowers[heatLevelID], uppers[heatLevelID]);
@@ -633,15 +652,15 @@ namespace HeatParameters
 		void DoPostProcessing(Interval<T>& interval)
 		{
 			// Regular intervals must have correctly ordered values
-			OrderIntervals<T>(interval.minValues, interval.maxValues);
+			OrderIntervalValues<T>(interval.min, interval.max);
 		}
 
 
 		template <typename T>
-		void DoPostProcessing(OptionalInterval<T>& interval)
+		void DoPostProcessing(OptionalInterval<T>& optionalInterval)
 		{
 			// Optional intervals must have correctly ordered values
-			OrderIntervals<T>(interval.minValues, interval.maxValues);
+			OrderIntervalValues<T>(optionalInterval.min, optionalInterval.max);
 		}
 	}
 
@@ -659,14 +678,14 @@ namespace HeatParameters
 		const std::string_view    section,
 		HeatParameters&        ...parameters
 	) {
-		// Parse roam values, using internal default values as fallback
-		Details::ParsePartial<HeatParameters...>(/* forRaces = */ false, parser, section, parameters...);
+		// Parse roam arrays, using internal default values as fallback
+		Details::ParseHeatLevelArray<HeatParameters...>(/* forRaces = */ false, parser, section, parameters...);
 
-		// Use roam values as initial race values
-		(..., Details::CopyRoamToRaceValues(parameters));
+		// Use roam arrays as initial race arrays
+		(..., Details::CopyRoamToRaceArray(parameters));
 
-		// Parse race values, using copied roam values as fallback
-		Details::ParsePartial<HeatParameters...>(/* forRaces = */ true, parser, section, parameters...);
+		// Parse race arrays, using copied roam arrays as fallback
+		Details::ParseHeatLevelArray<HeatParameters...>(/* forRaces = */ true, parser, section, parameters...);
 
 		// Enforce proper value-ordering in intervals
 		(..., Details::DoPostProcessing(parameters));
@@ -684,11 +703,11 @@ namespace HeatParameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
-			// Parse roam / race values without fallbacks, storing which ones could be parsed successfully
-			const auto isEnableds = Details::ParsePartial<HeatParameters...>(forRaces, parser, section, parameters...);
+			// Parse roam / race arrays without fallbacks, storing only those we can parse successfully
+			const HeatLevelArray<bool> isEnableds = Details::ParseHeatLevelArray<HeatParameters...>(forRaces, parser, section, parameters...);
 
-			// Mark successfully parsed values as enabled
-			(..., (parameters.isEnableds.GetValues(forRaces) = isEnableds));
+			// Mark successfully parsed Heat levels as enabled
+			(..., (parameters.isEnabled.GetHeatLevelArray(forRaces) = isEnableds));
 		}
 
 		// Enforce proper value-ordering in intervals

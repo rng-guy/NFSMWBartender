@@ -24,24 +24,24 @@ namespace HeatChangeOverrides
 	bool anyFeatureEnabled = false;
 
 	// Heat parameters
-	constinit HeatParameters::Pair<bool> heatTimerEnableds(true);
+	constinit HeatParameters::Value<bool> heatTimerEnabled(true);
 
-	constinit HeatParameters::Pair<float> chaserHeatChanges    (0.f);
-	constinit HeatParameters::Pair<float> supportHeatChanges   (0.f);
-	constinit HeatParameters::Pair<float> helicopterHeatChanges(0.f);
+	constinit HeatParameters::Value<float> chaserHeatChange    (0.f);
+	constinit HeatParameters::Value<float> supportHeatChange   (0.f);
+	constinit HeatParameters::Value<float> helicopterHeatChange(0.f);
 
-	constinit HeatParameters::Pair<float> roadblockHeatChanges(0.f);
-	constinit HeatParameters::Pair<float> spikesHeatChanges   (0.f);
+	constinit HeatParameters::Value<float> roadblockHeatChange(0.f);
+	constinit HeatParameters::Value<float> spikesHeatChange   (0.f);
 
-	constinit HeatParameters::Pair<float> copWreckHeatChanges(0.f);
+	constinit HeatParameters::Value<float> copWreckHeatChange(0.f);
 
-	constinit HeatParameters::Pair<float> copHitHeatChanges    (0.f);
-	constinit HeatParameters::Pair<float> trafficHitHeatChanges(0.f);
+	constinit HeatParameters::Value<float> copHitHeatChange    (0.f);
+	constinit HeatParameters::Value<float> trafficHitHeatChange(0.f);
 
-	constinit HeatParameters::Pair<float> heatChangePerAssaults(0.f);
-	constinit HeatParameters::Pair<bool>  onlyOneAssaultPerCops(true);
+	constinit HeatParameters::Value<float> heatChangePerAssault(0.f);
+	constinit HeatParameters::Value<bool>  onlyOneAssaultPerCop(true);
 
-	constinit HeatParameters::Pair<float> damageHeatChanges(0.f);
+	constinit HeatParameters::Value<float> damageHeatChange(0.f);
 
 	// Code caves
 	size_t lastAnimatedHeatLevel = 0;
@@ -66,19 +66,19 @@ namespace HeatChangeOverrides
 
 			int lastCount = 0;
 
-			const volatile int&                count;
-			const HeatParameters::Pair<float>& heatPerCounts;
+			const volatile int&                 count;
+			const HeatParameters::Value<float>& heatPerCount;
 
 
 		public:
 
 			explicit CountTracker
 			(
-				const address                      pursuit,
-				const ptrdiff_t                    offset,
-				const HeatParameters::Pair<float>& heatPerCounts
+				const address                       pursuit,
+				const ptrdiff_t                     offset,
+				const HeatParameters::Value<float>& heatPerCount
 			)
-				: count(AsVolatile<int>(pursuit + offset)), heatPerCounts(heatPerCounts)
+				: count(AsVolatile<int>(pursuit + offset)), heatPerCount(heatPerCount)
 			{
 			}
 
@@ -87,7 +87,7 @@ namespace HeatChangeOverrides
 			(
 				const address, 
 				const ptrdiff_t,
-				const HeatParameters::Pair<float>&&
+				const HeatParameters::Value<float>&&
 			) 
 				= delete;
 
@@ -106,7 +106,7 @@ namespace HeatChangeOverrides
 				this->lastCount += change;
 				if (change <= 0) return 0.f;
 
-				return Globals::floatScale * static_cast<float>(change) * this->heatPerCounts.current;
+				return Globals::floatScale * static_cast<float>(change) * this->heatPerCount.current;
 			}
 		};
 
@@ -117,19 +117,19 @@ namespace HeatChangeOverrides
 
 		std::array<CountTracker, 9> trackers =
 		{
-			CountTracker{this->pursuit, 0x184, chaserHeatChanges},
-			CountTracker{this->pursuit, 0x188, supportHeatChanges},
-			CountTracker{this->pursuit, 0x150, helicopterHeatChanges},
+			CountTracker{this->pursuit, 0x184, chaserHeatChange},
+			CountTracker{this->pursuit, 0x188, supportHeatChange},
+			CountTracker{this->pursuit, 0x150, helicopterHeatChange},
 
-			CountTracker{this->pursuit, 0x158, roadblockHeatChanges},
-			CountTracker{this->pursuit, 0x17C, spikesHeatChanges},
+			CountTracker{this->pursuit, 0x158, roadblockHeatChange},
+			CountTracker{this->pursuit, 0x17C, spikesHeatChange},
 
-			CountTracker{this->pursuit, 0x13C, copWreckHeatChanges},
+			CountTracker{this->pursuit, 0x13C, copWreckHeatChange},
 
-			CountTracker{this->pursuit, 0x15C, copHitHeatChanges},
-			CountTracker{this->pursuit, 0x168, trafficHitHeatChanges},
+			CountTracker{this->pursuit, 0x15C, copHitHeatChange},
+			CountTracker{this->pursuit, 0x168, trafficHitHeatChange},
 
-			CountTracker{this->pursuit, 0x174, damageHeatChanges}
+			CountTracker{this->pursuit, 0x174, damageHeatChange}
 		};
 	
 		inline static RELEASE_CONSTINIT ModContainers::AddressMap<HeatManager*> pursuitToManager;
@@ -280,8 +280,8 @@ namespace HeatChangeOverrides
 
 		volatile bool& assaultedByRacer = AsVolatile<bool>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
 
-		if (pursuit and (not (onlyOneAssaultPerCops.current and assaultedByRacer)))
-			HeatManager::AddToPendingHeatChange(pursuit, heatChangePerAssaults.current);
+		if (pursuit and (not (onlyOneAssaultPerCop.current and assaultedByRacer)))
+			HeatManager::AddToPendingHeatChange(pursuit, heatChangePerAssault.current);
 
 		assaultedByRacer = true;
 
@@ -359,7 +359,7 @@ namespace HeatChangeOverrides
 			test ebx, ebx
 			je conclusion // no pursuit attributes 
 
-			cmp byte ptr [heatTimerEnableds.current], 0
+			cmp byte ptr [heatTimerEnabled.current], 0
 
 			conclusion:
 			jmp dword ptr [passiveHeatExit]
@@ -509,13 +509,13 @@ namespace HeatChangeOverrides
 
 	void ParseDamageChanges(const HeatParameters::Parser& parser)
 	{
-		HeatParameters::Pair<int> damageToHeats(0);
-		HeatParameters::Parse(parser, "Heat:Damage", damageToHeats);
+		HeatParameters::Value<int> damageToHeat(0);
+		HeatParameters::Parse(parser, "Heat:Damage", damageToHeat);
 
 		for (const bool forRaces : {false, true})
 		{
-			const auto& damages = damageToHeats    .GetValues(forRaces);
-			auto&       changes = damageHeatChanges.GetValues(forRaces);
+			const auto& damages = damageToHeat    .GetHeatLevelArray(forRaces);
+			auto&       changes = damageHeatChange.GetHeatLevelArray(forRaces);
 
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
@@ -559,14 +559,14 @@ namespace HeatChangeOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Heat.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Heat:Time",       heatTimerEnableds);
-		HeatParameters::Parse(parser, "Heat:Deployment", chaserHeatChanges,    supportHeatChanges, helicopterHeatChanges);
-		HeatParameters::Parse(parser, "Heat:Roadblocks", roadblockHeatChanges, spikesHeatChanges);
+		HeatParameters::Parse(parser, "Heat:Time",       heatTimerEnabled);
+		HeatParameters::Parse(parser, "Heat:Deployment", chaserHeatChange,    supportHeatChange, helicopterHeatChange);
+		HeatParameters::Parse(parser, "Heat:Roadblocks", roadblockHeatChange, spikesHeatChange);
 
-		HeatParameters::Parse(parser, "Heat:Wrecking", copWreckHeatChanges);
+		HeatParameters::Parse(parser, "Heat:Wrecking", copWreckHeatChange);
 
-		HeatParameters::Parse(parser, "Heat:Collisions",    copHitHeatChanges,     trafficHitHeatChanges);
-		HeatParameters::Parse(parser, "Collisions:Assault", heatChangePerAssaults, onlyOneAssaultPerCops);
+		HeatParameters::Parse(parser, "Heat:Collisions",    copHitHeatChange,     trafficHitHeatChange);
+		HeatParameters::Parse(parser, "Collisions:Assault", heatChangePerAssault, onlyOneAssaultPerCop);
 
 		ParseDamageChanges(parser);
 
@@ -602,23 +602,23 @@ namespace HeatChangeOverrides
 	{
 		Globals::logger.Log("    HEAT [CNG] HeatChangeOverrides");
 
-		heatTimerEnableds.Log("heatTimerEnabled        ");
+		heatTimerEnabled.Log("heatTimerEnabled        ");
 
-		chaserHeatChanges    .Log("chaserHeatChange        ");
-		supportHeatChanges   .Log("supportHeatChange       ");
-		helicopterHeatChanges.Log("helicopterHeatChange    ");
+		chaserHeatChange    .Log("chaserHeatChange        ");
+		supportHeatChange   .Log("supportHeatChange       ");
+		helicopterHeatChange.Log("helicopterHeatChange    ");
 
-		roadblockHeatChanges.Log("roadblockHeatChange     ");
-		spikesHeatChanges   .Log("spikesHeatChange        ");
+		roadblockHeatChange.Log("roadblockHeatChange     ");
+		spikesHeatChange   .Log("spikesHeatChange        ");
 
-		copWreckHeatChanges.Log("copWreckHeatChange      ");
+		copWreckHeatChange.Log("copWreckHeatChange      ");
 
-		copHitHeatChanges    .Log("copHitHeatChange        ");
-		trafficHitHeatChanges.Log("trafficHitHeatChange    ");
-		heatChangePerAssaults.Log("heatChangePerAssault    ");
-		onlyOneAssaultPerCops.Log("onlyOneAssaultPerCop    ");
+		copHitHeatChange    .Log("copHitHeatChange        ");
+		trafficHitHeatChange.Log("trafficHitHeatChange    ");
+		heatChangePerAssault.Log("heatChangePerAssault    ");
+		onlyOneAssaultPerCop.Log("onlyOneAssaultPerCop    ");
 
-		damageHeatChanges.Log("damageHeatChange        ");
+		damageHeatChange.Log("damageHeatChange        ");
 	}
 
 
@@ -630,24 +630,24 @@ namespace HeatChangeOverrides
 	) {
 		if (not anyFeatureEnabled) return;
 
-		heatTimerEnableds.SetToHeatState(isRacing, heatLevel);
+		heatTimerEnabled.SetToHeatState(isRacing, heatLevel);
 
-		chaserHeatChanges    .SetToHeatState(isRacing, heatLevel);
-		supportHeatChanges   .SetToHeatState(isRacing, heatLevel);
-		helicopterHeatChanges.SetToHeatState(isRacing, heatLevel);
+		chaserHeatChange    .SetToHeatState(isRacing, heatLevel);
+		supportHeatChange   .SetToHeatState(isRacing, heatLevel);
+		helicopterHeatChange.SetToHeatState(isRacing, heatLevel);
 
-		roadblockHeatChanges.SetToHeatState(isRacing, heatLevel);
-		spikesHeatChanges   .SetToHeatState(isRacing, heatLevel);
+		roadblockHeatChange.SetToHeatState(isRacing, heatLevel);
+		spikesHeatChange   .SetToHeatState(isRacing, heatLevel);
 
-		copWreckHeatChanges.SetToHeatState(isRacing, heatLevel);
+		copWreckHeatChange.SetToHeatState(isRacing, heatLevel);
 
-		copHitHeatChanges    .SetToHeatState(isRacing, heatLevel);
-		trafficHitHeatChanges.SetToHeatState(isRacing, heatLevel);
+		copHitHeatChange    .SetToHeatState(isRacing, heatLevel);
+		trafficHitHeatChange.SetToHeatState(isRacing, heatLevel);
 
-		heatChangePerAssaults.SetToHeatState(isRacing, heatLevel);
-		onlyOneAssaultPerCops.SetToHeatState(isRacing, heatLevel);
+		heatChangePerAssault.SetToHeatState(isRacing, heatLevel);
+		onlyOneAssaultPerCop.SetToHeatState(isRacing, heatLevel);
 
-		damageHeatChanges.SetToHeatState(isRacing, heatLevel);
+		damageHeatChange.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

@@ -32,32 +32,32 @@ namespace GeneralSettings
 	bool trackInfractions    = false;
 
 	// Heat parameters
-	constinit HeatParameters::Pair<bool> rivalPursuitsEnableds(true);
+	constinit HeatParameters::Value<bool> rivalPursuitsEnabled(true);
 
-	constinit HeatParameters::Pair<float> bountyIntervals     (10.f, {.001f}); // seconds
-	constinit HeatParameters::Pair<int>   maxBountyMultipliers(3,    {1});     // scale
+	constinit HeatParameters::Value<float> bountyInterval     (10.f, {.001f}); // seconds
+	constinit HeatParameters::Value<int>   maxBountyMultiplier(3,    {1});     // scale
 
-	constinit HeatParameters::Pair<float> bustTimers      (5.f,  {.001f}); // seconds
-	constinit HeatParameters::Pair<float> maxBustDistances(15.f, {0.f});   // metres
+	constinit HeatParameters::Value<float> bustTimer      (5.f,  {.001f}); // seconds
+	constinit HeatParameters::Value<float> maxBustDistance(15.f, {0.f});   // metres
 
-	constinit HeatParameters::Pair<float> evadeTimers(7.f, {.001f}); // seconds
+	constinit HeatParameters::Value<float> evadeTimer(7.f, {.001f}); // seconds
 
-	constinit HeatParameters::Pair<bool> carsAffectedByHidings (true);
-	constinit HeatParameters::Pair<bool> helisAffectedByHidings(true);
+	constinit HeatParameters::Value<bool> carsAffectedByHiding (true);
+	constinit HeatParameters::Value<bool> helisAffectedByHiding(true);
 
-	constinit HeatParameters::Pair<bool> copFlipByDamageEnableds(true);
+	constinit HeatParameters::Value<bool> copFlipByDamageEnabled(true);
 
-	constinit HeatParameters::OptionalPair<float> copFlipByTimers     ({0.f}); // seconds
-	constinit HeatParameters::OptionalPair<float> racerFlipResetDelays({0.f}); // seconds
+	constinit HeatParameters::OptionalValue<float> copFlipByTimer     ({0.f}); // seconds
+	constinit HeatParameters::OptionalValue<float> racerFlipResetDelay({0.f}); // seconds
 
 	// Conversions
-	float bountyFrequency = 1.f / bountyIntervals.current; // hertz
+	float bountyFrequency = 1.f / bountyInterval.current; // hertz
 	
-	float bustRate          = 1.f / bustTimers.current; // hertz
-	float resetBustScale    = std::max<float>(bustTimers.current / 1.25f, 4.f);
-	float recoveryBustDelta = -.25f * std::max<float>(bustTimers.current / 2.5f, 2.f);
+	float bustRate          = 1.f / bustTimer.current; // hertz
+	float resetBustScale    = std::max<float>(bustTimer.current / 1.25f, 4.f);
+	float recoveryBustDelta = -.25f * std::max<float>(bustTimer.current / 2.5f, 2.f);
 
-	float halfEvadeRate = .5f / evadeTimers.current; // hertz
+	float halfEvadeRate = .5f / evadeTimer.current; // hertz
 
 	// Code caves
 	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<bool> copTypeToIsBreakerImmune(false);
@@ -135,7 +135,7 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov ecx, dword ptr [maxBountyMultipliers.current]
+			mov ecx, dword ptr [maxBountyMultiplier.current]
 			mov eax, dword ptr [esi + 0xF0] // combo count
 
 			inc eax
@@ -183,11 +183,11 @@ namespace GeneralSettings
 
 		__asm
 		{
-			cmp byte ptr [copFlipByTimers.isEnableds.current], 1
+			cmp byte ptr [copFlipByTimer.isEnabled.current], 1
 			jne damaged // time check disabled
 
 			fld dword ptr [esi + 0xB8] // time spent flipped
-			fcomp dword ptr [copFlipByTimers.values.current]
+			fcomp dword ptr [copFlipByTimer.value.current]
 			fnstsw ax
 			test ah, 0x41
 			jne damaged                // delay has yet to expire
@@ -198,7 +198,7 @@ namespace GeneralSettings
 			jmp conclusion              // cop was destroyed
 
 			damaged:
-			cmp byte ptr [copFlipByDamageEnableds.current], 1
+			cmp byte ptr [copFlipByDamageEnabled.current], 1
 			jne skip // damage check disabled
 
 			conclusion:
@@ -241,7 +241,7 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			cmp byte ptr [rivalPursuitsEnableds.current], 0
+			cmp byte ptr [rivalPursuitsEnabled.current], 0
 			je conclusion // rival pursuits disabled
 
 			// Execute original and resume
@@ -263,11 +263,11 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			cmp byte ptr [racerFlipResetDelays.isEnableds.current], 1
+			cmp byte ptr [racerFlipResetDelay.isEnabled.current], 1
 			jne conclusion // flipping resets disabled
 
 			fld dword ptr [esi + 0x54] // time spent flipped
-			fcomp dword ptr [racerFlipResetDelays.values.current]
+			fcomp dword ptr [racerFlipResetDelay.value.current]
 			fnstsw ax
 			test ah, 0x41
 
@@ -318,7 +318,7 @@ namespace GeneralSettings
 			jne conclusion               // evading
 
 			fstp st(0)
-			fld dword ptr [maxBustDistances.current]
+			fld dword ptr [maxBustDistance.current]
 			
 			// Execute original code and resume
 			conclusion:
@@ -377,7 +377,7 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov al, byte ptr [carsAffectedByHidings.current]
+			mov al, byte ptr [carsAffectedByHiding.current]
 			test al, byte ptr [edi + 0x2C] // hidden from cars
 
 			jmp dword ptr [hiddenFromCarsExit]
@@ -423,7 +423,7 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov al, byte ptr [carsAffectedByHidings.current]
+			mov al, byte ptr [carsAffectedByHiding.current]
 			test al, byte ptr [ebp + 0x2C] // hidden from cars
 
 			jmp dword ptr [hiddenFromRoadblocksExit]
@@ -440,7 +440,7 @@ namespace GeneralSettings
 	{
 		__asm
 		{
-			mov al, byte ptr [helisAffectedByHidings.current]
+			mov al, byte ptr [helisAffectedByHiding.current]
 			test al, byte ptr [esi + 0x2D] // hidden from helicopters
 
 			jmp dword ptr [hiddenFromHelicoptersExit]
@@ -589,18 +589,18 @@ namespace GeneralSettings
 		ParseTrackingSettings(parser);
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Pursuits:Rivals", rivalPursuitsEnableds);
+		HeatParameters::Parse(parser, "Pursuits:Rivals", rivalPursuitsEnabled);
 
-		HeatParameters::Parse(parser, "Bounty:Interval", bountyIntervals);
-		HeatParameters::Parse(parser, "Bounty:Combo",    maxBountyMultipliers);
+		HeatParameters::Parse(parser, "Bounty:Interval", bountyInterval);
+		HeatParameters::Parse(parser, "Bounty:Combo",    maxBountyMultiplier);
 
-		HeatParameters::Parse(parser, "State:Busting",  bustTimers,            maxBustDistances);
-		HeatParameters::Parse(parser, "State:Evading",  evadeTimers);
-		HeatParameters::Parse(parser, "Evading:Hiding", carsAffectedByHidings, helisAffectedByHidings);
+		HeatParameters::Parse(parser, "State:Busting",  bustTimer,            maxBustDistance);
+		HeatParameters::Parse(parser, "State:Evading",  evadeTimer);
+		HeatParameters::Parse(parser, "Evading:Hiding", carsAffectedByHiding, helisAffectedByHiding);
 
-		HeatParameters::Parse(parser, "Flipping:Damaged", copFlipByDamageEnableds);
-		HeatParameters::Parse(parser, "Flipping:Time",    copFlipByTimers);
-		HeatParameters::Parse(parser, "Flipping:Reset",   racerFlipResetDelays);
+		HeatParameters::Parse(parser, "Flipping:Damaged", copFlipByDamageEnabled);
+		HeatParameters::Parse(parser, "Flipping:Time",    copFlipByTimer);
+		HeatParameters::Parse(parser, "Flipping:Reset",   racerFlipResetDelay);
 
 		// Pursuit-breaker immunity
 		if (ParsePursuitBreakerImmunities(parser))
@@ -612,13 +612,13 @@ namespace GeneralSettings
 		// Code modifications (general)
 		MemoryTools::Write<float*>(&bountyFrequency, {0x444513, 0x444524});
 
-		MemoryTools::Write<float*>(&bustRate,             {0x40AEDB});
-		MemoryTools::Write<float*>(&resetBustScale,       {0x4444D2});
-		MemoryTools::Write<float*>(&recoveryBustDelta,    {0x4444E6});
-		MemoryTools::Write<float*>(&(bustTimers.current), {0x4445CE});
+		MemoryTools::Write<float*>(&bustRate,            {0x40AEDB});
+		MemoryTools::Write<float*>(&resetBustScale,      {0x4444D2});
+		MemoryTools::Write<float*>(&recoveryBustDelta,   {0x4444E6});
+		MemoryTools::Write<float*>(&(bustTimer.current), {0x4445CE});
 		
-		MemoryTools::Write<float*>(&halfEvadeRate,         {0x444A3A});
-		MemoryTools::Write<float*>(&(evadeTimers.current), {0x4448E6, 0x444802, 0x4338F8});
+		MemoryTools::Write<float*>(&halfEvadeRate,        {0x444A3A});
+		MemoryTools::Write<float*>(&(evadeTimer.current), {0x4448E6, 0x444802, 0x4338F8});
 
 		MemoryTools::MakeRangeJMP<copComboEntrance,              copComboExit>             (CopCombo);
 		MemoryTools::MakeRangeJMP<copFlippingEntrance,           copFlippingExit>          (CopFlipping);
@@ -643,21 +643,21 @@ namespace GeneralSettings
 	{
 		Globals::logger.Log("    HEAT [GEN] GeneralSettings");
 
-		rivalPursuitsEnableds.Log("rivalPursuitsEnabled    ");
+		rivalPursuitsEnabled.Log("rivalPursuitsEnabled    ");
 
-		bountyIntervals     .Log("bountyInterval          ");
-		maxBountyMultipliers.Log("maxBountyMultiplier     ");
+		bountyInterval     .Log("bountyInterval          ");
+		maxBountyMultiplier.Log("maxBountyMultiplier     ");
 
-		bustTimers      .Log("bustTimer               ");
-		maxBustDistances.Log("maxBustDistance         ");
-		evadeTimers     .Log("evadeTimer              ");
+		bustTimer      .Log("bustTimer               ");
+		maxBustDistance.Log("maxBustDistance         ");
+		evadeTimer     .Log("evadeTimer              ");
 
-		carsAffectedByHidings .Log("carsAffectedByHiding    ");
-		helisAffectedByHidings.Log("helisAffectedByHiding   ");
+		carsAffectedByHiding .Log("carsAffectedByHiding    ");
+		helisAffectedByHiding.Log("helisAffectedByHiding   ");
 
-		copFlipByDamageEnableds.Log("copFlipByDamageEnabled  ");
-		copFlipByTimers        .Log("copFlipByTimer          ");
-		racerFlipResetDelays   .Log("racerFlipResetDelay     ");
+		copFlipByDamageEnabled.Log("copFlipByDamageEnabled  ");
+		copFlipByTimer        .Log("copFlipByTimer          ");
+		racerFlipResetDelay   .Log("racerFlipResetDelay     ");
 	}
 
 
@@ -669,30 +669,30 @@ namespace GeneralSettings
 	) {
 		if (not anyFeatureEnabled) return;
 
-		rivalPursuitsEnableds.SetToHeatState(isRacing, heatLevel);
+		rivalPursuitsEnabled.SetToHeatState(isRacing, heatLevel);
 
-		bountyIntervals     .SetToHeatState(isRacing, heatLevel);
-		maxBountyMultipliers.SetToHeatState(isRacing, heatLevel);
+		bountyInterval     .SetToHeatState(isRacing, heatLevel);
+		maxBountyMultiplier.SetToHeatState(isRacing, heatLevel);
 
-		bountyFrequency = 1.f / bountyIntervals.current;
+		bountyFrequency = 1.f / bountyInterval.current;
 
-		bustTimers      .SetToHeatState(isRacing, heatLevel);
-		maxBustDistances.SetToHeatState(isRacing, heatLevel);
+		bustTimer      .SetToHeatState(isRacing, heatLevel);
+		maxBustDistance.SetToHeatState(isRacing, heatLevel);
 
-		bustRate          = 1.f / bustTimers.current;
-		resetBustScale    = std::max<float>(bustTimers.current / 1.25f, 4.f);
-		recoveryBustDelta = -.25f * std::max<float>(bustTimers.current / 2.5f, 2.f);
+		bustRate          = 1.f / bustTimer.current;
+		resetBustScale    = std::max<float>(bustTimer.current / 1.25f, 4.f);
+		recoveryBustDelta = -.25f * std::max<float>(bustTimer.current / 2.5f, 2.f);
 
-		evadeTimers.SetToHeatState(isRacing, heatLevel);
+		evadeTimer.SetToHeatState(isRacing, heatLevel);
 
-		halfEvadeRate = .5f / evadeTimers.current;
+		halfEvadeRate = .5f / evadeTimer.current;
 
-		carsAffectedByHidings .SetToHeatState(isRacing, heatLevel);
-		helisAffectedByHidings.SetToHeatState(isRacing, heatLevel);
+		carsAffectedByHiding .SetToHeatState(isRacing, heatLevel);
+		helisAffectedByHiding.SetToHeatState(isRacing, heatLevel);
 
-		copFlipByDamageEnableds.SetToHeatState(isRacing, heatLevel);
-		copFlipByTimers        .SetToHeatState(isRacing, heatLevel);
-		racerFlipResetDelays   .SetToHeatState(isRacing, heatLevel);
+		copFlipByDamageEnabled.SetToHeatState(isRacing, heatLevel);
+		copFlipByTimer        .SetToHeatState(isRacing, heatLevel);
+		racerFlipResetDelay   .SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

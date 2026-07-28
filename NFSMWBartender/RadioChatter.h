@@ -35,7 +35,7 @@ namespace RadioChatter
 	};
 
 	// Heat parameters
-	constinit HeatParameters::Pair<int> heatJurisdictionIDs(Jurisdiction::CITY);
+	constinit HeatParameters::Value<int> heatJurisdictionID(Jurisdiction::CITY);
 
 	// Code caves 
 	size_t lastReportedHeatLevel = 1;
@@ -242,7 +242,7 @@ namespace RadioChatter
 
 		__asm
 		{
-			mov eax, dword ptr [heatJurisdictionIDs.current]
+			mov eax, dword ptr [heatJurisdictionID.current]
 			cmp eax, dword ptr [lastJurisdictionID]
 			je skip // same jurisdiction
 
@@ -282,7 +282,7 @@ namespace RadioChatter
 		constexpr std::string_view section = "Heat:Jurisdiction";
 
 		// Parse string representations of jurisdictions first
-		HeatParameters::Pair<std::string_view> jurisdictionNames("city");
+		HeatParameters::Value<std::string_view> jurisdictionNames("city");
 		HeatParameters::Parse(parser, section, jurisdictionNames);
 
 		// Validate and convert new "default" value (if applicable)
@@ -294,8 +294,8 @@ namespace RadioChatter
 		// Validate and convert Heat-level values
 		for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 		{
-			heatJurisdictionIDs.roam[heatLevelID] = NameToJurisdiction(jurisdictionNames.roam[heatLevelID]);
-			heatJurisdictionIDs.race[heatLevelID] = NameToJurisdiction(jurisdictionNames.race[heatLevelID]);
+			heatJurisdictionID.roam[heatLevelID] = NameToJurisdiction(jurisdictionNames.roam[heatLevelID]);
+			heatJurisdictionID.race[heatLevelID] = NameToJurisdiction(jurisdictionNames.race[heatLevelID]);
 		}
 	}
 
@@ -390,12 +390,12 @@ namespace RadioChatter
 	) {
 		if (not anyFeatureEnabled) return;
 
-		heatJurisdictionIDs.SetToHeatState(isRacing, heatLevel);
+		heatJurisdictionID.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger    .Log("    HEAT [RAD] CopRadio");
-			heatJurisdictionIDs.Log("heatJurisdictionID      ");
+			Globals::logger   .Log("    HEAT [RAD] CopRadio");
+			heatJurisdictionID.Log("heatJurisdictionID      ");
 		}
 	}
 }

@@ -70,7 +70,7 @@ namespace RoadblockOverrides
 		float maxRoadWidth = 0.f; // metres
 		float mirrorChance = 0.f; // percent
 
-		HeatParameters::Pair<int> chances{100, {0}}; // relative
+		HeatParameters::Value<int> chance{100, {0}}; // relative
 
 
 		[[nodiscard]] const RBTable& GetRandomTable() const
@@ -152,8 +152,8 @@ namespace RoadblockOverrides
 	bool anyFeatureEnabled = false;
 
 	// Heat parameters
-	constinit HeatParameters::Pair<float> spawnCalloutChances(100.f, {0.f, 100.f}); // percent
-	constinit HeatParameters::Pair<float> spikeCalloutChances(50.f,  {0.f, 100.f}); // percent
+	constinit HeatParameters::Value<float> spawnCalloutChances(100.f, {0.f, 100.f}); // percent
+	constinit HeatParameters::Value<float> spikeCalloutChances(50.f,  {0.f, 100.f}); // percent
 
 	// Setup parsing
 	constexpr std::string_view setupPrefix = "Setups:";
@@ -232,7 +232,7 @@ namespace RoadblockOverrides
 
 		for (const RBSetup& setup : roadblockSetups)
 		{
-			if (setup.chances.current < 1)      continue;
+			if (setup.chance.current < 1)       continue;
 			if (setup.hasSpikes != needsSpikes) continue;
 
 			const RBTable& table = setup.original; // same constraints as mirrored
@@ -242,7 +242,7 @@ namespace RoadblockOverrides
 
 			if (setup.maxRoadWidth > roadWidth)
 			{
-				totalChance += setup.chances.current;
+				totalChance += setup.chance.current;
 				candidates.push_back(&setup);
 			}
 			
@@ -262,7 +262,7 @@ namespace RoadblockOverrides
 
 			for (const RBSetup* const setup : candidates)
 			{
-				cumulativeChance += setup->chances.current;
+				cumulativeChance += setup->chance.current;
 
 				if (cumulativeChance >= chanceThreshold)
 				{
@@ -513,9 +513,9 @@ namespace RoadblockOverrides
 		}
 
 		// Parse and validate "chance" parameter(s)
-		HeatParameters::Parse(parser, section, setup.chances);
+		HeatParameters::Parse(parser, section, setup.chance);
 
-		if (setup.chances.GetMaximum() < 1)
+		if (setup.chance.GetMaximum() < 1)
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<3>('-', setup.name, "(unused)");
@@ -681,11 +681,11 @@ namespace RoadblockOverrides
 		// Roadblock setups
 		for (RBSetup& setup : roadblockSetups)
 		{
-			setup.chances.SetToHeatState(isRacing, heatLevel);
+			setup.chance.SetToHeatState(isRacing, heatLevel);
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (setup.chances.current > 0)
+				if (setup.chance.current > 0)
 					counter.CountSetup(setup);
 			}
 		}

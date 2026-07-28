@@ -24,10 +24,10 @@ namespace StrategyOverrides
 	// Heat parameters
 	constinit HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1, 20});
 
-	constinit HeatParameters::OptionalInterval<float> heavy3UnblockDelays ({1.f}); // seconds
-	constinit HeatParameters::OptionalInterval<float> heavy4UnblockDelays ({1.f}); // seconds
-	constinit HeatParameters::OptionalInterval<float> leader5UnblockDelays({1.f}); // seconds
-	constinit HeatParameters::OptionalInterval<float> leader7UnblockDelays({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> heavy3UnblockDelay ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> heavy4UnblockDelay ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader5UnblockDelay({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7UnblockDelay({1.f}); // seconds
 
 	// Code caves
 	constexpr size_t maxNumVehiclesPerHeavy4  = 6; // cars
@@ -233,11 +233,11 @@ namespace StrategyOverrides
 			{
 			case 3: // ramming SUVs
 				manager->UpdateNextHeavy3Count();
-				manager->unblockTimer.LoadInterval(heavy3UnblockDelays);
+				manager->unblockTimer.LoadInterval(heavy3UnblockDelay);
 				break;
 
 			case 4: // SUV roadblock
-				manager->unblockTimer.LoadInterval(heavy4UnblockDelays);
+				manager->unblockTimer.LoadInterval(heavy4UnblockDelay);
 				break;
 
 			default:
@@ -276,11 +276,11 @@ namespace StrategyOverrides
 			switch (strategyID)
 			{
 			case 5: // Cross only
-				manager->unblockTimer.LoadInterval(leader5UnblockDelays);
+				manager->unblockTimer.LoadInterval(leader5UnblockDelay);
 				break;
 
 			case 7: // Cross with henchmen
-				manager->unblockTimer.LoadInterval(leader7UnblockDelays);
+				manager->unblockTimer.LoadInterval(leader7UnblockDelay);
 				break;
 
 			default:
@@ -657,10 +657,10 @@ namespace StrategyOverrides
 		// Heat parameters
 		HeatParameters::Parse(parser, "Heavy3:Count", numVehiclesPerHeavy3s);
 
-		HeatParameters::Parse(parser, "Heavy3:Unblocking",  heavy3UnblockDelays);
-		HeatParameters::Parse(parser, "Heavy4:Unblocking",  heavy4UnblockDelays);
-		HeatParameters::Parse(parser, "Leader5:Unblocking", leader5UnblockDelays);
-		HeatParameters::Parse(parser, "Leader7:Unblocking", leader7UnblockDelays);
+		HeatParameters::Parse(parser, "Heavy3:Unblocking",  heavy3UnblockDelay);
+		HeatParameters::Parse(parser, "Heavy4:Unblocking",  heavy4UnblockDelay);
+		HeatParameters::Parse(parser, "Leader5:Unblocking", leader5UnblockDelay);
+		HeatParameters::Parse(parser, "Leader7:Unblocking", leader7UnblockDelay);
 
 		// Stack replacements
 		InitialiseStackReplacements();
@@ -707,10 +707,10 @@ namespace StrategyOverrides
 
 		numVehiclesPerHeavy3s.Log("numVehiclesPerHeavy3    ");
 
-		heavy3UnblockDelays .Log("heavy3UnblockDelay      ");
-		heavy4UnblockDelays .Log("heavy4UnblockDelay      ");
-		leader5UnblockDelays.Log("leader5UnblockDelay     ");
-		leader7UnblockDelays.Log("leader7UnblockDelay     ");
+		heavy3UnblockDelay .Log("heavy3UnblockDelay      ");
+		heavy4UnblockDelay .Log("heavy4UnblockDelay      ");
+		leader5UnblockDelay.Log("leader5UnblockDelay     ");
+		leader7UnblockDelay.Log("leader7UnblockDelay     ");
 	}
 
 
@@ -724,10 +724,10 @@ namespace StrategyOverrides
 
 		numVehiclesPerHeavy3s.SetToHeatState(isRacing, heatLevel);
 
-		heavy3UnblockDelays .SetToHeatState(isRacing, heatLevel);
-		heavy4UnblockDelays .SetToHeatState(isRacing, heatLevel);
-		leader5UnblockDelays.SetToHeatState(isRacing, heatLevel);
-		leader7UnblockDelays.SetToHeatState(isRacing, heatLevel);
+		heavy3UnblockDelay .SetToHeatState(isRacing, heatLevel);
+		heavy4UnblockDelay .SetToHeatState(isRacing, heatLevel);
+		leader5UnblockDelay.SetToHeatState(isRacing, heatLevel);
+		leader7UnblockDelay.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

@@ -19,16 +19,16 @@ namespace GameBreaker
 	bool anyFeatureEnabled = false;
 
 	// Heat parameters
-	constinit HeatParameters::Pair<bool> passiveRechargeEnableds(true);
-	constinit HeatParameters::Pair<bool> driftRechargeEnableds  (true);
+	constinit HeatParameters::Value<bool> passiveRechargeEnabled(true);
+	constinit HeatParameters::Value<bool> driftRechargeEnabled  (true);
 
-	constinit HeatParameters::Pair<float> copWreckBreakerChanges(0.f); // seconds
+	constinit HeatParameters::Value<float> copWreckBreakerChange(0.f); // seconds
 
-	constinit HeatParameters::Pair<bool> canGainWhenActives  (true);
-	constinit HeatParameters::Pair<bool> canGainWhenInactives(true);
+	constinit HeatParameters::Value<bool> canGainWhenActive  (true);
+	constinit HeatParameters::Value<bool> canGainWhenInactive(true);
 
-	constinit HeatParameters::Pair<bool> canLoseWhenActives  (true);
-	constinit HeatParameters::Pair<bool> canLoseWhenInactives(true);
+	constinit HeatParameters::Value<bool> canLoseWhenActive  (true);
+	constinit HeatParameters::Value<bool> canLoseWhenInactive(true);
 
 	// Code caves
 	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<float> copTypeToBreakerChange(0.f); // seconds
@@ -58,13 +58,13 @@ namespace GameBreaker
 
 		if (amount > 0.f)
 		{
-			if (isBreakerActive       and (not canGainWhenActives  .current)) return;
-			if ((not isBreakerActive) and (not canGainWhenInactives.current)) return;
+			if (isBreakerActive       and (not canGainWhenActive  .current)) return;
+			if ((not isBreakerActive) and (not canGainWhenInactive.current)) return;
 		}
 		else
 		{
-			if (isBreakerActive       and (not canLoseWhenActives  .current)) return;
-			if ((not isBreakerActive) and (not canLoseWhenInactives.current)) return;
+			if (isBreakerActive       and (not canLoseWhenActive  .current)) return;
+			if ((not isBreakerActive) and (not canLoseWhenInactive.current)) return;
 		}
 
 		if constexpr (Globals::loggingEnabled)
@@ -103,7 +103,7 @@ namespace GameBreaker
 			test al, al
 			je conclusion // not player pursuit
 
-			fld dword ptr [copWreckBreakerChanges.current]
+			fld dword ptr [copWreckBreakerChange.current]
 			fmul dword ptr [Globals::floatScale]
 
 			push dword ptr [esi + 0xF8] // copType
@@ -139,7 +139,7 @@ namespace GameBreaker
 			test ah, 0x41
 			jne conclusion // below speed threshold
 
-			cmp byte ptr [driftRechargeEnableds.current], 1
+			cmp byte ptr [driftRechargeEnabled.current], 1
 			je conclusion // drift recharging unrestricted
 
 			call IsPlayerInPursuit
@@ -164,7 +164,7 @@ namespace GameBreaker
 			test ah, 0x41
 			jne conclusion // below speed threshold
 
-			cmp byte ptr [passiveRechargeEnableds.current], 1
+			cmp byte ptr [passiveRechargeEnabled.current], 1
 			je conclusion // passive recharging unrestricted
 
 			call IsPlayerInPursuit
@@ -211,11 +211,11 @@ namespace GameBreaker
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Speedbreaker.ini")) return false;
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Speedbreaker:Mechanics", passiveRechargeEnableds, driftRechargeEnableds);
-		HeatParameters::Parse(parser, "Speedbreaker:Wrecking",  copWreckBreakerChanges);
+		HeatParameters::Parse(parser, "Speedbreaker:Mechanics", passiveRechargeEnabled, driftRechargeEnabled);
+		HeatParameters::Parse(parser, "Speedbreaker:Wrecking",  copWreckBreakerChange);
 
-		HeatParameters::Parse(parser, "Wrecking:Gains",  canGainWhenActives, canGainWhenInactives);
-		HeatParameters::Parse(parser, "Wrecking:Losses", canLoseWhenActives, canLoseWhenInactives);
+		HeatParameters::Parse(parser, "Wrecking:Gains",  canGainWhenActive, canGainWhenInactive);
+		HeatParameters::Parse(parser, "Wrecking:Losses", canLoseWhenActive, canLoseWhenInactive);
 
 		// Speedbreaker changes
 		ParseSpeedbreakerChanges(parser);
@@ -237,16 +237,16 @@ namespace GameBreaker
 	{
 		Globals::logger.Log("    HEAT [GBR] GameBreaker");
 
-		passiveRechargeEnableds.Log("passiveRechargeEnabled  ");
-		driftRechargeEnableds  .Log("driftRechargeEnabled    ");
+		passiveRechargeEnabled.Log("passiveRechargeEnabled  ");
+		driftRechargeEnabled  .Log("driftRechargeEnabled    ");
 
-		copWreckBreakerChanges.Log("copWreckBreakerChange   ");
+		copWreckBreakerChange.Log("copWreckBreakerChange   ");
 
-		canGainWhenActives  .Log("canGainWhenActive       ");
-		canGainWhenInactives.Log("canGainWhenInactive     ");
+		canGainWhenActive  .Log("canGainWhenActive       ");
+		canGainWhenInactive.Log("canGainWhenInactive     ");
 
-		canLoseWhenActives  .Log("canLoseWhenActive       ");
-		canLoseWhenInactives.Log("canLoseWhenInactive     ");
+		canLoseWhenActive  .Log("canLoseWhenActive       ");
+		canLoseWhenInactive.Log("canLoseWhenInactive     ");
 	}
 
 
@@ -258,16 +258,16 @@ namespace GameBreaker
 	) {
 		if (not anyFeatureEnabled) return;
 
-		passiveRechargeEnableds.SetToHeatState(isRacing, heatLevel);
-		driftRechargeEnableds  .SetToHeatState(isRacing, heatLevel);
+		passiveRechargeEnabled.SetToHeatState(isRacing, heatLevel);
+		driftRechargeEnabled  .SetToHeatState(isRacing, heatLevel);
 
-		copWreckBreakerChanges.SetToHeatState(isRacing, heatLevel);
+		copWreckBreakerChange.SetToHeatState(isRacing, heatLevel);
 
-		canGainWhenActives  .SetToHeatState(isRacing, heatLevel);
-		canGainWhenInactives.SetToHeatState(isRacing, heatLevel);
+		canGainWhenActive  .SetToHeatState(isRacing, heatLevel);
+		canGainWhenInactive.SetToHeatState(isRacing, heatLevel);
 
-		canLoseWhenActives  .SetToHeatState(isRacing, heatLevel);
-		canLoseWhenInactives.SetToHeatState(isRacing, heatLevel);
+		canLoseWhenActive  .SetToHeatState(isRacing, heatLevel);
+		canLoseWhenInactive.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();
