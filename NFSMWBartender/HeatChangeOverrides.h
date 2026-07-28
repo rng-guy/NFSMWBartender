@@ -559,13 +559,16 @@ namespace HeatChangeOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Heat.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Heat:Time",       heatTimerEnabled);
-		HeatParameters::Parse(parser, "Heat:Deployment", chaserHeatChange,    supportHeatChange, helicopterHeatChange);
+		HeatParameters::Parse(parser, "Heat:Time", heatTimerEnabled);
+
+		HeatParameters::Parse(parser, "Heat:Deployment", chaserHeatChange, supportHeatChange, helicopterHeatChange);
+
 		HeatParameters::Parse(parser, "Heat:Roadblocks", roadblockHeatChange, spikesHeatChange);
 
 		HeatParameters::Parse(parser, "Heat:Wrecking", copWreckHeatChange);
 
-		HeatParameters::Parse(parser, "Heat:Collisions",    copHitHeatChange,     trafficHitHeatChange);
+		HeatParameters::Parse(parser, "Heat:Collisions", copHitHeatChange, trafficHitHeatChange);
+
 		HeatParameters::Parse(parser, "Collisions:Assault", heatChangePerAssault, onlyOneAssaultPerCop);
 
 		ParseDamageChanges(parser);
@@ -615,6 +618,7 @@ namespace HeatChangeOverrides
 
 		copHitHeatChange    .Log("copHitHeatChange        ");
 		trafficHitHeatChange.Log("trafficHitHeatChange    ");
+
 		heatChangePerAssault.Log("heatChangePerAssault    ");
 		onlyOneAssaultPerCop.Log("onlyOneAssaultPerCop    ");
 

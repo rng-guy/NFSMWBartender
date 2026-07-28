@@ -25,8 +25,11 @@ namespace StrategyOverrides
 	constinit HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1, 20});
 
 	constinit HeatParameters::OptionalInterval<float> heavy3UnblockDelay ({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> heavy4UnblockDelay ({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> leader5UnblockDelay({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> leader7UnblockDelay({1.f}); // seconds
 
 	// Code caves
@@ -657,9 +660,12 @@ namespace StrategyOverrides
 		// Heat parameters
 		HeatParameters::Parse(parser, "Heavy3:Count", numVehiclesPerHeavy3s);
 
-		HeatParameters::Parse(parser, "Heavy3:Unblocking",  heavy3UnblockDelay);
-		HeatParameters::Parse(parser, "Heavy4:Unblocking",  heavy4UnblockDelay);
+		HeatParameters::Parse(parser, "Heavy3:Unblocking", heavy3UnblockDelay);
+
+		HeatParameters::Parse(parser, "Heavy4:Unblocking", heavy4UnblockDelay);
+
 		HeatParameters::Parse(parser, "Leader5:Unblocking", leader5UnblockDelay);
+
 		HeatParameters::Parse(parser, "Leader7:Unblocking", leader7UnblockDelay);
 
 		// Stack replacements
@@ -707,9 +713,12 @@ namespace StrategyOverrides
 
 		numVehiclesPerHeavy3s.Log("numVehiclesPerHeavy3    ");
 
-		heavy3UnblockDelay .Log("heavy3UnblockDelay      ");
-		heavy4UnblockDelay .Log("heavy4UnblockDelay      ");
+		heavy3UnblockDelay.Log("heavy3UnblockDelay      ");
+
+		heavy4UnblockDelay.Log("heavy4UnblockDelay      ");
+
 		leader5UnblockDelay.Log("leader5UnblockDelay     ");
+
 		leader7UnblockDelay.Log("leader7UnblockDelay     ");
 	}
 
@@ -724,9 +733,12 @@ namespace StrategyOverrides
 
 		numVehiclesPerHeavy3s.SetToHeatState(isRacing, heatLevel);
 
-		heavy3UnblockDelay .SetToHeatState(isRacing, heatLevel);
-		heavy4UnblockDelay .SetToHeatState(isRacing, heatLevel);
+		heavy3UnblockDelay.SetToHeatState(isRacing, heatLevel);
+
+		heavy4UnblockDelay.SetToHeatState(isRacing, heatLevel);
+
 		leader5UnblockDelay.SetToHeatState(isRacing, heatLevel);
+
 		leader7UnblockDelay.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)

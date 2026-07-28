@@ -27,13 +27,14 @@ namespace CopFleeOverrides
 	constinit HeatParameters::OptionalInterval<float> joinedRoadblockFleeDelay({1.f}); // seconds
 	constinit HeatParameters::OptionalValue   <int>   joinedRoadblockThreshold({0});   // cars
 
-	constinit HeatParameters::OptionalInterval<float> joinedHeavy3FleeDelay({1.f}); // seconds
-	constinit HeatParameters::OptionalValue   <int>   joinedHeavy3Threshold({0});   // cars
-
 	constinit HeatParameters::Value<float> heavy3SpeedThreshold(25.f, {0.f}); // kph
-	constinit HeatParameters::Value<bool>  heavy3JoiningEnabled(false);
+
+	constinit HeatParameters::Value<bool> heavy3JoiningEnabled(false);
 
 	constinit HeatParameters::OptionalValue<int> heavy3JoinLimit({0}); // cars
+
+	constinit HeatParameters::OptionalInterval<float> joinedHeavy3FleeDelay({1.f}); // seconds
+	constinit HeatParameters::OptionalValue   <int>   joinedHeavy3Threshold({0});   // cars
 
 	// Conversions
 	float baseSpeedThreshold = heavy3SpeedThreshold.current / 3.6f; // mps
@@ -629,9 +630,12 @@ namespace CopFleeOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		HeatParameters::Parse(parser, "Heavy3:Cancellation", heavy3SpeedThreshold);
-		HeatParameters::Parse(parser, "Heavy3:Joining",      heavy3JoiningEnabled);
-		HeatParameters::Parse(parser, "Joining:Limit",       heavy3JoinLimit);
-		HeatParameters::Parse(parser, "Joining:Fleeing",     joinedHeavy3FleeDelay, joinedHeavy3Threshold);
+
+		HeatParameters::Parse(parser, "Heavy3:Joining", heavy3JoiningEnabled);
+
+		HeatParameters::Parse(parser, "Joining:Limit", heavy3JoinLimit);
+
+		HeatParameters::Parse(parser, "Joining:Fleeing", joinedHeavy3FleeDelay, joinedHeavy3Threshold);
 
 		// Code modifications 
 		MemoryTools::MakeRangeJMP<goalUpdateEntrance, goalUpdateExit>(GoalUpdate);
@@ -657,6 +661,7 @@ namespace CopFleeOverrides
 		joinedRoadblockThreshold.Log("joinedRoadblockThreshold");
 
 		heavy3SpeedThreshold.Log("heavy3SpeedThreshold    ");
+
 		heavy3JoiningEnabled.Log("heavy3JoiningEnabled    ");
 
 		if (heavy3JoiningEnabled.current)
@@ -681,9 +686,12 @@ namespace CopFleeOverrides
 		joinedRoadblockFleeDelay.SetToHeatState(isRacing, heatLevel);
 		joinedRoadblockThreshold.SetToHeatState(isRacing, heatLevel);
 
-		heavy3SpeedThreshold .SetToHeatState(isRacing, heatLevel);
-		heavy3JoiningEnabled .SetToHeatState(isRacing, heatLevel);
-		heavy3JoinLimit      .SetToHeatState(isRacing, heatLevel);
+		heavy3SpeedThreshold.SetToHeatState(isRacing, heatLevel);
+
+		heavy3JoiningEnabled.SetToHeatState(isRacing, heatLevel);
+
+		heavy3JoinLimit.SetToHeatState(isRacing, heatLevel);
+
 		joinedHeavy3FleeDelay.SetToHeatState(isRacing, heatLevel);
 		joinedHeavy3Threshold.SetToHeatState(isRacing, heatLevel);
 

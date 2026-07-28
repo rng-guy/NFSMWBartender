@@ -592,15 +592,20 @@ namespace GeneralSettings
 		HeatParameters::Parse(parser, "Pursuits:Rivals", rivalPursuitsEnabled);
 
 		HeatParameters::Parse(parser, "Bounty:Interval", bountyInterval);
-		HeatParameters::Parse(parser, "Bounty:Combo",    maxBountyMultiplier);
 
-		HeatParameters::Parse(parser, "State:Busting",  bustTimer,            maxBustDistance);
-		HeatParameters::Parse(parser, "State:Evading",  evadeTimer);
+		HeatParameters::Parse(parser, "Bounty:Combo", maxBountyMultiplier);
+
+		HeatParameters::Parse(parser, "State:Busting", bustTimer, maxBustDistance);
+
+		HeatParameters::Parse(parser, "State:Evading", evadeTimer);
+
 		HeatParameters::Parse(parser, "Evading:Hiding", carsAffectedByHiding, helisAffectedByHiding);
 
 		HeatParameters::Parse(parser, "Flipping:Damaged", copFlipByDamageEnabled);
-		HeatParameters::Parse(parser, "Flipping:Time",    copFlipByTimer);
-		HeatParameters::Parse(parser, "Flipping:Reset",   racerFlipResetDelay);
+
+		HeatParameters::Parse(parser, "Flipping:Time", copFlipByTimer);
+
+		HeatParameters::Parse(parser, "Flipping:Reset", racerFlipResetDelay);
 
 		// Pursuit-breaker immunity
 		if (ParsePursuitBreakerImmunities(parser))
@@ -645,19 +650,23 @@ namespace GeneralSettings
 
 		rivalPursuitsEnabled.Log("rivalPursuitsEnabled    ");
 
-		bountyInterval     .Log("bountyInterval          ");
+		bountyInterval.Log("bountyInterval          ");
+
 		maxBountyMultiplier.Log("maxBountyMultiplier     ");
 
 		bustTimer      .Log("bustTimer               ");
 		maxBustDistance.Log("maxBustDistance         ");
-		evadeTimer     .Log("evadeTimer              ");
+
+		evadeTimer.Log("evadeTimer              ");
 
 		carsAffectedByHiding .Log("carsAffectedByHiding    ");
 		helisAffectedByHiding.Log("helisAffectedByHiding   ");
 
 		copFlipByDamageEnabled.Log("copFlipByDamageEnabled  ");
-		copFlipByTimer        .Log("copFlipByTimer          ");
-		racerFlipResetDelay   .Log("racerFlipResetDelay     ");
+
+		copFlipByTimer.Log("copFlipByTimer          ");
+
+		racerFlipResetDelay.Log("racerFlipResetDelay     ");
 	}
 
 
@@ -671,7 +680,8 @@ namespace GeneralSettings
 
 		rivalPursuitsEnabled.SetToHeatState(isRacing, heatLevel);
 
-		bountyInterval     .SetToHeatState(isRacing, heatLevel);
+		bountyInterval.SetToHeatState(isRacing, heatLevel);
+
 		maxBountyMultiplier.SetToHeatState(isRacing, heatLevel);
 
 		bountyFrequency = 1.f / bountyInterval.current;
@@ -691,8 +701,10 @@ namespace GeneralSettings
 		helisAffectedByHiding.SetToHeatState(isRacing, heatLevel);
 
 		copFlipByDamageEnabled.SetToHeatState(isRacing, heatLevel);
-		copFlipByTimer        .SetToHeatState(isRacing, heatLevel);
-		racerFlipResetDelay   .SetToHeatState(isRacing, heatLevel);
+
+		copFlipByTimer.SetToHeatState(isRacing, heatLevel);
+
+		racerFlipResetDelay.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

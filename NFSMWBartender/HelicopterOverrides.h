@@ -22,17 +22,21 @@ namespace HelicopterOverrides
 	// Heat parameters
 	constinit HeatParameters::Value<const char*> helicopterVehicle("copheli");
 
-	constinit HeatParameters::OptionalInterval<float> firstSpawnDelay  ({1.f}); // seconds
-	constinit HeatParameters::OptionalInterval<float> fuelRespawnDelay ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> firstSpawnDelay({1.f}); // seconds
+
+	constinit HeatParameters::OptionalInterval<float> fuelRespawnDelay({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> wreckRespawnDelay({1.f}); // seconds
-	constinit HeatParameters::OptionalInterval<float> lostRespawnDelay ({1.f}); // seconds
+
+	constinit HeatParameters::OptionalInterval<float> lostRespawnDelay({1.f}); // seconds
 
 	constinit HeatParameters::OptionalInterval<float> lostRejoinDelay  ({1.f}); // seconds
 	constinit HeatParameters::OptionalValue   <float> minRejoinFuelTime({1.f}); // seconds
 
 	constinit HeatParameters::OptionalInterval<float> fuelTime({1.f}); // seconds
 
-	constinit HeatParameters::Interval<float> chaseSpawnDistance (250.f, 250.f, {0.f, 450.f}); // metres
+	constinit HeatParameters::Interval<float> chaseSpawnDistance(250.f, 250.f, {0.f, 450.f}); // metres
+
 	constinit HeatParameters::Interval<float> searchSpawnDistance(250.f, 250.f, {0.f, 450.f}); // metres
 
 	constinit HeatParameters::Value<bool> affectedByRoadblock(true);
@@ -591,16 +595,20 @@ namespace HelicopterOverrides
 		// Heat parameters
 		HeatParameters::Parse(parser, "Helicopter:Vehicle", helicopterVehicle);
 
-		HeatParameters::Parse(parser, "Helicopter:FirstSpawn",   firstSpawnDelay);
-		HeatParameters::Parse(parser, "Helicopter:FuelRespawn",  fuelRespawnDelay);
+		HeatParameters::Parse(parser, "Helicopter:FirstSpawn", firstSpawnDelay);
+
+		HeatParameters::Parse(parser, "Helicopter:FuelRespawn", fuelRespawnDelay);
+
 		HeatParameters::Parse(parser, "Helicopter:WreckRespawn", wreckRespawnDelay);
-		HeatParameters::Parse(parser, "Helicopter:LostRespawn",  lostRespawnDelay);
+
+		HeatParameters::Parse(parser, "Helicopter:LostRespawn", lostRespawnDelay);
 
 		HeatParameters::Parse(parser, "Helicopter:LostRejoin", lostRejoinDelay, minRejoinFuelTime);
 
 		HeatParameters::Parse(parser, "Helicopter:FuelTime", fuelTime);
 
-		HeatParameters::Parse(parser, "Helicopter:Chasing",   chaseSpawnDistance);
+		HeatParameters::Parse(parser, "Helicopter:Chasing", chaseSpawnDistance)
+			;
 		HeatParameters::Parse(parser, "Helicopter:Searching", searchSpawnDistance);
 
 		HeatParameters::Parse(parser, "Helicopter:Roadblocks", affectedByRoadblock);
@@ -646,10 +654,13 @@ namespace HelicopterOverrides
 
 			helicopterVehicle.Log("helicopterVehicle       ");
 			
-			firstSpawnDelay  .Log("firstSpawnDelay         ");
-			fuelRespawnDelay .Log("fuelRespawnDelays       ");
+			firstSpawnDelay.Log("firstSpawnDelay         ");
+
+			fuelRespawnDelay.Log("fuelRespawnDelays       ");
+
 			wreckRespawnDelay.Log("wreckRespawnDelay       ");
-			lostRespawnDelay .Log("lostRespawnDelay        ");
+
+			lostRespawnDelay.Log("lostRespawnDelay        ");
 
 			lostRejoinDelay  .Log("lostRejoinDelay         ");
 			minRejoinFuelTime.Log("minRejoinFuelTime       ");
@@ -657,7 +668,8 @@ namespace HelicopterOverrides
 			fuelTime.Log("fuelTime                ");
 		}
 
-		chaseSpawnDistance .Log("chaseSpawnDistance      ");
+		chaseSpawnDistance.Log("chaseSpawnDistance      ");
+
 		searchSpawnDistance.Log("searchSpawnDistance     ");
 
 		affectedByRoadblock.Log("isAffectedByRoadblock   ");
@@ -676,17 +688,21 @@ namespace HelicopterOverrides
 
 		helicopterVehicle.SetToHeatState(isRacing, heatLevel);
 		
-		firstSpawnDelay  .SetToHeatState(isRacing, heatLevel);
-		fuelRespawnDelay .SetToHeatState(isRacing, heatLevel);
+		firstSpawnDelay.SetToHeatState(isRacing, heatLevel);
+
+		fuelRespawnDelay.SetToHeatState(isRacing, heatLevel);
+
 		wreckRespawnDelay.SetToHeatState(isRacing, heatLevel);
-		lostRespawnDelay .SetToHeatState(isRacing, heatLevel);
+
+		lostRespawnDelay.SetToHeatState(isRacing, heatLevel);
 
 		lostRejoinDelay  .SetToHeatState(isRacing, heatLevel);
 		minRejoinFuelTime.SetToHeatState(isRacing, heatLevel);
 
 		fuelTime.SetToHeatState(isRacing, heatLevel);
 
-		chaseSpawnDistance .SetToHeatState(isRacing, heatLevel);
+		chaseSpawnDistance.SetToHeatState(isRacing, heatLevel);
+
 		searchSpawnDistance.SetToHeatState(isRacing, heatLevel);
 
 		affectedByRoadblock.SetToHeatState(isRacing, heatLevel);

@@ -20,14 +20,21 @@ namespace LeaderOverrides
 
 	// Heat parameters
 	constinit HeatParameters::OptionalInterval<float> leader5CrossAggroDelay ({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> leader5ExpireResetDelay({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> leader5WreckResetDelay ({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> leader5LostResetDelay  ({1.f}); // seconds
 
 	constinit HeatParameters::OptionalInterval<float> leader7CrossAggroDelay ({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> leader7HenchAggroDelay ({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> leader7ExpireResetDelay({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> leader7WreckResetDelay ({1.f}); // seconds
+
 	constinit HeatParameters::OptionalInterval<float> leader7LostResetDelay  ({1.f}); // seconds
 
 
@@ -410,16 +417,23 @@ namespace LeaderOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Leader5:CrossAggro",  leader5CrossAggroDelay);
-		HeatParameters::Parse(parser, "Leader5:ExpireReset", leader5ExpireResetDelay);
-		HeatParameters::Parse(parser, "Leader5:WreckReset",  leader5WreckResetDelay);
-		HeatParameters::Parse(parser, "Leader5:LostReset",   leader5LostResetDelay);
+		HeatParameters::Parse(parser, "Leader5:CrossAggro", leader5CrossAggroDelay);
 
-		HeatParameters::Parse(parser, "Leader7:CrossAggro",    leader7CrossAggroDelay);
+		HeatParameters::Parse(parser, "Leader5:ExpireReset", leader5ExpireResetDelay);
+
+		HeatParameters::Parse(parser, "Leader5:WreckReset", leader5WreckResetDelay);
+
+		HeatParameters::Parse(parser, "Leader5:LostReset", leader5LostResetDelay);
+
+		HeatParameters::Parse(parser, "Leader7:CrossAggro", leader7CrossAggroDelay);
+
 		HeatParameters::Parse(parser, "Leader7:HenchmenAggro", leader7HenchAggroDelay);
-		HeatParameters::Parse(parser, "Leader7:ExpireReset",   leader7ExpireResetDelay);
-		HeatParameters::Parse(parser, "Leader7:WreckReset",    leader7WreckResetDelay);
-		HeatParameters::Parse(parser, "Leader7:LostReset",     leader7LostResetDelay);
+
+		HeatParameters::Parse(parser, "Leader7:ExpireReset", leader7ExpireResetDelay);
+
+		HeatParameters::Parse(parser, "Leader7:WreckReset", leader7WreckResetDelay);
+
+		HeatParameters::Parse(parser, "Leader7:LostReset", leader7LostResetDelay);
 
 		// Code modifications
 		MemoryTools::MakeRangeNOP<0x42B6A2, 0x42B6B4>(); // Cross flag = 0
@@ -450,16 +464,23 @@ namespace LeaderOverrides
 		{
 			Globals::logger.Log("    HEAT [LDR] LeaderOverrides");
 
-			leader5CrossAggroDelay .Log("leader5CrossAggroDelay  ");
-			leader5ExpireResetDelay.Log("leader5ExpireResetDelay ");
-			leader5WreckResetDelay .Log("leader5WreckResetDelays ");
-			leader5LostResetDelay  .Log("leader5LostResetDelays  ");
+			leader5CrossAggroDelay.Log("leader5CrossAggroDelay  ");
 
-			leader7CrossAggroDelay .Log("leader7CrossAggroDelay  ");
-			leader7HenchAggroDelay .Log("leader7HenchAggroDelay  ");
+			leader5ExpireResetDelay.Log("leader5ExpireResetDelay ");
+
+			leader5WreckResetDelay.Log("leader5WreckResetDelays ");
+
+			leader5LostResetDelay.Log("leader5LostResetDelays  ");
+
+			leader7CrossAggroDelay.Log("leader7CrossAggroDelay  ");
+
+			leader7HenchAggroDelay.Log("leader7HenchAggroDelay  ");
+
 			leader7ExpireResetDelay.Log("leader7ExpireResetDelay ");
-			leader7WreckResetDelay .Log("leader7WreckResetDelays ");
-			leader7LostResetDelay  .Log("leader7LostResetDelays  ");
+
+			leader7WreckResetDelay.Log("leader7WreckResetDelays ");
+
+			leader7LostResetDelay.Log("leader7LostResetDelays  ");
 		}
 	}
 
@@ -472,16 +493,23 @@ namespace LeaderOverrides
 	) {
 		if (not anyFeatureEnabled) return;
 
-		leader5CrossAggroDelay .SetToHeatState(isRacing, heatLevel);
-		leader5ExpireResetDelay.SetToHeatState(isRacing, heatLevel);
-		leader5WreckResetDelay .SetToHeatState(isRacing, heatLevel);
-		leader5LostResetDelay  .SetToHeatState(isRacing, heatLevel);
+		leader5CrossAggroDelay.SetToHeatState(isRacing, heatLevel);
 
-		leader7CrossAggroDelay .SetToHeatState(isRacing, heatLevel);
-		leader7HenchAggroDelay .SetToHeatState(isRacing, heatLevel);
+		leader5ExpireResetDelay.SetToHeatState(isRacing, heatLevel);
+
+		leader5WreckResetDelay.SetToHeatState(isRacing, heatLevel);
+
+		leader5LostResetDelay.SetToHeatState(isRacing, heatLevel);
+
+		leader7CrossAggroDelay.SetToHeatState(isRacing, heatLevel);
+
+		leader7HenchAggroDelay.SetToHeatState(isRacing, heatLevel);
+
 		leader7ExpireResetDelay.SetToHeatState(isRacing, heatLevel);
-		leader7WreckResetDelay .SetToHeatState(isRacing, heatLevel);
-		leader7LostResetDelay  .SetToHeatState(isRacing, heatLevel);
+
+		leader7WreckResetDelay.SetToHeatState(isRacing, heatLevel);
+
+		leader7LostResetDelay.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

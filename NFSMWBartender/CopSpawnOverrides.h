@@ -274,14 +274,16 @@ namespace CopSpawnOverrides
 	// Heat parameters
 	constinit HeatParameters::Interval<int>activeChaserCount(1, 8, {0}); // cars
 
-	constinit HeatParameters::Value<bool> chasersAreIndependent   (false);
-	constinit HeatParameters::Value<bool> onlyDestroyedDecrement  (false);
+	constinit HeatParameters::Value<bool> chasersAreIndependent(false);
+
+	constinit HeatParameters::Value<bool> onlyDestroyedDecrement(false);
+
 	constinit HeatParameters::Value<bool> transitionTriggersBackup(false);
 
 	constinit HeatParameters::Value<float> chaserSpawnClearance(40.f, {0.f}); // metres
 
-	constinit HeatParameters::Value<bool> trafficIgnoresChaser   (false);
-	constinit HeatParameters::Value<bool> trafficIgnoresRoadblock(false);
+	constinit HeatParameters::Value<bool> trafficIgnoresChasers   (false);
+	constinit HeatParameters::Value<bool> trafficIgnoresRoadblocks(false);
 
 	constinit HeatParameters::OptionalValue<int> roadblockJoinLimit({0}); // cars
 
@@ -984,7 +986,7 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			cmp byte ptr [trafficIgnoresChaser.current], 1
+			cmp byte ptr [trafficIgnoresChasers.current], 1
 			je roadblock // "Chasers" ignored
 
 			cmp byte ptr [chasersAreIndependent.current], 1
@@ -1001,7 +1003,7 @@ namespace CopSpawnOverrides
 			jne conclusion                         // pending "Chasers" spawn
 
 			roadblock:
-			cmp byte ptr [trafficIgnoresRoadblock.current], 1
+			cmp byte ptr [trafficIgnoresRoadblocks.current], 1
 			je conclusion // roadblocks ignored
 
 			cmp byte ptr [edi + 0x190], 0 // roadblock pending
@@ -1211,13 +1213,17 @@ namespace CopSpawnOverrides
 		ParseBoardTrackingSettings(parser);
 
 		// Heat parameters (first file)
-		HeatParameters::Parse(parser, "Chasers:Limits",       activeChaserCount);
-		HeatParameters::Parse(parser, "Chasers:Independence", chasersAreIndependent);
-		HeatParameters::Parse(parser, "Chasers:Decrement",    onlyDestroyedDecrement);
-		HeatParameters::Parse(parser, "Chasers:Backup",       transitionTriggersBackup);
-		HeatParameters::Parse(parser, "Chasers:Clearance",    chaserSpawnClearance);
+		HeatParameters::Parse(parser, "Chasers:Limits", activeChaserCount);
 
-		HeatParameters::Parse(parser, "Traffic:Independence", trafficIgnoresChaser, trafficIgnoresRoadblock);
+		HeatParameters::Parse(parser, "Chasers:Independence", chasersAreIndependent);
+
+		HeatParameters::Parse(parser, "Chasers:Decrement", onlyDestroyedDecrement);
+
+		HeatParameters::Parse(parser, "Chasers:Backup", transitionTriggersBackup);
+
+		HeatParameters::Parse(parser, "Chasers:Clearance", chaserSpawnClearance);
+
+		HeatParameters::Parse(parser, "Traffic:Independence", trafficIgnoresChasers, trafficIgnoresRoadblocks);
 
 		// Heat parameters (second file)
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
@@ -1272,14 +1278,18 @@ namespace CopSpawnOverrides
 	{
 		Globals::logger.Log("    HEAT [SPA] CopSpawnOverrides");
 
-		activeChaserCount       .Log("activeChaserCount       ");
-		chasersAreIndependent   .Log("chasersAreIndependent   ");
-		onlyDestroyedDecrement  .Log("onlyDestroyedDecrement  ");
-		transitionTriggersBackup.Log("transitionTriggersBackup");
-		chaserSpawnClearance    .Log("chaserSpawnClearance    ");
+		activeChaserCount.Log("activeChaserCount       ");
 
-		trafficIgnoresChaser   .Log("trafficIgnoresChasers   ");
-		trafficIgnoresRoadblock.Log("trafficIgnoresRoadblocks");
+		chasersAreIndependent.Log("chasersAreIndependent   ");
+
+		onlyDestroyedDecrement.Log("onlyDestroyedDecrement  ");
+
+		transitionTriggersBackup.Log("transitionTriggersBackup");
+
+		chaserSpawnClearance.Log("chaserSpawnClearance    ");
+
+		trafficIgnoresChasers   .Log("trafficIgnoresChasers   ");
+		trafficIgnoresRoadblocks.Log("trafficIgnoresRoadblocks");
 
 		roadblockJoinLimit.Log("roadblockJoinLimit      ");
 	}
@@ -1297,16 +1307,20 @@ namespace CopSpawnOverrides
 		scriptedSpawns .UpdateSpawnTable();
 		roadblockSpawns.UpdateSpawnTable();
 
-		activeChaserCount       .SetToHeatState(isRacing, heatLevel);
-		chasersAreIndependent   .SetToHeatState(isRacing, heatLevel);
-		onlyDestroyedDecrement  .SetToHeatState(isRacing, heatLevel);
+		activeChaserCount.SetToHeatState(isRacing, heatLevel);
+
+		chasersAreIndependent.SetToHeatState(isRacing, heatLevel);
+
+		onlyDestroyedDecrement.SetToHeatState(isRacing, heatLevel);
+
 		transitionTriggersBackup.SetToHeatState(isRacing, heatLevel);
-		chaserSpawnClearance    .SetToHeatState(isRacing, heatLevel);
+
+		chaserSpawnClearance.SetToHeatState(isRacing, heatLevel);
 
 		squaredChaserSpawnClearance = chaserSpawnClearance.current * chaserSpawnClearance.current;
 
-		trafficIgnoresChaser   .SetToHeatState(isRacing, heatLevel);
-		trafficIgnoresRoadblock.SetToHeatState(isRacing, heatLevel);
+		trafficIgnoresChasers   .SetToHeatState(isRacing, heatLevel);
+		trafficIgnoresRoadblocks.SetToHeatState(isRacing, heatLevel);
 
 		roadblockJoinLimit.SetToHeatState(isRacing, heatLevel);
 

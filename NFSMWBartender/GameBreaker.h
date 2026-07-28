@@ -212,9 +212,11 @@ namespace GameBreaker
 
 		// Heat parameters
 		HeatParameters::Parse(parser, "Speedbreaker:Mechanics", passiveRechargeEnabled, driftRechargeEnabled);
-		HeatParameters::Parse(parser, "Speedbreaker:Wrecking",  copWreckBreakerChange);
 
-		HeatParameters::Parse(parser, "Wrecking:Gains",  canGainWhenActive, canGainWhenInactive);
+		HeatParameters::Parse(parser, "Speedbreaker:Wrecking", copWreckBreakerChange);
+
+		HeatParameters::Parse(parser, "Wrecking:Gains", canGainWhenActive, canGainWhenInactive);
+
 		HeatParameters::Parse(parser, "Wrecking:Losses", canLoseWhenActive, canLoseWhenInactive);
 
 		// Speedbreaker changes

@@ -35,13 +35,13 @@ namespace GroundSuppport
 	constinit HeatParameters::OptionalValue<float> regularRBJoinTimer({0.f}); // seconds
 	constinit HeatParameters::OptionalValue<float> backupRBJoinTimer ({0.f}); // seconds
 
+	constinit HeatParameters::Value<bool> reactToCooldownMode(true);
+	constinit HeatParameters::Value<bool> reactToSpikesHit   (true);
+
 	constinit HeatParameters::Value<float> maxRBJoinDistance      (500.f, {0.f}); // metres
 	constinit HeatParameters::Value<float> maxRBJoinElevationDelta(1.5f,  {0.f}); // metres
 	constinit HeatParameters::Value<int>   maxRBJoinCount         (1,     {0});   // cars
 
-	constinit HeatParameters::Value<bool> reactToCooldownMode(true);
-	constinit HeatParameters::Value<bool> reactToSpikesHit   (true);
-	
 	constinit HeatParameters::Interval<float> strategyCooldown(10.f, 10.f, {1.f}); // seconds
 
 	constinit HeatParameters::Value<float> heavy3SpeedLimit(100.f, {0.f}); // kph
@@ -856,6 +856,12 @@ namespace GroundSuppport
 
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
+		using HeatParameters::Parse;
+
+		using MemoryTools::Write;
+		using MemoryTools::MakeRangeNOP;
+		using MemoryTools::MakeRangeJMP;
+
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
 
@@ -864,20 +870,31 @@ namespace GroundSuppport
 		// Heat parameters
 		HeatParameters::Parse(parser, "Support:Rivals", rivalRoadblockEnabled, rivalHeavyEnabled, rivalLeaderEnabled);
 
-		HeatParameters::Parse(parser, "Roadblocks:Cooldown",   roadblockCooldown,       roadblockHeavyCooldown);
-		HeatParameters::Parse(parser, "Roadblocks:Distance",   roadblockSpawnDistance);
+		HeatParameters::Parse(parser, "Roadblocks:Cooldown", roadblockCooldown, roadblockHeavyCooldown);
+
+		HeatParameters::Parse(parser, "Roadblocks:Distance", roadblockSpawnDistance);
+
 		HeatParameters::Parse(parser, "Roadblocks:Formations", roadblockEndsFormation);
-		HeatParameters::Parse(parser, "Roadblocks:Joining",    regularRBJoinTimer,      backupRBJoinTimer);
-		HeatParameters::Parse(parser, "Roadblocks:Reactions",  reactToCooldownMode,     reactToSpikesHit);
-		HeatParameters::Parse(parser, "Joining:Definitions",   maxRBJoinDistance,       maxRBJoinElevationDelta, maxRBJoinCount);
+
+		HeatParameters::Parse(parser, "Roadblocks:Joining", regularRBJoinTimer, backupRBJoinTimer);
+
+		HeatParameters::Parse(parser, "Roadblocks:Reactions", reactToCooldownMode, reactToSpikesHit);
+
+		HeatParameters::Parse(parser, "Joining:Definitions", maxRBJoinDistance, maxRBJoinElevationDelta, maxRBJoinCount);
 
 		HeatParameters::Parse(parser, "Strategies:Cooldown", strategyCooldown);
-		HeatParameters::Parse(parser, "Heavy3:Speed",        heavy3SpeedLimit);
-		HeatParameters::Parse(parser, "Heavy3:Roadblocks",   heavy3TriggerCooldown, heavy3AreBlockable);
-		HeatParameters::Parse(parser, "Heavy3:Vehicles",     heavy3LightVehicle,    heavy3HeavyVehicle);
-		HeatParameters::Parse(parser, "Heavy4:Vehicles",     heavy4LightVehicle,    heavy4HeavyVehicle);
-		HeatParameters::Parse(parser, "Leader5:Vehicle",     leader5CrossVehicle);
-		HeatParameters::Parse(parser, "Leader7:Vehicles",    leader7CrossVehicle,   leader7Hench1Vehicle, leader7Hench2Vehicle);
+
+		HeatParameters::Parse(parser, "Heavy3:Speed", heavy3SpeedLimit);
+
+		HeatParameters::Parse(parser, "Heavy3:Roadblocks", heavy3TriggerCooldown, heavy3AreBlockable);
+
+		HeatParameters::Parse(parser, "Heavy3:Vehicles", heavy3LightVehicle, heavy3HeavyVehicle);
+
+		HeatParameters::Parse(parser, "Heavy4:Vehicles", heavy4LightVehicle, heavy4HeavyVehicle);
+
+		HeatParameters::Parse(parser, "Leader5:Vehicle", leader5CrossVehicle);
+
+		HeatParameters::Parse(parser, "Leader7:Vehicles", leader7CrossVehicle, leader7Hench1Vehicle, leader7Hench2Vehicle);
 
 		// Check and make vehicle names persistent
 		ResolveAllVehicleNames();
@@ -934,18 +951,18 @@ namespace GroundSuppport
 		roadblockSpawnDistance.Log("roadblockSpawnDistance  ");
 		roadblockEndsFormation.Log("roadblockEndsFormation  ");
 
+		regularRBJoinTimer.Log("regularRBJoinTimer      ");
+		backupRBJoinTimer .Log("backupRBJoinTimer       ");
+
+		reactToCooldownMode.Log("reactToCooldownMode     ");
+		reactToSpikesHit   .Log("reactToSpikesHit        ");
+
 		if (regularRBJoinTimer.isEnabled.current or backupRBJoinTimer.isEnabled.current or reactToCooldownMode.current)
 		{
 			maxRBJoinDistance      .Log("maxRBJoinDistance       ");
 			maxRBJoinElevationDelta.Log("maxRBJoinElevationDeltas");
 			maxRBJoinCount         .Log("maxRBJoinCount          ");
 		}
-
-		regularRBJoinTimer.Log("regularRBJoinTimer      ");
-		backupRBJoinTimer .Log("backupRBJoinTimer       ");
-
-		reactToCooldownMode.Log("reactToCooldownMode     ");
-		reactToSpikesHit   .Log("reactToSpikesHit        ");
 
 		strategyCooldown.Log("strategyCooldown        ");
 
@@ -986,15 +1003,15 @@ namespace GroundSuppport
 		roadblockSpawnDistance.SetToHeatState(isRacing, heatLevel);
 		roadblockEndsFormation.SetToHeatState(isRacing, heatLevel);
 
-		maxRBJoinDistance      .SetToHeatState(isRacing, heatLevel);
-		maxRBJoinElevationDelta.SetToHeatState(isRacing, heatLevel);
-		maxRBJoinCount         .SetToHeatState(isRacing, heatLevel);
-
 		regularRBJoinTimer.SetToHeatState(isRacing, heatLevel);
 		backupRBJoinTimer .SetToHeatState(isRacing, heatLevel);
 
 		reactToCooldownMode.SetToHeatState(isRacing, heatLevel);
 		reactToSpikesHit   .SetToHeatState(isRacing, heatLevel);
+
+		maxRBJoinDistance      .SetToHeatState(isRacing, heatLevel);
+		maxRBJoinElevationDelta.SetToHeatState(isRacing, heatLevel);
+		maxRBJoinCount         .SetToHeatState(isRacing, heatLevel);
 
 		strategyCooldown.SetToHeatState(isRacing, heatLevel);
 
