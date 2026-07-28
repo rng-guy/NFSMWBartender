@@ -219,7 +219,7 @@ namespace HeatParameters
 
 
 		[[nodiscard]] T GetMinimum() const
-		requires Concepts::IsPureArithmetic<T>
+		requires Concepts::IsBoundsCompatible<T>
 		{
 			T minimum = std::numeric_limits<T>::max();
 
@@ -234,7 +234,7 @@ namespace HeatParameters
 
 
 		[[nodiscard]] T GetMaximum() const
-		requires Concepts::IsPureArithmetic<T>
+		requires Concepts::IsBoundsCompatible<T>
 		{
 			T maximum = std::numeric_limits<T>::min();
 
@@ -245,6 +245,32 @@ namespace HeatParameters
 			}
 
 			return maximum;
+		}
+
+
+		[[nodiscard]] bool AnyTrue() const
+		requires std::same_as<T, bool>
+		{
+			for (const bool forRaces : {false, true})
+			{
+				for (const T value : this->GetHeatLevelArray(forRaces))
+					if (value) return true;
+			}
+
+			return false;
+		}
+
+
+		[[nodiscard]] bool AllTrue() const
+		requires std::same_as<T, bool>
+		{
+			for (const bool forRaces : {false, true})
+			{
+				for (const T value : this->GetHeatLevelArray(forRaces))
+					if (not value) return false;
+			}
+
+			return true;
 		}
 
 
