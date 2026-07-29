@@ -341,9 +341,9 @@ namespace StateObserver
 	bool InitialiseFeatures(const HeatParameters::Parser& parser)
 	{
 		// Code modifications 
-		ProcessGameplayOriginal     = MemoryTools::MakeCallHook(0x721609, ProcessGameplay);     // SoundAI::SyncPursuit (0x720850)
-		ProcessWorldLoadOriginal    = MemoryTools::MakeCallHook(0x662ADC, ProcessWorldLoad);    // nullsub_174          (0x6C39C0)
-		ProcessEventRestartOriginal = MemoryTools::MakeCallHook(0x63090B, ProcessEventRestart); // World_RestoreProps   (0x74D320)
+		ProcessGameplayOriginal     = MemoryTools::ReplaceCall(0x721609, ProcessGameplay);     // SoundAI::SyncPursuit (0x720850)
+		ProcessWorldLoadOriginal    = MemoryTools::ReplaceCall(0x662ADC, ProcessWorldLoad);    // nullsub_174          (0x6C39C0)
+		ProcessEventRestartOriginal = MemoryTools::ReplaceCall(0x63090B, ProcessEventRestart); // World_RestoreProps   (0x74D320)
 
 		MemoryTools::MakeRangeJMP<heatEqualiserEntrance,         heatEqualiserExit>        (HeatEqualiser);
 		MemoryTools::MakeRangeJMP<resetAIVehicleEntrance,        resetAIVehicleExit>       (ResetAIVehicle);

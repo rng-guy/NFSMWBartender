@@ -72,9 +72,9 @@ namespace GroundSuppport
 
 	[[nodiscard]] const char* __fastcall SelectHeavyVehicle(const address heavyStrategy)
 	{
-		const int strategyID = AsVolatile<int>(heavyStrategy);
+		const int strategyID = AsReference<int>(heavyStrategy);
 
-		const int  heavyChance = AsVolatile<int>(heavyStrategy + 0xC);
+		const int  heavyChance = AsReference<int>(heavyStrategy + 0xC);
 		const bool isHeavy     = Globals::prng.DoPercentTrial<int>(heavyChance);
 
 		switch (strategyID)
@@ -93,7 +93,7 @@ namespace GroundSuppport
 
 	[[nodiscard]] const char* __fastcall SelectCrossVehicle(const address leaderStrategy)
 	{
-		const int strategyID = AsVolatile<int>(leaderStrategy);
+		const int strategyID = AsReference<int>(leaderStrategy);
 
 		switch (strategyID)
 		{
@@ -114,8 +114,8 @@ namespace GroundSuppport
 		const address pursuit,
 		const address heavyStrategy
 	) {
-		const int  strategyID   = AsVolatile<int>    (heavyStrategy);
-		const bool hasRoadblock = AsVolatile<address>(pursuit + 0x84);
+		const int  strategyID   = AsReference<int>    (heavyStrategy);
+		const bool hasRoadblock = AsReference<address>(pursuit + 0x84);
 
 		switch (strategyID)
 		{
@@ -136,11 +136,11 @@ namespace GroundSuppport
 		const address pursuit,
 		const address leaderStrategy
 	) {
-		const int crossFlag = AsVolatile<int>(pursuit + 0x164);
+		const int crossFlag = AsReference<int>(pursuit + 0x164);
 
 		if (crossFlag == 0)
 		{
-			const int strategyID = AsVolatile<int>(leaderStrategy);
+			const int strategyID = AsReference<int>(leaderStrategy);
 
 			switch (strategyID)
 			{
@@ -159,8 +159,8 @@ namespace GroundSuppport
 	{
 		if constexpr (Globals::loggingEnabled)
 		{
-			const address leaderStrategy = AsVolatile<address>(pursuit + 0x198);
-			const int     strategyID     = AsVolatile<int>    (leaderStrategy);
+			const address leaderStrategy = AsReference<address>(pursuit + 0x198);
+			const int     strategyID     = AsReference<int>    (leaderStrategy);
 
 			Globals::logger.Log(pursuit, "[SUP] Priority: LeaderStrategy", strategyID);
 		}
@@ -190,7 +190,7 @@ namespace GroundSuppport
 			const address strategy = GetStrategy(supportNode, strategyID);
 			if (not IsStrategyAvailable(pursuit, strategy)) continue;
 
-			const int chance = AsVolatile<int>(strategy + 0x4);
+			const int chance = AsReference<int>(strategy + 0x4);
 
 			if (Globals::prng.DoPercentTrial<int>(chance))
 				candidates.push_back(strategy);
@@ -205,21 +205,21 @@ namespace GroundSuppport
 		const address strategy,
 		const bool    isHeavyStrategy
 	) {
-		const float duration = AsVolatile<float>(strategy + 0x8);
+		const float duration = AsReference<float>(strategy + 0x8);
 
-		AsVolatile<float>(pursuit + 0x208) = duration; // strategy duration
-		AsVolatile<int>  (pursuit + 0x20C) = 1;        // request flag
+		AsReference<float>(pursuit + 0x208) = duration; // strategy duration
+		AsReference<int>  (pursuit + 0x20C) = 1;        // request flag
 
 		if (isHeavyStrategy)
 		{
-			const int strategyID = AsVolatile<int>(strategy);
+			const int strategyID = AsReference<int>(strategy);
 
 			if ((strategyID != 3) or heavy3TriggerCooldown.current)
-				AsVolatile<float>(pursuit + 0xC8) = roadblockHeavyCooldown.current; // roadblock cooldown
+				AsReference<float>(pursuit + 0xC8) = roadblockHeavyCooldown.current; // roadblock cooldown
 
-			AsVolatile<address>(pursuit + 0x194) = strategy; // HeavyStrategy
+			AsReference<address>(pursuit + 0x194) = strategy; // HeavyStrategy
 		}
-		else AsVolatile<address>(pursuit + 0x198) = strategy; // LeaderStrategy
+		else AsReference<address>(pursuit + 0x198) = strategy; // LeaderStrategy
 	}
 
 
@@ -260,7 +260,7 @@ namespace GroundSuppport
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			const int strategyID = AsVolatile<int>(randomStrategy);
+			const int strategyID = AsReference<int>(randomStrategy);
 
 			Globals::logger.Log<0>(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
 			Globals::logger.Log<2>("Candidate", DecFormat(randomIndex + 1), '/', DecFormat(candidates.size()));
@@ -277,28 +277,28 @@ namespace GroundSuppport
 	{
 		if (not Globals::copManager) return 0;
 
-		int numPersistentVehicles = AsVolatile<int>(Globals::copManager + 0x94); // cops loaded
+		int numPersistentVehicles = AsReference<int>(Globals::copManager + 0x94); // cops loaded
 
-		const address finalPursuitEntry   = AsVolatile<address>(Globals::copManager + 0x128);
-		address       currentPursuitEntry = AsVolatile<address>(finalPursuitEntry);
+		const address finalPursuitEntry   = AsReference<address>(Globals::copManager + 0x128);
+		address       currentPursuitEntry = AsReference<address>(finalPursuitEntry);
 
 		// Check each active pursuit for roadblock(s)
 		while (currentPursuitEntry != finalPursuitEntry)
 		{
-			const address pursuit   = AsVolatile<address>(currentPursuitEntry + 0x8);
-			const address roadblock = AsVolatile<address>(pursuit + 0x84);
+			const address pursuit   = AsReference<address>(currentPursuitEntry + 0x8);
+			const address roadblock = AsReference<address>(pursuit + 0x84);
 
 			// Subtract roadblock-vehicle count
 			if (roadblock)
 			{
-				const address firstVehicleEntry = AsVolatile<address>(roadblock + 0xC);
-				const address lastVehicleEntry  = AsVolatile<address>(roadblock + 0x10);
+				const address firstVehicleEntry = AsReference<address>(roadblock + 0xC);
+				const address lastVehicleEntry  = AsReference<address>(roadblock + 0x10);
 
 				if (lastVehicleEntry > firstVehicleEntry)
 					numPersistentVehicles -= (lastVehicleEntry - firstVehicleEntry) / sizeof(address);
 			}
 
-			currentPursuitEntry = AsVolatile<address>(currentPursuitEntry);
+			currentPursuitEntry = AsReference<address>(currentPursuitEntry);
 		}
 
 		return numPersistentVehicles;
@@ -308,10 +308,10 @@ namespace GroundSuppport
 
 	[[nodiscard]] bool __fastcall HasJoinCapacity(const address pursuit)
 	{
-		const int numVehiclesJoined = AsVolatile<int>(pursuit + 0x23C);
+		const int numVehiclesJoined = AsReference<int>(pursuit + 0x23C);
 		if (numVehiclesJoined >= maxRBJoinCount.current) return false;
 
-		const float distanceToRoadblock = AsVolatile<float>(pursuit + 0x7C);
+		const float distanceToRoadblock = AsReference<float>(pursuit + 0x7C);
 		if (distanceToRoadblock > maxRBJoinDistance.current) return false;
 
 		// Consult ChasersManager for cop capacity (if enabled)
@@ -332,10 +332,10 @@ namespace GroundSuppport
 
 	[[nodiscard]] bool __fastcall MayDetachCops(const address roadblock)
 	{
-		const address pursuit       = AsVolatile<address>(roadblock + 0x28);
-		const int     pursuitStatus = AsVolatile<int>    (pursuit   + 0x218);
+		const address pursuit       = AsReference<address>(roadblock + 0x28);
+		const int     pursuitStatus = AsReference<int>    (pursuit   + 0x218);
 
-		const float joinTimer = AsVolatile<float>(roadblock + 0x58);
+		const float joinTimer = AsReference<float>(roadblock + 0x58);
 
 		switch (pursuitStatus)
 		{

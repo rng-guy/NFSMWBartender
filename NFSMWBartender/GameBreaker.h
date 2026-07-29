@@ -39,10 +39,12 @@ namespace GameBreaker
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] address GetLocalPlayer()
+	[[nodiscard]] address GetFirstLocalPlayer()
 	{
-		const size_t numPlayers = AsVolatile<size_t>(0x92D884);
-		return (numPlayers > 0) ? *AsVolatile<volatile address*>(0x92D87C) : 0x0;
+		const size_t numPlayers = AsReference<size_t>(0x92D884);
+		if (numPlayers == 0) return 0x0; // should never happen
+
+		return *AsReference<const address* const>(0x92D87C);
 	}
 
 
@@ -51,10 +53,10 @@ namespace GameBreaker
 	{
 		if (amount == 0.f) return;
 
-		const address localPlayer = GetLocalPlayer();
+		const address localPlayer = GetFirstLocalPlayer();
 		if (not localPlayer) return; // should never happen
 
-		const bool isBreakerActive = AsVolatile<bool>(localPlayer + 0x34);
+		const bool isBreakerActive = AsReference<bool>(localPlayer + 0x34);
 
 		if (amount > 0.f)
 		{
@@ -70,8 +72,8 @@ namespace GameBreaker
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<1>("[GBR] Speedbreaker change:", amount);
 
-		const auto  ChargeGameBreaker = AsFunction <void __thiscall (address, float)>(0x6F8F60);
-		const float timeToRatio       = *AsVolatile<volatile float*>                 (0x6EDDC3);
+		const auto  ChargeGameBreaker = AsFunction  <void __thiscall (address, float)>(0x6F8F60);
+		const float timeToRatio       = *AsReference<const float* const>              (0x6EDDC3);
 
 		ChargeGameBreaker(localPlayer, timeToRatio * amount);
 	}
@@ -81,7 +83,9 @@ namespace GameBreaker
 	[[nodiscard]] bool IsPlayerInPursuit()
 	{
 		const address playerAIVehicle = Globals::GetAIVehicle(Globals::GetPlayerVehicle());
-		return (playerAIVehicle and AsVolatile<address>(playerAIVehicle + 0x70));
+		if (not playerAIVehicle) return false; // should never happen
+
+		return AsReference<address>(playerAIVehicle + 0x70); // player pursuit
 	}
 
 

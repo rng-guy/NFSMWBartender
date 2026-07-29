@@ -321,17 +321,17 @@ namespace CopSpawnOverrides
 		int numActiveNonChasers        = 0;
 		int numJoinedRoadblockVehicles = 0;
 
-		volatile int&   pursuitStatus = AsVolatile<int>  (this->pursuit + 0x218);
-		volatile float& backupTimer   = AsVolatile<float>(this->pursuit + 0x21C);
+		int&   pursuitStatus = AsReference<int>  (this->pursuit + 0x218);
+		float& backupTimer   = AsReference<float>(this->pursuit + 0x21C);
 
-		volatile int& fullWaveCapacity       = AsVolatile<int>(this->pursuit + 0x144);
-		volatile int& numCopsLostInWave      = AsVolatile<int>(this->pursuit + 0x14C);
-		volatile int& numCopsToTriggerBackup = AsVolatile<int>(this->pursuit + 0x148);
+		int& fullWaveCapacity       = AsReference<int>(this->pursuit + 0x144);
+		int& numCopsLostInWave      = AsReference<int>(this->pursuit + 0x14C);
+		int& numCopsToTriggerBackup = AsReference<int>(this->pursuit + 0x148);
 
-		const volatile bool&  isPerpBusted      = AsVolatile<bool> (this->pursuit + 0xE8);
-		const volatile bool&  bailingPursuit    = AsVolatile<bool> (this->pursuit + 0xE9);
-		const volatile bool&  isFreeRoamPursuit = AsVolatile<bool> (this->pursuit + 0xA8);
-		const volatile float& copSpawnCooldown  = AsVolatile<float>(this->pursuit + 0xCC);
+		const bool&  isPerpBusted      = AsReference<bool> (this->pursuit + 0xE8);
+		const bool&  bailingPursuit    = AsReference<bool> (this->pursuit + 0xE9);
+		const bool&  isFreeRoamPursuit = AsReference<bool> (this->pursuit + 0xA8);
+		const float& copSpawnCooldown  = AsReference<float>(this->pursuit + 0xCC);
 
 		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTable, this->pursuit};
 
@@ -355,7 +355,7 @@ namespace CopSpawnOverrides
 		void UpdateNumPatrolCars()
 		{
 			const address attribute = Globals::GetFromPursuitlevel(this->pursuit, "NumPatrolCars"_vlt);
-			this->maxNumPatrolCars  = (attribute) ? AsVolatile<int>(attribute) : 1;
+			this->maxNumPatrolCars  = (attribute) ? AsReference<int>(attribute) : 1;
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -452,7 +452,7 @@ namespace CopSpawnOverrides
 			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
 			if (not copAIVehiclePursuit) return false; // should never happen
 
-			return AsVolatile<bool>(copAIVehiclePursuit + 0x22);
+			return AsReference<bool>(copAIVehiclePursuit + 0x22);
 		}
 
 
@@ -681,8 +681,10 @@ namespace CopSpawnOverrides
 
 	[[nodiscard]] bool IsEventActive()
 	{
-		const address raceStatusObject = AsVolatile<address>(0x91E000);
-		return (raceStatusObject and (AsVolatile<int>(raceStatusObject + 0x1960) != 0));
+		const address raceStatusObject = AsReference<address>(0x91E000);
+		if (not raceStatusObject) return false; // should never happen
+
+		return (AsReference<int>(raceStatusObject + 0x1960) != 0);
 	}
 
 
@@ -717,11 +719,11 @@ namespace CopSpawnOverrides
 
 	[[nodiscard]] bool CurrentEventForcesPursuit()
 	{
-		const address raceStatus = AsVolatile<address>(0x91E000);
+		const address raceStatus = AsReference<address>(0x91E000);
 		if (not raceStatus) return false; // should never happen
 
-		const auto    IsPursuitEvent = AsFunction<bool __thiscall (address)>(0x5FBE70);
-		const address raceParameters = AsVolatile<address>                  (raceStatus + 0x1968);
+		const auto    IsPursuitEvent = AsFunction <bool __thiscall (address)>(0x5FBE70);
+		const address raceParameters = AsReference<address>                  (raceStatus + 0x1968);
 
 		return IsPursuitEvent(raceParameters);
 	}

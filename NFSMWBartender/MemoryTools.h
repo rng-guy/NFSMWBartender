@@ -28,37 +28,45 @@ namespace MemoryTools
 
 
 
-	// Game-memory casting --------------------------------------------------------------------------------------------------------------------------
+	// Address casting ------------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
-	requires std::is_object_v<T>
-	[[nodiscard]] inline volatile T* AsPointer(const address location) noexcept
+	[[nodiscard]] inline address AsAddress(T* const target) noexcept
 	{
-		return reinterpret_cast<volatile T*>(location);
+		return reinterpret_cast<address>(target);
+	}
+
+
+
+	template <typename T>
+	requires (std::is_object_v<T> or std::is_void_v<T>)
+	[[nodiscard]] inline T* AsPointer(const address target) noexcept
+	{
+		return reinterpret_cast<T*>(target);
 	}
 
 
 	template <typename T>
 	requires std::is_object_v<T>
-	[[nodiscard]] inline volatile T& AsVolatile(const address location) noexcept
+	[[nodiscard]] inline T& AsReference(const address target) noexcept
 	{
-		return *AsPointer<T>(location);
+		return *AsPointer<T>(target);
 	}
 
 
 
 	template <typename T>
 	requires std::is_function_v<T>
-	[[nodiscard]] inline T* AsFunction(const address location) noexcept
+	[[nodiscard]] inline T* AsFunction(const address target) noexcept
 	{
-		return reinterpret_cast<T*>(location);
+		return reinterpret_cast<T*>(target);
 	}
 
 
 
 
 
-	// Queries and byte-writing ---------------------------------------------------------------------------------------------------------------------
+	// Queries and address writing ------------------------------------------------------------------------------------------------------------------
 
 	[[nodiscard]] inline bool IsModuleLoaded(const char* const name)
 	{
@@ -70,7 +78,7 @@ namespace MemoryTools
 	[[nodiscard]] inline address GetEntryPoint()
 	{
 		// Credit: thelink2012 and MWisBest
-		const address base = reinterpret_cast<address>(GetModuleHandleA(NULL));
+		const address base = AsAddress(GetModuleHandleA(NULL));
 
 		const auto dos = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
 		const auto nt  = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dos->e_lfanew);
@@ -85,14 +93,14 @@ namespace MemoryTools
 	inline void Write
 	(
 		const T                              data,
-		const std::initializer_list<address> locations
+		const std::initializer_list<address> targets
 	) {
 		constexpr size_t numBytes = sizeof(T);
 
-		for (const address location : locations)
+		for (const address target : targets)
 		{
 			DWORD previousSetting = PAGE_READONLY; // arbitrary
-			void* memoryLocation  = reinterpret_cast<void*>(location);
+			void* memoryLocation  = AsPointer<void>(target);
 
 			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE,  &previousSetting);
 			std::memcpy   (memoryLocation, &data,    numBytes);
@@ -118,7 +126,7 @@ namespace MemoryTools
 			const size_t numBytes = end - start;
 
 			DWORD previousSetting = PAGE_READONLY; // arbitrary
-			void* memoryLocation  = reinterpret_cast<void*>(start);
+			void* memoryLocation  = AsPointer<void>(start);
 
 			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE, &previousSetting);
 			std::memset   (memoryLocation, value,    numBytes);
@@ -157,7 +165,7 @@ namespace MemoryTools
 
 
 
-	// Address-range writing and hooking ------------------------------------------------------------------------------------------------------------
+	// Address-range writing ------------------------------------------------------------------------------------------------------------------------
 
 	template <address start, address end>
 	inline void WriteToRange(const byte value)
@@ -185,20 +193,25 @@ namespace MemoryTools
 	}
 
 
-	template <address start, address end>
-	inline void MakeRangeJMP(const void* const target)
+	template <address start, address end, typename T>
+	requires std::is_function_v<T>
+	inline void MakeRangeJMP(T* const target)
 	{
-		MakeRangeJMP<start, end>(reinterpret_cast<address>(target));
+		MakeRangeJMP<start, end>(AsAddress<T>(target));
 	}
 	
 
 
-	[[nodiscard]] inline address MakeCallHook
+
+
+	// Function hooking -----------------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] inline address ReplaceCall
 	(
-		const address call,
-		const address target
+		const address callSite,
+		const address newTarget
 	) {
-		const byte opcode = AsVolatile<byte>(call);
+		const byte opcode = AsReference<byte>(callSite);
 
 		if (opcode != 0xE8) // call near, relative
 		{
@@ -206,21 +219,23 @@ namespace MemoryTools
 			TerminateProcess(GetCurrentProcess(), 1); // hooking failed; terminate process for safety
 		}
 
-		const address callOffset      = call       + sizeof(byte);
+		const address callOffset      = callSite   + sizeof(byte);
 		const address nextInstruction = callOffset + sizeof(ptrdiff_t);
 
-		const ptrdiff_t originalOffset = AsVolatile<ptrdiff_t>(callOffset);
-		Write<ptrdiff_t>(target - nextInstruction, {callOffset}); // overwrites offset
+		const ptrdiff_t originalOffset = AsReference<ptrdiff_t>(callOffset);
+		Write<ptrdiff_t>(newTarget - nextInstruction, {callOffset});
 
-		return nextInstruction + originalOffset;
+		return nextInstruction + originalOffset; // replaced target
 	}
 
 
-	[[nodiscard]] inline address MakeCallHook
+	template <typename T>
+	requires std::is_function_v<T>
+	[[nodiscard]] inline address ReplaceCall
 	(
-		const address     call,
-		const void* const target
+		const address callSite,
+		T* const      newTarget
 	) {
-		return MakeCallHook(call, reinterpret_cast<address>(target));
+		return ReplaceCall(callSite, AsAddress<T>(newTarget));
 	}
 }

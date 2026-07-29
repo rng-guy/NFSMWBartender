@@ -81,12 +81,12 @@ namespace HelicopterOverrides
 		float fuelTimeOnRejoin    = 0.f;  // seconds
 		float minFuelTimeToRejoin = 10.f; // seconds
 
-		volatile int& numHelisDeployed = AsVolatile<int>(this->pursuit + 0x150);
+		int& numHelisDeployed = AsReference<int>(this->pursuit + 0x150);
 
 		inline static constinit address     helicopterOwner = 0x0;
 		inline static constinit const char* helicopterName  = nullptr;
 
-		inline static const volatile address& helicopterObject = AsVolatile<address>(0x90D61C);
+		inline static const address& helicopterObject = AsReference<address>(0x90D61C);
 
 
 		void VerifyPursuit()
@@ -159,10 +159,10 @@ namespace HelicopterOverrides
 		{
 			if (not Globals::IsInCooldownMode(this->pursuit)) return;
 
-			const address soundAI = AsVolatile<address>(0x993CC8);
+			const address soundAI = AsReference<address>(0x993CC8);
 			if (not soundAI) return; // should never happen
 
-			const address helicopterActor = AsVolatile<address>(soundAI + 0xE0);
+			const address helicopterActor = AsReference<address>(soundAI + 0xE0);
 			if (not helicopterActor) return; // should never happen
 
 			const auto CallOutSweep = AsFunction<void __thiscall (address)>(0x717D40);
@@ -193,7 +193,7 @@ namespace HelicopterOverrides
 		}
 
 
-		[[nodiscard]] static volatile float* GetFuelTimePointer()
+		[[nodiscard]] static float* GetFuelTimePointer()
 		{ 
 			if (not HelicopterManager::helicopterObject) return nullptr; // should never happen
 			return AsPointer<float>(HelicopterManager::helicopterObject + 0x7D8);
@@ -204,9 +204,7 @@ namespace HelicopterOverrides
 		{
 			if (not this->IsOwner()) return;
 
-			auto* const fuelTime = this->GetFuelTimePointer();
-
-			if (fuelTime)
+			if (float* const fuelTime = this->GetFuelTimePointer())
 			{
 				*fuelTime = amount;
 
@@ -359,7 +357,7 @@ namespace HelicopterOverrides
 			}
 			else // not destroyed
 			{
-				const auto* const fuelTime = this->GetFuelTimePointer();
+				const float* const fuelTime = this->GetFuelTimePointer();
 
 				if (not (fuelTime and (*fuelTime > 0.f))) // expired
 				{

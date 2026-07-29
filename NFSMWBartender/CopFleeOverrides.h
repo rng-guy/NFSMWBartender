@@ -174,7 +174,7 @@ namespace CopFleeOverrides
 		{
 		private:
 
-			const volatile address& strategy;
+			const address& strategy;
 
 
 		public:
@@ -188,7 +188,7 @@ namespace CopFleeOverrides
 				const std::string_view vehicleLabel,
 				const ptrdiff_t        strategyOffset
 			)
-				: SchedulerBase(pursuit, vehicleLabel), strategy(AsVolatile<address>(pursuit + strategyOffset))
+				: SchedulerBase(pursuit, vehicleLabel), strategy(AsReference<address>(pursuit + strategyOffset))
 			{
 			}
 
@@ -201,7 +201,7 @@ namespace CopFleeOverrides
 
 			void AddVehicle(const address copVehicle)
 			{
-				const float strategyDuration = (this->strategy) ? AsVolatile<float>(this->strategy + 0x8) : 1.f;
+				const float strategyDuration = (this->strategy) ? AsReference<float>(this->strategy + 0x8) : 1.f;
 				this->ScheduleVehicle(copVehicle, strategyDuration); // should never be 1.f (unless user-defined)
 			}
 
@@ -353,8 +353,8 @@ namespace CopFleeOverrides
 		PursuitScheduler joinedHeavyVehicles    {this->pursuit, "Joined H3", joinedHeavy3FleeDelay,    joinedHeavy3Threshold};
 		PursuitScheduler joinedRoadblockVehicles{this->pursuit, "Joined RB", joinedRoadblockFleeDelay, joinedRoadblockThreshold};
 
-		const volatile bool&    isJerk         = AsVolatile<bool>   (this->pursuit + 0x238);
-		const volatile address& pursuitTarget  = AsVolatile<address>(this->pursuit + 0x74);
+		const bool&    isJerk         = AsReference<bool>   (this->pursuit + 0x238);
+		const address& pursuitTarget  = AsReference<address>(this->pursuit + 0x74);
 
 
 		[[nodiscard]] static bool IsNotInChaserTable(const address copVehicle)
@@ -395,10 +395,10 @@ namespace CopFleeOverrides
 
 			if (this->pursuitTargetKnown)
 			{
-				const address physicsObject = AsVolatile<address>(this->pursuitTarget + 0x1C);
+				const address physicsObject = AsReference<address>(this->pursuitTarget + 0x1C);
 				
 				if (physicsObject)
-					rigidBodyOfTarget = AsVolatile<address>(physicsObject + 0x4C);
+					rigidBodyOfTarget = AsReference<address>(physicsObject + 0x4C);
 
 				else if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log("WARNING: [FLE] Invalid PhysicsObject for", this->pursuitTarget, "in", this->pursuit);
@@ -441,7 +441,7 @@ namespace CopFleeOverrides
 
 				if (heavyStrategy)
 				{
-					const int strategyID = AsVolatile<int>(heavyStrategy);
+					const int strategyID = AsReference<int>(heavyStrategy);
 
 					if (strategyID == 3) // ramming SUVs
 						Globals::ClearSupportRequest(this->pursuit);

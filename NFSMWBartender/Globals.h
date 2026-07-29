@@ -32,7 +32,7 @@ using address = MemoryTools::address;
 
 // Unscoped functions
 using MemoryTools::AsPointer;
-using MemoryTools::AsVolatile;
+using MemoryTools::AsReference;
 using MemoryTools::AsFunction;
 
 // Unscoped types
@@ -77,10 +77,10 @@ namespace Globals
 	const auto GetVehicleName = AsFunction<const char* __thiscall (address)>(0x688090); // for PVehicle
 
 	// Common data pointers
-	const volatile float&    simulationTime = AsVolatile<float>   (0x9885D8); // seconds
-	const volatile address&  copManager     = AsVolatile<address> (0x90D5F4);
-	const volatile uint32_t& numGameTicks   = AsVolatile<uint32_t>(0x925B14);
-	const volatile float&    ticksToTime    = AsVolatile<float>   (0x890984); // seconds / tick
+	const float&    simulationTime = AsReference<float>   (0x9885D8); // seconds
+	const address&  copManager     = AsReference<address> (0x90D5F4);
+	const uint32_t& numGameTicks   = AsReference<uint32_t>(0x925B14);
+	const float&    ticksToTime    = AsReference<float>   (0x890984); // seconds / tick
 
 
 
@@ -191,7 +191,7 @@ namespace Globals
 	{
 		if (not pursuit) return false; // should never happen
 
-		const int pursuitStatus = AsVolatile<int>(pursuit + 0x218);
+		const int pursuitStatus = AsReference<int>(pursuit + 0x218);
 
 		return (pursuitStatus == 2); // "COOLDOWN" mode
 	}
@@ -257,7 +257,7 @@ namespace Globals
 	[[nodiscard]] vault GetVehicleTypeClass(const vault type)
 	{
 		const address attribute = GetFromVault("pvehicle"_vlt, type, "CLASS"_vlt);
-		return (attribute) ? AsVolatile<vault>(attribute + 0x8) : ""_vlt;
+		return (attribute) ? AsReference<vault>(attribute + 0x8) : ""_vlt;
 	}
 
 
@@ -297,14 +297,14 @@ namespace Globals
 	[[nodiscard]] address GetPlayerVehicle()
 	{
 		if (not playerPerpVehicle) return 0x0; // should never happen
-		return AsVolatile<address>(playerPerpVehicle - (0x758 - 0x4C) - 0x4);
+		return AsReference<address>(playerPerpVehicle - (0x758 - 0x4C) - 0x4);
 	}
 
 
 	[[nodiscard]] address GetAIVehicle(const address vehicle)
 	{
 		if (not vehicle) return 0x0; // should never happen
-		return AsVolatile<address>(vehicle + 0x54);
+		return AsReference<address>(vehicle + 0x54);
 	}
 
 

@@ -101,16 +101,16 @@ namespace CopDetection
 		const address copAIVehicle = Globals::GetAIVehicle(copVehicle);
 		if (not copAIVehicle) return false; // should never happen
 
-		volatile bool& iconIsKept = AsVolatile<bool>(copAIVehicle - 0x4C + 0x81); // padding byte
+		bool& iconIsKept = AsReference<bool>(copAIVehicle - 0x4C + 0x81); // padding byte
 		if (iconIsKept) return true; // mini-map icon already kept
 
 		// Update whether the vehicle's been in a pursuit before
-		volatile bool& hasBeenInPursuit = AsVolatile<bool>(copAIVehicle - 0x4C + 0x82); // padding byte
+		bool& hasBeenInPursuit = AsReference<bool>(copAIVehicle - 0x4C + 0x82); // padding byte
 
 		if (not hasBeenInPursuit)
 		{
-			const bool hasPursuit  = AsVolatile<address>(copAIVehicle + 0x70);
-			const bool isRoadblock = AsVolatile<address>(copAIVehicle + 0x74);
+			const bool hasPursuit  = AsReference<address>(copAIVehicle + 0x70);
+			const bool isRoadblock = AsReference<address>(copAIVehicle + 0x74);
 
 			hasBeenInPursuit = (hasPursuit or isRoadblock);
 		}

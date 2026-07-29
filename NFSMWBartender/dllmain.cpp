@@ -150,7 +150,7 @@ BOOL WINAPI DllMain
 			return FALSE; // should never happen (assuming the user has actually read the README, which... yeah...)
 		}
 
-		InitialiseBartenderOriginal = MemoryTools::MakeCallHook(0x6665B4, InitialiseBartender); // InitializeEverything (0x665FC0)
+		InitialiseBartenderOriginal = MemoryTools::ReplaceCall(0x6665B4, InitialiseBartender); // InitializeEverything (0x665FC0)
 	}   
 
 	return TRUE;
