@@ -4,8 +4,8 @@
 #include <limits>
 #include <random>
 #include <cstdint>
+#include <concepts>
 #include <algorithm>
-#include <type_traits>
 
 
 
@@ -137,7 +137,7 @@ namespace RandomNumbers
 
 		// Samples from [min, max]
 		template <typename T>
-		requires std::is_integral_v<T>
+		requires std::integral<T>
 		[[nodiscard]] T GenerateNumber
 		(
 			const T min,
@@ -148,7 +148,7 @@ namespace RandomNumbers
 
 
 		template <typename T>
-		requires std::is_integral_v<T>
+		requires std::integral<T>
 		[[nodiscard]] bool DoPercentTrial(const T chance)
 		{
 			return (this->GenerateNumber<T>(static_cast<T>(1), static_cast<T>(100)) <= chance);
@@ -157,7 +157,7 @@ namespace RandomNumbers
 
 		// Samples from [min, max)
 		template <typename T>
-		requires std::is_floating_point_v<T>
+		requires std::floating_point<T>
 		[[nodiscard]] T GenerateNumber
 		(
 			const T min,
@@ -168,7 +168,7 @@ namespace RandomNumbers
 
 
 		template <typename T>
-		requires std::is_floating_point_v<T>
+		requires std::floating_point<T>
 		[[nodiscard]] bool DoPercentTrial(const T chance)
 		{
 			return (this->GenerateNumber<T>(static_cast<T>(0), static_cast<T>(100)) < chance);

@@ -177,8 +177,8 @@ namespace RoadblockOverrides
 
 	void __fastcall RequestCallout(const address pursuit)
 	{
-		if (Globals::IsInCooldownMode(pursuit))    return;
-		if (not Globals::IsPlayerPursuit(pursuit)) return;
+		if (Globals::IsPursuitInCooldownMode(pursuit)) return;
+		if (not Globals::IsPlayerPursuit(pursuit))     return;
 
 		if (Globals::prng.DoPercentTrial<float>(spawnCalloutChances.current))
 		{

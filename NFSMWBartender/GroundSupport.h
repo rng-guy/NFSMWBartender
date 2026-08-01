@@ -279,17 +279,9 @@ namespace GroundSuppport
 
 		int numPersistentVehicles = AsReference<int>(Globals::copManager + 0x94); // cops loaded
 
-		const address finalPursuitEntry   = AsReference<address>(Globals::copManager + 0x128);
-		address       currentPursuitEntry = AsReference<address>(finalPursuitEntry);
-
-		// Check each active pursuit for roadblock(s)
-		while (currentPursuitEntry != finalPursuitEntry)
+		for (const address pursuit : Globals::PursuitList())
 		{
-			const address pursuit   = AsReference<address>(currentPursuitEntry + 0x8);
-			const address roadblock = AsReference<address>(pursuit + 0x84);
-
-			// Subtract roadblock-vehicle count
-			if (roadblock)
+			if (const address roadblock = AsReference<address>(pursuit + 0x84))
 			{
 				const address firstVehicleEntry = AsReference<address>(roadblock + 0xC);
 				const address lastVehicleEntry  = AsReference<address>(roadblock + 0x10);
@@ -297,8 +289,6 @@ namespace GroundSuppport
 				if (lastVehicleEntry > firstVehicleEntry)
 					numPersistentVehicles -= (lastVehicleEntry - firstVehicleEntry) / sizeof(address);
 			}
-
-			currentPursuitEntry = AsReference<address>(currentPursuitEntry);
 		}
 
 		return numPersistentVehicles;

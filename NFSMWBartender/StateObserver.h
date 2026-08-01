@@ -14,6 +14,7 @@
 
 #include "PursuitObserver.h"
 #include "CopSpawnOverrides.h"
+#include "HeatChangeOverrides.h"
 
 
 
@@ -57,6 +58,86 @@ namespace StateObserver
 		GameBreaker    ::SetToHeatState(playerIsRacing, safeHeatLevel);
 			
 		PursuitObserver::SetToHeatState(playerIsRacing, safeHeatLevel);
+	}
+
+
+
+	void ProcessDamagedCop
+	(
+		const address pursuit,
+		const address copVehicle,
+		const address perpVehicle
+	) {
+		GameBreaker::NotifyOfDamagedCop(pursuit, copVehicle, perpVehicle);
+
+		HeatChangeOverrides::NotifyOfDamagedCop(pursuit, copVehicle, perpVehicle);
+	}
+
+
+	
+	void ProcessAssaultedCop
+	(
+		const address pursuit,
+		const address copVehicle,
+		const address perpVehicle,
+		const bool    isFirstOffence
+	) {
+		GameBreaker::NotifyOfAssaultedCop(pursuit, copVehicle, perpVehicle, isFirstOffence);
+
+		HeatChangeOverrides::NotifyOfAssaultedCop(pursuit, copVehicle, perpVehicle, isFirstOffence);
+	}
+
+
+
+	void __fastcall ProcessDestroyedCop
+	(
+		const address pursuit,
+		const address copVehicle
+	) {
+		GameBreaker::NotifyOfDestroyedCop(pursuit, copVehicle);
+
+		HeatChangeOverrides::NotifyOfDestroyedCop(pursuit, copVehicle);
+	}
+
+
+
+	[[nodiscard]] bool __stdcall ShouldCollisionTriggerInfraction
+	(
+		const address pursuit,
+		const address copVehicle,
+		const address perpVehicle,
+		const bool    racerAtFault
+	) {
+		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
+		if (not copAIVehiclePursuit) return false; // should never happen
+
+		// Process damaged cop vehicle
+		bool& damagedByRacer = AsReference<bool>(copAIVehiclePursuit + 0xB);
+
+		if (not damagedByRacer)
+		{
+			damagedByRacer = true;
+
+			if (pursuit) // is perp's pursuit, not necessarily the cop's
+			{
+				const auto NotifyCopDamaged = AsFunction<void __thiscall (address, address)>(0x40AF40);
+				NotifyCopDamaged(pursuit, copVehicle); // for "cops hit" tracking in perp pursuit
+
+				ProcessDamagedCop(pursuit, copVehicle, perpVehicle);
+			}
+		}
+
+		// Process assault by perp
+		if (not racerAtFault) return false;
+
+		bool& alreadyAssaulted = AsReference<bool>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
+
+		if (pursuit)
+			ProcessAssaultedCop(pursuit, copVehicle, perpVehicle, (not alreadyAssaulted));
+		
+		alreadyAssaulted = true;
+
+		return (pursuit and Globals::IsPlayerPursuit(pursuit));
 	}
 
 
@@ -152,6 +233,56 @@ namespace StateObserver
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+
+	constexpr address copDestroyedEntrance = 0x418F30;
+	constexpr address copDestroyedExit     = 0x418F3B;
+
+	// Trigges whenever a cop is destroyed
+	__declspec(naked) void CopDestroyed()
+	{
+		__asm
+		{
+			push esi
+			mov esi, ecx
+
+			mov edx, dword ptr [esp + 0x8]
+			call ProcessDestroyedCop // ecx: pursuit; edx: copVehicle
+
+			// Execute original code and resume
+			cmp byte ptr [esi + 0xA8], 0
+
+			jmp dword ptr [copDestroyedExit]
+		}
+	}
+
+
+
+	constexpr address perpCollisionEntrance = 0x429C8B;
+	constexpr address perpCollisionExit     = 0x429CBB;
+
+	// Checks whether collisions with cops constitute assault
+	__declspec(naked) void PerpCollision()
+	{
+		__asm
+		{
+			movzx eax, byte ptr [esp + 0x13]
+			mov ebx, dword ptr [esp + 0x14]
+
+			mov edx, dword ptr [esp + 0x18]
+			lea edx, dword ptr [edx - 0x8]
+
+			push eax // racerAtFault
+			push edx // perpVehicle
+			push edi // copVehicle
+			push ebx // pursuit
+			call ShouldCollisionTriggerInfraction
+			test al, al
+
+			jmp dword ptr [perpCollisionExit]
+		}
+	}
+
+
 
 	constexpr address heatEqualiserEntrance = 0x409084;
 	constexpr address heatEqualiserExit     = 0x40908A;
@@ -325,7 +456,7 @@ namespace StateObserver
 			mov byte ptr [esi + 0x768], al
 
 			mov byte ptr [esi + 0x769], al // "HelicopterVision.h"
-			mov byte ptr [esi + 0x76A], al // "HeatChangeOverrides.h"
+			mov byte ptr [esi + 0x76A], al // "StateObserver.h"
 			mov byte ptr [esi + 0x76B], al // "CopSpawnOverrides.h"
 
 			jmp dword ptr [resetAIVehiclePursuitExit]
@@ -345,6 +476,10 @@ namespace StateObserver
 		ProcessWorldLoadOriginal    = MemoryTools::ReplaceCall(0x662ADC, ProcessWorldLoad);    // nullsub_174          (0x6C39C0)
 		ProcessEventRestartOriginal = MemoryTools::ReplaceCall(0x63090B, ProcessEventRestart); // World_RestoreProps   (0x74D320)
 
+		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first perp-damage check
+
+		MemoryTools::MakeRangeJMP<copDestroyedEntrance,          copDestroyedExit>         (CopDestroyed);
+		MemoryTools::MakeRangeJMP<perpCollisionEntrance,         perpCollisionExit>        (PerpCollision);
 		MemoryTools::MakeRangeJMP<heatEqualiserEntrance,         heatEqualiserExit>        (HeatEqualiser);
 		MemoryTools::MakeRangeJMP<resetAIVehicleEntrance,        resetAIVehicleExit>       (ResetAIVehicle);
 		MemoryTools::MakeRangeJMP<gameStateUpdateEntrance,       gameStateUpdateExit>      (GameStateUpdate);

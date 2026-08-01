@@ -25,7 +25,7 @@ namespace GeneralSettings
 	bool trackPursuitLength  = false;
 	bool trackUnitsInPursuit = false;
 	bool trackCopsLost       = false;
-	bool trackCopsHit        = false;
+	bool trackCopsDamaged    = false;
 	bool trackCopsDestroyed  = false;
 	bool trackPassiveBounty  = false;
 	bool trackPropertyDamage = false;
@@ -488,20 +488,20 @@ namespace GeneralSettings
 				Globals::logger.Log<2>("Tracking cops lost");
 		}
 
-		// Cops hit
-		if (ParseTracking("copsHit", trackCopsHit))
+		// Cops damaged
+		if (ParseTracking("copsDamaged", trackCopsDamaged))
 		{
 			MemoryTools::MakeRangeNOP<0x40AF43, 0x40AF4D>();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Tracking cops hit");
+				Globals::logger.Log<2>("Tracking cops damaged");
 		}
 
 		// Cops destroyed
 		if (ParseTracking("copsDestroyed", trackCopsDestroyed))
 		{
 			MemoryTools::MakeRangeNOP<0x4094E0, 0x4094EA>(); // cop bounty
-			MemoryTools::MakeRangeNOP<0x418F33, 0x418F41>(); // cops destroyed
+			MemoryTools::MakeRangeNOP<0x418F3B, 0x418F41>(); // cops destroyed
 			MemoryTools::MakeRangeNOP<0x43EA15, 0x43EA19>(); // total cops destroyed
 
 			if constexpr (Globals::loggingEnabled)

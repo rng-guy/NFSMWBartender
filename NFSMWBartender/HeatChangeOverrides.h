@@ -26,28 +26,28 @@ namespace HeatChangeOverrides
 	// Heat parameters
 	constinit HeatParameters::Value<bool> heatTimerEnabled(true);
 
-	constinit HeatParameters::Value<float> chaserHeatChange    (0.f);
-	constinit HeatParameters::Value<float> supportHeatChange   (0.f);
-	constinit HeatParameters::Value<float> helicopterHeatChange(0.f);
+	constinit HeatParameters::Value<float> chaserHeatChange    (0.f); // levels
+	constinit HeatParameters::Value<float> supportHeatChange   (0.f); // levels
+	constinit HeatParameters::Value<float> helicopterHeatChange(0.f); // levels
 
-	constinit HeatParameters::Value<float> roadblockHeatChange(0.f);
-	constinit HeatParameters::Value<float> spikesHeatChange   (0.f);
+	constinit HeatParameters::Value<float> roadblockHeatChange(0.f); // levels
+	constinit HeatParameters::Value<float> spikesHeatChange   (0.f); // levels
 
-	constinit HeatParameters::Value<float> copWreckHeatChange(0.f);
+	constinit HeatParameters::Value<float> copWreckHeatChange(0.f); // levels
 
-	constinit HeatParameters::Value<float> copHitHeatChange    (0.f);
-	constinit HeatParameters::Value<float> trafficHitHeatChange(0.f);
+	constinit HeatParameters::Value<float> copDamagedHeatChange(0.f); // levels
+	constinit HeatParameters::Value<float> trafficHitHeatChange(0.f); // levels
 
-	constinit HeatParameters::Value<float> heatChangePerAssault(0.f);
+	constinit HeatParameters::Value<float> heatChangePerAssault(0.f); // levels
 	constinit HeatParameters::Value<bool>  onlyOneAssaultPerCop(true);
 
-	constinit HeatParameters::Value<float> damageHeatChange(0.f);
+	constinit HeatParameters::Value<float> damageHeatChange(0.f); // levels
 
 	// Code caves
 	size_t lastAnimatedHeatLevel = 0;
 	float  animationEndTimestamp = 0.f;
 
-	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<float> copTypeToHeatChange(0.f);
+	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<float> copTypeToWreckHeatChange(0.f); // levels
 
 
 
@@ -99,14 +99,14 @@ namespace HeatChangeOverrides
 			CountTracker& operator=(const CountTracker&) = delete;
 
 
-			[[nodiscard]] float GetHeatChange()
+			[[nodiscard]] float YieldHeatChange()
 			{
 				const int change = this->count - this->lastCount;
 
 				this->lastCount += change;
 				if (change <= 0) return 0.f;
 
-				return Globals::floatScale * static_cast<float>(change) * this->heatPerCount.current;
+				return static_cast<float>(change) * this->heatPerCount.current;
 			}
 		};
 
@@ -115,7 +115,7 @@ namespace HeatChangeOverrides
 
 		float pendingHeatChange = 0.f;
 
-		std::array<CountTracker, 9> trackers =
+		std::array<CountTracker, 6> automaticTrackers =
 		{
 			CountTracker{this->pursuit, 0x184, chaserHeatChange},
 			CountTracker{this->pursuit, 0x188, supportHeatChange},
@@ -124,28 +124,30 @@ namespace HeatChangeOverrides
 			CountTracker{this->pursuit, 0x158, roadblockHeatChange},
 			CountTracker{this->pursuit, 0x17C, spikesHeatChange},
 
-			CountTracker{this->pursuit, 0x13C, copWreckHeatChange},
-
-			CountTracker{this->pursuit, 0x15C, copHitHeatChange},
-			CountTracker{this->pursuit, 0x168, trafficHitHeatChange},
-
-			CountTracker{this->pursuit, 0x174, damageHeatChange}
+			CountTracker{this->pursuit, 0x168, trafficHitHeatChange}
 		};
 	
 		inline static RELEASE_CONSTINIT ModContainers::AddressMap<HeatManager*> pursuitToManager;
 
 
-		void UpdateTrackers()
+		void AddToPendingHeatChange(const float amount)
+		{
+			if (Globals::IsPursuitInCooldownMode(this->pursuit)) return;
+
+			this->pendingHeatChange += Globals::floatScale * amount;
+		}
+
+
+		void ProcessTrackerYields()
 		{
 			if (not Globals::playerHeatLevelKnown) return;
 
 			float totalHeatChange = 0.f;
 
-			for (CountTracker& tracker : this->trackers)
-				totalHeatChange += tracker.GetHeatChange();
+			for (CountTracker& tracker : this->automaticTrackers)
+				totalHeatChange += tracker.YieldHeatChange();
 
-			if (not Globals::IsInCooldownMode(this->pursuit))
-				this->pendingHeatChange += totalHeatChange;
+			this->AddToPendingHeatChange(totalHeatChange);
 		}
 
 
@@ -188,27 +190,63 @@ namespace HeatChangeOverrides
 
 		void ReactToGameplay() override
 		{
-			this->UpdateTrackers();
+			this->ProcessTrackerYields();
 		}
 
 
-		static void __stdcall AddToPendingHeatChange
+		static void NotifyOfDamagedCop(const address pursuit) 
+		{
+			auto* const manager = HeatManager::FindManager(pursuit);
+			if (not manager) return; // should never happen
+
+			manager->AddToPendingHeatChange(copDamagedHeatChange.current);
+		}
+
+
+		static void NotifyOfAssaultedCop
 		(
 			const address pursuit,
-			const float   amount
+			const bool    isFirstOffence
 		) {
-			if (Globals::IsInCooldownMode(pursuit)) return;
+			if ((not isFirstOffence) and onlyOneAssaultPerCop.current) return;
 
 			auto* const manager = HeatManager::FindManager(pursuit);
 			if (not manager) return; // should never happen
 
-			manager->pendingHeatChange += Globals::floatScale * amount;
+			manager->AddToPendingHeatChange(heatChangePerAssault.current);
 		}
 
 
-		[[nodiscard]] static float __fastcall GetPendingHeatChange(const address pursuit)
+		static void __fastcall NotifyOfPropertyDamage
+		(
+			const address pursuit,
+			const int     damageAmount
+		) {
+			auto* const manager = HeatManager::FindManager(pursuit);
+			if (not manager) return; // should never happen
+
+			manager->AddToPendingHeatChange(static_cast<float>(damageAmount) * damageHeatChange.current);
+		}
+
+
+		static void NotifyOfDestroyedCop
+		(
+			const address pursuit,
+			const address copVehicle
+		) {
+			auto* const manager = HeatManager::FindManager(pursuit);
+			if (not manager) return; // should never happen
+
+			const vault copType        = Globals::GetVehicleType(copVehicle);
+			const float typeWreckBonus = copTypeToWreckHeatChange.GetValue(copType);
+
+			manager->AddToPendingHeatChange(copWreckHeatChange.current + typeWreckBonus);
+		}
+
+
+		[[nodiscard]] static float __fastcall YieldPendingHeatChange(const address pursuit)
 		{
-			if (Globals::IsInCooldownMode(pursuit)) return 0.f;
+			if (Globals::IsPursuitInCooldownMode(pursuit)) return 0.f;
 
 			auto* const manager = HeatManager::FindManager(pursuit);
 			if (not manager) return 0.f; // should never happen
@@ -243,42 +281,6 @@ namespace HeatChangeOverrides
 
 		if (minHeat > maxHeat)
 			minHeat = maxHeat;
-	}
-
-
-
-	[[nodiscard]] bool __stdcall ShouldCollisionTriggerInfraction
-	(
-		const address pursuit,
-		const address copVehicle,
-		const bool    racerAtFault
-	) {
-		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
-		if (not copAIVehiclePursuit) return false; // should never happen
-
-		bool& damagedByRacer = AsReference<bool>(copAIVehiclePursuit + 0xB);
-
-		if (not damagedByRacer)
-		{
-			damagedByRacer = true;
-
-			if (pursuit)
-			{
-				const auto NotifyCopDamaged = AsFunction<void __thiscall (address, address)>(0x40AF40);
-				NotifyCopDamaged(pursuit, copVehicle); // for "cops hit" tracking in pursuit
-			}		
-		}
-
-		if (not racerAtFault) return false;
-
-		bool& assaultedByRacer = AsReference<bool>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
-
-		if (pursuit and (not (onlyOneAssaultPerCop.current and assaultedByRacer)))
-			HeatManager::AddToPendingHeatChange(pursuit, heatChangePerAssault.current);
-
-		assaultedByRacer = true;
-
-		return (pursuit and Globals::IsPlayerPursuit(pursuit));
 	}
 
 
@@ -345,9 +347,9 @@ namespace HeatChangeOverrides
 		__asm
 		{
 			lea ecx, dword ptr [esi + 0x40]
-			call HeatManager::GetPendingHeatChange // ecx: pursuit
+			call HeatManager::YieldPendingHeatChange // ecx: pursuit
 			faddp st(1), st(0)
-			fstp dword ptr [esp + 0x1C]            // new perp Heat
+			fstp dword ptr [esp + 0x1C]              // new perp Heat
 
 			test ebx, ebx
 			je conclusion // no pursuit attributes 
@@ -408,24 +410,26 @@ namespace HeatChangeOverrides
 
 
 
-	constexpr address perpCollisionEntrance = 0x429C8B;
-	constexpr address perpCollisionExit     = 0x429CBB;
+	constexpr address propertyDamageEntrance = 0x40945A;
+	constexpr address propertyDamageExit     = 0x409461;
 
-	// Checks whether collisions with cops constitute assault
-	__declspec(naked) void PerpCollision()
+	// Notifies HeatManager of incurred property damage
+	__declspec(naked) void PropertyDamage()
 	{
 		__asm
 		{
-			movzx eax, byte ptr [esp + 0x13]
-			mov ebx, dword ptr [esp + 0x14]
-			
-			push eax // racerAtFault
-			push edi // copVehicle
-			push ebx // pursuit
-			call ShouldCollisionTriggerInfraction
-			test al, al
+			push edx
 
-			jmp dword ptr [perpCollisionExit]
+			mov ecx, esi
+			mov edx, dword ptr [esp + 0x14]
+			call HeatManager::NotifyOfPropertyDamage // ecx: pursuit; edx: damageAmount
+
+			pop edx
+
+			// Execute original code and resume
+			cmp dword ptr [edx + 0x1964], 2
+
+			jmp dword ptr [propertyDamageExit]
 		}
 	}
 
@@ -470,32 +474,6 @@ namespace HeatChangeOverrides
 
 
 
-	constexpr address typeDestructionEntrance = 0x418F99;
-	constexpr address typeDestructionExit     = 0x418F9F;
-
-	// Notifies managers of destroyed cop vehicles for Heat-change purposes
-	__declspec(naked) void TypeDestruction()
-	{
-		__asm
-		{
-			// Execute original code first
-			mov dword ptr [esi + 0xF8], eax // last cop type destroyed
-
-			push eax // copType
-			mov ecx, offset copTypeToHeatChange
-			call ModContainers::DefaultVaultMap<float>::GetValue
-
-			push eax
-			fstp dword ptr [esp] // amount
-			push esi             // pursuit
-			call HeatManager::AddToPendingHeatChange
-
-			jmp dword ptr [typeDestructionExit]
-		}
-	}
-
-
-
 
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
@@ -522,14 +500,14 @@ namespace HeatChangeOverrides
 
 
 
-	bool ParseVehicleChanges(const HeatParameters::Parser& parser)
+	bool ParseVehicleWreckChanges(const HeatParameters::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 		std::vector<float>            heatChanges;
 
 		parser.ParseUser<std::string_view, float>("Wrecking:Vehicles", copNames, {heatChanges});
 
-		return copTypeToHeatChange.FillFromVectors
+		return copTypeToWreckHeatChange.FillFromVectors
 		(
 			"Vehicle-to-change",
 			HeatParameters::configDefaultVaultHash,
@@ -560,29 +538,23 @@ namespace HeatChangeOverrides
 
 		HeatParameters::Parse(parser, "Heat:Wrecking", copWreckHeatChange);
 
-		HeatParameters::Parse(parser, "Heat:Collisions", copHitHeatChange, trafficHitHeatChange);
+		HeatParameters::Parse(parser, "Heat:Collisions", copDamagedHeatChange, trafficHitHeatChange);
 
 		HeatParameters::Parse(parser, "Collisions:Assault", heatChangePerAssault, onlyOneAssaultPerCop);
 
 		ParseDamageChanges(parser);
 
 		// Vehicle-specific Heat changes
-		if (ParseVehicleChanges(parser))
-		{
-			// Code modifications (conditional)
-			MemoryTools::MakeRangeJMP<typeDestructionEntrance, typeDestructionExit>(TypeDestruction);
-		}
+		ParseVehicleWreckChanges(parser);
 
 		// Code modifications (general)
 		MemoryTools::Write<byte>(0xEB, {0x44307F}); // Heat limits in Challenge Series events
-
-		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first perp-damage check
 
 		MemoryTools::MakeRangeJMP<heatLimitsEntrance,      heatLimitsExit>     (HeatLimits);
 		MemoryTools::MakeRangeJMP<passiveHeatEntrance,     passiveHeatExit>    (PassiveHeat);
 		MemoryTools::MakeRangeJMP<spikeCounterEntrance,    spikeCounterExit>   (SpikeCounter);
 		MemoryTools::MakeRangeJMP<supportCheckEntrance,    supportCheckExit>   (SupportCheck);
-		MemoryTools::MakeRangeJMP<perpCollisionEntrance,   perpCollisionExit>  (PerpCollision);
+		MemoryTools::MakeRangeJMP<propertyDamageEntrance,  propertyDamageExit> (PropertyDamage);
 		MemoryTools::MakeRangeJMP<heatMeterResetEntrance,  heatMeterResetExit> (HeatMeterReset);
 		MemoryTools::MakeRangeJMP<heatMeterUpdateEntrance, heatMeterUpdateExit>(HeatMeterUpdate);
 
@@ -609,7 +581,7 @@ namespace HeatChangeOverrides
 
 		copWreckHeatChange.Log("copWreckHeatChange      ");
 
-		copHitHeatChange    .Log("copHitHeatChange        ");
+		copDamagedHeatChange.Log("copDamagedHeatChange    ");
 		trafficHitHeatChange.Log("trafficHitHeatChange    ");
 
 		heatChangePerAssault.Log("heatChangePerAssault    ");
@@ -638,7 +610,7 @@ namespace HeatChangeOverrides
 
 		copWreckHeatChange.SetToHeatState(isRacing, heatLevel);
 
-		copHitHeatChange    .SetToHeatState(isRacing, heatLevel);
+		copDamagedHeatChange.SetToHeatState(isRacing, heatLevel);
 		trafficHitHeatChange.SetToHeatState(isRacing, heatLevel);
 
 		heatChangePerAssault.SetToHeatState(isRacing, heatLevel);
@@ -648,5 +620,44 @@ namespace HeatChangeOverrides
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();
+	}
+
+
+
+	void NotifyOfDamagedCop
+	(
+		const address pursuit,
+		const address copVehicle,
+		const address perpVehicle
+	) {
+		if (not anyFeatureEnabled) return;
+
+		HeatManager::NotifyOfDamagedCop(pursuit);
+	}
+
+
+
+	void NotifyOfAssaultedCop
+	(
+		const address pursuit,
+		const address copVehicle,
+		const address perpVehicle,
+		const bool    isFirstOffence
+	) {
+		if (not anyFeatureEnabled) return;
+
+		HeatManager::NotifyOfAssaultedCop(pursuit, isFirstOffence);
+	}
+
+
+
+	void NotifyOfDestroyedCop
+	(
+		const address pursuit, 
+		const address copVehicle
+	) {
+		if (not anyFeatureEnabled) return;
+
+		HeatManager::NotifyOfDestroyedCop(pursuit, copVehicle);
 	}
 }

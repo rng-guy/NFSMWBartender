@@ -125,12 +125,9 @@ namespace CopDetection
 
 		// Check distance to player vehicle
 		const auto GetVehiclePosition = AsFunction<address __thiscall (address)>(0x688340);
-	
-		const address copPosition = GetVehiclePosition(copVehicle);
-		if (not copPosition) return false; // should never happen
 
+		const address copPosition    = GetVehiclePosition(copVehicle);
 		const address playerPosition = GetVehiclePosition(Globals::GetPlayerVehicle());
-		if (not playerPosition) return false; // should never happen
 
 		const auto GetSquaredDistance = AsFunction<float __cdecl (address, address)>(0x401930);
 		if (GetSquaredDistance(copPosition, playerPosition) > iconRange * iconRange) return false;

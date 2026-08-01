@@ -185,18 +185,69 @@ namespace Globals
 
 
 
-	// State functions ------------------------------------------------------------------------------------------------------------------------------
+	// Pursuit iteration ----------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] bool IsInCooldownMode(const address pursuit)
+	class PursuitList
 	{
-		if (not pursuit) return false; // should never happen
+	private:
 
-		const int pursuitStatus = AsReference<int>(pursuit + 0x218);
+		// Linked-list iterator for AICopManager
+		class EntryIterator
+		{
+		private:
 
-		return (pursuitStatus == 2); // "COOLDOWN" mode
-	}
+			address current;
 
 
+		public:
+
+			explicit EntryIterator(const address entry) : current(entry) {}
+
+
+			address operator*() const
+			{
+				return AsReference<address>(this->current + 0x8);
+			}
+
+
+			EntryIterator& operator++()
+			{
+				this->current = AsReference<address>(this->current);
+
+				return *this;
+			}
+
+
+			bool operator==(const EntryIterator&) const = default;
+		};
+
+
+	private:
+
+		address first    = 0x0;
+		address sentinel = 0x0;
+
+
+	public:
+
+		PursuitList()
+		{
+			if (not copManager) return;
+
+			this->sentinel = AsReference<address>(copManager + 0x128);
+			this->first    = AsReference<address>(sentinel);
+		}
+
+
+		EntryIterator begin() const {return EntryIterator(this->first);}
+		EntryIterator end  () const {return EntryIterator(this->sentinel);}
+	};
+
+
+
+
+
+	// Timer functions ------------------------------------------------------------------------------------------------------------------------------
 
 	[[nodiscard]] float GetTotalGameTime()
 	{
@@ -254,7 +305,7 @@ namespace Globals
 
 	// Vehicle-type functions -----------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] vault GetVehicleTypeClass(const vault type)
+	[[nodiscard]] vault GetClassOfVehicleType(const vault type)
 	{
 		const address attribute = GetFromVault("pvehicle"_vlt, type, "CLASS"_vlt);
 		return (attribute) ? AsReference<vault>(attribute + 0x8) : ""_vlt;
@@ -264,13 +315,13 @@ namespace Globals
 
 	[[nodiscard]] bool DoesVehicleTypeExist(const vault type)
 	{
-		return (GetVehicleTypeClass(type) != ""_vlt);
+		return (GetClassOfVehicleType(type) != ""_vlt);
 	}
 
 
 	[[nodiscard]] bool IsVehicleTypeCar(const vault type)
 	{
-		const vault typeClass = GetVehicleTypeClass(type);
+		const vault typeClass = GetClassOfVehicleType(type);
 
 		switch (typeClass)
 		{
@@ -285,7 +336,7 @@ namespace Globals
 
 	[[nodiscard]] bool IsVehicleTypeChopper(const vault type)
 	{
-		return (GetVehicleTypeClass(type) == "CHOPPER"_vlt);
+		return (GetClassOfVehicleType(type) == "CHOPPER"_vlt);
 	}
 
 
@@ -294,26 +345,28 @@ namespace Globals
 
 	// Vehicle-object functions ---------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] address GetPlayerVehicle()
-	{
-		if (not playerPerpVehicle) return 0x0; // should never happen
-		return AsReference<address>(playerPerpVehicle - (0x758 - 0x4C) - 0x4);
-	}
-
-
 	[[nodiscard]] address GetAIVehicle(const address vehicle)
 	{
-		if (not vehicle) return 0x0; // should never happen
+		if (not vehicle) return 0x0;
 		return AsReference<address>(vehicle + 0x54);
 	}
+
 
 
 	[[nodiscard]] address GetAIVehiclePursuit(const address copVehicle)
 	{
 		const address copAIVehicle = GetAIVehicle(copVehicle);
-		if (not copAIVehicle) return 0x0; // should never happen
+		if (not copAIVehicle) return 0x0;
 
 		return copAIVehicle + (0x758 - 0x4C);
+	}
+
+
+
+	[[nodiscard]] address GetPursuitOfPerpVehicle(const address perpVehicle)
+	{
+		if (not perpVehicle) return 0x0;
+		return AsReference<address>(perpVehicle - (0x758 - 0x4C) + 0x70);
 	}
 
 
@@ -321,18 +374,81 @@ namespace Globals
 	bool EndSupportGoal(const address copVehicle)
 	{
 		const address copAIVehicle = GetAIVehicle(copVehicle);
-		if (not copAIVehicle) return false; // should never happen
+		if (not copAIVehicle) return false;
 
 		const address copAIVehiclePursuit = GetAIVehiclePursuit(copVehicle);
 		if (not copAIVehiclePursuit) return false; // should never happen
 
 		const auto SetSupportGoal = AsFunction<void __thiscall (address, vault)>       (0x409850);
 		const auto SetVehicleGoal = AsFunction<void __thiscall (address, const vault&)>(0x422480);
-		
+
 		SetSupportGoal(copAIVehiclePursuit, ""_vlt); // empty goal
 		SetVehicleGoal(copAIVehicle - 0x4C, "AIGoalPursuit"_vlt);
 
 		return true;
+	}
+
+
+
+
+
+	// Pursuit functions ----------------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] address GetPhysicsObjectOfPursuitTarget(const address pursuit)
+	{
+		if (not pursuit) return 0x0;
+
+		const address pursuitTarget = AsReference<address>(pursuit + 0x74);
+		if (not pursuitTarget) return 0x0; // should never happen
+
+		return AsReference<address>(pursuitTarget + 0x1C);
+	}
+
+
+
+	[[nodiscard]] bool IsPursuitInCooldownMode(const address pursuit)
+	{
+		if (not pursuit) return false;
+
+		const int pursuitStatus = AsReference<int>(pursuit + 0x218);
+
+		return (pursuitStatus == 2); // "COOLDOWN" mode
+	}
+
+
+
+	[[nodiscard]] address GetLocalPlayerOfPursuit(const address pursuit)
+	{
+		if (not pursuit) return 0x0;
+
+		const address physicsObject = Globals::GetPhysicsObjectOfPursuitTarget(pursuit);
+		if (not physicsObject) return 0x0; // should never happen
+
+		return AsReference<address>(physicsObject + 0x58);
+	}
+
+
+
+
+
+	// Player functions -----------------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] address GetPlayerVehicle()
+	{
+		if (not playerPerpVehicle) return 0x0; // should never happen
+		return AsReference<address>(playerPerpVehicle - (0x758 - 0x4C) - 0x4);
+	}
+
+
+
+	[[nodiscard]] bool IsPlayerInPursuit(const address localPlayer)
+	{
+		if (not localPlayer) return false;
+
+		for (const address pursuit : PursuitList())
+			if (localPlayer == GetLocalPlayerOfPursuit(pursuit)) return true;
+
+		return false;
 	}
 }
 

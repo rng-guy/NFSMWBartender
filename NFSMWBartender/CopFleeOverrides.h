@@ -353,8 +353,7 @@ namespace CopFleeOverrides
 		PursuitScheduler joinedHeavyVehicles    {this->pursuit, "Joined H3", joinedHeavy3FleeDelay,    joinedHeavy3Threshold};
 		PursuitScheduler joinedRoadblockVehicles{this->pursuit, "Joined RB", joinedRoadblockFleeDelay, joinedRoadblockThreshold};
 
-		const bool&    isJerk         = AsReference<bool>   (this->pursuit + 0x238);
-		const address& pursuitTarget  = AsReference<address>(this->pursuit + 0x74);
+		const bool& isJerk = AsReference<bool>(this->pursuit + 0x238);
 
 
 		[[nodiscard]] static bool IsNotInChaserTable(const address copVehicle)
@@ -389,30 +388,24 @@ namespace CopFleeOverrides
 		}
 
 
-		[[nodiscard]] address GetRigidBodyOfTarget() const
+		[[nodiscard]] address GetRigidBodyOfPursuitTarget() const
 		{
-			address rigidBodyOfTarget = 0x0;
+			if (not this->pursuitTargetKnown) return 0x0;
 
-			if (this->pursuitTargetKnown)
-			{
-				const address physicsObject = AsReference<address>(this->pursuitTarget + 0x1C);
-				
-				if (physicsObject)
-					rigidBodyOfTarget = AsReference<address>(physicsObject + 0x4C);
+			const address physicsObject = Globals::GetPhysicsObjectOfPursuitTarget(this->pursuit);
+			if (not physicsObject) return 0x0; // should never happen
 
-				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [FLE] Invalid PhysicsObject for", this->pursuitTarget, "in", this->pursuit);
-			}
-
-			return rigidBodyOfTarget;
+			return AsReference<address>(physicsObject + 0x4C);
 		}
 
 
-		[[nodiscard]] bool IsSpeedOfTargetBelowThreshold() const
+		[[nodiscard]] bool ShouldHeavyVehiclesBail() const
 		{
-			const address rigidBodyOfTarget = this->GetRigidBodyOfTarget();
+			if (this->heavyVehicles.GetNumScheduled() == 0)      return false;
+			if (Globals::IsPursuitInCooldownMode(this->pursuit)) return true;
 
-			if (rigidBodyOfTarget)
+			// Check target speed against bail threshold
+			if (const address rigidBodyOfTarget = this->GetRigidBodyOfPursuitTarget())
 			{
 				const auto  GetSpeedXZ     = AsFunction<float __thiscall (address)>(0x6711F0);
 				const float speedThreshold = (this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold;
@@ -420,7 +413,7 @@ namespace CopFleeOverrides
 				return (GetSpeedXZ(rigidBodyOfTarget) < speedThreshold);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [FLE] Invalid RigidBody for", this->pursuitTarget, "in", this->pursuit);
+				Globals::logger.Log("WARNING: [FLE] Invalid RigidBody for target in", this->pursuit);
 
 			return false; // should never happen
 		}
@@ -428,24 +421,19 @@ namespace CopFleeOverrides
 
 		void CheckForHeavyCancellation()
 		{
-			if (this->heavyVehicles.GetNumScheduled() == 0) return;
+			if (not this->ShouldHeavyVehiclesBail()) return;
 
-			if (Globals::IsInCooldownMode(this->pursuit) or this->IsSpeedOfTargetBelowThreshold())
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(this->pursuit, "[FLE] Bailing HeavyStrategy3");
+
+			this->heavyVehicles.ForceTriggerExpiration();
+
+			if (const address heavyStrategy = this->heavyVehicles.GetStrategy())
 			{
-				const address heavyStrategy = this->heavyVehicles.GetStrategy();
+				const int strategyID = AsReference<int>(heavyStrategy);
 
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[FLE] Cancelling HeavyStrategy3");
-
-				this->heavyVehicles.ForceTriggerExpiration();
-
-				if (heavyStrategy)
-				{
-					const int strategyID = AsReference<int>(heavyStrategy);
-
-					if (strategyID == 3) // ramming SUVs
-						Globals::ClearSupportRequest(this->pursuit);
-				}
+				if (strategyID == 3) // ramming SUVs
+					Globals::ClearSupportRequest(this->pursuit);
 			}
 		}
 

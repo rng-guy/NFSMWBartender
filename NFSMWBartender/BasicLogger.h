@@ -5,6 +5,7 @@
 #include <ostream>
 #include <fstream>
 #include <iterator>
+#include <concepts>
 #include <filesystem>
 #include <type_traits>
 
@@ -16,30 +17,33 @@ namespace BasicLogger
 	// Format wrappers ------------------------------------------------------------------------------------------------------------------------------
 
 	template<typename T>
-	requires std::is_integral_v<T>
+	requires std::integral<T>
 	struct BinFormat
 	{
 		T value;
+
 
 		constexpr explicit BinFormat(const T value) noexcept : value(value) {}
 	};
 
 
 	template<typename T>
-	requires std::is_integral_v<T>
+	requires std::integral<T>
 	struct DecFormat
 	{
 		T value;
+
 
 		constexpr explicit DecFormat(const T value) noexcept : value(value) {}
 	};
 
 
 	template<typename T>
-	requires std::is_integral_v<T>
+	requires std::integral<T>
 	struct HexFormat
 	{
 		T value;
+
 
 		constexpr explicit HexFormat(const T value) noexcept : value(value) {}
 	};
@@ -99,10 +103,10 @@ namespace BasicLogger
 			else if constexpr (std::is_pointer_v<T>)
 				this->Print(reinterpret_cast<uintptr_t>(value));
 
-			else if constexpr (std::is_unsigned_v<T>)
+			else if constexpr (std::unsigned_integral<T>)
 				this->Print(HexFormat(value));
 
-			else if constexpr (std::is_floating_point_v<T>)
+			else if constexpr (std::floating_point<T>)
 				this->file << std::format("{:.3f}", value);
 
 			else

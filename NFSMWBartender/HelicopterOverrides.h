@@ -157,7 +157,7 @@ namespace HelicopterOverrides
 
 		void CallOutHelicopterSpawn() const
 		{
-			if (not Globals::IsInCooldownMode(this->pursuit)) return;
+			if (not Globals::IsPursuitInCooldownMode(this->pursuit)) return;
 
 			const address soundAI = AsReference<address>(0x993CC8);
 			if (not soundAI) return; // should never happen
@@ -437,7 +437,7 @@ namespace HelicopterOverrides
 
 	[[nodiscard]] float __fastcall GetSpawnDistance(const address pursuit)
 	{
-		const float distance = ((Globals::IsInCooldownMode(pursuit)) ? searchSpawnDistance : chaseSpawnDistance).GetRandomValue();
+		const float distance = ((Globals::IsPursuitInCooldownMode(pursuit)) ? searchSpawnDistance : chaseSpawnDistance).GetRandomValue();
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log<2>("Spawn distance:", distance);

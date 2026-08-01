@@ -417,7 +417,7 @@ namespace CopSpawnOverrides
 
 			if (numActiveVehicles >= activeChaserCount.max.current) return false;
 
-			if (Globals::IsInCooldownMode(this->pursuit))
+			if (Globals::IsPursuitInCooldownMode(this->pursuit))
 				return (numActiveChasers < this->maxNumPatrolCars);
 
 			return ((numActiveChasers < activeChaserCount.min.current) or (this->GetWaveCapacity() > 0));

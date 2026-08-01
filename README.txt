@@ -40,6 +40,8 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) racers are automatically reset if flipped over,
  • whether the Speedbreaker's vanilla recharging mechanics apply in pursuits,
  • how much Speedbreaker charge you gain / lose from destroying any cop vehicle,
+ • how much Speedbreaker charge you gain / lose from colliding with any cop vehicle,
+ • how much Speedbreaker charge you gain / lose from assaulting any cop vehicle,
  • which pursuit jurisdiction dispatch announces over the radio,
  • which ground support the cops may request in non-player pursuits,
  • the internal cooldown between non-Strategy roadblock requests,
@@ -134,8 +136,8 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • whether your Heat increases passively over time in active pursuits,
  • how much Heat you gain / lose from cop and roadblock spawns,
  • how much Heat you gain / lose from destroying any cop vehicle,
- • how much Heat you gain / lose from colliding with other cars,
- • how much Heat you gain / lose from assaulting any cop, and
+ • how much Heat you gain / lose from colliding with any cop or traffic vehicle,
+ • how much Heat you gain / lose from assaulting any cop vehicle, and
  • how much Heat you gain / lose from generic property damage.
 
 The "Advanced" feature set ALSO LETS YOU CHANGE (in general)

@@ -219,8 +219,6 @@ Regarding **Speedbreaker features** ([`BartenderSettings\Basic\Speedbreaker.ini`
 
 * Both Bartender and the game always respect the hard-coded Speedbreaker-charge limits.
 
-* The features that affect your Speedbreaker charge whenever you destroy a(ny) cop vehicle require the game to track the number of cops destroyed. The vanilla game doesn't track these in races, but you can enable this tracking with the `[Pursuits:Races]` parameter group in `General.ini`.
-
 * For destruction change by vehicle type, Bartender ignores vehicles that don't exist in VltEd. 
 
 * If you don't define a valid `default` destruction change by type, Bartender uses 0.0 instead.
@@ -470,9 +468,5 @@ Regarding **Heat gain / loss** ([`BartenderSettings\Advanced\Heat.ini`](Bartende
 * For destruction Heat by vehicle type, Bartender ignores vehicles that don't exist in VltEd. 
 
 * If you don't define a valid `default` destruction Heat by type, Bartender uses 0.0 instead.
-
-* If you define no destruction Heats and no `default`, Bartender disables its destruction feature.
-
-* The features that affect your Heat whenever you hit / destroy a(ny) cop vehicle require the game to track the number of cops hit / destroyed. The vanilla game doesn't track these in races, but you can enable it with the `[Pursuits:Races]` parameter group in `General.ini`.
 
 * Due to the limitations of floating-point math, some Heat changes might be slightly off.

@@ -24,6 +24,11 @@ namespace GameBreaker
 
 	constinit HeatParameters::Value<float> copWreckBreakerChange(0.f); // seconds
 
+	constinit HeatParameters::Value<float> copDamagedBreakerChange(0.f); // seconds
+
+	constinit HeatParameters::Value<float> breakerChangePerAssault(0.f); // seconds
+	constinit HeatParameters::Value<bool>  onlyOneAssaultPerCop   (true);
+
 	constinit HeatParameters::Value<bool> canGainWhenActive  (true);
 	constinit HeatParameters::Value<bool> canGainWhenInactive(true);
 
@@ -31,6 +36,8 @@ namespace GameBreaker
 	constinit HeatParameters::Value<bool> canLoseWhenInactive(true);
 
 	// Code caves
+	float pendingCollisionBreakerChange = 0.f;
+
 	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<float> copTypeToBreakerChange(0.f); // seconds
 
 
@@ -39,26 +46,14 @@ namespace GameBreaker
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] address GetFirstLocalPlayer()
-	{
-		const size_t numPlayers = AsReference<size_t>(0x92D884);
-		if (numPlayers == 0) return 0x0; // should never happen
-
-		return *AsReference<const address* const>(0x92D87C);
-	}
-
-
-
-	void __stdcall ChargeSpeedbreaker(const float amount)
-	{
-		if (amount == 0.f) return;
-
-		const address localPlayer = GetFirstLocalPlayer();
-		if (not localPlayer) return; // should never happen
-
+	void ChargeSpeedbreaker
+	(
+		const address localPlayer, 
+		const float   amount
+	) {
 		const bool isBreakerActive = AsReference<bool>(localPlayer + 0x34);
 
-		if (amount > 0.f)
+		if (amount >= 0.f)
 		{
 			if (isBreakerActive       and (not canGainWhenActive  .current)) return;
 			if ((not isBreakerActive) and (not canGainWhenInactive.current)) return;
@@ -70,22 +65,66 @@ namespace GameBreaker
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<1>("[GBR] Speedbreaker change:", amount);
+			Globals::logger.Log(localPlayer, "[GBR] Speedbreaker change:", amount);
 
 		const auto  ChargeGameBreaker = AsFunction  <void __thiscall (address, float)>(0x6F8F60);
 		const float timeToRatio       = *AsReference<const float* const>              (0x6EDDC3);
 
-		ChargeGameBreaker(localPlayer, timeToRatio * amount);
+		ChargeGameBreaker(localPlayer, Globals::floatScale * timeToRatio * amount);
 	}
 
 
 
-	[[nodiscard]] bool IsPlayerInPursuit()
+	void ProcessDamagedCop(const address pursuit) 
 	{
-		const address playerAIVehicle = Globals::GetAIVehicle(Globals::GetPlayerVehicle());
-		if (not playerAIVehicle) return false; // should never happen
+		if (not Globals::IsPlayerPursuit(pursuit)) return;
 
-		return AsReference<address>(playerAIVehicle + 0x70); // player pursuit
+		pendingCollisionBreakerChange += copDamagedBreakerChange.current;
+	}
+
+
+
+	void ProcessAssaultedCop
+	(
+		const address pursuit,
+		const bool    isFirstOffence
+	) {
+		if (not Globals::IsPlayerPursuit(pursuit))                 return;
+		if ((not isFirstOffence) and onlyOneAssaultPerCop.current) return;
+
+		pendingCollisionBreakerChange += breakerChangePerAssault.current;
+	}
+
+
+
+	void ProcessDestroyedCop
+	(
+		const address pursuit,
+		const address copVehicle
+	) {
+		const address localPlayer = Globals::GetLocalPlayerOfPursuit(pursuit);
+		if (not localPlayer) return; // is non-player pursuit
+
+		const vault copType       = Globals::GetVehicleType(copVehicle);
+		const float breakerChange = copWreckBreakerChange.current + copTypeToBreakerChange.GetValue(copType);
+
+		if (breakerChange != 0.f)
+			ChargeSpeedbreaker(localPlayer, breakerChange);
+	}
+
+
+
+	void __fastcall ApplyPendingCollisionBreakerChange(const address perpVehicle)
+	{
+		if (pendingCollisionBreakerChange == 0.f) return;
+
+		const address pursuit     = Globals::GetPursuitOfPerpVehicle(perpVehicle);
+		const address localPlayer = Globals::GetLocalPlayerOfPursuit(pursuit);
+
+		if (localPlayer)
+			ChargeSpeedbreaker(localPlayer, pendingCollisionBreakerChange);
+		
+		pendingCollisionBreakerChange = 0.f;
 	}
 
 
@@ -93,43 +132,6 @@ namespace GameBreaker
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
-
-	constexpr address wreckChangeEntrance = 0x418F9F;
-	constexpr address wreckChangeExit     = 0x418FA5;
-
-	// Updates speedbreaker charge on cop destruction
-	__declspec(naked) void WreckChange()
-	{
-		__asm
-		{
-			mov ecx, esi
-			call Globals::IsPlayerPursuit
-			test al, al
-			je conclusion // not player pursuit
-
-			fld dword ptr [copWreckBreakerChange.current]
-			fmul dword ptr [Globals::floatScale]
-
-			push dword ptr [esi + 0xF8] // copType
-			mov ecx, offset copTypeToBreakerChange
-			call ModContainers::DefaultVaultMap<float>::GetValue
-			fmul dword ptr [Globals::floatScale]
-
-			faddp st(1), st(0)
-
-			push eax
-			fstp dword ptr [esp] // amount
-			call ChargeSpeedbreaker
-
-			conclusion:
-			// Execute original code and resume
-			fld dword ptr [esi + 0xEC]
-
-			jmp dword ptr [wreckChangeExit]
-		}
-	}
-
-
 
 	constexpr address driftRechargeEntrance = 0x6A99BC;
 	constexpr address driftRechargeExit     = 0x6A99C1;
@@ -146,7 +148,11 @@ namespace GameBreaker
 			cmp byte ptr [driftRechargeEnabled.current], 1
 			je conclusion // drift recharging unrestricted
 
-			call IsPlayerInPursuit
+			mov ecx, dword ptr [esi + 0x34]
+
+			push dword ptr [ecx + 0x58] // localPlayer
+			call Globals::IsPlayerInPursuit
+			add esp, 0x4
 			test al, al
 
 			conclusion:
@@ -171,7 +177,11 @@ namespace GameBreaker
 			cmp byte ptr [passiveRechargeEnabled.current], 1
 			je conclusion // passive recharging unrestricted
 
-			call IsPlayerInPursuit
+			lea ecx, dword ptr [esi + 0x4C]
+
+			push ecx // localPlayer
+			call Globals::IsPlayerInPursuit
+			add esp, 0x4
 			test al, al
 
 			conclusion:
@@ -181,11 +191,34 @@ namespace GameBreaker
 
 
 
+	constexpr address collisionResultEntrance = 0x429EDA;
+	constexpr address collisionResultExit     = 0x429EDF;
+
+	// Applies the Speedbreaker changes from player collisions
+	__declspec(naked) void CollisionResult()
+	{
+		__asm
+		{
+			mov edx, dword ptr [esp + 0x18]
+
+			lea ecx, dword ptr [edx - 0x8]
+			call ApplyPendingCollisionBreakerChange // ecx: perpVehicle
+	
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x40]
+			pop edi
+
+			jmp dword ptr [collisionResultExit]
+		}
+	}
+
+
+
 
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	bool ParseSpeedbreakerChanges(const HeatParameters::Parser& parser)
+	bool ParseVehicleSpeedbreakerChanges(const HeatParameters::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 		std::vector<float>            changes;
@@ -219,17 +252,21 @@ namespace GameBreaker
 
 		HeatParameters::Parse(parser, "Speedbreaker:Wrecking", copWreckBreakerChange);
 
-		HeatParameters::Parse(parser, "Wrecking:Gains", canGainWhenActive, canGainWhenInactive);
+		HeatParameters::Parse(parser, "Speedbreaker:Collisions", copDamagedBreakerChange);
 
-		HeatParameters::Parse(parser, "Wrecking:Losses", canLoseWhenActive, canLoseWhenInactive);
+		HeatParameters::Parse(parser, "Collisions:Assault", breakerChangePerAssault, onlyOneAssaultPerCop);
 
-		// Speedbreaker changes
-		ParseSpeedbreakerChanges(parser);
+		HeatParameters::Parse(parser, "Speedbreaker:Gains", canGainWhenActive, canGainWhenInactive);
+
+		HeatParameters::Parse(parser, "Speedbreaker:Losses", canLoseWhenActive, canLoseWhenInactive);
+
+		// Vehicle-specific Speedbreaker changes
+		ParseVehicleSpeedbreakerChanges(parser);
 
 		// Code changes
-		MemoryTools::MakeRangeJMP<wreckChangeEntrance,     wreckChangeExit>    (WreckChange);
 		MemoryTools::MakeRangeJMP<driftRechargeEntrance,   driftRechargeExit>  (DriftRecharge);
 		MemoryTools::MakeRangeJMP<passiveRechargeEntrance, passiveRechargeExit>(PassiveRecharge);
+		MemoryTools::MakeRangeJMP<collisionResultEntrance, collisionResultExit>(CollisionResult);
 
 		// Status flag
 		anyFeatureEnabled = true;
@@ -247,6 +284,11 @@ namespace GameBreaker
 		driftRechargeEnabled  .Log("driftRechargeEnabled    ");
 
 		copWreckBreakerChange.Log("copWreckBreakerChange   ");
+
+		copDamagedBreakerChange.Log("copDamagedBreakerChange ");
+
+		breakerChangePerAssault.Log("breakerChangePerAssault ");
+		onlyOneAssaultPerCop   .Log("onlyOneAssaultPerCop    ");
 
 		canGainWhenActive  .Log("canGainWhenActive       ");
 		canGainWhenInactive.Log("canGainWhenInactive     ");
@@ -269,6 +311,11 @@ namespace GameBreaker
 
 		copWreckBreakerChange.SetToHeatState(isRacing, heatLevel);
 
+		copDamagedBreakerChange.SetToHeatState(isRacing, heatLevel);
+
+		breakerChangePerAssault.SetToHeatState(isRacing, heatLevel);
+		onlyOneAssaultPerCop   .SetToHeatState(isRacing, heatLevel);
+
 		canGainWhenActive  .SetToHeatState(isRacing, heatLevel);
 		canGainWhenInactive.SetToHeatState(isRacing, heatLevel);
 
@@ -277,5 +324,44 @@ namespace GameBreaker
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();
+	}
+
+
+
+	void NotifyOfDamagedCop
+	(
+		const address pursuit,
+		const address copVehicle,
+		const address perpVehicle
+	) {
+		if (not anyFeatureEnabled) return;
+
+		ProcessDamagedCop(pursuit);
+	}
+
+
+
+	void NotifyOfAssaultedCop
+	(
+		const address pursuit,
+		const address copVehicle,
+		const address perpVehicle,
+		const bool    isFirstOffence
+	) {
+		if (not anyFeatureEnabled) return;
+
+		ProcessAssaultedCop(pursuit, isFirstOffence);
+	}
+
+
+
+	void NotifyOfDestroyedCop
+	(
+		const address pursuit, 
+		const address copVehicle
+	) {
+		if (not anyFeatureEnabled) return;
+
+		ProcessDestroyedCop(pursuit, copVehicle);
 	}
 }
