@@ -14,7 +14,6 @@
 
 namespace HelicopterOverrides
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
@@ -55,7 +54,7 @@ namespace HelicopterOverrides
 
 	// HelicopterManager class ----------------------------------------------------------------------------------------------------------------------
 
-	class HelicopterManager : public PursuitFeatures::PursuitReaction
+	class HelicopterManager : public PursuitFeatures::Reaction
 	{
 	private:
 
@@ -270,7 +269,7 @@ namespace HelicopterOverrides
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
-		explicit HelicopterManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
+		explicit HelicopterManager(const address pursuit) : PursuitFeatures::Reaction(pursuit) 
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>('+', this, "HelicopterManager");

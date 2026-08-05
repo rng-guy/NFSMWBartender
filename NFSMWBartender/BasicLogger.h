@@ -13,7 +13,6 @@
 
 namespace BasicLogger
 {
-
 	// Format wrappers ------------------------------------------------------------------------------------------------------------------------------
 
 	template<typename T>
@@ -74,7 +73,7 @@ namespace BasicLogger
 		template <typename T>
 		void Print(const DecFormat<T> wrapper) noexcept
 		{
-			this->file << wrapper.value;
+			this->file << std::format("{:d}", wrapper.value);
 		}
 
 

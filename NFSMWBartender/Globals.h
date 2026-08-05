@@ -44,7 +44,6 @@ using BasicLogger::HexFormat;
 
 namespace Globals
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	// Feature flags
@@ -345,17 +344,16 @@ namespace Globals
 
 	// Vehicle-object functions ---------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] address GetAIVehicle(const address vehicle)
+	[[nodiscard]] address GetAIVehicleOfVehicle(const address vehicle)
 	{
 		if (not vehicle) return 0x0;
 		return AsReference<address>(vehicle + 0x54);
 	}
+	
 
-
-
-	[[nodiscard]] address GetAIVehiclePursuit(const address copVehicle)
+	[[nodiscard]] address GetAIVehiclePursuitOfVehicle(const address copVehicle)
 	{
-		const address copAIVehicle = GetAIVehicle(copVehicle);
+		const address copAIVehicle = GetAIVehicleOfVehicle(copVehicle);
 		if (not copAIVehicle) return 0x0;
 
 		return copAIVehicle + (0x758 - 0x4C);
@@ -363,20 +361,34 @@ namespace Globals
 
 
 
+	[[nodiscard]] address GetAIVehicleOfPerpVehicle(const address perpVehicle)
+	{
+		if (not perpVehicle) return 0x0;
+		return perpVehicle - (0x758 - 0x4C);
+	}
+	
+
+	[[nodiscard]] address GetVehicleOfPerpVehicle(const address perpVehicle)
+	{
+		if (not perpVehicle) return 0x0;
+		return AsReference<address>(GetAIVehicleOfPerpVehicle(perpVehicle) - 0x4);
+	}
+
+
 	[[nodiscard]] address GetPursuitOfPerpVehicle(const address perpVehicle)
 	{
 		if (not perpVehicle) return 0x0;
-		return AsReference<address>(perpVehicle - (0x758 - 0x4C) + 0x70);
+		return AsReference<address>(GetAIVehicleOfPerpVehicle(perpVehicle) + 0x70);
 	}
 
 
 
-	bool EndSupportGoal(const address copVehicle)
+	bool EndSupportGoalOfVehicle(const address copVehicle)
 	{
-		const address copAIVehicle = GetAIVehicle(copVehicle);
+		const address copAIVehicle = GetAIVehicleOfVehicle(copVehicle);
 		if (not copAIVehicle) return false;
 
-		const address copAIVehiclePursuit = GetAIVehiclePursuit(copVehicle);
+		const address copAIVehiclePursuit = GetAIVehiclePursuitOfVehicle(copVehicle);
 		if (not copAIVehiclePursuit) return false; // should never happen
 
 		const auto SetSupportGoal = AsFunction<void __thiscall (address, vault)>       (0x409850);
@@ -406,25 +418,40 @@ namespace Globals
 
 
 
-	[[nodiscard]] bool IsPursuitInCooldownMode(const address pursuit)
+	[[nodiscard]] address GetPerpVehicleOfPursuit(const address pursuit)
 	{
-		if (not pursuit) return false;
+		if (not pursuit) return 0x0;
 
-		const int pursuitStatus = AsReference<int>(pursuit + 0x218);
+		const address pursuitTarget = AsReference<address>(pursuit + 0x74);
+		if (not pursuitTarget) return 0x0; // should never happen
 
-		return (pursuitStatus == 2); // "COOLDOWN" mode
+		address perpVehicle = 0x0;
+
+		const auto FindPerpVehicle = AsFunction<bool __thiscall (address, address&)>(0x40E200);
+		FindPerpVehicle(pursuitTarget, perpVehicle); // doesn't write garbage if search fails
+		
+		return perpVehicle;
 	}
-
 
 
 	[[nodiscard]] address GetLocalPlayerOfPursuit(const address pursuit)
 	{
 		if (not pursuit) return 0x0;
 
-		const address physicsObject = Globals::GetPhysicsObjectOfPursuitTarget(pursuit);
+		const address physicsObject = GetPhysicsObjectOfPursuitTarget(pursuit);
 		if (not physicsObject) return 0x0; // should never happen
 
 		return AsReference<address>(physicsObject + 0x58);
+	}
+
+
+
+	[[nodiscard]] bool IsPursuitInCooldownMode(const address pursuit)
+	{
+		if (not pursuit) return false;
+
+		const int pursuitStatus = AsReference<int>(pursuit + 0x218);
+		return (pursuitStatus == 2); // "COOLDOWN" mode
 	}
 
 
@@ -433,15 +460,7 @@ namespace Globals
 
 	// Player functions -----------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] address GetPlayerVehicle()
-	{
-		if (not playerPerpVehicle) return 0x0; // should never happen
-		return AsReference<address>(playerPerpVehicle - (0x758 - 0x4C) - 0x4);
-	}
-
-
-
-	[[nodiscard]] bool IsPlayerInPursuit(const address localPlayer)
+	[[nodiscard]] bool IsLocalPlayerInPursuit(const address localPlayer)
 	{
 		if (not localPlayer) return false;
 

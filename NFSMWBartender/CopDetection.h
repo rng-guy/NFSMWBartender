@@ -14,7 +14,6 @@
 
 namespace CopDetection
 {
-
 	// IconColourTracker class ----------------------------------------------------------------------------------------------------------------------
 
 	class IconColourTracker
@@ -98,7 +97,7 @@ namespace CopDetection
 
 	[[nodiscard]] bool __fastcall GetsMiniMapIcon(const address copVehicle)
 	{
-		const address copAIVehicle = Globals::GetAIVehicle(copVehicle);
+		const address copAIVehicle = Globals::GetAIVehicleOfVehicle(copVehicle);
 		if (not copAIVehicle) return false; // should never happen
 
 		bool& iconIsKept = AsReference<bool>(copAIVehicle - 0x4C + 0x81); // padding byte
@@ -116,18 +115,18 @@ namespace CopDetection
 		}
 
 		// Fetch icon-range data for vehicle type
-		if (not Globals::playerPerpVehicle) return false; // should never happen
-
 		const Settings& settings  = copTypeToSettings.GetReference(Globals::GetVehicleType(copVehicle));
 		const float     iconRange = (hasBeenInPursuit) ? settings.pursuitIconRange : settings.patrolIconRange;
 
 		if (iconRange <= 0.f) return false;
 
 		// Check distance to player vehicle
-		const auto GetVehiclePosition = AsFunction<address __thiscall (address)>(0x688340);
+		const address playerVehicle = Globals::GetVehicleOfPerpVehicle(Globals::playerPerpVehicle);
+		if (not playerVehicle) return false; // should never happen
 
-		const address copPosition    = GetVehiclePosition(copVehicle);
-		const address playerPosition = GetVehiclePosition(Globals::GetPlayerVehicle());
+		const auto    GetVehiclePosition = AsFunction<address __thiscall (address)>(0x688340);
+		const address copPosition        = GetVehiclePosition(copVehicle);
+		const address playerPosition     = GetVehiclePosition(playerVehicle);
 
 		const auto GetSquaredDistance = AsFunction<float __cdecl (address, address)>(0x401930);
 		if (GetSquaredDistance(copPosition, playerPosition) > iconRange * iconRange) return false;
@@ -450,8 +449,6 @@ namespace CopDetection
 		MemoryTools::MakeRangeNOP<0x579FCD, 0x579FFD>(); // icon-flag checks
 
 		MemoryTools::MakeRangeJMP<copVehicleRadarEntrance, copVehicleRadarExit>(CopVehicleRadar);
-
-		ApplyFixes(); // also contains map-icon feature
 
 		// Status flag
 		anyFeatureEnabled = true;

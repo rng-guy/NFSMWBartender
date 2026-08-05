@@ -14,7 +14,6 @@
 
 namespace HelicopterVision
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
@@ -268,8 +267,6 @@ namespace HelicopterVision
 		if (not ParseColours(parser)) return false; // invalid colours; disable feature
 
 		// Code modifications
-		ApplyFixes(); // also contains vision-cone feature for mini-map
-
 		MemoryTools::MakeRangeJMP<worldMapIconEntrance, worldMapIconExit>(WorldMapIcon);
 
 		// Status flag

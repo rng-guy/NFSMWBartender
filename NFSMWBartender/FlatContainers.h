@@ -14,12 +14,10 @@
 
 namespace FlatContainers
 {
-
 	// Helpers --------------------------------------------------------------------------------------------------------------------------------------
 
 	namespace Details
 	{
-
 		// Concept to filter for unique_ptr
 		template <typename T>
 		struct IsUnique : std::false_type {};

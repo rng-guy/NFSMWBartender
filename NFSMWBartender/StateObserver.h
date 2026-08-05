@@ -1,13 +1,14 @@
 #pragma once
 
+#include <limits>
 #include <cstdint>
-#include <algorithm>
 
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "HeatParameters.h"
 
 #include "GameBreaker.h"
+#include "NitrousCharge.h"
 #include "RadioChatter.h"
 #include "GroundSupport.h"
 #include "GeneralSettings.h"
@@ -20,7 +21,6 @@
 
 namespace StateObserver
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
@@ -37,7 +37,7 @@ namespace StateObserver
 
 	void ProcessHeatStateUpdate()
 	{
-		const size_t safeHeatLevel = std::clamp<size_t>(playerHeatLevel, 1, HeatParameters::maxHeatLevel);
+		const size_t safeHeatLevel = HeatParameters::ClampHeatLevel(playerHeatLevel);
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -51,10 +51,10 @@ namespace StateObserver
 		Globals::playerHeatLevelKnown = true;
 
 		// Update Heat parameters
-		RadioChatter::SetToHeatState(playerIsRacing, safeHeatLevel);
-
+		RadioChatter   ::SetToHeatState(playerIsRacing, safeHeatLevel);
 		GeneralSettings::SetToHeatState(playerIsRacing, safeHeatLevel);
 		GroundSuppport ::SetToHeatState(playerIsRacing, safeHeatLevel);
+		NitrousCharge  ::SetToHeatState(playerIsRacing, safeHeatLevel);
 		GameBreaker    ::SetToHeatState(playerIsRacing, safeHeatLevel);
 			
 		PursuitObserver::SetToHeatState(playerIsRacing, safeHeatLevel);
@@ -62,29 +62,39 @@ namespace StateObserver
 
 
 
-	void ProcessDamagedCop
+	void ProcessTaggedCop
 	(
-		const address pursuit,
-		const address copVehicle,
+		const address copVehicle, 
 		const address perpVehicle
 	) {
-		GameBreaker::NotifyOfDamagedCop(pursuit, copVehicle, perpVehicle);
+		NitrousCharge::NotifyOfTaggedCop(copVehicle, perpVehicle);
+		GameBreaker  ::NotifyOfTaggedCop(copVehicle, perpVehicle);
 
-		HeatChangeOverrides::NotifyOfDamagedCop(pursuit, copVehicle, perpVehicle);
+		HeatChangeOverrides::NotifyOfTaggedCop(copVehicle, perpVehicle);
 	}
 
 
 	
 	void ProcessAssaultedCop
 	(
-		const address pursuit,
 		const address copVehicle,
 		const address perpVehicle,
-		const bool    isFirstOffence
+		const byte    numCopAssaulted
 	) {
-		GameBreaker::NotifyOfAssaultedCop(pursuit, copVehicle, perpVehicle, isFirstOffence);
+		NitrousCharge::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
+		GameBreaker  ::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
 
-		HeatChangeOverrides::NotifyOfAssaultedCop(pursuit, copVehicle, perpVehicle, isFirstOffence);
+		HeatChangeOverrides::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
+	}
+
+
+
+	void __fastcall ProcessFinishedCollision(const address perpVehicle) 
+	{
+		NitrousCharge::NotifyOfFinishedCollision(perpVehicle);
+		GameBreaker  ::NotifyOfFinishedCollision(perpVehicle);
+
+		// HeatChangeOverride doesn't need a notification for this
 	}
 
 
@@ -94,7 +104,8 @@ namespace StateObserver
 		const address pursuit,
 		const address copVehicle
 	) {
-		GameBreaker::NotifyOfDestroyedCop(pursuit, copVehicle);
+		NitrousCharge::NotifyOfDestroyedCop(pursuit, copVehicle);
+		GameBreaker  ::NotifyOfDestroyedCop(pursuit, copVehicle);
 
 		HeatChangeOverrides::NotifyOfDestroyedCop(pursuit, copVehicle);
 	}
@@ -103,13 +114,14 @@ namespace StateObserver
 
 	[[nodiscard]] bool __stdcall ShouldCollisionTriggerInfraction
 	(
-		const address pursuit,
 		const address copVehicle,
 		const address perpVehicle,
 		const bool    racerAtFault
 	) {
-		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
+		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
 		if (not copAIVehiclePursuit) return false; // should never happen
+
+		const address pursuit = Globals::GetPursuitOfPerpVehicle(perpVehicle);
 
 		// Process damaged cop vehicle
 		bool& damagedByRacer = AsReference<bool>(copAIVehiclePursuit + 0xB);
@@ -118,24 +130,30 @@ namespace StateObserver
 		{
 			damagedByRacer = true;
 
-			if (pursuit) // is perp's pursuit, not necessarily the cop's
+			if (pursuit) // may not be cop's pursuit (vanilla behaviour)
 			{
 				const auto NotifyCopDamaged = AsFunction<void __thiscall (address, address)>(0x40AF40);
 				NotifyCopDamaged(pursuit, copVehicle); // for "cops hit" tracking in perp pursuit
 
-				ProcessDamagedCop(pursuit, copVehicle, perpVehicle);
+				ProcessTaggedCop(copVehicle, perpVehicle);
 			}
 		}
 
 		// Process assault by perp
 		if (not racerAtFault) return false;
 
-		bool& alreadyAssaulted = AsReference<bool>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
+		byte& numCopAssaulted = AsReference<byte>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
 
-		if (pursuit)
-			ProcessAssaultedCop(pursuit, copVehicle, perpVehicle, (not alreadyAssaulted));
-		
-		alreadyAssaulted = true;
+		if (numCopAssaulted < std::numeric_limits<byte>::max())
+			++numCopAssaulted;
+
+		if (pursuit) // may not be cop's pursuit (vanilla behaviour)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log(pursuit, "[STA]", copVehicle, "assaults:", DecFormat(numCopAssaulted));
+
+			ProcessAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
+		}
 
 		return (pursuit and Globals::IsPlayerPursuit(pursuit));
 	}
@@ -166,66 +184,6 @@ namespace StateObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<1>("[STA] Game unpaused");
 		}
-	}
-
-
-
-
-
-	// Hooking functions ----------------------------------------------------------------------------------------------------------------------------
-
-	address ProcessGameplayOriginal = 0x0;
-
-	void __fastcall ProcessGameplay(const address soundAI)
-	{
-		const auto OriginalFunction = AsFunction<void __thiscall (address)>(ProcessGameplayOriginal);
-
-		// Apply hooked logic fist
-		const auto IsRacing = AsFunction<bool __thiscall (address)>(0x409500);
-
-		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
-		{
-			playerIsRacing = (not playerIsRacing);
-			ProcessHeatStateUpdate();
-		}
-
-		PursuitObserver::UpdateFeatureState();
-
-		// Call original function last
-		OriginalFunction(soundAI);
-	}
-
-
-
-	address ProcessWorldLoadOriginal = 0x0;
-
-	void ProcessWorldLoad()
-	{
-		const auto OriginalFunction = AsFunction<void ()>(ProcessWorldLoadOriginal);
-
-		// Apply hooked logic fist
-		CopSpawnOverrides::FullResetFeatureState();
-
-		// Call original function last
-		OriginalFunction();
-	}
-
-
-
-	address ProcessEventRestartOriginal = 0x0;
-
-	void ProcessEventRestart()
-	{
-		const auto OriginalFunction = AsFunction<void ()>(ProcessEventRestartOriginal);
-
-		// Apply hooked logic fist
-		playerHeatLevel               = 0;
-		Globals::playerHeatLevelKnown = false;
-
-		CopSpawnOverrides::SoftResetFeatureState();
-
-		// Call original function last
-		OriginalFunction();
 	}
 
 
@@ -265,16 +223,15 @@ namespace StateObserver
 	{
 		__asm
 		{
-			movzx eax, byte ptr [esp + 0x13]
 			mov ebx, dword ptr [esp + 0x14]
 
+			movzx eax, byte ptr [esp + 0x13]
 			mov edx, dword ptr [esp + 0x18]
 			lea edx, dword ptr [edx - 0x8]
 
 			push eax // racerAtFault
 			push edx // perpVehicle
 			push edi // copVehicle
-			push ebx // pursuit
 			call ShouldCollisionTriggerInfraction
 			test al, al
 
@@ -330,6 +287,29 @@ namespace StateObserver
 			mov byte ptr [esi + 0x83], bl // "GroundSuppport.h"
 
 			jmp dword ptr [resetAIVehicleExit]
+		}
+	}
+
+
+
+	constexpr address collisionResultEntrance = 0x429EDA;
+	constexpr address collisionResultExit     = 0x429EDF;
+
+	// Triggers after every perp-collision processing
+	__declspec(naked) void CollisionResult()
+	{
+		__asm
+		{
+			mov edx, dword ptr [esp + 0x18]
+
+			lea ecx, dword ptr [edx - 0x8]
+			call ProcessFinishedCollision // ecx: perpVehicle
+
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x40]
+			pop edi
+
+			jmp dword ptr [collisionResultExit]
 		}
 	}
 
@@ -467,26 +447,87 @@ namespace StateObserver
 
 
 
+	// Hooking functions ----------------------------------------------------------------------------------------------------------------------------
+
+	address ProcessGameplayOriginal = 0x0;
+
+	void __fastcall ProcessGameplay(const address soundAI)
+	{
+		const auto OriginalFunction = AsFunction<void __thiscall (address)>(ProcessGameplayOriginal);
+
+		// Apply hooked logic fist
+		const auto IsRacing = AsFunction<bool __thiscall (address)>(0x409500);
+
+		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
+		{
+			playerIsRacing = (not playerIsRacing);
+			ProcessHeatStateUpdate();
+		}
+
+		PursuitObserver::UpdateFeatureState();
+
+		// Call original function last
+		OriginalFunction(soundAI);
+	}
+
+
+
+	address ProcessWorldLoadOriginal = 0x0;
+
+	void ProcessWorldLoad()
+	{
+		const auto OriginalFunction = AsFunction<void ()>(ProcessWorldLoadOriginal);
+
+		// Apply hooked logic fist
+		CopSpawnOverrides::FullResetFeatureState();
+
+		// Call original function last
+		OriginalFunction();
+	}
+
+
+
+	address ProcessEventRestartOriginal = 0x0;
+
+	void ProcessEventRestart()
+	{
+		const auto OriginalFunction = AsFunction<void ()>(ProcessEventRestartOriginal);
+
+		// Apply hooked logic fist
+		playerHeatLevel               = 0;
+		Globals::playerHeatLevelKnown = false;
+
+		CopSpawnOverrides::SoftResetFeatureState();
+
+		// Call original function last
+		OriginalFunction();
+	}
+
+
+
+
+
 	// State management -----------------------------------------------------------------------------------------------------------------------------
 
 	bool InitialiseFeatures(const HeatParameters::Parser& parser)
 	{
 		// Code modifications 
-		ProcessGameplayOriginal     = MemoryTools::ReplaceCall(0x721609, ProcessGameplay);     // SoundAI::SyncPursuit (0x720850)
-		ProcessWorldLoadOriginal    = MemoryTools::ReplaceCall(0x662ADC, ProcessWorldLoad);    // nullsub_174          (0x6C39C0)
-		ProcessEventRestartOriginal = MemoryTools::ReplaceCall(0x63090B, ProcessEventRestart); // World_RestoreProps   (0x74D320)
-
 		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first perp-damage check
 
 		MemoryTools::MakeRangeJMP<copDestroyedEntrance,          copDestroyedExit>         (CopDestroyed);
 		MemoryTools::MakeRangeJMP<perpCollisionEntrance,         perpCollisionExit>        (PerpCollision);
 		MemoryTools::MakeRangeJMP<heatEqualiserEntrance,         heatEqualiserExit>        (HeatEqualiser);
 		MemoryTools::MakeRangeJMP<resetAIVehicleEntrance,        resetAIVehicleExit>       (ResetAIVehicle);
+		MemoryTools::MakeRangeJMP<collisionResultEntrance,       collisionResultExit>      (CollisionResult);
 		MemoryTools::MakeRangeJMP<gameStateUpdateEntrance,       gameStateUpdateExit>      (GameStateUpdate);
 		MemoryTools::MakeRangeJMP<playerDestructorEntrance,      playerDestructorExit>     (PlayerDestructor);
 		MemoryTools::MakeRangeJMP<heatLevelObserverEntrance,     heatLevelObserverExit>    (HeatLevelObserver);
 		MemoryTools::MakeRangeJMP<playerConstructorEntrance,     playerConstructorExit>    (PlayerConstructor);
 		MemoryTools::MakeRangeJMP<resetAIVehiclePursuitEntrance, resetAIVehiclePursuitExit>(ResetAIVehiclePursuit);
+
+		ProcessGameplayOriginal     = MemoryTools::ReplaceCall(0x721609, ProcessGameplay);     // SoundAI::SyncPursuit (0x720850)
+		ProcessWorldLoadOriginal    = MemoryTools::ReplaceCall(0x662ADC, ProcessWorldLoad);    // nullsub_174          (0x6C39C0)
+		ProcessEventRestartOriginal = MemoryTools::ReplaceCall(0x63090B, ProcessEventRestart); // World_RestoreProps   (0x74D320)
 		
 		// Status flag
 		anyFeatureEnabled = true;

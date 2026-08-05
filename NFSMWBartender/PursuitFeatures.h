@@ -1,16 +1,18 @@
 #pragma once
 
+#include <concepts>
+
 #include "Globals.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 
 
 namespace PursuitFeatures
 {
+	// Reaction class ------------------------------------------------------------------------------------------------------------------------
 
-	// PursuitReaction class ------------------------------------------------------------------------------------------------------------------------
-
-	class PursuitReaction
+	class Reaction
 	{
 	public:
 
@@ -31,19 +33,19 @@ namespace PursuitFeatures
 		const address pursuit;
 
 
-		explicit PursuitReaction(const address pursuit) : pursuit(pursuit) {}
+		explicit Reaction(const address pursuit) : pursuit(pursuit) {}
 
 
 	public:
 
-		explicit PursuitReaction(PursuitReaction&&)      = delete;
-		explicit PursuitReaction(const PursuitReaction&) = delete;
+		explicit Reaction(Reaction&&)      = delete;
+		explicit Reaction(const Reaction&) = delete;
 
-		PursuitReaction& operator=(PursuitReaction&&)      = delete;
-		PursuitReaction& operator=(const PursuitReaction&) = delete;
+		Reaction& operator=(Reaction&&)      = delete;
+		Reaction& operator=(const Reaction&) = delete;
 
 
-		virtual ~PursuitReaction() = default;
+		virtual ~Reaction() = default;
 
 
 		virtual void ReactToGameplay()                 {}
@@ -63,6 +65,82 @@ namespace PursuitFeatures
 			const address  copVehicle,
 			const CopLabel copLabel
 		) {};
+
+
+		address GetPursuit() const
+		{
+			return this->pursuit;
+		}
+	};
+
+
+
+
+
+	// Searchable class ----------------------------------------------------------------------------------------------------------------------
+
+	template <class Feature>
+	class Searchable
+	{
+	private:
+
+		inline static RELEASE_CONSTINIT ModContainers::Set<Feature*> instances;
+
+
+	protected:
+
+		Searchable()
+		{
+			static_assert
+			(
+				requires (const Feature& feature)
+				{
+					{feature.GetPursuit()} -> std::same_as<address>;
+				}, 
+				"Feature must implement GetPursuit() -> address."
+			);
+
+			auto* const instance            = static_cast<Feature*>(this);
+			const auto  [it, isNewInstance] = this->instances.insert(instance);
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (not isNewInstance)
+					Globals::logger.Log("WARNING: [PFT] Registration failed:", instance);
+			}
+		}
+
+
+		explicit Searchable(Searchable&&)      = delete;
+		explicit Searchable(const Searchable&) = delete;
+
+		Searchable& operator=(Searchable&&)      = delete;
+		Searchable& operator=(const Searchable&) = delete;
+
+
+		~Searchable()
+		{
+			const auto* const instance      = static_cast<const Feature*>(this);
+			const bool        wasRegistered = this->instances.erase(instance);
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (not wasRegistered)
+					Globals::logger.Log("WARNING: [PFT] Unregistration failed:", instance);
+			}
+		}
+
+
+		static Feature* FindInstance(const address pursuit)
+		{
+			for (auto* const instance : Searchable::instances)
+				if (instance->GetPursuit() == pursuit) return instance;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [PFT] Lookup failed:", pursuit);
+
+			return nullptr; // should never happen
+		}
 	};
 
 

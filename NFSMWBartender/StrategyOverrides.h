@@ -16,7 +16,6 @@
 
 namespace StrategyOverrides
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
@@ -24,9 +23,9 @@ namespace StrategyOverrides
 	// Heat parameters
 	constinit HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1, 20});
 
-	constinit HeatParameters::OptionalInterval<float> heavy3UnblockDelay ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> heavy3UnblockDelay({1.f}); // seconds
 
-	constinit HeatParameters::OptionalInterval<float> heavy4UnblockDelay ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> heavy4UnblockDelay({1.f}); // seconds
 
 	constinit HeatParameters::OptionalInterval<float> leader5UnblockDelay({1.f}); // seconds
 
@@ -45,7 +44,7 @@ namespace StrategyOverrides
 
 	// StrategyManager class ------------------------------------------------------------------------------------------------------------------------
 
-	class StrategyManager : public PursuitFeatures::PursuitReaction
+	class StrategyManager : public PursuitFeatures::Reaction, public PursuitFeatures::Searchable<StrategyManager>
 	{
 	private:
 
@@ -61,8 +60,6 @@ namespace StrategyOverrides
 		PursuitFeatures::IntervalTimer unblockTimer;
 
 		ModContainers::AddressSet vehiclesOfCurrentStrategy;
-
-		inline static RELEASE_CONSTINIT ModContainers::AddressMap<StrategyManager*> pursuitToManager;
 
 
 		void UpdateNextHeavy3Count()
@@ -119,33 +116,17 @@ namespace StrategyOverrides
 		}
 
 
-		[[nodiscard]] static StrategyManager* FindManager(const address pursuit)
-		{
-			const auto foundManager = StrategyManager::pursuitToManager.find(pursuit);
-
-			if (foundManager != StrategyManager::pursuitToManager.end())
-				return foundManager->second;
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [STR] No manager for pursuit", pursuit);
-
-			return nullptr; // should never happen
-		}
-
-
 	public:
 
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
-		explicit StrategyManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
+		explicit StrategyManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
 		{
 			this->vehiclesOfCurrentStrategy.reserve(10);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>('+', this, "StrategyManager");
-			
-			this->pursuitToManager.try_emplace(this->pursuit, this);
 		}
 
 
@@ -153,8 +134,6 @@ namespace StrategyOverrides
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>('-', this, "StrategyManager");
-
-			this->pursuitToManager.erase(this->pursuit);
 		}
 
 
@@ -217,7 +196,7 @@ namespace StrategyOverrides
 
 		static void __fastcall WatchHeavyStrategy(const address pursuit)
 		{
-			auto* const manager = StrategyManager::FindManager(pursuit);
+			auto* const manager = StrategyManager::FindInstance(pursuit);
 			if (not manager) return; // should never happen
 
 			manager->StopUnblockTimer();
@@ -261,7 +240,7 @@ namespace StrategyOverrides
 
 		static void __fastcall WatchLeaderStrategy(const address pursuit)
 		{
-			auto* const manager = StrategyManager::FindManager(pursuit);
+			auto* const manager = StrategyManager::FindInstance(pursuit);
 			if (not manager) return; // should never happen
 
 			manager->StopUnblockTimer();
@@ -302,7 +281,7 @@ namespace StrategyOverrides
 
 		static void __fastcall ClearWatchedStrategy(const address pursuit)
 		{
-			auto* const manager = StrategyManager::FindManager(pursuit);
+			auto* const manager = StrategyManager::FindInstance(pursuit);
 			if (not manager) return; // should never happen
 
 			manager->StopUnblockTimer();
@@ -314,7 +293,7 @@ namespace StrategyOverrides
 
 		[[nodiscard]] static float __fastcall GetFullPursuitLength(const address pursuit)
 		{
-			const auto* const manager = StrategyManager::FindManager(pursuit);
+			const auto* const manager = StrategyManager::FindInstance(pursuit);
 			if (not manager) return 0.f; // should never happen
 
 			return Globals::simulationTime - manager->pursuitStartTimestamp;
@@ -323,7 +302,7 @@ namespace StrategyOverrides
 
 		[[nodiscard]] static size_t __fastcall GetNextHeavy3Count(const address pursuit)
 		{
-			const auto* const manager = StrategyManager::FindManager(pursuit);
+			const auto* const manager = StrategyManager::FindInstance(pursuit);
 			if (not manager) return 2; // should never happen
 
 			return manager->nextHeavy3Count;

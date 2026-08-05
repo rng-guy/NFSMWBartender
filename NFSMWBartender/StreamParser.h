@@ -21,12 +21,10 @@
 
 namespace StreamParser
 {
-
 	// Concepts -------------------------------------------------------------------------------------------------------------------------------------
 
 	namespace Concepts
 	{
-
 		template <typename T>
 		concept IsLegacyString = std::same_as<T, const char*>;
 
@@ -66,7 +64,6 @@ namespace StreamParser
 
 	namespace Details
 	{
-
 		inline void SkipByteOrderMark(std::istream& stream)
 		{
 			if (stream.tellg() != 0) return; // not start of stream

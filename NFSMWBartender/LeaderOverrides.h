@@ -13,29 +13,28 @@
 
 namespace LeaderOverrides
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
 	// Heat parameters
-	constinit HeatParameters::OptionalInterval<float> leader5CrossAggroDelay ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader5CrossAggroDelay({1.f}); // seconds
 
 	constinit HeatParameters::OptionalInterval<float> leader5ExpireResetDelay({1.f}); // seconds
 
-	constinit HeatParameters::OptionalInterval<float> leader5WreckResetDelay ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader5WreckResetDelay({1.f}); // seconds
 
-	constinit HeatParameters::OptionalInterval<float> leader5LostResetDelay  ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader5LostResetDelay({1.f}); // seconds
 
-	constinit HeatParameters::OptionalInterval<float> leader7CrossAggroDelay ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7CrossAggroDelay({1.f}); // seconds
 
-	constinit HeatParameters::OptionalInterval<float> leader7HenchAggroDelay ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7HenchAggroDelay({1.f}); // seconds
 
 	constinit HeatParameters::OptionalInterval<float> leader7ExpireResetDelay({1.f}); // seconds
 
-	constinit HeatParameters::OptionalInterval<float> leader7WreckResetDelay ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7WreckResetDelay({1.f}); // seconds
 
-	constinit HeatParameters::OptionalInterval<float> leader7LostResetDelay  ({1.f}); // seconds
+	constinit HeatParameters::OptionalInterval<float> leader7LostResetDelay({1.f}); // seconds
 
 
 
@@ -43,7 +42,7 @@ namespace LeaderOverrides
 
 	// LeaderManager class --------------------------------------------------------------------------------------------------------------------------
 
-	class LeaderManager : public PursuitFeatures::PursuitReaction
+	class LeaderManager : public PursuitFeatures::Reaction
 	{
 	private:
 
@@ -212,7 +211,7 @@ namespace LeaderOverrides
 			this->henchmenAggroTimer.Stop();
 
 			for (const address copVehicle : this->passiveHenchmenVehicles)
-				Globals::EndSupportGoal(copVehicle);
+				Globals::EndSupportGoalOfVehicle(copVehicle);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -229,7 +228,7 @@ namespace LeaderOverrides
 			if (this->crossAggroTimer.HasExpired())
 			{
 				this->crossAggroTimer.Stop();
-				Globals::EndSupportGoal(this->crossVehicle);
+				Globals::EndSupportGoalOfVehicle(this->crossVehicle);
 				
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(this->pursuit, "[LDR] Cross now aggressive");
@@ -321,7 +320,7 @@ namespace LeaderOverrides
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
-		explicit LeaderManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit) 
+		explicit LeaderManager(const address pursuit) : PursuitFeatures::Reaction(pursuit) 
 		{
 			this->passiveHenchmenVehicles.reserve(2);
 

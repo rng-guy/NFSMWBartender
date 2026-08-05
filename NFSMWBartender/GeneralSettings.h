@@ -16,7 +16,6 @@
 
 namespace GeneralSettings 
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
@@ -633,8 +632,6 @@ namespace GeneralSettings
 		MemoryTools::MakeRangeJMP<hiddenFromCarsEntrance,        hiddenFromCarsExit>       (HiddenFromCars);
 		MemoryTools::MakeRangeJMP<hiddenFromRoadblocksEntrance,  hiddenFromRoadblocksExit> (HiddenFromRoadblocks);
 		MemoryTools::MakeRangeJMP<hiddenFromHelicoptersEntrance, hiddenFromHelicoptersExit>(HiddenFromHelicopters);
-
-		ApplyFixes(); // also contains bust-distance feature
 
 		// Status flag
 		anyFeatureEnabled = true;

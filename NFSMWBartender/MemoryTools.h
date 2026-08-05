@@ -16,7 +16,6 @@
 
 namespace MemoryTools
 {
-
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
 	using byte = uint8_t;
@@ -116,7 +115,6 @@ namespace MemoryTools
 
 	namespace Details
 	{
-
 		inline void WriteToRange
 		(
 			const byte    value,

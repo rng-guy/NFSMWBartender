@@ -15,7 +15,6 @@
 
 namespace GroundSuppport
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
@@ -62,7 +61,7 @@ namespace GroundSuppport
 	constinit HeatParameters::Value<const char*> leader7Hench2Vehicle("copsporthench");
 
 	// Conversions
-	float rammingSpeedLimit = heavy3SpeedLimit.current / 3.6f; // mps
+	float rammingSpeedLimit = heavy3SpeedLimit.current / 3.6f; // metres / second
 
 
 
@@ -281,14 +280,14 @@ namespace GroundSuppport
 
 		for (const address pursuit : Globals::PursuitList())
 		{
-			if (const address roadblock = AsReference<address>(pursuit + 0x84))
-			{
-				const address firstVehicleEntry = AsReference<address>(roadblock + 0xC);
-				const address lastVehicleEntry  = AsReference<address>(roadblock + 0x10);
+			const address roadblock = AsReference<address>(pursuit + 0x84);
+			if (not roadblock) continue; // no active roadblock
 
-				if (lastVehicleEntry > firstVehicleEntry)
-					numPersistentVehicles -= (lastVehicleEntry - firstVehicleEntry) / sizeof(address);
-			}
+			const address firstVehicleEntry = AsReference<address>(roadblock + 0xC);
+			const address lastVehicleEntry  = AsReference<address>(roadblock + 0x10);
+
+			if (lastVehicleEntry > firstVehicleEntry)
+				numPersistentVehicles -= (lastVehicleEntry - firstVehicleEntry) / sizeof(address);
 		}
 
 		return numPersistentVehicles;
@@ -307,14 +306,11 @@ namespace GroundSuppport
 		// Consult ChasersManager for cop capacity (if enabled)
 		if (CopSpawnOverrides::anyFeatureEnabled)
 		{
-			if (not CopSpawnOverrides::ChasersManager::HasJoinCapacity(pursuit)) 
-				return false;
-
-			else if (CopSpawnOverrides::chasersAreIndependent.current) 
-				return true;
+			if (not CopSpawnOverrides::ChasersManager::HasJoinCapacity(pursuit)) return false;
+			if (CopSpawnOverrides::chasersAreIndependent.current)                return true;
 		}
 
-		// Struct contains vanilla global cop-spawn limit if CopSpawnOverrides feature is disabled
+		// Struct contains vanilla global cop-spawn limit if CopSpawnOverrides header is disabled
 		return (GetGlobalNumPersistentCops() < CopSpawnOverrides::activeChaserCount.max.current);
 	}
 
@@ -917,8 +913,6 @@ namespace GroundSuppport
 		MemoryTools::MakeRangeJMP<roadblockFormationEntrance, roadblockFormationExit>(RoadblockFormation);
 		MemoryTools::MakeRangeJMP<roadblockJoinTimerEntrance, roadblockJoinTimerExit>(RoadblockJoinTimer);
 
-		ApplyFixes(); // also contains Strategy-selection and roadblock-joining features
-		
 		// Status flag
 		anyFeatureEnabled = true;
 

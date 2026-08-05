@@ -12,7 +12,6 @@
 
 namespace RadioChatter
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
@@ -372,8 +371,6 @@ namespace RadioChatter
 
 		// Code modifications (general)
 		MemoryTools::MakeRangeJMP<jurisdictionReportEntrance, jurisdictionReportExit>(JurisdictionReport);
-
-		ApplyFixes(); // fixes announcements for Heat levels > 5
 
 		// Status flag
 		anyFeatureEnabled = true;

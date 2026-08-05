@@ -13,8 +13,12 @@
 
 namespace ModContainers
 {
-
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
+
+	template <typename V>
+	using StableVector = std::vector<std::unique_ptr<V>>;
+
+
 
 	template <typename K>
 	using Set = FlatContainers::Set<K>;
@@ -64,7 +68,7 @@ namespace ModContainers
 	requires (std::invocable<Converter, RawType> and std::predicate<Validator, std::invoke_result_t<Converter, RawType>>)
 	struct MapFillSetup
 	{
-		const std::vector<RawType>& rawData; // no std::span because of std::vector<bool>...
+		const std::vector<RawType>& rawData; // can't be std::span because of std::vector<bool>...
 
 		Converter ConvertFromRaw{};
 		Validator IsValidResult {};

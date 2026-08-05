@@ -24,24 +24,14 @@
 
 namespace PursuitObserver
 {
-
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
-
-	bool anyFeatureEnabled = false;
-
-
-
-
-
 	// PursuitObserver class ------------------------------------------------------------------------------------------------------------------------
 
-	class PursuitObserver
+	class PursuitObserver : public PursuitFeatures::Searchable<PursuitObserver>
 	{
 	private:
 
 		// Internal aliases
-		using PursuitReaction = PursuitFeatures::PursuitReaction;
-		using CopLabel        = PursuitReaction::CopLabel;
+		using CopLabel = PursuitFeatures::Reaction::CopLabel;
 
 
 	private:
@@ -54,9 +44,7 @@ namespace PursuitObserver
 
 		ModContainers::AddressMap<CopLabel> copVehicleToLabel;
 
-		std::vector<std::unique_ptr<PursuitReaction>> pursuitReactions;
-
-		inline static RELEASE_CONSTINIT ModContainers::StableAddressMap<PursuitObserver> pursuitToObserver;
+		ModContainers::StableVector<PursuitFeatures::Reaction> pursuitReactions;
 
 
 		[[nodiscard]] static CopLabel InferCopLabelFromCaller(const address caller)
@@ -91,12 +79,48 @@ namespace PursuitObserver
 		}
 
 
-		template <class Reaction>
-		requires std::derived_from<Reaction, PursuitReaction>
+		template <class Feature>
+		requires std::derived_from<Feature, PursuitFeatures::Reaction>
 		void AttachReaction()
 		{
-			if (Reaction::isEnabled)
-				this->pursuitReactions.push_back(std::make_unique<Reaction>(this->pursuit));
+			if (not Feature::isEnabled) return;
+
+			this->pursuitReactions.push_back(std::make_unique<Feature>(this->pursuit));
+		}
+
+
+	public:
+
+		explicit PursuitObserver(const address pursuit) : pursuit(pursuit)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>('+', this, "PursuitObserver");
+
+			// Container pre-allocations
+			this->pursuitReactions .reserve(6);
+			this->copVehicleToLabel.reserve(100);
+
+			// Reaction features
+			this->AttachReaction<CopSpawnOverrides  ::ChasersManager>   ();
+			this->AttachReaction<CopFleeOverrides   ::MembershipManager>();
+			this->AttachReaction<HelicopterOverrides::HelicopterManager>();
+			this->AttachReaction<StrategyOverrides  ::StrategyManager>  ();
+			this->AttachReaction<LeaderOverrides    ::LeaderManager>    ();
+			this->AttachReaction<HeatChangeOverrides::HeatManager>      ();
+		}
+
+
+		explicit PursuitObserver(PursuitObserver&&)      = delete;
+		explicit PursuitObserver(const PursuitObserver&) = delete;
+
+		PursuitObserver& operator=(PursuitObserver&&)      = delete;
+		PursuitObserver& operator=(const PursuitObserver&) = delete;
+
+
+		~PursuitObserver()
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>('-', this, "PursuitObserver");
 		}
 
 
@@ -134,96 +158,9 @@ namespace PursuitObserver
 		}
 
 
-		[[nodiscard]] static PursuitObserver* FindObserver(const address pursuit)
+		address GetPursuit() const
 		{
-			const auto foundObserver = PursuitObserver::pursuitToObserver.find(pursuit);
-
-			if (foundObserver != PursuitObserver::pursuitToObserver.end())
-				return foundObserver->second.get();
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [OBS] No observer for pursuit", pursuit);
-
-			return nullptr; // should never happen
-		}
-
-
-	public:
-
-		explicit PursuitObserver(const address pursuit) : pursuit(pursuit)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('+', this, "PursuitObserver");
-
-			// Container pre-allocations
-			this->pursuitReactions .reserve(6);
-			this->copVehicleToLabel.reserve(100);
-
-			// PursuitReaction features
-			this->AttachReaction<CopSpawnOverrides  ::ChasersManager>   ();
-			this->AttachReaction<CopFleeOverrides   ::MembershipManager>();
-			this->AttachReaction<HelicopterOverrides::HelicopterManager>();
-			this->AttachReaction<StrategyOverrides  ::StrategyManager>  ();
-			this->AttachReaction<LeaderOverrides    ::LeaderManager>    ();
-			this->AttachReaction<HeatChangeOverrides::HeatManager>      ();
-		}
-
-
-		explicit PursuitObserver(PursuitObserver&&)      = delete;
-		explicit PursuitObserver(const PursuitObserver&) = delete;
-
-		PursuitObserver& operator=(PursuitObserver&&)      = delete;
-		PursuitObserver& operator=(const PursuitObserver&) = delete;
-
-
-		static void __fastcall AddPursuit(const address pursuit)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("     NEW [OBS] Pursuit", pursuit);
-
-			const auto [pairIt, isNewPursuit] = PursuitObserver::pursuitToObserver.try_emplace(pursuit, pursuit);
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (not isNewPursuit)
-					Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
-			}
-		}
-
-
-		~PursuitObserver()
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('-', this, "PursuitObserver");
-		}
-
-
-		static void __fastcall RemovePursuit(const address pursuit)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("     DEL [OBS] Pursuit", pursuit);
-
-			const bool wasRemoved = PursuitObserver::pursuitToObserver.erase(pursuit);
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (not wasRemoved)
-					Globals::logger.Log("WARNING: [OBS] Unknown pursuit", pursuit);
-			}
-		}
-
-
-		static void NotifyOfHeatStateUpdate()
-		{
-			for (const auto& [pursuit, observer] : PursuitObserver::pursuitToObserver)
-				observer->ProcessHeatStateUpdate();
-		}
-
-
-		static void NotifyOfGameplay()
-		{
-			for (const auto& [pursuit, observer] : PursuitObserver::pursuitToObserver)
-				observer->ProcessGameplay();
+			return this->pursuit;
 		}
 
 
@@ -233,7 +170,7 @@ namespace PursuitObserver
 			const address copVehicle,
 			const address caller
 		) {
-			auto* const observer = PursuitObserver::FindObserver(pursuit);
+			auto* const observer = PursuitObserver::FindInstance(pursuit);
 			if (not observer) return; // should never happen
 
 			const CopLabel copLabel               = observer->InferCopLabelFromCaller(caller);
@@ -257,7 +194,7 @@ namespace PursuitObserver
 			const address pursuit,
 			const address copVehicle
 		) {
-			auto* const observer = PursuitObserver::FindObserver(pursuit);
+			auto* const observer = PursuitObserver::FindInstance(pursuit);
 			if (not observer) return; // should never happen
 
 			const auto foundVehicle = observer->copVehicleToLabel.find(copVehicle);
@@ -280,6 +217,77 @@ namespace PursuitObserver
 
 
 	
+
+	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+
+	bool anyFeatureEnabled = false;
+
+	// Code caves
+	RELEASE_CONSTINIT ModContainers::StableVector<PursuitObserver> observers;
+
+
+
+
+
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	void __fastcall CreateObserver(const address pursuit)
+	{
+		for (const auto& observer : observers)
+		{
+			if (observer->GetPursuit() != pursuit) continue;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
+
+			return; // should never happen
+		}
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("     NEW [OBS] Pursuit", pursuit);
+
+		observers.push_back(std::make_unique<PursuitObserver>(pursuit));
+	}
+
+
+
+	void NotifyOfHeatStateUpdate()
+	{
+		for (const auto& observer : observers)
+			observer->ProcessHeatStateUpdate();
+	}
+
+
+
+	void NotifyOfGameplay()
+	{
+		for (const auto& observer : observers)
+			observer->ProcessGameplay();
+	}
+
+
+
+	void __fastcall DeleteObserver(const address pursuit)
+	{
+		for (auto it = observers.begin(); it != observers.end(); ++it)
+		{
+			if ((*it)->GetPursuit() != pursuit) continue;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log("     DEL [OBS] Pursuit", pursuit);
+
+			observers.erase(it);
+
+			return;
+		}
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("WARNING: [OBS] Unknown pursuit", pursuit);
+	}
+
+
+
+
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -338,7 +346,7 @@ namespace PursuitObserver
 	constexpr address pursuitDestructorEntrance = 0x433775;
 	constexpr address pursuitDestructorExit     = 0x43377A;
 
-	// Notifies pursuit observers of removed pursuits
+	// Removes observers of deleted pursuits
 	__declspec(naked) void PursuitDestructor()
 	{
 		__asm
@@ -346,7 +354,7 @@ namespace PursuitObserver
 			push ecx
 
 			add ecx, 0x48
-			call PursuitObserver::RemovePursuit // ecx: pursuit
+			call DeleteObserver // ecx: pursuit
 
 			pop ecx
 
@@ -364,7 +372,7 @@ namespace PursuitObserver
 	constexpr address pursuitConstructorEntrance = 0x4432D0;
 	constexpr address pursuitConstructorExit     = 0x4432D7;
 
-	// Notifies pursuit observers of new pursuits
+	// Adds observers for created pursuits
 	__declspec(naked) void PursuitConstructor()
 	{
 		__asm
@@ -373,7 +381,7 @@ namespace PursuitObserver
 			push eax
 
 			lea ecx, dword ptr [eax + 0x1C]
-			call PursuitObserver::AddPursuit // ecx: pursuit
+			call CreateObserver // ecx: pursuit
 
 			pop eax
 
@@ -433,7 +441,7 @@ namespace PursuitObserver
 		HeatChangeOverrides::SetToHeatState(isRacing, heatLevel);
 		RoadblockOverrides ::SetToHeatState(isRacing, heatLevel);
 
-		PursuitObserver::NotifyOfHeatStateUpdate();
+		NotifyOfHeatStateUpdate();
 	}
 
 
@@ -442,6 +450,6 @@ namespace PursuitObserver
 	{
 		if (not anyFeatureEnabled) return;
 
-		PursuitObserver::NotifyOfGameplay();
+		NotifyOfGameplay();
 	}
 }

@@ -19,12 +19,10 @@
 
 namespace ConfigParser
 {
-
 	// Concepts -------------------------------------------------------------------------------------------------------------------------------------
 
 	namespace Concepts
 	{
-
 		using StreamParser::Concepts::IsPureArithmetic;
 		
 		template <typename V>

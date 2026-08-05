@@ -145,6 +145,12 @@
     <ClInclude Include="GameBreaker.h">
       <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
+    <ClInclude Include="NitrousCharge.h">
+      <Filter>Headers\Features\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="ParameterSets.h">
+      <Filter>Headers\General</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Basic\General.ini">
@@ -205,6 +211,9 @@
       <Filter>Editor\Source</Filter>
     </None>
     <None Include="..\BartenderSettings\Basic\Speedbreaker.ini">
+      <Filter>Configuration\Basic</Filter>
+    </None>
+    <None Include="..\BartenderSettings\Basic\Nitrous.ini">
       <Filter>Configuration\Basic</Filter>
     </None>
   </ItemGroup>

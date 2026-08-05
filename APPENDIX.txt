@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT'S THIS APPENDIX ABOUT? (v3.06.00) │ ■ ─────────────────────────────────────────────────
+── ■ │ WHAT'S THIS APPENDIX ABOUT? (v4.00.00) │ ■ ─────────────────────────────────────────────────
 
 View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
 
@@ -36,7 +36,7 @@ To help you SOLVE IN-GAME ISSUES with Bartender, the sections below address thes
 
 Bartender only recognises HEAT LEVELS from 1 to 10 (inclusive). If you want more Heat levels,
 you must edit the "maxHeatLevel" parameter in Bartender's "HeatParameters.h" source file and 
-compile the mod yourself. To clone and compile Bartender, use Microsoft Visual Studio.
+compile the mod yourself. To clone and compile Bartender, use Microsoft Visual Studio 2022.
 
 Bartender parses its configuration (.ini) files in PARAMETER GROUPS, indicated by "[GroupName]".
 These groups each contain related parameters and give a logical structure to the configuration
@@ -48,10 +48,10 @@ Bartender can handle any INVALID / MISSING PARAMETER GROUPS in its configuration
  • all values of any missing groups count as omitted.
 
 Bartender can handle any INVALID VALUES you might define in its parameter groups:
- • duplicates (e.g. another "heat02" value) within parameter groups are ignored,
- • values of incorrect type (e.g. a string instead of a decimal) count as omitted,
+ • duplicates                    (e.g. another "heat02" value) within groups are ignored,
+ • values of incorrect type      (e.g. a string instead of a decimal) count as omitted,
  • values of incorrect magnitude (e.g. negative instead of positive) are auto-corrected,
- • mismatched interval values (i.e. where "max" < "min") are each set to the lower value, and
+ • mismatched interval values    (i.e. where "max" < "min") are each set to the lower value, and
  • comma-separated value pairs / tuples with too many or few (valid) values count as omitted.
 
 Some HEAT-LEVEL PARAMETER GROUPS allow you to define a default Heat-level value, which is
@@ -59,7 +59,7 @@ indicated by "default" in place of a Heat level. This default value then applies
 Heat levels without a (valid) value. Bartender parses such parameter groups in three steps:
  1) • If you omit it, the "default" value is set to the game's vanilla value.
  2) • All free-roam Heat levels (format: "heatXY") you omit are set to the "default" value.
- 3) • All race Heat levels (format: "raceXY") you omit are set to their free-roam values.
+ 3) • All race      Heat levels (format: "raceXY") you omit are set to the "default" value.
 
 Some VEHICLE PARAMETER GROUPS allow you to define a default vehicle value, which is
 indicated by "default" in place of a vehicle. This default value then applies to all
@@ -242,15 +242,35 @@ Regarding GENERAL FEATURES ("BartenderSettings\Basic\General.ini"):
 
 
 
+Regarding NITROUS FEATURES ("BartenderSettings\Basic\Nitrous.ini"):
+
+ • Both Bartender and the game always respect the charge limits of any installed NOS upgrades.
+
+ • For any change by vehicle type, Bartender ignores vehicles that don't exist in VltEd.
+
+ • If you don't define a valid "default" change by type, Bartender uses 0.0 instead.
+
+ • For each collision, Bartender sums all tagging and assault changes before applying them.
+
+ • For each wrecking, Bartender sums all wrecking changes before applying them.
+
+ • Due to the limitations of floating-point math, some charge changes might be slightly off.
+
+
+
 Regarding SPEEDBREAKER FEATURES ("BartenderSettings\Basic\Speedbreaker.ini"):
 
  • In the vanilla game, you can recharge the Speedbreaker by driving fast enough or by drifting.
 
  • Both Bartender and the game always respect the hard-coded Speedbreaker-charge limits.
 
- • For destruction change by vehicle type, Bartender ignores vehicles that don't exist in VltEd. 
+ • For any change by vehicle type, Bartender ignores vehicles that don't exist in VltEd.
 
- • If you don't define a valid "default" destruction change by type, Bartender uses 0.0 instead.
+ • If you don't define a valid "default" change by type, Bartender uses 0.0 instead.
+
+ • For each collision, Bartender sums all tagging and assault changes before applying them.
+
+ • For each wrecking, Bartender sums all wrecking changes before applying them.
 
  • Due to the limitations of floating-point math, some charge changes might be slightly off.
 
@@ -617,9 +637,11 @@ Regarding STRATEGY REQUESTS ("BartenderSettings\Advanced\Strategies.ini"):
    "0xe8c24416" VltEd parameter. For Challenge Series events, however, you must use their 
    respective "ForceHeatLevel" and "MaxHeatLevel" VltEd parameters instead.
 
- • For destruction Heat by vehicle type, Bartender ignores vehicles that don't exist in VltEd. 
+ • For any Heat by vehicle type, Bartender ignores vehicles that don't exist in VltEd.
 
- • If you don't define a valid "default" destruction Heat by type, Bartender uses 0.0 instead.
+ • If you don't define a valid "default" Heat by type, Bartender uses 0.0 instead.
+
+ • Bartender sums all Heat changes you trigger over a few milliseconds before applying them.
 
  • Due to the limitations of floating-point math, some Heat changes might be slightly off.
 
@@ -799,4 +821,4 @@ v1.00.00: Initial release
 
    05.00: Made Binary optional for destruction strings and overhauled many mod internals
 
-   06.00: Added feature for cop-destruction notification icons
+ 4.00.00: Added features for NOS recharging and cop-destruction notification icons 

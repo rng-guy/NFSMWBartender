@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <string_view>
 
 #include "Globals.h"
@@ -18,7 +17,6 @@
 
 namespace CopSpawnOverrides
 {
-
 	// Contingent class -----------------------------------------------------------------------------------------------------------------------------
 
 	class Contingent
@@ -311,7 +309,7 @@ namespace CopSpawnOverrides
 
 	// ChasersManager class -------------------------------------------------------------------------------------------------------------------------
 
-	class ChasersManager : public PursuitFeatures::PursuitReaction
+	class ChasersManager : public PursuitFeatures::Reaction, public PursuitFeatures::Searchable<ChasersManager>
 	{
 	private:
 
@@ -334,8 +332,6 @@ namespace CopSpawnOverrides
 		const float& copSpawnCooldown  = AsReference<float>(this->pursuit + 0xCC);
 
 		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTable, this->pursuit};
-
-		inline static RELEASE_CONSTINIT ModContainers::AddressMap<ChasersManager*> pursuitToManager;
 
 
 		void UpdateSpawnTable()
@@ -402,7 +398,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		[[nodiscard]] bool CanNewChaserSpawn() const
+		[[nodiscard]] bool MayNewChaserSpawn() const
 		{
 			if (not Globals::playerHeatLevelKnown) return false;
 
@@ -449,7 +445,7 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] static bool HasVehicleEngaged(const address copVehicle)
 		{
-			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
+			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
 			if (not copAIVehiclePursuit) return false; // should never happen
 
 			return AsReference<bool>(copAIVehiclePursuit + 0x22);
@@ -520,31 +516,15 @@ namespace CopSpawnOverrides
 		}
 
 
-		[[nodiscard]] static ChasersManager* FindManager(const address pursuit)
-		{
-			const auto foundManager = ChasersManager::pursuitToManager.find(pursuit);
-
-			if (foundManager != ChasersManager::pursuitToManager.end())
-				return foundManager->second;
-
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] No manager for pursuit", pursuit);
-
-			return nullptr; // should never happen
-		}
-
-
 	public:
 
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
-		explicit ChasersManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
+		explicit ChasersManager(const address pursuit) : Reaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>('+', this, "ChasersManager");
-
-			this->pursuitToManager.try_emplace(this->pursuit, this);
 
 			// Container pre-allocation
 			this->chaserSpawns.ReserveTypeCapacity(20);
@@ -555,8 +535,6 @@ namespace CopSpawnOverrides
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>('-', this, "ChasersManager");
-
-			this->pursuitToManager.erase(this->pursuit);
 		}
 
 
@@ -623,7 +601,7 @@ namespace CopSpawnOverrides
 
 		static void __fastcall NotifyOfWaveReset(const address pursuit)
 		{
-			auto* const manager = ChasersManager::FindManager(pursuit);
+			auto* const manager = ChasersManager::FindInstance(pursuit);
 			if (not manager) return; // should never happen
 
 			if constexpr (Globals::loggingEnabled)
@@ -643,16 +621,16 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] static bool __fastcall IsChaserAvailable(const address pursuit)
 		{
-			const auto* const manager = ChasersManager::FindManager(pursuit);
+			const auto* const manager = ChasersManager::FindInstance(pursuit);
 			if (not manager) return false; // should never happen
 
-			return manager->CanNewChaserSpawn();
+			return manager->MayNewChaserSpawn();
 		}
 
 
 		[[nodiscard]] static bool __fastcall HasJoinCapacity(const address pursuit)
 		{
-			const auto* const manager = ChasersManager::FindManager(pursuit);
+			const auto* const manager = ChasersManager::FindInstance(pursuit);
 			if (not manager) return false; // should never happen
 
 			const bool hasCapacity = (chasersAreIndependent.current or (manager->GetNumPersistentCops() < activeChaserCount.max.current));
@@ -666,10 +644,10 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] static const char* __fastcall GetNameOfNewChaser(const address pursuit)
 		{
-			const auto* const manager = ChasersManager::FindManager(pursuit);
+			const auto* const manager = ChasersManager::FindInstance(pursuit);
 			if (not manager) return nullptr; // should never happen
 
-			return (manager->CanNewChaserSpawn()) ? manager->chaserSpawns.GetNameOfAvailableCop() : nullptr;
+			return (manager->MayNewChaserSpawn()) ? manager->chaserSpawns.GetNameOfAvailableCop() : nullptr;
 		}
 	};
 
@@ -737,8 +715,9 @@ namespace CopSpawnOverrides
 
 		if (eventHasScriptedPursuit)
 		{
-			const size_t safeHeatLevel = std::clamp<size_t>(eventHeatLevel, 1, HeatParameters::maxHeatLevel);
-			prefetchedCopName          = CopSpawnTables::scriptedSpawnTable.roam[safeHeatLevel - 1].GetNameOfAvailableCop();
+			const size_t safeHeatLevel = HeatParameters::ClampHeatLevel(eventHeatLevel);
+			const auto&  spawnTable    = CopSpawnTables::scriptedSpawnTable.roam[safeHeatLevel - 1];
+			prefetchedCopName          = spawnTable.GetNameOfAvailableCop();
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<1>("[SPA] First scripted cop:", prefetchedCopName);

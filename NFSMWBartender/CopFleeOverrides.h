@@ -15,7 +15,6 @@
 
 namespace CopFleeOverrides
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
@@ -37,8 +36,8 @@ namespace CopFleeOverrides
 	constinit HeatParameters::OptionalValue   <int>   joinedHeavy3Threshold({0});   // cars
 
 	// Conversions
-	float baseSpeedThreshold = heavy3SpeedThreshold.current / 3.6f; // mps
-	float jerkSpeedThreshold = baseSpeedThreshold * .625f;          // mps
+	float baseSpeedThreshold = heavy3SpeedThreshold.current / 3.6f; // metres / second
+	float jerkSpeedThreshold = baseSpeedThreshold * .625f;          // metres / second
 
 	// Inline hashes for ASM
 	enum class VaultHash : vault
@@ -54,7 +53,6 @@ namespace CopFleeOverrides
 
 	namespace Details
 	{
-
 		// Base expiration-time tracker for cops
 		class SchedulerBase
 		{
@@ -111,7 +109,7 @@ namespace CopFleeOverrides
 
 			bool MakeVehicleBail(const address copVehicle) const
 			{
-				const address copAIVehiclePursuit = Globals::GetAIVehiclePursuit(copVehicle);
+				const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
 				if (not copAIVehiclePursuit) return false; // should never happen
 
 				const auto StartFlee = AsFunction<void __thiscall (address)>(0x423370);
@@ -333,7 +331,7 @@ namespace CopFleeOverrides
 
 	// MembershipManager class ----------------------------------------------------------------------------------------------------------------------
 
-	class MembershipManager : public PursuitFeatures::PursuitReaction
+	class MembershipManager : public PursuitFeatures::Reaction
 	{
 	private:
 
@@ -376,8 +374,8 @@ namespace CopFleeOverrides
 
 		bool MakeHeavyVehicleJoin(const address copVehicle)
 		{
-			if (not this->MayAnotherHeavyJoin())         return false;
-			if (not Globals::EndSupportGoal(copVehicle)) return false;
+			if (not this->MayAnotherHeavyJoin())                  return false;
+			if (not Globals::EndSupportGoalOfVehicle(copVehicle)) return false;
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log(this->pursuit, "[FLE] Heavy", copVehicle, "joined");
@@ -443,7 +441,7 @@ namespace CopFleeOverrides
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
 
-		explicit MembershipManager(const address pursuit) : PursuitFeatures::PursuitReaction(pursuit)
+		explicit MembershipManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<2>('+', this, "MembershipManager");

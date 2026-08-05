@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v3.06.00) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v4.00.00) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -38,10 +38,14 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • whether player-damaged cops are destroyed instantly if flipped over,
  • when exactly (if at all) cops are destroyed regardless of damage if flipped over,
  • when exactly (if at all) racers are automatically reset if flipped over,
+ • whether your NOS can recharge passively over time in active pursuits,
+ • how much NOS charge you gain / lose from tagging    any cop vehicle,
+ • how much NOS charge you gain / lose from assaulting any cop vehicle,
+ • how much NOS charge you gain / lose from destroying any cop vehicle,
  • whether the Speedbreaker's vanilla recharging mechanics apply in pursuits,
- • how much Speedbreaker charge you gain / lose from destroying any cop vehicle,
- • how much Speedbreaker charge you gain / lose from colliding with any cop vehicle,
+ • how much Speedbreaker charge you gain / lose from tagging    any cop vehicle,
  • how much Speedbreaker charge you gain / lose from assaulting any cop vehicle,
+ • how much Speedbreaker charge you gain / lose from destroying any cop vehicle,
  • which pursuit jurisdiction dispatch announces over the radio,
  • which ground support the cops may request in non-player pursuits,
  • the internal cooldown between non-Strategy roadblock requests,
@@ -61,6 +65,11 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
 The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • whether specific cop vehicles are affected by pursuit-breaker instakills;
  • which pursuit stats (e.g. length, bounty, infractions) the game tracks in races;
+ • how much NOS charge you gain / lose from tagging    specific cop vehicles;
+ • how much NOS charge you gain / lose from assaulting specific cop vehicles;
+ • how much NOS charge you gain / lose from destroying specific cop vehicles;
+ • how much Speedbreaker charge you gain / lose from tagging    specific cop vehicles;
+ • how much Speedbreaker charge you gain / lose from assaulting specific cop vehicles;
  • how much Speedbreaker charge you gain / lose from destroying specific cop vehicles;
  • what  notification strings the game displays whenever you destroy specific cop vehicles;
  • which notification icons   the game displays whenever you destroy specific cop vehicles;
@@ -134,13 +143,16 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the cops can request a new LeaderStrategy once Cross is gone,
  • when exactly (if at all) the cops can request a new Strategy while another is still active,
  • whether your Heat increases passively over time in active pursuits,
- • how much Heat you gain / lose from cop and roadblock spawns,
+ • how much Heat you gain / lose from cop and roadblock deployments,
+ • how much Heat you gain / lose from tagging    any cop vehicle,
+ • how much Heat you gain / lose from assaulting any cop vehicle, 
  • how much Heat you gain / lose from destroying any cop vehicle,
- • how much Heat you gain / lose from colliding with any cop or traffic vehicle,
- • how much Heat you gain / lose from assaulting any cop vehicle, and
+ • how much Heat you gain / lose from hitting    any traffic car, and
  • how much Heat you gain / lose from generic property damage.
 
 The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
+ • how much Heat you gain / lose from tragging   specific cop vehicles,
+ • how much Heat you gain / lose from assaulting specific cop vehicles,
  • how much Heat you gain / lose from destroying specific cop vehicles,
  • what specific roadblock setups look like in terms of parts and their arrangement,
  • how likely each roadblock setup is to spawn with horizontally mirrored parts instead, and
@@ -192,7 +204,7 @@ TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. Ther
 to remove the optional missing textures, as the game doesn't use them without Bartender.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v3.06.00, replace all old configuration files.
+If you update from a version older than v4.00.00, replace all old configuration files.
 
 
 

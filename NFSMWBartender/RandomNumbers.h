@@ -11,7 +11,6 @@
 
 namespace RandomNumbers
 {
-
 	// xoshiro256** PRNG (based on code from https://prng.di.unimi.it/) -----------------------------------------------------------------------------
 
 	class Xoshiro256ss

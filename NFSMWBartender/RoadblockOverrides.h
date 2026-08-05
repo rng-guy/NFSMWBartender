@@ -16,7 +16,6 @@
 
 namespace RoadblockOverrides
 {
-
 	// Roadblock (part) structs ---------------------------------------------------------------------------------------------------------------------
 
 	// Part (matches vanilla layout)

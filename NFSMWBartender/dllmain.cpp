@@ -32,6 +32,7 @@
 #include "HeatParameters.h"
 
 #include "GameBreaker.h"
+#include "NitrousCharge.h"
 #include "RadioChatter.h"
 #include "CopDetection.h"
 #include "GroundSupport.h"
@@ -48,7 +49,7 @@
 
 
 
-// Initialisation and injection ---------------------------------------------------------------------------------------------------------------------
+// Hooking functions --------------------------------------------------------------------------------------------------------------------------------
 
 address InitialiseBartenderOriginal = 0x0;
 
@@ -71,7 +72,7 @@ static void __cdecl InitialiseBartender
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::logger.Open("BartenderLog.txt");
-		Globals::logger.Log ("\n SESSION [MOD] Bartender v3.06.00");
+		Globals::logger.Log ("\n SESSION [MOD] Bartender v4.00.00");
 
 		if (MemoryTools::IsModuleLoaded("NFSMWUnlimiter.asi"))             Globals::logger.Log<2>("+ Unlimiter");
 		if (MemoryTools::IsModuleLoaded("NFSMWExtraOptions.asi"))          Globals::logger.Log<2>("+ ExtraOptions");
@@ -93,6 +94,7 @@ static void __cdecl InitialiseBartender
 	Globals::basicSetEnabled |= InteractiveMusic::InitialiseFeatures(parser);
 	Globals::basicSetEnabled |= GeneralSettings ::InitialiseFeatures(parser);
 	Globals::basicSetEnabled |= GroundSuppport  ::InitialiseFeatures(parser);
+	Globals::basicSetEnabled |= NitrousCharge   ::InitialiseFeatures(parser);
 	Globals::basicSetEnabled |= GameBreaker     ::InitialiseFeatures(parser);
 
 	parser.ClearCachedPaths();
@@ -100,11 +102,11 @@ static void __cdecl InitialiseBartender
 	if (Globals::basicSetEnabled)
 	{
 		// Apply feature-specific fixes
-		if (not RadioChatter    ::anyFeatureEnabled) RadioChatter    ::ApplyFixes();
-		if (not CopDetection    ::anyFeatureEnabled) CopDetection    ::ApplyFixes();
-		if (not HelicopterVision::anyFeatureEnabled) HelicopterVision::ApplyFixes();
-		if (not GeneralSettings ::anyFeatureEnabled) GeneralSettings ::ApplyFixes();
-		if (not GroundSuppport  ::anyFeatureEnabled) GroundSuppport  ::ApplyFixes();
+		RadioChatter    ::ApplyFixes();
+		CopDetection    ::ApplyFixes();
+		HelicopterVision::ApplyFixes();
+		GeneralSettings ::ApplyFixes();
+		GroundSuppport  ::ApplyFixes();
 
 		// Remove helicopter blob-shadow
 		MemoryTools::Write<float>(0.f, {0x903660});

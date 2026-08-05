@@ -6,14 +6,13 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
-#include "ModContainers.h"
+#include "ParameterSets.h"
 #include "HeatParameters.h"
 
 
 
 namespace GameBreaker
 {
-
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
@@ -22,23 +21,17 @@ namespace GameBreaker
 	constinit HeatParameters::Value<bool> passiveRechargeEnabled(true);
 	constinit HeatParameters::Value<bool> driftRechargeEnabled  (true);
 
-	constinit HeatParameters::Value<float> copWreckBreakerChange(0.f); // seconds
+	constinit HeatParameters::Value<bool> canGainWhenActive(true);
+	constinit HeatParameters::Value<bool> canLoseWhenActive(true);
 
-	constinit HeatParameters::Value<float> copDamagedBreakerChange(0.f); // seconds
-
-	constinit HeatParameters::Value<float> breakerChangePerAssault(0.f); // seconds
-	constinit HeatParameters::Value<bool>  onlyOneAssaultPerCop   (true);
-
-	constinit HeatParameters::Value<bool> canGainWhenActive  (true);
 	constinit HeatParameters::Value<bool> canGainWhenInactive(true);
-
-	constinit HeatParameters::Value<bool> canLoseWhenActive  (true);
 	constinit HeatParameters::Value<bool> canLoseWhenInactive(true);
+
+	// Parameter sets
+	RELEASE_CONSTINIT ParameterSets::CopInteractions breakerInteractions; // seconds
 
 	// Code caves
 	float pendingCollisionBreakerChange = 0.f;
-
-	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<float> copTypeToBreakerChange(0.f); // seconds
 
 
 
@@ -46,53 +39,69 @@ namespace GameBreaker
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	void ChargeSpeedbreaker
+	void ChargeSpeedbreakerOfTarget
 	(
-		const address localPlayer, 
-		const float   amount
+		const address pursuit, 
+		const float   seconds
 	) {
+		const address localPlayer = Globals::GetLocalPlayerOfPursuit(pursuit);
+		if (not localPlayer) return; // not player pursuit
+
 		const bool isBreakerActive = AsReference<bool>(localPlayer + 0x34);
 
-		if (amount >= 0.f)
+		if (isBreakerActive)
 		{
-			if (isBreakerActive       and (not canGainWhenActive  .current)) return;
-			if ((not isBreakerActive) and (not canGainWhenInactive.current)) return;
+			if (seconds >= 0.f)
+			{
+				if (not canGainWhenActive.current) return;
+			}
+			else if (not canLoseWhenActive.current) return;
 		}
 		else
 		{
-			if (isBreakerActive       and (not canLoseWhenActive  .current)) return;
-			if ((not isBreakerActive) and (not canLoseWhenInactive.current)) return;
+			if (seconds >= 0.f)
+			{
+				if (not canGainWhenInactive.current) return;
+			}
+			else if (not canLoseWhenInactive.current) return;
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log(localPlayer, "[GBR] Speedbreaker change:", amount);
+			Globals::logger.Log(pursuit, "[GBR] Speedbreaker change:", seconds);
 
 		const auto  ChargeGameBreaker = AsFunction  <void __thiscall (address, float)>(0x6F8F60);
 		const float timeToRatio       = *AsReference<const float* const>              (0x6EDDC3);
 
-		ChargeGameBreaker(localPlayer, Globals::floatScale * timeToRatio * amount);
+		ChargeGameBreaker(localPlayer, Globals::floatScale * (timeToRatio * seconds));
 	}
 
 
 
-	void ProcessDamagedCop(const address pursuit) 
+	void ProcessTaggedCop(const address copVehicle)
 	{
-		if (not Globals::IsPlayerPursuit(pursuit)) return;
-
-		pendingCollisionBreakerChange += copDamagedBreakerChange.current;
+		pendingCollisionBreakerChange += breakerInteractions.GetTaggingChange(copVehicle);
 	}
 
 
 
 	void ProcessAssaultedCop
 	(
-		const address pursuit,
-		const bool    isFirstOffence
+		const address copVehicle,
+		const byte    numCopAssaulted
 	) {
-		if (not Globals::IsPlayerPursuit(pursuit))                 return;
-		if ((not isFirstOffence) and onlyOneAssaultPerCop.current) return;
+		pendingCollisionBreakerChange += breakerInteractions.GetAssaultChange(copVehicle, numCopAssaulted);
+	}
 
-		pendingCollisionBreakerChange += breakerChangePerAssault.current;
+
+
+	void ProcessFinishedCollision(const address perpVehicle)
+	{
+		if (pendingCollisionBreakerChange == 0.f) return;
+
+		if (const address pursuit = Globals::GetPursuitOfPerpVehicle(perpVehicle))
+			ChargeSpeedbreakerOfTarget(pursuit, pendingCollisionBreakerChange);
+
+		pendingCollisionBreakerChange = 0.f;
 	}
 
 
@@ -102,29 +111,10 @@ namespace GameBreaker
 		const address pursuit,
 		const address copVehicle
 	) {
-		const address localPlayer = Globals::GetLocalPlayerOfPursuit(pursuit);
-		if (not localPlayer) return; // is non-player pursuit
-
-		const vault copType       = Globals::GetVehicleType(copVehicle);
-		const float breakerChange = copWreckBreakerChange.current + copTypeToBreakerChange.GetValue(copType);
+		const float breakerChange = breakerInteractions.GetWreckingChange(copVehicle);
 
 		if (breakerChange != 0.f)
-			ChargeSpeedbreaker(localPlayer, breakerChange);
-	}
-
-
-
-	void __fastcall ApplyPendingCollisionBreakerChange(const address perpVehicle)
-	{
-		if (pendingCollisionBreakerChange == 0.f) return;
-
-		const address pursuit     = Globals::GetPursuitOfPerpVehicle(perpVehicle);
-		const address localPlayer = Globals::GetLocalPlayerOfPursuit(pursuit);
-
-		if (localPlayer)
-			ChargeSpeedbreaker(localPlayer, pendingCollisionBreakerChange);
-		
-		pendingCollisionBreakerChange = 0.f;
+			ChargeSpeedbreakerOfTarget(pursuit, breakerChange);
 	}
 
 
@@ -151,7 +141,7 @@ namespace GameBreaker
 			mov ecx, dword ptr [esi + 0x34]
 
 			push dword ptr [ecx + 0x58] // localPlayer
-			call Globals::IsPlayerInPursuit
+			call Globals::IsLocalPlayerInPursuit
 			add esp, 0x4
 			test al, al
 
@@ -180,58 +170,13 @@ namespace GameBreaker
 			lea ecx, dword ptr [esi + 0x4C]
 
 			push ecx // localPlayer
-			call Globals::IsPlayerInPursuit
+			call Globals::IsLocalPlayerInPursuit
 			add esp, 0x4
 			test al, al
 
 			conclusion:
 			jmp dword ptr [passiveRechargeExit]
 		}
-	}
-
-
-
-	constexpr address collisionResultEntrance = 0x429EDA;
-	constexpr address collisionResultExit     = 0x429EDF;
-
-	// Applies the Speedbreaker changes from player collisions
-	__declspec(naked) void CollisionResult()
-	{
-		__asm
-		{
-			mov edx, dword ptr [esp + 0x18]
-
-			lea ecx, dword ptr [edx - 0x8]
-			call ApplyPendingCollisionBreakerChange // ecx: perpVehicle
-	
-			// Execute original code and resume
-			mov ecx, dword ptr [esp + 0x40]
-			pop edi
-
-			jmp dword ptr [collisionResultExit]
-		}
-	}
-
-
-
-
-
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
-
-	bool ParseVehicleSpeedbreakerChanges(const HeatParameters::Parser& parser)
-	{
-		std::vector<std::string_view> copNames;
-		std::vector<float>            changes;
-
-		parser.ParseUser<std::string_view, float>("Wrecking:Vehicles", copNames, {changes});
-
-		return copTypeToBreakerChange.FillFromVectors
-		(
-			"Vehicle-to-change",
-			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copNames, Globals::GetVaultHash, Globals::DoesVehicleTypeExist),
-			ModContainers::MapFillSetup(changes,  std::identity{},       ModContainers::AlwaysValid{})
-		);
 	}
 
 
@@ -250,23 +195,16 @@ namespace GameBreaker
 		// Heat parameters
 		HeatParameters::Parse(parser, "Speedbreaker:Mechanics", passiveRechargeEnabled, driftRechargeEnabled);
 
-		HeatParameters::Parse(parser, "Speedbreaker:Wrecking", copWreckBreakerChange);
+		HeatParameters::Parse(parser, "Speedbreaker:Active", canGainWhenActive, canLoseWhenActive);
 
-		HeatParameters::Parse(parser, "Speedbreaker:Collisions", copDamagedBreakerChange);
+		HeatParameters::Parse(parser, "Speedbreaker:Inactive", canGainWhenInactive, canLoseWhenInactive);
 
-		HeatParameters::Parse(parser, "Collisions:Assault", breakerChangePerAssault, onlyOneAssaultPerCop);
-
-		HeatParameters::Parse(parser, "Speedbreaker:Gains", canGainWhenActive, canGainWhenInactive);
-
-		HeatParameters::Parse(parser, "Speedbreaker:Losses", canLoseWhenActive, canLoseWhenInactive);
-
-		// Vehicle-specific Speedbreaker changes
-		ParseVehicleSpeedbreakerChanges(parser);
+		// Parameter sets
+		breakerInteractions.Parse(parser, "Speedbreaker");
 
 		// Code changes
 		MemoryTools::MakeRangeJMP<driftRechargeEntrance,   driftRechargeExit>  (DriftRecharge);
 		MemoryTools::MakeRangeJMP<passiveRechargeEntrance, passiveRechargeExit>(PassiveRecharge);
-		MemoryTools::MakeRangeJMP<collisionResultEntrance, collisionResultExit>(CollisionResult);
 
 		// Status flag
 		anyFeatureEnabled = true;
@@ -283,17 +221,18 @@ namespace GameBreaker
 		passiveRechargeEnabled.Log("passiveRechargeEnabled  ");
 		driftRechargeEnabled  .Log("driftRechargeEnabled    ");
 
-		copWreckBreakerChange.Log("copWreckBreakerChange   ");
+		breakerInteractions.Log
+		(
+			"copTagBreakerChange     ",
+			"breakerChangePerAssault ",
+			"maxNumAssaultsPerCop    ",
+			"copWreckBreakerChange   "
+		);
 
-		copDamagedBreakerChange.Log("copDamagedBreakerChange ");
+		canGainWhenActive.Log("canGainWhenActive       ");
+		canLoseWhenActive.Log("canLoseWhenActive       ");
 
-		breakerChangePerAssault.Log("breakerChangePerAssault ");
-		onlyOneAssaultPerCop   .Log("onlyOneAssaultPerCop    ");
-
-		canGainWhenActive  .Log("canGainWhenActive       ");
 		canGainWhenInactive.Log("canGainWhenInactive     ");
-
-		canLoseWhenActive  .Log("canLoseWhenActive       ");
 		canLoseWhenInactive.Log("canLoseWhenInactive     ");
 	}
 
@@ -309,17 +248,12 @@ namespace GameBreaker
 		passiveRechargeEnabled.SetToHeatState(isRacing, heatLevel);
 		driftRechargeEnabled  .SetToHeatState(isRacing, heatLevel);
 
-		copWreckBreakerChange.SetToHeatState(isRacing, heatLevel);
+		breakerInteractions.SetToHeatState(isRacing, heatLevel);
 
-		copDamagedBreakerChange.SetToHeatState(isRacing, heatLevel);
+		canGainWhenActive.SetToHeatState(isRacing, heatLevel);
+		canLoseWhenActive.SetToHeatState(isRacing, heatLevel);
 
-		breakerChangePerAssault.SetToHeatState(isRacing, heatLevel);
-		onlyOneAssaultPerCop   .SetToHeatState(isRacing, heatLevel);
-
-		canGainWhenActive  .SetToHeatState(isRacing, heatLevel);
 		canGainWhenInactive.SetToHeatState(isRacing, heatLevel);
-
-		canLoseWhenActive  .SetToHeatState(isRacing, heatLevel);
 		canLoseWhenInactive.SetToHeatState(isRacing, heatLevel);
 
 		if constexpr (Globals::loggingEnabled)
@@ -328,29 +262,36 @@ namespace GameBreaker
 
 
 
-	void NotifyOfDamagedCop
+	void NotifyOfTaggedCop
 	(
-		const address pursuit,
-		const address copVehicle,
+		const address copVehicle, 
 		const address perpVehicle
 	) {
 		if (not anyFeatureEnabled) return;
 
-		ProcessDamagedCop(pursuit);
+		ProcessTaggedCop(copVehicle);
 	}
 
 
 
 	void NotifyOfAssaultedCop
 	(
-		const address pursuit,
 		const address copVehicle,
 		const address perpVehicle,
-		const bool    isFirstOffence
+		const byte    numCopAssaulted
 	) {
 		if (not anyFeatureEnabled) return;
 
-		ProcessAssaultedCop(pursuit, isFirstOffence);
+		ProcessAssaultedCop(copVehicle, numCopAssaulted);
+	}
+
+
+
+	void NotifyOfFinishedCollision(const address perpVehicle)
+	{
+		if (not anyFeatureEnabled) return;
+
+		ProcessFinishedCollision(perpVehicle);
 	}
 
 

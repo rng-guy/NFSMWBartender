@@ -8,6 +8,7 @@
 #include <utility>
 #include <optional>
 #include <concepts>
+#include <algorithm>
 #include <filesystem>
 #include <string_view>
 #include <type_traits>
@@ -20,7 +21,6 @@
 
 namespace HeatParameters
 {
-	
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	// Heat parameters
@@ -80,11 +80,28 @@ namespace HeatParameters
 
 
 
+	// Heat clamps ----------------------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] float ClampHeat(const float heat)
+	{
+		return std::clamp<float>(heat, 1.f, maxHeat);
+	}
+
+
+
+	[[nodiscard]] size_t ClampHeatLevel(const size_t heatLevel)
+	{
+		return std::clamp<size_t>(heatLevel, 1, maxHeatLevel);
+	}
+
+
+
+
+
 	// Concepts -------------------------------------------------------------------------------------------------------------------------------------
 
 	namespace Concepts
 	{
-
 		using ConfigParser::Concepts::IsPureArithmetic;
 		using ConfigParser::Concepts::IsBoundsCompatible;
 		
@@ -150,6 +167,7 @@ namespace HeatParameters
 		const char*& string
 	) {
 		if (not string) return; // UB with std::string_view constructor
+
 		string = CreatePersistentString(hash, string).c_str();
 	}
 
@@ -157,6 +175,7 @@ namespace HeatParameters
 	void MakePersistentString(const char*& string)
 	{
 		if (not string) return; // UB with std::string_view constructor
+
 		MakePersistentString(Globals::GetVaultHash(string), string);
 	}
 
@@ -319,8 +338,9 @@ namespace HeatParameters
 
 		void Log(const std::string_view valueName) const
 		{
-			if (this->isEnabled.current)
-				Globals::logger.Log<2>(valueName, this->value.current);
+			if (not this->isEnabled.current) return;
+
+			Globals::logger.Log<2>(valueName, this->value.current);
 		}
 	};
 
@@ -469,8 +489,9 @@ namespace HeatParameters
 
 		void Log(const std::string_view intervalName) const
 		{
-			if (this->isEnabled.current)
-				Globals::logger.Log<2>(intervalName, this->min.current, "to", this->max.current);
+			if (not this->isEnabled.current) return;
+
+			Globals::logger.Log<2>(intervalName, this->min.current, "to", this->max.current);
 		}
 	};
 
@@ -530,7 +551,6 @@ namespace HeatParameters
 
 	namespace Details
 	{
-
 		template <typename T> struct IsRegular              : std::false_type {};
 		template <typename T> struct IsRegular<Value   <T>> : std::true_type  {};
 		template <typename T> struct IsRegular<Interval<T>> : std::true_type  {};
@@ -548,14 +568,36 @@ namespace HeatParameters
 
 
 		template <typename T>
+		[[nodiscard]] Format<T> ToFormatWithDefault
+		(
+			const bool forRaces,
+			Value<T>&  value
+		) {
+			return {value.GetHeatLevelArray(forRaces), value.current, value.limits};
+		}
+
+
+		template <typename T>
+		[[nodiscard]] Format<T> ToFormatWithoutDefault
+		(
+			const bool forRaces,
+			Value<T>&  value
+		) {
+			return {value.GetHeatLevelArray(forRaces), std::nullopt, value.limits};
+		}
+
+
+
+		template <typename T>
 		[[nodiscard]] auto CreateFormatTuple
 		(
 			const bool forRaces,
 			Value<T>&  value
 		) {
-			// Regular values have one array per setting (race / roam), a default value, and limits
-			auto defaultValue = (forRaces) ? std::nullopt : std::optional<T>(value.current);
-			return std::tuple(Format<T>(value.GetHeatLevelArray(forRaces), defaultValue, value.limits));
+			return std::tuple
+			(
+				ToFormatWithDefault<T>(forRaces, value)
+			);
 		}
 
 
@@ -565,10 +607,12 @@ namespace HeatParameters
 			const bool        forRaces,
 			OptionalValue<T>& optionalValue
 		) {
-			// Optional values have no default value
-			auto& value = optionalValue.value;
-			return std::tuple(Format<T>(value.GetHeatLevelArray(forRaces), std::nullopt, value.limits));
+			return std::tuple
+			(
+				ToFormatWithoutDefault<T>(forRaces, optionalValue.value)
+			);
 		}
+
 
 
 		template <typename T>
@@ -577,11 +621,10 @@ namespace HeatParameters
 			const bool   forRaces,
 			Interval<T>& interval
 		) {
-			// Regular intervals consist of two regular values
-			return std::tuple_cat
+			return std::tuple
 			(
-				CreateFormatTuple<T>(forRaces, interval.min),
-				CreateFormatTuple<T>(forRaces, interval.max)
+				ToFormatWithDefault<T>(forRaces, interval.min),
+				ToFormatWithDefault<T>(forRaces, interval.max)
 			);
 		}
 
@@ -592,39 +635,16 @@ namespace HeatParameters
 			const bool           forRaces,
 			OptionalInterval<T>& optionalInterval
 		) {
-			// Optional intervals consist of two regular values without default values
-			auto& min = optionalInterval.min;
-			auto& max = optionalInterval.max;
-
 			return std::tuple
 			(
-				Format<T>(min.GetHeatLevelArray(forRaces), std::nullopt, min.limits),
-				Format<T>(max.GetHeatLevelArray(forRaces), std::nullopt, max.limits)
+				ToFormatWithoutDefault<T>(forRaces, optionalInterval.min),
+				ToFormatWithoutDefault<T>(forRaces, optionalInterval.max)
 			);
 		}
 
 
 
-		template <typename T>
-		void CopyRoamToRaceArrays(Value<T>& value)
-		{
-			// Regular race arrays fall back to their roam counterparts
-			value.race = value.roam;
-		}
-
-
-		template <typename T>
-		void CopyRoamToRaceArrays(Interval<T>& interval)
-		{
-			// The race arrays of regular intervals fall back to their roam counterparts
-			interval.min.race = interval.min.roam;
-			interval.max.race = interval.max.roam;
-		}
-
-
-
 		template <class ...HeatParameters>
-		requires (AreRegular<HeatParameters...> or AreOptional<HeatParameters...>)
 		HeatLevelArray<bool> ParseHeatLevelArray
 		(
 			const bool                forRaces,
@@ -691,33 +711,10 @@ namespace HeatParameters
 
 
 
-	// Generic parsing functions --------------------------------------------------------------------------------------------------------------------
+	// Generic parsing function --------------------------------------------------------------------------------------------------------------------
 
 	template <class ...HeatParameters>
-	requires Details::AreRegular<HeatParameters...>
-	void Parse
-	(
-		const Parser&             parser,
-		const std::string_view    section,
-		HeatParameters&        ...parameters
-	) {
-		// Parse roam arrays, using internal default (i.e. vanilla) values as fallback
-		Details::ParseHeatLevelArray<HeatParameters...>(/* forRaces = */ false, parser, section, parameters...);
-
-		// Use parsed roam arrays as initial race arrays
-		(..., Details::CopyRoamToRaceArrays(parameters));
-
-		// Parse race arrays, using copied roam arrays as fallback
-		Details::ParseHeatLevelArray<HeatParameters...>(/* forRaces = */ true, parser, section, parameters...);
-
-		// Enforce proper value-ordering in intervals
-		(..., Details::DoPostProcessing(parameters));
-	}
-
-
-
-	template <class ...HeatParameters>
-	requires Details::AreOptional<HeatParameters...>
+	requires (Details::AreRegular<HeatParameters...> or Details::AreOptional<HeatParameters...>)
 	void Parse
 	(
 		const Parser&             parser,
@@ -726,14 +723,12 @@ namespace HeatParameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
-			// Parse roam / race arrays without fallbacks
-			const HeatLevelArray<bool> isEnableds = Details::ParseHeatLevelArray<HeatParameters...>(forRaces, parser, section, parameters...);
+			const auto isEnableds = Details::ParseHeatLevelArray<HeatParameters...>(forRaces, parser, section, parameters...);
 
-			// Flag successfully parsed Heat levels
-			(..., (parameters.isEnabled.GetHeatLevelArray(forRaces) = isEnableds));
+			if constexpr (Details::AreOptional<HeatParameters...>)
+				(..., (parameters.isEnabled.GetHeatLevelArray(forRaces) = isEnableds));
 		}
 
-		// Enforce proper value-ordering in intervals
 		(..., Details::DoPostProcessing(parameters));
 	}
 }

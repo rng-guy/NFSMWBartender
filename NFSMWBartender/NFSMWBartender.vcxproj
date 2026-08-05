@@ -109,6 +109,8 @@
     <ClInclude Include="BasicLogger.h" />
     <ClInclude Include="FlatContainers.h" />
     <ClInclude Include="GameBreaker.h" />
+    <ClInclude Include="NitrousCharge.h" />
+    <ClInclude Include="ParameterSets.h" />
     <ClInclude Include="StreamParser.h" />
     <ClInclude Include="ModContainers.h" />
     <ClInclude Include="Globals.h" />
@@ -145,6 +147,7 @@
     <None Include="..\BartenderSettings\Advanced\Strategies.ini" />
     <None Include="..\BartenderSettings\Basic\General.ini" />
     <None Include="..\BartenderSettings\Basic\Cosmetic.ini" />
+    <None Include="..\BartenderSettings\Basic\Nitrous.ini" />
     <None Include="..\BartenderSettings\Basic\Speedbreaker.ini" />
     <None Include="..\BartenderSettings\Basic\Support.ini" />
     <None Include="..\Binary\Source\FixMissingTextures.end" />
