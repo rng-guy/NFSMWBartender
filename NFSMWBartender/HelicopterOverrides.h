@@ -56,9 +56,8 @@ namespace HelicopterOverrides
 
 	class HelicopterManager : public PursuitFeatures::Reaction
 	{
-	private:
+	private: // types
 
-		// Internal enum
 		enum class Status
 		{
 			PENDING,
@@ -70,7 +69,7 @@ namespace HelicopterOverrides
 		};
 
 
-	private:
+	private: // members
 		
 		bool   isPlayerPursuit  = false;
 		Status helicopterStatus = Status::PENDING;
@@ -87,6 +86,8 @@ namespace HelicopterOverrides
 
 		inline static const address& helicopterObject = AsReference<address>(0x90D61C);
 
+
+	private: // methods
 
 		void VerifyPursuit()
 		{
@@ -137,7 +138,7 @@ namespace HelicopterOverrides
 			this->spawnTimer.LoadInterval(lostRejoinDelay);
 
 			if (hasLimitedFuel)
-				this->SetFuelTime(fuelTime.GetRandomValue());
+				this->SetFuelTime(fuelTime.interval.GetRandomValue());
 
 			maxBailoutFuelTime = 8.f; // vanilla value
 
@@ -146,7 +147,7 @@ namespace HelicopterOverrides
 				this->minFuelTimeToRejoin = minRejoinFuelTime.value.current;
 
 				if (hasLimitedFuel)
-					maxBailoutFuelTime = std::min<float>(lostRejoinDelay.min.current + this->minFuelTimeToRejoin, maxBailoutFuelTime);
+					maxBailoutFuelTime = std::min<float>(lostRejoinDelay.interval.min.current + this->minFuelTimeToRejoin, maxBailoutFuelTime);
 			}
 
 			if constexpr (Globals::loggingEnabled)
@@ -264,10 +265,12 @@ namespace HelicopterOverrides
 		}
 
 
-	public:
+	public: // members
 
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
+
+	public: // methods
 
 		explicit HelicopterManager(const address pursuit) : PursuitFeatures::Reaction(pursuit) 
 		{

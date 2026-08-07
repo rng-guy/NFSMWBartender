@@ -320,12 +320,12 @@ namespace RadioChatter
 
 		constexpr auto IsBattalionValid = [](const Battalion value) -> bool {return (value != Battalion::UNKNOWN);};
 
-		return copTypeToBattalion.FillFromVectors
+		return copTypeToBattalion.Fill
 		(
 			"Vehicle-to-callsign",
-			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copNames,       Globals::GetVaultHash, Globals::IsVehicleTypeCar),
-			ModContainers::MapFillSetup(battalionNames, NameToBattalion,       IsBattalionValid)
+			HeatParameters::configDefaultKey,
+			ModContainers::FillSetup(copNames,       Globals::GetVaultHash, Globals::IsVehicleTypeCar),
+			ModContainers::FillSetup(battalionNames, NameToBattalion,       IsBattalionValid)
 		);
 	}
 

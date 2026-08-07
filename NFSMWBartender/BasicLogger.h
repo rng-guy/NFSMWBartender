@@ -19,8 +19,12 @@ namespace BasicLogger
 	requires std::integral<T>
 	struct BinFormat
 	{
+	// Members
+
 		T value;
 
+
+	// Methods
 
 		constexpr explicit BinFormat(const T value) noexcept : value(value) {}
 	};
@@ -30,8 +34,12 @@ namespace BasicLogger
 	requires std::integral<T>
 	struct DecFormat
 	{
+	// Members
+
 		T value;
 
+
+	// Methods
 
 		constexpr explicit DecFormat(const T value) noexcept : value(value) {}
 	};
@@ -41,8 +49,12 @@ namespace BasicLogger
 	requires std::integral<T>
 	struct HexFormat
 	{
+	// Members
+
 		T value;
 
+
+	// Methods
 
 		constexpr explicit HexFormat(const T value) noexcept : value(value) {}
 	};
@@ -56,12 +68,14 @@ namespace BasicLogger
 	template <size_t ...indents>
 	class Logger
 	{
-	private:
+	private: // members
 
 		std::fstream file;
 
 		static constexpr std::array<size_t, 1 + sizeof...(indents)> indentWidths = {0, indents...};
 
+
+	private: // methods
 
 		template <typename T>
 		void Print(const BinFormat<T> wrapper)
@@ -144,7 +158,7 @@ namespace BasicLogger
 		}
 
 
-	public:
+	public: // methods
 
 		bool Open(const std::filesystem::path& path) noexcept
 		{

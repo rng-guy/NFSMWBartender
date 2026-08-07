@@ -28,9 +28,7 @@ namespace HeatParameters
 	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
 
 	// Configuration files
-	constexpr std::string_view configDefaultKey         = "default";
-	constexpr vault            configDefaultVaultHash   = Globals::GetVaultHash (configDefaultKey);
-	constexpr binary           configDefaultBinarytHash = Globals::GetBinaryHash(configDefaultKey);
+	constexpr std::string_view configDefaultKey = "default";
 	
 	constexpr size_t                     configFormatStart = 1;
 	constexpr std::format_string<size_t> configFormatRoam  = "heat{:02}";
@@ -49,8 +47,10 @@ namespace HeatParameters
 
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
-	using ConfigParser::Parser;
-	using ConfigParser::Bounds;
+	using Parser = ConfigParser::Parser; // aliased to suppress transient includes
+
+	template <typename T>
+	using Bounds = ConfigParser::Bounds<T>; // templated to suppress transient includes
 
 	template <typename T>
 	using HeatLevelArray = std::array<T, maxHeatLevel>;
@@ -189,6 +189,8 @@ namespace HeatParameters
 	requires Concepts::IsCopyCompatible<T>
 	struct Value
 	{
+	// Members
+
 		T current;
 
 		HeatLevelArray<T> roam = {};
@@ -196,6 +198,8 @@ namespace HeatParameters
 
 		[[no_unique_address]] Bounds<T> limits;
 
+
+	// Methods
 
 		constexpr explicit Value
 		(
@@ -229,7 +233,7 @@ namespace HeatParameters
 			const size_t heatLevel
 		) {
 			const auto& levelArray = this->GetHeatLevelArray(forRaces);
-			this->current = levelArray[heatLevel - 1];
+			this->current          = levelArray[heatLevel - 1];
 		}
 
 
@@ -251,7 +255,7 @@ namespace HeatParameters
 		[[nodiscard]] T GetMaximum() const
 		requires Concepts::IsBoundsCompatible<T>
 		{
-			T maximum = std::numeric_limits<T>::min();
+			T maximum = std::numeric_limits<T>::lowest(); // in case of floats
 
 			for (const bool forRaces : {false, true})
 			{
@@ -314,10 +318,14 @@ namespace HeatParameters
 	requires Concepts::IsCopyCompatible<T>
 	struct OptionalValue
 	{
+	// Members
+
 		Value<bool> isEnabled{false};
 
 		Value<T> value;
 
+
+	// Methods
 
 		constexpr explicit OptionalValue(const Bounds<T> limits = {})
 		requires Concepts::IsBoundsCompatible<T> : value(T(), limits) {}
@@ -340,7 +348,7 @@ namespace HeatParameters
 		{
 			if (not this->isEnabled.current) return;
 
-			Globals::logger.Log<2>(valueName, this->value.current);
+			this->value.Log(valueName);
 		}
 	};
 
@@ -350,11 +358,15 @@ namespace HeatParameters
 	requires (not Concepts::IsCopyCompatible<T>)
 	struct Pointer
 	{
+	// Members
+
 		const T* current = nullptr;
 
 		HeatLevelArray<T> roam = {};
 		HeatLevelArray<T> race = {};
 
+
+	// Methods
 
 		[[nodiscard]] auto& GetHeatLevelArray(const bool forRaces)
 		{
@@ -384,10 +396,14 @@ namespace HeatParameters
 	requires (not Concepts::IsCopyCompatible<T>)
 	struct OptionalPointer
 	{
+	// Members
+
 		Value<bool> isEnabled{false};
 
 		Pointer<T> pointer;
 
+
+	// Methods
 
 		void SetToHeatState
 		(
@@ -405,9 +421,13 @@ namespace HeatParameters
 	requires Concepts::IsBoundsCompatible<T>
 	struct Interval
 	{
+	// Members
+
 		Value<T> min;
 		Value<T> max;
 
+
+	// Methods
 
 		constexpr explicit Interval
 		(
@@ -415,8 +435,7 @@ namespace HeatParameters
 			const T         vanillaMax,
 			const Bounds<T> limits = {}
 		) 
-			: min(vanillaMin, limits),
-			  max(vanillaMax, limits)
+			: min(vanillaMin, limits), max(vanillaMax, limits)
 		{
 		}
 
@@ -461,13 +480,16 @@ namespace HeatParameters
 	requires Concepts::IsBoundsCompatible<T>
 	struct OptionalInterval
 	{
+	// Members
+
 		Value<bool> isEnabled{false};
 
-		Value<T> min;
-		Value<T> max;
+		Interval<T> interval;
 
 
-		constexpr explicit OptionalInterval(const Bounds<T> limits = {}) : min(T(), limits), max(T(), limits) {}
+	// Methods
+
+		constexpr explicit OptionalInterval(const Bounds<T> limits = {}) : interval(T(), T(), limits) {}
 
 
 		void SetToHeatState
@@ -476,22 +498,15 @@ namespace HeatParameters
 			const size_t heatLevel
 		) {
 			this->isEnabled.SetToHeatState(forRaces, heatLevel);
-			this->min      .SetToHeatState(forRaces, heatLevel);
-			this->max      .SetToHeatState(forRaces, heatLevel);
+			this->interval .SetToHeatState(forRaces, heatLevel);
 		}
-
-
-		[[nodiscard]] T GetRandomValue() const
-		{
-			return Globals::prng.GenerateNumber<T>(this->min.current, this->max.current);
-		}
-
+		
 
 		void Log(const std::string_view intervalName) const
 		{
 			if (not this->isEnabled.current) return;
 
-			Globals::logger.Log<2>(intervalName, this->min.current, "to", this->max.current);
+			this->interval.Log(intervalName);
 		}
 	};
 
@@ -637,8 +652,8 @@ namespace HeatParameters
 		) {
 			return std::tuple
 			(
-				ToFormatWithoutDefault<T>(forRaces, optionalInterval.min),
-				ToFormatWithoutDefault<T>(forRaces, optionalInterval.max)
+				ToFormatWithoutDefault<T>(forRaces, optionalInterval.interval.min),
+				ToFormatWithoutDefault<T>(forRaces, optionalInterval.interval.max)
 			);
 		}
 
@@ -671,15 +686,12 @@ namespace HeatParameters
 
 
 		template <typename T>
-		void OrderIntervalValues
-		(
-			Value<T>&       minValue,
-			const Value<T>& maxValue
-		) {
+		void OrderIntervalValues(Interval<T>& interval) 
+		{
 			for (const bool forRaces : {false, true})
 			{
-				auto&       minArray = minValue.GetHeatLevelArray(forRaces);
-				const auto& maxArray = maxValue.GetHeatLevelArray(forRaces);
+				auto&       minArray = interval.min.GetHeatLevelArray(forRaces);
+				const auto& maxArray = interval.max.GetHeatLevelArray(forRaces);
 
 				for (const size_t heatLevelID : heatLevelIDs)
 					minArray[heatLevelID] = std::min<T>(minArray[heatLevelID], maxArray[heatLevelID]);
@@ -694,16 +706,14 @@ namespace HeatParameters
 		template <typename T>
 		void DoPostProcessing(Interval<T>& interval)
 		{
-			// Regular intervals must have correctly ordered values
-			OrderIntervalValues<T>(interval.min, interval.max);
+			OrderIntervalValues<T>(interval);
 		}
 
 
 		template <typename T>
 		void DoPostProcessing(OptionalInterval<T>& optionalInterval)
 		{
-			// Optional intervals must have correctly ordered values
-			OrderIntervalValues<T>(optionalInterval.min, optionalInterval.max);
+			OrderIntervalValues<T>(optionalInterval.interval);
 		}
 	}
 

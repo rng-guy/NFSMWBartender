@@ -68,7 +68,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 &nbsp;
 
 The "Basic" feature set **also lets you change** (in general)
-* whether specific cop vehicles are affected by pursuit-breaker instakills;
+* whether specific cop vehicles are immune to pursuit-breaker instakills;
 * which pursuit stats (e.g. length, bounty, infractions) the game tracks in races;
 * how much NOS charge you gain / lose from tagging specific cop vehicles;
 * how much NOS charge you gain / lose from assaulting specific cop vehicles;

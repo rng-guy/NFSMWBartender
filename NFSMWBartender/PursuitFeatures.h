@@ -14,9 +14,8 @@ namespace PursuitFeatures
 
 	class Reaction
 	{
-	public:
+	public: // types
 
-		// Class-specific enum
 		enum class CopLabel
 		{
 			UNKNOWN,
@@ -28,15 +27,15 @@ namespace PursuitFeatures
 		};
 
 
-	protected:
+	protected: // members
 
 		const address pursuit;
 
 
+	protected: // methods
+
 		explicit Reaction(const address pursuit) : pursuit(pursuit) {}
 
-
-	public:
 
 		explicit Reaction(Reaction&&)      = delete;
 		explicit Reaction(const Reaction&) = delete;
@@ -45,12 +44,14 @@ namespace PursuitFeatures
 		Reaction& operator=(const Reaction&) = delete;
 
 
+	public: // methods
+
 		virtual ~Reaction() = default;
 
 
-		virtual void ReactToGameplay()                 {}
-		virtual void ReactToHeatStateUpdate()          {}
-		virtual void ReactToPursuitStartWithDelay()    {}
+		virtual void ReactToGameplay                () {}
+		virtual void ReactToHeatStateUpdate         () {}
+		virtual void ReactToPursuitStartWithDelay   () {}
 		virtual void ReactToHeatStateUpdateWithDelay() {}
 
 
@@ -82,12 +83,12 @@ namespace PursuitFeatures
 	template <class Feature>
 	class Searchable
 	{
-	private:
+	private: // members
 
 		inline static RELEASE_CONSTINIT ModContainers::Set<Feature*> instances;
 
 
-	protected:
+	protected: // methods
 
 		Searchable()
 		{
@@ -151,7 +152,7 @@ namespace PursuitFeatures
 
 	class IntervalTimer
 	{
-	private:
+	private: // members
 
 		bool  isEnabled = false;
 		float minLength = 1.f;
@@ -163,6 +164,8 @@ namespace PursuitFeatures
 		float endTimestamp   = 0.f;
 
 
+	private: // methods
+
 		void UpdateLength()
 		{
 			this->length       = Globals::prng.GenerateNumber<float>(this->minLength, this->maxLength);
@@ -170,7 +173,7 @@ namespace PursuitFeatures
 		}
 
 
-	public:
+	public: // methods
 
 		void Start()
 		{
@@ -224,14 +227,10 @@ namespace PursuitFeatures
 		}
 
 
-		void LoadInterval(const HeatParameters::OptionalInterval<float>& interval)
+		void LoadInterval(const HeatParameters::OptionalInterval<float>& optionalInterval)
 		{
-			this->UpdateParameters
-			(
-				interval.isEnabled.current and Globals::playerHeatLevelKnown,
-				interval.min      .current, 
-				interval.max      .current
-			);
+			const bool isEnabled = (optionalInterval.isEnabled.current and Globals::playerHeatLevelKnown);
+			this->UpdateParameters(isEnabled, optionalInterval.interval.min.current, optionalInterval.interval.max.current);
 		}
 
 

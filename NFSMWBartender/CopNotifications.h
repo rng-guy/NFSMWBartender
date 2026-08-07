@@ -83,12 +83,12 @@ namespace CopNotifications
 			return HeatParameters::CreatePersistentString((binaryString) ? binaryString : stringOrName).c_str();
 		};
 
-		return copTypeToNotificationText.FillFromVectors
+		return copTypeToNotificationText.Fill
 		(
 			"Vehicle-to-text",
-			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copNames,      Globals::GetVaultHash,      Globals::DoesVehicleTypeExist),
-			ModContainers::MapFillSetup(stringOrNames, StringOrNameToNotification, ModContainers::AlwaysValid{})
+			HeatParameters::configDefaultKey,
+			ModContainers::FillSetup(copNames,      Globals::GetVaultHash,      Globals::DoesVehicleTypeExist),
+			ModContainers::FillSetup(stringOrNames, StringOrNameToNotification, ModContainers::AlwaysValid{})
 		);
 	}
 
@@ -107,12 +107,12 @@ namespace CopNotifications
 			return GetTextureInfo(iconKey, /* includeUnloadedTextures = */ false, /* returnDefaultIfNotFound = */ false);
 		};
 
-		return copTypeToNotificationIcon.FillFromVectors
+		return copTypeToNotificationIcon.Fill
 		(
 			"Vehicle-to-icon",
-			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copNames,    Globals::GetVaultHash,  Globals::DoesVehicleTypeExist),
-			ModContainers::MapFillSetup(iconLabels,  Globals::GetBinaryHash, IsValidGlobalTexture)
+			HeatParameters::configDefaultKey,
+			ModContainers::FillSetup(copNames,    Globals::GetVaultHash,  Globals::DoesVehicleTypeExist),
+			ModContainers::FillSetup(iconLabels,  Globals::GetBinaryHash, IsValidGlobalTexture)
 		);
 	}
 

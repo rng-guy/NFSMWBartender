@@ -46,7 +46,7 @@ namespace StrategyOverrides
 
 	class StrategyManager : public PursuitFeatures::Reaction, public PursuitFeatures::Searchable<StrategyManager>
 	{
-	private:
+	private: // members
 
 		size_t nextHeavy3Count = 2;
 
@@ -61,6 +61,8 @@ namespace StrategyOverrides
 
 		ModContainers::AddressSet vehiclesOfCurrentStrategy;
 
+
+	private: // methods
 
 		void UpdateNextHeavy3Count()
 		{
@@ -116,10 +118,12 @@ namespace StrategyOverrides
 		}
 
 
-	public:
+	public: // members
 
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
+
+	public: // methods
 
 		explicit StrategyManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
 		{

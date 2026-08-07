@@ -48,12 +48,11 @@ namespace HeatChangeOverrides
 
 	class HeatManager : public PursuitFeatures::Reaction, public PursuitFeatures::Searchable<HeatManager>
 	{
-	private:
+	private: // types
 
-		// Tracker for event-based Heat changes
 		class CountTracker
 		{
-		private:
+		private: // members
 
 			int lastCount = 0;
 
@@ -61,7 +60,7 @@ namespace HeatChangeOverrides
 			const HeatParameters::Value<float>& heatPerCount;
 
 
-		public:
+		public: // methods
 
 			explicit CountTracker
 			(
@@ -102,7 +101,7 @@ namespace HeatChangeOverrides
 		};
 
 
-	private:
+	private: // members
 
 		float pendingHeatChange = 0.f;
 
@@ -118,6 +117,8 @@ namespace HeatChangeOverrides
 			CountTracker{this->pursuit, 0x168, trafficHitHeatChange}
 		};
 	
+
+	private: // methods
 
 		void AddToPendingHeatChange(const float levels)
 		{
@@ -140,10 +141,12 @@ namespace HeatChangeOverrides
 		}
 
 
-	public:
+	public: // members
 
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
+
+	public: // methods
 
 		explicit HeatManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
 		{
@@ -464,12 +467,7 @@ namespace HeatChangeOverrides
 			auto&       changeArray = propertyHeatChange.GetHeatLevelArray(forRaces);
 
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
-			{
-				const int damage = damageArray[heatLevelID];
-
-				if (damage != 0)
-					changeArray[heatLevelID] = 1.f / static_cast<float>(damage);
-			}
+				if (damageArray[heatLevelID] != 0) changeArray[heatLevelID] = 1.f / static_cast<float>(damageArray[heatLevelID]);
 		}
 	}
 

@@ -36,9 +36,14 @@ using MemoryTools::AsReference;
 using MemoryTools::AsFunction;
 
 // Unscoped types
-using BasicLogger::BinFormat;
-using BasicLogger::DecFormat;
-using BasicLogger::HexFormat;
+template <typename T>
+using BinFormat = BasicLogger::BinFormat<T>; // templated to suppress transient includes
+
+template <typename T>
+using DecFormat = BasicLogger::DecFormat<T>; // templated to suppress transient includes
+
+template <typename T>
+using HexFormat = BasicLogger::HexFormat<T>; // templated to suppress transient includes
 
 
 
@@ -64,8 +69,8 @@ namespace Globals
 	constexpr bool loggingEnabled = false;
 	BasicLogger::Logger<9, 15, 17> logger;
 
-	// Hackjob floating-point correction coefficient
-	constexpr float floatScale = 1.f + static_cast<float>(1e-6);
+	// Hackjob floating-point coefficient
+	constexpr float floatScale = 1.f + 1e-6f;
 
 	// Common function pointers
 	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // for Pursuit
@@ -179,68 +184,6 @@ namespace Globals
 	) {
 		return GetBinaryHash({string, length});
 	}
-
-
-
-
-
-	// Pursuit iteration ----------------------------------------------------------------------------------------------------------------------------
-
-	class PursuitList
-	{
-	private:
-
-		// Linked-list iterator for AICopManager
-		class EntryIterator
-		{
-		private:
-
-			address current;
-
-
-		public:
-
-			explicit EntryIterator(const address entry) : current(entry) {}
-
-
-			address operator*() const
-			{
-				return AsReference<address>(this->current + 0x8);
-			}
-
-
-			EntryIterator& operator++()
-			{
-				this->current = AsReference<address>(this->current);
-
-				return *this;
-			}
-
-
-			bool operator==(const EntryIterator&) const = default;
-		};
-
-
-	private:
-
-		address first    = 0x0;
-		address sentinel = 0x0;
-
-
-	public:
-
-		PursuitList()
-		{
-			if (not copManager) return;
-
-			this->sentinel = AsReference<address>(copManager + 0x128);
-			this->first    = AsReference<address>(sentinel);
-		}
-
-
-		EntryIterator begin() const {return EntryIterator(this->first);}
-		EntryIterator end  () const {return EntryIterator(this->sentinel);}
-	};
 
 
 
@@ -370,15 +313,19 @@ namespace Globals
 
 	[[nodiscard]] address GetVehicleOfPerpVehicle(const address perpVehicle)
 	{
-		if (not perpVehicle) return 0x0;
-		return AsReference<address>(GetAIVehicleOfPerpVehicle(perpVehicle) - 0x4);
+		const address perpAIVehicle = GetAIVehicleOfPerpVehicle(perpVehicle);
+		if (not perpAIVehicle) return 0x0;
+
+		return AsReference<address>(perpAIVehicle - 0x4);
 	}
 
 
 	[[nodiscard]] address GetPursuitOfPerpVehicle(const address perpVehicle)
 	{
-		if (not perpVehicle) return 0x0;
-		return AsReference<address>(GetAIVehicleOfPerpVehicle(perpVehicle) + 0x70);
+		const address perpAIVehicle = GetAIVehicleOfPerpVehicle(perpVehicle);
+		if (not perpAIVehicle) return 0x0;
+
+		return AsReference<address>(perpAIVehicle + 0x70);
 	}
 
 
@@ -428,7 +375,7 @@ namespace Globals
 		address perpVehicle = 0x0;
 
 		const auto FindPerpVehicle = AsFunction<bool __thiscall (address, address&)>(0x40E200);
-		FindPerpVehicle(pursuitTarget, perpVehicle); // doesn't write garbage if search fails
+		FindPerpVehicle(pursuitTarget, perpVehicle); // only writes if search succeeds
 		
 		return perpVehicle;
 	}
@@ -436,10 +383,8 @@ namespace Globals
 
 	[[nodiscard]] address GetLocalPlayerOfPursuit(const address pursuit)
 	{
-		if (not pursuit) return 0x0;
-
 		const address physicsObject = GetPhysicsObjectOfPursuitTarget(pursuit);
-		if (not physicsObject) return 0x0; // should never happen
+		if (not physicsObject) return 0x0;
 
 		return AsReference<address>(physicsObject + 0x58);
 	}
@@ -452,22 +397,6 @@ namespace Globals
 
 		const int pursuitStatus = AsReference<int>(pursuit + 0x218);
 		return (pursuitStatus == 2); // "COOLDOWN" mode
-	}
-
-
-
-
-
-	// Player functions -----------------------------------------------------------------------------------------------------------------------------
-
-	[[nodiscard]] bool IsLocalPlayerInPursuit(const address localPlayer)
-	{
-		if (not localPlayer) return false;
-
-		for (const address pursuit : PursuitList())
-			if (localPlayer == GetLocalPlayerOfPursuit(pursuit)) return true;
-
-		return false;
 	}
 }
 

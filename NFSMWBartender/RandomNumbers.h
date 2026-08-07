@@ -15,11 +15,13 @@ namespace RandomNumbers
 
 	class Xoshiro256ss
 	{
-	private:
+	private: // members
 
 		uint64_t                seed  = 0x0;
 		std::array<uint64_t, 4> state = {};
 
+
+	private: // methods
 
 		[[nodiscard]] static constexpr uint64_t Rotate
 		(
@@ -43,7 +45,7 @@ namespace RandomNumbers
 		}
 
 
-	public:
+	public: // methods
 
 		constexpr void SetSeed(uint64_t seed)
 		{
@@ -111,10 +113,12 @@ namespace RandomNumbers
 	requires std::uniform_random_bit_generator<Engine>
 	class Generator
 	{
-	private:
+	private: // members
 
 		Engine engine;
 		
+
+	private: // methods
 
 		[[nodiscard]] static uint64_t GenerateSeed()
 		{
@@ -127,7 +131,7 @@ namespace RandomNumbers
 		}
 
 
-	public:
+	public: // methods
 
 		Generator() : engine(this->GenerateSeed()) {}
 

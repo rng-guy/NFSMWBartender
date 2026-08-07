@@ -63,7 +63,7 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • which vehicles spawn in place of Cross and his henchmen through LeaderStrategy 7.
 
 The "Basic" feature set ALSO LETS YOU CHANGE (in general)
- • whether specific cop vehicles are affected by pursuit-breaker instakills;
+ • whether specific cop vehicles are immune to pursuit-breaker instakills;
  • which pursuit stats (e.g. length, bounty, infractions) the game tracks in races;
  • how much NOS charge you gain / lose from tagging    specific cop vehicles;
  • how much NOS charge you gain / lose from assaulting specific cop vehicles;

@@ -44,9 +44,8 @@ namespace LeaderOverrides
 
 	class LeaderManager : public PursuitFeatures::Reaction
 	{
-	private:
+	private: // types
 
-		// Internal enum
 		enum class Status
 		{
 			PENDING,
@@ -57,7 +56,7 @@ namespace LeaderOverrides
 		};
 
 
-	private:
+	private: // members
 
 		int lastStrategyID = 5;
 
@@ -77,6 +76,8 @@ namespace LeaderOverrides
 		PursuitFeatures::IntervalTimer crossAggroTimer;
 		PursuitFeatures::IntervalTimer henchmenAggroTimer;
 
+
+	private: // methods
 
 		void SetCrossStatus(const Status status)
 		{
@@ -315,10 +316,12 @@ namespace LeaderOverrides
 		}
 
 
-	public:
+	public: // members
 
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
+
+	public: // methods
 
 		explicit LeaderManager(const address pursuit) : PursuitFeatures::Reaction(pursuit) 
 		{

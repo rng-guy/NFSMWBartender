@@ -26,6 +26,8 @@ namespace HelicopterVision
 
 	struct Colour
 	{
+	// Members
+
 		ARGB<float> channels = {};
 
 		float transitionLength = .2f; // seconds

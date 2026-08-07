@@ -29,6 +29,8 @@ namespace RoadblockOverrides
 
 	struct RBPart
 	{
+	// Members
+
 		RBPartType type = RBPartType::NONE;
 
 		float offsetX     = 0.f; // metres
@@ -45,6 +47,8 @@ namespace RoadblockOverrides
 
 	struct RBTable
 	{
+	// Members
+
 		float  minRoadWidth    = 0.f; // metres
 		size_t numCarsRequired = 0;   // cars
 
@@ -58,6 +62,8 @@ namespace RoadblockOverrides
 	// Setup (mod-specific)
 	struct RBSetup
 	{
+	// Members
+
 		std::string name; // for logging; not worth removing
 
 		RBTable original;
@@ -71,6 +77,8 @@ namespace RoadblockOverrides
 
 		HeatParameters::Value<int> chance{100, {0}}; // relative
 
+
+	// Methods
 
 		[[nodiscard]] const RBTable& GetRandomTable() const
 		{
@@ -106,12 +114,16 @@ namespace RoadblockOverrides
 	// Counter for logging
 	struct SetupCounter
 	{
+	// Members
+
 		size_t numRegular = 0;
 		size_t numSpike   = 0;
 
 		size_t numMirrorRegular = 0;
 		size_t numMirrorSpike   = 0;
 
+
+	// Methods
 
 		void Reset()
 		{

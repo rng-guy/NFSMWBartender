@@ -6,6 +6,7 @@
 
 #include "Globals.h"
 #include "MemoryTools.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 #include "CopSpawnOverrides.h"
@@ -278,7 +279,7 @@ namespace GroundSuppport
 
 		int numPersistentVehicles = AsReference<int>(Globals::copManager + 0x94); // cops loaded
 
-		for (const address pursuit : Globals::PursuitList())
+		for (const address pursuit : ModContainers::PursuitList())
 		{
 			const address roadblock = AsReference<address>(pursuit + 0x84);
 			if (not roadblock) continue; // no active roadblock

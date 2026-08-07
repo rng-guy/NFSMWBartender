@@ -34,7 +34,7 @@ namespace FlatContainers
 		template <typename T>
 		class Wrapper
 		{
-		public:
+		public: // aliases
 
 			using value_type = T;
 
@@ -48,10 +48,12 @@ namespace FlatContainers
 			using const_reverse_iterator = container_type::const_reverse_iterator;
 
 
-		protected:
+		protected: // members
 			
 			container_type data;
 
+
+		protected: // methods
 
 			constexpr  Wrapper() = default;
 			constexpr ~Wrapper() = default;
@@ -63,7 +65,7 @@ namespace FlatContainers
 			}
 
 
-		public:
+		public: // methods
 
 			// May invalidate all iterators
 			constexpr void reserve(const size_type capacity)
@@ -127,7 +129,7 @@ namespace FlatContainers
 	template <typename T>
 	class Set : public Details::Wrapper<T>
 	{
-	public:
+	public: // aliases
 
 		using base = typename Set::self_base;
 
@@ -140,6 +142,8 @@ namespace FlatContainers
 		using reverse_iterator       = base::reverse_iterator;
 		using const_reverse_iterator = base::const_reverse_iterator;
 
+
+	public: // methods
 
 		constexpr Set() = default;
 
@@ -272,7 +276,7 @@ namespace FlatContainers
 	template <typename K, typename V>
 	class Map : public Details::Wrapper<std::pair<K, V>>
 	{
-	public:
+	public: // aliases
 
 		using key_type    = K;
 		using mapped_type = V;
@@ -288,6 +292,8 @@ namespace FlatContainers
 		using reverse_iterator       = base::reverse_iterator;
 		using const_reverse_iterator = base::const_reverse_iterator;
 
+
+	public: // methods
 
 		constexpr Map() = default;
 

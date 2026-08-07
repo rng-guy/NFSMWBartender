@@ -1,12 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <functional>
-#include <string_view>
-
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "ParameterSets.h"
+#include "ModContainers.h"
 #include "HeatParameters.h"
 
 
@@ -77,6 +74,18 @@ namespace GameBreaker
 
 
 
+	[[nodiscard]] bool __fastcall IsInPursuit(const address localPlayer)
+	{
+		if (not localPlayer) return false; // should never happen
+
+		for (const address pursuit : ModContainers::PursuitList())
+			if (localPlayer == Globals::GetLocalPlayerOfPursuit(pursuit)) return true;
+
+		return false;
+	}
+
+
+
 	void ProcessTaggedCop(const address copVehicle)
 	{
 		pendingCollisionBreakerChange += breakerInteractions.GetTaggingChange(copVehicle);
@@ -138,11 +147,10 @@ namespace GameBreaker
 			cmp byte ptr [driftRechargeEnabled.current], 1
 			je conclusion // drift recharging unrestricted
 
-			mov ecx, dword ptr [esi + 0x34]
+			mov edx, dword ptr [esi + 0x34]
 
-			push dword ptr [ecx + 0x58] // localPlayer
-			call Globals::IsLocalPlayerInPursuit
-			add esp, 0x4
+			mov ecx, dword ptr [edx + 0x58]
+			call IsInPursuit // ecx: localPlayer
 			test al, al
 
 			conclusion:
@@ -168,10 +176,7 @@ namespace GameBreaker
 			je conclusion // passive recharging unrestricted
 
 			lea ecx, dword ptr [esi + 0x4C]
-
-			push ecx // localPlayer
-			call Globals::IsLocalPlayerInPursuit
-			add esp, 0x4
+			call IsInPursuit // ecx: localPlayer
 			test al, al
 
 			conclusion:

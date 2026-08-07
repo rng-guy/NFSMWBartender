@@ -3,7 +3,6 @@
 #include <vector>
 #include <limits>
 #include <format>
-#include <functional>
 #include <string_view>
 
 #include "Globals.h"
@@ -18,7 +17,7 @@ namespace ParameterSets
 
 	class CopInteractions
 	{
-	private:
+	private: // members
 
 		// Heat parameters
 		HeatParameters::Value<float> copTagChange{0.f};
@@ -37,6 +36,8 @@ namespace ParameterSets
 		ModContainers::DefaultVaultMap<float> copTypeToWreckChange{0.f};
 
 
+	private: // methods
+
 		static void ParseVehicleMap
 		(
 			const HeatParameters::Parser&          parser,
@@ -49,12 +50,12 @@ namespace ParameterSets
 
 			parser.ParseUser<std::string_view, float>(section, copNames, {changes});
 
-			vehicleMap.FillFromVectors
+			vehicleMap.Fill
 			(
 				mapName,
-				HeatParameters::configDefaultVaultHash,
-				ModContainers::MapFillSetup(copNames, Globals::GetVaultHash, Globals::DoesVehicleTypeExist),
-				ModContainers::MapFillSetup(changes,  std::identity{},       ModContainers::AlwaysValid{})
+				HeatParameters::configDefaultKey,
+				ModContainers::FillSetup(copNames, Globals::GetVaultHash,         Globals::DoesVehicleTypeExist),
+				ModContainers::FillSetup(changes,  ModContainers::IdentityCopy{}, ModContainers::AlwaysValid{})
 			);
 		}
 
@@ -66,7 +67,7 @@ namespace ParameterSets
 		}
 
 
-	public:
+	public: // methods
 
 		void Parse
 		(

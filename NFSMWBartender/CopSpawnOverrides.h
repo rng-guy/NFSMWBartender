@@ -21,13 +21,12 @@ namespace CopSpawnOverrides
 
 	class Contingent
 	{
-	private:
+	private: // aliases
 
-		// Internal aliases
 		using TablePointer = HeatParameters::Pointer<CopSpawnTables::SpawnTable>;
 
 
-	private:
+	private: // members
 
 		int numTotalActiveCops = 0;
 
@@ -38,6 +37,8 @@ namespace CopSpawnOverrides
 
 		ModContainers::VaultMap<int> copTypeToNumActive; // for Heat transitions and cops not in table
 
+
+	private: // methods
 
 		void ChangeNumActiveCopsInSpawnTable
 		(
@@ -60,7 +61,7 @@ namespace CopSpawnOverrides
 		}
 
 
-	public:
+	public: // methods
 
 		constexpr explicit Contingent(const TablePointer& source) : source(&source), pursuit(0x0) {}
 
@@ -106,7 +107,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		void ReserveTypeCapacity(const size_t numTypes)
+		void ReserveCapacity(const size_t numTypes)
 		{
 			this->copTypeToNumActive.reserve(numTypes);
 		}
@@ -311,7 +312,7 @@ namespace CopSpawnOverrides
 
 	class ChasersManager : public PursuitFeatures::Reaction, public PursuitFeatures::Searchable<ChasersManager>
 	{
-	private:
+	private: // members
 
 		bool waveParametersKnown = false;
 
@@ -333,6 +334,8 @@ namespace CopSpawnOverrides
 
 		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTable, this->pursuit};
 
+
+	private: // methods
 
 		void UpdateSpawnTable()
 		{
@@ -516,10 +519,12 @@ namespace CopSpawnOverrides
 		}
 
 
-	public:
+	public: // members
 
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
+
+	public: // methods
 
 		explicit ChasersManager(const address pursuit) : Reaction(pursuit)
 		{
@@ -527,7 +532,7 @@ namespace CopSpawnOverrides
 				Globals::logger.Log<2>('+', this, "ChasersManager");
 
 			// Container pre-allocation
-			this->chaserSpawns.ReserveTypeCapacity(20);
+			this->chaserSpawns.ReserveCapacity(20);
 		}
 
 
@@ -1212,9 +1217,9 @@ namespace CopSpawnOverrides
 		HeatParameters::Parse(parser, "Joining:Limit", roadblockJoinLimit);
 
 		// Container pre-allocations
-		patrolSpawns   .ReserveTypeCapacity(20);
-		scriptedSpawns .ReserveTypeCapacity(10);
-		roadblockSpawns.ReserveTypeCapacity(10);
+		patrolSpawns   .ReserveCapacity(20);
+		scriptedSpawns .ReserveCapacity(10);
+		roadblockSpawns.ReserveCapacity(10);
 
 		// Code modifications 
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count

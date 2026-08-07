@@ -23,7 +23,8 @@ namespace ConfigParser
 
 	namespace Concepts
 	{
-		using StreamParser::Concepts::IsPureArithmetic;
+		template <typename T>
+		concept IsPureArithmetic = StreamParser::Concepts::IsPureArithmetic<T>; // templated to suppress transient includes
 		
 		template <typename V>
 		concept IsBoundsCompatible = (IsPureArithmetic<V> and (not std::same_as<V, bool>));
@@ -41,7 +42,9 @@ namespace ConfigParser
 	template <typename T>
 	struct Bounds 
 	{
-		constexpr void Enforce(auto&) const {}
+	// Methods
+
+		void Enforce(auto&) const {}
 	};
 
 
@@ -49,9 +52,13 @@ namespace ConfigParser
 	requires Concepts::IsBoundsCompatible<T>
 	struct Bounds<T>
 	{
+	// Members
+
 		std::optional<T> lower;
 		std::optional<T> upper;
 
+
+	// Methods
 
 		void Enforce(T& value) const
 		{
@@ -76,6 +83,8 @@ namespace ConfigParser
 	requires Concepts::AreParseable<T>
 	struct Parameter
 	{
+	// Members
+
 		T& value;
 
 		[[no_unique_address]] Bounds<T> limits;
@@ -86,8 +95,11 @@ namespace ConfigParser
 	requires Concepts::AreParseable<T>
 	struct Format
 	{
-		std::array   <T, numRows>& values;
-		std::optional<T>           defaultValue;
+	// Members
+
+		std::array<T, numRows>& values;
+
+		std::optional<T> defaultValue;
 
 		[[no_unique_address]] Bounds<T> limits;
 	};
@@ -97,6 +109,8 @@ namespace ConfigParser
 	requires Concepts::AreParseable<T>
 	struct User
 	{
+	// Members
+
 		std::vector<T>& values;
 
 		[[no_unique_address]] Bounds<T> limits;
@@ -110,12 +124,14 @@ namespace ConfigParser
 
 	class Parser : protected StreamParser::Parser<>
 	{
-	private:
+	private: // members
 
 		std::filesystem::path currentFile;
 
 		FlatContainers::Map<std::filesystem::path, Parser::Sections> pathToSections;
 
+
+	private: // methods
 
 		bool UpdateFilePath
 		(
@@ -131,11 +147,13 @@ namespace ConfigParser
 		}
 
 
-	public:
+	public: // members
 
 		size_t sectionCapacityPerFile;
 		size_t pairCapacityPerSection;
 
+
+	public: // methods
 
 		explicit Parser
 		(

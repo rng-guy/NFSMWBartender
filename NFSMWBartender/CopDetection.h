@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <fstream>
-#include <functional>
 #include <string_view>
 
 #include "Globals.h"
@@ -18,7 +17,7 @@ namespace CopDetection
 
 	class IconColourTracker
 	{
-	private:
+	private: // members
 
 		const bool useUnpausedTime;
 
@@ -26,7 +25,7 @@ namespace CopDetection
 		float nextUpdateTimestamp = 0.f;
 
 
-	public:
+	public: // methods
 
 		constexpr explicit IconColourTracker(const bool useUnpausedTime) : useUnpausedTime(useUnpausedTime) {}
 
@@ -69,10 +68,13 @@ namespace CopDetection
 	// Types
 	struct Settings
 	{
+	// Members
+
 		float radarRange;
 		float patrolIconRange;
 		float pursuitIconRange;
-		bool  keepsIcon;
+
+		bool keepsIcon;
 	};
 
 	// Inline hashes for ASM
@@ -399,12 +401,12 @@ namespace CopDetection
 			};
 		}
 
-		return copTypeToSettings.FillFromVectors
+		return copTypeToSettings.Fill
 		(
 			"Vehicle-to-settings",
-			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copNames , Globals::GetVaultHash, Globals::IsVehicleTypeCar),
-			ModContainers::MapFillSetup(settings,  std::identity{},       ModContainers::AlwaysValid{})
+			HeatParameters::configDefaultKey,
+			ModContainers::FillSetup(copNames , Globals::GetVaultHash,         Globals::IsVehicleTypeCar),
+			ModContainers::FillSetup(settings,  ModContainers::IdentityCopy{}, ModContainers::AlwaysValid{})
 		);
 	}
 

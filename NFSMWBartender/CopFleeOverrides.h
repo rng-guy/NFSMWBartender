@@ -56,7 +56,7 @@ namespace CopFleeOverrides
 		// Base expiration-time tracker for cops
 		class SchedulerBase
 		{
-		protected:
+		protected: // members
 
 			size_t numPendingExpired = 0;
 
@@ -71,6 +71,8 @@ namespace CopFleeOverrides
 			// Whether a given expired cop vehicle should actually be forced to bail the pursuit
 			std::function<bool (const address)> ShouldExpiredVehicleBail = [](const address copVehicle) -> bool {return true;};
 
+
+		protected: // methods
 
 			explicit SchedulerBase
 			(
@@ -122,7 +124,7 @@ namespace CopFleeOverrides
 			}
 
 
-		public:
+		public: // methods
 
 			void CheckTimestamps()
 			{
@@ -170,15 +172,17 @@ namespace CopFleeOverrides
 		// Expiration-time tracker for Strategy cops
 		class StrategyScheduler : public SchedulerBase
 		{
-		private:
+		private: // members
 
 			const address& strategy;
 
 
-		public:
+		public: // aliases
 
 			using SchedulerBase::ShouldExpiredVehicleBail;
 
+
+		public: // methods
 
 			explicit StrategyScheduler
 			(
@@ -191,7 +195,7 @@ namespace CopFleeOverrides
 			}
 
 
-			void ReserveVehicleCapacity(const size_t numVehicles)
+			void ReserveCapacity(const size_t numVehicles)
 			{
 				this->copVehicleToTimestamp.reserve(numVehicles);
 			}
@@ -221,7 +225,7 @@ namespace CopFleeOverrides
 		// Expiration-time tracker for non-Strategy cops
 		class PursuitScheduler : public SchedulerBase
 		{
-		public:
+		public: // members
 
 			// Total number of active "Chasers"
 			std::function<size_t ()> GetNumActiveChasers = []() -> size_t {return 8;};
@@ -230,14 +234,15 @@ namespace CopFleeOverrides
 			std::function<bool (const address)> IsSchedulable = [](const address copVehicle) -> bool {return true;};
 
 
-		private:
+		private: // members
 
-			// Tracks all cops in case of Heat transitions
-			ModContainers::AddressSet copVehicles;
+			ModContainers::AddressSet copVehicles; // for tracking in case of Heat transitions
 
 			const HeatParameters::OptionalInterval<float>& fleeDelay;
 			const HeatParameters::OptionalValue   <int>&   fleeThreshold;
 
+
+		private: // methods
 
 			void ReviewVehicle(const address copVehicle)
 			{
@@ -245,11 +250,11 @@ namespace CopFleeOverrides
 				if (not this->IsSchedulable(copVehicle))   return;
 				if (not this->fleeDelay.isEnabled.current) return;
 
-				this->ScheduleVehicle(copVehicle, this->fleeDelay.GetRandomValue());
+				this->ScheduleVehicle(copVehicle, this->fleeDelay.interval.GetRandomValue());
 			}
 
 
-		public:
+		public: // methods
 
 			explicit PursuitScheduler
 			(
@@ -287,7 +292,7 @@ namespace CopFleeOverrides
 				= delete;
 
 
-			void ReserveVehicleCapacity(const size_t numVehicles)
+			void ReserveCapacity(const size_t numVehicles)
 			{
 				this->copVehicles          .reserve(numVehicles);
 				this->copVehicleToTimestamp.reserve(numVehicles);
@@ -333,14 +338,13 @@ namespace CopFleeOverrides
 
 	class MembershipManager : public PursuitFeatures::Reaction
 	{
-	private:
+	private: // aliases
 
-		// Internal aliases
 		using StrategyScheduler = Details::StrategyScheduler;
 		using PursuitScheduler  = Details::PursuitScheduler;
 
 
-	private:
+	private: // members
 
 		bool pursuitTargetKnown = false;
 
@@ -353,6 +357,8 @@ namespace CopFleeOverrides
 
 		const bool& isJerk = AsReference<bool>(this->pursuit + 0x238);
 
+
+	private: // methods
 
 		[[nodiscard]] static bool IsNotInChaserTable(const address copVehicle)
 		{
@@ -436,10 +442,12 @@ namespace CopFleeOverrides
 		}
 
 
-	public:
+	public: // members
 
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
 
+
+	public: // methods
 
 		explicit MembershipManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
 		{
@@ -463,12 +471,12 @@ namespace CopFleeOverrides
 			this->chaserVehicles.IsSchedulable = MembershipManager::IsNotInChaserTable;
 
 			// Container pre-allocations
-			this->heavyVehicles .ReserveVehicleCapacity(10);
-			this->leaderVehicles.ReserveVehicleCapacity(10);
+			this->heavyVehicles .ReserveCapacity(10);
+			this->leaderVehicles.ReserveCapacity(10);
 
-			this->chaserVehicles         .ReserveVehicleCapacity(50);
-			this->joinedHeavyVehicles    .ReserveVehicleCapacity(10);
-			this->joinedRoadblockVehicles.ReserveVehicleCapacity(10);
+			this->chaserVehicles         .ReserveCapacity(50);
+			this->joinedHeavyVehicles    .ReserveCapacity(10);
+			this->joinedRoadblockVehicles.ReserveCapacity(10);
 		}
 
 

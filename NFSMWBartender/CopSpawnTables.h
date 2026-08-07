@@ -19,11 +19,12 @@ namespace CopSpawnTables
 
 	class SpawnTable
 	{
-	private:
+	private: // types
 
-		// Internal struct
 		struct CopEntry
 		{
+		// Members
+
 			const char* copName; // C-style for game compatibility
 
 			int numActive;
@@ -31,6 +32,8 @@ namespace CopSpawnTables
 
 			int chance; // relative
 
+
+		// Methods
 
 			[[nodiscard]] int GetNumAvailable() const
 			{
@@ -45,14 +48,14 @@ namespace CopSpawnTables
 		};
 
 
-	private:
+	private: // members
 
 		int currentTotalCopChance = 0;
 
 		ModContainers::VaultMap<CopEntry> copTypeToEntry;
 
 
-	public:
+	public: // methods
 
 		[[nodiscard]] bool ContainsCopType(const vault copType) const
 		{

@@ -28,13 +28,12 @@ namespace PursuitObserver
 
 	class PursuitObserver : public PursuitFeatures::Searchable<PursuitObserver>
 	{
-	private:
+	private: // aliases
 
-		// Internal aliases
 		using CopLabel = PursuitFeatures::Reaction::CopLabel;
 
 
-	private:
+	private: // members
 
 		const address pursuit;
 
@@ -44,8 +43,10 @@ namespace PursuitObserver
 
 		ModContainers::AddressMap<CopLabel> copVehicleToLabel;
 
-		ModContainers::StableVector<PursuitFeatures::Reaction> pursuitReactions;
+		ModContainers::PointerStorage<PursuitFeatures::Reaction> reactions;
 
+
+	private: // methods
 
 		[[nodiscard]] static CopLabel InferCopLabelFromCaller(const address caller)
 		{
@@ -85,11 +86,11 @@ namespace PursuitObserver
 		{
 			if (not Feature::isEnabled) return;
 
-			this->pursuitReactions.push_back(std::make_unique<Feature>(this->pursuit));
+			this->reactions.EmplaceObject<Feature>(this->pursuit);
 		}
 
 
-	public:
+	public: // methods
 
 		explicit PursuitObserver(const address pursuit) : pursuit(pursuit)
 		{
@@ -97,8 +98,8 @@ namespace PursuitObserver
 				Globals::logger.Log<2>('+', this, "PursuitObserver");
 
 			// Container pre-allocations
-			this->pursuitReactions .reserve(6);
-			this->copVehicleToLabel.reserve(100);
+			this->reactions        .ReserveCapacity(6);
+			this->copVehicleToLabel.reserve        (100);
 
 			// Reaction features
 			this->AttachReaction<CopSpawnOverrides  ::ChasersManager>   ();
@@ -126,7 +127,7 @@ namespace PursuitObserver
 
 		void ProcessHeatStateUpdate()
 		{
-			for (const auto& reaction : this->pursuitReactions)
+			for (const auto& reaction : this->reactions)
 				reaction->ReactToHeatStateUpdate();
 
 			this->delayedHeatStateUpdatePending = true;
@@ -135,7 +136,7 @@ namespace PursuitObserver
 
 		void ProcessGameplay()
 		{
-			for (const auto& reaction : this->pursuitReactions)
+			for (const auto& reaction : this->reactions)
 			{
 				if (not this->firstGameplayUpdatePending)
 				{
@@ -181,7 +182,7 @@ namespace PursuitObserver
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(pursuit, "[OBS] +", copVehicle, copLabel, Globals::GetVehicleName(copVehicle));
 
-				for (const auto& reaction : observer->pursuitReactions)
+				for (const auto& reaction : observer->reactions)
 					reaction->ReactToAddedVehicle(copVehicle, copLabel);
 			}
 			else if constexpr (Globals::loggingEnabled)
@@ -204,7 +205,7 @@ namespace PursuitObserver
 				if constexpr (Globals::loggingEnabled)
 					Globals::logger.Log(pursuit, "[OBS] -", copVehicle, foundVehicle->second, Globals::GetVehicleName(copVehicle));
 
-				for (const auto& reaction : observer->pursuitReactions)
+				for (const auto& reaction : observer->reactions)
 					reaction->ReactToRemovedVehicle(copVehicle, foundVehicle->second);
 
 				observer->copVehicleToLabel.erase(foundVehicle);
@@ -223,7 +224,7 @@ namespace PursuitObserver
 	bool anyFeatureEnabled = false;
 
 	// Code caves
-	RELEASE_CONSTINIT ModContainers::StableVector<PursuitObserver> observers;
+	RELEASE_CONSTINIT ModContainers::PointerStorage<PursuitObserver> observers;
 
 
 
@@ -235,7 +236,7 @@ namespace PursuitObserver
 	{
 		for (const auto& observer : observers)
 		{
-			if (observer->GetPursuit() != pursuit) continue;
+			if (observer->GetPursuit() != pursuit) continue; // other pursuit
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
@@ -246,7 +247,7 @@ namespace PursuitObserver
 		if constexpr (Globals::loggingEnabled)
 			Globals::logger.Log("     NEW [OBS] Pursuit", pursuit);
 
-		observers.push_back(std::make_unique<PursuitObserver>(pursuit));
+		observers.EmplaceObject(pursuit);
 	}
 
 
@@ -271,14 +272,14 @@ namespace PursuitObserver
 	{
 		for (auto it = observers.begin(); it != observers.end(); ++it)
 		{
-			if ((*it)->GetPursuit() != pursuit) continue;
+			if ((*it)->GetPursuit() != pursuit) continue; // wrong pursuit
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log("     DEL [OBS] Pursuit", pursuit);
 
-			observers.erase(it);
+			observers.EraseObject(it);
 
-			return;
+			return; // deleted
 		}
 
 		if constexpr (Globals::loggingEnabled)

@@ -207,9 +207,9 @@ Regarding **general features** ([`BartenderSettings\Basic\General.ini`](Bartende
 
 * The `BEHAVIOR_MECHANIC_RESET` VltEd parameter defines whether vehicles can reset at all.
 
-* If you don't define a valid `default` breaker flag, Bartender uses `true` instead.
+* If you don't define a valid `default` immunity flag, Bartender uses `false` instead.
 
-* If you define no valid breaker flags and no `default`, Bartender disables its breaker feature.
+* If you define no valid immunity flags and no `default`, Bartender disables its breaker feature.
 
 &nbsp;
 

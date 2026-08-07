@@ -4,7 +4,6 @@
 #include <array>
 #include <vector>
 #include <algorithm>
-#include <functional>
 #include <string_view>
 
 #include "Globals.h"
@@ -540,16 +539,16 @@ namespace GeneralSettings
 	bool ParsePursuitBreakerImmunities(const HeatParameters::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
-		std::vector<bool>             isAffecteds;
+		std::vector<bool>             isBreakerImmunes;
 
-		parser.ParseUser<std::string_view, bool>("Vehicles:Breakers", copNames, {isAffecteds});
+		parser.ParseUser<std::string_view, bool>("Vehicles:Breakers", copNames, {isBreakerImmunes});
 
-		return copTypeToIsBreakerImmune.FillFromVectors
+		return copTypeToIsBreakerImmune.Fill
 		(
 			"Vehicle-to-immunity",
-			HeatParameters::configDefaultVaultHash,
-			ModContainers::MapFillSetup(copNames,    Globals::GetVaultHash,    Globals::DoesVehicleTypeExist),
-			ModContainers::MapFillSetup(isAffecteds, std::logical_not<bool>{}, ModContainers::AlwaysValid{})
+			HeatParameters::configDefaultKey,
+			ModContainers::FillSetup(copNames,         Globals::GetVaultHash,         Globals::DoesVehicleTypeExist),
+			ModContainers::FillSetup(isBreakerImmunes, ModContainers::IdentityCopy{}, ModContainers::AlwaysValid{})
 		);
 	}
 

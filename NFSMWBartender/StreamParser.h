@@ -302,15 +302,18 @@ namespace StreamParser
 	requires (Details::AreUniqueNonWhitespace<comment, separator, assign, start, end>())
 	class Parser
 	{
-	protected:
+	protected: // aliases
 
 		using Section  = FlatContainers::Map<std::string, std::vector<std::string>>;
 		using Sections = FlatContainers::Map<std::string, Section>;
 
+
+	protected: // members
+
 		Sections sections;
 
 
-	private:
+	private: // methods
 
 		[[nodiscard]] static constexpr std::string_view GetContent(const std::string_view line) noexcept
 		{
@@ -344,7 +347,7 @@ namespace StreamParser
 		}
 
 
-	public:
+	public: // methods
 
 		constexpr Parser() = default;
 
