@@ -272,8 +272,8 @@ namespace ConfigParser
 			const auto foundSection      = this->sections.find(section);
 			const bool hasFullDefaultRow = (parameters.defaultValue.has_value() and ...);
 
-			// Parse default (if available)
-			if ((foundSection != this->sections.end()) and hasFullDefaultRow and (not defaultKey.empty()))
+			// Parse default value(s)
+			if (hasFullDefaultRow and (not defaultKey.empty()) and (foundSection != this->sections.end()))
 				this->GetValues<Vs...>(foundSection->second, defaultKey, {*(parameters.defaultValue)}...);
 
 			// Parse each row column-wise
@@ -281,7 +281,7 @@ namespace ConfigParser
 
 			for (size_t rowID = 0; rowID < numRows; ++rowID)
 			{
-				// Parse row without default first
+				// Parse row without default(s) first
 				if (foundSection != this->sections.end())
 				{
 					isValidRows[rowID] = this->GetValues<Vs...>
@@ -292,13 +292,13 @@ namespace ConfigParser
 					);
 				}
 
-				// Apply default to invalid row (if available)
-				if ((not isValidRows[rowID]) and hasFullDefaultRow)
-				{
-					(..., (parameters.values[rowID] = *(parameters.defaultValue)));
+				// Apply default(s) to invalid row
+				if (isValidRows[rowID])    continue;
+				if (not hasFullDefaultRow) continue;
 
-					isValidRows[rowID] = true; // row now valid
-				}
+				(..., (parameters.values[rowID] = *(parameters.defaultValue)));
+
+				isValidRows[rowID] = true; // row now valid
 			}
 
 			(..., parameters.limits.Enforce(parameters.values));

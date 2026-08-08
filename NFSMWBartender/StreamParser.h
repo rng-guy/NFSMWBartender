@@ -326,7 +326,7 @@ namespace StreamParser
 			if (content.starts_with(start) and content.ends_with(end))
 				return Details::Trim(content.substr(1, content.length() - 2));
 
-			return std::nullopt; // not section
+			return std::nullopt;
 		}
 
 

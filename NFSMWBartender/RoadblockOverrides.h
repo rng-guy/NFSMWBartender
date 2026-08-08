@@ -438,7 +438,7 @@ namespace RoadblockOverrides
 		if constexpr (Globals::loggingEnabled)
 			setup.name = section.substr(setupPrefix.length());
 
-		RBTable& table = setup.original; // mirrored table comes after
+		RBTable& table = setup.original;
 
 		// Parse and validate width values
 		if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {0.f}}, {setup.maxRoadWidth, {0.f}}))
@@ -466,7 +466,7 @@ namespace RoadblockOverrides
 		const auto isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
 		(
 			section,
-			{}, // no "default" value tuple
+			{}, // no "default" value(s)
 			"part{:02}",
 			HeatParameters::configFormatStart,
 			{partTypeIDs},
@@ -480,7 +480,7 @@ namespace RoadblockOverrides
 
 		for (size_t partID = 0; partID < maxNumParts; ++partID)
 		{
-			if (not isValids[partID]) continue; // invalid part; process next
+			if (not isValids[partID]) continue; // invalid part
 
 			switch (partTypeIDs[partID])
 			{
@@ -496,10 +496,10 @@ namespace RoadblockOverrides
 				break;
 
 			default:
-				continue; // invalid part; process next
+				continue; // invalid part
 			}
 
-			// Remove full rotations and convert to positive orientation
+			// Remove full rotation(s) and convert to positive value
 			orientations[partID] -= std::trunc(orientations[partID]);
 
 			if (orientations[partID] < 0.f)
@@ -515,6 +515,7 @@ namespace RoadblockOverrides
 			};
 		}
 
+		// Validate car count
 		if (table.numCarsRequired == 0)
 		{
 			if constexpr (Globals::loggingEnabled)
@@ -538,12 +539,12 @@ namespace RoadblockOverrides
 		parser.ParseFromFile<bool> (section, "stretch", {setup.canStretch});
 		parser.ParseFromFile<float>(section, "mirror",  {setup.mirrorChance, {0.f, 100.f}});
 
-		// Create mirrored table (not worth skipping if disabled)
+		// Create mirrored table
 		setup.mirrored = table;
 
 		for (RBPart& part : setup.mirrored.parts)
 		{
-			if (part.type == RBPartType::NONE) break; // no more parts
+			if (part.type == RBPartType::NONE) break; // no more part(s)
 
 			part.offsetX     = -part.offsetX;
 			part.orientation = 1.f - part.orientation;
