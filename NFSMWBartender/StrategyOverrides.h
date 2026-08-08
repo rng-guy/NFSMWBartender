@@ -707,22 +707,19 @@ namespace StrategyOverrides
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		numVehiclesPerHeavy3s.SetToHeatState(isRacing, heatLevel);
+		numVehiclesPerHeavy3s.SetToHeatState(state);
 
-		heavy3UnblockDelay.SetToHeatState(isRacing, heatLevel);
+		heavy3UnblockDelay.SetToHeatState(state);
 
-		heavy4UnblockDelay.SetToHeatState(isRacing, heatLevel);
+		heavy4UnblockDelay.SetToHeatState(state);
 
-		leader5UnblockDelay.SetToHeatState(isRacing, heatLevel);
+		leader5UnblockDelay.SetToHeatState(state);
 
-		leader7UnblockDelay.SetToHeatState(isRacing, heatLevel);
+		leader7UnblockDelay.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

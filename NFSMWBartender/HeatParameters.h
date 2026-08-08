@@ -3,7 +3,6 @@
 #include <array>
 #include <tuple>
 #include <limits>
-#include <string>
 #include <format>
 #include <utility>
 #include <optional>
@@ -15,7 +14,7 @@
 
 #include "Globals.h"
 #include "ConfigParser.h"
-#include "ModContainers.h"
+#include "PersistentStrings.h"
 
 
 
@@ -37,44 +36,6 @@ namespace HeatParameters
 	const std::filesystem::path configPathMain     = "scripts/BartenderSettings";
 	const std::filesystem::path configPathBasic    = configPathMain / "Basic";
 	const std::filesystem::path configPathAdvanced = configPathMain / "Advanced";
-
-	// Shared persistent storage for (e.g.) vehicle-name Heat parameters
-	RELEASE_CONSTINIT ModContainers::StableVaultMap<const std::string> vaultHashToPersistentString;
-
-
-
-
-
-	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
-
-	using Parser = ConfigParser::Parser; // aliased to suppress transient includes
-
-	template <typename T>
-	using Bounds = ConfigParser::Bounds<T>; // templated to suppress transient includes
-
-	template <typename T>
-	using HeatLevelArray = std::array<T, maxHeatLevel>;
-
-	template <typename T>
-	using Format = ConfigParser::Format<T, maxHeatLevel>;
-
-
-
-
-
-	// Heat-level indices ---------------------------------------------------------------------------------------------------------------------------
-
-	[[nodiscard]] consteval auto GenerateHeatLevelIDs()
-	{
-		HeatLevelArray<size_t> heatLevelIDs = {};
-
-		for (size_t heatLevelID = 0; heatLevelID < maxHeatLevel; ++heatLevelID)
-			heatLevelIDs[heatLevelID] = heatLevelID;
-
-		return heatLevelIDs;
-	}
-
-	constexpr auto heatLevelIDs = GenerateHeatLevelIDs();
 
 
 
@@ -98,95 +59,97 @@ namespace HeatParameters
 
 
 
-	// Concepts -------------------------------------------------------------------------------------------------------------------------------------
+	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
-	namespace Concepts
+	using Parser = ConfigParser::Parser; // aliased to suppress transient includes
+
+	template <typename T>
+	using Bounds = ConfigParser::Bounds<T>; // templated to suppress transient includes
+
+	template <typename T>
+	using HeatLevelArray = std::array<T, maxHeatLevel>;
+
+	template <typename T>
+	using Format = ConfigParser::Format<T, maxHeatLevel>;
+
+
+
+
+
+	// Parameter concepts ---------------------------------------------------------------------------------------------------------------------------
+
+	namespace Details
 	{
 		using ConfigParser::Concepts::IsPureArithmetic;
 		using ConfigParser::Concepts::IsBoundsCompatible;
-		
+
 		template <typename T>
 		concept IsNonOwningString = (std::same_as<T, const char*> or std::same_as<T, std::string_view>);
 
 		template <typename T>
 		concept IsCopyCompatible = (IsPureArithmetic<T> or IsNonOwningString<T>);
+
+		template <typename T>
+		concept IsBoolean = std::same_as<T, bool>;
 	}
 
 
 
 
 
-	// String management ----------------------------------------------------------------------------------------------------------------------------
+	// Heat-level indices ---------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] const std::string* GetPersistentStringByVaultHash(const vault hash)
+	[[nodiscard]] consteval auto GenerateHeatLevelIDs()
 	{
-		const auto foundHash = vaultHashToPersistentString.find(hash);
-		if (foundHash == vaultHashToPersistentString.end()) return nullptr;
+		HeatLevelArray<size_t> heatLevelIDs = {};
 
-		return foundHash->second.get();
+		for (size_t heatLevelID = 0; heatLevelID < maxHeatLevel; ++heatLevelID)
+			heatLevelIDs[heatLevelID] = heatLevelID;
+
+		return heatLevelIDs;
 	}
 
+	constexpr auto heatLevelIDs = GenerateHeatLevelIDs();
 
 
-	[[nodiscard]] const std::string& CreatePersistentString
-	(
-		const vault            hash,
-		const std::string_view string
-	) {
-		const auto [pairIt, isNewHash] = vaultHashToPersistentString.try_emplace(hash, string);
-		return *(pairIt->second); // guaranteed to stay valid until game process terminates
-	}
 
 
-	[[nodiscard]] const std::string& CreatePersistentString(const std::string_view string)
+
+	// HeatState struct  ----------------------------------------------------------------------------------------------------------------------------
+
+	struct HeatState
 	{
-		return CreatePersistentString(Globals::GetVaultHash(string), string);
-	}
+	// Members
 
+		bool   isRace;
+		size_t level;
+
+
+	// Methods
+
+		explicit HeatState
+		(
+			const bool   isRace,
+			const size_t level
+		) 
+			: isRace(isRace), level(ClampHeatLevel(level))
+		{
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (this->level != level)
+					Globals::logger.Log("WARNING: [HPA] Heat level", DecFormat(level), "out of range");
+			}
+		}
+	};
+
+
+
+
+
+	// Parameter structs ----------------------------------------------------------------------------------------------------------------------------
 	
-
-	void MakePersistentString
-	(
-		const vault       hash, 
-		std::string_view& string
-	) {
-		string = CreatePersistentString(hash, string);
-	}
-
-
-	void MakePersistentString(std::string_view& string)
-	{
-		MakePersistentString(Globals::GetVaultHash(string), string);
-	}
-
-
-
-	void MakePersistentString
-	(
-		const vault  hash,
-		const char*& string
-	) {
-		if (not string) return; // UB with std::string_view constructor
-
-		string = CreatePersistentString(hash, string).c_str();
-	}
-
-
-	void MakePersistentString(const char*& string)
-	{
-		if (not string) return; // UB with std::string_view constructor
-
-		MakePersistentString(Globals::GetVaultHash(string), string);
-	}
-
-
-
-
-
-	// HeatParameter structs ------------------------------------------------------------------------------------------------------------------------
-
 	template <typename T>
-	requires Concepts::IsCopyCompatible<T>
+	requires Details::IsCopyCompatible<T>
 	struct Value
 	{
 	// Members
@@ -196,23 +159,22 @@ namespace HeatParameters
 		HeatLevelArray<T> roam = {};
 		HeatLevelArray<T> race = {};
 
-		[[no_unique_address]] Bounds<T> limits;
+		[[no_unique_address]] const Bounds<T> limits;
 
 
 	// Methods
 
 		constexpr explicit Value
 		(
-			const T         vanillaValue,
-			const Bounds<T> limits = {}
+			const T          vanillaValue,
+			const Bounds<T>& limits = {}
 		) 
-			requires Concepts::IsBoundsCompatible<T> 
-			: current(vanillaValue), limits(limits)
+			requires Details::IsBoundsCompatible<T> : current(vanillaValue), limits(limits)
 		{
 		}
 
 		constexpr explicit Value(const T vanillaValue) 
-		requires (not Concepts::IsBoundsCompatible<T>) : current(vanillaValue) {}
+		requires (not Details::IsBoundsCompatible<T>) : current(vanillaValue), limits({}) {}
 
 
 		[[nodiscard]] auto& GetHeatLevelArray(const bool forRaces)
@@ -227,18 +189,20 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatState
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			const auto& levelArray = this->GetHeatLevelArray(forRaces);
-			this->current          = levelArray[heatLevel - 1];
+		[[nodiscard]] T GetHeatStateEntry(const HeatState state) const
+		{
+			return this->GetHeatLevelArray(state.isRace)[state.level - 1];
+		}
+
+
+		void SetToHeatState(const HeatState state) 
+		{
+			this->current = this->GetHeatStateEntry(state);
 		}
 
 
 		[[nodiscard]] T GetMinimum() const
-		requires Concepts::IsBoundsCompatible<T>
+		requires Details::IsBoundsCompatible<T>
 		{
 			T minimum = std::numeric_limits<T>::max();
 
@@ -253,7 +217,7 @@ namespace HeatParameters
 
 
 		[[nodiscard]] T GetMaximum() const
-		requires Concepts::IsBoundsCompatible<T>
+		requires Details::IsBoundsCompatible<T>
 		{
 			T maximum = std::numeric_limits<T>::lowest(); // in case of floats
 
@@ -268,7 +232,7 @@ namespace HeatParameters
 
 
 		[[nodiscard]] bool AnyTrue() const
-		requires std::same_as<T, bool>
+		requires Details::IsBoolean<T>
 		{
 			for (const bool forRaces : {false, true})
 			{
@@ -281,7 +245,7 @@ namespace HeatParameters
 
 
 		[[nodiscard]] bool AllTrue() const
-		requires std::same_as<T, bool>
+		requires Details::IsBoolean<T>
 		{
 			for (const bool forRaces : {false, true})
 			{
@@ -294,14 +258,14 @@ namespace HeatParameters
 
 
 		void MakePersistent()
-		requires Concepts::IsNonOwningString<T>
+		requires Details::IsNonOwningString<T>
 		{
-			MakePersistentString(this->current);
+			PersistentStrings::Make(this->current);
 
 			for (const bool forRaces : {false, true})
 			{
 				for (T& levelString : this->GetHeatLevelArray(forRaces))
-					MakePersistentString(levelString);
+					PersistentStrings::Make(levelString);
 			}
 		}
 
@@ -315,7 +279,7 @@ namespace HeatParameters
 
 
 	template <typename T>
-	requires Concepts::IsCopyCompatible<T>
+	requires Details::IsCopyCompatible<T>
 	struct OptionalValue
 	{
 	// Members
@@ -327,20 +291,17 @@ namespace HeatParameters
 
 	// Methods
 
-		constexpr explicit OptionalValue(const Bounds<T> limits = {})
-		requires Concepts::IsBoundsCompatible<T> : value(T(), limits) {}
+		constexpr explicit OptionalValue(const Bounds<T>& limits = {})
+		requires Details::IsBoundsCompatible<T> : value(T(), limits) {}
 
 		constexpr OptionalValue()
-		requires (not Concepts::IsBoundsCompatible<T>) : value(T()) {}
+		requires (not Details::IsBoundsCompatible<T>) : value(T()) {}
 
 
-		void SetToHeatState
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->isEnabled.SetToHeatState(forRaces, heatLevel);
-			this->value    .SetToHeatState(forRaces, heatLevel);
+		void SetToHeatState(const HeatState state) 
+		{
+			this->isEnabled.SetToHeatState(state);
+			this->value    .SetToHeatState(state);
 		}
 
 
@@ -355,7 +316,7 @@ namespace HeatParameters
 
 
 	template <typename T>
-	requires (not Concepts::IsCopyCompatible<T>)
+	requires (not Details::IsCopyCompatible<T>)
 	struct Pointer
 	{
 	// Members
@@ -380,20 +341,22 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatState
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			const auto& levelArray = this->GetHeatLevelArray(forRaces);
-			this->current = &(levelArray[heatLevel - 1]);
+		[[nodiscard]] const T& GetHeatStateEntry(const HeatState state) const
+		{
+			return this->GetHeatLevelArray(state.isRace)[state.level - 1];
+		}
+
+
+		void SetToHeatState(const HeatState state) 
+		{
+			this->current = &(this->GetHeatStateEntry(state));
 		}
 	};
 
 	
 
 	template <typename T>
-	requires (not Concepts::IsCopyCompatible<T>)
+	requires (not Details::IsCopyCompatible<T>)
 	struct OptionalPointer
 	{
 	// Members
@@ -405,20 +368,17 @@ namespace HeatParameters
 
 	// Methods
 
-		void SetToHeatState
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->isEnabled.SetToHeatState(forRaces, heatLevel);
-			this->pointer  .SetToHeatState(forRaces, heatLevel);
+		void SetToHeatState(const HeatState state)
+		{
+			this->isEnabled.SetToHeatState(state);
+			this->pointer  .SetToHeatState(state);
 		}
 	};
 
 	
 
 	template <typename T>
-	requires Concepts::IsBoundsCompatible<T>
+	requires Details::IsBoundsCompatible<T>
 	struct Interval
 	{
 	// Members
@@ -431,22 +391,19 @@ namespace HeatParameters
 
 		constexpr explicit Interval
 		(
-			const T         vanillaMin,
-			const T         vanillaMax,
-			const Bounds<T> limits = {}
+			const T          vanillaMin,
+			const T          vanillaMax,
+			const Bounds<T>& limits = {}
 		) 
 			: min(vanillaMin, limits), max(vanillaMax, limits)
 		{
 		}
 
 
-		void SetToHeatState
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->min.SetToHeatState(forRaces, heatLevel);
-			this->max.SetToHeatState(forRaces, heatLevel);
+		void SetToHeatState(const HeatState state)
+		{
+			this->min.SetToHeatState(state);
+			this->max.SetToHeatState(state);
 		}
 
 
@@ -477,7 +434,7 @@ namespace HeatParameters
 
 
 	template <typename T>
-	requires Concepts::IsBoundsCompatible<T>
+	requires Details::IsBoundsCompatible<T>
 	struct OptionalInterval
 	{
 	// Members
@@ -489,16 +446,13 @@ namespace HeatParameters
 
 	// Methods
 
-		constexpr explicit OptionalInterval(const Bounds<T> limits = {}) : interval(T(), T(), limits) {}
+		constexpr explicit OptionalInterval(const Bounds<T>& limits = {}) : interval(T(), T(), limits) {}
 
 
-		void SetToHeatState
-		(
-			const bool   forRaces,
-			const size_t heatLevel
-		) {
-			this->isEnabled.SetToHeatState(forRaces, heatLevel);
-			this->interval .SetToHeatState(forRaces, heatLevel);
+		void SetToHeatState(const HeatState state)
+		{
+			this->isEnabled.SetToHeatState(state);
+			this->interval .SetToHeatState(state);
 		}
 		
 
@@ -517,7 +471,7 @@ namespace HeatParameters
 	// Resolution functions -------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T, class Validator>
-	requires (Concepts::IsNonOwningString<T> and std::predicate<Validator, vault>)
+	requires (Details::IsNonOwningString<T> and std::predicate<Validator, vault>)
 	bool ResolveVehicleNames
 	(
 		const std::string_view valueName,
@@ -526,7 +480,7 @@ namespace HeatParameters
 	) {
 		bool allTypesValid = true;
 
-		MakePersistentString(vehicleValue.current); // vanilla value by default
+		PersistentStrings::Make(vehicleValue.current); // vanilla value by default
 
 		for (const bool forRaces : {false, true})
 		{
@@ -549,7 +503,7 @@ namespace HeatParameters
 					levelVehicleName = vehicleValue.current; // already persistent
 					allTypesValid    = false;
 				}
-				else MakePersistentString(vehicleType, levelVehicleName);
+				else PersistentStrings::Make(vehicleType, levelVehicleName);
 
 				++heatLevel;
 			}
@@ -572,6 +526,7 @@ namespace HeatParameters
 
 		template <typename ...T>
 		concept AreRegular = (IsRegular<T>::value and ...);
+
 
 		template <typename T> struct IsOptional                      : std::false_type {};
 		template <typename T> struct IsOptional<OptionalValue   <T>> : std::true_type  {};
@@ -680,7 +635,7 @@ namespace HeatParameters
 					std::move(std::get<formatIDs>(formats))...
 				);
 			}
-			(std::make_index_sequence<std::tuple_size_v<decltype(formats)>>{});
+			(std::make_index_sequence<std::tuple_size_v<decltype(formats)>>());
 		}
 
 

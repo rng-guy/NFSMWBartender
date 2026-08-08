@@ -55,7 +55,7 @@ namespace ParameterSets
 				mapName,
 				HeatParameters::configDefaultKey,
 				ModContainers::FillSetup(copNames, Globals::GetVaultHash,         Globals::DoesVehicleTypeExist),
-				ModContainers::FillSetup(changes,  ModContainers::IdentityCopy{}, ModContainers::AlwaysValid{})
+				ModContainers::FillSetup(changes,  ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
 			);
 		}
 
@@ -139,18 +139,15 @@ namespace ParameterSets
 		}
 
 
-		void SetToHeatState
-		(
-			const bool   isRacing,
-			const size_t heatLevel
-		) {
-			this->copTagChange.SetToHeatState(isRacing, heatLevel);
+		void SetToHeatState(const HeatParameters::HeatState state)
+		{
+			this->copTagChange.SetToHeatState(state);
 
-			this->changePerAssault.SetToHeatState(isRacing, heatLevel);
+			this->changePerAssault.SetToHeatState(state);
 
-			this->maxNumAssaultsPerCop.SetToHeatState(isRacing, heatLevel);
+			this->maxNumAssaultsPerCop.SetToHeatState(state);
 
-			this->copWreckChange.SetToHeatState(isRacing, heatLevel);
+			this->copWreckChange.SetToHeatState(state);
 		}
 	};
 }

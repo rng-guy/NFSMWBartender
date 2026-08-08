@@ -106,7 +106,7 @@
     <ClInclude Include="StrategyOverrides.h">
       <Filter>Headers\Features\Advanced</Filter>
     </ClInclude>
-    <ClInclude Include="RadioChatter.h">
+    <ClInclude Include="RadioSpeech.h">
       <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="ModContainers.h">
@@ -149,6 +149,9 @@
       <Filter>Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="ParameterSets.h">
+      <Filter>Headers\General</Filter>
+    </ClInclude>
+    <ClInclude Include="PersistentStrings.h">
       <Filter>Headers\General</Filter>
     </ClInclude>
   </ItemGroup>

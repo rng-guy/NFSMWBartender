@@ -289,7 +289,7 @@ namespace StreamParser
 
 			return allParsed;
 		}
-		(std::make_index_sequence<numSegments>{});
+		(std::make_index_sequence<numSegments>());
 	}
 
 
@@ -490,7 +490,7 @@ namespace StreamParser
 					++numReads;
 				}
 			}
-			(std::make_index_sequence<numColumns>{});
+			(std::make_index_sequence<numColumns>());
 
 			return numReads;
 		}

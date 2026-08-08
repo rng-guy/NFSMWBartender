@@ -679,21 +679,18 @@ namespace RoadblockOverrides
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
 		// Heat parameters
-		spawnCalloutChances.SetToHeatState(isRacing, heatLevel);
-		spikeCalloutChances.SetToHeatState(isRacing, heatLevel);
+		spawnCalloutChances.SetToHeatState(state);
+		spikeCalloutChances.SetToHeatState(state);
 
 		// Roadblock setups
 		for (RBSetup& setup : roadblockSetups)
 		{
-			setup.chance.SetToHeatState(isRacing, heatLevel);
+			setup.chance.SetToHeatState(state);
 
 			if constexpr (Globals::loggingEnabled)
 			{

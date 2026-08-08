@@ -488,30 +488,27 @@ namespace LeaderOverrides
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		leader5CrossAggroDelay.SetToHeatState(isRacing, heatLevel);
+		leader5CrossAggroDelay.SetToHeatState(state);
 
-		leader5ExpireResetDelay.SetToHeatState(isRacing, heatLevel);
+		leader5ExpireResetDelay.SetToHeatState(state);
 
-		leader5WreckResetDelay.SetToHeatState(isRacing, heatLevel);
+		leader5WreckResetDelay.SetToHeatState(state);
 
-		leader5LostResetDelay.SetToHeatState(isRacing, heatLevel);
+		leader5LostResetDelay.SetToHeatState(state);
 
-		leader7CrossAggroDelay.SetToHeatState(isRacing, heatLevel);
+		leader7CrossAggroDelay.SetToHeatState(state);
 
-		leader7HenchAggroDelay.SetToHeatState(isRacing, heatLevel);
+		leader7HenchAggroDelay.SetToHeatState(state);
 
-		leader7ExpireResetDelay.SetToHeatState(isRacing, heatLevel);
+		leader7ExpireResetDelay.SetToHeatState(state);
 
-		leader7WreckResetDelay.SetToHeatState(isRacing, heatLevel);
+		leader7WreckResetDelay.SetToHeatState(state);
 
-		leader7LostResetDelay.SetToHeatState(isRacing, heatLevel);
+		leader7LostResetDelay.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

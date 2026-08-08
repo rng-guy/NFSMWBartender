@@ -6,6 +6,7 @@
 #include "MemoryTools.h"
 #include "ModContainers.h"
 #include "HeatParameters.h"
+#include "PersistentStrings.h"
 
 #include "GeneralSettings.h"
 
@@ -80,16 +81,6 @@ namespace CopSpawnOverrides
 		}
 
 
-		constexpr explicit Contingent(const TablePointer&&) = delete;
-
-		explicit Contingent
-		(
-			const TablePointer&&,
-			const address
-		) 
-			= delete;
-
-
 		explicit Contingent(Contingent&&)      = delete;
 		explicit Contingent(const Contingent&) = delete;
 
@@ -123,9 +114,7 @@ namespace CopSpawnOverrides
 				{
 					if (this->pursuit)
 					{
-						const auto* const copName = HeatParameters::GetPersistentStringByVaultHash(copType);
-
-						if (copName)
+						if (const auto* const copName = PersistentStrings::Get(copType))
 							Globals::logger.Log(this->pursuit, "[CON] Copying", currentCount, *copName);
 
 						else
@@ -1282,33 +1271,30 @@ namespace CopSpawnOverrides
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
 		patrolSpawns   .UpdateSpawnTable();
 		scriptedSpawns .UpdateSpawnTable();
 		roadblockSpawns.UpdateSpawnTable();
 
-		activeChaserCount.SetToHeatState(isRacing, heatLevel);
+		activeChaserCount.SetToHeatState(state);
 
-		chasersAreIndependent.SetToHeatState(isRacing, heatLevel);
+		chasersAreIndependent.SetToHeatState(state);
 
-		onlyDestroyedDecrement.SetToHeatState(isRacing, heatLevel);
+		onlyDestroyedDecrement.SetToHeatState(state);
 
-		transitionTriggersBackup.SetToHeatState(isRacing, heatLevel);
+		transitionTriggersBackup.SetToHeatState(state);
 
-		chaserSpawnClearance.SetToHeatState(isRacing, heatLevel);
+		chaserSpawnClearance.SetToHeatState(state);
 
 		squaredChaserSpawnClearance = chaserSpawnClearance.current * chaserSpawnClearance.current;
 
-		trafficIgnoresChasers   .SetToHeatState(isRacing, heatLevel);
-		trafficIgnoresRoadblocks.SetToHeatState(isRacing, heatLevel);
+		trafficIgnoresChasers   .SetToHeatState(state);
+		trafficIgnoresRoadblocks.SetToHeatState(state);
 
-		roadblockJoinLimit.SetToHeatState(isRacing, heatLevel);
+		roadblockJoinLimit.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

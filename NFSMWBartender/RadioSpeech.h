@@ -10,7 +10,7 @@
 
 
 
-namespace RadioChatter
+namespace RadioSpeech
 {
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -380,14 +380,11 @@ namespace RadioChatter
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		heatJurisdictionID.SetToHeatState(isRacing, heatLevel);
+		heatJurisdictionID.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 		{

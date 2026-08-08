@@ -426,21 +426,18 @@ namespace PursuitObserver
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		CopSpawnTables     ::SetToHeatState(isRacing, heatLevel);
-		CopSpawnOverrides  ::SetToHeatState(isRacing, heatLevel);
-		CopFleeOverrides   ::SetToHeatState(isRacing, heatLevel);
-		HelicopterOverrides::SetToHeatState(isRacing, heatLevel);
-		StrategyOverrides  ::SetToHeatState(isRacing, heatLevel);
-		LeaderOverrides    ::SetToHeatState(isRacing, heatLevel);
-		HeatChangeOverrides::SetToHeatState(isRacing, heatLevel);
-		RoadblockOverrides ::SetToHeatState(isRacing, heatLevel);
+		CopSpawnTables     ::SetToHeatState(state);
+		CopSpawnOverrides  ::SetToHeatState(state);
+		CopFleeOverrides   ::SetToHeatState(state);
+		HelicopterOverrides::SetToHeatState(state);
+		StrategyOverrides  ::SetToHeatState(state);
+		LeaderOverrides    ::SetToHeatState(state);
+		HeatChangeOverrides::SetToHeatState(state);
+		RoadblockOverrides ::SetToHeatState(state);
 
 		NotifyOfHeatStateUpdate();
 	}

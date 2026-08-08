@@ -186,16 +186,13 @@ namespace NitrousCharge
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		passiveRechargeEnabled.SetToHeatState(isRacing, heatLevel);
+		passiveRechargeEnabled.SetToHeatState(state);
 
-		nitrousInteractions.SetToHeatState(isRacing, heatLevel);
+		nitrousInteractions.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

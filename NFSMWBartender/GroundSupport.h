@@ -971,53 +971,50 @@ namespace GroundSuppport
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		rivalRoadblockEnabled.SetToHeatState(isRacing, heatLevel);
-		rivalHeavyEnabled    .SetToHeatState(isRacing, heatLevel);
-		rivalLeaderEnabled   .SetToHeatState(isRacing, heatLevel);
+		rivalRoadblockEnabled.SetToHeatState(state);
+		rivalHeavyEnabled    .SetToHeatState(state);
+		rivalLeaderEnabled   .SetToHeatState(state);
 
-		roadblockCooldown     .SetToHeatState(isRacing, heatLevel);
-		roadblockHeavyCooldown.SetToHeatState(isRacing, heatLevel);
+		roadblockCooldown     .SetToHeatState(state);
+		roadblockHeavyCooldown.SetToHeatState(state);
 
-		roadblockSpawnDistance.SetToHeatState(isRacing, heatLevel);
-		roadblockEndsFormation.SetToHeatState(isRacing, heatLevel);
+		roadblockSpawnDistance.SetToHeatState(state);
+		roadblockEndsFormation.SetToHeatState(state);
 
-		regularRBJoinTimer.SetToHeatState(isRacing, heatLevel);
-		backupRBJoinTimer .SetToHeatState(isRacing, heatLevel);
+		regularRBJoinTimer.SetToHeatState(state);
+		backupRBJoinTimer .SetToHeatState(state);
 
-		reactToCooldownMode.SetToHeatState(isRacing, heatLevel);
-		reactToSpikesHit   .SetToHeatState(isRacing, heatLevel);
+		reactToCooldownMode.SetToHeatState(state);
+		reactToSpikesHit   .SetToHeatState(state);
 
-		maxRBJoinDistance      .SetToHeatState(isRacing, heatLevel);
-		maxRBJoinElevationDelta.SetToHeatState(isRacing, heatLevel);
-		maxRBJoinCount         .SetToHeatState(isRacing, heatLevel);
+		maxRBJoinDistance      .SetToHeatState(state);
+		maxRBJoinElevationDelta.SetToHeatState(state);
+		maxRBJoinCount         .SetToHeatState(state);
 
-		strategyCooldown.SetToHeatState(isRacing, heatLevel);
+		strategyCooldown.SetToHeatState(state);
 
-		heavy3SpeedLimit.SetToHeatState(isRacing, heatLevel);
+		heavy3SpeedLimit.SetToHeatState(state);
 
 		rammingSpeedLimit = heavy3SpeedLimit.current / 3.6f;
 
-		heavy3TriggerCooldown.SetToHeatState(isRacing, heatLevel);
-		heavy3AreBlockable   .SetToHeatState(isRacing, heatLevel);
+		heavy3TriggerCooldown.SetToHeatState(state);
+		heavy3AreBlockable   .SetToHeatState(state);
 
-		heavy3LightVehicle.SetToHeatState(isRacing, heatLevel);
-		heavy3HeavyVehicle.SetToHeatState(isRacing, heatLevel);
+		heavy3LightVehicle.SetToHeatState(state);
+		heavy3HeavyVehicle.SetToHeatState(state);
 
-		heavy4LightVehicle.SetToHeatState(isRacing, heatLevel);
-		heavy4HeavyVehicle.SetToHeatState(isRacing, heatLevel);
+		heavy4LightVehicle.SetToHeatState(state);
+		heavy4HeavyVehicle.SetToHeatState(state);
 
-		leader5CrossVehicle.SetToHeatState(isRacing, heatLevel);
+		leader5CrossVehicle.SetToHeatState(state);
 
-		leader7CrossVehicle .SetToHeatState(isRacing, heatLevel);
-		leader7Hench1Vehicle.SetToHeatState(isRacing, heatLevel);
-		leader7Hench2Vehicle.SetToHeatState(isRacing, heatLevel);
+		leader7CrossVehicle .SetToHeatState(state);
+		leader7Hench1Vehicle.SetToHeatState(state);
+		leader7Hench2Vehicle.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

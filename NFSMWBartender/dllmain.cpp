@@ -33,7 +33,7 @@
 
 #include "GameBreaker.h"
 #include "NitrousCharge.h"
-#include "RadioChatter.h"
+#include "RadioSpeech.h"
 #include "CopDetection.h"
 #include "GroundSupport.h"
 #include "GeneralSettings.h"
@@ -88,7 +88,7 @@ static void __cdecl InitialiseBartender
 
 	// Parse and initialise "Basic" feature set
 	Globals::basicSetEnabled |= CopNotifications::InitialiseFeatures(parser);
-	Globals::basicSetEnabled |= RadioChatter    ::InitialiseFeatures(parser);
+	Globals::basicSetEnabled |= RadioSpeech     ::InitialiseFeatures(parser);
 	Globals::basicSetEnabled |= CopDetection    ::InitialiseFeatures(parser);
 	Globals::basicSetEnabled |= HelicopterVision::InitialiseFeatures(parser);
 	Globals::basicSetEnabled |= InteractiveMusic::InitialiseFeatures(parser);
@@ -102,7 +102,7 @@ static void __cdecl InitialiseBartender
 	if (Globals::basicSetEnabled)
 	{
 		// Apply feature-specific fixes
-		RadioChatter    ::ApplyFixes();
+		RadioSpeech     ::ApplyFixes();
 		CopDetection    ::ApplyFixes();
 		HelicopterVision::ApplyFixes();
 		GeneralSettings ::ApplyFixes();

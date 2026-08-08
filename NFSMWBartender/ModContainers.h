@@ -82,15 +82,15 @@ namespace ModContainers
 	// Aliases
 
 		using RawType    = RawT;
-		using ReturnType = std::invoke_result_t<Converter, const RawType&>;
+		using ReturnType = std::invoke_result_t<Converter, const RawT&>;
 
 
 	// Members
 
-		const std::vector<RawType>& data; // can't be std::span because of std::vector<bool>...
+		const std::vector<RawT>& data; // can't be std::span because of std::vector<bool>...
 
-		[[no_unique_address]] Converter Convert{};
-		[[no_unique_address]] Validator IsValid{};
+		[[no_unique_address]] Converter Convert;
+		[[no_unique_address]] Validator IsValid;
 
 
 	// Methods

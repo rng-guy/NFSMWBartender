@@ -7,6 +7,7 @@
 #include "Globals.h"
 #include "MemoryTools.h"
 #include "HeatParameters.h"
+#include "PersistentStrings.h"
 
 #include "PursuitFeatures.h"
 
@@ -112,11 +113,10 @@ namespace HelicopterOverrides
 					Globals::logger.Log("WARNING: [HEL] Owner mismatch:", this->helicopterOwner, '/', this->pursuit);
 			}
 
-			const char* copName = Globals::GetVehicleName(copVehicle);
-			HeatParameters::MakePersistentString(copName);
-
 			this->helicopterOwner = this->pursuit;
-			this->helicopterName  = copName;
+			this->helicopterName  = Globals::GetVehicleName(copVehicle);
+
+			PersistentStrings::Make(this->helicopterName);
 		}
 
 
@@ -679,35 +679,32 @@ namespace HelicopterOverrides
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		helicopterVehicle.SetToHeatState(isRacing, heatLevel);
+		helicopterVehicle.SetToHeatState(state);
 		
-		firstSpawnDelay.SetToHeatState(isRacing, heatLevel);
+		firstSpawnDelay.SetToHeatState(state);
 
-		fuelRespawnDelay.SetToHeatState(isRacing, heatLevel);
+		fuelRespawnDelay.SetToHeatState(state);
 
-		wreckRespawnDelay.SetToHeatState(isRacing, heatLevel);
+		wreckRespawnDelay.SetToHeatState(state);
 
-		lostRespawnDelay.SetToHeatState(isRacing, heatLevel);
+		lostRespawnDelay.SetToHeatState(state);
 
-		lostRejoinDelay  .SetToHeatState(isRacing, heatLevel);
-		minRejoinFuelTime.SetToHeatState(isRacing, heatLevel);
+		lostRejoinDelay  .SetToHeatState(state);
+		minRejoinFuelTime.SetToHeatState(state);
 
-		fuelTime.SetToHeatState(isRacing, heatLevel);
+		fuelTime.SetToHeatState(state);
 
-		chaseSpawnDistance.SetToHeatState(isRacing, heatLevel);
+		chaseSpawnDistance.SetToHeatState(state);
 
-		searchSpawnDistance.SetToHeatState(isRacing, heatLevel);
+		searchSpawnDistance.SetToHeatState(state);
 
-		affectedByRoadblock.SetToHeatState(isRacing, heatLevel);
+		affectedByRoadblock.SetToHeatState(state);
 
-		rammingCooldown.SetToHeatState(isRacing, heatLevel);
+		rammingCooldown.SetToHeatState(state);
 		
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

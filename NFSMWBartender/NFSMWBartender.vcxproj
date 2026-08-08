@@ -111,6 +111,7 @@
     <ClInclude Include="GameBreaker.h" />
     <ClInclude Include="NitrousCharge.h" />
     <ClInclude Include="ParameterSets.h" />
+    <ClInclude Include="PersistentStrings.h" />
     <ClInclude Include="StreamParser.h" />
     <ClInclude Include="ModContainers.h" />
     <ClInclude Include="Globals.h" />
@@ -131,7 +132,7 @@
     <ClInclude Include="CopSpawnTables.h" />
     <ClInclude Include="PursuitFeatures.h" />
     <ClInclude Include="CopSpawnOverrides.h" />
-    <ClInclude Include="RadioChatter.h" />
+    <ClInclude Include="RadioSpeech.h" />
     <ClInclude Include="RandomNumbers.h" />
     <ClInclude Include="RoadblockOverrides.h" />
     <ClInclude Include="StateObserver.h" />

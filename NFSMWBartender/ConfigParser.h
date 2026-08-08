@@ -87,7 +87,7 @@ namespace ConfigParser
 
 		T& value;
 
-		[[no_unique_address]] Bounds<T> limits;
+		[[no_unique_address]] const Bounds<T> limits = {};
 	};
 
 
@@ -101,7 +101,7 @@ namespace ConfigParser
 
 		std::optional<T> defaultValue;
 
-		[[no_unique_address]] Bounds<T> limits;
+		[[no_unique_address]] const Bounds<T> limits = {};
 	};
 
 
@@ -113,7 +113,7 @@ namespace ConfigParser
 
 		std::vector<T>& values;
 
-		[[no_unique_address]] Bounds<T> limits;
+		[[no_unique_address]] const Bounds<T> limits = {};
 	};
 
 

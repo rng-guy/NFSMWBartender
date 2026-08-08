@@ -280,17 +280,7 @@ namespace CopFleeOverrides
 					return this->copVehicles.erase(copVehicle);
 				};
 			}
-
-
-			explicit PursuitScheduler
-			(
-				const address, 
-				const std::string_view, 
-				const HeatParameters::OptionalInterval<float>&&, 
-				const HeatParameters::OptionalValue   <int>&&
-			) 
-				= delete;
-
+			
 
 			void ReserveCapacity(const size_t numVehicles)
 			{
@@ -667,27 +657,24 @@ namespace CopFleeOverrides
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		chaserFleeDelay.SetToHeatState(isRacing, heatLevel);
-		chaserThreshold.SetToHeatState(isRacing, heatLevel);
+		chaserFleeDelay.SetToHeatState(state);
+		chaserThreshold.SetToHeatState(state);
 
-		joinedRoadblockFleeDelay.SetToHeatState(isRacing, heatLevel);
-		joinedRoadblockThreshold.SetToHeatState(isRacing, heatLevel);
+		joinedRoadblockFleeDelay.SetToHeatState(state);
+		joinedRoadblockThreshold.SetToHeatState(state);
 
-		heavy3SpeedThreshold.SetToHeatState(isRacing, heatLevel);
+		heavy3SpeedThreshold.SetToHeatState(state);
 
-		heavy3JoiningEnabled.SetToHeatState(isRacing, heatLevel);
+		heavy3JoiningEnabled.SetToHeatState(state);
 
-		heavy3JoinLimit.SetToHeatState(isRacing, heatLevel);
+		heavy3JoinLimit.SetToHeatState(state);
 
-		joinedHeavy3FleeDelay.SetToHeatState(isRacing, heatLevel);
-		joinedHeavy3Threshold.SetToHeatState(isRacing, heatLevel);
+		joinedHeavy3FleeDelay.SetToHeatState(state);
+		joinedHeavy3Threshold.SetToHeatState(state);
 
 		baseSpeedThreshold = heavy3SpeedThreshold.current / 3.6f;
 		jerkSpeedThreshold = baseSpeedThreshold * .625f;

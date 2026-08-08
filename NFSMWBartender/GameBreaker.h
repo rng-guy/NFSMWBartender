@@ -243,23 +243,20 @@ namespace GameBreaker
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		passiveRechargeEnabled.SetToHeatState(isRacing, heatLevel);
-		driftRechargeEnabled  .SetToHeatState(isRacing, heatLevel);
+		passiveRechargeEnabled.SetToHeatState(state);
+		driftRechargeEnabled  .SetToHeatState(state);
 
-		breakerInteractions.SetToHeatState(isRacing, heatLevel);
+		breakerInteractions.SetToHeatState(state);
 
-		canGainWhenActive.SetToHeatState(isRacing, heatLevel);
-		canLoseWhenActive.SetToHeatState(isRacing, heatLevel);
+		canGainWhenActive.SetToHeatState(state);
+		canLoseWhenActive.SetToHeatState(state);
 
-		canGainWhenInactive.SetToHeatState(isRacing, heatLevel);
-		canLoseWhenInactive.SetToHeatState(isRacing, heatLevel);
+		canGainWhenInactive.SetToHeatState(state);
+		canLoseWhenInactive.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

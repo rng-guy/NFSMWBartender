@@ -8,6 +8,7 @@
 #include "MemoryTools.h"
 #include "ModContainers.h"
 #include "HeatParameters.h"
+#include "PersistentStrings.h"
 
 
 
@@ -80,7 +81,7 @@ namespace CopNotifications
 			const auto        GetBinaryString = AsFunction<const char* __fastcall (int, binary)>(0x56BB80);
 			const char* const binaryString    = GetBinaryString(0, Globals::GetBinaryHash(stringOrName));
 
-			return HeatParameters::CreatePersistentString((binaryString) ? binaryString : stringOrName).c_str();
+			return PersistentStrings::Create((binaryString) ? binaryString : stringOrName).c_str();
 		};
 
 		return copTypeToNotificationText.Fill
@@ -88,7 +89,7 @@ namespace CopNotifications
 			"Vehicle-to-text",
 			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames,      Globals::GetVaultHash,      Globals::DoesVehicleTypeExist),
-			ModContainers::FillSetup(stringOrNames, StringOrNameToNotification, ModContainers::AlwaysValid{})
+			ModContainers::FillSetup(stringOrNames, StringOrNameToNotification, ModContainers::AlwaysValid())
 		);
 	}
 

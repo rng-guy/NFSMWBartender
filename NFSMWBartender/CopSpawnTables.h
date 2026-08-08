@@ -10,6 +10,7 @@
 #include "Globals.h"
 #include "ModContainers.h"
 #include "HeatParameters.h"
+#include "PersistentStrings.h"
 
 
 
@@ -72,7 +73,7 @@ namespace CopSpawnTables
 			const vault copType = Globals::GetVaultHash(copName);
 			if (not Globals::IsVehicleTypeCar(copType)) return false;
 
-			HeatParameters::MakePersistentString(copType, copName);
+			PersistentStrings::Make(copType, copName);
 
 			const auto [pairIt, isNewType] = this->copTypeToEntry.try_emplace
 			(
@@ -376,20 +377,17 @@ namespace CopSpawnTables
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		chaserSpawnTable.SetToHeatState(isRacing, heatLevel);
+		chaserSpawnTable.SetToHeatState(state);
 
-		patrolSpawnTable.SetToHeatState(isRacing, heatLevel);
+		patrolSpawnTable.SetToHeatState(state);
 
-		scriptedSpawnTable.SetToHeatState(isRacing, heatLevel);
+		scriptedSpawnTable.SetToHeatState(state);
 
-		roadblockSpawnTable.SetToHeatState(isRacing, heatLevel);
+		roadblockSpawnTable.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

@@ -9,7 +9,7 @@
 
 #include "GameBreaker.h"
 #include "NitrousCharge.h"
-#include "RadioChatter.h"
+#include "RadioSpeech.h"
 #include "GroundSupport.h"
 #include "GeneralSettings.h"
 
@@ -37,27 +37,22 @@ namespace StateObserver
 
 	void ProcessHeatStateUpdate()
 	{
-		const size_t safeHeatLevel = HeatParameters::ClampHeatLevel(playerHeatLevel);
+		const HeatParameters::HeatState state(playerIsRacing, playerHeatLevel);
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			if (safeHeatLevel != playerHeatLevel)
-				Globals::logger.Log("WARNING: [STA] Heat level", DecFormat(playerHeatLevel), "out of range");
-
-			Globals::logger.Log("    HEAT [STA] Heat level now", DecFormat(safeHeatLevel), (playerIsRacing) ? "(race)" : "(roam)");
-		}
+			Globals::logger.Log("    HEAT [STA] Heat level now", DecFormat(state.level), (playerIsRacing) ? "(race)" : "(roam)");
 
 		// Update Heat-level flag
 		Globals::playerHeatLevelKnown = true;
 
 		// Update Heat parameters
-		RadioChatter   ::SetToHeatState(playerIsRacing, safeHeatLevel);
-		GeneralSettings::SetToHeatState(playerIsRacing, safeHeatLevel);
-		GroundSuppport ::SetToHeatState(playerIsRacing, safeHeatLevel);
-		NitrousCharge  ::SetToHeatState(playerIsRacing, safeHeatLevel);
-		GameBreaker    ::SetToHeatState(playerIsRacing, safeHeatLevel);
+		RadioSpeech    ::SetToHeatState(state);
+		GeneralSettings::SetToHeatState(state);
+		GroundSuppport ::SetToHeatState(state);
+		NitrousCharge  ::SetToHeatState(state);
+		GameBreaker    ::SetToHeatState(state);
 			
-		PursuitObserver::SetToHeatState(playerIsRacing, safeHeatLevel);
+		PursuitObserver::SetToHeatState(state);
 	}
 
 

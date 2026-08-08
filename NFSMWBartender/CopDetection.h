@@ -406,7 +406,7 @@ namespace CopDetection
 			"Vehicle-to-settings",
 			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames , Globals::GetVaultHash,         Globals::IsVehicleTypeCar),
-			ModContainers::FillSetup(settings,  ModContainers::IdentityCopy{}, ModContainers::AlwaysValid{})
+			ModContainers::FillSetup(settings,  ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
 		);
 	}
 

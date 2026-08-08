@@ -356,6 +356,7 @@ namespace GeneralSettings
 		__asm
 		{
 			mov edi, dword ptr [esi + 0x98] // current Heat level
+
 			xor ecx, ecx
 
 			dec edi
@@ -548,7 +549,7 @@ namespace GeneralSettings
 			"Vehicle-to-immunity",
 			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames,         Globals::GetVaultHash,         Globals::DoesVehicleTypeExist),
-			ModContainers::FillSetup(isBreakerImmunes, ModContainers::IdentityCopy{}, ModContainers::AlwaysValid{})
+			ModContainers::FillSetup(isBreakerImmunes, ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
 		);
 	}
 
@@ -667,40 +668,37 @@ namespace GeneralSettings
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		rivalPursuitsEnabled.SetToHeatState(isRacing, heatLevel);
+		rivalPursuitsEnabled.SetToHeatState(state);
 
-		bountyInterval.SetToHeatState(isRacing, heatLevel);
+		bountyInterval.SetToHeatState(state);
 
-		maxBountyMultiplier.SetToHeatState(isRacing, heatLevel);
+		maxBountyMultiplier.SetToHeatState(state);
 
 		bountyFrequency = 1.f / bountyInterval.current;
 
-		bustTimer      .SetToHeatState(isRacing, heatLevel);
-		maxBustDistance.SetToHeatState(isRacing, heatLevel);
+		bustTimer      .SetToHeatState(state);
+		maxBustDistance.SetToHeatState(state);
 
 		bustRate          = 1.f / bustTimer.current;
 		resetBustScale    = std::max<float>(bustTimer.current / 1.25f, 4.f);
 		recoveryBustDelta = -.25f * std::max<float>(bustTimer.current / 2.5f, 2.f);
 
-		evadeTimer.SetToHeatState(isRacing, heatLevel);
+		evadeTimer.SetToHeatState(state);
 
 		halfEvadeRate = .5f / evadeTimer.current;
 
-		carsAffectedByHiding .SetToHeatState(isRacing, heatLevel);
-		helisAffectedByHiding.SetToHeatState(isRacing, heatLevel);
+		carsAffectedByHiding .SetToHeatState(state);
+		helisAffectedByHiding.SetToHeatState(state);
 
-		copFlipByDamageEnabled.SetToHeatState(isRacing, heatLevel);
+		copFlipByDamageEnabled.SetToHeatState(state);
 
-		copFlipByTimer.SetToHeatState(isRacing, heatLevel);
+		copFlipByTimer.SetToHeatState(state);
 
-		racerFlipResetDelay.SetToHeatState(isRacing, heatLevel);
+		racerFlipResetDelay.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();

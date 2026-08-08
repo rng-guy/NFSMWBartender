@@ -73,15 +73,6 @@ namespace HeatChangeOverrides
 			}
 
 
-			explicit CountTracker
-			(
-				const address, 
-				const ptrdiff_t,
-				const HeatParameters::Value<float>&&
-			) 
-				= delete;
-
-
 			explicit CountTracker(CountTracker&&)      = delete;
 			explicit CountTracker(const CountTracker&) = delete;
 
@@ -545,27 +536,24 @@ namespace HeatChangeOverrides
 
 
 
-	void SetToHeatState
-	(
-		const bool   isRacing,
-		const size_t heatLevel
-	) {
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
 		if (not anyFeatureEnabled) return;
 
-		heatTimerEnabled.SetToHeatState(isRacing, heatLevel);
+		heatTimerEnabled.SetToHeatState(state);
 
-		chaserHeatChange    .SetToHeatState(isRacing, heatLevel);
-		supportHeatChange   .SetToHeatState(isRacing, heatLevel);
-		helicopterHeatChange.SetToHeatState(isRacing, heatLevel);
+		chaserHeatChange    .SetToHeatState(state);
+		supportHeatChange   .SetToHeatState(state);
+		helicopterHeatChange.SetToHeatState(state);
 
-		roadblockHeatChange.SetToHeatState(isRacing, heatLevel);
-		spikesHeatChange   .SetToHeatState(isRacing, heatLevel);
+		roadblockHeatChange.SetToHeatState(state);
+		spikesHeatChange   .SetToHeatState(state);
 
-		heatInteractions.SetToHeatState(isRacing, heatLevel);
+		heatInteractions.SetToHeatState(state);
 
-		trafficHitHeatChange.SetToHeatState(isRacing, heatLevel);
+		trafficHitHeatChange.SetToHeatState(state);
 
-		propertyHeatChange.SetToHeatState(isRacing, heatLevel);
+		propertyHeatChange.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 			LogHeatStateReport();
