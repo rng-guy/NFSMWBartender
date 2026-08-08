@@ -101,9 +101,11 @@ namespace MemoryTools
 			DWORD previousSetting = PAGE_READONLY; // arbitrary
 			void* memoryLocation  = AsPointer<void>(target);
 
-			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE,  &previousSetting);
+			VirtualProtect(memoryLocation, numBytes, PAGE_EXECUTE_READWRITE, &previousSetting);
 			std::memcpy   (memoryLocation, &data,    numBytes);
-			VirtualProtect(memoryLocation, numBytes, previousSetting, &previousSetting);
+			VirtualProtect(memoryLocation, numBytes, previousSetting,        &previousSetting);
+
+			FlushInstructionCache(GetCurrentProcess(), memoryLocation, numBytes);
 		}
 	}
 
@@ -126,9 +128,11 @@ namespace MemoryTools
 			DWORD previousSetting = PAGE_READONLY; // arbitrary
 			void* memoryLocation  = AsPointer<void>(start);
 
-			VirtualProtect(memoryLocation, numBytes, PAGE_READWRITE, &previousSetting);
+			VirtualProtect(memoryLocation, numBytes, PAGE_EXECUTE_READWRITE, &previousSetting);
 			std::memset   (memoryLocation, value,    numBytes);
-			VirtualProtect(memoryLocation, numBytes, previousSetting, &previousSetting);
+			VirtualProtect(memoryLocation, numBytes, previousSetting,        &previousSetting);
+
+			FlushInstructionCache(GetCurrentProcess(), memoryLocation, numBytes);
 		}
 
 
@@ -169,6 +173,7 @@ namespace MemoryTools
 	inline void WriteToRange(const byte value)
 	{
 		static_assert(end > start, "Invalid or empty range");
+
 		Details::WriteToRange(value, start, end);
 	}
 
@@ -178,6 +183,7 @@ namespace MemoryTools
 	inline void MakeRangeNOP()
 	{
 		static_assert(end > start, "Invalid or empty range");
+
 		Details::MakeRangeNOP(start, end);
 	}
 
@@ -187,6 +193,7 @@ namespace MemoryTools
 	inline void MakeRangeJMP(const address target)
 	{
 		static_assert(end >= start + sizeof(byte) + sizeof(ptrdiff_t), "Cannot accommodate JMP");
+
 		Details::MakeRangeJMP(start, end, target);
 	}
 
@@ -211,10 +218,11 @@ namespace MemoryTools
 	) {
 		const byte opcode = AsReference<byte>(callSite);
 
-		if (opcode != 0xE8) // call near, relative
+		if (opcode != 0xE8) // not call (near, relative)
 		{
 			MessageBoxA(NULL, "Invalid hooking target. Contact the mod author.", "Fatal hooking error", MB_ICONERROR);
-			TerminateProcess(GetCurrentProcess(), 1); // hooking failed; terminate process for safety
+
+			TerminateProcess(GetCurrentProcess(), 1); // if this ever happens, the mod is broken and very likely to crash anyway
 		}
 
 		const address callOffset      = callSite   + sizeof(byte);
