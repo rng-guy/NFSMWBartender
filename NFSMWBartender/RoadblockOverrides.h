@@ -178,6 +178,8 @@ namespace RoadblockOverrides
 	int  spikeLane = 0;
 
 	// Logging
+	address roadblockPursuit = 0x0;
+
 	constinit SetupCounter counter;
 
 
@@ -198,7 +200,7 @@ namespace RoadblockOverrides
 				const auto CallOutSpikes = AsFunction<void __cdecl (int)>(0x71DAC0);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<1>("[RBL] Spikes callout");
+					Globals::logger.Log(roadblockPursuit, "[RBL] Spikes callout");
 
 				CallOutSpikes(spikeLane);
 			}
@@ -207,13 +209,13 @@ namespace RoadblockOverrides
 				const auto CallOutRegular = AsFunction<void ()>(0x71DAA0);
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<1>("[RBL] Regular callout");
+					Globals::logger.Log(roadblockPursuit, "[RBL] Regular callout");
 
 				CallOutRegular();
 			}
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<1>("[RBL] No callout");
+			Globals::logger.Log(roadblockPursuit, "[RBL] No callout");
 	}
 
 
@@ -232,7 +234,8 @@ namespace RoadblockOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log<1>("[RBL] Roadblock request", (needsSpikes) ? "(spikes)" : "(regular)");
+			Globals::logger.Log(roadblockPursuit, "[RBL] Roadblock request", (needsSpikes) ? "(spikes)" : "(regular)");
+
 			Globals::logger.Log<2>("Max. cars:",  DecFormat(maxNumCars));
 			Globals::logger.Log<2>("Road width:", roadWidth);
 		}
@@ -316,6 +319,25 @@ namespace RoadblockOverrides
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+
+	constexpr address pursuitEntrance = 0x43DD4F;
+	constexpr address pursuitExit     = 0x43DD56;
+
+	// Saves the roadblock pursuit for logging purposes
+	__declspec(naked) void Pursuit()
+	{
+		__asm
+		{
+			// Execute original code first
+			mov ecx, dword ptr [esp + 0x4BC]
+
+			mov dword ptr [roadblockPursuit], ecx
+
+			jmp dword ptr [pursuitExit]
+		}
+	}
+
+
 
 	constexpr address spikeLaneEntrance = 0x43E574;
 	constexpr address spikeLaneExit     = 0x43E57B;
@@ -655,6 +677,10 @@ namespace RoadblockOverrides
 		MemoryTools::MakeRangeJMP<spikeLaneEntrance,    spikeLaneExit>   (SpikeLane);
 		MemoryTools::MakeRangeJMP<radioRequestEntrance, radioRequestExit>(RadioRequest);
 		MemoryTools::MakeRangeJMP<spawnFailureEntrance, spawnFailureExit>(SpawnFailure);
+
+		// Code changes (logging)
+		if constexpr (Globals::loggingEnabled)
+			MemoryTools::MakeRangeJMP<pursuitEntrance, pursuitExit>(Pursuit);
 
 		// Status flag
 		anyFeatureEnabled = true;

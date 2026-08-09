@@ -23,14 +23,20 @@ namespace ConfigParser
 
 	namespace Concepts
 	{
-		template <typename T>
-		concept IsPureArithmetic = StreamParser::Concepts::IsPureArithmetic<T>; // templated to suppress transient includes
+		template <typename V>
+		concept IsPureArithmetic = StreamParser::Concepts::IsPureArithmetic<V>; // templated to suppress transient includes
 		
 		template <typename V>
 		concept IsBoundsCompatible = (IsPureArithmetic<V> and (not std::same_as<V, bool>));
 
-		using StreamParser::Concepts::AreParseable;
-		using StreamParser::Concepts::AreSectionParseable;
+
+		using StreamParser::Concepts::AreNonAllocating;
+
+		template <typename ...Vs>
+		concept AreParseable = (StreamParser::Concepts::AreParseable<Vs...> and AreNonAllocating<Vs...>);
+
+		template <typename K, typename ...Vs>
+		concept AreSectionParseable = (StreamParser::Concepts::AreSectionParseable<K, Vs...> and AreNonAllocating<Vs...>);
 	}
 
 	
@@ -245,7 +251,7 @@ namespace ConfigParser
 		(
 			const std::string_view    section,
 			const std::string_view    key,
-			Parameter<Vs>&&        ...parameters
+			const Parameter<Vs>    ...parameters
 		) 
 			const
 		{
@@ -265,7 +271,7 @@ namespace ConfigParser
 			const std::string_view              defaultKey,
 			const std::format_string<size_t>    keyFormat,
 			const size_t                        keyStartIndex,
-			Format<Vs, numRows>&&            ...parameters
+			Format<Vs, numRows>              ...parameters
 		) 
 			const 
 		{
@@ -314,7 +320,7 @@ namespace ConfigParser
 		(
 			const std::string_view    section,
 			std::vector<K>&           keys,
-			User<Vs>&&             ...parameters
+			const User <Vs>        ...parameters
 		) 
 			const
 		{

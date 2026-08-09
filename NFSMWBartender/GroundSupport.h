@@ -550,7 +550,7 @@ namespace GroundSuppport
 	constexpr address priorityOutcomeEntrance = 0x419770;
 	constexpr address priorityOutcomeExit     = 0x419776;
 
-	// Reports the outcome of LeaderStrategy priority
+	// Reports the outcome of LeaderStrategy priority for logging purposes
 	__declspec(naked) void PriorityOutcome()
 	{
 		__asm
@@ -886,10 +886,6 @@ namespace GroundSuppport
 		// Check and make vehicle names persistent
 		ResolveAllVehicleNames();
 
-		// Code modifications (conditional)
-		if constexpr (Globals::loggingEnabled)
-			MemoryTools::MakeRangeJMP<priorityOutcomeEntrance, priorityOutcomeExit>(PriorityOutcome);
-
 		// Code modifications (geneal)
 		MemoryTools::Write<float*>(&(maxRBJoinDistance.current),       {0x42BEBC});
 		MemoryTools::Write<float*>(&(maxRBJoinElevationDelta.current), {0x42BE3A});
@@ -913,6 +909,10 @@ namespace GroundSuppport
 		MemoryTools::MakeRangeJMP<spikesHitReactionEntrance,  spikesHitReactionExit> (SpikesHitReaction);
 		MemoryTools::MakeRangeJMP<roadblockFormationEntrance, roadblockFormationExit>(RoadblockFormation);
 		MemoryTools::MakeRangeJMP<roadblockJoinTimerEntrance, roadblockJoinTimerExit>(RoadblockJoinTimer);
+
+		// Code modifications (logging)
+		if constexpr (Globals::loggingEnabled)
+			MemoryTools::MakeRangeJMP<priorityOutcomeEntrance, priorityOutcomeExit>(PriorityOutcome);
 
 		// Status flag
 		anyFeatureEnabled = true;

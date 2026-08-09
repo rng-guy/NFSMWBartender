@@ -4,7 +4,6 @@
 #include <tuple>
 #include <limits>
 #include <format>
-#include <utility>
 #include <optional>
 #include <concepts>
 #include <algorithm>
@@ -622,9 +621,7 @@ namespace HeatParameters
 			const std::string_view    section,
 			HeatParameters&        ...parameters
 		) {
-			auto formats = std::tuple_cat(CreateFormatTuple(forRaces, parameters)...);
-
-			return [&]<size_t ...formatIDs>(std::index_sequence<formatIDs...>) -> HeatLevelArray<bool>
+			return std::apply([&](auto&& ...formats) -> HeatLevelArray<bool>
 			{
 				return parser.ParseFormat<maxHeatLevel>
 				(
@@ -632,10 +629,10 @@ namespace HeatParameters
 					configDefaultKey,
 					(forRaces) ? configFormatRace : configFormatRoam,
 					configFormatStart,
-					std::move(std::get<formatIDs>(formats))...
+					formats...
 				);
-			}
-			(std::make_index_sequence<std::tuple_size_v<decltype(formats)>>());
+			},
+			std::tuple_cat(CreateFormatTuple(forRaces, parameters)...));
 		}
 
 

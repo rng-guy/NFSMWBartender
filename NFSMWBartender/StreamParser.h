@@ -469,17 +469,13 @@ namespace StreamParser
 			keys.reserve(keys.size() + section.size());
 			(..., values.reserve(values.size() + section.size()));
 
-			constexpr size_t numColumns = sizeof...(Vs);
-
-			[&]<size_t ...columnIDs>(std::index_sequence<columnIDs...>)
+			std::apply([&](auto&& ...candidates) -> void
 			{
-				std::tuple<Vs...> candidates;
-
 				for (const auto& [key, strings] : section)
 				{
-					if (not ParseFromStrings<std::string, Vs...>(strings, std::get<columnIDs>(candidates)...)) continue;
+					if (not ParseFromStrings<std::string, Vs...>(strings, candidates...)) continue;
 
-					(..., values.push_back(std::move(std::get<columnIDs>(candidates))));
+					(..., values.push_back(std::move(candidates))); // safe, as all parsed
 
 					if constexpr (Concepts::IsLegacyString<K>)
 						keys.push_back(key.c_str());
@@ -489,8 +485,8 @@ namespace StreamParser
 
 					++numReads;
 				}
-			}
-			(std::make_index_sequence<numColumns>());
+			}, 
+			std::tuple<Vs...>());
 
 			return numReads;
 		}
