@@ -38,7 +38,7 @@ namespace RoadblockOverrides
 		float orientation = 0.f; // full rotations
 	};
 
-	static_assert(sizeof(RBPart) == 16, "Part size mismatch");
+	static_assert(sizeof(RBPart) == 16, "Part-size mismatch");
 
 
 
@@ -55,7 +55,7 @@ namespace RoadblockOverrides
 		RBPart parts[maxNumParts]; // default-initialised
 	};
 
-	static_assert(sizeof(RBTable) == 104, "Table size mismatch");
+	static_assert(sizeof(RBTable) == 104, "Table-size mismatch");
 
 
 
@@ -80,7 +80,7 @@ namespace RoadblockOverrides
 
 	// Methods
 
-		[[nodiscard]] bool IsCurrentlyAvailable() const
+		[[nodiscard]] bool IsAvailable() const
 		{
 			return (this->chance.current > 0);
 		}
@@ -186,6 +186,10 @@ namespace RoadblockOverrides
 
 	bool anyFeatureEnabled = false;
 
+	// Aliases
+	template <typename T>
+	using PartArray = std::array<T, maxNumParts>;
+
 	// Heat parameters
 	constinit HeatParameters::Value<float> spawnCalloutChances(100.f, {0.f, 100.f}); // percent
 	constinit HeatParameters::Value<float> spikeCalloutChances(50.f,  {0.f, 100.f}); // percent
@@ -254,7 +258,7 @@ namespace RoadblockOverrides
 
 		for (const RBSetup& setup : roadblockSetups)
 		{
-			if (not setup.IsCurrentlyAvailable())          continue;
+			if (not setup.IsAvailable())                   continue;
 			if (not setup.IsCompatbleRoadWidth(roadWidth)) continue;
 
 			if (not setup.IsCompatibleCarCount(maxNumCarsRequired))
@@ -289,7 +293,7 @@ namespace RoadblockOverrides
 		{
 			if (setup.hasSpikes != needsSpikes) continue;
 
-			if (not setup.IsCurrentlyAvailable())           continue;
+			if (not setup.IsAvailable())                    continue;
 			if (not setup.IsCompatbleRoadWidth(roadWidth))  continue;
 			if (not setup.IsCompatibleCarCount(maxNumCars)) continue;
 
@@ -503,7 +507,7 @@ namespace RoadblockOverrides
 		RBTable& table = setup.original;
 
 		// Parse and validate width values
-		if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {0.f}}, {setup.maxRoadWidth, {0.f}}))
+		if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {.001f}}, {setup.maxRoadWidth, {0.f}}))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::logger.Log<3>('-', setup.name, "(no extent)");
@@ -520,12 +524,12 @@ namespace RoadblockOverrides
 		}
 
 		// Parse roadblock-part parameters
-		std::array<int,   maxNumParts> partTypeIDs  = {};
-		std::array<float, maxNumParts> partOffsetsX = {};
-		std::array<float, maxNumParts> partOffsetsY = {};
-		std::array<float, maxNumParts> orientations = {};
+		PartArray<int>   partTypeIDs  = {};
+		PartArray<float> partOffsetsX = {};
+		PartArray<float> partOffsetsY = {};
+		PartArray<float> orientations = {};
 
-		const auto isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
+		const PartArray<bool> isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
 		(
 			section,
 			{}, // no "default" value(s)
@@ -565,7 +569,7 @@ namespace RoadblockOverrides
 			orientations[partID] -= std::trunc(orientations[partID]);
 
 			if (orientations[partID] < 0.f)
-				orientations[partID] += 1.f;
+				orientations[partID] += 1.f; // full rotation
 
 			// Update part parameters
 			table.parts[numValidParts++] =
@@ -764,7 +768,7 @@ namespace RoadblockOverrides
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (setup.IsCurrentlyAvailable())
+				if (setup.IsAvailable())
 					counter.CountSetup(setup);
 			}
 		}

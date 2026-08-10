@@ -685,7 +685,7 @@ namespace HeatParameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
-			const auto isEnableds = Details::ParseHeatLevelArray<HeatParameters...>(forRaces, parser, section, parameters...);
+			const HeatLevelArray<bool> isEnableds = Details::ParseHeatLevelArray<HeatParameters...>(forRaces, parser, section, parameters...);
 
 			if constexpr (Details::AreOptional<HeatParameters...>)
 				(..., (parameters.isEnabled.GetHeatLevelArray(forRaces) = isEnableds));
