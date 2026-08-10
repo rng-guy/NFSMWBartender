@@ -80,6 +80,30 @@ namespace RoadblockOverrides
 
 	// Methods
 
+		[[nodiscard]] bool IsCurrentlyAvailable() const
+		{
+			return (this->chance.current > 0);
+		}
+
+
+		[[nodiscard]] bool IsCompatbleRoadWidth(const float roadWidth) const
+		{
+			return ((roadWidth >= this->original.minRoadWidth) and (roadWidth < this->maxRoadWidth)); // same as mirrored
+		}
+
+
+		[[nodiscard]] size_t GetNumCarsRequired() const
+		{
+			return this->original.numCarsRequired; // same as mirrored
+		}
+
+
+		[[nodiscard]] bool IsCompatibleCarCount(const size_t maxNumCars) const
+		{
+			return (this->GetNumCarsRequired() <= maxNumCars);
+		}
+
+
 		[[nodiscard]] const RBTable& GetRandomTable() const
 		{
 			const bool isMirrored = Globals::prng.DoPercentTrial<float>(this->mirrorChance);
@@ -224,6 +248,24 @@ namespace RoadblockOverrides
 
 	// Replacement functions ------------------------------------------------------------------------------------------------------------------------
 
+	[[nodiscard]] size_t __stdcall GetMaxNumCarsRequired(const float roadWidth)
+	{
+		size_t maxNumCarsRequired = 0;
+
+		for (const RBSetup& setup : roadblockSetups)
+		{
+			if (not setup.IsCurrentlyAvailable())          continue;
+			if (not setup.IsCompatbleRoadWidth(roadWidth)) continue;
+
+			if (not setup.IsCompatibleCarCount(maxNumCarsRequired))
+				maxNumCarsRequired = setup.GetNumCarsRequired();
+		}
+
+		return maxNumCarsRequired;
+	}
+
+
+
 	[[nodiscard]] const RBTable* __cdecl SelectRoadblockTable
 	(
 		const float  roadWidth, 
@@ -240,78 +282,56 @@ namespace RoadblockOverrides
 			Globals::logger.Log<2>("Road width:", roadWidth);
 		}
 
-		// Find eligible setups with both the new and the vanilla method
-		int            totalChance   = 0;
-		const RBSetup* vanillaResult = nullptr;
+		// Find eligible setups
+		int totalChance = 0;
 
 		for (const RBSetup& setup : roadblockSetups)
 		{
-			if (setup.chance.current < 1)       continue;
 			if (setup.hasSpikes != needsSpikes) continue;
 
-			const RBTable& table = setup.original; // same constraints as mirrored
+			if (not setup.IsCurrentlyAvailable())           continue;
+			if (not setup.IsCompatbleRoadWidth(roadWidth))  continue;
+			if (not setup.IsCompatibleCarCount(maxNumCars)) continue;
 
-			if (table.minRoadWidth    > roadWidth)  continue;
-			if (table.numCarsRequired > maxNumCars) continue;
+			totalChance += setup.chance.current;
+			candidates.push_back(&setup);
+		}
 
-			if (setup.maxRoadWidth > roadWidth)
-			{
-				totalChance += setup.chance.current;
-				candidates.push_back(&setup);
-			}
+		// Check setup count
+		if (candidates.empty())
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::logger.Log<2>("No candidate(s)");
+
+			return nullptr; // no viable setup(s)
+		}
+
+		// Select a random eligible setup
+		int       cumulativeChance = 0;
+		const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, totalChance);
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log<2>(DecFormat(candidates.size()), "candidate(s)");
+
+		for (const RBSetup* const setup : candidates)
+		{
+			cumulativeChance += setup->chance.current;
+			if (cumulativeChance < chanceThreshold) continue;
 			
-			// The vanilla method picks the widest setup that fits the road, ignoring ties
-			if ((not vanillaResult) or (table.minRoadWidth > vanillaResult->original.minRoadWidth))
-				vanillaResult = &setup;
-		}
-
-		// Attempt to select a random eligible setup
-		if (not candidates.empty())
-		{
-			int       cumulativeChance = 0;
-			const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, totalChance);
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>(DecFormat(candidates.size()), "candidate(s)");
-
-			for (const RBSetup* const setup : candidates)
-			{
-				cumulativeChance += setup->chance.current;
-
-				if (cumulativeChance >= chanceThreshold)
-				{
-					const auto table = &(setup->GetRandomTable());
-					maxStretchScale  = setup->GetMaxStretchScale();
+			const auto* const table = &(setup->GetRandomTable());
+			maxStretchScale         = setup->GetMaxStretchScale();
 					
-					candidates.clear(); // safe due to immediate return
+			candidates.clear(); // safe due to immediate return
 
-					return table; // use random table
-				}
-			}
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [RBL] Failed to select roadblock setup");
-
-			candidates.clear();
+			return table; // use random table
 		}
-		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("No candidate(s)");
 
-		// Fall back to vanilla result (if available)
-		if (vanillaResult)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Best width:", vanillaResult->original.minRoadWidth);
+		if constexpr (Globals::loggingEnabled)
+			Globals::logger.Log("WARNING: [RBL] Failed to select roadblock setup");
 
-			const auto table = &(vanillaResult->GetRandomTable());
-			maxStretchScale  = vanillaResult->GetMaxStretchScale();
-
-			return table; // use vanilla result
-		}
-		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("No best fit");
-
-		return nullptr;
+		candidates.clear();
+		
+		return nullptr; // should never happen
 	}
 
 
@@ -371,6 +391,26 @@ namespace RoadblockOverrides
 			mov dword ptr [esp + 0x2C], eax
 
 			jmp dword ptr [scaleLimitExit]
+		}
+	}
+
+
+
+	constexpr address maxCarCountEntrance = 0x43DF2A;
+	constexpr address maxCarCountExit     = 0x43DF8A;
+
+	// Fetches the maximum car count among eligible setups
+	__declspec(naked) void MaxCarCount()
+	{
+		__asm
+		{
+			fstp dword ptr [esp + 0x14]
+
+			push dword ptr [esp + 0x14]
+			call GetMaxNumCarsRequired
+			mov esi, eax
+
+			jmp dword ptr [maxCarCountExit]
 		}
 	}
 
@@ -630,6 +670,7 @@ namespace RoadblockOverrides
 			if (not roadblockSetups.empty())
 			{
 				Globals::logger.Log<3>(DecFormat(roadblockSetups.size()), "setup(s) valid");
+
 				Globals::logger.Log<3>(DecFormat(counter.numRegular), "regular,", DecFormat(counter.numMirrorRegular), "mirrored");
 				Globals::logger.Log<3>(DecFormat(counter.numSpike),   "spikes, ", DecFormat(counter.numMirrorSpike),   "mirrored");
 
@@ -665,9 +706,12 @@ namespace RoadblockOverrides
 			// Code changes (conditional)
 			MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
 
+			MemoryTools::MakeRangeNOP<0x43E146, 0x43E14F>(); // strict cop-count check
+
 			MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable); // replaces game function
 
-			MemoryTools::MakeRangeJMP<scaleLimitEntrance, scaleLimitExit>(ScaleLimit);
+			MemoryTools::MakeRangeJMP<scaleLimitEntrance,  scaleLimitExit> (ScaleLimit);
+			MemoryTools::MakeRangeJMP<maxCarCountEntrance, maxCarCountExit>(MaxCarCount);
 		}
 
 		// Code Changes (general)
@@ -720,7 +764,7 @@ namespace RoadblockOverrides
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (setup.chance.current > 0)
+				if (setup.IsCurrentlyAvailable())
 					counter.CountSetup(setup);
 			}
 		}
