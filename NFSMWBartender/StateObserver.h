@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <cstdint>
+#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -25,6 +26,10 @@ namespace StateObserver
 
 	bool anyFeatureEnabled = false;
 
+	// Logging
+	constexpr LogLiteral logTag  = "[STA]";
+	constexpr LogLiteral logName = "StateObserver";
+
 	// Code caves
 	size_t playerHeatLevel = 0;
 	bool   playerIsRacing  = false;
@@ -37,10 +42,15 @@ namespace StateObserver
 
 	void ProcessHeatStateUpdate()
 	{
-		const HeatParameters::HeatState state(playerIsRacing, playerHeatLevel);
+		const HeatParameters::HeatState state(playerIsRacing, HeatParameters::ClampHeatLevel(playerHeatLevel));
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("    HEAT [STA] Heat level now", DecFormat(state.level), (playerIsRacing) ? "(race)" : "(roam)");
+		{
+			if (state.level != playerHeatLevel)
+				Globals::LogError(logTag, "Heat level", DecFormat(playerHeatLevel), "out of range");
+
+			Globals::LogHeat(logTag, "Heat level now", DecFormat(state.level), (playerIsRacing) ? "(race)" : "(roam)");
+		}
 
 		// Update Heat-level flag
 		Globals::playerHeatLevelKnown = true;
@@ -145,7 +155,7 @@ namespace StateObserver
 		if (pursuit) // may not be cop's pursuit (vanilla behaviour)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[STA]", copVehicle, "assaults:", DecFormat(numCopAssaulted));
+				Globals::LogFull(pursuit, logTag, copVehicle, "assaults:", DecFormat(numCopAssaulted));
 
 			ProcessAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
 		}
@@ -170,14 +180,14 @@ namespace StateObserver
 			numTicksOnPaused = Globals::numGameTicks;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<1>("[STA] Game paused");
+				Globals::LogTagged(logTag, "Game paused");
 		}
 		else if (oldStateID == 4) // unpaused
 		{
 			Globals::numPausedTicks += Globals::numGameTicks - numTicksOnPaused;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<1>("[STA] Game unpaused");
+				Globals::LogTagged(logTag, "Game unpaused");
 		}
 	}
 

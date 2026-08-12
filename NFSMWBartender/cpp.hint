@@ -1,0 +1,11 @@
+#define HEAT_PARAMETER_VALUE(type, name, ...)
+#define OPTIONAL_HEAT_PARAMETER_VALUE(type, name, ...)
+
+#define HEAT_PARAMETER_POINTER(type, name)
+#define OPTIONAL_HEAT_PARAMETER_POINTER(type, name)
+
+#define HEAT_PARAMETER_INTERVAL(type, name, ...)
+#define OPTIONAL_HEAT_PARAMETER_INTERVAL(type, name, ...)
+
+#define DEFAULT_VAULT_MAP(type, name, value)
+#define DEFAULT_Address_MAP(type, name, value)

@@ -213,12 +213,14 @@ namespace StreamParser
 		if (source == "true")
 		{
 			value = true;
+
 			return true;
 		}
 
 		if (source == "false")
 		{
 			value = false;
+
 			return true;
 		}
 
@@ -237,6 +239,7 @@ namespace StreamParser
 		noexcept(Concepts::AreNonAllocating<V>)
 	{
 		value = source;
+
 		return true;
 	}
 
@@ -249,6 +252,7 @@ namespace StreamParser
 		noexcept
 	{
 		value = source.c_str();
+
 		return true;
 	}
 
@@ -261,6 +265,7 @@ namespace StreamParser
 		noexcept
 	{
 		value = source;
+
 		return true;
 	}
 
@@ -349,7 +354,7 @@ namespace StreamParser
 
 	public: // methods
 
-		constexpr Parser() = default;
+		constexpr Parser() noexcept = default;
 
 
 		// Invalidates retrieved const char* and string_view
@@ -412,7 +417,7 @@ namespace StreamParser
 		}
 
 
-		Parser
+		explicit Parser
 		(
 			std::istream& fileStream,
 			const size_t  sectionCapacity        = 0,
@@ -480,8 +485,7 @@ namespace StreamParser
 					if constexpr (Concepts::IsLegacyString<K>)
 						keys.push_back(key.c_str());
 
-					else
-						keys.emplace_back(key);
+					else keys.emplace_back(key);
 
 					++numReads;
 				}

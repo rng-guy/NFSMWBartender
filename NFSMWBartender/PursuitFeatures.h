@@ -1,5 +1,6 @@
 #pragma once
 
+#include <span>
 #include <concepts>
 
 #include "Globals.h"
@@ -10,7 +11,17 @@
 
 namespace PursuitFeatures
 {
-	// Reaction class ------------------------------------------------------------------------------------------------------------------------
+	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+
+	// Logging
+	constexpr LogLiteral logTag  = "[PFT]";
+	constexpr LogLiteral logName = "PursuitFeatures";
+
+
+
+
+
+	// Reaction class -------------------------------------------------------------------------------------------------------------------------------
 
 	class Reaction
 	{
@@ -37,8 +48,8 @@ namespace PursuitFeatures
 		explicit Reaction(const address pursuit) : pursuit(pursuit) {}
 
 
-		explicit Reaction(Reaction&&)      = delete;
-		explicit Reaction(const Reaction&) = delete;
+		Reaction(Reaction&&)      = delete;
+		Reaction(const Reaction&) = delete;
 
 		Reaction& operator=(Reaction&&)      = delete;
 		Reaction& operator=(const Reaction&) = delete;
@@ -78,7 +89,7 @@ namespace PursuitFeatures
 
 
 
-	// Searchable class ----------------------------------------------------------------------------------------------------------------------
+	// Searchable class -----------------------------------------------------------------------------------------------------------------------------
 
 	template <class Feature>
 	class Searchable
@@ -107,13 +118,13 @@ namespace PursuitFeatures
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (not isNewInstance)
-					Globals::logger.Log("WARNING: [PFT] Registration failed:", instance);
+					Globals::LogError(logTag, "Registration failed:", instance);
 			}
 		}
 
 
-		explicit Searchable(Searchable&&)      = delete;
-		explicit Searchable(const Searchable&) = delete;
+		Searchable(Searchable&&)      = delete;
+		Searchable(const Searchable&) = delete;
 
 		Searchable& operator=(Searchable&&)      = delete;
 		Searchable& operator=(const Searchable&) = delete;
@@ -127,20 +138,26 @@ namespace PursuitFeatures
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (not wasRegistered)
-					Globals::logger.Log("WARNING: [PFT] Unregistration failed:", instance);
+					Globals::LogError(logTag, "Unregistration failed:", instance);
 			}
 		}
 
 
-		static Feature* FindInstance(const address pursuit)
+		[[nodiscard]] static Feature* FindInstance(const address pursuit)
 		{
 			for (auto* const instance : Searchable::instances)
 				if (instance->GetPursuit() == pursuit) return instance;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PFT] Lookup failed:", pursuit);
+				Globals::LogError(logTag, "Lookup failed:", pursuit);
 
 			return nullptr; // should never happen
+		}
+
+
+		[[nodiscard]] static std::span<Feature* const> GetInstances()
+		{
+			return Searchable::instances;
 		}
 	};
 
@@ -175,24 +192,33 @@ namespace PursuitFeatures
 
 	public: // methods
 
-		void Start()
+		bool Start()
 		{
-			if (not this->isSet)
+			if (this->isSet)
 			{
-				this->isSet          = true;
-				this->startTimestamp = Globals::simulationTime;
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogError(logTag, "Timer already set");
 
-				if (this->isEnabled)
-					this->UpdateLength();
+				return false; // should never happen
 			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [PFT] IntervalTimer already set");
+
+			this->isSet          = true;
+			this->startTimestamp = Globals::simulationTime;
+
+			if (this->isEnabled)
+				this->UpdateLength();
+
+			return true;
 		}
 
 
-		void Stop()
+		bool Stop()
 		{
+			if (not this->isSet) return false;
+
 			this->isSet = false;
+
+			return true;
 		}
 
 
@@ -209,15 +235,13 @@ namespace PursuitFeatures
 			const float maxLength
 		) {
 			this->isEnabled = isEnabled;
+			if (not this->isEnabled) return;
 
-			if (this->isEnabled)
-			{
-				this->minLength = minLength;
-				this->maxLength = maxLength;
+			this->minLength = minLength;
+			this->maxLength = maxLength;
 
-				if (this->isSet)
-					this->UpdateLength();
-			}
+			if (this->isSet)
+				this->UpdateLength();
 		}
 
 
@@ -229,8 +253,10 @@ namespace PursuitFeatures
 
 		void LoadInterval(const HeatParameters::OptionalInterval<float>& optionalInterval)
 		{
-			const bool isEnabled = (optionalInterval.isEnabled.current and Globals::playerHeatLevelKnown);
-			this->UpdateParameters(isEnabled, optionalInterval.interval.min.current, optionalInterval.interval.max.current);
+			const bool  isEnabled = (Globals::playerHeatLevelKnown and optionalInterval.isEnabled.current);
+			const auto& interval  = optionalInterval.interval;
+
+			this->UpdateParameters(isEnabled, interval.min.current, interval.max.current);
 		}
 
 

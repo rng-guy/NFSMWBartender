@@ -20,16 +20,20 @@ namespace StrategyOverrides
 
 	bool anyFeatureEnabled = false;
 
+	// Logging
+	constexpr LogLiteral logTag  = "[STR]";
+	constexpr LogLiteral logName = "StrategyOverrides";
+
 	// Heat parameters
-	constinit HeatParameters::Interval<int> numVehiclesPerHeavy3s(2, 2, {1, 20});
+	constinit HEAT_PARAMETER_INTERVAL(int, numVehiclesPerHeavy3s, 2, 2, {1, 20});
 
-	constinit HeatParameters::OptionalInterval<float> heavy3UnblockDelay({1.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, heavy3UnblockDelay, {1.f}); // seconds
 
-	constinit HeatParameters::OptionalInterval<float> heavy4UnblockDelay({1.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, heavy4UnblockDelay, {1.f}); // seconds
 
-	constinit HeatParameters::OptionalInterval<float> leader5UnblockDelay({1.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, leader5UnblockDelay, {1.f}); // seconds
 
-	constinit HeatParameters::OptionalInterval<float> leader7UnblockDelay({1.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, leader7UnblockDelay, {1.f}); // seconds
 
 	// Code caves
 	constexpr size_t maxNumVehiclesPerHeavy4  = 6; // cars
@@ -61,6 +65,8 @@ namespace StrategyOverrides
 
 		ModContainers::AddressSet vehiclesOfCurrentStrategy;
 
+		inline static constexpr LogLiteral name = "StrategyManager";
+
 
 	private: // methods
 
@@ -69,7 +75,7 @@ namespace StrategyOverrides
 			this->nextHeavy3Count = static_cast<size_t>(numVehiclesPerHeavy3s.GetRandomValue());
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[STR] Next HeavyStrategy 3 count:", DecFormat(this->nextHeavy3Count));
+				Globals::LogFull(this->pursuit, logTag, "Next HeavyStrategy 3 count:", DecFormat(this->nextHeavy3Count));
 		}
 
 
@@ -99,10 +105,9 @@ namespace StrategyOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->unblockTimer.IsIntervalEnabled())
-					Globals::logger.Log(this->pursuit, "[STR] Unblocking in", this->unblockTimer.GetLength());
+					Globals::LogFull(this->pursuit, logTag, "Unblocking in", this->unblockTimer.GetLength());
 
-				else
-					Globals::logger.Log(this->pursuit, "[STR] Strategy blocking fully");
+				else Globals::LogFull(this->pursuit, logTag, "Strategy blocking fully");
 			}
 		}
 
@@ -112,9 +117,22 @@ namespace StrategyOverrides
 			if (not this->unblockTimer.HasExpired()) return;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[STR] Unblocking active Strategy");
+				Globals::LogFull(this->pursuit, logTag, "Unblocking active Strategy");
 
 			Globals::ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
+		}
+
+
+		[[nodiscard]] static bool IsStrategyCop(const CopLabel copLabel)
+		{
+			switch (copLabel)
+			{
+				case CopLabel::HEAVY:
+				case CopLabel::LEADER:
+					return true;
+			}
+
+			return false;
 		}
 
 
@@ -130,14 +148,14 @@ namespace StrategyOverrides
 			this->vehiclesOfCurrentStrategy.reserve(10);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('+', this, "StrategyManager");
+				Globals::LogPlain('+', this, this->name);
 		}
 
 
 		~StrategyManager() override
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('-', this, "StrategyManager");
+				Globals::LogPlain('-', this, this->name);
 		}
 
 
@@ -166,15 +184,18 @@ namespace StrategyOverrides
 		)
 			override
 		{
-			if (not ((copLabel == CopLabel::HEAVY) or (copLabel == CopLabel::LEADER))) return;
+			if (not this->IsStrategyCop(copLabel)) return;
 
-			if (this->unblockTimer.IsSet())
+			if (not this->unblockTimer.IsSet())
 			{
-				this->vehiclesOfCurrentStrategy.insert(copVehicle);
-				this->UpdateNumStrategyVehicles();
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogError(logTag, "New vehicle", copVehicle, "without Strategy in", this->pursuit);
+
+				return; // should never happen
 			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [STR] New vehicle", copVehicle, "without Strategy in", this->pursuit);
+
+			this->vehiclesOfCurrentStrategy.insert(copVehicle);
+			this->UpdateNumStrategyVehicles();
 		}
 
 
@@ -185,16 +206,13 @@ namespace StrategyOverrides
 		)
 			override
 		{
-			if (not ((copLabel == CopLabel::HEAVY) or (copLabel == CopLabel::LEADER))) return;
+			if (not this->IsStrategyCop(copLabel))                     return;
+			if (not this->vehiclesOfCurrentStrategy.erase(copVehicle)) return;
 
-			if (this->vehiclesOfCurrentStrategy.erase(copVehicle))
-			{
-				if (this->vehiclesOfCurrentStrategy.empty())
-					Globals::ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
+			if (this->vehiclesOfCurrentStrategy.empty())
+				Globals::ClearSupportRequest(this->pursuit); // also calls StopUnblockTimer
 
-				else
-					this->UpdateNumStrategyVehicles();
-			}
+			else this->UpdateNumStrategyVehicles();
 		}
 
 
@@ -208,7 +226,7 @@ namespace StrategyOverrides
 			if (not manager->heavyStrategy)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] Invalid HeavyStrategy pointer in", pursuit);
+					Globals::LogError(logTag, "Invalid HeavyStrategy pointer in", pursuit);
 
 				return; // should never happen
 			}
@@ -230,13 +248,13 @@ namespace StrategyOverrides
 				manager->unblockTimer.DisableInterval();
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] HeavyStrategy", strategyID, "in", pursuit);
+					Globals::LogError(logTag, "HeavyStrategy", strategyID, "in", pursuit);
 
 				return; // should never happen
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[STR] Watching HeavyStrategy", strategyID);
+				Globals::LogFull(pursuit, logTag, "Watching HeavyStrategy", strategyID);
 
 			manager->StartUnblockTimer();
 		}
@@ -252,7 +270,7 @@ namespace StrategyOverrides
 			if (not manager->leaderStrategy)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] Invalid LeaderStrategy pointer in", pursuit);
+					Globals::LogError(logTag, "Invalid LeaderStrategy pointer in", pursuit);
 
 				return; // should never happen
 			}
@@ -273,11 +291,11 @@ namespace StrategyOverrides
 				manager->unblockTimer.DisableInterval();
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log("WARNING: [STR] LeaderStrategy", strategyID, "in", pursuit);
+					Globals::LogError(logTag, "LeaderStrategy", strategyID, "in", pursuit);
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[STR] Watching LeaderStrategy", strategyID);
+				Globals::LogFull(pursuit, logTag, "Watching LeaderStrategy", strategyID);
 
 			manager->StartUnblockTimer();
 		}
@@ -291,7 +309,7 @@ namespace StrategyOverrides
 			manager->StopUnblockTimer();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[STR] Active Strategy cleared");
+				Globals::LogFull(pursuit, logTag, "Active Strategy cleared");
 		}
 
 
@@ -619,7 +637,7 @@ namespace StrategyOverrides
 		const size_t numFloatsPerStack = numFloatsPerHeavy3Vector * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5);
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("New stack size:", DecFormat(numFloatsPerStack), "floats");
+			Globals::LogPlain("New stack size:", DecFormat(numFloatsPerStack), "floats");
 
 		vectorStacks.resize(2 * numFloatsPerStack);
 
@@ -636,7 +654,7 @@ namespace StrategyOverrides
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [STR] StrategyOverrides");
+			Globals::LogConfig(logTag, logName);
 
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
@@ -675,7 +693,7 @@ namespace StrategyOverrides
 		MemoryTools::MakeRangeJMP<heavyStrategy4Entrance, heavyStrategy4Exit>(HeavyStrategy4);
 
 		// Code modifications (conditional)
-		if (not GeneralSettings::trackPursuitLength)
+		if (not (GeneralSettings::anyFeatureEnabled and GeneralSettings::trackPursuitLength))
 		{
 			MemoryTools::MakeRangeJMP<minStrategyDelayEntrance,   minStrategyDelayExit>  (MinStrategyDelay);
 			MemoryTools::MakeRangeJMP<minRoadblockDelayEntrance,  minRoadblockDelayExit> (MinRoadblockDelay);
@@ -690,26 +708,12 @@ namespace StrategyOverrides
 
 
 
-	void LogHeatStateReport()
-	{
-		Globals::logger.Log("    HEAT [STR] StrategyOverrides");
-
-		numVehiclesPerHeavy3s.Log("numVehiclesPerHeavy3    ");
-
-		heavy3UnblockDelay.Log("heavy3UnblockDelay      ");
-
-		heavy4UnblockDelay.Log("heavy4UnblockDelay      ");
-
-		leader5UnblockDelay.Log("leader5UnblockDelay     ");
-
-		leader7UnblockDelay.Log("leader7UnblockDelay     ");
-	}
-
-
-
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
 		if (not anyFeatureEnabled) return;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogHeat(logTag, logName);
 
 		numVehiclesPerHeavy3s.SetToHeatState(state);
 
@@ -720,8 +724,5 @@ namespace StrategyOverrides
 		leader5UnblockDelay.SetToHeatState(state);
 
 		leader7UnblockDelay.SetToHeatState(state);
-
-		if constexpr (Globals::loggingEnabled)
-			LogHeatStateReport();
 	}
 }

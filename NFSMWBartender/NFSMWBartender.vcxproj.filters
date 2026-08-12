@@ -54,6 +54,9 @@
     <Filter Include="Headers\Libraries">
       <UniqueIdentifier>{2c5715fe-59ed-45d6-a33a-6e82ff9f79ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Miscellaneous">
+      <UniqueIdentifier>{3e48972a-4f09-4e0e-9ba2-f6ec3a9e66be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -154,6 +157,9 @@
     <ClInclude Include="PersistentStrings.h">
       <Filter>Headers\General</Filter>
     </ClInclude>
+    <ClInclude Include="FormatBuffer.h">
+      <Filter>Headers\Libraries</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BartenderSettings\Basic\General.ini">
@@ -189,9 +195,6 @@
     <None Include="..\BartenderSettings\Advanced\Roadblocks.ini">
       <Filter>Configuration\Advanced</Filter>
     </None>
-    <None Include="..\Editor\Images\Barricade.webp">
-      <Filter>Editor\Images</Filter>
-    </None>
     <None Include="..\Editor\Images\Car.webp">
       <Filter>Editor\Images</Filter>
     </None>
@@ -218,6 +221,12 @@
     </None>
     <None Include="..\BartenderSettings\Basic\Nitrous.ini">
       <Filter>Configuration\Basic</Filter>
+    </None>
+    <None Include="cpp.hint">
+      <Filter>Miscellaneous</Filter>
+    </None>
+    <None Include="..\Editor\Images\Sawhorse.webp">
+      <Filter>Editor\Images</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

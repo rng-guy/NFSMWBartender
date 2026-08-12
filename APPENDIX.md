@@ -181,6 +181,8 @@ Regarding **cosmetic features** ([`BartenderSettings\Basic\Cosmetic.ini`](Barten
 
 Regarding **general features** ([`BartenderSettings\Basic\General.ini`](BartenderSettings/Basic/General.ini)):
 
+* The `pursuitLength` tracking also allows the cops to request VltEd-enabled support in races.
+
 * The `0x1e2a1051` VltEd parameter defines how much passive bounty you gain after each interval.
 
 * The `DestroyCopBonusTime` VltEd parameter defines the time window for combo-bounty streaks.
@@ -214,6 +216,8 @@ Regarding **general features** ([`BartenderSettings\Basic\General.ini`](Bartende
 &nbsp;
 
 Regarding **nitrous features** ([`BartenderSettings\Basic\Nitrous.ini`](BartenderSettings/Basic/Nitrous.ini)):
+
+* With performance tuning, a second of NOS charge may last longer / shorter in real time.
 
 * Both Bartender and the game always respect the charge limits of any installed NOS upgrades.
 
@@ -369,6 +373,8 @@ Regarding **car (de)spawning** ([`BartenderSettings\Advanced\CarSpawns.ini`](Bar
 
 * If you want to use global cop-spawn limits > 8 and / or make "Chasers" / traffic spawns independent of other vehicles, you may also [need](README.md#5---which-mods-does-bartender-depend-on) a mod that replaces the game's car loader. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
 
+* If you enable independent "Chasers" spawns, then Bartender applies the global cop-spawn limit to each pursuit separately instead of globally. With this, the limit only counts and affects spawning decisions for "Chasers"; other vehicles (e.g. roadblocks) can no longer block them.
+
 * Very small spawning clearances for "Chasers" may lead to stacked spawns and congested roads.
 
 * "Chasers" flee only at Heat levels for which you define valid flee-delay values and thresholds. "Chasers" also only flee if they aren't in the current Heat level's "Chasers" spawn table, and if there would be enough active "Chasers" remaining in the pursuit after their retreat.
@@ -391,7 +397,9 @@ Regarding **helicopter (de / re)spawning** ([`BartenderSettings\Advanced\Helicop
 
 * The helicopter can rejoin after losing you only at Heat levels for which you define valid rejoin-delay and minimum-fuel values. The helicopter can only rejoin if it loses you.
 
-* The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay. If the helicopter were to rejoin with less fuel than the required minimum, it counts as having lost you and triggers the appropriate respawn delay instead.
+* The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay. If the helicopter were to rejoin with less fuel than the required minimum, it counts as losing you and triggers the appropriate respawn delay instead.
+
+* If the helicopter loses you in "COOLDOWN" mode, it may not rejoin in response.
 
 * Whether an active helicopter may rejoin a given pursuit is unaffected by Heat transitions, as this is locked in as soon as it (re)spawns. This means a rejoining helicopter can keep rejoining your pursuit until it either gets destroyed or runs out of fuel. Its vehicle is also locked in to ensure it rejoins with the same model and overall properties.
 
@@ -401,7 +409,7 @@ Regarding **helicopter (de / re)spawning** ([`BartenderSettings\Advanced\Helicop
 
 * The helicopter spawns with limited fuel only at Heat levels for which you define valid fuel-time values. Unlimited fuel means you must either lose or destroy the helicopter.
 
-* The helicopter also (re)spawns in "COOLDOWN" mode according to its (re)spawn delays.
+* The helicopter may (re)spawn once in each "COOLDOWN" phase of your pursuits. Whether this is possible depends on the `SearchModeHeliSpawnChance` VltEd parameter: Every time you enter "COOLDOWN" mode, Bartender rolls against this chance; if successful, the helicopter may then (re)spawn once according to its delays. If you enter "COOLDOWN" mode with a helicopter already scheduled to rejoin, it will rejoin regardless of this random roll. After rejoining, the helicopter may then not respawn again in any way until you exit "COOLDOWN" mode.
 
 * The helicopter only ever (re)spawns and rejoins in your pursuits.
 
@@ -463,7 +471,7 @@ Regarding **roadblock behaviour and setups** ([`BartenderSettings\Advanced\Roadb
 
 * If you delete this file or define no valid roadblock setup(s), Bartender disables the custom-roadblock feature. This includes the vanilla setups, because Bartender doesn't differentiate between those and truly custom roadblock setups internally.
 
-* If enabled, the custom-roadblock feature automatically fixes the vanilla issue where the game would never spawn certain roadblock setups. That's because the vanilla doesn't use width intervals to select a setup; instead, it just picks the first setup in its table which uses the available width the most, and ignores any other setups that might be equally suitable (i.e. wide). Since the vanilla game has three spike-strip setups with exactly the same width, two of them will never appear in pursuits under normal conditions.
+* If enabled, the custom-roadblock feature automatically fixes the vanilla issue where the game would spawn certain roadblock setups very rarely. That's because it doesn't use width intervals to select a setup; instead, the game just picks the first setup in its table which uses the available width the most, and ignores any other setups that might be equally suitable (i.e. wide). Since the vanilla game has three spike-strip setups with exactly the same width, two of them will never appear in pursuits under normal conditions.
 
 * Read the usage comments in this file's header before you change any of its contents. It's very easy to screw up roadblock setups or encounter unexpected behaviour if you don't fully understand how the game goes about selecting roadblock setups to spawn.
 
@@ -474,6 +482,8 @@ Regarding **roadblock behaviour and setups** ([`BartenderSettings\Advanced\Roadb
 * You can safely hand-adjust the maximum road width for each roadblock as you see fit. Higher values allow a roadblock to spawn in more locations, but it might not be able to cover the entire road if the maximum width is much greater than its actual width.
 
 * Mirrored roadblock spawns have their part(s) flipped horizontally, adding some variety.
+
+* If you define any valid roadblock setup(s), then Bartender ensures the game cannot end up blocking regular cop spawns should it ever try to fulfil impossible roadblock requests.
 
 * To avoid clipping issues, you shouldn't adjust any roadblock parameters other than the maximum road width, stretching flag, mirror probability, and `chance` values by hand. Vanilla roadblocks use hand-adjusted values, likely because they didn't have an editor.
 

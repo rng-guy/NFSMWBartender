@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <concepts>
-#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -20,46 +19,50 @@ namespace GroundSuppport
 
 	bool anyFeatureEnabled = false;
 
+	// Logging
+	constexpr LogLiteral logTag  = "[SUP]";
+	constexpr LogLiteral logName = "GroundSuppport";
+
 	// Heat parameters
-	constinit HeatParameters::Value<bool> rivalRoadblockEnabled(true);
-	constinit HeatParameters::Value<bool> rivalHeavyEnabled    (true);
-	constinit HeatParameters::Value<bool> rivalLeaderEnabled   (true);
+	constinit HEAT_PARAMETER_VALUE(bool, rivalRoadblockEnabled, true);
+	constinit HEAT_PARAMETER_VALUE(bool, rivalHeavyEnabled,     true);
+	constinit HEAT_PARAMETER_VALUE(bool, rivalLeaderEnabled,    true);
 
-	constinit HeatParameters::Interval<float> roadblockCooldown     (8.f,  12.f, {1.f}); // seconds
-	constinit HeatParameters::Value   <float> roadblockHeavyCooldown(15.f, {1.f});       // seconds
+	constinit HEAT_PARAMETER_INTERVAL(float, roadblockCooldown,      8.f,  12.f, {1.f}); // seconds
+	constinit HEAT_PARAMETER_VALUE   (float, roadblockHeavyCooldown, 15.f,       {1.f}); // seconds
 
-	constinit HeatParameters::Interval<float> roadblockSpawnDistance(250.f, 250.f, {0.f, 400.f}); // metres
+	constinit HEAT_PARAMETER_INTERVAL(float, roadblockSpawnDistance, 250.f, 250.f, {0.f, 400.f}); // metres
 
-	constinit HeatParameters::Value<bool> roadblockEndsFormation(true);
+	constinit HEAT_PARAMETER_VALUE(bool, roadblockEndsFormation, true);
 
-	constinit HeatParameters::OptionalValue<float> regularRBJoinTimer({0.f}); // seconds
-	constinit HeatParameters::OptionalValue<float> backupRBJoinTimer ({0.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, regularRBJoinTimer, {0.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, backupRBJoinTimer,  {0.f}); // seconds
 
-	constinit HeatParameters::Value<bool> reactToCooldownMode(true);
-	constinit HeatParameters::Value<bool> reactToSpikesHit   (true);
+	constinit HEAT_PARAMETER_VALUE(bool, reactToCooldownMode, true);
+	constinit HEAT_PARAMETER_VALUE(bool, reactToSpikesHit,    true);
 
-	constinit HeatParameters::Value<float> maxRBJoinDistance      (500.f, {0.f}); // metres
-	constinit HeatParameters::Value<float> maxRBJoinElevationDelta(1.5f,  {0.f}); // metres
-	constinit HeatParameters::Value<int>   maxRBJoinCount         (1,     {0});   // cars
+	constinit HEAT_PARAMETER_VALUE(float, maxRBJoinDistance,       500.f, {0.f}); // metres
+	constinit HEAT_PARAMETER_VALUE(float, maxRBJoinElevationDelta, 1.5f,  {0.f}); // metres
+	constinit HEAT_PARAMETER_VALUE(int,   maxRBJoinCount,          1,     {0});   // cars
 
-	constinit HeatParameters::Interval<float> strategyCooldown(10.f, 10.f, {1.f}); // seconds
+	constinit HEAT_PARAMETER_INTERVAL(float, strategyCooldown, 10.f, 10.f, {1.f}); // seconds
 
-	constinit HeatParameters::Value<float> heavy3SpeedLimit(100.f, {0.f}); // kph
+	constinit HEAT_PARAMETER_VALUE(float, heavy3SpeedLimit, 100.f, {0.f}); // kph
 
-	constinit HeatParameters::Value<bool> heavy3TriggerCooldown(true);
-	constinit HeatParameters::Value<bool> heavy3AreBlockable   (true);
+	constinit HEAT_PARAMETER_VALUE(bool, heavy3TriggerCooldown, true);
+	constinit HEAT_PARAMETER_VALUE(bool, heavy3AreBlockable,    true);
 
-	constinit HeatParameters::Value<const char*> heavy3LightVehicle("copsuvl");
-	constinit HeatParameters::Value<const char*> heavy3HeavyVehicle("copsuv");
+	constinit HEAT_PARAMETER_VALUE(const char*, heavy3LightVehicle, "copsuvl");
+	constinit HEAT_PARAMETER_VALUE(const char*, heavy3HeavyVehicle, "copsuv");
 
-	constinit HeatParameters::Value<const char*> heavy4LightVehicle("copsuvl");
-	constinit HeatParameters::Value<const char*> heavy4HeavyVehicle("copsuv");
+	constinit HEAT_PARAMETER_VALUE(const char*, heavy4LightVehicle, "copsuvl");
+	constinit HEAT_PARAMETER_VALUE(const char*, heavy4HeavyVehicle, "copsuv");
 
-	constinit HeatParameters::Value<const char*> leader5CrossVehicle("copcross");
+	constinit HEAT_PARAMETER_VALUE(const char*, leader5CrossVehicle ,"copcross");
 
-	constinit HeatParameters::Value<const char*> leader7CrossVehicle ("copcross");
-	constinit HeatParameters::Value<const char*> leader7Hench1Vehicle("copsporthench");
-	constinit HeatParameters::Value<const char*> leader7Hench2Vehicle("copsporthench");
+	constinit HEAT_PARAMETER_VALUE(const char*, leader7CrossVehicle,  "copcross");
+	constinit HEAT_PARAMETER_VALUE(const char*, leader7Hench1Vehicle, "copsporthench");
+	constinit HEAT_PARAMETER_VALUE(const char*, leader7Hench2Vehicle, "copsporthench");
 
 	// Conversions
 	float rammingSpeedLimit = heavy3SpeedLimit.current / 3.6f; // metres / second
@@ -137,17 +140,15 @@ namespace GroundSuppport
 		const address leaderStrategy
 	) {
 		const int crossFlag = AsReference<int>(pursuit + 0x164);
+		if (crossFlag != 0) return false; // active or blocked
 
-		if (crossFlag == 0)
+		const int strategyID = AsReference<int>(leaderStrategy);
+
+		switch (strategyID)
 		{
-			const int strategyID = AsReference<int>(leaderStrategy);
-
-			switch (strategyID)
-			{
-			case 5: // Cross only
-			case 7: // Cross with henchmen
-				return true;
-			}
+		case 5: // Cross only
+		case 7: // Cross with henchmen
+			return true;
 		}
 
 		return false;
@@ -162,7 +163,7 @@ namespace GroundSuppport
 			const address leaderStrategy = AsReference<address>(pursuit + 0x198);
 			const int     strategyID     = AsReference<int>    (leaderStrategy);
 
-			Globals::logger.Log(pursuit, "[SUP] Priority: LeaderStrategy", strategyID);
+			Globals::LogFull(pursuit, logTag, "Priority: LeaderStrategy", strategyID);
 		}
 	}
 
@@ -210,16 +211,19 @@ namespace GroundSuppport
 		AsReference<float>(pursuit + 0x208) = duration; // strategy duration
 		AsReference<int>  (pursuit + 0x20C) = 1;        // request flag
 
-		if (isHeavyStrategy)
+		if (not isHeavyStrategy)
 		{
-			const int strategyID = AsReference<int>(strategy);
+			AsReference<address>(pursuit + 0x198) = strategy;
 
-			if ((strategyID != 3) or heavy3TriggerCooldown.current)
-				AsReference<float>(pursuit + 0xC8) = roadblockHeavyCooldown.current; // roadblock cooldown
-
-			AsReference<address>(pursuit + 0x194) = strategy; // HeavyStrategy
+			return; // is LeaderStrategy
 		}
-		else AsReference<address>(pursuit + 0x198) = strategy; // LeaderStrategy
+
+		const int strategyID = AsReference<int>(strategy);
+
+		if ((strategyID != 3) or heavy3TriggerCooldown.current)
+			AsReference<float>(pursuit + 0xC8) = roadblockHeavyCooldown.current; // roadblock cooldown
+
+		AsReference<address>(pursuit + 0x194) = strategy; // HeavyStrategy
 	}
 
 
@@ -245,16 +249,16 @@ namespace GroundSuppport
 			if constexpr (Globals::loggingEnabled)
 			{
 				const bool canMakeRequest = (isPlayerPursuit or rivalHeavyEnabled.current or rivalLeaderEnabled.current);
-				Globals::logger.Log(pursuit, "[SUP] Strategy request failed", (canMakeRequest) ? "(chance)" : "(blocked)");
+				Globals::LogFull(pursuit, logTag, "Strategy request failed", (canMakeRequest) ? "(chance)" : "(blocked)");
 			}
 
-			return false;
+			return false; // no candidates
 		}
 
 		// Select an eligible Strategy at random
-		const size_t  randomIndex     = Globals::prng.GenerateIndex(candidates.size());
-		const address randomStrategy  = candidates[randomIndex];
-		const bool    isHeavyStrategy = (randomIndex < numHeavyStrategies);
+		const size_t  candidateID     = Globals::prng.GenerateIndex(candidates);
+		const address randomStrategy  = candidates[candidateID];
+		const bool    isHeavyStrategy = (candidateID < numHeavyStrategies);
 
 		SetStrategy(pursuit, randomStrategy, isHeavyStrategy);
 
@@ -262,8 +266,8 @@ namespace GroundSuppport
 		{
 			const int strategyID = AsReference<int>(randomStrategy);
 
-			Globals::logger.Log<0>(pursuit, "[SUP] Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
-			Globals::logger.Log<2>("Candidate", DecFormat(randomIndex + 1), '/', DecFormat(candidates.size()));
+			Globals::LogFull (pursuit, logTag, "Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
+			Globals::LogPlain("Candidate", DecFormat(candidateID + 1), '/', DecFormat(candidates.size()));
 		}
 
 		candidates.clear();
@@ -273,11 +277,9 @@ namespace GroundSuppport
 
 
 
-	[[nodiscard]] int GetGlobalNumPersistentCops()
+	[[nodiscard]] int GetNumGlobalMobileCops()
 	{
-		if (not Globals::copManager) return 0;
-
-		int numPersistentVehicles = AsReference<int>(Globals::copManager + 0x94); // cops loaded
+		int numGlobalMobileCops = AsReference<int>(Globals::copManager + 0x94); // cops loaded
 
 		for (const address pursuit : ModContainers::PursuitList())
 		{
@@ -288,15 +290,15 @@ namespace GroundSuppport
 			const address lastVehicleEntry  = AsReference<address>(roadblock + 0x10);
 
 			if (lastVehicleEntry > firstVehicleEntry)
-				numPersistentVehicles -= (lastVehicleEntry - firstVehicleEntry) / sizeof(address);
+				numGlobalMobileCops -= (lastVehicleEntry - firstVehicleEntry) / sizeof(address);
 		}
 
-		return numPersistentVehicles;
+		return numGlobalMobileCops;
 	}
 
 
 
-	[[nodiscard]] bool __fastcall HasJoinCapacity(const address pursuit)
+	[[nodiscard]] bool __fastcall MayRoadblockVehicleJoin(const address pursuit)
 	{
 		const int numVehiclesJoined = AsReference<int>(pursuit + 0x23C);
 		if (numVehiclesJoined >= maxRBJoinCount.current) return false;
@@ -304,15 +306,19 @@ namespace GroundSuppport
 		const float distanceToRoadblock = AsReference<float>(pursuit + 0x7C);
 		if (distanceToRoadblock > maxRBJoinDistance.current) return false;
 
-		// Consult ChasersManager for cop capacity (if enabled)
 		if (CopSpawnOverrides::anyFeatureEnabled)
 		{
-			if (not CopSpawnOverrides::ChasersManager::HasJoinCapacity(pursuit)) return false;
-			if (CopSpawnOverrides::chasersAreIndependent.current)                return true;
+			// First, whether the pursuit itself cannot accept more roadblock vehicles
+			if (not CopSpawnOverrides::ChasersManager::HasRoadblockVehicleCapacity(pursuit)) return false;
+
+			// Next, whether the global cop-spawn limit isn't in effect
+			if (CopSpawnOverrides::chasersAreIndependent.current) return true;
+
+			// Last, whether the global cop-spawn limit hasn't been reached yet
+			return (GetNumGlobalMobileCops() < CopSpawnOverrides::activeChaserLimit.max.current);
 		}
 
-		// Struct contains vanilla global cop-spawn limit if CopSpawnOverrides header is disabled
-		return (GetGlobalNumPersistentCops() < CopSpawnOverrides::activeChaserCount.max.current);
+		return (GetNumGlobalMobileCops() < 8); // vanilla limit
 	}
 
 
@@ -759,9 +765,9 @@ namespace GroundSuppport
 		__asm
 		{
 			lea ecx, dword ptr [esi + 0x40]
-			call HasJoinCapacity // ecx: pursuit
+			call MayRoadblockVehicleJoin // ecx: pursuit
 			test al, al
-			je skip              // may not join
+			je skip                      // may not join
 
 			jmp dword ptr [roadblockJoinCountExit]
 
@@ -800,27 +806,25 @@ namespace GroundSuppport
 	{
 		bool allTypesValid = true;
 
-		const auto Validate = [&allTypesValid](const std::string_view ValueName, auto& vehicleValue) -> void
-		{
-			allTypesValid &= HeatParameters::ResolveVehicleNames(ValueName, vehicleValue, Globals::IsVehicleTypeCar);
-		};
+		allTypesValid &= HeatParameters::ResolveCarNames(heavy3LightVehicle);
+		allTypesValid &= HeatParameters::ResolveCarNames(heavy3HeavyVehicle);
 
-		Validate("Heavy 3, light", heavy3LightVehicle);
-		Validate("Heavy 3, heavy", heavy3HeavyVehicle);
+		allTypesValid &= HeatParameters::ResolveCarNames(heavy3LightVehicle);
+		allTypesValid &= HeatParameters::ResolveCarNames(heavy3HeavyVehicle);
 
-		Validate("Heavy 4, light", heavy4LightVehicle);
-		Validate("Heavy 4, heavy", heavy4HeavyVehicle);
+		allTypesValid &= HeatParameters::ResolveCarNames(heavy4LightVehicle);
+		allTypesValid &= HeatParameters::ResolveCarNames(heavy4HeavyVehicle);
 
-		Validate("Leader 5, Cross", leader5CrossVehicle);
+		allTypesValid &= HeatParameters::ResolveCarNames(leader5CrossVehicle);
 
-		Validate("Leader 7, Cross",   leader7CrossVehicle);
-		Validate("Leader 7, hench 1", leader7Hench1Vehicle);
-		Validate("Leader 7, hench 2", leader7Hench2Vehicle);
+		allTypesValid &= HeatParameters::ResolveCarNames(leader7CrossVehicle);
+		allTypesValid &= HeatParameters::ResolveCarNames(leader7Hench1Vehicle);
+		allTypesValid &= HeatParameters::ResolveCarNames(leader7Hench2Vehicle);
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (allTypesValid)
-				Globals::logger.Log<2>("All vehicles valid");
+				Globals::LogPlain("All vehicles valid");
 		}
 	}
 
@@ -843,14 +847,8 @@ namespace GroundSuppport
 
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
-		using HeatParameters::Parse;
-
-		using MemoryTools::Write;
-		using MemoryTools::MakeRangeNOP;
-		using MemoryTools::MakeRangeJMP;
-
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [SUP] GroundSupport");
+			Globals::LogConfig(logTag, logName);
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Support.ini")) return false;
 
@@ -887,7 +885,7 @@ namespace GroundSuppport
 		ResolveAllVehicleNames();
 
 		// Code modifications (geneal)
-		MemoryTools::Write<float*>(&(maxRBJoinDistance.current),       {0x42BEBC});
+		MemoryTools::Write<float*>(&(maxRBJoinDistance      .current), {0x42BEBC});
 		MemoryTools::Write<float*>(&(maxRBJoinElevationDelta.current), {0x42BE3A});
 
 		MemoryTools::MakeRangeNOP<0x42BEB6, 0x42BEBA>(); // roadblock-joining flag reset
@@ -920,60 +918,14 @@ namespace GroundSuppport
 		return true;
 	}
 
-
-
-	void LogHeatStateReport()
-	{
-		Globals::logger.Log("    HEAT [SUP] GroundSupport");
-
-		rivalRoadblockEnabled.Log("rivalRoadblockEnabled   ");
-		rivalHeavyEnabled    .Log("rivalHeavyEnabled       ");
-		rivalLeaderEnabled   .Log("rivalLeaderEnabled      ");
-
-		roadblockCooldown     .Log("roadblockCooldown       ");
-		roadblockHeavyCooldown.Log("roadblockHeavyCooldown  ");
-
-		roadblockSpawnDistance.Log("roadblockSpawnDistance  ");
-		roadblockEndsFormation.Log("roadblockEndsFormation  ");
-
-		regularRBJoinTimer.Log("regularRBJoinTimer      ");
-		backupRBJoinTimer .Log("backupRBJoinTimer       ");
-
-		reactToCooldownMode.Log("reactToCooldownMode     ");
-		reactToSpikesHit   .Log("reactToSpikesHit        ");
-
-		if (regularRBJoinTimer.isEnabled.current or backupRBJoinTimer.isEnabled.current or reactToCooldownMode.current)
-		{
-			maxRBJoinDistance      .Log("maxRBJoinDistance       ");
-			maxRBJoinElevationDelta.Log("maxRBJoinElevationDeltas");
-			maxRBJoinCount         .Log("maxRBJoinCount          ");
-		}
-
-		strategyCooldown.Log("strategyCooldown        ");
-
-		heavy3SpeedLimit.Log("heavy3SpeedLimit        ");
-
-		heavy3TriggerCooldown.Log("heavy3TriggerCooldown   ");
-		heavy3AreBlockable   .Log("heavy3AreBlockable      ");
-
-		heavy3LightVehicle.Log("heavy3LightVehicle      ");
-		heavy3HeavyVehicle.Log("heavy3HeavyVehicle      ");
-
-		heavy4LightVehicle.Log("heavy4LightVehicle      ");
-		heavy4HeavyVehicle.Log("heavy4HeavyVehicle      ");
-
-		leader5CrossVehicle.Log("leader5CrossVehicle     ");
-
-		leader7CrossVehicle .Log("leader7CrossVehicle     ");
-		leader7Hench1Vehicle.Log("leader7Hench1Vehicle    ");
-		leader7Hench2Vehicle.Log("leader7Hench2Vehicle    ");
-	}
-
-
+	
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
 		if (not anyFeatureEnabled) return;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogHeat(logTag, logName);
 
 		rivalRoadblockEnabled.SetToHeatState(state);
 		rivalHeavyEnabled    .SetToHeatState(state);
@@ -1015,8 +967,5 @@ namespace GroundSuppport
 		leader7CrossVehicle .SetToHeatState(state);
 		leader7Hench1Vehicle.SetToHeatState(state);
 		leader7Hench2Vehicle.SetToHeatState(state);
-
-		if constexpr (Globals::loggingEnabled)
-			LogHeatStateReport();
 	}
 }

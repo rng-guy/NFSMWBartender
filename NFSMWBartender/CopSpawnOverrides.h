@@ -18,6 +18,18 @@
 
 namespace CopSpawnOverrides
 {
+	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+
+	bool anyFeatureEnabled = false;
+
+	// Logging
+	constexpr LogLiteral logTag  = "[SPA]";
+	constexpr LogLiteral logName = "CopSpawnOverrides";
+
+
+
+
+
 	// Contingent class -----------------------------------------------------------------------------------------------------------------------------
 
 	class Contingent
@@ -38,6 +50,9 @@ namespace CopSpawnOverrides
 
 		ModContainers::VaultMap<int> copTypeToNumActive; // for Heat transitions and cops not in table
 
+		inline static constexpr LogLiteral tag  = "[CON]";
+		inline static constexpr LogLiteral name = "Contingent";
+
 
 	private: // methods
 
@@ -53,10 +68,9 @@ namespace CopSpawnOverrides
 				if (this->pursuit)
 				{
 					if (copTypeInSpawnTable)
-						Globals::logger.Log(this->pursuit, "[CON] Type capacity:", this->table.GetNumAvailableCops(copType));
+						Globals::LogFull(this->pursuit, this->tag, "Type capacity:", this->table.GetNumAvailableCops(copType));
 
-					else
-						Globals::logger.Log(this->pursuit, "[CON] Type capacity undefined");
+					else Globals::LogFull(this->pursuit, this->tag, "Type capacity undefined");
 				}
 			}
 		}
@@ -66,7 +80,8 @@ namespace CopSpawnOverrides
 
 		constexpr explicit Contingent(const TablePointer& source) : source(&source), pursuit(0x0) {}
 
-		explicit Contingent
+
+		Contingent
 		(
 			const TablePointer& source,
 			const address       pursuit
@@ -76,13 +91,13 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.Log<2>('+', this, "Contingent");
+					Globals::LogPlain('+', this, this->name);
 			}
 		}
 
 
-		explicit Contingent(Contingent&&)      = delete;
-		explicit Contingent(const Contingent&) = delete;
+		Contingent(Contingent&&)      = delete;
+		Contingent(const Contingent&) = delete;
 
 		Contingent& operator=(Contingent&&)      = delete;
 		Contingent& operator=(const Contingent&) = delete;
@@ -93,7 +108,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.Log<2>('-', this, "Contingent");
+					Globals::LogPlain('-', this, this->name);
 			}
 		}
 
@@ -115,10 +130,9 @@ namespace CopSpawnOverrides
 					if (this->pursuit)
 					{
 						if (const auto* const copName = PersistentStrings::Get(copType))
-							Globals::logger.Log(this->pursuit, "[CON] Copying", currentCount, *copName);
+							Globals::LogFull(this->pursuit, this->tag, "Copying", currentCount, *copName);
 
-						else
-							Globals::logger.Log(this->pursuit, "[CON] Copying", currentCount, copType);
+						else Globals::LogFull(this->pursuit, this->tag, "Copying", currentCount, copType);
 					}
 				}
 
@@ -132,7 +146,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.Log(this->pursuit, "[CON] Clearing all vehicles");
+					Globals::LogFull(this->pursuit, this->tag, "Clearing all vehicles");
 			}
 
 			this->table.ResetActiveCopCounts();
@@ -157,7 +171,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.Log<2>("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
+					Globals::LogPlain("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
 			}
 		}
 
@@ -183,7 +197,7 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->pursuit)
-						Globals::logger.Log("WARNING: [CON] Unknown type", copType, "in", this->pursuit);
+						Globals::LogError(this->tag, "Unknown type", copType, "in", this->pursuit);
 				}
 
 				return false; // should never happen
@@ -199,7 +213,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
-					Globals::logger.Log<2>("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
+					Globals::LogPlain("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
 			}
 
 			if (numActiveCops < 1)
@@ -250,9 +264,7 @@ namespace CopSpawnOverrides
 
 
 
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
-
-	bool anyFeatureEnabled = false;
+	// Parameters (cont.) ---------------------------------------------------------------------------------------------------------------------------
 
 	// Pursuit-board tracking
 	bool trackHeavyVehicles     = false;
@@ -260,20 +272,20 @@ namespace CopSpawnOverrides
 	bool trackRoadblockVehicles = false;
 
 	// Heat parameters
-	constinit HeatParameters::Interval<int>activeChaserCount(1, 8, {0}); // cars
+	constinit HEAT_PARAMETER_INTERVAL(int, activeChaserLimit, 1, 8, {0}); // cars
 
-	constinit HeatParameters::Value<bool> chasersAreIndependent(false);
+	constinit HEAT_PARAMETER_VALUE(bool, chasersAreIndependent, false);
 
-	constinit HeatParameters::Value<bool> onlyDestroyedDecrement(false);
+	constinit HEAT_PARAMETER_VALUE(bool, onlyDestroyedDecrement, false);
 
-	constinit HeatParameters::Value<bool> transitionTriggersBackup(false);
+	constinit HEAT_PARAMETER_VALUE(bool, transitionTriggersBackup, false);
 
-	constinit HeatParameters::Value<float> chaserSpawnClearance(40.f, {0.f}); // metres
+	constinit HEAT_PARAMETER_VALUE(float, chaserSpawnClearance, 40.f, {0.f}); // metres
 
-	constinit HeatParameters::Value<bool> trafficIgnoresChasers   (false);
-	constinit HeatParameters::Value<bool> trafficIgnoresRoadblocks(false);
+	constinit HEAT_PARAMETER_VALUE(bool, trafficIgnoresChasers,    false);
+	constinit HEAT_PARAMETER_VALUE(bool, trafficIgnoresRoadblocks, false);
 
-	constinit HeatParameters::OptionalValue<int> roadblockJoinLimit({0}); // cars
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, roadblockJoinLimit, {0}); // cars
 
 	// Inline hashes for ASM
 	enum class VaultHash : vault
@@ -306,7 +318,8 @@ namespace CopSpawnOverrides
 		bool waveParametersKnown = false;
 
 		int maxNumPatrolCars           = 0;
-		int numActiveNonChasers        = 0;
+		int numSupportVehicles         = 0;
+		int numTrackedNonChasers       = 0;
 		int numJoinedRoadblockVehicles = 0;
 
 		int&   pursuitStatus = AsReference<int>  (this->pursuit + 0x218);
@@ -323,6 +336,8 @@ namespace CopSpawnOverrides
 
 		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTable, this->pursuit};
 
+		inline static constexpr LogLiteral name = "ChasersManager";
+
 
 	private: // methods
 
@@ -331,27 +346,26 @@ namespace CopSpawnOverrides
 			if (Globals::playerHeatLevelKnown)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[SPA] Updating table");
+					Globals::LogFull(this->pursuit, logTag, "Updating table");
 
 				this->chaserSpawns.UpdateSpawnTable();
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[SPA] Skipping updating spawn table");
+				Globals::LogFull(this->pursuit, logTag, "Skipping updating spawn table");
 		}
 
 
 		void UpdateNumPatrolCars()
 		{
 			const address attribute = Globals::GetFromPursuitlevel(this->pursuit, "NumPatrolCars"_vlt);
-			this->maxNumPatrolCars  = (attribute) ? AsReference<int>(attribute) : 1;
+			this->maxNumPatrolCars  = (attribute) ? AsReference<int>(attribute) : 1; // should never fail
 
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (attribute)
-					Globals::logger.Log(this->pursuit, "[SPA] Max. patrol cars:", this->maxNumPatrolCars);
+					Globals::LogFull(this->pursuit, logTag, "Max. patrol cars:", this->maxNumPatrolCars);
 
-				else
-					Globals::logger.Log("WARNING: [SPA] Invalid numPatrolCars pointer in", this->pursuit);
+				else Globals::LogError(logTag, "Invalid numPatrolCars pointer in", this->pursuit);
 			}
 		}
 
@@ -362,7 +376,7 @@ namespace CopSpawnOverrides
 			int       waveCapacity     = this->fullWaveCapacity - (this->numCopsLostInWave + numActiveChasers);
 
 			if (this->waveParametersKnown)
-				waveCapacity -= this->numActiveNonChasers;
+				waveCapacity -= this->numTrackedNonChasers;
 
 			return waveCapacity;
 		}
@@ -379,14 +393,14 @@ namespace CopSpawnOverrides
 				this->fullWaveCapacity -= waveCapacity;
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[SPA] Wave correction:", -waveCapacity);
+					Globals::LogFull(this->pursuit, logTag, "Wave correction:", -waveCapacity);
 			}
 		}
 
 
-		[[nodiscard]] int GetNumPersistentCops() const
+		[[nodiscard]] int GetNumTotalMobileCops() const
 		{
-			return this->chaserSpawns.GetNumTotalActiveCops() + this->numJoinedRoadblockVehicles;
+			return this->chaserSpawns.GetNumTotalActiveCops() + this->numSupportVehicles + this->numJoinedRoadblockVehicles;
 		}
 
 
@@ -401,14 +415,14 @@ namespace CopSpawnOverrides
 			if (not this->chaserSpawns.IsAnyCopAvailable()) return false;
 
 			const int numActiveChasers  = this->chaserSpawns.GetNumTotalActiveCops();
-			const int numActiveVehicles = (chasersAreIndependent.current) ? numActiveChasers : this->GetNumPersistentCops();
+			const int numActiveVehicles = (chasersAreIndependent.current) ? numActiveChasers : this->GetNumTotalMobileCops();
 
-			if (numActiveVehicles >= activeChaserCount.max.current) return false;
+			if (numActiveVehicles >= activeChaserLimit.max.current) return false;
 
 			if (Globals::IsPursuitInCooldownMode(this->pursuit))
 				return (numActiveChasers < this->maxNumPatrolCars);
 
-			return ((numActiveChasers < activeChaserCount.min.current) or (this->GetWaveCapacity() > 0));
+			return ((numActiveChasers < activeChaserLimit.min.current) or (this->GetWaveCapacity() > 0));
 		}
 
 
@@ -423,7 +437,7 @@ namespace CopSpawnOverrides
 			const auto LockInPursuitAttributes = AsFunction<void __thiscall (address)>(0x40A9B0);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[SPA] Force-triggering backup");
+				Globals::LogFull(this->pursuit, logTag, "Force-triggering backup");
 
 			if (this->IsBackUpTimerActive())
 			{
@@ -441,6 +455,13 @@ namespace CopSpawnOverrides
 			if (not copAIVehiclePursuit) return false; // should never happen
 
 			return AsReference<bool>(copAIVehiclePursuit + 0x22);
+		}
+
+
+		void ProcessAddedChaser(const address copVehicle)
+		{
+			this->chaserSpawns.AddVehicle(copVehicle);
+			this->CorrectWaveCapacity();
 		}
 
 
@@ -462,14 +483,34 @@ namespace CopSpawnOverrides
 		}
 
 
-		void UpdateNonChaserTracking
+		void ProcessNonChaserChange
 		(
 			const CopLabel copLabel,
 			const int      change
 		) {
-			if (not IsTrackedNonChaser(copLabel)) return;
+			// Vehicle counts
+			switch (copLabel)
+			{
+			case CopLabel::HEAVY:
+			case CopLabel::LEADER:
+				this->numSupportVehicles += change;
 
-			this->numActiveNonChasers += change;
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogFull(this->pursuit, logTag, "Support vehicles:", this->numSupportVehicles);
+
+				break;
+
+			case CopLabel::ROADBLOCK:
+				this->numJoinedRoadblockVehicles += change;
+
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogFull(this->pursuit, logTag, "Roadblock vehicles:", this->numJoinedRoadblockVehicles);
+			}
+
+			// Non-Chaser tracking
+			if (not this->IsTrackedNonChaser(copLabel)) return;
+
+			this->numTrackedNonChasers += change;
 
 			if (this->waveParametersKnown)
 			{
@@ -479,32 +520,41 @@ namespace CopSpawnOverrides
 		}
 
 
-		void ProcessAddedChaser(const address copVehicle)
-		{
-			this->chaserSpawns.AddVehicle(copVehicle);
-			this->CorrectWaveCapacity();
-		}
-
-
 		void ProcessRemovedChaser(const address copVehicle)
 		{
-			if (this->chaserSpawns.RemoveVehicle(copVehicle))
+			if (not this->chaserSpawns.RemoveVehicle(copVehicle))
 			{
-				if ((not onlyDestroyedDecrement.current) or Globals::IsVehicleDestroyed(copVehicle))
-				{
-					const bool trackCopsLost = (this->isFreeRoamPursuit or GeneralSettings::trackCopsLost);
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogError(logTag, "Unknown chaser", copVehicle, "in", this->pursuit);
 
-					if (trackCopsLost and this->HasVehicleEngaged(copVehicle))
-						++(this->numCopsLostInWave);
-
-					else if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log(this->pursuit, "[SPA] No decrement", (trackCopsLost) ? "(radius)" : "(tracking)");
-				}
-				else if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[SPA] No decrement (wreck)");
+				return; // should never happen
 			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] Unknown chaser", copVehicle, "in", this->pursuit);
+
+			if (not (this->isFreeRoamPursuit or (GeneralSettings::anyFeatureEnabled and GeneralSettings::trackCopsLost)))
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogFull(this->pursuit, logTag, "No decrement (tracking)");
+
+				return; // chaser not tracked
+			}
+
+			if (onlyDestroyedDecrement.current and (not Globals::IsVehicleDestroyed(copVehicle)))
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogFull(this->pursuit, logTag, "No decrement (wrecking)");
+
+				return; // chaser not wrecked
+			}
+
+			if (not this->HasVehicleEngaged(copVehicle))
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogFull(this->pursuit, logTag, "No decrement (engagement)");
+
+				return; // chaser not engaged
+			}
+
+			++(this->numCopsLostInWave);
 		}
 
 
@@ -518,9 +568,8 @@ namespace CopSpawnOverrides
 		explicit ChasersManager(const address pursuit) : Reaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('+', this, "ChasersManager");
+				Globals::LogPlain('+', this, this->name);
 
-			// Container pre-allocation
 			this->chaserSpawns.ReserveCapacity(20);
 		}
 
@@ -528,7 +577,7 @@ namespace CopSpawnOverrides
 		~ChasersManager() override
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('-', this, "ChasersManager");
+				Globals::LogPlain('-', this, this->name);
 		}
 
 
@@ -554,19 +603,10 @@ namespace CopSpawnOverrides
 		) 
 			override
 		{
-			switch (copLabel)
-			{
-			case CopLabel::CHASER:	
+			if (copLabel == CopLabel::CHASER)
 				this->ProcessAddedChaser(copVehicle);
-				break;
 
-			case CopLabel::ROADBLOCK:
-				++(this->numJoinedRoadblockVehicles);
-				[[fallthrough]];
-
-			default:
-				this->UpdateNonChaserTracking(copLabel, /* change = */ +1);
-			}
+			else this->ProcessNonChaserChange(copLabel, /* change = */ +1);
 		}
 
 
@@ -577,19 +617,10 @@ namespace CopSpawnOverrides
 		) 
 			override
 		{
-			switch (copLabel)
-			{
-			case CopLabel::CHASER:
+			if (copLabel == CopLabel::CHASER)
 				this->ProcessRemovedChaser(copVehicle);
-				break;
 
-			case CopLabel::ROADBLOCK:
-				--(this->numJoinedRoadblockVehicles);
-				[[fallthrough]];
-
-			default:
-				this->UpdateNonChaserTracking(copLabel, /* change = */ -1);
-			}
+			else this->ProcessNonChaserChange(copLabel, /* change = */ -1);
 		}
 
 
@@ -601,13 +632,13 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (not manager->waveParametersKnown)
-					Globals::logger.Log(manager->pursuit, "[SPA] Wave parameters now known");
+					Globals::LogFull(manager->pursuit, logTag, "Wave parameters now known");
 			}
 
 			manager->waveParametersKnown = true;
 
-			manager->fullWaveCapacity       += manager->numActiveNonChasers;
-			manager->numCopsToTriggerBackup += manager->numActiveNonChasers;
+			manager->fullWaveCapacity       += manager->numTrackedNonChasers;
+			manager->numCopsToTriggerBackup += manager->numTrackedNonChasers;
 
 			manager->CorrectWaveCapacity();
 		}
@@ -622,15 +653,15 @@ namespace CopSpawnOverrides
 		}
 
 
-		[[nodiscard]] static bool __fastcall HasJoinCapacity(const address pursuit)
+		[[nodiscard]] static bool HasRoadblockVehicleCapacity(const address pursuit)
 		{
 			const auto* const manager = ChasersManager::FindInstance(pursuit);
 			if (not manager) return false; // should never happen
 
-			const bool hasCapacity = (chasersAreIndependent.current or (manager->GetNumPersistentCops() < activeChaserCount.max.current));
+			bool hasCapacity = (chasersAreIndependent.current or (manager->GetNumTotalMobileCops() < activeChaserLimit.max.current));
 
 			if (roadblockJoinLimit.isEnabled.current)
-				return (hasCapacity and (manager->numJoinedRoadblockVehicles < roadblockJoinLimit.value.current));
+				hasCapacity &= (manager->numJoinedRoadblockVehicles < roadblockJoinLimit.value.current);
 
 			return hasCapacity;
 		}
@@ -681,7 +712,7 @@ namespace CopSpawnOverrides
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [SPA] Unknown ByClass return address:", caller);
+				Globals::LogError(logTag, "Unknown ByClass return address:", caller);
 		}
 
 		return nullptr;
@@ -714,7 +745,7 @@ namespace CopSpawnOverrides
 			prefetchedCopName          = spawnTable.GetNameOfAvailableCop();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<1>("[SPA] First scripted cop:", prefetchedCopName);
+				Globals::LogTagged(logTag, "First scripted cop:", prefetchedCopName);
 		}
 		else prefetchedCopName = nullptr;
 	}
@@ -801,7 +832,7 @@ namespace CopSpawnOverrides
 			cmp byte ptr [chasersAreIndependent.current], 1
 			cmovne eax, dword ptr [edi + 0x94] // "Chasers" not independent
 
-			cmp eax, dword ptr [activeChaserCount.max.current]
+			cmp eax, dword ptr [activeChaserLimit.max.current]
 
 			jmp dword ptr [copSpawnLimitExit]
 		}
@@ -968,7 +999,7 @@ namespace CopSpawnOverrides
 			je chasers // "Chasers" independent
 
 			mov eax, dword ptr [ebx - 0x54 + 0x94] // cops loaded
-			cmp eax, dword ptr [activeChaserCount.max.current]
+			cmp eax, dword ptr [activeChaserLimit.max.current]
 			jge roadblock                          // at or above spawn limit
 
 			chasers:
@@ -1165,9 +1196,9 @@ namespace CopSpawnOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			if (trackHeavyVehicles)     Globals::logger.Log<2>("Tracking HeavyStrategy");
-			if (trackLeaderVehicles)    Globals::logger.Log<2>("Tracking LeaderStrategy");
-			if (trackRoadblockVehicles) Globals::logger.Log<2>("Tracking roadblock cops");
+			if (trackHeavyVehicles)     Globals::LogPlain("Tracking HeavyStrategy");
+			if (trackLeaderVehicles)    Globals::LogPlain("Tracking LeaderStrategy");
+			if (trackRoadblockVehicles) Globals::LogPlain("Tracking roadblock cops");
 		}
 	}
 
@@ -1180,7 +1211,7 @@ namespace CopSpawnOverrides
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [SPA] CopSpawnOverrides");
+			Globals::LogConfig(logTag, logName);
 
 		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
 
@@ -1188,7 +1219,7 @@ namespace CopSpawnOverrides
 		ParseBoardTrackingSettings(parser);
 
 		// Heat parameters (first file)
-		HeatParameters::Parse(parser, "Chasers:Limits", activeChaserCount);
+		HeatParameters::Parse(parser, "Chasers:Limits", activeChaserLimit);
 
 		HeatParameters::Parse(parser, "Chasers:Independence", chasersAreIndependent);
 
@@ -1249,37 +1280,20 @@ namespace CopSpawnOverrides
 
 
 
-	void LogHeatStateReport()
-	{
-		Globals::logger.Log("    HEAT [SPA] CopSpawnOverrides");
-
-		activeChaserCount.Log("activeChaserCount       ");
-
-		chasersAreIndependent.Log("chasersAreIndependent   ");
-
-		onlyDestroyedDecrement.Log("onlyDestroyedDecrement  ");
-
-		transitionTriggersBackup.Log("transitionTriggersBackup");
-
-		chaserSpawnClearance.Log("chaserSpawnClearance    ");
-
-		trafficIgnoresChasers   .Log("trafficIgnoresChasers   ");
-		trafficIgnoresRoadblocks.Log("trafficIgnoresRoadblocks");
-
-		roadblockJoinLimit.Log("roadblockJoinLimit      ");
-	}
-
-
-
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
 		if (not anyFeatureEnabled) return;
 
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogHeat(logTag, logName);
+
+		// Vehicle contingents
 		patrolSpawns   .UpdateSpawnTable();
 		scriptedSpawns .UpdateSpawnTable();
 		roadblockSpawns.UpdateSpawnTable();
 
-		activeChaserCount.SetToHeatState(state);
+		// Heat parameters
+		activeChaserLimit.SetToHeatState(state);
 
 		chasersAreIndependent.SetToHeatState(state);
 
@@ -1295,9 +1309,6 @@ namespace CopSpawnOverrides
 		trafficIgnoresRoadblocks.SetToHeatState(state);
 
 		roadblockJoinLimit.SetToHeatState(state);
-
-		if constexpr (Globals::loggingEnabled)
-			LogHeatStateReport();
 	}
 
 

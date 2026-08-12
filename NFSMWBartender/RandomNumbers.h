@@ -1,10 +1,12 @@
 #pragma once
 
 #include <array>
+#include <ranges>
 #include <limits>
 #include <random>
 #include <cstdint>
 #include <concepts>
+#include <iterator>
 #include <algorithm>
 
 
@@ -56,7 +58,7 @@ namespace RandomNumbers
 		}
 
 
-		constexpr explicit Xoshiro256ss(const uint64_t seed)
+		constexpr explicit Xoshiro256ss(const uint64_t seed) noexcept
 		{
 			this->SetSeed(seed);
 		}
@@ -182,6 +184,15 @@ namespace RandomNumbers
 		[[nodiscard]] size_t GenerateIndex(const size_t size)
 		{
 			return this->GenerateNumber<size_t>(0, size - 1);
+		}
+
+
+		// Samples from [0, range.size())
+		template <class Range>
+		requires std::ranges::sized_range<Range>
+		[[nodiscard]] size_t GenerateIndex(const Range& range)
+		{
+			return this->GenerateIndex(std::ranges::size(range));
 		}
 	};
 }

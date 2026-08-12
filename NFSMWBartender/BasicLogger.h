@@ -1,13 +1,18 @@
 #pragma once
 
 #include <array>
+#include <string>
+#include <utility>
 #include <cstdarg>
 #include <ostream>
 #include <fstream>
 #include <iterator>
 #include <concepts>
 #include <filesystem>
+#include <string_view>
 #include <type_traits>
+
+#include "FormatBuffer.h"
 
 
 
@@ -22,11 +27,6 @@ namespace BasicLogger
 	// Members
 
 		T value;
-
-
-	// Methods
-
-		constexpr explicit BinFormat(const T value) noexcept : value(value) {}
 	};
 
 
@@ -37,11 +37,6 @@ namespace BasicLogger
 	// Members
 
 		T value;
-
-
-	// Methods
-
-		constexpr explicit DecFormat(const T value) noexcept : value(value) {}
 	};
 
 
@@ -52,11 +47,137 @@ namespace BasicLogger
 	// Members
 
 		T value;
+	};
 
 
-	// Methods
 
-		constexpr explicit HexFormat(const T value) noexcept : value(value) {}
+
+
+	// LogLiteral class -----------------------------------------------------------------------------------------------------------------------------
+
+	template <bool isEnabled>
+	class LogLiteral {};
+
+
+	template <>
+	class LogLiteral</* isEnabled = */ true>
+	{
+	private: // members
+
+		std::string_view string;
+
+
+	public: // methods
+
+		consteval LogLiteral() noexcept = default;
+
+		template <size_t size>
+		consteval LogLiteral(const char (&string)[size]) noexcept : string(string, size - 1) {}
+
+
+		[[nodiscard]] constexpr std::string_view GetView() const noexcept
+		{
+			return this->string;
+		}
+
+
+		[[nodiscard]] constexpr operator std::string_view() const noexcept
+		{
+			return this->GetView();
+		}
+	};
+
+
+	template <>
+	class LogLiteral</* isEnabled = */ false>
+	{
+	public: // methods
+
+		consteval LogLiteral() noexcept = default;
+
+		template <size_t size>
+		consteval LogLiteral(const char (&)[size]) noexcept {}
+
+
+		[[nodiscard]] constexpr std::string_view GetView() const noexcept
+		{
+			return {};
+		}
+
+
+		[[nodiscard]] constexpr operator std::string_view() const noexcept
+		{
+			return this->GetView();
+		}
+	};
+
+
+
+
+
+	// LogString class ------------------------------------------------------------------------------------------------------------------------------
+
+	template <bool isEnabled>
+	class LogString {};
+
+
+	template <>
+	class LogString</* isEnabled = */ true>
+	{
+	private: // members
+
+		std::string string;
+
+
+	public: // methods
+
+		constexpr LogString() noexcept = default;
+
+
+		LogString(const char* const      string) : string(string) {}
+		LogString(const std::string_view string) : string(string) {}
+		LogString(const std::string&     string) : string(string) {}
+
+		LogString(std::string&& string) noexcept : string(std::move(string)) {}
+
+
+		[[nodiscard]] std::string_view GetView() const noexcept
+		{
+			return this->string;
+		}
+
+
+		[[nodiscard]] operator std::string_view() const noexcept
+		{
+			return this->GetView();
+		}
+	};
+
+
+	template <>
+	class LogString</* isEnabled = */ false>
+	{
+	public: // methods
+
+		constexpr LogString() noexcept = default;
+
+		LogString(const char* const)      {}
+		LogString(const std::string_view) {}
+		LogString(const std::string&)     {}
+
+		LogString(std::string&&) noexcept {}
+
+
+		[[nodiscard]] std::string_view GetView() const noexcept
+		{
+			return {};
+		}
+
+
+		[[nodiscard]] operator std::string_view() const noexcept
+		{
+			return this->GetView();
+		}
 	};
 
 
@@ -72,6 +193,8 @@ namespace BasicLogger
 
 		std::fstream file;
 
+		mutable FormatBuffer::Buffer buffer;
+
 		static constexpr std::array<size_t, 1 + sizeof...(indents)> indentWidths = {0, indents...};
 
 
@@ -80,21 +203,35 @@ namespace BasicLogger
 		template <typename T>
 		void Print(const BinFormat<T> wrapper)
 		{
-			this->file << std::format("{:#0{}b}", wrapper.value, 8 * sizeof(T));
+			this->file << this->buffer.Format("{:#0{}b}", wrapper.value, 8 * sizeof(T));
 		}
 
 
 		template <typename T>
-		void Print(const DecFormat<T> wrapper) noexcept
+		void Print(const DecFormat<T> wrapper)
 		{
-			this->file << std::format("{:d}", wrapper.value);
+			this->file << this->buffer.Format("{:d}", wrapper.value);
 		}
 
 
 		template <typename T>
 		void Print(const HexFormat<T> wrapper)
 		{
-			this->file << std::format("{:0{}x}", wrapper.value, 2 * sizeof(T));
+			this->file << this->buffer.Format("{:0{}x}", wrapper.value, 2 * sizeof(T));
+		}
+
+
+		template <bool isEnabled>
+		void Print(const LogLiteral<isEnabled>& string)
+		{
+			this->Print<std::string_view>(string);
+		}
+
+
+		template <bool isEnabled>
+		void Print(const LogString<isEnabled>& string)
+		{
+			this->Print<std::string_view>(string);
 		}
 
 
@@ -120,10 +257,9 @@ namespace BasicLogger
 				this->Print(HexFormat(value));
 
 			else if constexpr (std::floating_point<T>)
-				this->file << std::format("{:.3f}", value);
+				this->file << this->buffer.Format("{:.3f}", value);
 
-			else
-				this->file << value;
+			else this->file << value;
 		}
 
 
@@ -160,21 +296,36 @@ namespace BasicLogger
 
 	public: // methods
 
+		Logger() = default;
+
+
+		[[nodiscard]] bool IsOpen() const noexcept
+		{
+			return this->file.is_open();
+		}
+
+
 		bool Open(const std::filesystem::path& path) noexcept
 		{
-			if (not this->file.is_open())
+			if (not this->IsOpen())
 				this->file.open(path, std::ios::app);
 
-			return this->file.is_open();
+			return this->IsOpen();
+		}
+
+
+		explicit Logger(const std::filesystem::path& path)
+		{
+			this->Open(path);
 		}
 
 
 		bool Close() noexcept
 		{
-			if (this->file.is_open())
+			if (this->IsOpen())
 				this->file.close();
 
-			return (not this->file.is_open());
+			return (not this->IsOpen());
 		}
 
 
@@ -183,15 +334,14 @@ namespace BasicLogger
 		{
 			static_assert(indentLevel < this->indentWidths.size(), "Invalid indentLevel");
 
-			if (this->file.is_open())
-			{
-				constexpr size_t numWhitespaces = this->indentWidths[indentLevel];
+			if (not this->IsOpen()) return;
 
-				if constexpr (numWhitespaces > 0)
-					std::fill_n(std::ostreambuf_iterator<char>(this->file), numWhitespaces, ' ');
+			constexpr size_t numWhitespaces = this->indentWidths[indentLevel];
 
-				this->PrintLine(std::forward<Ts>(segments)...);
-			}
+			if constexpr (numWhitespaces > 0)
+				std::fill_n(std::ostreambuf_iterator<char>(this->file), numWhitespaces, ' ');
+
+			this->PrintLine(std::forward<Ts>(segments)...);
 		}
 	};
 }

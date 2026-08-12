@@ -16,6 +16,10 @@ namespace InteractiveMusic
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
+
+	// Logging
+	constexpr LogLiteral logTag  = "[MUS]";
+	constexpr LogLiteral logName = "InteractiveMusic";
 	
 	// General	
 	RELEASE_CONSTINIT std::vector<int> playlist;
@@ -37,10 +41,10 @@ namespace InteractiveMusic
 
 	[[nodiscard]] int GetFirstTrack()
 	{
-		currentTrackID = (shuffleFirstTrack) ? Globals::prng.GenerateIndex(playlist.size()) : 0;
+		currentTrackID = (shuffleFirstTrack) ? Globals::prng.GenerateIndex(playlist) : 0;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<1>("[MUS] First pursuit theme:", playlist[currentTrackID] + 1);
+			Globals::LogTagged(logTag, "First pursuit theme:", playlist[currentTrackID] + 1);
 
 		return playlist[currentTrackID];
 	}
@@ -49,14 +53,17 @@ namespace InteractiveMusic
 
 	[[nodiscard]] int GetNextTrack()
 	{
-		const size_t numTracks      = playlist.size();
-		const bool   needsShuffling = (shuffleAfterFirst and (numTracks > 2));
+		const size_t numTracks = playlist.size();
 
-		currentTrackID += (needsShuffling) ? Globals::prng.GenerateNumber<size_t>(1, numTracks - 1) : 1;
+		if (shuffleAfterFirst and (numTracks > 2))
+			currentTrackID += Globals::prng.GenerateNumber<size_t>(1, numTracks - 1);
+
+		else ++currentTrackID;
+
 		currentTrackID %= numTracks;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<1>("[MUS] Next pursuit theme:", playlist[currentTrackID] + 1);
+			Globals::LogTagged(logTag, "Next pursuit theme:", playlist[currentTrackID] + 1);
 
 		return playlist[currentTrackID];
 	}
@@ -160,7 +167,7 @@ namespace InteractiveMusic
 	bool ParsePlaylist(const HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("Playlist parsing:");
+			Globals::LogPlain("Playlist parsing:");
 
 		const auto& sections     = parser.GetSections();
 		const auto  foundSection = sections.find("Music:Playlist");
@@ -168,7 +175,7 @@ namespace InteractiveMusic
 		if (foundSection == sections.end())
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>("no section provided");
+				Globals::LogDetail("no section provided");
 
 			return false; // missing section; disable feature
 		}
@@ -178,9 +185,9 @@ namespace InteractiveMusic
 		playlist.reserve(pairs.size());
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<3>(DecFormat(pairs.size()), "track(s) provided");
+			Globals::LogDetail(DecFormat(pairs.size()), "track(s) provided");
 
-		constexpr auto ValuesToTrackID = [](const auto& values) -> std::optional<int>
+		constexpr auto ValuesToThemeID = [](const auto& values) -> std::optional<int>
 		{
 			if (values.size() != 1) return std::nullopt; // value-count mismatch
 
@@ -198,18 +205,18 @@ namespace InteractiveMusic
 		{
 			if (key.find("track") == 0) // key starts with "track"
 			{
-				if (const auto trackID = ValuesToTrackID(values)) // value valid
-					playlist.push_back(*trackID);
+				if (const auto themeID = ValuesToThemeID(values)) // value valid
+					playlist.push_back(*themeID);
 
 				else if constexpr (Globals::loggingEnabled) // value invalid
-					Globals::logger.Log<3>('-', key, "(invalid value)");
+					Globals::LogDetail('-', key, "(invalid value)");
 			}
 			else if constexpr (Globals::loggingEnabled) // key invalid
-				Globals::logger.Log<3>('-', key, "(invalid format)");
+				Globals::LogDetail('-', key, "(invalid format)");
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<3>(DecFormat(playlist.size()), "track(s) valid");
+			Globals::LogDetail(DecFormat(playlist.size()), "track(s) valid");
 
 		playlist.shrink_to_fit();
 	
@@ -229,19 +236,18 @@ namespace InteractiveMusic
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log<2>("Playlist:");
+			Globals::LogPlain("Playlist:");
 
 			for (size_t trackID = 0; trackID < playlist.size(); ++trackID)
-				Globals::logger.Log<3>("track", DecFormat(trackID + 1), "= theme", playlist[trackID] + 1);
+				Globals::LogDetail("track", DecFormat(trackID + 1), "= theme", playlist[trackID] + 1);
 
 			if (transitionsEnabled)
-				Globals::logger.Log<2>("Length per track:", lengthPerTrack);
+				Globals::LogPlain("Length per track:", lengthPerTrack);
 
-			else
-				Globals::logger.Log<2>("Transitions disabled");
+			else Globals::LogPlain("Transitions disabled");
 
-			Globals::logger.Log<2>((shuffleFirstTrack) ? "Shuffled" : "Fixed", "first track");
-			Globals::logger.Log<2>((shuffleAfterFirst) ? "Shuffled" : "Fixed", "follow-up track(s)");
+			Globals::LogPlain((shuffleFirstTrack) ? "Shuffled" : "Fixed", "first track");
+			Globals::LogPlain((shuffleAfterFirst) ? "Shuffled" : "Fixed", "follow-up track(s)");
 		}
 	}
 
@@ -254,7 +260,7 @@ namespace InteractiveMusic
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [MUS] InteractiveMusic");
+			Globals::LogConfig(logTag, logName);
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 

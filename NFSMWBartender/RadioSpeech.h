@@ -16,6 +16,10 @@ namespace RadioSpeech
 
 	bool anyFeatureEnabled = false;
 
+	// Logging
+	constexpr LogLiteral logTag  = "[RAD]";
+	constexpr LogLiteral logName = "RadioSpeech";
+
 	// Enums
 	enum Jurisdiction : int // C-style for implicit casting
 	{
@@ -34,13 +38,13 @@ namespace RadioSpeech
 	};
 
 	// Heat parameters
-	constinit HeatParameters::Value<int> heatJurisdictionID(Jurisdiction::CITY);
+	constinit HEAT_PARAMETER_VALUE(int, heatJurisdictionID, Jurisdiction::CITY);
 
 	// Code caves 
 	size_t lastReportedHeatLevel = 1;
 	int    lastJurisdictionID    = 0;
 
-	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<Battalion> copTypeToBattalion(Battalion::PATROL);
+	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(Battalion, copTypeToBattalion, Battalion::PATROL);
 
 
 
@@ -281,7 +285,7 @@ namespace RadioSpeech
 		constexpr std::string_view section = "Heat:Jurisdiction";
 
 		// Parse string representations of jurisdictions first
-		HeatParameters::Value<std::string_view> jurisdictionNames("city");
+		HEAT_PARAMETER_VALUE(std::string_view, jurisdictionNames, "city");
 		HeatParameters::Parse(parser, section, jurisdictionNames);
 
 		// Validate and convert new "default" value (if applicable)
@@ -322,7 +326,6 @@ namespace RadioSpeech
 
 		return copTypeToBattalion.Fill
 		(
-			"Vehicle-to-callsign",
 			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames,       Globals::GetVaultHash, Globals::IsVehicleTypeCar),
 			ModContainers::FillSetup(battalionNames, NameToBattalion,       IsBattalionValid)
@@ -350,7 +353,7 @@ namespace RadioSpeech
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [RAD] CopRadio");
+			Globals::LogConfig(logTag, logName);
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
@@ -384,12 +387,9 @@ namespace RadioSpeech
 	{
 		if (not anyFeatureEnabled) return;
 
-		heatJurisdictionID.SetToHeatState(state);
-
 		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::logger   .Log("    HEAT [RAD] CopRadio");
-			heatJurisdictionID.Log("heatJurisdictionID      ");
-		}
+			Globals::LogHeat(logTag, logName);
+
+		heatJurisdictionID.SetToHeatState(state);
 	}
 }

@@ -19,6 +19,10 @@ namespace GeneralSettings
 
 	bool anyFeatureEnabled = false;
 
+	// Logging
+	constexpr LogLiteral logTag  = "[GEN]";
+	constexpr LogLiteral logName = "GeneralSettings";
+
 	// Pursuit behaviour
 	bool trackPursuitLength  = false;
 	bool trackUnitsInPursuit = false;
@@ -30,23 +34,23 @@ namespace GeneralSettings
 	bool trackInfractions    = false;
 
 	// Heat parameters
-	constinit HeatParameters::Value<bool> rivalPursuitsEnabled(true);
+	constinit HEAT_PARAMETER_VALUE(bool, rivalPursuitsEnabled, true);
 
-	constinit HeatParameters::Value<float> bountyInterval     (10.f, {.001f}); // seconds
-	constinit HeatParameters::Value<int>   maxBountyMultiplier(3,    {1});     // scale
+	constinit HEAT_PARAMETER_VALUE(float, bountyInterval,      10.f, {.001f}); // seconds
+	constinit HEAT_PARAMETER_VALUE(int,   maxBountyMultiplier, 3,    {1});     // scale
 
-	constinit HeatParameters::Value<float> bustTimer      (5.f,  {.001f}); // seconds
-	constinit HeatParameters::Value<float> maxBustDistance(15.f, {0.f});   // metres
+	constinit HEAT_PARAMETER_VALUE(float, bustTimer,       5.f,  {.001f}); // seconds
+	constinit HEAT_PARAMETER_VALUE(float, maxBustDistance, 15.f, {0.f});   // metres
 
-	constinit HeatParameters::Value<float> evadeTimer(7.f, {.001f}); // seconds
+	constinit HEAT_PARAMETER_VALUE(float, evadeTimer, 7.f, {.001f}); // seconds
 
-	constinit HeatParameters::Value<bool> carsAffectedByHiding (true);
-	constinit HeatParameters::Value<bool> helisAffectedByHiding(true);
+	constinit HEAT_PARAMETER_VALUE(bool, carsAffectedByHiding,  true);
+	constinit HEAT_PARAMETER_VALUE(bool, helisAffectedByHiding, true);
 
-	constinit HeatParameters::Value<bool> copFlipByDamageEnabled(true);
+	constinit HEAT_PARAMETER_VALUE(bool, copFlipByDamageEnabled, true);
 
-	constinit HeatParameters::OptionalValue<float> copFlipByTimer     ({0.f}); // seconds
-	constinit HeatParameters::OptionalValue<float> racerFlipResetDelay({0.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, copFlipByTimer,     {0.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, racerFlipResetDelay,{0.f}); // seconds
 
 	// Conversions
 	float bountyFrequency = 1.f / bountyInterval.current; // hertz
@@ -58,7 +62,7 @@ namespace GeneralSettings
 	float halfEvadeRate = .5f / evadeTimer.current; // hertz
 
 	// Code caves
-	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<bool> copTypeToIsBreakerImmune(false);
+	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(bool, copTypeToIsBreakerImmune, false);
 
 
 
@@ -110,11 +114,11 @@ namespace GeneralSettings
 			candidates = scenesLevel3;
 		}
 
-		const size_t      randomIndex = Globals::prng.GenerateIndex(candidates.size());
-		const char* const randomScene = candidates[randomIndex];
+		const size_t      sceneID     = Globals::prng.GenerateIndex(candidates);
+		const char* const randomScene = candidates[sceneID];
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<1>("[GEN] Arrest scene:", randomScene);
+			Globals::LogTagged(logTag, "Arrest scene:", randomScene);
 
 		return randomScene;
 	}
@@ -466,7 +470,7 @@ namespace GeneralSettings
 			MemoryTools::MakeRangeNOP<0x443CBE, 0x443CC8>();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Tracking pursuit length");
+				Globals::LogPlain("Tracking pursuit length");
 		}
 
 		// Units in pursuit
@@ -475,7 +479,7 @@ namespace GeneralSettings
 			MemoryTools::MakeRangeNOP<0x41911B, 0x419125>();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Tracking units in pursuit");
+				Globals::LogPlain("Tracking units in pursuit");
 		}
 
 		// Cops lost
@@ -484,7 +488,7 @@ namespace GeneralSettings
 			MemoryTools::MakeRangeNOP<0x42B761, 0x42B76B>();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Tracking cops lost");
+				Globals::LogPlain("Tracking cops lost");
 		}
 
 		// Cops damaged
@@ -493,7 +497,7 @@ namespace GeneralSettings
 			MemoryTools::MakeRangeNOP<0x40AF43, 0x40AF4D>();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Tracking cops damaged");
+				Globals::LogPlain("Tracking cops damaged");
 		}
 
 		// Cops destroyed
@@ -504,7 +508,7 @@ namespace GeneralSettings
 			MemoryTools::MakeRangeNOP<0x43EA15, 0x43EA19>(); // total cops destroyed
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Tracking cops destroyed");
+				Globals::LogPlain("Tracking cops destroyed");
 		}
 
 		// Passive bounty
@@ -513,7 +517,7 @@ namespace GeneralSettings
 			MemoryTools::MakeRangeNOP<0x4094A0, 0x4094AA>();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Tracking passive bounty");
+				Globals::LogPlain("Tracking passive bounty");
 		}
 
 		// Property damage
@@ -522,7 +526,7 @@ namespace GeneralSettings
 			MemoryTools::MakeRangeNOP<0x409463, 0x409467>();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Tracking property damage");
+				Globals::LogPlain("Tracking property damage");
 		}
 
 		// Infractions
@@ -531,7 +535,7 @@ namespace GeneralSettings
 			MemoryTools::MakeRangeNOP<0x5FDDDC, 0x5FDDE7>();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Tracking infractions");
+				Globals::LogPlain("Tracking infractions");
 		}
 	}
 
@@ -546,7 +550,6 @@ namespace GeneralSettings
 
 		return copTypeToIsBreakerImmune.Fill
 		(
-			"Vehicle-to-immunity",
 			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames,         Globals::GetVaultHash,         Globals::DoesVehicleTypeExist),
 			ModContainers::FillSetup(isBreakerImmunes, ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
@@ -580,7 +583,7 @@ namespace GeneralSettings
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [GEN] GeneralSettings");
+			Globals::LogConfig(logTag, logName);
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "General.ini")) return false;
 
@@ -641,36 +644,12 @@ namespace GeneralSettings
 
 
 
-	void LogHeatStateReport()
-	{
-		Globals::logger.Log("    HEAT [GEN] GeneralSettings");
-
-		rivalPursuitsEnabled.Log("rivalPursuitsEnabled    ");
-
-		bountyInterval.Log("bountyInterval          ");
-
-		maxBountyMultiplier.Log("maxBountyMultiplier     ");
-
-		bustTimer      .Log("bustTimer               ");
-		maxBustDistance.Log("maxBustDistance         ");
-
-		evadeTimer.Log("evadeTimer              ");
-
-		carsAffectedByHiding .Log("carsAffectedByHiding    ");
-		helisAffectedByHiding.Log("helisAffectedByHiding   ");
-
-		copFlipByDamageEnabled.Log("copFlipByDamageEnabled  ");
-
-		copFlipByTimer.Log("copFlipByTimer          ");
-
-		racerFlipResetDelay.Log("racerFlipResetDelay     ");
-	}
-
-
-
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
 		if (not anyFeatureEnabled) return;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogHeat(logTag, logName);
 
 		rivalPursuitsEnabled.SetToHeatState(state);
 
@@ -699,8 +678,5 @@ namespace GeneralSettings
 		copFlipByTimer.SetToHeatState(state);
 
 		racerFlipResetDelay.SetToHeatState(state);
-
-		if constexpr (Globals::loggingEnabled)
-			LogHeatStateReport();
 	}
 }

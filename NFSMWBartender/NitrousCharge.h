@@ -13,8 +13,12 @@ namespace NitrousCharge
 
 	bool anyFeatureEnabled = false;
 
+	// Logging
+	constexpr LogLiteral logTag  = "[NOS]";
+	constexpr LogLiteral logName = "NitrousCharge";
+
 	// Heat parameters
-	constinit HeatParameters::Value<bool> passiveRechargeEnabled(true);
+	constinit HEAT_PARAMETER_VALUE(bool, passiveRechargeEnabled, true);
 
 	// Parameter sets
 	RELEASE_CONSTINIT ParameterSets::CopInteractions nitrousInteractions; // seconds
@@ -43,7 +47,7 @@ namespace NitrousCharge
 		if constexpr (Globals::loggingEnabled)
 		{
 			const address pursuit = Globals::GetPursuitOfPerpVehicle(perpVehicle);
-			Globals::logger.Log(pursuit, "[NOS] Nitrous change:", seconds);
+			Globals::LogFull(pursuit, logTag, "Nitrous change:", seconds);
 		}
 
 		const auto ChargeNOS = AsFunction<void __thiscall (address, float)>(0x6A0470);
@@ -107,9 +111,9 @@ namespace NitrousCharge
 		if (not perpVehicle) return; // should never happen
 
 		const float nitrousChange = nitrousInteractions.GetWreckingChange(copVehicle);
+		if (nitrousChange == 0.f) return;
 
-		if (nitrousChange != 0.f)
-			ChargeNitrous(perpVehicle, nitrousChange);
+		ChargeNitrous(perpVehicle, nitrousChange);
 	}
 
 
@@ -148,7 +152,7 @@ namespace NitrousCharge
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [NOS] RacerNitrious");
+			Globals::LogConfig(logTag, logName);
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Nitrous.ini")) return false;
 
@@ -169,33 +173,16 @@ namespace NitrousCharge
 
 
 
-	void LogHeatStateReport()
-	{
-		Globals::logger.Log("    HEAT [NOS] GameBreaker");
-
-		passiveRechargeEnabled.Log("passiveRechargeEnabled  ");
-
-		nitrousInteractions.Log
-		(
-			"copTagNitrousChange     ",
-			"nitrousChangePerAssault ",
-			"maxNumAssaultsPerCop    ",
-			"copWreckNitrousChange   "
-		);
-	}
-
-
-
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
 		if (not anyFeatureEnabled) return;
 
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogHeat(logTag, logName);
+
 		passiveRechargeEnabled.SetToHeatState(state);
 
 		nitrousInteractions.SetToHeatState(state);
-
-		if constexpr (Globals::loggingEnabled)
-			LogHeatStateReport();
 	}
 
 

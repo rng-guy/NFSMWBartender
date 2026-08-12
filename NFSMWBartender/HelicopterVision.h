@@ -18,6 +18,10 @@ namespace HelicopterVision
 
 	bool anyFeatureEnabled = false;
 
+	// Logging
+	constexpr LogLiteral logTag  = "[VIS]";
+	constexpr LogLiteral logName = "HelicopterVision";
+
 	// Types and aliases
 	constexpr size_t numChannels = 4;
 
@@ -52,9 +56,7 @@ namespace HelicopterVision
 		for (size_t channelID = 0; channelID < numChannels; ++channelID)
 		{
 			const float channel = std::lerp(outOfSight.channels[channelID], withinSight.channels[channelID], state);
-
-			// Construct colour integer of format 0xAARRGGBB
-			colour = (colour << 8) | static_cast<byte>(channel);
+			colour              = (colour << 8) | static_cast<byte>(channel); // colour integer of format 0xAARRGGBB
 		}
 
 		return colour;
@@ -77,13 +79,11 @@ namespace HelicopterVision
 		{
 			const float timeDelta = currentTimestamp - lastUpdateTimestamp;
 
-			if (canSeeTarget)
-				currentVisionState += timeDelta / withinSight.transitionLength;
-
-			else
-				currentVisionState -= timeDelta / outOfSight.transitionLength;
-
-			currentVisionState = std::clamp<float>(currentVisionState, 0.f, 1.f);
+			const float deltaDirection = (canSeeTarget) ? 1.f         : -1.f;
+			const auto& targetColour   = (canSeeTarget) ? withinSight : outOfSight;
+			
+			currentVisionState += deltaDirection * timeDelta / targetColour.transitionLength;
+			currentVisionState  = std::clamp<float>(currentVisionState, 0.f, 1.f);
 		}
 		else
 		{
@@ -221,7 +221,7 @@ namespace HelicopterVision
 		if (not ParseColour(parser, "outOfSight", outOfSight))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("No valid out-of-sight colour");
+				Globals::LogPlain("No valid out-of-sight colour");
 
 			return false; // invalid colour
 		}
@@ -230,15 +230,15 @@ namespace HelicopterVision
 		if (not ParseColour(parser, "withinSight", withinSight))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("No valid within-sight colour");
+				Globals::LogPlain("No valid within-sight colour");
 
 			return false; // invalid colour
 		}
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log<2>("Out of sight:", InterpolateColour(0.f), outOfSight .transitionLength);
-			Globals::logger.Log<2>("Within sight:", InterpolateColour(1.f), withinSight.transitionLength);
+			Globals::LogPlain("Out of sight:", InterpolateColour(0.f), outOfSight .transitionLength);
+			Globals::LogPlain("Within sight:", InterpolateColour(1.f), withinSight.transitionLength);
 		}
 
 		return true;
@@ -261,7 +261,7 @@ namespace HelicopterVision
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [VIS] HelicopterVision");
+			Globals::LogConfig(logTag, logName);
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 

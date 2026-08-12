@@ -174,10 +174,9 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **always fixes eleven bugs / issues** automatically:
+The "Advanced" feature set **always fixes ten bugs / issues** automatically:
 * HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
 * the cops no longer stop calling out roadblocks / spikes over the radio,
-* failed roadblock spawn attempts can no longer stall spawns for chasing cops,
 * Challenge Series races now use the Heat level limits defined for them in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),
 * the game no longer ignores VltEd settings for roadblocks and Strategies in races,
 * the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
@@ -189,7 +188,8 @@ The "Advanced" feature set **always fixes eleven bugs / issues** automatically:
 
 &nbsp;
 
-The "Advanced" feature set **can fix four more bugs / issues**, depending on its configuration:
+The "Advanced" feature set **can fix five more bugs / issues**, depending on its configuration:
+* failed roadblock spawn attempts can no longer stall spawns for chasing cops,
 * the cops no longer inadvertently fail to request four of the vanilla roadblock setups,
 * the helicopter can no longer waste its spawns by losing the pursuit target nearly instantly,
 * HeavyStrategy 3 cops no longer spawn in passive mode without trying to ram anything, and
@@ -254,9 +254,8 @@ Bartender's **"Basic" feature set** changes the way the game accesses some VltEd
 
 Bartender's **"Advanced" feature set** forces the game to no longer ignore the roadblock-related `pursuitlevels` and the Strategy-related `pursuitsupport` VltEd settings in race pursuits. The feature set also replaces four specific `pursuitlevels` parameters in all pursuits:
 * the `cops` array,
-* `HeliFuelTime`,
-* `TimeBetweenHeliActive`, and
-* `SearchModeHeliSpawnChance`.
+* `HeliFuelTime`, and
+* `TimeBetweenHeliActive`.
 
 &nbsp;
 

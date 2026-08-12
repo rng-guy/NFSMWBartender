@@ -6,6 +6,7 @@
 #include <string>
 #include <utility>
 #include <optional>
+#include <algorithm>
 #include <string_view>
 
 #include "Globals.h"
@@ -64,8 +65,6 @@ namespace RoadblockOverrides
 	{
 	// Members
 
-		std::string name; // for logging; not worth removing
-
 		RBTable original;
 		RBTable mirrored;
 
@@ -75,10 +74,15 @@ namespace RoadblockOverrides
 		float maxRoadWidth = 0.f; // metres
 		float mirrorChance = 0.f; // percent
 
-		HeatParameters::Value<int> chance{100, {0}}; // relative
+		HEAT_PARAMETER_VALUE(int, chance, 100, {0}); // relative
+
+		[[no_unique_address]] const LogString name;
 
 
 	// Methods
+
+		explicit RBSetup(const std::string_view name) : name(name) {}
+
 
 		[[nodiscard]] bool IsAvailable() const
 		{
@@ -111,10 +115,9 @@ namespace RoadblockOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (isMirrored)
-					Globals::logger.Log<2>("Setup:", this->name, "(mirrored)");
+					Globals::LogPlain("Setup:", this->name, "(mirrored)");
 
-				else
-					Globals::logger.Log<2>("Setup:", this->name);
+				else Globals::LogPlain("Setup:", this->name);
 			}
 
 			return (isMirrored) ? this->mirrored : this->original;
@@ -135,64 +138,23 @@ namespace RoadblockOverrides
 
 
 
-	// Counter for logging
-	struct SetupCounter
-	{
-	// Members
-
-		size_t numRegular = 0;
-		size_t numSpike   = 0;
-
-		size_t numMirrorRegular = 0;
-		size_t numMirrorSpike   = 0;
-
-
-	// Methods
-
-		void Reset()
-		{
-			this->numRegular = 0;
-			this->numSpike   = 0;
-
-			this->numMirrorRegular = 0;
-			this->numMirrorSpike   = 0;
-		}
-
-
-		void CountSetup(const RBSetup& setup)
-		{
-			if (setup.hasSpikes)
-			{
-				++numSpike;
-
-				if (setup.IsMirrorEnabled())
-					++numMirrorSpike;
-			}
-			else
-			{
-				++numRegular;
-
-				if (setup.IsMirrorEnabled())
-					++numMirrorRegular;
-			}
-		}
-	};
-
-
-
 
 
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
-	// Aliases
+	// Logging
+	constexpr LogLiteral logTag  = "[RBL]";
+	constexpr LogLiteral logName = "RoadblockOverrides";
+
+	// Types and aliases
 	template <typename T>
 	using PartArray = std::array<T, maxNumParts>;
 
 	// Heat parameters
-	constinit HeatParameters::Value<float> spawnCalloutChances(100.f, {0.f, 100.f}); // percent
-	constinit HeatParameters::Value<float> spikeCalloutChances(50.f,  {0.f, 100.f}); // percent
+	constinit HEAT_PARAMETER_VALUE(float, spawnCalloutChance, 100.f, {0.f, 100.f}); // percent
+	constinit HEAT_PARAMETER_VALUE(float, spikeCalloutChance, 50.f,  {0.f, 100.f}); // percent
 
 	// Setup parsing
 	constexpr std::string_view setupPrefix = "Setups:";
@@ -200,15 +162,14 @@ namespace RoadblockOverrides
 	// Code caves
 	RELEASE_CONSTINIT std::vector<RBSetup> roadblockSetups;
 
+	size_t numRegularCandidates = 0;
+	size_t numSpikeCandidates   = 0;
+	size_t maxNumCarsRequired   = 0;
+
 	float maxStretchScale = 1.14f;
 
 	bool hasSpikes = false;
 	int  spikeLane = 0;
-
-	// Logging
-	address roadblockPursuit = 0x0;
-
-	constinit SetupCounter counter;
 
 
 
@@ -216,34 +177,134 @@ namespace RoadblockOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	[[nodiscard]] void __stdcall GatherSetupMetadata(const float roadWidth)
+	{
+		numRegularCandidates = 0;
+		numSpikeCandidates   = 0;
+		maxNumCarsRequired   = 0;
+
+		for (const RBSetup& setup : roadblockSetups)
+		{
+			if (not setup.IsAvailable())                   continue;
+			if (not setup.IsCompatbleRoadWidth(roadWidth)) continue;
+
+			if (setup.hasSpikes) ++numSpikeCandidates;
+			else                 ++numRegularCandidates;
+
+			maxNumCarsRequired = std::max<size_t>(maxNumCarsRequired, setup.GetNumCarsRequired());
+		}
+	}
+
+
+
+	[[nodiscard]] bool __fastcall WasRequestFeasible(const address pursuit)
+	{
+		const bool anyRegular = (numRegularCandidates > 0);
+		const bool anySpikes  = (numSpikeCandidates   > 0);
+
+		if (anyRegular and anySpikes)      return true;  // both    available
+		if (not (anyRegular or anySpikes)) return false; // neither available
+
+		if (Globals::IsPursuitInCooldownMode(pursuit)) return anyRegular;
+
+		const address attribute   = Globals::GetFromPursuitlevel(pursuit, "roadblockspikechance"_vlt);
+		const float   spikeChance = (attribute) ? AsReference<float>(attribute) : 0.f; // should never fail
+
+		if (spikeChance <= 0.f)   return anyRegular; // always regular
+		if (spikeChance >= 100.f) return anySpikes;  // always spike
+
+		return true; // either available
+	}
+
+
+
+	void __fastcall CancelRequest
+	(
+		const address caller, 
+		const address pursuit
+	) {
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogFull(pursuit, logTag, "Cancelling request");
+
+		switch (caller)
+		{
+		case 0x43E7D6: // HeavyStrategy 4
+			Globals::ClearSupportRequest(pursuit);
+			break;
+
+		case 0x43EC3A: // non-Strategy roadblock
+			AsReference<bool>   (pursuit + 0x190)            = false; // request status
+			AsReference<address>(Globals::copManager + 0xBC) = 0x0;   // roadblock pursuit
+			AsReference<int>    (Globals::copManager + 0xB8) = 0;     // car count
+		}
+	}
+	
+
+
 	void __fastcall RequestCallout(const address pursuit)
 	{
 		if (Globals::IsPursuitInCooldownMode(pursuit)) return;
 		if (not Globals::IsPlayerPursuit(pursuit))     return;
 
-		if (Globals::prng.DoPercentTrial<float>(spawnCalloutChances.current))
+		if (not Globals::prng.DoPercentTrial<float>(spawnCalloutChance.current))
 		{
-			if (hasSpikes and Globals::prng.DoPercentTrial<float>(spikeCalloutChances.current))
-			{
-				const auto CallOutSpikes = AsFunction<void __cdecl (int)>(0x71DAC0);
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogTagged(logTag, "No callout");
 
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(roadblockPursuit, "[RBL] Spikes callout");
-
-				CallOutSpikes(spikeLane);
-			}
-			else
-			{
-				const auto CallOutRegular = AsFunction<void ()>(0x71DAA0);
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(roadblockPursuit, "[RBL] Regular callout");
-
-				CallOutRegular();
-			}
+			return; // skip callout
 		}
-		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log(roadblockPursuit, "[RBL] No callout");
+
+		if (hasSpikes and Globals::prng.DoPercentTrial<float>(spikeCalloutChance.current))
+		{
+			const auto CallOutSpikes = AsFunction<void __cdecl (int)>(0x71DAC0);
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogTagged(logTag, "Spikes callout");
+
+			CallOutSpikes(spikeLane);
+		}
+		else
+		{
+			const auto CallOutRegular = AsFunction<void ()>(0x71DAA0);
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogTagged(logTag, "Regular callout");
+
+			CallOutRegular();
+		}
+	}
+
+
+
+	[[nodiscard]] auto CountAvailableSetups()
+	{
+		// Aggregate return type
+		struct Counts
+		{
+		// Members
+
+			size_t numRegular = 0;
+			size_t numSpikes  = 0;
+
+			size_t numMirrorRegular = 0;
+			size_t numMirrorSpikes  = 0;
+		};
+
+		Counts counts;
+
+		// Setup counting
+		for (const RBSetup& setup : roadblockSetups)
+		{
+			if (not setup.IsAvailable()) continue;
+
+			size_t& numSetups = (setup.hasSpikes) ? counts.numSpikes       : counts.numRegular;
+			size_t& numMirror = (setup.hasSpikes) ? counts.numMirrorSpikes : counts.numMirrorRegular;
+
+			numSetups += 1;
+			numMirror += setup.IsMirrorEnabled();
+		}
+
+		return counts;
 	}
 
 
@@ -251,24 +312,6 @@ namespace RoadblockOverrides
 
 
 	// Replacement functions ------------------------------------------------------------------------------------------------------------------------
-
-	[[nodiscard]] size_t __stdcall GetMaxNumCarsRequired(const float roadWidth)
-	{
-		size_t maxNumCarsRequired = 0;
-
-		for (const RBSetup& setup : roadblockSetups)
-		{
-			if (not setup.IsAvailable())                   continue;
-			if (not setup.IsCompatbleRoadWidth(roadWidth)) continue;
-
-			if (not setup.IsCompatibleCarCount(maxNumCarsRequired))
-				maxNumCarsRequired = setup.GetNumCarsRequired();
-		}
-
-		return maxNumCarsRequired;
-	}
-
-
 
 	[[nodiscard]] const RBTable* __cdecl SelectRoadblockTable
 	(
@@ -280,10 +323,10 @@ namespace RoadblockOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::logger.Log(roadblockPursuit, "[RBL] Roadblock request", (needsSpikes) ? "(spikes)" : "(regular)");
+			Globals::LogTagged(logTag, "Roadblock request", (needsSpikes) ? "(spikes)" : "(regular)");
 
-			Globals::logger.Log<2>("Max. cars:",  DecFormat(maxNumCars));
-			Globals::logger.Log<2>("Road width:", roadWidth);
+			Globals::LogPlain("Car budget:", DecFormat(maxNumCars));
+			Globals::LogPlain("Road width:", roadWidth);
 		}
 
 		// Find eligible setups
@@ -305,7 +348,7 @@ namespace RoadblockOverrides
 		if (candidates.empty())
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("No candidate(s)");
+				Globals::LogPlain("No candidate(s)");
 
 			return nullptr; // no viable setup(s)
 		}
@@ -315,7 +358,7 @@ namespace RoadblockOverrides
 		const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, totalChance);
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>(DecFormat(candidates.size()), "candidate(s)");
+			Globals::LogPlain(DecFormat(candidates.size()), "candidate(s)");
 
 		for (const RBSetup* const setup : candidates)
 		{
@@ -331,7 +374,7 @@ namespace RoadblockOverrides
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("WARNING: [RBL] Failed to select roadblock setup");
+			Globals::LogError(logTag, "Failed to select roadblock setup");
 
 		candidates.clear();
 		
@@ -344,20 +387,21 @@ namespace RoadblockOverrides
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address pursuitEntrance = 0x43DD4F;
-	constexpr address pursuitExit     = 0x43DD56;
+	constexpr address spikeFlagEntrance = 0x43E1C5;
+	constexpr address spikeFlagExit     = 0x43E1CD;
 
-	// Saves the roadblock pursuit for logging purposes
-	__declspec(naked) void Pursuit()
+	// Records whether a roadblock has spikes
+	__declspec(naked) void SpikeFlag()
 	{
 		__asm
 		{
 			// Execute original code first
-			mov ecx, dword ptr [esp + 0x4BC]
+			mov eax, dword ptr [esp + 0x10]
+			mov ecx, dword ptr [esp + 0x14]
 
-			mov dword ptr [roadblockPursuit], ecx
+			mov byte ptr [hasSpikes], al
 
-			jmp dword ptr [pursuitExit]
+			jmp dword ptr [spikeFlagExit]
 		}
 	}
 
@@ -371,7 +415,6 @@ namespace RoadblockOverrides
 	{
 		__asm
 		{
-			mov byte ptr [hasSpikes], 1
 			mov dword ptr [spikeLane], eax
 
 			// Execute original code and resume
@@ -403,16 +446,17 @@ namespace RoadblockOverrides
 	constexpr address maxCarCountEntrance = 0x43DF2A;
 	constexpr address maxCarCountExit     = 0x43DF8A;
 
-	// Fetches the maximum car count among eligible setups
+	// Finds the maximum car count among eligible setups
 	__declspec(naked) void MaxCarCount()
 	{
 		__asm
 		{
 			fstp dword ptr [esp + 0x14]
 
-			push dword ptr [esp + 0x14]
-			call GetMaxNumCarsRequired
-			mov esi, eax
+			push dword ptr [esp + 0x14] // roadWidth
+			call GatherSetupMetadata
+
+			mov esi, dword ptr [maxNumCarsRequired]
 
 			jmp dword ptr [maxCarCountExit]
 		}
@@ -449,43 +493,32 @@ namespace RoadblockOverrides
 	constexpr address spawnFailureEntrance = 0x43E1DA;
 	constexpr address spawnFailureExit     = 0x43E1E0;
 
-	// Prevents failed roadblock requests from stalling cop spawns
+	// Prevents impossible roadblock requests from stalling cop spawns
 	__declspec(naked) void SpawnFailure()
 	{
 		__asm
 		{
 			// Execute original code first
-			test ecx, ecx
 			mov dword ptr [esp + 0x18], ecx
-			jne conclusion // found suitable setup
+			test ecx, ecx
+			jne conclusion // found setup
 
-			cmp dword ptr [esp + 0x4C0], 0x43E7D6
-			jne regular // not HeavyStrategy 4
+			mov ecx, dword ptr [esp + 0x4C4]
+			call WasRequestFeasible // ecx: pursuit
+			cmp al, 1
+			je conclusion          // do not cancel
 
-			mov ecx, dword ptr [esp + 0x4C4] // pursuit
-			call Globals::ClearSupportRequest
-			jmp restore                      // was HeavyStrategy 4
+			mov ecx, dword ptr [esp + 0x4C0]
+			mov edx, dword ptr [esp + 0x4C4]
+			call CancelRequest // ecx: caller; edx: pursuit
 
-			regular:
-			cmp dword ptr [esp + 0x4C0], 0x43EC3A
-			jne restore // not non-Strategy roadblock
-
-			mov eax, dword ptr [esp + 0x4C4] // pursuit
-			mov edx, dword ptr [esp + 0x54]  // AICopManager
-
-			mov byte ptr [eax + 0x190], cl  // request status
-			mov dword ptr [edx + 0xBC], ecx // roadblock pursuit
-			mov dword ptr [edx + 0xB8], ecx // max. car count
-
-			restore:
 			xor ecx, ecx // restore zero flag
 			
 			conclusion:
-			mov byte ptr [hasSpikes], 0
-
 			jmp dword ptr [spawnFailureExit]
 		}
 	}
+
 
 
 
@@ -499,18 +532,15 @@ namespace RoadblockOverrides
 	) {
 		if (section.find(setupPrefix) > 0) return std::nullopt; // not setup
 
-		RBSetup setup;
+		RBSetup setup(section.substr(setupPrefix.length()));
 
-		if constexpr (Globals::loggingEnabled)
-			setup.name = section.substr(setupPrefix.length());
-
-		RBTable& table = setup.original;
+		RBTable& table = setup.original; // same constraints as mirrored
 
 		// Parse and validate width values
 		if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {.001f}}, {setup.maxRoadWidth, {0.f}}))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name, "(no extent)");
+				Globals::LogDetail('-', setup.name, "(no extent)");
 
 			return std::nullopt; // invalid setup
 		}
@@ -518,7 +548,7 @@ namespace RoadblockOverrides
 		if (table.minRoadWidth >= setup.maxRoadWidth)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name, "(invalid extent)");
+				Globals::LogDetail('-', setup.name, "(invalid extent)");
 
 			return std::nullopt; // invalid setup
 		}
@@ -566,10 +596,7 @@ namespace RoadblockOverrides
 			}
 
 			// Remove full rotation(s) and convert to positive value
-			orientations[partID] -= std::trunc(orientations[partID]);
-
-			if (orientations[partID] < 0.f)
-				orientations[partID] += 1.f; // full rotation
+			orientations[partID] -= std::floor(orientations[partID]);
 
 			// Update part parameters
 			table.parts[numValidParts++] =
@@ -585,7 +612,7 @@ namespace RoadblockOverrides
 		if (table.numCarsRequired == 0)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name, "(no car(s))");
+				Globals::LogDetail('-', setup.name, "(no car(s))");
 
 			return std::nullopt; // invalid setup
 		}
@@ -596,7 +623,7 @@ namespace RoadblockOverrides
 		if (setup.chance.GetMaximum() < 1)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>('-', setup.name, "(unused)");
+				Globals::LogDetail('-', setup.name, "(unused)");
 
 			return std::nullopt; // unused setup
 		}
@@ -615,15 +642,9 @@ namespace RoadblockOverrides
 			part.offsetX     = -part.offsetX;
 			part.orientation = 1.f - part.orientation;
 
-			// Mirror spike-strip pattern
+			// Mirror spike-strip direction
 			if (part.type == RBPartType::SPIKES)
-			{
-				if (part.orientation < .5f)
-					part.orientation += .5f; // counter-clockwise
-
-				else
-					part.orientation -= .5f; // clockwise
-			}
+				part.orientation = std::fmod(part.orientation + .5f, 1.f);
 		}
 
 		return setup;
@@ -634,7 +655,7 @@ namespace RoadblockOverrides
 	bool ParseRoadblockSetups(const HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<2>("Roadblock setups:");
+			Globals::LogPlain("Roadblock setups:");
 
 		const auto& sections = parser.GetSections();
 
@@ -647,12 +668,12 @@ namespace RoadblockOverrides
 		if (maxNumSetups == 0)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>("no setup(s) provided");
+				Globals::LogDetail("no setup(s) provided");
 
 			return false; // no setups; disable feature
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log<3>(DecFormat(maxNumSetups), "setup(s) provided");
+			Globals::LogDetail(DecFormat(maxNumSetups), "setup(s) provided");
 
 		// Parse and validate setups
 		roadblockSetups.reserve(maxNumSetups);
@@ -660,12 +681,7 @@ namespace RoadblockOverrides
 		for (const auto& [section, contents] : sections)
 		{
 			if (auto setup = ParseRoadblockSetup(parser, section))
-			{
-				if constexpr (Globals::loggingEnabled)
-					counter.CountSetup(*setup);
-
 				roadblockSetups.push_back(std::move(*setup));
-			}
 		}
 
 		// Log and shrink setup vector
@@ -673,14 +689,14 @@ namespace RoadblockOverrides
 		{
 			if (not roadblockSetups.empty())
 			{
-				Globals::logger.Log<3>(DecFormat(roadblockSetups.size()), "setup(s) valid");
+				Globals::LogDetail(DecFormat(roadblockSetups.size()), "setup(s) valid");
 
-				Globals::logger.Log<3>(DecFormat(counter.numRegular), "regular,", DecFormat(counter.numMirrorRegular), "mirrored");
-				Globals::logger.Log<3>(DecFormat(counter.numSpike),   "spikes, ", DecFormat(counter.numMirrorSpike),   "mirrored");
+				const auto [numRegular, numSpikes, numMirrorRegular, numMirrorSpikes] = CountAvailableSetups();
 
-				counter.Reset();
+				Globals::LogDetail(DecFormat(numRegular), "regular,", DecFormat(numMirrorRegular), "mirrored");
+				Globals::LogDetail(DecFormat(numSpikes),  "spikes, ", DecFormat(numMirrorSpikes),  "mirrored");
 			}
-			else Globals::logger.Log<3>("no setup(s) valid");
+			else Globals::LogDetail("no setup(s) valid");
 		}
 
 		roadblockSetups.shrink_to_fit();
@@ -697,12 +713,12 @@ namespace RoadblockOverrides
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [RBL] RoadblockOverrides");
+			Globals::LogConfig(logTag, logName);
 
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Roadblocks:Radio", spawnCalloutChances, spikeCalloutChances);
+		HeatParameters::Parse(parser, "Roadblocks:Radio", spawnCalloutChance, spikeCalloutChance);
 
 		// Roadblock setups
 		if (ParseRoadblockSetups(parser))
@@ -714,21 +730,18 @@ namespace RoadblockOverrides
 
 			MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable); // replaces game function
 
-			MemoryTools::MakeRangeJMP<scaleLimitEntrance,  scaleLimitExit> (ScaleLimit);
-			MemoryTools::MakeRangeJMP<maxCarCountEntrance, maxCarCountExit>(MaxCarCount);
+			MemoryTools::MakeRangeJMP<scaleLimitEntrance,   scaleLimitExit>  (ScaleLimit);
+			MemoryTools::MakeRangeJMP<maxCarCountEntrance,  maxCarCountExit> (MaxCarCount);
+			MemoryTools::MakeRangeJMP<spawnFailureEntrance, spawnFailureExit>(SpawnFailure);
 		}
 
 		// Code Changes (general)
 		MemoryTools::MakeRangeNOP<0x71F184, 0x71F19F>(); // regular callout
 		MemoryTools::MakeRangeNOP<0x71F091, 0x71F096>(); // spikes  callout
 
+		MemoryTools::MakeRangeJMP<spikeFlagEntrance,    spikeFlagExit>   (SpikeFlag);
 		MemoryTools::MakeRangeJMP<spikeLaneEntrance,    spikeLaneExit>   (SpikeLane);
 		MemoryTools::MakeRangeJMP<radioRequestEntrance, radioRequestExit>(RadioRequest);
-		MemoryTools::MakeRangeJMP<spawnFailureEntrance, spawnFailureExit>(SpawnFailure);
-
-		// Code changes (logging)
-		if constexpr (Globals::loggingEnabled)
-			MemoryTools::MakeRangeJMP<pursuitEntrance, pursuitExit>(Pursuit);
 
 		// Status flag
 		anyFeatureEnabled = true;
@@ -738,45 +751,29 @@ namespace RoadblockOverrides
 
 
 
-	void LogHeatStateReport()
-	{
-		Globals::logger.Log("    HEAT [RBL] RoadblockOverrides");
-
-		spawnCalloutChances.Log("spawnCalloutChance      ");
-		spikeCalloutChances.Log("spikeCalloutChance      ");
-
-		if (roadblockSetups.empty()) return;
-
-		Globals::logger.Log<2>("numRegularRoadblocks    ", DecFormat(counter.numRegular), '/', DecFormat(counter.numMirrorRegular));
-		Globals::logger.Log<2>("numSpikeRoadblocks      ", DecFormat(counter.numSpike),   '/', DecFormat(counter.numMirrorSpike));
-	}
-
-
-
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
 		if (not anyFeatureEnabled) return;
 
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogHeat(logTag, logName);
+
 		// Heat parameters
-		spawnCalloutChances.SetToHeatState(state);
-		spikeCalloutChances.SetToHeatState(state);
+		spawnCalloutChance.SetToHeatState(state);
+		spikeCalloutChance.SetToHeatState(state);
 
 		// Roadblock setups
 		for (RBSetup& setup : roadblockSetups)
-		{
-			setup.chance.SetToHeatState(state);
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (setup.IsAvailable())
-					counter.CountSetup(setup);
-			}
-		}
+			setup.chance.SetToHeatStateWithoutLog(state);
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			LogHeatStateReport();
-			counter.Reset();
+			if (roadblockSetups.empty()) return;
+
+			const auto [numRegular, numSpikes, numMirrorRegular, numMirrorSpikes] = CountAvailableSetups();
+
+			Globals::LogPlain("numRegularRoadblocks    ", DecFormat(numRegular), '/', DecFormat(numMirrorRegular));
+			Globals::LogPlain("numSpikeRoadblocks      ", DecFormat(numSpikes),  '/', DecFormat(numMirrorSpikes));
 		}
 	}
 }

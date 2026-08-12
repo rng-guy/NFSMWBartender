@@ -19,19 +19,23 @@ namespace HeatChangeOverrides
 
 	bool anyFeatureEnabled = false;
 
+	// Logging
+	constexpr LogLiteral logTag  = "[CNG]";
+	constexpr LogLiteral logName = "HeatChangeOverrides";
+
 	// Heat parameters
-	constinit HeatParameters::Value<bool> heatTimerEnabled(true);
+	constinit HEAT_PARAMETER_VALUE(bool, heatTimerEnabled, true);
 
-	constinit HeatParameters::Value<float> chaserHeatChange    (0.f); // levels
-	constinit HeatParameters::Value<float> supportHeatChange   (0.f); // levels
-	constinit HeatParameters::Value<float> helicopterHeatChange(0.f); // levels
+	constinit HEAT_PARAMETER_VALUE(float, chaserHeatChange,     0.f); // levels
+	constinit HEAT_PARAMETER_VALUE(float, supportHeatChange,    0.f); // levels
+	constinit HEAT_PARAMETER_VALUE(float, helicopterHeatChange, 0.f); // levels
 
-	constinit HeatParameters::Value<float> roadblockHeatChange(0.f); // levels
-	constinit HeatParameters::Value<float> spikesHeatChange   (0.f); // levels
+	constinit HEAT_PARAMETER_VALUE(float, roadblockHeatChange, 0.f); // levels
+	constinit HEAT_PARAMETER_VALUE(float, spikesHeatChange,    0.f); // levels
 
-	constinit HeatParameters::Value<float> trafficHitHeatChange(0.f); // levels
+	constinit HEAT_PARAMETER_VALUE(float, trafficHitHeatChange, 0.f); // levels
 
-	constinit HeatParameters::Value<float> propertyHeatChange(0.f); // levels
+	constinit HEAT_PARAMETER_VALUE(float, propertyHeatChange, 0.f); // levels
 
 	// Parameter sets
 	RELEASE_CONSTINIT ParameterSets::CopInteractions heatInteractions; // levels
@@ -62,7 +66,7 @@ namespace HeatChangeOverrides
 
 		public: // methods
 
-			explicit CountTracker
+			CountTracker
 			(
 				const address                       pursuit,
 				const ptrdiff_t                     offset,
@@ -73,8 +77,8 @@ namespace HeatChangeOverrides
 			}
 
 
-			explicit CountTracker(CountTracker&&)      = delete;
-			explicit CountTracker(const CountTracker&) = delete;
+			CountTracker(CountTracker&&)      = delete;
+			CountTracker(const CountTracker&) = delete;
 
 			CountTracker& operator=(CountTracker&&)      = delete;
 			CountTracker& operator=(const CountTracker&) = delete;
@@ -107,6 +111,8 @@ namespace HeatChangeOverrides
 
 			CountTracker{this->pursuit, 0x168, trafficHitHeatChange}
 		};
+
+		inline static constexpr LogLiteral name = "HeatManager";
 	
 
 	private: // methods
@@ -142,14 +148,14 @@ namespace HeatChangeOverrides
 		explicit HeatManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('+', this, "HeatManager");
+				Globals::LogPlain('+', this, this->name);
 		}
 
 
 		~HeatManager() override
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('-', this, "HeatManager");
+				Globals::LogPlain('-', this, this->name);
 		}
 
 
@@ -226,7 +232,7 @@ namespace HeatChangeOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (heatChange != 0.f)
-					Globals::logger.Log(pursuit, "[CNG] Heat change:", heatChange);
+					Globals::LogFull(pursuit, logTag, "Heat change:", heatChange);
 			}
 
 			manager->pendingHeatChange = 0.f;
@@ -258,25 +264,24 @@ namespace HeatChangeOverrides
 	{
 		const float  totalGameTime    = Globals::GetTotalGameTime();
 		const size_t currentHeatLevel = static_cast<size_t>(AsReference<float>(heatMeter + 0x40));
-		
-		if (totalGameTime >= animationEndTimestamp)
-		{
-			const auto IsFEngScriptSet = AsFunction<bool __cdecl (address, uint32_t)>      (0x514DA0);
-			const auto SetFEngScript   = AsFunction<void __cdecl (address, uint32_t, bool)>(0x514D10);
+		const bool   isNewHeatLevel   = (currentHeatLevel != lastAnimatedHeatLevel);
 
-			const address  interfaceObject = AsReference<address>(heatMeter + 0x44);
-			const uint32_t animationScript = (currentHeatLevel != lastAnimatedHeatLevel) ? 0x41E1FEDC : 0x1744B3;
+		lastAnimatedHeatLevel = currentHeatLevel; // update regardless of actual animation
 
-			if (not IsFEngScriptSet(interfaceObject, animationScript))
-			{
-				SetFEngScript(interfaceObject, animationScript, true);
+		if (totalGameTime < animationEndTimestamp) return; // animation still active
 
-				if (animationScript == 0x41E1FEDC)
-					animationEndTimestamp = totalGameTime + 2.5f; // animation length (seconds)
-			}
-		}
+		const auto IsFEngScriptSet = AsFunction<bool __cdecl (address, uint32_t)>      (0x514DA0);
+		const auto SetFEngScript   = AsFunction<void __cdecl (address, uint32_t, bool)>(0x514D10);
 
-		lastAnimatedHeatLevel = currentHeatLevel;
+		const address  interfaceObject = AsReference<address>(heatMeter + 0x44);
+		const uint32_t animationScript = (isNewHeatLevel) ? 0x41E1FEDC : 0x1744B3;
+
+		if (IsFEngScriptSet(interfaceObject, animationScript)) return; // script already set
+
+		SetFEngScript(interfaceObject, animationScript, /* enabled = */ true);
+
+		if (isNewHeatLevel)
+			animationEndTimestamp = totalGameTime + 2.5f; // animation length (seconds)
 	}
 
 
@@ -449,7 +454,7 @@ namespace HeatChangeOverrides
 
 	void ParseDamageChanges(const HeatParameters::Parser& parser)
 	{
-		HeatParameters::Value<int> propertyToHeat(0);
+		HEAT_PARAMETER_VALUE(int, propertyToHeat, 0);
 		HeatParameters::Parse(parser, "Heat:Property", propertyToHeat);
 
 		for (const bool forRaces : {false, true})
@@ -471,7 +476,7 @@ namespace HeatChangeOverrides
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [CNG] HeatChangeOverrides");
+			Globals::LogConfig(logTag, logName);
 
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Heat.ini");
 
@@ -508,37 +513,12 @@ namespace HeatChangeOverrides
 
 
 
-	void LogHeatStateReport()
-	{
-		Globals::logger.Log("    HEAT [CNG] HeatChangeOverrides");
-
-		heatTimerEnabled.Log("heatTimerEnabled        ");
-
-		chaserHeatChange    .Log("chaserHeatChange        ");
-		supportHeatChange   .Log("supportHeatChange       ");
-		helicopterHeatChange.Log("helicopterHeatChange    ");
-
-		roadblockHeatChange.Log("roadblockHeatChange     ");
-		spikesHeatChange   .Log("spikesHeatChange        ");
-
-		heatInteractions.Log
-		(
-			"copTagHeatChange        ",
-			"heatChangePerAssault    ",
-			"maxNumAssaultsPerCop    ",
-			"copWreckHeatChange      "
-		);
-
-		trafficHitHeatChange.Log("trafficHitHeatChange    ");
-
-		propertyHeatChange.Log("propertyHeatChange      ");
-	}
-
-
-
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
 		if (not anyFeatureEnabled) return;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogHeat(logTag, logName);
 
 		heatTimerEnabled.SetToHeatState(state);
 
@@ -554,9 +534,6 @@ namespace HeatChangeOverrides
 		trafficHitHeatChange.SetToHeatState(state);
 
 		propertyHeatChange.SetToHeatState(state);
-
-		if constexpr (Globals::loggingEnabled)
-			LogHeatStateReport();
 	}
 
 

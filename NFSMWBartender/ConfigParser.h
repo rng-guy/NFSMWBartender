@@ -13,6 +13,7 @@
 
 #include "Globals.h"
 #include "StreamParser.h"
+#include "FormatBuffer.h"
 #include "FlatContainers.h"
 
 
@@ -136,6 +137,7 @@ namespace ConfigParser
 
 		FlatContainers::Map<std::filesystem::path, Parser::Sections> pathToSections;
 
+		mutable FormatBuffer::Buffer buffer;
 
 	private: // methods
 
@@ -161,7 +163,7 @@ namespace ConfigParser
 
 	public: // methods
 
-		explicit Parser
+		Parser
 		(
 			const size_t fileCapacity           = 0,
 			const size_t sectionCapacityPerFile = 0,
@@ -183,7 +185,7 @@ namespace ConfigParser
 			if (not this->UpdateFilePath(root, fileName))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("Keep:", fileName);
+					Globals::LogPlain("Keep:", fileName);
 
 				return true; // file already loaded
 			}
@@ -199,7 +201,7 @@ namespace ConfigParser
 				this->sections = cachedFileSections;
 				
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("Load:", fileName);
+					Globals::LogPlain("Load:", fileName);
 
 				return true; // file already cached
 			}
@@ -214,13 +216,13 @@ namespace ConfigParser
 				cachedFileSections = this->sections;
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<2>("Open:", fileName);
+					Globals::LogPlain("Open:", fileName);
 
 				return true; // new file exists
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>("Skip:", fileName);
+				Globals::LogPlain("Skip:", fileName);
 
 			return false; // new file doesn't exist
 		}
@@ -290,12 +292,8 @@ namespace ConfigParser
 				// Parse row without default(s) first
 				if (foundSection != this->sections.end())
 				{
-					isValidRows[rowID] = this->GetValues<Vs...>
-					(
-						foundSection->second,
-						std::format(keyFormat, keyStartIndex + rowID),
-						parameters.values[rowID]...
-					);
+					const std::string_view format = this->buffer.Format(keyFormat, keyStartIndex + rowID);
+					isValidRows[rowID]            = this->GetValues<Vs...>(foundSection->second, format, parameters.values[rowID]...);
 				}
 
 				// Apply default(s) to invalid row

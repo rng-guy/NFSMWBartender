@@ -4,7 +4,6 @@
 #include <vector>
 #include <optional>
 #include <concepts>
-#include <string_view>
 #include <type_traits>
 
 #include "Globals.h"
@@ -87,7 +86,7 @@ namespace ModContainers
 
 	// Members
 
-		const std::vector<RawT>& data; // can't be std::span because of std::vector<bool>...
+		const std::vector<RawT>& source; // can't be std::span because of std::vector<bool>...
 
 		[[no_unique_address]] Converter Convert;
 		[[no_unique_address]] Validator IsValid;
@@ -97,7 +96,7 @@ namespace ModContainers
 
 		std::optional<ReturnType> Parse(const size_t valueID) const
 		{
-			const ReturnType result = this->Convert(this->data[valueID]);
+			const ReturnType result = this->Convert(this->source[valueID]);
 			if (not this->IsValid(result)) return std::nullopt;
 
 			return result;
@@ -136,20 +135,22 @@ namespace ModContainers
 
 		V defaultValue;
 
+		[[no_unique_address]] const LogLiteral name;
+
 
 	private: // methods
 
 		template <typename DefaultK, class KeySetup, class ValueSetup>
 		bool FillFromPairs
 		(
-			const DefaultK&   defaultKey,
-			const KeySetup&   keySetup,
-			const ValueSetup& valueSetup
+			const DefaultK&  defaultKey,
+			const KeySetup   keySetup,
+			const ValueSetup valueSetup
 		) {
-			const size_t numPairs = std::min<size_t>(keySetup.data.size(), valueSetup.data.size());
+			const size_t numPairs = std::min<size_t>(keySetup.source.size(), valueSetup.source.size());
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<3>(DecFormat(numPairs), "pair(s) provided");
+				Globals::LogDetail(DecFormat(numPairs), "pair(s) provided");
 
 			this->reserve(this->size() + numPairs);
 
@@ -158,7 +159,7 @@ namespace ModContainers
 
 			for (size_t pairID = 0; pairID < numPairs; ++pairID)
 			{
-				const auto& rawKey = keySetup.data[pairID];
+				const auto& rawKey = keySetup.source[pairID];
 
 				// Parse value
 				const auto value = valueSetup.Parse(pairID);
@@ -166,7 +167,7 @@ namespace ModContainers
 				if (not value)
 				{
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log<3>('-', rawKey, "(invalid value)");
+						Globals::LogDetail('-', rawKey, "(invalid value)");
 
 					continue; // invalid value
 				}
@@ -180,7 +181,7 @@ namespace ModContainers
 						this->defaultValue = *value;
 					}
 					else if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log<3>('-', rawKey, "(duplicate default)");
+						Globals::LogDetail('-', rawKey, "(duplicate default)");
 
 					continue; // default key
 				}
@@ -191,7 +192,7 @@ namespace ModContainers
 				if (not key)
 				{
 					if constexpr (Globals::loggingEnabled)
-						Globals::logger.Log<3>('-', rawKey, "(invalid key)");
+						Globals::LogDetail('-', rawKey, "(invalid key)");
 
 					continue; // invalid key
 				}
@@ -202,7 +203,7 @@ namespace ModContainers
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (not isNewPair)
-						Globals::logger.Log<3>('-', rawKey, "(duplicate key)");
+						Globals::LogDetail('-', rawKey, "(duplicate key)");
 				}
 			}
 
@@ -214,27 +215,33 @@ namespace ModContainers
 
 	public: // methods
 
-		constexpr explicit DefaultMap(const V defaultValue) : defaultValue(defaultValue) {}
+		constexpr DefaultMap
+		(
+			const LogLiteral name, 
+			const V          defaultValue
+		) 
+			: name(name), defaultValue(defaultValue) 
+		{
+		}
 
 
 		template <typename DefaultK, class KeySetup, class ValueSetup>
 		requires (Details::IsCompatibleKeySetup<KeySetup, K, DefaultK> and Details::IsCompatibleSetup<ValueSetup, V>)
 		bool Fill
 		(
-			const std::string_view  mapName,
-			const DefaultK&         defaultKey,
-			const KeySetup&         keySetup,
-			const ValueSetup&       valueSetup
+			const DefaultK&  defaultKey,
+			const KeySetup   keySetup,
+			const ValueSetup valueSetup
 		) {
 			this->clear();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>(mapName, "map:");
+				Globals::LogPlain(this->name);
 
-			if (keySetup.data.empty() or valueSetup.data.empty())
+			if (keySetup.source.empty() or valueSetup.source.empty())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<3>("no pair(s) provided");
+					Globals::LogDetail("no pair(s) provided");
 
 				return false; // no pair(s)
 			}
@@ -245,17 +252,17 @@ namespace ModContainers
 			if (numValidPairs == 0)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log<3>("no pair(s) valid");
+					Globals::LogDetail("no pair(s) valid");
 
 				return false; // no valid pair(s)
 			}
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::logger.Log<3>(DecFormat(numValidPairs), "pair(s) valid");
+				Globals::LogDetail(DecFormat(numValidPairs), "pair(s) valid");
 
 				if (hasNewDefault)
-					Globals::logger.Log<3>("new default:", this->defaultValue);
+					Globals::LogDetail("new default:", this->defaultValue);
 			}
 
 			return true;
@@ -283,8 +290,14 @@ namespace ModContainers
 
 	// DefaultMap aliases ---------------------------------------------------------------------------------------------------------------------------
 
+	#define DEFAULT_VAULT_MAP(type, name, ...) ModContainers::DefaultVaultMap<type> name{#name, __VA_ARGS__}
+
 	template <typename V>
 	using DefaultVaultMap = DefaultMap<vault, V>;
+
+
+
+	#define DEFAULT_ADDRESS_MAP(type, name, ...) ModContainers::DefaultAddressMap<type> name{#name, __VA_ARGS__}
 
 	template <typename V>
 	using DefaultAddressMap = DefaultMap<address, V>;

@@ -158,10 +158,9 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how likely each roadblock setup is to spawn with horizontally mirrored parts instead, and
  • which active non-chasing cops the engagement count shown above the pursuit board also tracks.
 
-The "Advanced" feature set ALWAYS FIXES ELEVEN BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES TEN BUGS / ISSUES automatically:
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
  • the cops no longer stop calling out roadblocks / spikes over the radio,
- • failed roadblock spawn attempts can no longer stall spawns for chasing cops,
  • Challenge Series events now use the Heat level limits defined for them in VltEd,
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
  • the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
@@ -171,7 +170,8 @@ The "Advanced" feature set ALWAYS FIXES ELEVEN BUGS / ISSUES automatically:
  • the engagement count above the pursuit board now always tracks relevant cops accurately, and
  • the pathfinding of new cops no longer breaks whenever a race pursuit transitions to free-roam.
 
-The "Advanced" feature set CAN FIX FOUR MORE BUGS / ISSUES, depending on its configuration:
+The "Advanced" feature set CAN FIX FIVE MORE BUGS / ISSUES, depending on its configuration:
+ • failed roadblock spawn attempts can no longer stall spawns for chasing cops,
  • the cops no longer inadvertently fail to request four of the vanilla roadblock setups,
  • the helicopter can no longer waste its spawns by losing the pursuit target nearly instantly,
  • HeavyStrategy 3 cops no longer spawn in passive mode without trying to ram anything, and
@@ -222,9 +222,8 @@ Bartender's "ADVANCED" FEATURE SET forces the game to no longer ignore the roadb
 "pursuitlevels" and the Strategy-related "pursuitsupport" VltEd settings in race pursuits. 
 The feature set also replaces four specific "pursuitlevels" parameters in all pursuits:
  • the "cops" array,
- • "HeliFuelTime",
- • "TimeBetweenHeliActive", and
- • "SearchModeHeliSpawnChance".
+ • "HeliFuelTime", and
+ • "TimeBetweenHeliActive".
 
 Most OTHER .ASI MODS should be fully compatible with all Bartender configurations.
 However, some pursuit-related .asi mods require manual (re)configuration for compatibility:

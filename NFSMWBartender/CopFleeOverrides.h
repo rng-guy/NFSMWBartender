@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <string_view>
 
 #include "Globals.h"
 #include "MemoryTools.h"
@@ -19,21 +18,25 @@ namespace CopFleeOverrides
 
 	bool anyFeatureEnabled = false;
 
+	// Logging
+	constexpr LogLiteral logTag  = "[FLE]";
+	constexpr LogLiteral logName = "CopFleeOverrides";
+
 	// Heat parameters
-	constinit HeatParameters::OptionalInterval<float> chaserFleeDelay({1.f}); // seconds
-	constinit HeatParameters::OptionalValue   <int>   chaserThreshold({0});   // cars
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, chaserFleeDelay, {1.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE   (int,   chaserThreshold, {0});   // cars
 
-	constinit HeatParameters::OptionalInterval<float> joinedRoadblockFleeDelay({1.f}); // seconds
-	constinit HeatParameters::OptionalValue   <int>   joinedRoadblockThreshold({0});   // cars
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, joinedRoadblockFleeDelay, {1.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE   (int,   joinedRoadblockThreshold, {0});   // cars
 
-	constinit HeatParameters::Value<float> heavy3SpeedThreshold(25.f, {0.f}); // kph
+	constinit HEAT_PARAMETER_VALUE(float, heavy3SpeedThreshold, 25.f, {0.f}); // kph
 
-	constinit HeatParameters::Value<bool> heavy3JoiningEnabled(false);
+	constinit HEAT_PARAMETER_VALUE(bool, heavy3JoiningEnabled, false);
 
-	constinit HeatParameters::OptionalValue<int> heavy3JoinLimit({0}); // cars
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, heavy3JoinLimit, {0}); // cars
 
-	constinit HeatParameters::OptionalInterval<float> joinedHeavy3FleeDelay({1.f}); // seconds
-	constinit HeatParameters::OptionalValue   <int>   joinedHeavy3Threshold({0});   // cars
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, joinedHeavy3FleeDelay, {1.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE   (int,   joinedHeavy3Threshold, {0});   // cars
 
 	// Conversions
 	float baseSpeedThreshold = heavy3SpeedThreshold.current / 3.6f; // metres / second
@@ -60,8 +63,8 @@ namespace CopFleeOverrides
 
 			size_t numPendingExpired = 0;
 
-			const address          pursuit;
-			const std::string_view vehicleLabel;
+			const address    pursuit;
+			const LogLiteral vehicleLabel;
 
 			ModContainers::AddressMap<float> copVehicleToTimestamp;
 
@@ -74,18 +77,18 @@ namespace CopFleeOverrides
 
 		protected: // methods
 
-			explicit SchedulerBase
+			SchedulerBase
 			(
-				const address          pursuit,
-				const std::string_view vehicleLabel
+				const address    pursuit,
+				const LogLiteral vehicleLabel
 			)
 				: pursuit(pursuit), vehicleLabel(vehicleLabel)
 			{
 			}
 
 
-			explicit SchedulerBase(SchedulerBase&&)      = delete;
-			explicit SchedulerBase(const SchedulerBase&) = delete;
+			SchedulerBase(SchedulerBase&&)      = delete;
+			SchedulerBase(const SchedulerBase&) = delete;
 
 			SchedulerBase& operator=(SchedulerBase&&)      = delete;
 			SchedulerBase& operator=(const SchedulerBase&) = delete;
@@ -101,10 +104,9 @@ namespace CopFleeOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (isNewVehicle)
-						Globals::logger.Log(this->pursuit, "[FLE]", copVehicle, "expires in", fleeTimer);
+						Globals::LogFull(this->pursuit, logTag, copVehicle, "expires in", fleeTimer);
 
-					else
-						Globals::logger.Log("WARNING: [FLE]", copVehicle, "already scheduled");
+					else Globals::LogError(logTag, copVehicle, "already scheduled");
 				}
 			}
 
@@ -118,7 +120,7 @@ namespace CopFleeOverrides
 				StartFlee(copAIVehiclePursuit); // also updates vehicle goal(s) accordingly
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(this->pursuit, "[FLE]", this->vehicleLabel, copVehicle, "fleeing");
+					Globals::LogFull(this->pursuit, logTag, this->vehicleLabel, copVehicle, "fleeing");
 
 				return true;
 			}
@@ -184,11 +186,11 @@ namespace CopFleeOverrides
 
 		public: // methods
 
-			explicit StrategyScheduler
+			StrategyScheduler
 			(
-				const address          pursuit,
-				const std::string_view vehicleLabel,
-				const ptrdiff_t        strategyOffset
+				const address    pursuit,
+				const LogLiteral vehicleLabel,
+				const ptrdiff_t  strategyOffset
 			)
 				: SchedulerBase(pursuit, vehicleLabel), strategy(AsReference<address>(pursuit + strategyOffset))
 			{
@@ -256,10 +258,10 @@ namespace CopFleeOverrides
 
 		public: // methods
 
-			explicit PursuitScheduler
+			PursuitScheduler
 			(
 				const address                                  pursuit,
-				const std::string_view                         vehicleLabel,
+				const LogLiteral                               vehicleLabel,
 				const HeatParameters::OptionalInterval<float>& fleeDelay,
 				const HeatParameters::OptionalValue   <int>&   fleeThreshold
 			)
@@ -347,6 +349,8 @@ namespace CopFleeOverrides
 
 		const bool& isJerk = AsReference<bool>(this->pursuit + 0x238);
 
+		inline static constexpr LogLiteral name = "MembershipManager";
+
 
 	private: // methods
 
@@ -374,7 +378,7 @@ namespace CopFleeOverrides
 			if (not Globals::EndSupportGoalOfVehicle(copVehicle)) return false;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[FLE] Heavy", copVehicle, "joined");
+				Globals::LogFull(this->pursuit, logTag, "Heavy", copVehicle, "joined");
 
 			this->joinedHeavyVehicles.AddVehicle(copVehicle);
 
@@ -395,7 +399,6 @@ namespace CopFleeOverrides
 
 		[[nodiscard]] bool ShouldHeavyVehiclesBail() const
 		{
-			if (this->heavyVehicles.GetNumScheduled() == 0)      return false;
 			if (Globals::IsPursuitInCooldownMode(this->pursuit)) return true;
 
 			// Check target speed against bail threshold
@@ -407,7 +410,7 @@ namespace CopFleeOverrides
 				return (GetSpeedXZ(rigidBodyOfTarget) < speedThreshold);
 			}
 			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [FLE] Invalid RigidBody for target in", this->pursuit);
+				Globals::LogError(logTag, "Invalid RigidBody for target in", this->pursuit);
 
 			return false; // should never happen
 		}
@@ -415,10 +418,11 @@ namespace CopFleeOverrides
 
 		void CheckForHeavyCancellation()
 		{
-			if (not this->ShouldHeavyVehiclesBail()) return;
+			if (this->heavyVehicles.GetNumScheduled() == 0) return;
+			if (not this->ShouldHeavyVehiclesBail())        return;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[FLE] Bailing HeavyStrategy3");
+				Globals::LogFull(this->pursuit, logTag, "Bailing HeavyStrategy3");
 
 			this->heavyVehicles.ForceTriggerExpiration();
 
@@ -442,7 +446,7 @@ namespace CopFleeOverrides
 		explicit MembershipManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('+', this, "MembershipManager");
+				Globals::LogPlain('+', this, this->name);
 
 			// Expired Heavy3 vehicles only bail if they cannot join as pursuit cops
 			this->heavyVehicles.ShouldExpiredVehicleBail = [this](const address copVehicle) -> bool
@@ -473,7 +477,7 @@ namespace CopFleeOverrides
 		~MembershipManager() override
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('-', this, "MembershipManager");
+				Globals::LogPlain('-', this, this->name);
 		}
 
 
@@ -493,7 +497,7 @@ namespace CopFleeOverrides
 		void ReactToHeatStateUpdate() override 
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(this->pursuit, "[FLE] Reviewing all vehicles");
+				Globals::LogFull(this->pursuit, logTag, "Reviewing all vehicles");
 
 			this->chaserVehicles         .ReviewAllVehicles();
 			this->joinedHeavyVehicles    .ReviewAllVehicles();
@@ -598,7 +602,7 @@ namespace CopFleeOverrides
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [FLE] CopFleeOverrides");
+			Globals::LogConfig(logTag, logName);
 
 		// Heat parameters (first file)
 		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
@@ -632,34 +636,12 @@ namespace CopFleeOverrides
 
 
 
-	void LogHeatStateReport()
-	{
-		if (not anyFeatureEnabled) return;
-
-		Globals::logger.Log("    HEAT [FLE] CopFleeOverrides");
-
-		chaserFleeDelay.Log("chaserFleeDelay         ");
-		chaserThreshold.Log("chaserThreshold         ");
-
-		joinedRoadblockFleeDelay.Log("joinedRoadblockFleeDelay");
-		joinedRoadblockThreshold.Log("joinedRoadblockThreshold");
-
-		heavy3SpeedThreshold.Log("heavy3SpeedThreshold    ");
-
-		heavy3JoiningEnabled.Log("heavy3JoiningEnabled    ");
-
-		if (heavy3JoiningEnabled.current)
-			heavy3JoinLimit.Log("heavy3JoinLimit         ");
-
-		joinedHeavy3FleeDelay.Log("joinedH3FleeDelay       ");
-		joinedHeavy3Threshold.Log("joinedHeavy3Threshold   ");
-	}
-
-
-
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
 		if (not anyFeatureEnabled) return;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogHeat(logTag, logName);
 
 		chaserFleeDelay.SetToHeatState(state);
 		chaserThreshold.SetToHeatState(state);
@@ -678,8 +660,5 @@ namespace CopFleeOverrides
 
 		baseSpeedThreshold = heavy3SpeedThreshold.current / 3.6f;
 		jerkSpeedThreshold = baseSpeedThreshold * .625f;
-
-		if constexpr (Globals::loggingEnabled)
-			LogHeatStateReport();
 	}
 }

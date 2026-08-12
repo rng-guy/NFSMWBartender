@@ -69,6 +69,9 @@ namespace Globals
 	constexpr bool loggingEnabled = false;
 	BasicLogger::Logger<9, 15, 17> logger;
 
+	using LogLiteral = BasicLogger::LogLiteral<loggingEnabled>;
+	using LogString  = BasicLogger::LogString <loggingEnabled>;
+
 	// Hackjob floating-point coefficient
 	constexpr float floatScale = 1.f + 1e-6f;
 
@@ -398,10 +401,81 @@ namespace Globals
 		const int pursuitStatus = AsReference<int>(pursuit + 0x218);
 		return (pursuitStatus == 2); // "COOLDOWN" mode
 	}
+
+
+
+
+
+	// Logging functions ----------------------------------------------------------------------------------------------------------------------------
+
+	template <typename ...Ts>
+	void LogConfig
+	(
+		const LogLiteral logTag,
+		const LogLiteral logName
+	) {
+		logger.Log<0>("  CONFIG", logTag, logName);
+	}
+
+
+	template <typename ...Ts>
+	void LogHeat
+	(
+		const LogLiteral    logTag,
+		const LogLiteral    logName,
+		Ts&&             ...segments
+	) {
+		logger.Log<0>("    HEAT", logTag, logName, std::forward<Ts>(segments)...);
+	}
+
+
+	template <typename ...Ts>
+	void LogError
+	(
+		const LogLiteral    logTag,
+		Ts&&             ...segments
+	) {
+		logger.Log<0>("WARNING:", logTag, std::forward<Ts>(segments)...);
+	}
+
+	
+
+	template <typename ...Ts>
+	void LogFull(Ts&& ...segments) 
+	{
+		logger.Log<0>(std::forward<Ts>(segments)...);
+	}
+
+
+	template <typename ...Ts>
+	void LogTagged
+	(
+		const LogLiteral    logTag,
+		Ts&&             ...segments
+	) {
+		logger.Log<1>(logTag, std::forward<Ts>(segments)...);
+	}
+
+
+	template <typename ...Ts>
+	void LogPlain(Ts&& ...segments) 
+	{
+		logger.Log<2>(std::forward<Ts>(segments)...);
+	}
+
+
+	template <typename ...Ts>
+	void LogDetail(Ts&& ...segments)
+	{
+		logger.Log<3>(std::forward<Ts>(segments)...);
+	}
 }
 
 
 
-// Unscoped operators
+// Unscoped (derived) aliases
+using Globals::LogLiteral;
+using Globals::LogString;
+
 using Globals::operator""_vlt;
 using Globals::operator""_bin;

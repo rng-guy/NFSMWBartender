@@ -30,8 +30,8 @@ namespace CopDetection
 		constexpr explicit IconColourTracker(const bool useUnpausedTime) : useUnpausedTime(useUnpausedTime) {}
 
 
-		explicit IconColourTracker(IconColourTracker&&)      = delete;
-		explicit IconColourTracker(const IconColourTracker&) = delete;
+		IconColourTracker(IconColourTracker&&)      = delete;
+		IconColourTracker(const IconColourTracker&) = delete;
 		
 		IconColourTracker& operator=(IconColourTracker&&)      = delete;
 		IconColourTracker& operator=(const IconColourTracker&) = delete;
@@ -65,6 +65,10 @@ namespace CopDetection
 
 	bool anyFeatureEnabled = false;
 
+	// Logging
+	constexpr LogLiteral logTag  = "[DET]";
+	constexpr LogLiteral logName = "CopDetection";
+
 	// Types
 	struct Settings
 	{
@@ -89,7 +93,7 @@ namespace CopDetection
 	constinit IconColourTracker miniMapCops (/* useUnpausedTime = */ false);
 	constinit IconColourTracker worldMapCops(/* useUnpausedTime = */ true);
 
-	RELEASE_CONSTINIT ModContainers::DefaultVaultMap<Settings> copTypeToSettings({300.f, 0.f, 300.f, true}); // metres (x3)
+	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(Settings, copTypeToSettings, {300.f, 0.f, 300.f, true}); // metres (x3)
 
 
 
@@ -403,7 +407,6 @@ namespace CopDetection
 
 		return copTypeToSettings.Fill
 		(
-			"Vehicle-to-settings",
 			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames , Globals::GetVaultHash,         Globals::IsVehicleTypeCar),
 			ModContainers::FillSetup(settings,  ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
@@ -437,7 +440,7 @@ namespace CopDetection
 	bool InitialiseFeatures(HeatParameters::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("  CONFIG [DET] CopDetection");
+			Globals::LogConfig(logTag, logName);
 
 		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 

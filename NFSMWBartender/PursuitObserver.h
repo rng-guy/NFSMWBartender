@@ -24,6 +24,18 @@
 
 namespace PursuitObserver
 {
+	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+
+	bool anyFeatureEnabled = false;
+
+	// Logging
+	constexpr LogLiteral logTag  = "[OBS]";
+	constexpr LogLiteral logName = "PursuitObserver";
+
+
+
+
+
 	// PursuitObserver class ------------------------------------------------------------------------------------------------------------------------
 
 	class PursuitObserver : public PursuitFeatures::Searchable<PursuitObserver>
@@ -44,6 +56,8 @@ namespace PursuitObserver
 		ModContainers::AddressMap<CopLabel> copVehicleToLabel;
 
 		ModContainers::PointerStorage<PursuitFeatures::Reaction> reactions;
+
+		inline static constexpr LogLiteral name = "PursuitObserver";
 
 
 	private: // methods
@@ -74,7 +88,7 @@ namespace PursuitObserver
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [OBS] Unknown AddVehicle caller:", caller);
+				Globals::LogError(logTag, "Unknown AddVehicle caller:", caller);
 
 			return CopLabel::UNKNOWN;
 		}
@@ -95,7 +109,7 @@ namespace PursuitObserver
 		explicit PursuitObserver(const address pursuit) : pursuit(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('+', this, "PursuitObserver");
+				Globals::LogPlain('+', this, this->name);
 
 			// Container pre-allocations
 			this->reactions        .ReserveCapacity(6);
@@ -111,8 +125,8 @@ namespace PursuitObserver
 		}
 
 
-		explicit PursuitObserver(PursuitObserver&&)      = delete;
-		explicit PursuitObserver(const PursuitObserver&) = delete;
+		PursuitObserver(PursuitObserver&&)      = delete;
+		PursuitObserver(const PursuitObserver&) = delete;
 
 		PursuitObserver& operator=(PursuitObserver&&)      = delete;
 		PursuitObserver& operator=(const PursuitObserver&) = delete;
@@ -121,7 +135,7 @@ namespace PursuitObserver
 		~PursuitObserver()
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log<2>('-', this, "PursuitObserver");
+				Globals::LogPlain('-', this, this->name);
 		}
 
 
@@ -177,16 +191,20 @@ namespace PursuitObserver
 			const CopLabel copLabel               = observer->InferCopLabelFromCaller(caller);
 			const auto     [pairIt, isNewVehicle] = observer->copVehicleToLabel.try_emplace(copVehicle, copLabel);
 			
-			if (isNewVehicle)
+			if (not isNewVehicle)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(pursuit, "[OBS] +", copVehicle, copLabel, Globals::GetVehicleName(copVehicle));
+					Globals::LogError(logTag, '=', copVehicle, copLabel, "is already", pairIt->second);
 
-				for (const auto& reaction : observer->reactions)
-					reaction->ReactToAddedVehicle(copVehicle, copLabel);
+				return; // should never happen
 			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log(pursuit, "[OBS] =", copVehicle, copLabel, "is already", pairIt->second);
+
+			// Process new vehicle
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(pursuit, logTag, '+', copVehicle, copLabel, Globals::GetVehicleName(copVehicle));
+
+			for (const auto& reaction : observer->reactions)
+				reaction->ReactToAddedVehicle(copVehicle, copLabel);
 		}
 
 
@@ -200,18 +218,22 @@ namespace PursuitObserver
 
 			const auto foundVehicle = observer->copVehicleToLabel.find(copVehicle);
 
-			if (foundVehicle != observer->copVehicleToLabel.end())
+			if (foundVehicle == observer->copVehicleToLabel.end())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::logger.Log(pursuit, "[OBS] -", copVehicle, foundVehicle->second, Globals::GetVehicleName(copVehicle));
+					Globals::LogError(logTag, "Unknown vehicle", copVehicle, Globals::GetVehicleName(copVehicle), "in", pursuit);
 
-				for (const auto& reaction : observer->reactions)
-					reaction->ReactToRemovedVehicle(copVehicle, foundVehicle->second);
-
-				observer->copVehicleToLabel.erase(foundVehicle);
+				return; // should never happen
 			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [OBS] Unknown vehicle", copVehicle, Globals::GetVehicleName(copVehicle), "in", pursuit);
+
+			// Process known vehicle
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(pursuit, logTag, '-', copVehicle, foundVehicle->second, Globals::GetVehicleName(copVehicle));
+
+			for (const auto& reaction : observer->reactions)
+				reaction->ReactToRemovedVehicle(copVehicle, foundVehicle->second);
+
+			observer->copVehicleToLabel.erase(foundVehicle);
 		}
 	};
 
@@ -219,9 +241,7 @@ namespace PursuitObserver
 
 	
 
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
-
-	bool anyFeatureEnabled = false;
+	// Parameters (cont.) ---------------------------------------------------------------------------------------------------------------------------
 
 	// Code caves
 	RELEASE_CONSTINIT ModContainers::PointerStorage<PursuitObserver> observers;
@@ -239,13 +259,13 @@ namespace PursuitObserver
 			if (observer->GetPursuit() != pursuit) continue; // other pursuit
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("WARNING: [OBS] Duplicate pursuit", pursuit);
+				Globals::LogError(logTag, "Duplicate pursuit", pursuit);
 
 			return; // should never happen
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("     NEW [OBS] Pursuit", pursuit);
+			Globals::LogFull("     NEW", logTag, "Pursuit", pursuit);
 
 		observers.EmplaceObject(pursuit);
 	}
@@ -275,7 +295,7 @@ namespace PursuitObserver
 			if ((*it)->GetPursuit() != pursuit) continue; // wrong pursuit
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::logger.Log("     DEL [OBS] Pursuit", pursuit);
+				Globals::LogFull("     DEL", logTag, "Pursuit", pursuit);
 
 			observers.EraseObject(it);
 
@@ -283,7 +303,7 @@ namespace PursuitObserver
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::logger.Log("WARNING: [OBS] Unknown pursuit", pursuit);
+			Globals::LogError(logTag, "Unknown pursuit", pursuit);
 	}
 
 

@@ -108,6 +108,7 @@
   <ItemGroup>
     <ClInclude Include="BasicLogger.h" />
     <ClInclude Include="FlatContainers.h" />
+    <ClInclude Include="FormatBuffer.h" />
     <ClInclude Include="GameBreaker.h" />
     <ClInclude Include="NitrousCharge.h" />
     <ClInclude Include="ParameterSets.h" />
@@ -153,13 +154,14 @@
     <None Include="..\BartenderSettings\Basic\Support.ini" />
     <None Include="..\Binary\Source\FixMissingTextures.end" />
     <None Include="..\Binary\Source\Modscript.end" />
-    <None Include="..\Editor\Images\Barricade.webp" />
     <None Include="..\Editor\Images\Car.webp" />
+    <None Include="..\Editor\Images\Sawhorse.webp" />
     <None Include="..\Editor\Images\Spikes.webp" />
     <None Include="..\Editor\RoadblockEditor.html" />
     <None Include="..\Editor\Source\Scripting.js" />
     <None Include="..\Editor\Source\Styles.css" />
     <None Include="..\README.md" />
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Binary\Textures\HEAT_X10.dds" />

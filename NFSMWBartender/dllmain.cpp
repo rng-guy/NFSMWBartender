@@ -69,15 +69,20 @@ static void __cdecl InitialiseBartender
 	#endif
 
 	// Initialise log and config parser
+	constexpr LogLiteral logTag     = "[MOD]";
+	constexpr LogLiteral logSection = " SESSION";
+
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::logger.Open("BartenderLog.txt");
-		Globals::logger.Log ("\n SESSION [MOD] Bartender v4.00.00");
 
-		if (MemoryTools::IsModuleLoaded("NFSMWUnlimiter.asi"))             Globals::logger.Log<2>("+ Unlimiter");
-		if (MemoryTools::IsModuleLoaded("NFSMWExtraOptions.asi"))          Globals::logger.Log<2>("+ ExtraOptions");
-		if (MemoryTools::IsModuleLoaded("NFSMWLimitAdjuster.asi"))         Globals::logger.Log<2>("+ LimitAdjuster");
-		if (MemoryTools::IsModuleLoaded("NFSMWOpenLimitAdjuster_gcp.asi")) Globals::logger.Log<2>("+ OpenLimitAdjuster");
+		Globals::LogFull(); // forces newline
+		Globals::LogFull(logSection, logTag, "Bartender v4.00.00");
+
+		if (MemoryTools::IsModuleLoaded("NFSMWUnlimiter.asi"))             Globals::LogPlain("+ Unlimiter");
+		if (MemoryTools::IsModuleLoaded("NFSMWExtraOptions.asi"))          Globals::LogPlain("+ ExtraOptions");
+		if (MemoryTools::IsModuleLoaded("NFSMWLimitAdjuster.asi"))         Globals::LogPlain("+ LimitAdjuster");
+		if (MemoryTools::IsModuleLoaded("NFSMWOpenLimitAdjuster_gcp.asi")) Globals::LogPlain("+ OpenLimitAdjuster");
 	}
 
 	constexpr size_t configFileCapacity     = 6;  // files
@@ -122,10 +127,10 @@ static void __cdecl InitialiseBartender
 	// Apply Heat and state observer
 	if constexpr (Globals::loggingEnabled)
 	{
-		Globals::logger.Log(" SESSION [MOD] Features");
+		Globals::LogFull(logSection, logTag, "Features");
 
-		Globals::logger.Log<2>("Basic    set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
-		Globals::logger.Log<2>("Advanced set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
+		Globals::LogPlain("Basic    set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
+		Globals::LogPlain("Advanced set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
 	}
 
 	if (Globals::basicSetEnabled or Globals::advancedSetEnabled)
