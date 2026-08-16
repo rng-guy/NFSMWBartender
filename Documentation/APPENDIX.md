@@ -29,7 +29,7 @@ To help you **solve in-game issues** with Bartender, the sections below address 
 
 &nbsp;
 
-For a detailed **version history** of Bartender, see the [plain-text version](Documentation/APPENDIX.txt) of this document.
+For a detailed **version history** of Bartender, see the [plain-text version](APPENDIX.txt) of this document.
 
 &nbsp;
 
@@ -41,7 +41,7 @@ For a detailed **version history** of Bartender, see the [plain-text version](Do
 
 # 1 - What's there to know about Bartender's file parsing?
 
-Bartender only recognises **Heat levels** from 1 to 10 (inclusive). If you want more Heat levels, you must edit the `maxHeatLevel` parameter in Bartender's [`HeatParameters.hpp`](Source/Headers/Common/HeatParameters.h) source file and compile the mod yourself. To clone and compile Bartender, use [Microsoft Visual Studio 2022](https://visualstudio.microsoft.com/vs/older-downloads/).
+Bartender only recognises **Heat levels** from 1 to 10 (inclusive). If you want more Heat levels, you must edit the `maxHeatLevel` parameter in Bartender's [`HeatParameters.hpp`](../Source/Headers/Common/HeatParameters.h) source file and compile the mod yourself. To clone and compile Bartender, use [Microsoft Visual Studio 2022](https://visualstudio.microsoft.com/vs/older-downloads/).
 
 Bartender parses its configuration (`.ini`) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure to the configuration files. Each group allows you to define values, either in relation to Heat levels or vehicles. There are also a select few parameter groups that allow you to define standalone values.
 
@@ -115,7 +115,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 &nbsp;
 
-Regarding **cosmetic features** ([`BartenderSettings\Basic\Cosmetic.ini`](Configuration/Basic/Cosmetic.ini)):
+Regarding **cosmetic features** ([`BartenderSettings\Basic\Cosmetic.ini`](../Configuration/Basic/Cosmetic.ini)):
 
 * Both notification-related features are incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Notifications]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
 
@@ -179,7 +179,7 @@ Regarding **cosmetic features** ([`BartenderSettings\Basic\Cosmetic.ini`](Config
 
 &nbsp;
 
-Regarding **general features** ([`BartenderSettings\Basic\General.ini`](Configuration/Basic/General.ini)):
+Regarding **general features** ([`BartenderSettings\Basic\General.ini`](../Configuration/Basic/General.ini)):
 
 * The `pursuitLength` tracking also allows the cops to request VltEd-enabled support in races.
 
@@ -215,7 +215,7 @@ Regarding **general features** ([`BartenderSettings\Basic\General.ini`](Configur
 
 &nbsp;
 
-Regarding **nitrous features** ([`BartenderSettings\Basic\Nitrous.ini`](Configuration/Basic/Nitrous.ini)):
+Regarding **nitrous features** ([`BartenderSettings\Basic\Nitrous.ini`](../Configuration/Basic/Nitrous.ini)):
 
 * With performance tuning, a second of NOS charge may last longer / shorter in real time.
 
@@ -233,7 +233,7 @@ Regarding **nitrous features** ([`BartenderSettings\Basic\Nitrous.ini`](Configur
 
 &nbsp;
 
-Regarding **Speedbreaker features** ([`BartenderSettings\Basic\Speedbreaker.ini`](Configuration/Basic/Speedbreaker.ini)):
+Regarding **Speedbreaker features** ([`BartenderSettings\Basic\Speedbreaker.ini`](../Configuration/Basic/Speedbreaker.ini)):
 
 * In the vanilla game, you can recharge the Speedbreaker by driving fast enough or by drifting.
 
@@ -253,7 +253,7 @@ Regarding **Speedbreaker features** ([`BartenderSettings\Basic\Speedbreaker.ini`
 
 &nbsp;
 
-Regarding **ground support** ([`BartenderSettings\Basic\Support.ini`](Configuration/Basic/Support.ini)):
+Regarding **ground support** ([`BartenderSettings\Basic\Support.ini`](../Configuration/Basic/Support.ini)):
 
 * Very short spawn distances for roadblocks can cause noticeable pop-in as they spawn.
 
@@ -325,7 +325,7 @@ Regarding the "Advanced" feature set **as a whole**:
 
 &nbsp;
 
-Regarding **cop spawn tables** ([`BartenderSettings\Advanced\CarTables.ini`](Configuration/Advanced/CarTables.ini)):
+Regarding **cop spawn tables** ([`BartenderSettings\Advanced\CarTables.ini`](../Configuration/Advanced/CarTables.ini)):
 
 * Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Scripted", and "Patrols" spawn tables you leave empty.
 
@@ -359,7 +359,7 @@ Regarding **cop spawn tables** ([`BartenderSettings\Advanced\CarTables.ini`](Con
 
 &nbsp;
 
-Regarding **car (de)spawning** ([`BartenderSettings\Advanced\CarSpawns.ini`](Configuration/Advanced/CarSpawns.ini)):
+Regarding **car (de)spawning** ([`BartenderSettings\Advanced\CarSpawns.ini`](../Configuration/Advanced/CarSpawns.ini)):
 
 * The engagement count shown above the pursuit board is purely cosmetic: Bartender tracks all "Chasers" accurately behind the scenes and ensures that backups trigger as intended.
 
@@ -385,7 +385,7 @@ Regarding **car (de)spawning** ([`BartenderSettings\Advanced\CarSpawns.ini`](Con
 
 &nbsp;
 
-Regarding **helicopter (de / re)spawning** ([`BartenderSettings\Advanced\Helicopter.ini`](Configuration/Advanced/Helicopter.ini)):
+Regarding **helicopter (de / re)spawning** ([`BartenderSettings\Advanced\Helicopter.ini`](../Configuration/Advanced/Helicopter.ini)):
 
 * Bartender uses separate, random timers for (re)spawning the helicopter and setting its fuel. Each despawn context (e.g. the helicopter getting destroyed) has its own respawn-delay interval.
 
@@ -423,7 +423,7 @@ Regarding **helicopter (de / re)spawning** ([`BartenderSettings\Advanced\Helicop
 
 &nbsp;
 
-Regarding **strategy requests** ([`BartenderSettings\Advanced\Strategies.ini`](Configuration/Advanced/Strategies.ini)):
+Regarding **strategy requests** ([`BartenderSettings\Advanced\Strategies.ini`](../Configuration/Advanced/Strategies.ini)):
 
 * Defining low pursuit-target speed thresholds for HeavyStrategy 3 cops fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if their target's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of much higher `CollapseSpeed` values.
 
@@ -463,7 +463,7 @@ Regarding **strategy requests** ([`BartenderSettings\Advanced\Strategies.ini`](C
 
 &nbsp;
 
-Regarding **roadblock behaviour and setups** ([`BartenderSettings\Advanced\Roadblocks.ini`](Configuration/Advanced/Roadblocks.ini)):
+Regarding **roadblock behaviour and setups** ([`BartenderSettings\Advanced\Roadblocks.ini`](../Configuration/Advanced/Roadblocks.ini)):
 
 * The number of active cops that joined from roadblocks is limited only at Heat levels for which you define a valid limit value. These limits apply to each pursuit separately. If you also make "Chasers" spawns independent, then the global cop-spawn limit no longer applies to cops that join from roadblocks, too; they can always join unless you define a limit.
 
@@ -489,7 +489,7 @@ Regarding **roadblock behaviour and setups** ([`BartenderSettings\Advanced\Roadb
 
 &nbsp;
 
-Regarding **Heat gain / loss** ([`BartenderSettings\Advanced\Heat.ini`](Configuration/Advanced/Heat.ini)):
+Regarding **Heat gain / loss** ([`BartenderSettings\Advanced\Heat.ini`](../Configuration/Advanced/Heat.ini)):
 
 * The `0x80deb840` VltEd array and the `TimePerHeatLevel` VltEd parameter control the pace at which you gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a Heat level passively, while the latter multiplies this base amount by whatever number you define for it.
 
