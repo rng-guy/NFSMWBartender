@@ -47,9 +47,9 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (state.level != playerHeatLevel)
-				Globals::LogError(logTag, "Heat level", DecFormat(playerHeatLevel), "out of range");
+				Globals::LogError(logTag, "Heat level", LogDec(playerHeatLevel), "out of range");
 
-			Globals::LogHeat(logTag, "Heat level now", DecFormat(state.level), (playerIsRacing) ? "(race)" : "(roam)");
+			Globals::LogHeat(logTag, "Heat level now", LogDec(state.level), (playerIsRacing) ? "(race)" : "(roam)");
 		}
 
 		// Update Heat-level flag
@@ -155,7 +155,7 @@ namespace StateObserver
 		if (pursuit) // may not be cop's pursuit (vanilla behaviour)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogFull(pursuit, logTag, copVehicle, "assaults:", DecFormat(numCopAssaulted));
+				Globals::LogFull(pursuit, logTag, copVehicle, "assaults:", LogDec(numCopAssaulted));
 
 			ProcessAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
 		}

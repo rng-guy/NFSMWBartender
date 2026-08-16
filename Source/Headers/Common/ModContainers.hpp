@@ -151,7 +151,7 @@ namespace ModContainers
 			const size_t numPairs = std::min<size_t>(keySetup.source.size(), valueSetup.source.size());
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogDetail(DecFormat(numPairs), "pair(s) provided");
+				Globals::LogDetail(LogDec(numPairs), "pair(s) provided");
 
 			this->reserve(this->size() + numPairs);
 
@@ -260,7 +260,7 @@ namespace ModContainers
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::LogDetail(DecFormat(numValidPairs), "pair(s) valid");
+				Globals::LogDetail(LogDec(numValidPairs), "pair(s) valid");
 
 				if (hasNewDefault)
 					Globals::LogDetail("new default:", this->defaultValue);
@@ -289,7 +289,7 @@ namespace ModContainers
 
 
 
-	// DefaultMap aliases ---------------------------------------------------------------------------------------------------------------------------
+	// Scoped aliases (cont.) -----------------------------------------------------------------------------------------------------------------------
 
 	#define DEFAULT_VAULT_MAP(type, name, ...) ModContainers::DefaultVaultMap<type> name{#name, __VA_ARGS__}
 

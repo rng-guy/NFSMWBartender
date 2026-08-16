@@ -30,20 +30,20 @@ using word = MemoryTools::word;
 
 using address = MemoryTools::address;
 
+template <typename T> 
+using LogBin = BasicLogger::LogBin<T>; // templated to suppress transient includes
+
+template <typename T> 
+using LogDec = BasicLogger::LogDec<T>; // templated to suppress transient includes
+
+template <typename T> 
+using LogHex = BasicLogger::LogHex<T>; // templated to suppress transient includes
+
 // Unscoped functions
+using MemoryTools::AsAddress;
 using MemoryTools::AsPointer;
 using MemoryTools::AsReference;
 using MemoryTools::AsFunction;
-
-// Unscoped types
-template <typename T>
-using BinFormat = BasicLogger::BinFormat<T>; // templated to suppress transient includes
-
-template <typename T>
-using DecFormat = BasicLogger::DecFormat<T>; // templated to suppress transient includes
-
-template <typename T>
-using HexFormat = BasicLogger::HexFormat<T>; // templated to suppress transient includes
 
 
 
@@ -473,7 +473,7 @@ namespace Globals
 
 
 
-// Unscoped (derived) aliases
+// Unscoped aliases (cont.)
 using Globals::LogLiteral;
 using Globals::LogString;
 

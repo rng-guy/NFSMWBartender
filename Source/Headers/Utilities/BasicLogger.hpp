@@ -22,7 +22,7 @@ namespace BasicLogger
 
 	template<typename T>
 	requires std::integral<T>
-	struct BinFormat
+	struct LogBin
 	{
 	// Members
 
@@ -32,7 +32,7 @@ namespace BasicLogger
 
 	template<typename T>
 	requires std::integral<T>
-	struct DecFormat
+	struct LogDec
 	{
 	// Members
 
@@ -42,7 +42,7 @@ namespace BasicLogger
 
 	template<typename T>
 	requires std::integral<T>
-	struct HexFormat
+	struct LogHex
 	{
 	// Members
 
@@ -201,28 +201,28 @@ namespace BasicLogger
 	private: // methods
 
 		template <typename T>
-		void Print(const BinFormat<T> wrapper)
+		void Print(const LogBin<T> wrapper)
 		{
 			this->file << this->buffer.Format("{:#0{}b}", wrapper.value, 8 * sizeof(T));
 		}
 
 
 		template <typename T>
-		void Print(const DecFormat<T> wrapper)
+		void Print(const LogDec<T> wrapper)
 		{
 			this->file << this->buffer.Format("{:d}", wrapper.value);
 		}
 
 
 		template <typename T>
-		void Print(const HexFormat<T> wrapper)
+		void Print(const LogHex<T> wrapper)
 		{
 			this->file << this->buffer.Format("{:0{}x}", wrapper.value, 2 * sizeof(T));
 		}
 
 
 		template <bool isEnabled>
-		void Print(const LogLiteral<isEnabled>& string)
+		void Print(const LogLiteral<isEnabled> string)
 		{
 			this->Print<std::string_view>(string);
 		}
@@ -254,7 +254,7 @@ namespace BasicLogger
 				this->Print(reinterpret_cast<uintptr_t>(value));
 
 			else if constexpr (std::unsigned_integral<T>)
-				this->Print(HexFormat(value));
+				this->Print(LogHex(value));
 
 			else if constexpr (std::floating_point<T>)
 				this->file << this->buffer.Format("{:.3f}", value);

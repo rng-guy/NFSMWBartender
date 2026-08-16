@@ -600,7 +600,7 @@ namespace HeatParameters
 						if (allTypesValid)
 							Globals::LogPlain(vehicleValue.name, (forRaces) ? "(race)" : "(roam)");
 
-						Globals::LogDetail(DecFormat(heatLevel), levelVehicleName, "->", vehicleValue.current);
+						Globals::LogDetail(LogDec(heatLevel), levelVehicleName, "->", vehicleValue.current);
 					}
 
 					levelVehicleName = vehicleValue.current; // already persistent

@@ -326,7 +326,7 @@ namespace RoadblockOverrides
 		{
 			Globals::LogTagged(logTag, "Roadblock request", (needsSpikes) ? "(spikes)" : "(regular)");
 
-			Globals::LogPlain("Car budget:", DecFormat(maxNumCars));
+			Globals::LogPlain("Car budget:", LogDec(maxNumCars));
 			Globals::LogPlain("Road width:", roadWidth);
 		}
 
@@ -359,7 +359,7 @@ namespace RoadblockOverrides
 		const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, totalChance);
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogPlain(DecFormat(candidates.size()), "candidate(s)");
+			Globals::LogPlain(LogDec(candidates.size()), "candidate(s)");
 
 		for (const RBSetup* const setup : candidates)
 		{
@@ -674,7 +674,7 @@ namespace RoadblockOverrides
 			return false; // no setups; disable feature
 		}
 		else if constexpr (Globals::loggingEnabled)
-			Globals::LogDetail(DecFormat(maxNumSetups), "setup(s) provided");
+			Globals::LogDetail(LogDec(maxNumSetups), "setup(s) provided");
 
 		// Parse and validate setups
 		roadblockSetups.reserve(maxNumSetups);
@@ -690,12 +690,12 @@ namespace RoadblockOverrides
 		{
 			if (not roadblockSetups.empty())
 			{
-				Globals::LogDetail(DecFormat(roadblockSetups.size()), "setup(s) valid");
+				Globals::LogDetail(LogDec(roadblockSetups.size()), "setup(s) valid");
 
 				const auto [numRegular, numSpikes, numMirrorRegular, numMirrorSpikes] = CountAvailableSetups();
 
-				Globals::LogDetail(DecFormat(numRegular), "regular,", DecFormat(numMirrorRegular), "mirrored");
-				Globals::LogDetail(DecFormat(numSpikes),  "spikes, ", DecFormat(numMirrorSpikes),  "mirrored");
+				Globals::LogDetail(LogDec(numRegular), "regular,", LogDec(numMirrorRegular), "mirrored");
+				Globals::LogDetail(LogDec(numSpikes),  "spikes, ", LogDec(numMirrorSpikes),  "mirrored");
 			}
 			else Globals::LogDetail("no setup(s) valid");
 		}
@@ -773,8 +773,8 @@ namespace RoadblockOverrides
 
 			const auto [numRegular, numSpikes, numMirrorRegular, numMirrorSpikes] = CountAvailableSetups();
 
-			Globals::LogPlain("numRegularRoadblocks    ", DecFormat(numRegular), '/', DecFormat(numMirrorRegular));
-			Globals::LogPlain("numSpikeRoadblocks      ", DecFormat(numSpikes),  '/', DecFormat(numMirrorSpikes));
+			Globals::LogPlain("numRegularRoadblocks    ", LogDec(numRegular), '/', LogDec(numMirrorRegular));
+			Globals::LogPlain("numSpikeRoadblocks      ", LogDec(numSpikes),  '/', LogDec(numMirrorSpikes));
 		}
 	}
 }

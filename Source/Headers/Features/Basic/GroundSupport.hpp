@@ -268,7 +268,7 @@ namespace GroundSuppport
 			const int strategyID = AsReference<int>(randomStrategy);
 
 			Globals::LogFull (pursuit, logTag, "Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
-			Globals::LogPlain("Candidate", DecFormat(candidateID + 1), '/', DecFormat(candidates.size()));
+			Globals::LogPlain("Candidate", LogDec(candidateID + 1), '/', LogDec(candidates.size()));
 		}
 
 		candidates.clear();

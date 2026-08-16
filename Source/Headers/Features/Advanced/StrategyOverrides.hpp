@@ -76,7 +76,7 @@ namespace StrategyOverrides
 			this->nextHeavy3Count = static_cast<size_t>(numVehiclesPerHeavy3s.GetRandomValue());
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogFull(this->pursuit, logTag, "Next HeavyStrategy 3 count:", DecFormat(this->nextHeavy3Count));
+				Globals::LogFull(this->pursuit, logTag, "Next HeavyStrategy 3 count:", LogDec(this->nextHeavy3Count));
 		}
 
 
@@ -638,7 +638,7 @@ namespace StrategyOverrides
 		const size_t numFloatsPerStack = numFloatsPerHeavy3Vector * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5);
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogPlain("New stack size:", DecFormat(numFloatsPerStack), "floats");
+			Globals::LogPlain("New stack size:", LogDec(numFloatsPerStack), "floats");
 
 		vectorStacks.resize(2 * numFloatsPerStack);
 
