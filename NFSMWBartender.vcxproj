@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{282f1b13-d0e0-43f0-b8d9-7cb424fa7157}</ProjectGuid>
+    <RootNamespace>NFSMWBartender</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetExt>.asi</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+    <IntDir>.obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetExt>.asi</TargetExt>
+    <IntDir>.obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_HAS_EXCEPTIONS=0;WIN32_LEAN_AND_MEAN;NOMINMAX</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_HAS_EXCEPTIONS=0;WIN32_LEAN_AND_MEAN;NOMINMAX;NDEBUG</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <Optimization>MaxSpeed</Optimization>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <TreatWarningAsError>true</TreatWarningAsError>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\dllmain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Headers\Common\ConfigParser.hpp" />
+    <ClInclude Include="Source\Headers\Common\Globals.hpp" />
+    <ClInclude Include="Source\Headers\Common\HeatParameters.hpp" />
+    <ClInclude Include="Source\Headers\Common\ModContainers.hpp" />
+    <ClInclude Include="Source\Headers\Common\ParameterSets.hpp" />
+    <ClInclude Include="Source\Headers\Common\PersistentStrings.hpp" />
+    <ClInclude Include="Source\Headers\Utilities\BasicLogger.hpp" />
+    <ClInclude Include="Source\Headers\Utilities\FlatContainers.hpp" />
+    <ClInclude Include="Source\Headers\Utilities\FormatBuffer.hpp" />
+    <ClInclude Include="Source\Headers\Utilities\MemoryTools.hpp" />
+    <ClInclude Include="Source\Headers\Utilities\RandomNumbers.hpp" />
+    <ClInclude Include="Source\Headers\Utilities\StreamParser.hpp" />
+    <ClInclude Include="Source\Headers\Features\StateObserver.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\CopDetection.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\CopNotifications.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\GameBreaker.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\GeneralSettings.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\GroundSupport.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\HelicopterVision.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\InteractiveMusic.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\NitrousCharge.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\RadioSpeech.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\CopFleeOverrides.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\CopSpawnOverrides.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\CopSpawnTables.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\HeatChangeOverrides.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\HelicopterOverrides.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\LeaderOverrides.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\PursuitFeatures.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\PursuitObserver.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\RoadblockOverrides.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\StrategyOverrides.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include="Documentation\APPENDIX.md" />
+    <None Include="Configuration\Advanced\CarSpawns.ini" />
+    <None Include="Configuration\Advanced\CarTables.ini" />
+    <None Include="Configuration\Advanced\Heat.ini" />
+    <None Include="Configuration\Advanced\Helicopter.ini" />
+    <None Include="Configuration\Advanced\Roadblocks.ini" />
+    <None Include="Configuration\Advanced\Strategies.ini" />
+    <None Include="Configuration\Basic\General.ini" />
+    <None Include="Configuration\Basic\Cosmetic.ini" />
+    <None Include="Configuration\Basic\Nitrous.ini" />
+    <None Include="Configuration\Basic\Speedbreaker.ini" />
+    <None Include="Configuration\Basic\Support.ini" />
+    <None Include="Binary\Source\FixMissingTextures.end" />
+    <None Include="Binary\Source\Modscript.end" />
+    <None Include="Editor\Images\Car.webp" />
+    <None Include="Editor\Images\Sawhorse.webp" />
+    <None Include="Editor\Images\Spikes.webp" />
+    <None Include="Editor\RoadblockEditor.html" />
+    <None Include="Editor\Source\Scripting.js" />
+    <None Include="Editor\Source\Styles.css" />
+    <None Include="Source\cpp.hint" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Binary\Textures\HEAT_X10.dds" />
+    <Image Include="Binary\Textures\HEAT_X6.dds" />
+    <Image Include="Binary\Textures\HEAT_X7.dds" />
+    <Image Include="Binary\Textures\HEAT_X8.dds" />
+    <Image Include="Binary\Textures\HEAT_X9.dds" />
+    <Image Include="Editor\Images\Icon.ico" />
+    <Image Include="Thumbnail.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Documentation\APPENDIX.txt" />
+    <Text Include="Documentation\README.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <Target Name="PostBuildCustomLayout" AfterTargets="Build">
+    <PropertyGroup>
+      <CustomOutputDir>$(OutDir)</CustomOutputDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <ExeFile Include="$(TargetPath)" />
+      <ConfigurationBasicFiles Include="$(ProjectDir)Configuration\Basic\**\*.*" />
+      <ConfigurationAdvancedFiles Include="$(ProjectDir)Configuration\Advanced\**\*.*" />
+      <TextureFiles Include="$(ProjectDir)Binary\Textures\**\*.*" />
+      <BinarySourceFiles Include="$(ProjectDir)Binary\Source\**\*.*" Exclude="$(ProjectDir)Binary\Source\FixMissingTextures.end" />
+      <EditorSourceFiles Include="$(ProjectDir)Editor\Source\**\*.*" />
+      <EditorImageFiles Include="$(ProjectDir)Editor\Images\**\*.*" />
+      <DocumentationTxtFiles Include="$(ProjectDir)Documentation\*.txt" />
+      <RoadblockEditor Include="$(ProjectDir)Editor\RoadblockEditor.html" />
+      <FixMissingTextures Include="$(ProjectDir)Binary\Source\FixMissingTextures.end" />
+    </ItemGroup>
+    <MakeDir Directories="&#xD;&#xA;       $(CustomOutputDir)scripts\BartenderSettings\Basic;&#xD;&#xA;       $(CustomOutputDir)scripts\BartenderSettings\Advanced;&#xD;&#xA;       $(CustomOutputDir)Assets\Textures;&#xD;&#xA;       $(CustomOutputDir)Assets\Source;&#xD;&#xA;       $(CustomOutputDir)Assets\Images" />
+    <Exec Command="move /Y &quot;%(ExeFile.Identity)&quot; &quot;$(CustomOutputDir)scripts&quot; &gt; nul" Condition="Exists('%(ExeFile.Identity)')" />
+    <Exec Command="move /Y &quot;%(ExeFile.RootDir)%(ExeFile.Directory)%(ExeFile.Filename).pdb&quot; &quot;$(CustomOutputDir)scripts&quot; &gt; nul" Condition="Exists('%(ExeFile.RootDir)%(ExeFile.Directory)%(ExeFile.Filename).pdb')" />
+    <Copy SourceFiles="@(ConfigurationBasicFiles)" DestinationFolder="$(CustomOutputDir)scripts\BartenderSettings\Basic\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ConfigurationAdvancedFiles)" DestinationFolder="$(CustomOutputDir)scripts\BartenderSettings\Advanced\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(TextureFiles)" DestinationFolder="$(CustomOutputDir)Assets\Textures\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(BinarySourceFiles)" DestinationFolder="$(CustomOutputDir)Assets\Source\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(EditorSourceFiles)" DestinationFolder="$(CustomOutputDir)Assets\Source\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(EditorImageFiles)" DestinationFolder="$(CustomOutputDir)Assets\Images\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DocumentationTxtFiles)" DestinationFolder="$(CustomOutputDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(RoadblockEditor)" DestinationFolder="$(CustomOutputDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(FixMissingTextures)" DestinationFiles="$(CustomOutputDir)FixMissingTextures.txt" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
