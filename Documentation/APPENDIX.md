@@ -1,7 +1,7 @@
 
 ![POV: You hit the RESET button by accident.](../Thumbnail.jpg "I'm far too lazy to make another thumbnail for this.")
 
-This file contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](README.md/#4---which-mods-are-incompatible-with-bartender).
+This file contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](../README.md/#4---which-mods-are-incompatible-with-bartender).
 
 &nbsp;
 
