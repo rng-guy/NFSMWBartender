@@ -41,7 +41,7 @@ For a detailed **version history** of Bartender, see the [plain-text version](AP
 
 # 1 - What's there to know about Bartender's file parsing?
 
-Bartender only recognises **Heat levels** from 1 to 10 (inclusive). If you want more Heat levels, you must edit the `maxHeatLevel` parameter in Bartender's [`HeatParameters.hpp`](../Source/Headers/Common/HeatParameters.h) source file and compile the mod yourself. To clone and compile Bartender, use [Microsoft Visual Studio 2022](https://visualstudio.microsoft.com/vs/older-downloads/).
+Bartender only recognises **Heat levels** from 1 to 10 (inclusive). If you want more Heat levels, you must edit the `maxHeatLevel` parameter in Bartender's [`HeatParameters.hpp`](../Source/Headers/Common/HeatParameters.hpp) source file and compile the mod yourself. To clone and compile Bartender, use [Microsoft Visual Studio 2022](https://visualstudio.microsoft.com/vs/older-downloads/).
 
 Bartender parses its configuration (`.ini`) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure to the configuration files. Each group allows you to define values, either in relation to Heat levels or vehicles. There are also a select few parameter groups that allow you to define standalone values.
 
