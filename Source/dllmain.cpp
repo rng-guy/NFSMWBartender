@@ -21,6 +21,8 @@
 
 // Project includes ---------------------------------------------------------------------------------------------------------------------------------
 
+#include <array>
+
 #include <Windows.h>
 
 #ifdef _DEBUG
@@ -64,9 +66,8 @@ static void __cdecl InitialiseBartender
 	// Call original function first
 	OriginalFunction(numArgs, argArray);
 
-	// Halt until debugger is attached
 	#ifdef _DEBUG
-	while (not IsDebuggerPresent());
+	while (not IsDebuggerPresent()); // halt until debugger is attached
 	#endif
 
 	// Initialise log and config parser
@@ -77,20 +78,24 @@ static void __cdecl InitialiseBartender
 	{
 		Globals::logger.Open("BartenderLog.txt");
 
-		Globals::LogFull(); // forces newline
+		Globals::LogFull(); // force newline to separate launches
 		Globals::LogFull(logSection, logTag, "Bartender v4.00.00");
 
-		if (MemoryTools::IsModuleLoaded("NFSMWUnlimiter.asi"))             Globals::LogPlain("+ Unlimiter");
-		if (MemoryTools::IsModuleLoaded("NFSMWExtraOptions.asi"))          Globals::LogPlain("+ ExtraOptions");
-		if (MemoryTools::IsModuleLoaded("NFSMWLimitAdjuster.asi"))         Globals::LogPlain("+ LimitAdjuster");
-		if (MemoryTools::IsModuleLoaded("NFSMWOpenLimitAdjuster_gcp.asi")) Globals::LogPlain("+ OpenLimitAdjuster");
+		// Check for other mods
+		constexpr std::array fileNames = 
+		{ 
+			"NFSMWUnlimiter.asi",    
+			"XNFSMusicPlayer.asi", 
+			"NFSMWExtraOptions.asi", 
+			"NFSMWLimitAdjuster.asi", 
+			"NFSMWOpenLimitAdjuster_gcp.asi" 
+		};
+
+		for (const char* const fileName : fileNames)
+			if (MemoryTools::IsModuleLoaded(fileName)) Globals::LogPlain('+', fileName);
 	}
 
-	constexpr size_t configFileCapacity     = 6;  // files
-	constexpr size_t sectionCapacityPerFile = 30; // sections
-	constexpr size_t pairCapacityPerSection = 25; // pairs
-
-	HeatParameters::Parser parser(configFileCapacity, sectionCapacityPerFile, pairCapacityPerSection);
+	HeatParameters::Parser parser(/* fileCapactity = */ 6, /* sectionCapacityPerFile = */ 30, /* pairCapacityPerSection = */ 25);
 
 	// Parse and initialise "Basic" feature set
 	Globals::basicSetEnabled |= CopNotifications::InitialiseFeatures(parser);
@@ -103,7 +108,7 @@ static void __cdecl InitialiseBartender
 	Globals::basicSetEnabled |= NitrousCharge   ::InitialiseFeatures(parser);
 	Globals::basicSetEnabled |= GameBreaker     ::InitialiseFeatures(parser);
 
-	parser.ClearCachedPaths();
+	parser.ClearCachedFiles();
 
 	if (Globals::basicSetEnabled)
 	{
@@ -126,6 +131,9 @@ static void __cdecl InitialiseBartender
 	Globals::advancedSetEnabled = PursuitObserver::InitialiseFeatures(parser);
 
 	// Apply Heat and state observer
+	if (Globals::basicSetEnabled or Globals::advancedSetEnabled)
+		StateObserver::InitialiseFeatures(parser);
+
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::LogFull(logSection, logTag, "Features");
@@ -133,9 +141,6 @@ static void __cdecl InitialiseBartender
 		Globals::LogPlain("Basic    set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
 		Globals::LogPlain("Advanced set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
 	}
-
-	if (Globals::basicSetEnabled or Globals::advancedSetEnabled)
-		StateObserver::InitialiseFeatures(parser);
 }
 
 

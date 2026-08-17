@@ -73,25 +73,25 @@ namespace GeneralSettings
 
 	[[nodiscard]] const char* __fastcall GetRandomArrestScene(const size_t heatLevel)
 	{
-		static constexpr std::array<const char*, 8> scenesDefault =
+		static constexpr std::array scenesDefault =
 		{
 			"ArrestM06",  "ArrestM19",  "ArrestF06",  "ArrestF07",
 			"ArrestM06b", "ArrestM19b", "ArrestF06b", "ArrestF07b"
 		};
 
-		static constexpr std::array<const char*, 8> scenesLevel1 =
+		static constexpr std::array scenesLevel1 =
 		{
 			"ArrestM01",  "ArrestM16",  "ArrestF02",  "ArrestF18",
 			"ArrestM01b", "ArrestM16b", "ArrestF02b", "ArrestF18b"
 		};
 
-		static constexpr std::array<const char*, 4> scenesLevel2 =
+		static constexpr std::array scenesLevel2 =
 		{
 			"ArrestM04",  "ArrestF23",
 			"ArrestM04b", "ArrestF23b"
 		};
 
-		static constexpr std::array<const char*, 6> scenesLevel3 =
+		static constexpr std::array scenesLevel3 =
 		{
 			"ArrestM07",  "ArrestM14",  "ArrestF14",  
 			"ArrestM07b", "ArrestM14b", "ArrestF14b"
@@ -462,82 +462,43 @@ namespace GeneralSettings
 		const auto ParseTracking = [&parser](const std::string_view key, bool& isTracked) -> bool
 		{
 			parser.ParseFromFile<bool>("Pursuits:Races", key, {isTracked});
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (isTracked)
+					Globals::LogPlain("Tracking", key);
+			}
+
 			return isTracked; // for immediate toggle checking
 		};
 
-		// Pursuit length
 		if (ParseTracking("pursuitLength", trackPursuitLength))
-		{
 			MemoryTools::MakeRangeNOP<0x443CBE, 0x443CC8>();
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("Tracking pursuit length");
-		}
-
-		// Units in pursuit
 		if (ParseTracking("unitsInPursuit", trackUnitsInPursuit))
-		{
 			MemoryTools::MakeRangeNOP<0x41911B, 0x419125>();
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("Tracking units in pursuit");
-		}
-
-		// Cops lost
 		if (ParseTracking("copsLost", trackCopsLost))
-		{
 			MemoryTools::MakeRangeNOP<0x42B761, 0x42B76B>();
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("Tracking cops lost");
-		}
-
-		// Cops damaged
 		if (ParseTracking("copsDamaged", trackCopsDamaged))
-		{
 			MemoryTools::MakeRangeNOP<0x40AF43, 0x40AF4D>();
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("Tracking cops damaged");
-		}
-
-		// Cops destroyed
 		if (ParseTracking("copsDestroyed", trackCopsDestroyed))
 		{
 			MemoryTools::MakeRangeNOP<0x4094E0, 0x4094EA>(); // cop bounty
 			MemoryTools::MakeRangeNOP<0x418F3B, 0x418F41>(); // cops destroyed
 			MemoryTools::MakeRangeNOP<0x43EA15, 0x43EA19>(); // total cops destroyed
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("Tracking cops destroyed");
 		}
 
-		// Passive bounty
 		if (ParseTracking("passiveBounty", trackPassiveBounty))
-		{
 			MemoryTools::MakeRangeNOP<0x4094A0, 0x4094AA>();
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("Tracking passive bounty");
-		}
-
-		// Property damage
 		if (ParseTracking("propertyDamage", trackPropertyDamage))
-		{
 			MemoryTools::MakeRangeNOP<0x409463, 0x409467>();
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("Tracking property damage");
-		}
-
-		// Infractions
 		if (ParseTracking("infractions", trackInfractions))
-		{
 			MemoryTools::MakeRangeNOP<0x5FDDDC, 0x5FDDE7>();
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("Tracking infractions");
-		}
 	}
 
 

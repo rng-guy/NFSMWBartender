@@ -1,27 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Documentation">
-      <UniqueIdentifier>{b05c5ef2-1c0e-4f92-871d-5caa1ca7ebc0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Binary">
       <UniqueIdentifier>{ae9ff621-38ea-459a-a159-9a5fe9168e45}</UniqueIdentifier>
     </Filter>
     <Filter Include="Binary\Textures">
       <UniqueIdentifier>{c341b668-3b2d-4609-996f-3da823ae80eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Configuration">
-      <UniqueIdentifier>{62493dc3-8065-4ce0-b212-5c8497ef84db}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Configuration\Basic">
-      <UniqueIdentifier>{5a9441b9-fa4a-47ba-855e-bf49158a7ad4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Configuration\Advanced">
-      <UniqueIdentifier>{4a623eac-b257-4798-9d2d-15c127689188}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
@@ -39,22 +23,35 @@
     <Filter Include="Binary\Source">
       <UniqueIdentifier>{d6f38209-c6ea-4c22-8bd2-17eb24271517}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Features">
+    <Filter Include="Docs">
+      <UniqueIdentifier>{b05c5ef2-1c0e-4f92-871d-5caa1ca7ebc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{62493dc3-8065-4ce0-b212-5c8497ef84db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config\Basic">
+      <UniqueIdentifier>{8ea5a6f0-b374-4939-8be7-6b297d66c613}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config\Advanced">
+      <UniqueIdentifier>{ae18e74f-d71d-4dd8-9f22-21125cf1faff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source\Headers\Features">
       <UniqueIdentifier>{55943e8b-1479-4d97-9d85-045d5a9133f5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Features\Basic">
+    <Filter Include="Source\Headers\Features\Basic">
       <UniqueIdentifier>{d47fbf6b-9b5a-42e7-a3f7-a947a75579ec}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Features\Advanced">
+    <Filter Include="Source\Headers\Features\Advanced">
       <UniqueIdentifier>{af4345db-acb4-4116-a6eb-24bb3f5c5760}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Miscellaneous">
-      <UniqueIdentifier>{3e48972a-4f09-4e0e-9ba2-f6ec3a9e66be}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Common">
+    <Filter Include="Source\Headers\Common">
       <UniqueIdentifier>{5a20c96a-326e-491c-ba6b-119f92c1a0a5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Utilities">
+    <Filter Include="Source\Headers\Utilities">
       <UniqueIdentifier>{2c5715fe-59ed-45d6-a33a-6e82ff9f79ee}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -65,135 +62,108 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\Common\Globals.hpp">
-      <Filter>Headers\Common</Filter>
+      <Filter>Source\Headers\Common</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\StateObserver.hpp">
-      <Filter>Headers\Features</Filter>
+      <Filter>Source\Headers\Features</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Common\ConfigParser.hpp">
-      <Filter>Headers\Common</Filter>
+      <Filter>Source\Headers\Common</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Basic\CopNotifications.hpp">
-      <Filter>Headers\Features\Basic</Filter>
+      <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Basic\GroundSupport.hpp">
-      <Filter>Headers\Features\Basic</Filter>
+      <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Basic\GeneralSettings.hpp">
-      <Filter>Headers\Features\Basic</Filter>
+      <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\CopFleeOverrides.hpp">
-      <Filter>Headers\Features\Advanced</Filter>
+      <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\CopSpawnOverrides.hpp">
-      <Filter>Headers\Features\Advanced</Filter>
+      <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\CopSpawnTables.hpp">
-      <Filter>Headers\Features\Advanced</Filter>
+      <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\HelicopterOverrides.hpp">
-      <Filter>Headers\Features\Advanced</Filter>
+      <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\PursuitFeatures.hpp">
-      <Filter>Headers\Features\Advanced</Filter>
+      <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\PursuitObserver.hpp">
-      <Filter>Headers\Features\Advanced</Filter>
+      <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Common\HeatParameters.hpp">
-      <Filter>Headers\Common</Filter>
+      <Filter>Source\Headers\Common</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\LeaderOverrides.hpp">
-      <Filter>Headers\Features\Advanced</Filter>
+      <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\StrategyOverrides.hpp">
-      <Filter>Headers\Features\Advanced</Filter>
+      <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Basic\RadioSpeech.hpp">
-      <Filter>Headers\Features\Basic</Filter>
+      <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Common\ModContainers.hpp">
-      <Filter>Headers\Common</Filter>
+      <Filter>Source\Headers\Common</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Basic\InteractiveMusic.hpp">
-      <Filter>Headers\Features\Basic</Filter>
+      <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Basic\CopDetection.hpp">
-      <Filter>Headers\Features\Basic</Filter>
+      <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Basic\HelicopterVision.hpp">
-      <Filter>Headers\Features\Basic</Filter>
+      <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\HeatChangeOverrides.hpp">
-      <Filter>Headers\Features\Advanced</Filter>
+      <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\RoadblockOverrides.hpp">
-      <Filter>Headers\Features\Advanced</Filter>
+      <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Utilities\RandomNumbers.hpp">
-      <Filter>Headers\Utilities</Filter>
+      <Filter>Source\Headers\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Utilities\StreamParser.hpp">
-      <Filter>Headers\Utilities</Filter>
+      <Filter>Source\Headers\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Utilities\BasicLogger.hpp">
-      <Filter>Headers\Utilities</Filter>
+      <Filter>Source\Headers\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Utilities\MemoryTools.hpp">
-      <Filter>Headers\Utilities</Filter>
+      <Filter>Source\Headers\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Utilities\FlatContainers.hpp">
-      <Filter>Headers\Utilities</Filter>
+      <Filter>Source\Headers\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Basic\GameBreaker.hpp">
-      <Filter>Headers\Features\Basic</Filter>
+      <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Basic\NitrousCharge.hpp">
-      <Filter>Headers\Features\Basic</Filter>
+      <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Common\ParameterSets.hpp">
-      <Filter>Headers\Common</Filter>
+      <Filter>Source\Headers\Common</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Common\PersistentStrings.hpp">
-      <Filter>Headers\Common</Filter>
+      <Filter>Source\Headers\Common</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Utilities\FormatBuffer.hpp">
-      <Filter>Headers\Utilities</Filter>
+      <Filter>Source\Headers\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Configuration\Basic\General.ini">
-      <Filter>Configuration\Basic</Filter>
-    </None>
-    <None Include="Configuration\Basic\Cosmetic.ini">
-      <Filter>Configuration\Basic</Filter>
-    </None>
-    <None Include="Configuration\Basic\Support.ini">
-      <Filter>Configuration\Basic</Filter>
-    </None>
-    <None Include="Configuration\Advanced\CarTables.ini">
-      <Filter>Configuration\Advanced</Filter>
-    </None>
-    <None Include="Configuration\Advanced\Helicopter.ini">
-      <Filter>Configuration\Advanced</Filter>
-    </None>
     <None Include="README.md">
-      <Filter>Documentation</Filter>
+      <Filter>Docs</Filter>
     </None>
-    <None Include="Documentation\APPENDIX.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="Configuration\Advanced\Strategies.ini">
-      <Filter>Configuration\Advanced</Filter>
-    </None>
-    <None Include="Configuration\Advanced\CarSpawns.ini">
-      <Filter>Configuration\Advanced</Filter>
-    </None>
-    <None Include="Configuration\Advanced\Heat.ini">
-      <Filter>Configuration\Advanced</Filter>
-    </None>
-    <None Include="Configuration\Advanced\Roadblocks.ini">
-      <Filter>Configuration\Advanced</Filter>
+    <None Include="Docs\APPENDIX.md">
+      <Filter>Docs</Filter>
     </None>
     <None Include="Editor\Images\Car.webp">
       <Filter>Editor\Images</Filter>
@@ -216,22 +186,49 @@
     <None Include="Editor\Source\Scripting.js">
       <Filter>Editor\Source</Filter>
     </None>
-    <None Include="Configuration\Basic\Speedbreaker.ini">
-      <Filter>Configuration\Basic</Filter>
-    </None>
-    <None Include="Configuration\Basic\Nitrous.ini">
-      <Filter>Configuration\Basic</Filter>
-    </None>
     <None Include="Editor\Images\Sawhorse.webp">
       <Filter>Editor\Images</Filter>
     </None>
+    <None Include="Config\Advanced\CarSpawns.ini">
+      <Filter>Config\Advanced</Filter>
+    </None>
+    <None Include="Config\Advanced\CarTables.ini">
+      <Filter>Config\Advanced</Filter>
+    </None>
+    <None Include="Config\Advanced\Helicopter.ini">
+      <Filter>Config\Advanced</Filter>
+    </None>
+    <None Include="Config\Advanced\Heat.ini">
+      <Filter>Config\Advanced</Filter>
+    </None>
+    <None Include="Config\Advanced\Strategies.ini">
+      <Filter>Config\Advanced</Filter>
+    </None>
+    <None Include="Config\Advanced\Roadblocks.ini">
+      <Filter>Config\Advanced</Filter>
+    </None>
+    <None Include="Config\Basic\Cosmetic.ini">
+      <Filter>Config\Basic</Filter>
+    </None>
+    <None Include="Config\Basic\General.ini">
+      <Filter>Config\Basic</Filter>
+    </None>
+    <None Include="Config\Basic\Nitrous.ini">
+      <Filter>Config\Basic</Filter>
+    </None>
+    <None Include="Config\Basic\Speedbreaker.ini">
+      <Filter>Config\Basic</Filter>
+    </None>
+    <None Include="Config\Basic\Support.ini">
+      <Filter>Config\Basic</Filter>
+    </None>
     <None Include="Source\cpp.hint">
-      <Filter>Miscellaneous</Filter>
+      <Filter>Source</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Thumbnail.jpg">
-      <Filter>Documentation</Filter>
+      <Filter>Docs</Filter>
     </Image>
     <Image Include="Binary\Textures\HEAT_X6.dds">
       <Filter>Binary\Textures</Filter>
@@ -253,11 +250,11 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Documentation\README.txt">
-      <Filter>Documentation</Filter>
+    <Text Include="Docs\README.txt">
+      <Filter>Docs</Filter>
     </Text>
-    <Text Include="Documentation\APPENDIX.txt">
-      <Filter>Documentation</Filter>
+    <Text Include="Docs\APPENDIX.txt">
+      <Filter>Docs</Filter>
     </Text>
   </ItemGroup>
 </Project>

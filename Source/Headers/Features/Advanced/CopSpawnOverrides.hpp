@@ -1189,18 +1189,20 @@ namespace CopSpawnOverrides
 
 	void ParseBoardTrackingSettings(const HeatParameters::Parser& parser)
 	{
-		constexpr std::string_view section = "Board:Tracking";
-
-		parser.ParseFromFile<bool>(section, "heavyCops",     {trackHeavyVehicles});
-		parser.ParseFromFile<bool>(section, "leaderCops",    {trackLeaderVehicles});
-		parser.ParseFromFile<bool>(section, "roadblockCops", {trackRoadblockVehicles});
-
-		if constexpr (Globals::loggingEnabled)
+		const auto ParseTracking = [&parser](const std::string_view key, bool& isTracked) -> void
 		{
-			if (trackHeavyVehicles)     Globals::LogPlain("Tracking HeavyStrategy");
-			if (trackLeaderVehicles)    Globals::LogPlain("Tracking LeaderStrategy");
-			if (trackRoadblockVehicles) Globals::LogPlain("Tracking roadblock cops");
-		}
+			parser.ParseFromFile<bool>("Board:Tracking", key, {isTracked});
+
+			if constexpr (Globals::loggingEnabled)
+			{
+				if (isTracked)
+					Globals::LogPlain("Tracking", key);
+			}
+		};
+
+		ParseTracking("heavyCops",     trackHeavyVehicles);
+		ParseTracking("leaderCops",    trackLeaderVehicles);
+		ParseTracking("roadblockCops", trackRoadblockVehicles);
 	}
 
 

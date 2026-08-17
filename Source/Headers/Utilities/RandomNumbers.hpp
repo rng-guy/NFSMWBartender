@@ -156,7 +156,7 @@ namespace RandomNumbers
 		requires std::integral<T>
 		[[nodiscard]] bool DoPercentTrial(const T chance)
 		{
-			return (this->GenerateNumber<T>(static_cast<T>(1), static_cast<T>(100)) <= chance);
+			return (this->GenerateNumber<T>(1, 100) <= chance);
 		}
 
 
@@ -176,7 +176,7 @@ namespace RandomNumbers
 		requires std::floating_point<T>
 		[[nodiscard]] bool DoPercentTrial(const T chance)
 		{
-			return (this->GenerateNumber<T>(static_cast<T>(0), static_cast<T>(100)) < chance);
+			return (this->GenerateNumber<T>(0, 100) < chance);
 		}
 
 

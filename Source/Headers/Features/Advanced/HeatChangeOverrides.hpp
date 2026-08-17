@@ -103,14 +103,12 @@ namespace HeatChangeOverrides
 
 		std::array<CountTracker, 6> countTrackers =
 		{
-			CountTracker{this->pursuit, 0x184, chaserHeatChange},
-			CountTracker{this->pursuit, 0x188, supportHeatChange},
-			CountTracker{this->pursuit, 0x150, helicopterHeatChange},
-
-			CountTracker{this->pursuit, 0x158, roadblockHeatChange},
-			CountTracker{this->pursuit, 0x17C, spikesHeatChange},
-
-			CountTracker{this->pursuit, 0x168, trafficHitHeatChange}
+			CountTracker(this->pursuit, 0x184, chaserHeatChange),
+			CountTracker(this->pursuit, 0x188, supportHeatChange),
+			CountTracker(this->pursuit, 0x150, helicopterHeatChange),
+			CountTracker(this->pursuit, 0x158, roadblockHeatChange),
+			CountTracker(this->pursuit, 0x17C, spikesHeatChange),
+			CountTracker(this->pursuit, 0x168, trafficHitHeatChange)
 		};
 
 		inline static constexpr LogLiteral name = "HeatManager";

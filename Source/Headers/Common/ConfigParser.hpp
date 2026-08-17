@@ -241,7 +241,7 @@ namespace ConfigParser
 		}
 
 
-		void ClearCachedPaths()
+		void ClearCachedFiles()
 		{
 			this->pathToSections.clear();
 		}

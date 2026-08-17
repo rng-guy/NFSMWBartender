@@ -143,18 +143,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
-    <None Include="Documentation\APPENDIX.md" />
-    <None Include="Configuration\Advanced\CarSpawns.ini" />
-    <None Include="Configuration\Advanced\CarTables.ini" />
-    <None Include="Configuration\Advanced\Heat.ini" />
-    <None Include="Configuration\Advanced\Helicopter.ini" />
-    <None Include="Configuration\Advanced\Roadblocks.ini" />
-    <None Include="Configuration\Advanced\Strategies.ini" />
-    <None Include="Configuration\Basic\General.ini" />
-    <None Include="Configuration\Basic\Cosmetic.ini" />
-    <None Include="Configuration\Basic\Nitrous.ini" />
-    <None Include="Configuration\Basic\Speedbreaker.ini" />
-    <None Include="Configuration\Basic\Support.ini" />
+    <None Include="Docs\APPENDIX.md" />
+    <None Include="Config\Advanced\CarSpawns.ini" />
+    <None Include="Config\Advanced\CarTables.ini" />
+    <None Include="Config\Advanced\Heat.ini" />
+    <None Include="Config\Advanced\Helicopter.ini" />
+    <None Include="Config\Advanced\Roadblocks.ini" />
+    <None Include="Config\Advanced\Strategies.ini" />
+    <None Include="Config\Basic\General.ini" />
+    <None Include="Config\Basic\Cosmetic.ini" />
+    <None Include="Config\Basic\Nitrous.ini" />
+    <None Include="Config\Basic\Speedbreaker.ini" />
+    <None Include="Config\Basic\Support.ini" />
     <None Include="Binary\Source\FixMissingTextures.end" />
     <None Include="Binary\Source\Modscript.end" />
     <None Include="Editor\Images\Car.webp" />
@@ -175,8 +175,8 @@
     <Image Include="Thumbnail.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Documentation\APPENDIX.txt" />
-    <Text Include="Documentation\README.txt" />
+    <Text Include="Docs\APPENDIX.txt" />
+    <Text Include="Docs\README.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -187,13 +187,13 @@
     </PropertyGroup>
     <ItemGroup>
       <ExeFile Include="$(TargetPath)" />
-      <ConfigurationBasicFiles Include="$(ProjectDir)Configuration\Basic\**\*.*" />
-      <ConfigurationAdvancedFiles Include="$(ProjectDir)Configuration\Advanced\**\*.*" />
+      <ConfigurationBasicFiles Include="$(ProjectDir)Config\Basic\**\*.*" />
+      <ConfigurationAdvancedFiles Include="$(ProjectDir)Config\Advanced\**\*.*" />
       <TextureFiles Include="$(ProjectDir)Binary\Textures\**\*.*" />
       <BinarySourceFiles Include="$(ProjectDir)Binary\Source\**\*.*" Exclude="$(ProjectDir)Binary\Source\FixMissingTextures.end" />
       <EditorSourceFiles Include="$(ProjectDir)Editor\Source\**\*.*" />
       <EditorImageFiles Include="$(ProjectDir)Editor\Images\**\*.*" />
-      <DocumentationTxtFiles Include="$(ProjectDir)Documentation\*.txt" />
+      <DocumentationTxtFiles Include="$(ProjectDir)Docs\*.txt" />
       <RoadblockEditor Include="$(ProjectDir)Editor\RoadblockEditor.html" />
       <FixMissingTextures Include="$(ProjectDir)Binary\Source\FixMissingTextures.end" />
     </ItemGroup>

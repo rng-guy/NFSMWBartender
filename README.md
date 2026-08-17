@@ -224,7 +224,7 @@ The "Advanced" feature set **can fix five more bugs / issues**, depending on its
 
 **After installing** Bartender: 
 1. edit the configuration (`.ini`) files in the `BartenderSettings` folder to your liking; and
-2. if you encounter any issues or want more feature details, see the [appendix file](Documentation/APPENDIX.md).
+2. if you encounter any issues or want more feature details, see the [appendix file](Docs/APPENDIX.md).
 
 &nbsp;
 

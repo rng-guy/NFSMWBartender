@@ -195,7 +195,7 @@ namespace BasicLogger
 
 		mutable FormatBuffer::Buffer buffer;
 
-		static constexpr std::array<size_t, 1 + sizeof...(indents)> indentWidths = {0, indents...};
+		inline static constexpr std::array indentWidths = {size_t(0), indents...};
 
 
 	private: // methods
