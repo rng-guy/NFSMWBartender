@@ -82,13 +82,16 @@ static void __cdecl InitialiseBartender
 		Globals::LogFull(logSection, logTag, "Bartender v4.00.00");
 
 		// Check for other mods
-		constexpr std::array fileNames = 
-		{ 
+		constexpr std::array fileNames =
+		{
+			"X360Stuff.asi",
 			"NFSMWUnlimiter.asi",    
 			"XNFSMusicPlayer.asi", 
+			"NFSMWSpeedFixer.asi",
 			"NFSMWExtraOptions.asi", 
 			"NFSMWLimitAdjuster.asi", 
-			"NFSMWOpenLimitAdjuster_gcp.asi" 
+			"NFSMWOpenLimitAdjuster_gcp.asi",
+			"NFSMostWanted.WidescreenFix.asi"
 		};
 
 		for (const char* const fileName : fileNames)

@@ -1187,7 +1187,7 @@ namespace CopSpawnOverrides
 
 	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
 
-	void ParseBoardTrackingSettings(const HeatParameters::Parser& parser)
+	void ParseTrackingSettings(const HeatParameters::Parser& parser)
 	{
 		const auto ParseTracking = [&parser](const std::string_view key, bool& isTracked) -> void
 		{
@@ -1219,7 +1219,7 @@ namespace CopSpawnOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
 
 		// Pursuit-board tracking
-		ParseBoardTrackingSettings(parser);
+		ParseTrackingSettings(parser);
 
 		// Heat parameters (first file)
 		HeatParameters::Parse(parser, "Chasers:Limits", activeChaserLimit);

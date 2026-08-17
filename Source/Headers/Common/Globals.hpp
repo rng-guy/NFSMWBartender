@@ -59,7 +59,7 @@ namespace Globals
 	uint32_t numPausedTicks = 0;
 
 	// Random-number generator
-	RandomNumbers::Generator<> prng;
+	RandomNumbers::Generator prng;
 
 	// Player state
 	address playerPerpVehicle    = 0x0;
