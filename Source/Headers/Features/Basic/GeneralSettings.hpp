@@ -71,14 +71,9 @@ namespace GeneralSettings
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] const char* __fastcall GetRandomArrestScene(const size_t heatLevel)
+	[[nodiscard]] const char* __fastcall GetRandomArrestScene(size_t heatLevel)
 	{
-		static constexpr std::array scenesDefault =
-		{
-			"ArrestM06",  "ArrestM19",  "ArrestF06",  "ArrestF07",
-			"ArrestM06b", "ArrestM19b", "ArrestF06b", "ArrestF07b"
-		};
-
+		// Define available arrest cutscenes
 		static constexpr std::array scenesLevel1 =
 		{
 			"ArrestM01",  "ArrestM16",  "ArrestF02",  "ArrestF18",
@@ -97,26 +92,30 @@ namespace GeneralSettings
 			"ArrestM07b", "ArrestM14b", "ArrestF14b"
 		};
 
-		// Select random cutscene by Heat level
-		std::span<const char* const> candidates = scenesDefault;
-
-		switch (heatLevel)
+		static constexpr std::array scenesOthers =
 		{
-		case 0:
-		case 1:
-			candidates = scenesLevel1;
-			break;
+			"ArrestM06",  "ArrestM19",  "ArrestF06",  "ArrestF07",
+			"ArrestM06b", "ArrestM19b", "ArrestF06b", "ArrestF07b"
+		};
 
-		case 2:
-			candidates = scenesLevel2;
-			break;
+		// Generate Heat-level lookup table
+		using SceneSpan = std::span<const char* const>; // dynamic
 
-		case 3:
-			candidates = scenesLevel3;
-		}
+		static constexpr std::array heatLevelTable = 
+		{ 
+			SceneSpan(scenesLevel1), // Heat level 0
+			SceneSpan(scenesLevel1), // Heat level 1
+			SceneSpan(scenesLevel2), // Heat level 2
+			SceneSpan(scenesLevel3), // Heat level 3
+			SceneSpan(scenesOthers)  // Heat level 4+
+		};
 
-		const size_t      sceneID     = Globals::prng.GenerateIndex(candidates);
-		const char* const randomScene = candidates[sceneID];
+		// Select random cutscene by Heat level
+		heatLevel = std::min<size_t>(heatLevel, heatLevelTable.size() - 1);
+
+		const auto&  candidates  = heatLevelTable[heatLevel];
+		const size_t sceneID     = Globals::prng.GenerateIndex(candidates);
+		const auto   randomScene = candidates[sceneID];
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogTagged(logTag, "Arrest scene:", randomScene);

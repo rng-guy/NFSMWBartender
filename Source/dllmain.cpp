@@ -94,7 +94,7 @@ static void __cdecl InitialiseBartender
 			"NFSMostWanted.WidescreenFix.asi"
 		};
 
-		for (const char* const fileName : fileNames)
+		for (const auto fileName : fileNames)
 			if (MemoryTools::IsModuleLoaded(fileName)) Globals::LogPlain('+', fileName);
 	}
 
