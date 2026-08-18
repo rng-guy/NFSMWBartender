@@ -190,7 +190,7 @@ namespace StrategyOverrides
 			if (not this->unblockTimer.IsSet())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "New vehicle", copVehicle, "without Strategy in", this->pursuit);
+					Globals::LogWarning(logTag, "New vehicle", copVehicle, "without Strategy in", this->pursuit);
 
 				return; // should never happen
 			}
@@ -227,7 +227,7 @@ namespace StrategyOverrides
 			if (not manager->heavyStrategy)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "Invalid HeavyStrategy pointer in", pursuit);
+					Globals::LogWarning(logTag, "Invalid HeavyStrategy pointer in", pursuit);
 
 				return; // should never happen
 			}
@@ -249,7 +249,7 @@ namespace StrategyOverrides
 				manager->unblockTimer.DisableInterval();
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "HeavyStrategy", strategyID, "in", pursuit);
+					Globals::LogWarning(logTag, "HeavyStrategy", strategyID, "in", pursuit);
 
 				return; // should never happen
 			}
@@ -271,7 +271,7 @@ namespace StrategyOverrides
 			if (not manager->leaderStrategy)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "Invalid LeaderStrategy pointer in", pursuit);
+					Globals::LogWarning(logTag, "Invalid LeaderStrategy pointer in", pursuit);
 
 				return; // should never happen
 			}
@@ -292,7 +292,7 @@ namespace StrategyOverrides
 				manager->unblockTimer.DisableInterval();
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "LeaderStrategy", strategyID, "in", pursuit);
+					Globals::LogWarning(logTag, "LeaderStrategy", strategyID, "in", pursuit);
 			}
 
 			if constexpr (Globals::loggingEnabled)

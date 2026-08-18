@@ -133,7 +133,6 @@ namespace BasicLogger
 
 		constexpr LogString() noexcept = default;
 
-
 		LogString(const char* const      string) : string(string) {}
 		LogString(const std::string_view string) : string(string) {}
 		LogString(const std::string&     string) : string(string) {}

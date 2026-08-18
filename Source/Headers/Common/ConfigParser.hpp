@@ -107,7 +107,7 @@ namespace ConfigParser
 
 		std::array<T, numRows>& values;
 
-		std::optional<T> defaultValue;
+		std::optional<T> defaultValue; // mutated in "ParseFormat"
 
 		[[no_unique_address]] const Bounds<T> limits = {};
 	};
@@ -128,29 +128,37 @@ namespace ConfigParser
 
 
 
-	// Full config-file parser with bounds checking and fixed-format support ------------------------------------------------------------------------
+	// Config-file parser with bounds checking and fixed-format support -----------------------------------------------------------------------------
 
 	class Parser : protected StreamParser::Parser<>
 	{
 	private: // members
 
-		std::filesystem::path currentFile;
+		mutable FormatBuffer::Buffer buffer;
+
+		std::filesystem::path currentFilePath;
 
 		FlatContainers::Map<std::filesystem::path, Parser::Sections> pathToSections;
 
-		mutable FormatBuffer::Buffer buffer;
 
 	private: // methods
 
-		bool UpdateFilePath
-		(
-			const std::filesystem::path& root,
-			const std::string_view       fileName
-		) {
-			std::filesystem::path newPath = root / fileName;
-			if (this->currentFile == newPath) return false;
+		bool UpdateCurrentFilePath(std::filesystem::path&& newFilePath) 
+		{
+			if (this->currentFilePath == newFilePath) return false;
 
-			this->currentFile = std::move(newPath);
+			// Return currently parsed file to cache
+			if (not this->currentFilePath.empty())
+			{
+				const auto pairIt = this->pathToSections.find(this->currentFilePath);
+
+				if (pairIt != this->pathToSections.end())
+					pairIt->second.swap(this->sections); // sections now empty
+
+				else this->sections.clear(); // should never happen
+			}
+
+			this->currentFilePath = std::move(newFilePath);
 
 			return true;
 		}
@@ -164,7 +172,7 @@ namespace ConfigParser
 
 	public: // methods
 
-		Parser
+		explicit Parser
 		(
 			const size_t fileCapacity           = 0,
 			const size_t sectionCapacityPerFile = 0,
@@ -182,56 +190,58 @@ namespace ConfigParser
 			const std::filesystem::path& root,
 			const std::string_view       fileName
 		) {
-			// Check against current path
-			if (not this->UpdateFilePath(root, fileName))
+			// Update and check new file path
+			if (not this->UpdateCurrentFilePath(root / fileName))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogPlain("Keep:", fileName);
+				{
+					if (not this->currentFilePath.empty())
+						Globals::LogPlain("Keep:", fileName);
+				}
 
 				return true; // file already loaded
 			}
 
-			this->ClearParsedStrings();
+			if (this->currentFilePath.empty()) return true;
+	
+			// Attempt to create new (empty) cache entry for new file
+			const auto [pairIt, isNewPath] = this->pathToSections.try_emplace(this->currentFilePath);
 
-			// Attempt to retrieve file from cache
-			const auto        [pairIt, isNewPath] = this->pathToSections.try_emplace(this->currentFile);
-			Parser::Sections& cachedFileSections  = pairIt->second;
-
+			// Check cache for new file 
 			if (not isNewPath)
 			{
-				this->sections = cachedFileSections;
-				
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogPlain("Load:", fileName);
 
-				return true; // file already cached
-			}
-			
-			// Attempt to parse new file
-			std::ifstream fileStream(this->currentFile);
+				this->sections.swap(pairIt->second); // existing cache entry now empty
 
-			if (fileStream.is_open())
+				return true; // file loaded from cache
+			}
+
+			// Attempt to open new file
+			std::ifstream fileStream(this->currentFilePath);
+
+			if (not fileStream.is_open())
 			{
-				this->ParseStream(fileStream, this->sectionCapacityPerFile, this->pairCapacityPerSection);
-
-				cachedFileSections = this->sections;
-
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogPlain("Open:", fileName);
+					Globals::LogPlain("Skip:", fileName);
 
-				return true; // new file exists
+				return false; // file doesn't exist
 			}
 
+			// Parse new file
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("Skip:", fileName);
+				Globals::LogPlain("Parse:", fileName);
 
-			return false; // new file doesn't exist
+			this->ParseStream(fileStream, this->sectionCapacityPerFile, this->pairCapacityPerSection);
+
+			return true; // file exists
 		}
 
 
 		[[nodiscard]] const auto& GetCurrentFilePath() const
 		{
-			return this->currentFile;
+			return this->currentFilePath;
 		}
 
 
@@ -241,9 +251,12 @@ namespace ConfigParser
 		}
 
 
-		void ClearCachedFiles()
+		// Invalidates retrieved const char* and string_view
+		void ClearFiles()
 		{
-			this->pathToSections.clear();
+			this->currentFilePath.clear();
+			this->pathToSections .clear();
+			this->sections       .clear();
 		}
 
 

@@ -34,16 +34,23 @@ namespace FormatBuffer
 		}
 
 
+		[[nodiscard]] const std::string& GetString() const
+		{
+			return this->buffer;
+		}
+
+
 		// Invalidates retrieved string_view
 		template <typename ...T>
-		std::string_view Format
+		[[nodiscard]] std::string_view Format
 		(
 			const std::format_string<T...>    format,
 			T&&                            ...formatArgs
 		) {
 			this->buffer.clear();
 
-			std::format_to(std::back_inserter(this->buffer), format, std::forward<T>(formatArgs)...);
+			const auto backIt = std::back_inserter(this->buffer);
+			std::format_to(backIt, format, std::forward<T>(formatArgs)...);
 
 			return this->buffer;
 		}

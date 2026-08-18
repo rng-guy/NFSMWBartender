@@ -199,7 +199,6 @@
     </ItemGroup>
     <MakeDir Directories="&#xD;&#xA;       $(CustomOutputDir)scripts\BartenderSettings\Basic;&#xD;&#xA;       $(CustomOutputDir)scripts\BartenderSettings\Advanced;&#xD;&#xA;       $(CustomOutputDir)Assets\Textures;&#xD;&#xA;       $(CustomOutputDir)Assets\Source;&#xD;&#xA;       $(CustomOutputDir)Assets\Images" />
     <Exec Command="move /Y &quot;%(ExeFile.Identity)&quot; &quot;$(CustomOutputDir)scripts&quot; &gt; nul" Condition="Exists('%(ExeFile.Identity)')" />
-    <Exec Command="move /Y &quot;%(ExeFile.RootDir)%(ExeFile.Directory)%(ExeFile.Filename).pdb&quot; &quot;$(CustomOutputDir)scripts&quot; &gt; nul" Condition="Exists('%(ExeFile.RootDir)%(ExeFile.Directory)%(ExeFile.Filename).pdb')" />
     <Copy SourceFiles="@(ConfigurationBasicFiles)" DestinationFolder="$(CustomOutputDir)scripts\BartenderSettings\Basic\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(ConfigurationAdvancedFiles)" DestinationFolder="$(CustomOutputDir)scripts\BartenderSettings\Advanced\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(TextureFiles)" DestinationFolder="$(CustomOutputDir)Assets\Textures\%(RecursiveDir)" SkipUnchangedFiles="true" />

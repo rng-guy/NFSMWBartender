@@ -111,7 +111,7 @@ static void __cdecl InitialiseBartender
 	Globals::basicSetEnabled |= NitrousCharge   ::InitialiseFeatures(parser);
 	Globals::basicSetEnabled |= GameBreaker     ::InitialiseFeatures(parser);
 
-	parser.ClearCachedFiles();
+	parser.ClearFiles();
 
 	if (Globals::basicSetEnabled)
 	{

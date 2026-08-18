@@ -430,7 +430,7 @@ namespace Globals
 
 
 	template <typename ...Ts>
-	void LogError
+	void LogWarning
 	(
 		const LogLiteral    logTag,
 		Ts&&             ...segments

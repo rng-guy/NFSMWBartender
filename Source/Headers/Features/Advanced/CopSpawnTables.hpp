@@ -10,6 +10,8 @@
 #include "../../Common/HeatParameters.hpp"
 #include "../../Common/PersistentStrings.hpp"
 
+#include "../../Utilities/FormatBuffer.hpp"
+
 
 
 namespace CopSpawnTables
@@ -164,7 +166,7 @@ namespace CopSpawnTables
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (copEntry.numActive < 0)
-					Globals::LogError(logTag, "Negative active count for", copEntry.copName);
+					Globals::LogWarning(logTag, "Negative active count for", copEntry.copName);
 			}
 
 			if (wasAvailable != copEntry.IsAvailable())
@@ -204,7 +206,7 @@ namespace CopSpawnTables
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogError(logTag, "Failed to select vehicle:", cumulativeChance, chanceThreshold);
+				Globals::LogWarning(logTag, "Failed to select vehicle:", cumulativeChance, chanceThreshold);
 
 			return nullptr; // should never happen
 		}
@@ -212,7 +214,7 @@ namespace CopSpawnTables
 
 		void Log(const LogLiteral header) const
 		{
-			Globals::LogPlain(HeatParameters::buffer.Format(HeatParameters::nameFormat, header.GetView()), this->GetTotalMaxCopCount());
+			HeatParameters::LogParameter(header, this->GetTotalMaxCopCount());
 
 			for (const auto& [copType, copEntry] : this->copTypeToEntry)
 				Globals::LogDetail(copEntry.copName, copEntry.maxCount, '/', copEntry.chance);
@@ -248,6 +250,8 @@ namespace CopSpawnTables
 	) {
 		bool allEntriesValid = true;
 
+		FormatBuffer::Buffer buffer;
+
 		std::vector<const char*> copNames; // C-style for game compatibility
 		std::vector<int>         copCounts;
 		std::vector<int>         copChances;
@@ -260,7 +264,7 @@ namespace CopSpawnTables
 			{
 				// Parse spawn-table entries
 				const size_t           heatLevel  = heatLevelID + 1;
-				const std::string_view section    = HeatParameters::buffer.Format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
+				const std::string_view section    = buffer.Format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
 				const size_t           numEntries = parser.ParseUser<const char*, int, int>(section, copNames, {copCounts, {1}}, {copChances, {1}});
 
 				// Attempt to add new entries to table

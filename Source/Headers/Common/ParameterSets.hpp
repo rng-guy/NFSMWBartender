@@ -8,6 +8,8 @@
 #include "ModContainers.hpp"
 #include "HeatParameters.hpp"
 
+#include "../Utilities/FormatBuffer.hpp"
+
 
 
 namespace ParameterSets
@@ -71,14 +73,16 @@ namespace ParameterSets
 			const HeatParameters::Parser& parser,
 			const std::string_view        featureTag
 		) {
-			// Heat parameters
-			HeatParameters::Parse(parser, HeatParameters::buffer.Format("{}:Tagging", featureTag), this->copTagChange);
+			FormatBuffer::Buffer buffer;
 
-			HeatParameters::Parse(parser, HeatParameters::buffer.Format("{}:Assault", featureTag), this->changePerAssault);
+			// Heat parameters
+			HeatParameters::Parse(parser, buffer.Format("{}:Tagging", featureTag), this->copTagChange);
+
+			HeatParameters::Parse(parser, buffer.Format("{}:Assault", featureTag), this->changePerAssault);
 
 			HeatParameters::Parse(parser, "Assault:Limit", this->maxNumAssaultsPerCop);
 
-			HeatParameters::Parse(parser, HeatParameters::buffer.Format("{}:Wrecking", featureTag), this->copWreckChange);
+			HeatParameters::Parse(parser, buffer.Format("{}:Wrecking", featureTag), this->copWreckChange);
 
 			// Vehicle-to-change maps
 			this->ParseVehicleMap(parser, "Tagging:Vehicles", this->copTypeToTagChange);

@@ -279,7 +279,7 @@ namespace LeaderOverrides
 				this->crossAggroTimer.DisableInterval();
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "LeaderStrategy", this->lastStrategyID, "in", pursuit);
+					Globals::LogWarning(logTag, "LeaderStrategy", this->lastStrategyID, "in", pursuit);
 			}
 
 			this->crossAggroTimer.Start();
@@ -305,8 +305,8 @@ namespace LeaderOverrides
 				this->henchmenAggroTimer.LoadInterval(leader7HenchAggroDelay);
 				break;
 
-			default:
-				this->henchmenAggroTimer.DisableInterval(); // should never happen
+			default: // should never happen
+				this->henchmenAggroTimer.DisableInterval();
 			}
 
 			this->henchmenAggroTimer.Start();

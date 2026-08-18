@@ -19,7 +19,8 @@ namespace RandomNumbers
 	{
 	private: // members
 
-		uint64_t                seed  = 0x0;
+		uint64_t seed = 0x0;
+
 		std::array<uint64_t, 4> state = {};
 
 

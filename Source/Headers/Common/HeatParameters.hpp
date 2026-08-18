@@ -38,13 +38,6 @@ namespace HeatParameters
 	const std::filesystem::path configPathBasic    = configPathMain / "Basic";
 	const std::filesystem::path configPathAdvanced = configPathMain / "Advanced";
 
-	// Formatting buffer
-	RELEASE_CONSTINIT FormatBuffer::Buffer buffer;
-
-	// Logging
-	constexpr LogLiteral nameFormat = "{:<24}";
-	constexpr LogLiteral logMissing = "(none)";
-
 
 
 
@@ -61,6 +54,37 @@ namespace HeatParameters
 	[[nodiscard]] size_t ClampHeatLevel(const size_t heatLevel)
 	{
 		return std::clamp<size_t>(heatLevel, 1, maxHeatLevel);
+	}
+
+
+
+
+
+	// Logging functions ----------------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] std::string_view PadParameterName(const LogLiteral name)
+	{
+		static RELEASE_CONSTINIT FormatBuffer::Buffer buffer;
+
+		return buffer.Format("{:<24}", name.GetView());
+	}
+
+
+
+	template <typename ...Ts>
+	void LogParameter
+	(
+		const LogLiteral    name, 
+		Ts&&             ...segments
+	) {
+		Globals::LogPlain(PadParameterName(name), std::forward<Ts>(segments)...);
+	}
+
+
+
+	void LogMissingParameter(const LogLiteral name)
+	{
+		Globals::LogPlain(PadParameterName(name), "(missing)");
 	}
 
 
@@ -106,7 +130,7 @@ namespace HeatParameters
 
 	struct HeatState
 	{
-		// Members
+	// Members
 
 		bool   isRace;
 		size_t level;
@@ -145,44 +169,52 @@ namespace HeatParameters
 
 
 
-	// Value-parameter structs ----------------------------------------------------------------------------------------------------------------------
+	// Value-parameter classes ----------------------------------------------------------------------------------------------------------------------
 	
 	#define HEAT_PARAMETER_VALUE(type, name, ...) HeatParameters::Value<type> name{#name, __VA_ARGS__}
 
 	template <typename T>
 	requires Details::IsCopyCompatible<T>
-	struct Value
+	class Value
 	{
-	// Members
+	private: // members
+
+		[[no_unique_address]] Bounds<T> limits;
+
+		[[no_unique_address]] LogLiteral name;
+
+
+	public: // members (for ASM access)
 
 		T current;
 
 		HeatLevelArray<T> roam = {};
 		HeatLevelArray<T> race = {};
 
-		[[no_unique_address]] const Bounds<T> limits;
 
-		[[no_unique_address]] const LogLiteral name;
-
-
-	// Methods
+	public: // methods
 
 		constexpr Value
 		(
 			const LogLiteral name,
-			const T          vanilla,
+			const T          initial,
 			const Bounds<T>& limits = {}
 		) 
-			requires Details::IsBoundsCompatible<T> : name(name), current(vanilla), limits(limits)
+			requires Details::IsBoundsCompatible<T> 
+			: name(name), current(initial), limits(limits)
 		{
 		}
+
 
 		constexpr Value
 		(
 			const LogLiteral name, 
-			const T          vanilla
+			const T          initial
 		)
-		requires (not Details::IsBoundsCompatible<T>) : name(name), current(vanilla), limits({}) {}
+			requires (not Details::IsBoundsCompatible<T>) 
+			: name(name), current(initial), limits({})
+		{
+		}
 
 
 		[[nodiscard]] auto& GetHeatLevelArray(const bool forRaces)
@@ -214,11 +246,23 @@ namespace HeatParameters
 			this->SetToHeatStateWithoutLog(state);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain(buffer.Format(nameFormat, this->name.GetView()), this->current);
+				LogParameter(this->name, this->current);
+		}
+		
+
+		[[nodiscard]] Bounds<T> GetLimits() const
+		{
+			return this->limits;
 		}
 
 
-		[[nodiscard]] T GetMinimum() const
+		[[nodiscard]] LogLiteral GetName() const
+		{
+			return this->name;
+		}
+
+
+		[[nodiscard]] T GetMinimum() const 
 		requires Details::IsBoundsCompatible<T>
 		{
 			T minimum = std::numeric_limits<T>::max();
@@ -233,7 +277,7 @@ namespace HeatParameters
 		}
 
 
-		[[nodiscard]] T GetMaximum() const
+		[[nodiscard]] T GetMaximum() const 
 		requires Details::IsBoundsCompatible<T>
 		{
 			T maximum = std::numeric_limits<T>::lowest(); // in case of floats
@@ -248,7 +292,7 @@ namespace HeatParameters
 		}
 
 
-		[[nodiscard]] bool AnyTrue() const
+		[[nodiscard]] bool AnyTrue() const 
 		requires Details::IsBoolean<T>
 		{
 			for (const bool forRaces : {false, true})
@@ -261,7 +305,7 @@ namespace HeatParameters
 		}
 
 
-		[[nodiscard]] bool AllTrue() const
+		[[nodiscard]] bool AllTrue() const 
 		requires Details::IsBoolean<T>
 		{
 			for (const bool forRaces : {false, true})
@@ -274,7 +318,7 @@ namespace HeatParameters
 		}
 
 
-		void MakePersistent()
+		void MakePersistent() 
 		requires Details::IsNonOwningString<T>
 		{
 			PersistentStrings::Make(this->current);
@@ -293,28 +337,38 @@ namespace HeatParameters
 
 	template <typename T>
 	requires Details::IsCopyCompatible<T>
-	struct OptionalValue
+	class OptionalValue
 	{
-	// Members
+	private: // members
+
+		[[no_unique_address]] LogLiteral name;
+
+
+	public: // members (for ASM access)
 
 		HEAT_PARAMETER_VALUE(bool, isEnabled, false);
 
 		Value<T> value;
 
-		[[no_unique_address]] const LogLiteral name;
 
-
-	// Methods
+	public: // methods
 
 		constexpr explicit OptionalValue
 		(
 			const LogLiteral name, 
 			const Bounds<T>& limits = {}
 		)
-		requires Details::IsBoundsCompatible<T> : name(name), value("value", T(), limits) { }
+			requires Details::IsBoundsCompatible<T> 
+			: name(name), value("value", T(), limits) 
+		{
+		}
 
-		constexpr OptionalValue(const LogLiteral name)
-		requires (not Details::IsBoundsCompatible<T>) : name(name), value("value", T()) {}
+
+		constexpr OptionalValue(const LogLiteral name) 
+			requires (not Details::IsBoundsCompatible<T>) 
+			: name(name), value("value", T()) 
+		{
+		}
 
 
 		void SetToHeatStateWithoutLog(const HeatState state)
@@ -330,13 +384,17 @@ namespace HeatParameters
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				const std::string_view name = buffer.Format(nameFormat, this->name.GetView());
-
 				if (this->isEnabled.current)
-					Globals::LogPlain(name, this->value.current);
+					LogParameter(this->name, this->value.current);
 
-				else Globals::LogPlain(name, logMissing);
+				else LogMissingParameter(this->name);
 			}
+		}
+
+
+		[[nodiscard]] LogLiteral GetName() const
+		{
+			return this->name;
 		}
 	};
 
@@ -344,25 +402,28 @@ namespace HeatParameters
 
 
 
-	// Pointer-parameter structs --------------------------------------------------------------------------------------------------------------------
+	// Pointer-parameter classes --------------------------------------------------------------------------------------------------------------------
 
 	#define HEAT_PARAMETER_POINTER(type, name) HeatParameters::Pointer<type> name{#name}
 
 	template <class T>
 	requires (not Details::IsCopyCompatible<T>)
-	struct Pointer
+	class Pointer
 	{
-	// Members
+	private: // members
+
+		[[no_unique_address]] LogLiteral name;
+
+
+	public: // members (for ASM access)
 
 		const T* current = nullptr;
 
 		HeatLevelArray<T> roam = {};
 		HeatLevelArray<T> race = {};
 
-		[[no_unique_address]] const LogLiteral name;
 
-
-	// Methods
+	public: // methods
 
 		constexpr explicit Pointer(const LogLiteral name) : name(name) {}
 
@@ -399,6 +460,12 @@ namespace HeatParameters
 			if constexpr (Globals::loggingEnabled)
 				this->current->Log(this->name);
 		}
+
+
+		[[nodiscard]] LogLiteral GetName() const
+		{
+			return this->name;
+		}
 	};
 
 
@@ -407,18 +474,21 @@ namespace HeatParameters
 
 	template <class T>
 	requires (not Details::IsCopyCompatible<T>)
-	struct OptionalPointer
+	class OptionalPointer
 	{
-	// Members
+	private: // members
+
+		[[no_unique_address]] LogLiteral name;
+
+
+	public: // members (for ASM access)
 
 		HEAT_PARAMETER_VALUE(bool, isEnabled, false);
 
 		Pointer<T> pointer;
 
-		[[no_unique_address]] const LogLiteral name;
 
-
-	// Methods
+	public: // methods
 
 		constexpr explicit OptionalPointer(const LogLiteral name) : name(name), pointer("pointer") {}
 
@@ -430,7 +500,7 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatState(const HeatState state)
+		void SetToHeatState(const HeatState state) 
 		requires Details::IsLoggable<T>
 		{
 			this->SetToHeatStateWithoutLog(state);
@@ -440,8 +510,14 @@ namespace HeatParameters
 				if (this->isEnabled.current)
 					this->current->Log(this->name);
 
-				else Globals::LogPlain(buffer.Format(nameFormat, this->name.GetView(), logMissing));
+				else LogMissingParameter(this->name);
 			}
+		}
+
+
+		[[nodiscard]] LogLiteral GetName() const
+		{
+			return this->name;
 		}
 	};
 
@@ -449,32 +525,35 @@ namespace HeatParameters
 
 
 
-	// Interval-parameter structs -------------------------------------------------------------------------------------------------------------------
+	// Interval-parameter classes -------------------------------------------------------------------------------------------------------------------
 
 	#define HEAT_PARAMETER_INTERVAL(type, name, ...) HeatParameters::Interval<type> name{#name, __VA_ARGS__}
 
 	template <typename T>
 	requires Details::IsBoundsCompatible<T>
-	struct Interval
+	class Interval
 	{
-	// Members
+	private: // members
+
+		[[no_unique_address]] LogLiteral name;
+
+
+	public: // members (for ASM access)
 
 		Value<T> min;
 		Value<T> max;
 
-		[[no_unique_address]] const LogLiteral name;
 
-
-	// Methods
+	public: // methods
 
 		constexpr Interval
 		(
 			const LogLiteral name,
-			const T          vanillaMin,
-			const T          vanillaMax,
+			const T          initialMin,
+			const T          initialMax,
 			const Bounds<T>& limits = {}
 		) 
-			: name(name), min("min", vanillaMin, limits), max("max", vanillaMax, limits)
+			: name(name), min("min", initialMin, limits), max("max", initialMax, limits)
 		{
 		}
 
@@ -491,10 +570,13 @@ namespace HeatParameters
 			this->SetToHeatStateWithoutLog(state);
 
 			if constexpr (Globals::loggingEnabled)
-			{
-				const std::string_view name = buffer.Format(nameFormat, this->name.GetView());
-				Globals::LogPlain(name, this->min.current, "to", this->max.current);
-			}
+				LogParameter(this->name, this->min.current, "to", this->max.current);
+		}
+
+
+		[[nodiscard]] LogLiteral GetName() const
+		{
+			return this->name;
 		}
 
 
@@ -522,18 +604,21 @@ namespace HeatParameters
 
 	template <typename T>
 	requires Details::IsBoundsCompatible<T>
-	struct OptionalInterval
+	class OptionalInterval
 	{
-	// Members
+	private: // members
+
+		[[no_unique_address]] LogLiteral name;
+
+
+	public: // members (for ASM access)
 
 		HEAT_PARAMETER_VALUE(bool, isEnabled, false);
 
 		Interval<T> interval;
 
-		[[no_unique_address]] const LogLiteral name;
 
-
-	// Methods
+	public: // methods
 
 		constexpr explicit OptionalInterval
 		(
@@ -558,13 +643,17 @@ namespace HeatParameters
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				const std::string_view name = buffer.Format(nameFormat, this->name.GetView());
-
 				if (this->isEnabled.current)
-					Globals::LogPlain(name, this->interval.min.current, "to", this->interval.max.current);
+					LogParameter(this->name, this->interval.min.current, "to", this->interval.max.current);
 
-				else Globals::LogPlain(name, logMissing);
+				else LogMissingParameter(this->name);
 			}
+		}
+
+
+		[[nodiscard]] LogLiteral GetName() const
+		{
+			return this->name;
 		}
 	};
 
@@ -583,32 +672,36 @@ namespace HeatParameters
 	) {
 		bool allTypesValid = true;
 
-		PersistentStrings::Make(vehicleValue.current); // vanilla value by default
+		PersistentStrings::Make(vehicleValue.current); // initial (i.e. vanilla) value by default
 
 		for (const bool forRaces : {false, true})
 		{
-			size_t heatLevel = 1;
+			size_t heatLevel = 0;
 
 			for (T& levelVehicleName : vehicleValue.GetHeatLevelArray(forRaces))
 			{
+				++heatLevel;
+
 				const vault vehicleType = Globals::GetVaultHash(levelVehicleName);
 
-				if (not IsVehicleTypeValid(vehicleType))
+				if (IsVehicleTypeValid(vehicleType))
 				{
-					if constexpr (Globals::loggingEnabled)
-					{
-						if (allTypesValid)
-							Globals::LogPlain(vehicleValue.name, (forRaces) ? "(race)" : "(roam)");
+					PersistentStrings::Make(vehicleType, levelVehicleName);
 
-						Globals::LogDetail(LogDec(heatLevel), levelVehicleName, "->", vehicleValue.current);
-					}
-
-					levelVehicleName = vehicleValue.current; // already persistent
-					allTypesValid    = false;
+					continue; // vehicle valid
 				}
-				else PersistentStrings::Make(vehicleType, levelVehicleName);
 
-				++heatLevel;
+				if constexpr (Globals::loggingEnabled)
+				{
+					if (allTypesValid)
+						Globals::LogPlain(vehicleValue.GetName(), (forRaces) ? "(race)" : "(roam)");
+
+					Globals::LogDetail(LogDec(heatLevel), levelVehicleName, "->", vehicleValue.current);
+				}
+
+				levelVehicleName = vehicleValue.current; // already persistent
+
+				allTypesValid = false;
 			}
 		}
 
@@ -663,7 +756,7 @@ namespace HeatParameters
 			const bool forRaces,
 			Value<T>&  value
 		) {
-			return {value.GetHeatLevelArray(forRaces), value.current, value.limits};
+			return {value.GetHeatLevelArray(forRaces), value.current, value.GetLimits()};
 		}
 
 
@@ -673,7 +766,7 @@ namespace HeatParameters
 			const bool forRaces,
 			Value<T>&  value
 		) {
-			return {value.GetHeatLevelArray(forRaces), std::nullopt, value.limits};
+			return {value.GetHeatLevelArray(forRaces), std::nullopt, value.GetLimits()};
 		}
 
 
@@ -742,7 +835,7 @@ namespace HeatParameters
 			const std::string_view    section,
 			HeatParameters&        ...parameters
 		) {
-			return std::apply([&](auto&& ...formats) -> HeatLevelArray<bool>
+			const auto ParseFormats = [&](auto&& ...formats) -> HeatLevelArray<bool>
 			{
 				return parser.ParseFormat<maxHeatLevel>
 				(
@@ -752,8 +845,9 @@ namespace HeatParameters
 					configFormatStart,
 					formats...
 				);
-			},
-			std::tuple_cat(CreateFormatTuple(forRaces, parameters)...));
+			};
+
+			return std::apply(ParseFormats, std::tuple_cat(CreateFormatTuple(forRaces, parameters)...));
 		}
 
 

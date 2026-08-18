@@ -143,6 +143,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the cops can request a new LeaderStrategy once Cross is gone,
  • when exactly (if at all) the cops can request a new Strategy while another is still active,
  • whether your Heat increases passively over time in active pursuits,
+ • how long it takes to gain a Heat level passively in Challenge Series pursuits,
  • how much Heat you gain / lose from cop and roadblock deployments,
  • how much Heat you gain / lose from tagging    any cop vehicle,
  • how much Heat you gain / lose from assaulting any cop vehicle, 
@@ -158,12 +159,13 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how likely each roadblock setup is to spawn with horizontally mirrored parts instead, and
  • which active non-chasing cops the engagement count shown above the pursuit board also tracks.
 
-The "Advanced" feature set ALWAYS FIXES TEN BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES ELEVEN BUGS / ISSUES automatically:
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
  • the cops no longer stop calling out roadblocks / spikes over the radio,
  • Challenge Series events now use the Heat level limits defined for them in VltEd,
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
  • the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
+ • the Heat-escalation scale in Challenge Series events is no longer locked to Sonny's,
  • the game now counts spike-strip deployments accurately in cost-to-state calculations,
  • the game now counts support-vehicle deployments accurately in cost-to-state calculations,
  • early Strategy despawns or cancellations no longer stall the cops from making new requests,

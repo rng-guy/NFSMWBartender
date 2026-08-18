@@ -27,6 +27,8 @@ namespace HeatChangeOverrides
 	// Heat parameters
 	constinit HEAT_PARAMETER_VALUE(bool, heatTimerEnabled, true);
 
+	constinit HEAT_PARAMETER_VALUE(float, challengeScale, 600.f, {0.f}); // seconds
+
 	constinit HEAT_PARAMETER_VALUE(float, chaserHeatChange,     0.f); // levels
 	constinit HEAT_PARAMETER_VALUE(float, supportHeatChange,    0.f); // levels
 	constinit HEAT_PARAMETER_VALUE(float, helicopterHeatChange, 0.f); // levels
@@ -61,8 +63,8 @@ namespace HeatChangeOverrides
 
 			int lastCount = 0;
 
-			const int&                          count;
-			const HeatParameters::Value<float>& heatPerCount;
+			const int&                          count;        // pursuit-locked (through count) and immobile
+			const HeatParameters::Value<float>& heatPerCount; // count-locked upon construction
 
 
 		public: // methods
@@ -408,6 +410,32 @@ namespace HeatChangeOverrides
 
 
 
+	constexpr address challengeScaleEntrance = 0x443D7B;
+	constexpr address challengeScaleExit     = 0x443D84;
+
+	// Adjusts the Heat-escalation scale in Challenge Series events
+	__declspec(naked) void ChallengeScale()
+	{
+		static constexpr address IsChallengeEvent   = 0x404AC0;
+		static constexpr address challengeScaleSkip = 0x443DAD;
+		
+		__asm
+		{
+			call dword ptr [IsChallengeEvent]
+			test al, al
+			je conclusion // not challenge event
+
+			mov eax, offset [challengeScale.current]
+
+			jmp dword ptr [challengeScaleSkip]
+
+			conclusion:
+			jmp dword ptr [challengeScaleExit]
+		}
+	}
+
+
+
 	constexpr address heatMeterResetEntrance = 0x59CEDF;
 	constexpr address heatMeterResetExit     = 0x59CEE5;
 
@@ -482,6 +510,8 @@ namespace HeatChangeOverrides
 		// Heat parameters
 		HeatParameters::Parse(parser, "Heat:Time", heatTimerEnabled);
 
+		HeatParameters::Parse(parser, "Time:Challenges", challengeScale);
+
 		HeatParameters::Parse(parser, "Heat:Deployments", chaserHeatChange, supportHeatChange, helicopterHeatChange);
 
 		HeatParameters::Parse(parser, "Heat:Roadblocks", roadblockHeatChange, spikesHeatChange);
@@ -501,6 +531,7 @@ namespace HeatChangeOverrides
 		MemoryTools::MakeRangeJMP<spikeCounterEntrance,    spikeCounterExit>   (SpikeCounter);
 		MemoryTools::MakeRangeJMP<supportCheckEntrance,    supportCheckExit>   (SupportCheck);
 		MemoryTools::MakeRangeJMP<propertyDamageEntrance,  propertyDamageExit> (PropertyDamage);
+		MemoryTools::MakeRangeJMP<challengeScaleEntrance,  challengeScaleExit> (ChallengeScale);
 		MemoryTools::MakeRangeJMP<heatMeterResetEntrance,  heatMeterResetExit> (HeatMeterReset);
 		MemoryTools::MakeRangeJMP<heatMeterUpdateEntrance, heatMeterUpdateExit>(HeatMeterUpdate);
 
@@ -520,6 +551,8 @@ namespace HeatChangeOverrides
 			Globals::LogHeat(logTag, logName);
 
 		heatTimerEnabled.SetToHeatState(state);
+
+		challengeScale.SetToHeatState(state);
 
 		chaserHeatChange    .SetToHeatState(state);
 		supportHeatChange   .SetToHeatState(state);

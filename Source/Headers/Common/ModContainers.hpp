@@ -97,7 +97,7 @@ namespace ModContainers
 
 		std::optional<ReturnType> Parse(const size_t valueID) const
 		{
-			const ReturnType result = this->Convert(this->source[valueID]);
+			const auto result = this->Convert(this->source[valueID]);
 			if (not this->IsValid(result)) return std::nullopt;
 
 			return result;
@@ -116,10 +116,17 @@ namespace ModContainers
 
 
 		template <class Setup, typename ReturnT>
-		concept IsCompatibleSetup = (IsFillSetup<Setup>::value and std::convertible_to<typename Setup::ReturnType, ReturnT>);
+		concept IsCompatibleReturnType = std::convertible_to<typename Setup::ReturnType, ReturnT>;
+
+		template <class Setup, typename ReturnT>
+		concept IsCompatibleSetup = (IsFillSetup<Setup>::value and IsCompatibleReturnType<Setup, ReturnT>);
+
+
+		template <class KeySetup, typename DefaultK>
+		concept IsCompatibleDefaultKeyType = std::equality_comparable_with<typename KeySetup::RawType, DefaultK>;
 
 		template <class KeySetup, typename K, typename DefaultK>
-		concept IsCompatibleKeySetup = (IsCompatibleSetup<KeySetup, K> and std::equality_comparable_with<typename KeySetup::RawType, DefaultK>);
+		concept IsCompatibleKeySetup = (IsCompatibleSetup<KeySetup, K> and IsCompatibleDefaultKeyType<KeySetup, DefaultK>);
 	}
 
 
@@ -136,7 +143,7 @@ namespace ModContainers
 
 		V defaultValue;
 
-		[[no_unique_address]] const LogLiteral name;
+		[[no_unique_address]] LogLiteral name;
 
 
 	private: // methods
@@ -283,6 +290,12 @@ namespace ModContainers
 		{
 			return this->GetReference(key);
 		}
+
+
+		[[nodiscard]] LogLiteral GetName() const
+		{
+			return this->name;
+		}
 	};
 
 
@@ -370,32 +383,27 @@ namespace ModContainers
 
 	// PointerStorage class -------------------------------------------------------------------------------------------------------------------------
 
-	template <class ObjectBase>
+	template <class Base>
 	class PointerStorage
 	{
-	private: // aliases
-
-		using Storage = std::vector<std::unique_ptr<ObjectBase>>;
-
-
 	private: // members
 
-		Storage pointers;
+		std::vector<std::unique_ptr<Base>> pointers;
 
 
 	public: // methods
 
-		template <class Object = ObjectBase, typename... ValArgs>
-		requires std::derived_from<Object, ObjectBase>
+		template <class Derived = Base, typename ...ValArgs>
+		requires std::derived_from<Derived, Base>
 		void EmplaceObject(ValArgs&&... args)
 		{
-			this->pointers.push_back(std::make_unique<Object>(std::forward<ValArgs>(args)...));
+			this->pointers.push_back(std::make_unique<Derived>(std::forward<ValArgs>(args)...));
 		}
 
 
-		auto EraseObject(const Storage::const_iterator it)
+		auto EraseObject(const decltype(pointers)::const_iterator cit)
 		{
-			return this->pointers.erase(it);
+			return this->pointers.erase(cit);
 		}
 
 

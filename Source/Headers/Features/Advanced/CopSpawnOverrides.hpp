@@ -44,8 +44,9 @@ namespace CopSpawnOverrides
 
 		int numTotalActiveCops = 0;
 
-		const address             pursuit;
-		const TablePointer* const source; // can't be a reference, else MSVC claims constinit-incompatibility
+		const address pursuit; // pursuit-locked and immobile
+
+		const TablePointer* const source; // table-locked; can't be a reference, else MSVC claims constinit-incompatibility
 		
 		CopSpawnTables::SpawnTable table;
 
@@ -198,7 +199,7 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->pursuit)
-						Globals::LogError(this->tag, "Unknown type", copType, "in", this->pursuit);
+						Globals::LogWarning(this->tag, "Unknown type", copType, "in", this->pursuit);
 				}
 
 				return false; // should never happen
@@ -366,7 +367,7 @@ namespace CopSpawnOverrides
 				if (attribute)
 					Globals::LogFull(this->pursuit, logTag, "Max. patrol cars:", this->maxNumPatrolCars);
 
-				else Globals::LogError(logTag, "Invalid numPatrolCars pointer in", this->pursuit);
+				else Globals::LogWarning(logTag, "Invalid numPatrolCars pointer in", this->pursuit);
 			}
 		}
 
@@ -526,7 +527,7 @@ namespace CopSpawnOverrides
 			if (not this->chaserSpawns.RemoveVehicle(copVehicle))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "Unknown chaser", copVehicle, "in", this->pursuit);
+					Globals::LogWarning(logTag, "Unknown chaser", copVehicle, "in", this->pursuit);
 
 				return; // should never happen
 			}
@@ -713,7 +714,7 @@ namespace CopSpawnOverrides
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogError(logTag, "Unknown ByClass return address:", caller);
+				Globals::LogWarning(logTag, "Unknown ByClass return address:", caller);
 		}
 
 		return nullptr;

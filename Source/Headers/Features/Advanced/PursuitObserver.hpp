@@ -48,7 +48,7 @@ namespace PursuitObserver
 
 	private: // members
 
-		const address pursuit;
+		const address pursuit; // pursuit-locked and immobile
 
 		bool firstGameplayUpdatePending    = true;
 		bool delayedPursuitUpdatePending   = true;
@@ -89,7 +89,7 @@ namespace PursuitObserver
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogError(logTag, "Unknown AddVehicle caller:", caller);
+				Globals::LogWarning(logTag, "Unknown AddVehicle caller:", caller);
 
 			return CopLabel::UNKNOWN;
 		}
@@ -195,7 +195,7 @@ namespace PursuitObserver
 			if (not isNewVehicle)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, '=', copVehicle, copLabel, "is already", pairIt->second);
+					Globals::LogWarning(logTag, '=', copVehicle, copLabel, "is already", pairIt->second);
 
 				return; // should never happen
 			}
@@ -222,7 +222,7 @@ namespace PursuitObserver
 			if (foundVehicle == observer->copVehicleToLabel.end())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "Unknown vehicle", copVehicle, Globals::GetVehicleName(copVehicle), "in", pursuit);
+					Globals::LogWarning(logTag, "Unknown vehicle", copVehicle, Globals::GetVehicleName(copVehicle), "in", pursuit);
 
 				return; // should never happen
 			}
@@ -260,7 +260,7 @@ namespace PursuitObserver
 			if (observer->GetPursuit() != pursuit) continue; // other pursuit
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogError(logTag, "Duplicate pursuit", pursuit);
+				Globals::LogWarning(logTag, "Duplicate pursuit", pursuit);
 
 			return; // should never happen
 		}
@@ -304,7 +304,7 @@ namespace PursuitObserver
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogError(logTag, "Unknown pursuit", pursuit);
+			Globals::LogWarning(logTag, "Unknown pursuit", pursuit);
 	}
 
 

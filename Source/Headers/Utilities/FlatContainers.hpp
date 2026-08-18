@@ -55,10 +55,9 @@ namespace FlatContainers
 
 		protected: // methods
 
-			constexpr  Wrapper() = default;
-			constexpr ~Wrapper() = default;
+			constexpr Wrapper() noexcept = default;
 
-		
+
 			constexpr explicit Wrapper(const size_type capacity)
 			{
 				this->reserve(capacity);
@@ -106,17 +105,20 @@ namespace FlatContainers
 			}
 
 
-			[[nodiscard]] constexpr iterator begin() {return this->data.begin();}
-			[[nodiscard]] constexpr iterator end  () {return this->data.end();}
+			[[nodiscard]] constexpr iterator begin() noexcept {return this->data.begin();}
+			[[nodiscard]] constexpr iterator end  () noexcept {return this->data.end();}
 
-			[[nodiscard]] constexpr const_iterator begin() const {return this->data.begin();}
-			[[nodiscard]] constexpr const_iterator end  () const {return this->data.end();}
+			[[nodiscard]] constexpr const_iterator begin() const noexcept {return this->data.begin();}
+			[[nodiscard]] constexpr const_iterator end  () const noexcept {return this->data.end();}
 
-			[[nodiscard]] constexpr reverse_iterator rbegin() {return this->data.rbegin();}
-			[[nodiscard]] constexpr reverse_iterator rend  () {return this->data.rend();}
+			[[nodiscard]] constexpr const_iterator cbegin() const noexcept {return this->data.cbegin();}
+			[[nodiscard]] constexpr const_iterator cend  () const noexcept {return this->data.cend();}
 
-			[[nodiscard]] constexpr const_reverse_iterator rbegin() const {return this->data.rbegin();}
-			[[nodiscard]] constexpr const_reverse_iterator rend  () const {return this->data.rend();}
+			[[nodiscard]] constexpr reverse_iterator rbegin() noexcept {return this->data.rbegin();}
+			[[nodiscard]] constexpr reverse_iterator rend  () noexcept {return this->data.rend();}
+
+			[[nodiscard]] constexpr const_reverse_iterator rbegin() const noexcept {return this->data.rbegin();}
+			[[nodiscard]] constexpr const_reverse_iterator rend  () const noexcept {return this->data.rend();}
 		};
 	}
 	
@@ -145,7 +147,7 @@ namespace FlatContainers
 
 	public: // methods
 
-		constexpr Set() = default;
+		constexpr Set() noexcept = default;
 
 		constexpr explicit Set(const size_type capacity) : base(capacity) {}
 
@@ -169,6 +171,13 @@ namespace FlatContainers
 				this->insert(value);
 
 			return *this;
+		}
+
+
+		// Invalidates all iterators
+		constexpr void swap(Set& other) noexcept
+		{
+			this->data.swap(other.data);
 		}
 
 
@@ -210,7 +219,7 @@ namespace FlatContainers
 
 
 		// May invalidate all iterators
-		template <typename... ValArgs>
+		template <typename ...ValArgs>
 		constexpr std::pair<iterator, bool> emplace(ValArgs&&... args)
 		{
 			value_type value(std::forward<ValArgs>(args)...);
@@ -225,19 +234,21 @@ namespace FlatContainers
 
 
 		// Invalidates iterators of erased and last element
-		constexpr iterator erase(const iterator it)
+		constexpr iterator erase(const const_iterator cit)
 		{
-			if (it == this->end()) return it;
+			if (cit == this->cend()) return this->end();
 
-			const size_type index  = std::distance(this->data.begin(), it);
+			const size_type index  = std::distance(this->cbegin(), cit);
 			const auto      lastIt = std::prev    (this->end());
+
+			const auto it = this->begin() + index;
 
 			if (it != lastIt)
 				*it = std::move(*lastIt);
 
 			this->data.pop_back();
 
-			return this->data.begin() + index;
+			return this->begin() + index;
 		}
 
 
@@ -295,7 +306,7 @@ namespace FlatContainers
 
 	public: // methods
 
-		constexpr Map() = default;
+		constexpr Map() noexcept = default;
 
 		constexpr explicit Map(const size_type capacity) : base(capacity) {}
 
@@ -322,6 +333,13 @@ namespace FlatContainers
 		}
 
   
+		// Invalidates all iterators
+		constexpr void swap(Map& other) noexcept
+		{
+			this->data.swap(other.data);
+		}
+
+
 		template <typename KeyArg>
 		requires std::equality_comparable_with<KeyArg, key_type>
 		[[nodiscard]] constexpr iterator find(const KeyArg& key)
@@ -365,7 +383,7 @@ namespace FlatContainers
 
 
 		// May invalidate all iterators
-		template <typename KeyArg, typename... ValArgs>
+		template <typename KeyArg, typename ...ValArgs>
 		requires (not Details::IsUniquePtr<mapped_type>)
 		constexpr std::pair<iterator, bool> try_emplace
 		(
@@ -387,7 +405,7 @@ namespace FlatContainers
 
 
 		// May invalidate all iterators
-		template <typename KeyArg, typename... ValArgs>
+		template <typename KeyArg, typename ...ValArgs>
 		requires Details::IsUniquePtr<mapped_type>
 		constexpr std::pair<iterator, bool> try_emplace
 		(
@@ -397,10 +415,13 @@ namespace FlatContainers
 			const auto pairIt = this->find(key);
 			if (pairIt != this->end()) return {pairIt, false};
 
+			auto pointer = std::make_unique<typename mapped_type::element_type>(std::forward<ValArgs>(args)...);
+
 			this->data.emplace_back
 			(
-				std::forward    <KeyArg>(key), 
-				std::make_unique<typename mapped_type::element_type>(std::forward<ValArgs>(args)...)
+				std::piecewise_construct,
+				std::forward_as_tuple(std::forward<KeyArg>(key)),
+				std::forward_as_tuple(std::move           (pointer))
 			);
 
 			return {std::prev(this->end()), true};
@@ -408,19 +429,21 @@ namespace FlatContainers
 
 
 		// Invalidates iterators of erased and last element
-		constexpr iterator erase(const iterator it)
+		constexpr iterator erase(const const_iterator cit)
 		{
-			if (it == this->end()) return it;
+			if (cit == this->cend()) return this->end();
 
-			const size_type index      = std::distance(this->data.begin(), it);
+			const size_type index      = std::distance(this->cbegin(), cit);
 			const auto      lastPairIt = std::prev    (this->end());
 
-			if (it != lastPairIt)
-				*it = std::move(*lastPairIt);
+			const auto pairIt = this->begin() + index;
+
+			if (pairIt != lastPairIt)
+				*pairIt = std::move(*lastPairIt);
 
 			this->data.pop_back();
 
-			return this->data.begin() + index;
+			return this->begin() + index;
 		}
 
 

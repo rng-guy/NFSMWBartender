@@ -117,7 +117,7 @@ namespace HelicopterOverrides
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->helicopterOwner and (not this->IsOwner()))
-					Globals::LogError(logTag, "Owner mismatch:", this->helicopterOwner, '/', this->pursuit);
+					Globals::LogWarning(logTag, "Owner mismatch:", this->helicopterOwner, '/', this->pursuit);
 			}
 
 			this->helicopterOwner = this->pursuit;
@@ -236,7 +236,7 @@ namespace HelicopterOverrides
 			if (not fuelTime)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "Invalid fuel pointer");
+					Globals::LogWarning(logTag, "Invalid fuel pointer");
 
 				return; // should never happen
 			}
@@ -437,7 +437,7 @@ namespace HelicopterOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->IsHelicopterRejoining())
-						Globals::LogError(logTag, "Expected ownership in", this->pursuit);
+						Globals::LogWarning(logTag, "Expected ownership in", this->pursuit);
 				}
 
 				this->ProcessNewHelicopter(copVehicle);
@@ -481,7 +481,7 @@ namespace HelicopterOverrides
 					return HelicopterManager::helicopterName;
 
 				else if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "Invalid name pointer");
+					Globals::LogWarning(logTag, "Invalid name pointer");
 			}
 
 			return helicopterVehicle.current;

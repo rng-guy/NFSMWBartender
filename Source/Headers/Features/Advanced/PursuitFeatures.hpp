@@ -40,7 +40,7 @@ namespace PursuitFeatures
 
 	protected: // members
 
-		const address pursuit;
+		const address pursuit; // pursuit-locked and immobile
 
 
 	protected: // methods
@@ -118,7 +118,7 @@ namespace PursuitFeatures
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (not isNewInstance)
-					Globals::LogError(logTag, "Registration failed:", instance);
+					Globals::LogWarning(logTag, "Registration failed:", instance);
 			}
 		}
 
@@ -138,7 +138,7 @@ namespace PursuitFeatures
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (not wasRegistered)
-					Globals::LogError(logTag, "Unregistration failed:", instance);
+					Globals::LogWarning(logTag, "Unregistration failed:", instance);
 			}
 		}
 
@@ -149,7 +149,7 @@ namespace PursuitFeatures
 				if (instance->GetPursuit() == pursuit) return instance;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogError(logTag, "Lookup failed:", pursuit);
+				Globals::LogWarning(logTag, "Lookup failed:", pursuit);
 
 			return nullptr; // should never happen
 		}
@@ -197,7 +197,7 @@ namespace PursuitFeatures
 			if (this->isSet)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogError(logTag, "Timer already set");
+					Globals::LogWarning(logTag, "Timer already set");
 
 				return false; // should never happen
 			}

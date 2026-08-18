@@ -335,7 +335,7 @@ namespace GeneralSettings
 	constexpr address heatEscalationEntrance = 0x443D93;
 	constexpr address heatEscalationExit     = 0x443D9B;
 
-	// Corrects the VltEd array index based on Blacklist rank
+	// Corrects the VltEd array index based on Blacklist progress
 	__declspec(naked) void HeatEscalation()
 	{
 		__asm

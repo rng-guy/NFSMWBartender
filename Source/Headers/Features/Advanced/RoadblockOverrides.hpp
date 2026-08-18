@@ -375,7 +375,7 @@ namespace RoadblockOverrides
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogError(logTag, "Failed to select roadblock setup");
+			Globals::LogWarning(logTag, "Failed to select roadblock setup");
 
 		candidates.clear();
 		

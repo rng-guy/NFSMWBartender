@@ -64,8 +64,7 @@ namespace CopFleeOverrides
 
 			size_t numPendingExpired = 0;
 
-			const address    pursuit;
-			const LogLiteral vehicleLabel;
+			const address pursuit; // pursuit-locked and immobile
 
 			ModContainers::AddressMap<float> copVehicleToTimestamp;
 
@@ -75,15 +74,17 @@ namespace CopFleeOverrides
 			// Whether a given expired cop vehicle should actually be forced to bail the pursuit
 			std::function<bool (const address)> ShouldExpiredVehicleBail = [](const address copVehicle) -> bool {return true;};
 
+			[[no_unique_address]] LogLiteral name;
+
 
 		protected: // methods
 
 			SchedulerBase
 			(
-				const address    pursuit,
-				const LogLiteral vehicleLabel
+				const LogLiteral name,
+				const address    pursuit
 			)
-				: pursuit(pursuit), vehicleLabel(vehicleLabel)
+				: name(name), pursuit(pursuit)
 			{
 			}
 
@@ -107,7 +108,7 @@ namespace CopFleeOverrides
 					if (isNewVehicle)
 						Globals::LogFull(this->pursuit, logTag, copVehicle, "expires in", fleeTimer);
 
-					else Globals::LogError(logTag, copVehicle, "already scheduled");
+					else Globals::LogWarning(logTag, copVehicle, "already scheduled"); // should never happen
 				}
 			}
 
@@ -121,7 +122,7 @@ namespace CopFleeOverrides
 				StartFlee(copAIVehiclePursuit); // also updates vehicle goal(s) accordingly
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogFull(this->pursuit, logTag, this->vehicleLabel, copVehicle, "fleeing");
+					Globals::LogFull(this->pursuit, logTag, this->name, copVehicle, "fleeing");
 
 				return true;
 			}
@@ -168,6 +169,12 @@ namespace CopFleeOverrides
 			{
 				return this->copVehicleToTimestamp.size() - this->numPendingExpired;
 			}
+
+
+			[[nodiscard]] LogLiteral GetName() const
+			{
+				return this->name;
+			}
 		};
 
 
@@ -189,11 +196,11 @@ namespace CopFleeOverrides
 
 			StrategyScheduler
 			(
+				const LogLiteral name,
 				const address    pursuit,
-				const LogLiteral vehicleLabel,
 				const ptrdiff_t  strategyOffset
 			)
-				: SchedulerBase(pursuit, vehicleLabel), strategy(AsReference<address>(pursuit + strategyOffset))
+				: SchedulerBase(name, pursuit), strategy(AsReference<address>(pursuit + strategyOffset))
 			{
 			}
 
@@ -261,12 +268,12 @@ namespace CopFleeOverrides
 
 			PursuitScheduler
 			(
+				const LogLiteral                               name,
 				const address                                  pursuit,
-				const LogLiteral                               vehicleLabel,
 				const HeatParameters::OptionalInterval<float>& fleeDelay,
 				const HeatParameters::OptionalValue   <int>&   fleeThreshold
 			)
-				: SchedulerBase(pursuit, vehicleLabel), fleeDelay(fleeDelay), fleeThreshold(fleeThreshold)
+				: SchedulerBase(name, pursuit), fleeDelay(fleeDelay), fleeThreshold(fleeThreshold)
 			{
 				// Scheduled non-Strategy cops may only expire if the number of "Chasers" is above some threshold
 				this->ShouldCheckForExpiration = [this]() -> bool
@@ -341,12 +348,12 @@ namespace CopFleeOverrides
 
 		bool pursuitTargetKnown = false;
 
-		StrategyScheduler heavyVehicles {this->pursuit, "Heavy",  0x194};
-		StrategyScheduler leaderVehicles{this->pursuit, "Leader", 0x198};
+		StrategyScheduler heavyVehicles {"Heavy",  this->pursuit, 0x194};
+		StrategyScheduler leaderVehicles{"Leader", this->pursuit, 0x198};
 
-		PursuitScheduler chaserVehicles         {this->pursuit, "Chaser",    chaserFleeDelay,          chaserThreshold};
-		PursuitScheduler joinedHeavyVehicles    {this->pursuit, "Joined H3", joinedHeavy3FleeDelay,    joinedHeavy3Threshold};
-		PursuitScheduler joinedRoadblockVehicles{this->pursuit, "Joined RB", joinedRoadblockFleeDelay, joinedRoadblockThreshold};
+		PursuitScheduler chaserVehicles         {"Chaser",    this->pursuit,  chaserFleeDelay,          chaserThreshold};
+		PursuitScheduler joinedHeavyVehicles    {"Joined H3", this->pursuit,  joinedHeavy3FleeDelay,    joinedHeavy3Threshold};
+		PursuitScheduler joinedRoadblockVehicles{"Joined RB", this->pursuit,  joinedRoadblockFleeDelay, joinedRoadblockThreshold};
 
 		const bool& isJerk = AsReference<bool>(this->pursuit + 0x238);
 
@@ -402,18 +409,20 @@ namespace CopFleeOverrides
 		{
 			if (Globals::IsPursuitInCooldownMode(this->pursuit)) return true;
 
-			// Check target speed against bail threshold
-			if (const address rigidBodyOfTarget = this->GetRigidBodyOfPursuitTarget())
+			const address rigidBodyOfTarget = this->GetRigidBodyOfPursuitTarget();
+
+			if (not rigidBodyOfTarget)
 			{
-				const auto  GetSpeedXZ     = AsFunction<float __thiscall (address)>(0x6711F0);
-				const float speedThreshold = (this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold;
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid RigidBody for target in", this->pursuit);
 
-				return (GetSpeedXZ(rigidBodyOfTarget) < speedThreshold);
+				return false; // should never happen
 			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::LogError(logTag, "Invalid RigidBody for target in", this->pursuit);
 
-			return false; // should never happen
+			const auto  GetSpeedXZ     = AsFunction<float __thiscall (address)>(0x6711F0);
+			const float speedThreshold = (this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold;
+
+			return (GetSpeedXZ(rigidBodyOfTarget) < speedThreshold);
 		}
 
 

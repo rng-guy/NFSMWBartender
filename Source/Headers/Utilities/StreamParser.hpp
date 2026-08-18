@@ -49,7 +49,7 @@ namespace StreamParser
 		template <typename S, typename ...Vs>
 		concept AreCompatible = (IsTerminatedString<S> or (not (IsTerminatedString<Vs> or ...)));
 
-		template <typename K, typename... Vs>
+		template <typename K, typename ...Vs>
 		concept AreSectionParseable = (IsAnyStringOrView<K> and AreParseable<Vs...>);
 
 		template <typename ...Vs>
@@ -138,35 +138,6 @@ namespace StreamParser
 		[[nodiscard]] constexpr std::string_view Trim(const std::string_view view) noexcept
 		{
 			return TrimRight(TrimLeft(view));
-		}
-
-
-
-		[[nodiscard]] std::optional<std::vector<std::string_view>> Split
-		(
-			const std::string_view source,
-			const char             separator
-		) {
-			size_t startPosition = 0;
-
-			std::vector<std::string_view> segments;
-
-			while (startPosition <= source.length())
-			{
-				const size_t endPosition    = source.find(separator, startPosition);
-				const bool   isFinalSegment = (endPosition == std::string_view::npos);
-				const size_t segmentLength  = (isFinalSegment) ? std::string_view::npos : (endPosition - startPosition);
-
-				const std::string_view segment = Trim(source.substr(startPosition, segmentLength));
-				if (segment.empty()) return std::nullopt;
-
-				segments.push_back(segment);
-				if (isFinalSegment) break;
-
-				startPosition = endPosition + 1;
-			}
-
-			return segments;
 		}
 	}
 
@@ -309,8 +280,12 @@ namespace StreamParser
 	{
 	protected: // aliases
 
-		using Section  = FlatContainers::Map<std::string, std::vector<std::string>>;
-		using Sections = FlatContainers::Map<std::string, Section>;
+		using Key    = std::string;
+		using Name   = std::string;
+		using Values = std::vector<std::string>;
+
+		using Section  = FlatContainers::Map<Key,  Values>;
+		using Sections = FlatContainers::Map<Name, Section>;
 
 
 	protected: // members
@@ -328,15 +303,46 @@ namespace StreamParser
 
 		[[nodiscard]] static constexpr std::optional<std::string_view> GetSectionName(const std::string_view content) noexcept
 		{
-			if (content.starts_with(start) and content.ends_with(end))
-				return Details::Trim(content.substr(1, content.length() - 2));
+			if (not content.starts_with(start)) return std::nullopt;
+			if (not content.ends_with  (end))   return std::nullopt;
 
-			return std::nullopt;
+			return Details::Trim(content.substr(1, content.length() - 2));
 		}
 
 
-		[[nodiscard]] static std::optional<std::pair<std::string_view, std::vector<std::string_view>>> GetPair(const std::string_view content)
-		{
+		[[nodiscard]] static bool SplitValues
+		(
+			const std::string_view         source,
+			std::vector<std::string_view>& segments
+		) {
+			segments.clear();
+
+			size_t startPosition = 0;
+
+			while (startPosition <= source.length())
+			{
+				const size_t endPosition    = source.find(separator, startPosition);
+				const bool   isFinalSegment = (endPosition == std::string_view::npos);
+				const size_t segmentLength  = (isFinalSegment) ? std::string_view::npos : (endPosition - startPosition);
+
+				const std::string_view segment = Details::Trim(source.substr(startPosition, segmentLength));
+				if (segment.empty()) return false;
+
+				segments.push_back(segment);
+				if (isFinalSegment) break;
+
+				startPosition = endPosition + 1;
+			}
+
+			return true;
+		}
+
+
+		[[nodiscard]] static std::optional<std::string_view> GetKey
+		(
+			const std::string_view         content,
+			std::vector<std::string_view>& segments
+		) {
 			const size_t firstAssign = content.find(assign);
 			if (firstAssign == std::string_view::npos) return std::nullopt; // missing delimiter
 
@@ -346,9 +352,9 @@ namespace StreamParser
 			const std::string_view values = Details::TrimLeft(content.substr(firstAssign + 1));
 			if (values.empty()) return std::nullopt; // missing value(s)
 
-			if (auto views = Details::Split(values, separator)) return std::pair(key, std::move(*views));
-			
-			return std::nullopt; // unsplittable
+			if (not Parser::SplitValues(values, segments)) return std::nullopt; // empty value(s)
+
+			return key;
 		}
 
 
@@ -365,8 +371,10 @@ namespace StreamParser
 			const size_t  pairCapacityPerSection = 0
 		) {
 			std::string line;
-
+		
 			Section* currentSection = nullptr;
+
+			std::vector<std::string_view> segments;
 
 			Details::SkipByteOrderMark(stream); // seriously, screw Notepad
 			this->sections.reserve(this->sections.size() + sectionCapacity);
@@ -399,20 +407,17 @@ namespace StreamParser
 				// Attempt to parse the line content as a key-value pair
 				if (not currentSection) continue; // no active section
 
-				if (const auto pair = this->GetPair(content))
-				{
-					const auto& [   key,     views] = *pair;
-					const auto& [pairIt, isNewPair] = currentSection->try_emplace(key);
+				const auto key = this->GetKey(content, segments);
+				if (not key) continue; // invalid key or value(s)
 
-					if (isNewPair)
-					{
-						auto& strings = pairIt->second;
-						strings.reserve(views.size());
+				const auto [pairIt, isNewPair] = currentSection->try_emplace(*key);
+				if (not isNewPair) continue; // key already exists
 
-						for (const std::string_view view : views)
-							strings.emplace_back(view);
-					}
-				}
+				Values& values = pairIt->second;
+				values.reserve(segments.size());
+
+				for (const auto& segment : segments)
+					values.emplace_back(segment);
 			}
 		}
 
@@ -471,10 +476,10 @@ namespace StreamParser
 		) {
 			size_t numReads = 0;
 
-			keys.reserve(keys.size() + section.size());
+			keys.reserve        (keys  .size() + section.size());
 			(..., values.reserve(values.size() + section.size()));
 
-			std::apply([&](auto&& ...candidates) -> void
+			const auto ExtractValues = [&](auto&& ...candidates) -> void
 			{
 				for (const auto& [key, strings] : section)
 				{
@@ -489,8 +494,9 @@ namespace StreamParser
 
 					++numReads;
 				}
-			}, 
-			std::tuple<Vs...>());
+			};
+
+			std::apply(ExtractValues, std::tuple<Vs...>());
 
 			return numReads;
 		}
