@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <array>
+#include <limits>
 #include <vector>
 #include <string>
 #include <utility>
@@ -154,95 +155,184 @@ namespace RoadblockOverrides
 	using PartArray = std::array<T, maxNumParts>;
 
 	// Heat parameters
+	constinit HEAT_PARAMETER_VALUE(bool, mayRecycleDistantCops, true);
+
 	constinit HEAT_PARAMETER_VALUE(float, spawnCalloutChance, 100.f, {0.f, 100.f}); // percent
 	constinit HEAT_PARAMETER_VALUE(float, spikeCalloutChance, 50.f,  {0.f, 100.f}); // percent
 
-	// Setup parsing
-	constexpr std::string_view setupPrefix = "Setups:";
-	
-	// Code caves
+	// Custom roadblock setups
 	RELEASE_CONSTINIT std::vector<RBSetup> roadblockSetups;
 
-	size_t numRegularCandidates = 0;
-	size_t numSpikeCandidates   = 0;
-	size_t maxNumCarsRequired   = 0;
+	// Setup parsing
+	constexpr std::string_view setupPrefix = "Setups:";
+
+	// Code caves
+	address requestPursuit = 0x0;
+
+	size_t minNumCars = 0;
+	size_t maxNumCars = 0;
 
 	float maxStretchScale = 1.14f;
 
 	bool hasSpikes = false;
 	int  spikeLane = 0;
 
-
+	
 
 
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] void __stdcall GatherSetupMetadata(const float roadWidth)
+	[[nodiscard]] float GetRoadblockSpikeChance(const address pursuit)
 	{
-		numRegularCandidates = 0;
-		numSpikeCandidates   = 0;
-		maxNumCarsRequired   = 0;
+		const float* const spikeChance = AsPointer<float>(Globals::GetFromPursuitLevel(pursuit, "roadblockspikechance"_vlt));
 
-		for (const RBSetup& setup : roadblockSetups)
+		if (not spikeChance)
 		{
-			if (not setup.IsAvailable())                   continue;
-			if (not setup.IsCompatbleRoadWidth(roadWidth)) continue;
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogWarning(logTag, "Invalid roadblockspikechance pointer in", pursuit);
 
-			if (setup.hasSpikes) ++numSpikeCandidates;
-			else                 ++numRegularCandidates;
-
-			maxNumCarsRequired = std::max<size_t>(maxNumCarsRequired, setup.GetNumCarsRequired());
+			ASSERT_UNREACHABLE;
 		}
+
+		return (spikeChance) ? *spikeChance : 0.f;
 	}
 
 
 
-	[[nodiscard]] bool __fastcall WasRequestFeasible(const address pursuit)
-	{
-		const bool anyRegular = (numRegularCandidates > 0);
-		const bool anySpikes  = (numSpikeCandidates   > 0);
+	[[nodiscard]] bool IsCustomRequestFeasible
+	(
+		const bool anyRegular,
+		const bool anySpike
+	) {
+		if (anyRegular and anySpike)      return true;  // both    available
+		if (not (anyRegular or anySpike)) return false; // neither available
 
-		if (anyRegular and anySpikes)      return true;  // both    available
-		if (not (anyRegular or anySpikes)) return false; // neither available
+		if (Globals::IsPursuitInCooldownMode(requestPursuit)) return anyRegular;
 
-		if (Globals::IsPursuitInCooldownMode(pursuit)) return anyRegular;
-
-		const address attribute   = Globals::GetFromPursuitlevel(pursuit, "roadblockspikechance"_vlt);
-		const float   spikeChance = (attribute) ? AsReference<float>(attribute) : 0.f; // should never fail
+		const float spikeChance = GetRoadblockSpikeChance(requestPursuit);
 
 		if (spikeChance <= 0.f)   return anyRegular; // always regular
-		if (spikeChance >= 100.f) return anySpikes;  // always spike
+		if (spikeChance >= 100.f) return anySpike;   // always spike
 
 		return true; // either available
 	}
 
 
 
-	void __fastcall CancelRequest
+	[[nodiscard]] bool ShouldCustomRequestGetSpikes
 	(
-		const address caller, 
-		const address pursuit
+		const bool anyRegular,
+		const bool anySpike
 	) {
+		if (not (anyRegular or anySpike))
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogWarning(logTag, "Incompatible request in", requestPursuit);
+
+			ASSERT_UNREACHABLE_THEN(return false); // will fail anyway
+		}
+
+		if (Globals::IsPursuitInCooldownMode(requestPursuit)) return false;
+
+		const float spikeChance = GetRoadblockSpikeChance(requestPursuit);
+
+		if (spikeChance <= 0.f)   return false; // never spikes
+		if (spikeChance >= 100.f) return true;  // always spikes
+
+		if (not anyRegular) return true;  // regular impossible
+		if (not anySpike)   return false; // spikes  impossible
+
+		return Globals::prng.DoPercentTrial<float>(spikeChance); // either possible
+	}
+
+
+
+	[[nodiscard]] bool __stdcall UpdateAndAssessCustomRequest
+	(
+		const address pursuit, 
+		const float   roadWidth
+	) {
+		requestPursuit = pursuit;
+
+		struct SetupParameters
+		{
+			size_t numCandidates = 0;
+
+			size_t minNumCars = std::numeric_limits<size_t>::max();
+			size_t maxNumCars = std::numeric_limits<size_t>::min();
+		};
+
+		SetupParameters regular;
+		SetupParameters spike;
+
+		for (const RBSetup& setup : roadblockSetups)
+		{
+			if (not setup.IsAvailable())                   continue;
+			if (not setup.IsCompatbleRoadWidth(roadWidth)) continue;
+
+			auto& parameters = (setup.hasSpikes) ? spike : regular;
+
+			++(parameters.numCandidates);
+
+			const size_t numCars = setup.GetNumCarsRequired();
+
+			parameters.minNumCars = std::min<size_t>(parameters.minNumCars, numCars);
+			parameters.maxNumCars = std::max<size_t>(parameters.maxNumCars, numCars);
+		}
+
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogFull(pursuit, logTag, "Cancelling request");
+		{
+			Globals::LogFull(requestPursuit, logTag, "Roadblock creation attempt");
+
+			Globals::LogPlain("Road width:", roadWidth);
+			Globals::LogPlain("Candidates:", LogDec(regular.numCandidates), '/', LogDec(spike.numCandidates));
+		}
+
+		const bool anyRegular = (regular.numCandidates > 0);
+		const bool anySpike   = (spike  .numCandidates > 0);
+
+		if (not IsCustomRequestFeasible(anyRegular, anySpike)) return false; // cancel request
+
+		hasSpikes = ShouldCustomRequestGetSpikes(anyRegular, anySpike);
+
+		const auto& parameters = (hasSpikes) ? spike : regular;
+
+		minNumCars = parameters.minNumCars;
+		maxNumCars = parameters.maxNumCars;
+
+		return true; // attempt request
+	}
+
+
+
+	void __fastcall CancelCustomRequest(const address caller) 
+	{
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogPlain("Cancelling request");
 
 		switch (caller)
 		{
 		case 0x43E7D6: // HeavyStrategy 4
-			Globals::ClearSupportRequest(pursuit);
-			break;
+			Globals::ClearSupportRequest(requestPursuit);
+			return;
 
 		case 0x43EC3A: // non-Strategy roadblock
-			AsReference<bool>   (pursuit + 0x190)            = false; // request status
-			AsReference<address>(Globals::copManager + 0xBC) = 0x0;   // roadblock pursuit
-			AsReference<int>    (Globals::copManager + 0xB8) = 0;     // car count
+			AsReference<bool>   (requestPursuit      + 0x190) = false; // request status
+			AsReference<address>(Globals::copManager + 0xBC)  = 0x0;   // roadblock pursuit
+			AsReference<int>    (Globals::copManager + 0xB8)  = 0;     // car count
+			return;
 		}
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogWarning(logTag, "Unknown CreateRoadblock caller:", caller);
+
+		ASSERT_UNREACHABLE;
 	}
 	
 
 
-	void __fastcall RequestCallout(const address pursuit)
+	void __fastcall RequestRoadblockCallout(const address pursuit)
 	{
 		if (Globals::IsPursuitInCooldownMode(pursuit)) return;
 		if (not Globals::IsPlayerPursuit(pursuit))     return;
@@ -250,7 +340,7 @@ namespace RoadblockOverrides
 		if (not Globals::prng.DoPercentTrial<float>(spawnCalloutChance.current))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogTagged(logTag, "No callout");
+				Globals::LogFull(pursuit, logTag, "No callout");
 
 			return; // skip callout
 		}
@@ -260,7 +350,7 @@ namespace RoadblockOverrides
 			const auto CallOutSpikes = AsFunction<void __cdecl (int)>(0x71DAC0);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogTagged(logTag, "Spikes callout");
+				Globals::LogFull(pursuit, logTag, "Spike callout");
 
 			CallOutSpikes(spikeLane);
 		}
@@ -269,7 +359,7 @@ namespace RoadblockOverrides
 			const auto CallOutRegular = AsFunction<void ()>(0x71DAA0);
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogTagged(logTag, "Regular callout");
+				Globals::LogFull(pursuit, logTag, "Regular callout");
 
 			CallOutRegular();
 		}
@@ -279,7 +369,6 @@ namespace RoadblockOverrides
 
 	[[nodiscard]] auto CountAvailableSetups()
 	{
-		// Aggregate return type
 		struct Counts
 		{
 		// Members
@@ -291,9 +380,9 @@ namespace RoadblockOverrides
 			size_t numMirrorSpikes  = 0;
 		};
 
+		// Setup counting
 		Counts counts;
 
-		// Setup counting
 		for (const RBSetup& setup : roadblockSetups)
 		{
 			if (not setup.IsAvailable()) continue;
@@ -316,18 +405,17 @@ namespace RoadblockOverrides
 
 	[[nodiscard]] const RBTable* __cdecl SelectRoadblockTable
 	(
-		const float  roadWidth, 
-		const size_t maxNumCars, 
+		const float  roadWidth,
+		const size_t maxNumCars,
 		const bool   needsSpikes
 	) {
 		static RELEASE_CONSTINIT std::vector<const RBSetup*> candidates;
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogTagged(logTag, "Roadblock request", (needsSpikes) ? "(spikes)" : "(regular)");
+			Globals::LogFull(requestPursuit, logTag, "Selecting", (needsSpikes) ? "spike" : "regular", "setup");
 
 			Globals::LogPlain("Car budget:", LogDec(maxNumCars));
-			Globals::LogPlain("Road width:", roadWidth);
 		}
 
 		// Find eligible setups
@@ -349,9 +437,9 @@ namespace RoadblockOverrides
 		if (candidates.empty())
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("No candidate(s)");
+				Globals::LogWarning(logTag, "No suitable candidate(s)");
 
-			return nullptr; // no viable setup(s)
+			ASSERT_UNREACHABLE_THEN(return nullptr);
 		}
 
 		// Select a random eligible setup
@@ -365,21 +453,21 @@ namespace RoadblockOverrides
 		{
 			cumulativeChance += setup->chance.current;
 			if (cumulativeChance < chanceThreshold) continue;
-			
+
 			const auto* const table = &(setup->GetRandomTable());
 			maxStretchScale         = setup->GetMaxStretchScale();
-					
+
 			candidates.clear(); // safe due to immediate return
 
 			return table; // use random table
 		}
 
+		candidates.clear();
+
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogWarning(logTag, "Failed to select roadblock setup");
 
-		candidates.clear();
-		
-		return nullptr; // should never happen
+		ASSERT_UNREACHABLE_THEN(return nullptr);
 	}
 
 
@@ -387,26 +475,6 @@ namespace RoadblockOverrides
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
-
-	constexpr address spikeFlagEntrance = 0x43E1C5;
-	constexpr address spikeFlagExit     = 0x43E1CD;
-
-	// Records whether a roadblock has spikes
-	__declspec(naked) void SpikeFlag()
-	{
-		__asm
-		{
-			// Execute original code first
-			mov eax, dword ptr [esp + 0x10]
-			mov ecx, dword ptr [esp + 0x14]
-
-			mov byte ptr [hasSpikes], al
-
-			jmp dword ptr [spikeFlagExit]
-		}
-	}
-
-
 
 	constexpr address spikeLaneEntrance = 0x43E574;
 	constexpr address spikeLaneExit     = 0x43E57B;
@@ -427,57 +495,79 @@ namespace RoadblockOverrides
 
 
 
-	constexpr address scaleLimitEntrance = 0x43E345;
-	constexpr address scaleLimitExit     = 0x43E34D;
+	constexpr address spikeCheckEntrance = 0x43E1C5;
+	constexpr address spikeCheckExit     = 0x43E1CD;
 
-	// Enforces the maximum stretch-scale for roadblocks
-	__declspec(naked) void ScaleLimit()
+	// Records whether the roadblock needs spikes
+	__declspec(naked) void SpikeCheck()
+	{
+		__asm
+		{
+			// Execute original code first
+			mov eax, dword ptr [esp + 0x10]
+			mov ecx, dword ptr [esp + 0x14]
+
+			mov byte ptr [hasSpikes], al
+
+			jmp dword ptr [spikeCheckExit]
+		}
+	}
+
+
+	
+	constexpr address customScaleEntrance = 0x43E345;
+	constexpr address customScaleExit     = 0x43E34D;
+
+	// Enforces the maximum stretch-scale of the custom roadblock
+	__declspec(naked) void CustomScale()
 	{
 		__asm
 		{
 			mov eax, dword ptr [maxStretchScale]
 			mov dword ptr [esp + 0x2C], eax
 
-			jmp dword ptr [scaleLimitExit]
+			jmp dword ptr [customScaleExit]
 		}
 	}
 
 
 
-	constexpr address maxCarCountEntrance = 0x43DF2A;
-	constexpr address maxCarCountExit     = 0x43DF8A;
+	constexpr address copRecyclingEntrance = 0x43E0EF;
+	constexpr address copRecyclingExit     = 0x43E0F5;
 
-	// Finds the maximum car count among eligible setups
-	__declspec(naked) void MaxCarCount()
+	// Decides whether to recycle cops for the roadblock
+	__declspec(naked) void CopRecycling()
 	{
 		__asm
 		{
-			fstp dword ptr [esp + 0x14]
+			// Execute original code first
+			mov eax, esi
+			sub eax, ecx
+			test eax, eax
+			jle conclusion // no recycleable cops
 
-			push dword ptr [esp + 0x14] // roadWidth
-			call GatherSetupMetadata
+			cmp byte ptr [mayRecycleDistantCops.current], 0
 
-			mov esi, dword ptr [maxNumCarsRequired]
-
-			jmp dword ptr [maxCarCountExit]
+			conclusion:
+			jmp dword ptr [copRecyclingExit]
 		}
 	}
 
 
 
-	constexpr address radioRequestEntrance = 0x43E20C;
-	constexpr address radioRequestExit     = 0x43E213;
+	constexpr address requestOutcomeEntrance = 0x43E20C;
+	constexpr address requestOutcomeExit     = 0x43E213;
 
-	// Requests a callout over the radio after a roadblock spawn
-	__declspec(naked) void RadioRequest()
+	// Processes the outcome of the roadblock request
+	__declspec(naked) void RequestOutcome()
 	{
 		__asm
 		{
 			test al, al
-			je conclusion // spawn failed
+			je conclusion // request failed
 
 			mov ecx, dword ptr [esp + 0x4C4]
-			call RequestCallout // ecx: pursuit
+			call RequestRoadblockCallout // ecx: pursuit
 
 			mov al, 1 // restore value
 
@@ -485,38 +575,68 @@ namespace RoadblockOverrides
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x4B4]
 
-			jmp dword ptr [radioRequestExit]
+			jmp dword ptr [requestOutcomeExit]
 		}
 	}
 
 
 
-	constexpr address spawnFailureEntrance = 0x43E1DA;
-	constexpr address spawnFailureExit     = 0x43E1E0;
+	constexpr address customCarBudgetEntrance = 0x43E146;
+	constexpr address customCarBudgetExit     = 0x43E1C5;
 
-	// Prevents impossible roadblock requests from stalling cop spawns
-	__declspec(naked) void SpawnFailure()
+	// Checks the required car budget for the custom request
+	__declspec(naked) void CustomCarBudget()
 	{
+		static constexpr address customCarBudgetSkip = 0x43E1E2;
+
 		__asm
 		{
-			// Execute original code first
-			mov dword ptr [esp + 0x18], ecx
-			test ecx, ecx
-			jne conclusion // found setup
+			cmp ebp, dword ptr [minNumCars]
+			jl skip // insufficient car budget
 
-			mov ecx, dword ptr [esp + 0x4C4]
-			call WasRequestFeasible // ecx: pursuit
-			cmp al, 1
-			je conclusion          // do not cancel
+			mov al, byte ptr [hasSpikes]
+			mov byte ptr [esp + 0x10], al
 
+			// Execute original code and resume
+			mov esi, dword ptr [esp + 0x4C4]
+			xor edi, edi
+
+			jmp dword ptr [customCarBudgetExit]
+
+			skip:
+			jmp dword ptr [customCarBudgetSkip]
+		}
+	}
+
+
+
+	constexpr address newCustomRequestEntrance = 0x43DF2A;
+	constexpr address newCustomRequestExit     = 0x43DF8A;
+
+	// Processes the new roadblock request for custom setups
+	__declspec(naked) void NewCustomRequest()
+	{
+		static constexpr address newCustomRequestSkip = 0x43E1F3;
+
+		__asm
+		{
+			fstp dword ptr [esp + 0x14]
+
+			push dword ptr [esp + 0x14]  // roadWidth
+			push dword ptr [esp + 0x4C8] // pursuit
+			call UpdateAndAssessCustomRequest
+			test al, al
+			je skip                      // request unfeasible
+
+			mov esi, dword ptr [maxNumCars]
+
+			jmp dword ptr [newCustomRequestExit]
+
+			skip:
 			mov ecx, dword ptr [esp + 0x4C0]
-			mov edx, dword ptr [esp + 0x4C4]
-			call CancelRequest // ecx: caller; edx: pursuit
+			call CancelCustomRequest // ecx: caller
 
-			xor ecx, ecx // restore zero flag
-			
-			conclusion:
-			jmp dword ptr [spawnFailureExit]
+			jmp dword ptr [newCustomRequestSkip]
 		}
 	}
 
@@ -643,8 +763,7 @@ namespace RoadblockOverrides
 			part.offsetX     = -part.offsetX;
 			part.orientation = 1.f - part.orientation;
 
-			// Mirror spike-strip direction
-			if (part.type == RBPartType::SPIKES)
+			if (part.type == RBPartType::SPIKES) // spike-strip direction
 				part.orientation = std::fmod(part.orientation + .5f, 1.f);
 		}
 
@@ -719,6 +838,8 @@ namespace RoadblockOverrides
 		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
 
 		// Heat parameters
+		HeatParameters::Parse(parser, "Roadblocks:Recycling", mayRecycleDistantCops);
+
 		HeatParameters::Parse(parser, "Roadblocks:Radio", spawnCalloutChance, spikeCalloutChance);
 
 		// Roadblock setups
@@ -727,22 +848,21 @@ namespace RoadblockOverrides
 			// Code changes (conditional)
 			MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
 
-			MemoryTools::MakeRangeNOP<0x43E146, 0x43E14F>(); // strict cop-count check
-
 			MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable); // replaces game function
 
-			MemoryTools::MakeRangeJMP<scaleLimitEntrance,   scaleLimitExit>  (ScaleLimit);
-			MemoryTools::MakeRangeJMP<maxCarCountEntrance,  maxCarCountExit> (MaxCarCount);
-			MemoryTools::MakeRangeJMP<spawnFailureEntrance, spawnFailureExit>(SpawnFailure);
+			MemoryTools::MakeRangeJMP<customScaleEntrance,      customScaleExit>     (CustomScale);
+			MemoryTools::MakeRangeJMP<customCarBudgetEntrance,  customCarBudgetExit> (CustomCarBudget);
+			MemoryTools::MakeRangeJMP<newCustomRequestEntrance, newCustomRequestExit>(NewCustomRequest);
 		}
 
 		// Code Changes (general)
 		MemoryTools::MakeRangeNOP<0x71F184, 0x71F19F>(); // regular callout
 		MemoryTools::MakeRangeNOP<0x71F091, 0x71F096>(); // spikes  callout
 
-		MemoryTools::MakeRangeJMP<spikeFlagEntrance,    spikeFlagExit>   (SpikeFlag);
-		MemoryTools::MakeRangeJMP<spikeLaneEntrance,    spikeLaneExit>   (SpikeLane);
-		MemoryTools::MakeRangeJMP<radioRequestEntrance, radioRequestExit>(RadioRequest);
+		MemoryTools::MakeRangeJMP<spikeLaneEntrance,      spikeLaneExit>     (SpikeLane);
+		MemoryTools::MakeRangeJMP<spikeCheckEntrance,     spikeCheckExit>    (SpikeCheck);
+		MemoryTools::MakeRangeJMP<copRecyclingEntrance,   copRecyclingExit>  (CopRecycling);
+		MemoryTools::MakeRangeJMP<requestOutcomeEntrance, requestOutcomeExit>(RequestOutcome);
 
 		// Status flag
 		anyFeatureEnabled = true;
@@ -760,6 +880,8 @@ namespace RoadblockOverrides
 			Globals::LogHeat(logTag, logName);
 
 		// Heat parameters
+		mayRecycleDistantCops.SetToHeatState(state);
+
 		spawnCalloutChance.SetToHeatState(state);
 		spikeCalloutChance.SetToHeatState(state);
 

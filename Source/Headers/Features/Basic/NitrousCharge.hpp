@@ -57,7 +57,7 @@ namespace NitrousCharge
 
 
 
-	bool __fastcall MayRechargePassively(const address engineRacer)
+	[[nodiscard]] bool __fastcall MayRechargePassively(const address engineRacer)
 	{
 		if (passiveRechargeEnabled.current) return true;
 
@@ -109,7 +109,7 @@ namespace NitrousCharge
 		const address copVehicle
 	) {
 		const address perpVehicle = Globals::GetPerpVehicleOfPursuit(pursuit);
-		if (not perpVehicle) return; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(perpVehicle, return);
 
 		const float nitrousChange = nitrousInteractions.GetWreckingChange(copVehicle);
 		if (nitrousChange == 0.f) return;

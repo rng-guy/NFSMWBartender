@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <cstdint>
 #include <cstdarg>
 #include <cstring>
@@ -64,11 +65,17 @@ namespace MemoryTools
 
 
 
-	// Queries and address writing ------------------------------------------------------------------------------------------------------------------
+	// Module queries -------------------------------------------------------------------------------------------------------------------------------
 
 	[[nodiscard]] inline bool IsModuleLoaded(const char* const name)
 	{
 		return GetModuleHandleA(name);
+	}
+
+
+	[[nodiscard]] inline bool IsModuleLoaded(const std::string& name)
+	{
+		return IsModuleLoaded(name.c_str());
 	}
 
 
@@ -85,6 +92,10 @@ namespace MemoryTools
 	}
 
 
+
+
+
+	// Direct-address writing -----------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
 	requires std::is_trivially_copyable_v<T>
@@ -210,7 +221,7 @@ namespace MemoryTools
 
 	// Function hooking -----------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] inline address ReplaceCall
+	inline address ReplaceCall
 	(
 		const address callSite,
 		const address newTarget
@@ -236,7 +247,7 @@ namespace MemoryTools
 
 	template <typename T>
 	requires std::is_function_v<T>
-	[[nodiscard]] inline address ReplaceCall
+	inline address ReplaceCall
 	(
 		const address callSite,
 		T* const      newTarget

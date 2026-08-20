@@ -1,25 +1,39 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <string_view>
 
 #include "..\Utilities\MemoryTools.hpp"
-#include "..\Utilities\BasicLogger.hpp"
+#include "..\Utilities\StaticLogger.hpp"
 #include "..\Utilities\RandomNumbers.hpp"
 
 
+
+// Vile debugging-related macros
+#define ASSERT_UNREACHABLE assert(not "reachable")
+
+#define ASSERT_UNREACHABLE_THEN(expression) do {ASSERT_UNREACHABLE; expression;} while (false)
+
+#define ASSERT_CONDITION_THEN_IF_FALSE(condition, expression) do {if (not (condition)) {assert(not #condition); expression;}} while (false)
 
 // In debug builds, Visual Studio forces an unconditional dynamic allocation for each suitable type.
 // This makes dynamic containers (e.g. std::vector, std::string) constinit-incompatible, even if empty.
 #ifndef _DEBUG
 #define RELEASE_CONSTINIT constinit
 
-#else
+#else 
 #define RELEASE_CONSTINIT
 
 #endif
 
 
+
+// Unscoped functions
+using MemoryTools::AsAddress;
+using MemoryTools::AsPointer;
+using MemoryTools::AsReference;
+using MemoryTools::AsFunction;
 
 // Unscoped aliases
 using vault  = uint32_t;
@@ -31,19 +45,13 @@ using word = MemoryTools::word;
 using address = MemoryTools::address;
 
 template <typename T> 
-using LogBin = BasicLogger::LogBin<T>; // templated to suppress transient includes
+using LogBin = StaticLogger::LogBin<T>; // templated to suppress transient includes
 
 template <typename T> 
-using LogDec = BasicLogger::LogDec<T>; // templated to suppress transient includes
+using LogDec = StaticLogger::LogDec<T>; // templated to suppress transient includes
 
 template <typename T> 
-using LogHex = BasicLogger::LogHex<T>; // templated to suppress transient includes
-
-// Unscoped functions
-using MemoryTools::AsAddress;
-using MemoryTools::AsPointer;
-using MemoryTools::AsReference;
-using MemoryTools::AsFunction;
+using LogHex = StaticLogger::LogHex<T>; // templated to suppress transient includes
 
 
 
@@ -51,7 +59,6 @@ namespace Globals
 {
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
-	// Feature flags
 	bool basicSetEnabled    = false;
 	bool advancedSetEnabled = false;
 
@@ -65,15 +72,16 @@ namespace Globals
 	address playerPerpVehicle    = 0x0;
 	bool    playerHeatLevelKnown = false;
 
-	// Logging (e.g. for debugging)
-	constexpr bool loggingEnabled = false;
-	BasicLogger::Logger<9, 15, 17> logger;
-
-	using LogLiteral = BasicLogger::LogLiteral<loggingEnabled>;
-	using LogString  = BasicLogger::LogString <loggingEnabled>;
-
 	// Hackjob floating-point coefficient
 	constexpr float floatScale = 1.f + 1e-6f;
+
+	// Statically toggled logging
+	constexpr bool loggingEnabled = false;
+
+	StaticLogger::Logger<loggingEnabled, 9, 15, 17> logger;
+
+	using LogLiteral = StaticLogger::LogLiteral<loggingEnabled>;
+	using LogString  = StaticLogger::LogString <loggingEnabled>;
 
 	// Common function pointers
 	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // for Pursuit
@@ -88,6 +96,23 @@ namespace Globals
 	const address&  copManager     = AsReference<address> (0x90D5F4);
 	const uint32_t& numGameTicks   = AsReference<uint32_t>(0x925B14);
 	const float&    ticksToTime    = AsReference<float>   (0x890984); // seconds / tick
+
+
+
+
+
+	// Timer functions ------------------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] float GetTotalGameTime()
+	{
+		return ticksToTime * static_cast<float>(numGameTicks);
+	}
+
+
+	[[nodiscard]] float GetUnpausedGameTime()
+	{
+		return ticksToTime * static_cast<float>(numGameTicks - numPausedTicks);
+	}
 
 
 
@@ -157,15 +182,6 @@ namespace Globals
 	}
 
 
-	[[nodiscard]] consteval vault operator""_vlt
-	(
-		const char* const string,
-		const size_t      length
-	) {
-		return GetVaultHash({string, length});
-	}
-
-
 
 	[[nodiscard]] constexpr binary GetBinaryHash(const std::string_view input)
 	{
@@ -180,6 +196,21 @@ namespace Globals
 	}
 
 
+
+
+
+	// Custom hash literals -------------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] consteval vault operator""_vlt
+	(
+		const char* const string,
+		const size_t      length
+	) {
+		return GetVaultHash({ string, length });
+	}
+
+
+
 	[[nodiscard]] consteval binary operator""_bin
 	(
 		const char* const string,
@@ -192,24 +223,7 @@ namespace Globals
 
 
 
-	// Timer functions ------------------------------------------------------------------------------------------------------------------------------
-
-	[[nodiscard]] float GetTotalGameTime()
-	{
-		return ticksToTime * static_cast<float>(numGameTicks);
-	}
-
-
-	[[nodiscard]] float GetUnpausedGameTime()
-	{
-		return ticksToTime * static_cast<float>(numGameTicks - numPausedTicks);
-	}
-
-
-
-
-
-	// Vault functions ------------------------------------------------------------------------------------------------------------------------------
+	// Vault-query functions ------------------------------------------------------------------------------------------------------------------------
 
 	[[nodiscard]] address GetFromVault
 	(
@@ -229,7 +243,7 @@ namespace Globals
 
 
 
-	[[nodiscard]] address GetFromPursuitlevel
+	[[nodiscard]] address GetFromPursuitLevel
 	(
 		const address pursuit,
 		const vault   attributeKey,
@@ -244,7 +258,7 @@ namespace Globals
 		return GetPursuitNodeAttribute(node, attributeKey, attributeIndex);
 	}
 
-	
+
 
 
 
@@ -339,7 +353,7 @@ namespace Globals
 		if (not copAIVehicle) return false;
 
 		const address copAIVehiclePursuit = GetAIVehiclePursuitOfVehicle(copVehicle);
-		if (not copAIVehiclePursuit) return false; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
 
 		const auto SetSupportGoal = AsFunction<void __thiscall (address, vault)>       (0x409850);
 		const auto SetVehicleGoal = AsFunction<void __thiscall (address, const vault&)>(0x422480);
@@ -361,7 +375,7 @@ namespace Globals
 		if (not pursuit) return 0x0;
 
 		const address pursuitTarget = AsReference<address>(pursuit + 0x74);
-		if (not pursuitTarget) return 0x0; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(pursuitTarget, return 0x0);
 
 		return AsReference<address>(pursuitTarget + 0x1C);
 	}
@@ -373,7 +387,7 @@ namespace Globals
 		if (not pursuit) return 0x0;
 
 		const address pursuitTarget = AsReference<address>(pursuit + 0x74);
-		if (not pursuitTarget) return 0x0; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(pursuitTarget, return 0x0);
 
 		address perpVehicle = 0x0;
 
@@ -409,38 +423,6 @@ namespace Globals
 	// Logging functions ----------------------------------------------------------------------------------------------------------------------------
 
 	template <typename ...Ts>
-	void LogConfig
-	(
-		const LogLiteral logTag,
-		const LogLiteral logName
-	) {
-		logger.Log<0>("  CONFIG", logTag, logName);
-	}
-
-
-	template <typename ...Ts>
-	void LogHeat
-	(
-		const LogLiteral    logTag,
-		const LogLiteral    logName,
-		Ts&&             ...segments
-	) {
-		logger.Log<0>("    HEAT", logTag, logName, std::forward<Ts>(segments)...);
-	}
-
-
-	template <typename ...Ts>
-	void LogWarning
-	(
-		const LogLiteral    logTag,
-		Ts&&             ...segments
-	) {
-		logger.Log<0>("WARNING:", logTag, std::forward<Ts>(segments)...);
-	}
-
-	
-
-	template <typename ...Ts>
 	void LogFull(Ts&& ...segments) 
 	{
 		logger.Log<0>(std::forward<Ts>(segments)...);
@@ -468,6 +450,38 @@ namespace Globals
 	void LogDetail(Ts&& ...segments)
 	{
 		logger.Log<3>(std::forward<Ts>(segments)...);
+	}
+
+
+
+	template <typename ...Ts>
+	void LogConfig
+	(
+		const LogLiteral logTag,
+		const LogLiteral logName
+	) {
+		LogFull("  CONFIG", logTag, logName);
+	}
+
+
+	template <typename ...Ts>
+	void LogHeat
+	(
+		const LogLiteral    logTag,
+		const LogLiteral    logName,
+		Ts&&             ...segments
+	) {
+		LogFull("    HEAT", logTag, logName, std::forward<Ts>(segments)...);
+	}
+
+
+	template <typename ...Ts>
+	void LogWarning
+	(
+		const LogLiteral    logTag,
+		Ts&&             ...segments
+	) {
+		LogFull("WARNING:", logTag, std::forward<Ts>(segments)...);
 	}
 }
 

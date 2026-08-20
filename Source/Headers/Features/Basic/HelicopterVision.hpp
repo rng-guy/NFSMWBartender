@@ -194,7 +194,7 @@ namespace HelicopterVision
 
 		constexpr HeatParameters::Bounds<int> limits(0, 255);
 
-		const bool isValid = parser.ParseFromFile<int, int, int, int, float>
+		const bool isProvided = parser.ParseFromFile<int, int, int, int, float>
 		(
 			"Helicopter:Vision",
 			colourName,
@@ -205,13 +205,13 @@ namespace HelicopterVision
 			{colour.transitionLength, {.001f}}
 		);
 
-		if (isValid)
+		if (isProvided)
 		{
 			for (size_t channelID = 0; channelID < numChannels; ++channelID)
 				colour.channels[channelID] = static_cast<float>(rawChannels[channelID]);
 		}
 
-		return isValid;
+		return isProvided;
 	}
 
 

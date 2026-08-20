@@ -59,10 +59,10 @@ namespace ParameterSets
 		}
 
 
-		bool GetsCreditForAssault(const byte numCopAssaulted) const
+		[[nodiscard]] bool GetsCreditForAssault(const byte numCopAssaulted) const
 		{
-			if (not maxNumAssaultsPerCop.isEnabled.current) return true;
-			return (numCopAssaulted < maxNumAssaultsPerCop.value.current);
+			if (not this->maxNumAssaultsPerCop.isEnabled.current) return true;
+			return (numCopAssaulted <= this->maxNumAssaultsPerCop.value.current);
 		}
 
 
@@ -93,14 +93,14 @@ namespace ParameterSets
 		}
 
 
-		float GetTaggingChange(const address copVehicle) const
+		[[nodiscard]] float GetTaggingChange(const address copVehicle) const
 		{
 			const vault copType = Globals::GetVehicleType(copVehicle);
 			return this->copTagChange.current + this->copTypeToTagChange.GetValue(copType);
 		}
 
 
-		float GetAssaultChange
+		[[nodiscard]] float GetAssaultChange
 		(
 			const address copVehicle,
 			const byte    numCopAssaulted
@@ -114,7 +114,7 @@ namespace ParameterSets
 		}
 
 
-		float GetWreckingChange(const address copVehicle) const
+		[[nodiscard]] float GetWreckingChange(const address copVehicle) const
 		{
 			const vault copType = Globals::GetVehicleType(copVehicle);
 			return this->copWreckChange.current + this->copTypeToWreckChange.GetValue(copType);

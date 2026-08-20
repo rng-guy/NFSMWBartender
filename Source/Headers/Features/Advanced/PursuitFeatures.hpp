@@ -79,7 +79,7 @@ namespace PursuitFeatures
 		) {};
 
 
-		address GetPursuit() const
+		[[nodiscard]] address GetPursuit() const
 		{
 			return this->pursuit;
 		}
@@ -115,10 +115,12 @@ namespace PursuitFeatures
 			auto* const instance            = static_cast<Feature*>(this);
 			const auto  [it, isNewInstance] = this->instances.insert(instance);
 
-			if constexpr (Globals::loggingEnabled)
+			if (not isNewInstance)
 			{
-				if (not isNewInstance)
+				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Registration failed:", instance);
+
+				ASSERT_UNREACHABLE;
 			}
 		}
 
@@ -134,11 +136,13 @@ namespace PursuitFeatures
 		{
 			const auto* const instance      = static_cast<const Feature*>(this);
 			const bool        wasRegistered = this->instances.erase(instance);
-
-			if constexpr (Globals::loggingEnabled)
+			
+			if (not wasRegistered)
 			{
-				if (not wasRegistered)
+				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Unregistration failed:", instance);
+
+				ASSERT_UNREACHABLE;
 			}
 		}
 
@@ -148,10 +152,7 @@ namespace PursuitFeatures
 			for (auto* const instance : Searchable::instances)
 				if (instance->GetPursuit() == pursuit) return instance;
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogWarning(logTag, "Lookup failed:", pursuit);
-
-			return nullptr; // should never happen
+			return nullptr;
 		}
 
 
@@ -199,7 +200,7 @@ namespace PursuitFeatures
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Timer already set");
 
-				return false; // should never happen
+				ASSERT_UNREACHABLE_THEN(return false);
 			}
 
 			this->isSet          = true;

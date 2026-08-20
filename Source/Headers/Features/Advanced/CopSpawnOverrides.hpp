@@ -33,6 +33,8 @@ namespace CopSpawnOverrides
 
 	// Contingent class -----------------------------------------------------------------------------------------------------------------------------
 
+	#define COP_CONTINGENT(name, ...) CopSpawnOverrides::Contingent name{#name, __VA_ARGS__}
+
 	class Contingent
 	{
 	private: // aliases
@@ -44,57 +46,82 @@ namespace CopSpawnOverrides
 
 		int numTotalActiveCops = 0;
 
-		const address pursuit; // pursuit-locked and immobile
-
-		const TablePointer* const source; // table-locked; can't be a reference, else MSVC claims constinit-incompatibility
+		const address             pursuit; // pursuit-locked and immobile
+		const TablePointer* const source;  // reference would break constinit in MSVC
 		
+		mutable const char* cachedCopName = nullptr; // only cleared on spawn success
+
 		CopSpawnTables::SpawnTable table;
 
-		ModContainers::VaultMap<int> copTypeToNumActive; // for Heat transitions and cops not in table
+		ModContainers::VaultMap<int> copTypeToNumActive;
 
-		inline static constexpr LogLiteral tag  = "[CON]";
-		inline static constexpr LogLiteral name = "Contingent";
+		[[no_unique_address]] LogLiteral name;
 
 
 	private: // methods
 
-		void ChangeNumActiveCopsInSpawnTable
+		bool ChangeNumActiveCops
 		(
 			const vault copType, 
 			const int   change
 		) {
-			const bool copTypeInSpawnTable = this->table.ChangeNumActiveCops(copType, change);
-			
+			if (change == 0) return true;
+
+			const auto [pairIt, isNewType] = this->copTypeToNumActive.try_emplace(copType, 0);
+
+			int& numActiveCops = pairIt->second;
+
+			numActiveCops            += change;
+			this->numTotalActiveCops += change;
+
+			this->table.ChangeNumActiveCops(copType, change);
+
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
 				{
-					if (copTypeInSpawnTable)
-						Globals::LogFull(this->pursuit, this->tag, "Type capacity:", this->table.GetNumAvailableCops(copType));
-
-					else Globals::LogFull(this->pursuit, this->tag, "Type capacity undefined");
+					Globals::LogPlain("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
+					Globals::LogPlain("Available: ", this->table.GetNumAvailableCops(copType));
 				}
 			}
+
+			const bool hasMiscounted = (numActiveCops < 0);
+
+			if (hasMiscounted)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, copType, "miscount in", this->name);
+
+				ASSERT_UNREACHABLE;
+			}
+				
+			if (numActiveCops < 1)
+				this->copTypeToNumActive.erase(pairIt);
+
+			return (not hasMiscounted);
 		}
 
 
 	public: // methods
 
-		constexpr explicit Contingent(const TablePointer& source) : source(&source), pursuit(0x0) {}
+		constexpr Contingent
+		(
+			const LogLiteral    name, 
+			const TablePointer& source
+		) 
+			: name(name), source(&source), pursuit(0x0), table()
+		{
+		}
 
 
 		Contingent
 		(
+			const LogLiteral    name,
 			const TablePointer& source,
 			const address       pursuit
 		) 
-			: source(&source), pursuit(pursuit), table(*(source.current))
+			: name(name), source(&source), pursuit(pursuit), table(*(source.current))
 		{
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (this->pursuit)
-					Globals::LogPlain('+', this, this->name);
-			}
 		}
 
 
@@ -105,17 +132,7 @@ namespace CopSpawnOverrides
 		Contingent& operator=(const Contingent&) = delete;
 
 
-		~Contingent()
-		{
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (this->pursuit)
-					Globals::LogPlain('-', this, this->name);
-			}
-		}
-
-
-		void ReserveCapacity(const size_t numTypes)
+		void Reserve(const size_t numTypes)
 		{
 			this->copTypeToNumActive.reserve(numTypes);
 		}
@@ -123,64 +140,55 @@ namespace CopSpawnOverrides
 
 		void UpdateSpawnTable()
 		{
-			this->table = *(this->source->current);
+			this->cachedCopName = nullptr;
 
-			for (const auto& [copType, currentCount] : this->copTypeToNumActive)
+			const auto* const sourceTable = this->source->current;
+
+			if (not sourceTable)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid source pointer in", this->name);
+
+				ASSERT_UNREACHABLE_THEN(return);
+			}
+
+			this->table = *sourceTable;
+
+			// Copy existing cops over to new table
+			for (const auto& [copType, numActiveCops] : this->copTypeToNumActive)
 			{
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->pursuit)
 					{
 						if (const auto* const copName = PersistentStrings::Get(copType))
-							Globals::LogFull(this->pursuit, this->tag, "Copying", currentCount, *copName);
+							Globals::LogPlain("Copied", numActiveCops, *copName);
 
-						else Globals::LogFull(this->pursuit, this->tag, "Copying", currentCount, copType);
+						else Globals::LogPlain("Copied", numActiveCops, copType);
 					}
 				}
 
-				this->ChangeNumActiveCopsInSpawnTable(copType, +currentCount);
+				this->table.ChangeNumActiveCops(copType, numActiveCops);
 			}
 		}
 
 
 		void ClearVehicles()
 		{
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (this->pursuit)
-					Globals::LogFull(this->pursuit, this->tag, "Clearing all vehicles");
-			}
+			this->numTotalActiveCops = 0;
 
+			this->cachedCopName = nullptr;
 			this->table.ResetActiveCopCounts();
 
 			this->copTypeToNumActive.clear();
-			this->numTotalActiveCops = 0;
 		}
 
 
 		void AddVehicleByType(const vault copType)
 		{
-			const auto [pairIt, isNewType] = this->copTypeToNumActive.try_emplace(copType, 1);
-			int&       numActiveCops       = pairIt->second;
+			this->cachedCopName = nullptr; // almost always matches copType
 
-			if (not isNewType)
-				++numActiveCops;
-
-			++(this->numTotalActiveCops);
-
-			this->ChangeNumActiveCopsInSpawnTable(copType, /* change = */ +1);
-
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (this->pursuit)
-					Globals::LogPlain("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
-			}
-		}
-
-
-		void AddVehicleByName(const std::string_view copName)
-		{
-			this->AddVehicleByType(Globals::GetVaultHash(copName));
+			this->ChangeNumActiveCops(copType, /* change = */ +1);
 		}
 
 
@@ -192,42 +200,7 @@ namespace CopSpawnOverrides
 
 		bool RemoveVehicleByType(const vault copType)
 		{
-			const auto foundType = this->copTypeToNumActive.find(copType);
-
-			if (foundType == this->copTypeToNumActive.end())
-			{
-				if constexpr (Globals::loggingEnabled)
-				{
-					if (this->pursuit)
-						Globals::LogWarning(this->tag, "Unknown type", copType, "in", this->pursuit);
-				}
-
-				return false; // should never happen
-			}
-
-			int& numActiveCops = foundType->second;
-
-			--numActiveCops;
-			--(this->numTotalActiveCops);
-
-			this->ChangeNumActiveCopsInSpawnTable(copType, /* change = */ -1);
-				
-			if constexpr (Globals::loggingEnabled)
-			{
-				if (this->pursuit)
-					Globals::LogPlain("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
-			}
-
-			if (numActiveCops < 1)
-				this->copTypeToNumActive.erase(foundType);
-
-			return true;
-		}
-
-
-		bool RemoveVehicleByName(const std::string_view copName)
-		{
-			return this->RemoveVehicleByType(Globals::GetVaultHash(copName));
+			return this->ChangeNumActiveCops(copType, /* change = */ -1);
 		}
 
 
@@ -251,14 +224,54 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] const char* GetNameOfAvailableCop() const
 		{
+			if (not this->cachedCopName)
+				this->cachedCopName = this->table.GetNameOfAvailableCop();
+
+			return this->cachedCopName;
+		}
+
+
+		[[nodiscard]] const char* GetNewNameOfAvailableCop() const
+		{
 			return this->table.GetNameOfAvailableCop();
 		}
 
 
 		[[nodiscard]] const char* GetNameOfAvailableCopWithFallback() const
 		{
-			const char* const copName = this->table.GetNameOfAvailableCop();
-			return (copName) ? copName : this->source->current->GetNameOfAvailableCop();
+			if (const auto nameFromTable = this->GetNameOfAvailableCop()) return nameFromTable;
+				
+			const auto* const sourceTable = this->source->current;
+
+			if (not sourceTable)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid source-table pointer in", this->name);
+
+				ASSERT_UNREACHABLE_THEN(return "copmidsize");
+			}
+
+			this->cachedCopName = sourceTable->GetNameOfAvailableCop();
+
+			return this->cachedCopName;
+		}
+
+
+		[[nodiscard]] const char* GetNewNameOfAvailableCopWithFallback() const
+		{
+			if (const auto nameFromTable = this->GetNewNameOfAvailableCop()) return nameFromTable;
+
+			const auto* const sourceTable = this->source->current;
+
+			if (not sourceTable)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid source-table pointer in", this->name);
+
+				ASSERT_UNREACHABLE_THEN(return "copmidsize");
+			}
+
+			return sourceTable->GetNameOfAvailableCop();
 		}
 	};
 
@@ -300,9 +313,9 @@ namespace CopSpawnOverrides
 	bool        usePrefetchedCopName    = false;   // so we must prefetch a valid cop name using their event's Heat level instead
 	const char* prefetchedCopName       = nullptr; // (this is completely unrelated to knowing the player vehicle's Heat level)
 	
-	RELEASE_CONSTINIT Contingent patrolSpawns   (CopSpawnTables::patrolSpawnTable);
-	RELEASE_CONSTINIT Contingent scriptedSpawns (CopSpawnTables::scriptedSpawnTable);
-	RELEASE_CONSTINIT Contingent roadblockSpawns(CopSpawnTables::roadblockSpawnTable);
+	RELEASE_CONSTINIT COP_CONTINGENT(patrolSpawns,    CopSpawnTables::patrolSpawnTable);
+	RELEASE_CONSTINIT COP_CONTINGENT(scriptedSpawns,  CopSpawnTables::scriptedSpawnTable);
+	RELEASE_CONSTINIT COP_CONTINGENT(roadblockSpawns, CopSpawnTables::roadblockSpawnTable);
 
 	// Conversions
 	float squaredChaserSpawnClearance = chaserSpawnClearance.current * chaserSpawnClearance.current; // metres²
@@ -336,7 +349,7 @@ namespace CopSpawnOverrides
 		const bool&  isFreeRoamPursuit = AsReference<bool> (this->pursuit + 0xA8);
 		const float& copSpawnCooldown  = AsReference<float>(this->pursuit + 0xCC);
 
-		Contingent chaserSpawns{CopSpawnTables::chaserSpawnTable, this->pursuit};
+		COP_CONTINGENT(chaserSpawns, CopSpawnTables::chaserSpawnTable, this->pursuit);
 
 		inline static constexpr LogLiteral name = "ChasersManager";
 
@@ -359,16 +372,20 @@ namespace CopSpawnOverrides
 
 		void UpdateNumPatrolCars()
 		{
-			const address attribute = Globals::GetFromPursuitlevel(this->pursuit, "NumPatrolCars"_vlt);
-			this->maxNumPatrolCars  = (attribute) ? AsReference<int>(attribute) : 1; // should never fail
+			const int* const numPatrolCars = AsPointer<int>(Globals::GetFromPursuitLevel(this->pursuit, "NumPatrolCars"_vlt));
+
+			if (not numPatrolCars)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid NumPatrolCars pointer in", this->pursuit);
+
+				ASSERT_UNREACHABLE;
+			} 
+
+			this->maxNumPatrolCars = (numPatrolCars) ? *numPatrolCars : 1;
 
 			if constexpr (Globals::loggingEnabled)
-			{
-				if (attribute)
-					Globals::LogFull(this->pursuit, logTag, "Max. patrol cars:", this->maxNumPatrolCars);
-
-				else Globals::LogWarning(logTag, "Invalid numPatrolCars pointer in", this->pursuit);
-			}
+				Globals::LogFull(this->pursuit, logTag, "Max. patrol cars:", this->maxNumPatrolCars);
 		}
 
 
@@ -454,7 +471,7 @@ namespace CopSpawnOverrides
 		[[nodiscard]] static bool HasVehicleEngaged(const address copVehicle)
 		{
 			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
-			if (not copAIVehiclePursuit) return false; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
 
 			return AsReference<bool>(copAIVehiclePursuit + 0x22);
 		}
@@ -529,7 +546,7 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Unknown chaser", copVehicle, "in", this->pursuit);
 
-				return; // should never happen
+				ASSERT_UNREACHABLE_THEN(return);
 			}
 
 			if (not (this->isFreeRoamPursuit or (GeneralSettings::anyFeatureEnabled and GeneralSettings::trackCopsLost)))
@@ -572,7 +589,7 @@ namespace CopSpawnOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogPlain('+', this, this->name);
 
-			this->chaserSpawns.ReserveCapacity(20);
+			this->chaserSpawns.Reserve(20);
 		}
 
 
@@ -629,7 +646,7 @@ namespace CopSpawnOverrides
 		static void __fastcall NotifyOfWaveReset(const address pursuit)
 		{
 			auto* const manager = ChasersManager::FindInstance(pursuit);
-			if (not manager) return; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -649,7 +666,7 @@ namespace CopSpawnOverrides
 		[[nodiscard]] static bool __fastcall IsChaserAvailable(const address pursuit)
 		{
 			const auto* const manager = ChasersManager::FindInstance(pursuit);
-			if (not manager) return false; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return false);
 
 			return manager->MayNewChaserSpawn();
 		}
@@ -658,7 +675,7 @@ namespace CopSpawnOverrides
 		[[nodiscard]] static bool HasRoadblockVehicleCapacity(const address pursuit)
 		{
 			const auto* const manager = ChasersManager::FindInstance(pursuit);
-			if (not manager) return false; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return false);
 
 			bool hasCapacity = (chasersAreIndependent.current or (manager->GetNumTotalMobileCops() < activeChaserLimit.max.current));
 
@@ -672,7 +689,7 @@ namespace CopSpawnOverrides
 		[[nodiscard]] static const char* __fastcall GetNameOfNewChaser(const address pursuit)
 		{
 			const auto* const manager = ChasersManager::FindInstance(pursuit);
-			if (not manager) return nullptr; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return nullptr);
 
 			return (manager->MayNewChaserSpawn()) ? manager->chaserSpawns.GetNameOfAvailableCop() : nullptr;
 		}
@@ -687,7 +704,7 @@ namespace CopSpawnOverrides
 	[[nodiscard]] bool IsEventActive()
 	{
 		const address raceStatusObject = AsReference<address>(0x91E000);
-		if (not raceStatusObject) return false; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(raceStatusObject, return false);
 
 		return (AsReference<int>(raceStatusObject + 0x1960) != 0);
 	}
@@ -710,11 +727,13 @@ namespace CopSpawnOverrides
 				return patrolSpawns.GetNameOfAvailableCop();
 				
 			case 0x43E049: // roadblock
-				return roadblockSpawns.GetNameOfAvailableCopWithFallback();
+				return roadblockSpawns.GetNewNameOfAvailableCopWithFallback();
 			}
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogWarning(logTag, "Unknown ByClass return address:", caller);
+
+			ASSERT_UNREACHABLE;
 		}
 
 		return nullptr;
@@ -725,7 +744,7 @@ namespace CopSpawnOverrides
 	[[nodiscard]] bool CurrentEventForcesPursuit()
 	{
 		const address raceStatus = AsReference<address>(0x91E000);
-		if (not raceStatus) return false; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(raceStatus, return false);
 
 		const auto    IsPursuitEvent = AsFunction <bool __thiscall (address)>(0x5FBE70);
 		const address raceParameters = AsReference<address>                  (raceStatus + 0x1968);
@@ -1241,9 +1260,9 @@ namespace CopSpawnOverrides
 		HeatParameters::Parse(parser, "Joining:Limit", roadblockJoinLimit);
 
 		// Container pre-allocations
-		patrolSpawns   .ReserveCapacity(20);
-		scriptedSpawns .ReserveCapacity(10);
-		roadblockSpawns.ReserveCapacity(10);
+		patrolSpawns   .Reserve(20);
+		scriptedSpawns .Reserve(10);
+		roadblockSpawns.Reserve(10);
 
 		// Code modifications 
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count

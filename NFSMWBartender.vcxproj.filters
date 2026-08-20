@@ -133,7 +133,7 @@
     <ClInclude Include="Source\Headers\Utilities\StreamParser.hpp">
       <Filter>Source\Headers\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\Utilities\BasicLogger.hpp">
+    <ClInclude Include="Source\Headers\Utilities\StaticLogger.hpp">
       <Filter>Source\Headers\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Utilities\MemoryTools.hpp">
@@ -162,7 +162,7 @@
     <None Include="README.md">
       <Filter>Docs</Filter>
     </None>
-    <None Include="Docs\APPENDIX.md">
+    <None Include="Docs\READMORE.md">
       <Filter>Docs</Filter>
     </None>
     <None Include="Editor\Images\Car.webp">
@@ -250,10 +250,10 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Docs\README.txt">
+    <Text Include="README.txt">
       <Filter>Docs</Filter>
     </Text>
-    <Text Include="Docs\APPENDIX.txt">
+    <Text Include="Docs\READMORE.txt">
       <Filter>Docs</Filter>
     </Text>
   </ItemGroup>

@@ -29,7 +29,7 @@ To help you **solve in-game issues** with Bartender, the sections below address 
 
 &nbsp;
 
-For a detailed **version history** of Bartender, see the [plain-text version](APPENDIX.txt) of this document.
+For a detailed **version history** of Bartender, see the [plain-text version](READMORE.txt) of this document.
 
 &nbsp;
 
@@ -492,6 +492,8 @@ Regarding **roadblock behaviour and setups** ([`BartenderSettings\Advanced\Roadb
 Regarding **Heat gain / loss** ([`BartenderSettings\Advanced\Heat.ini`](../Config/Advanced/Heat.ini)):
 
 * The `0x80deb840` VltEd array and the `TimePerHeatLevel` VltEd parameter control the pace at which you gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a Heat level passively, while the latter multiplies this base amount by whatever number you define for it.
+
+* In the vanilla game, all Challenge Series events use the 15h value (i.e. at index 14) of the `0x80deb840` VltEd array at every Heat level. This naturally locks their Heat escalation to Sonny's; Bartender allows you to define independent values instead.
 
 * Both Bartender and the game always respect the minimum and maximum available Heat levels set in VltEd. In Career mode, you can define the maximum Heat level through each rival's `0xe8c24416` VltEd parameter. For Challenge Series events, however, you must use their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters instead.
 

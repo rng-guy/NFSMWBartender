@@ -17,6 +17,7 @@ namespace ModContainers
 {
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
+	// Sets
 	template <typename K>
 	using Set = FlatContainers::Set<K>;
 
@@ -25,6 +26,7 @@ namespace ModContainers
 
 
 
+	// Regular maps
 	template <typename K, typename V>
 	using Map = FlatContainers::Map<K, V>;
 
@@ -36,6 +38,7 @@ namespace ModContainers
 
 
 
+	// Pointer-stable maps
 	template <typename K, typename V>
 	using StableMap = FlatContainers::Map<K, std::unique_ptr<V>>;
 
@@ -56,18 +59,20 @@ namespace ModContainers
 	// Methods
 
 		template <typename T>
-		T operator()(const T& value) const
+		[[nodiscard]] std::decay_t<T> operator()(T&& value) const
 		{
-			return value;
+			return std::forward<T>(value);
 		}
 	};
+
 
 
 	struct AlwaysValid
 	{
 	// Methods
 
-		bool operator()(const auto&) const 
+		template <typename T>
+		[[nodiscard]] bool operator()(T&&) const
 		{
 			return true; 
 		}
@@ -95,7 +100,7 @@ namespace ModContainers
 
 	// Methods
 
-		std::optional<ReturnType> Parse(const size_t valueID) const
+		[[nodiscard]] std::optional<ReturnType> Parse(const size_t valueID) const
 		{
 			const auto result = this->Convert(this->source[valueID]);
 			if (not this->IsValid(result)) return std::nullopt;
@@ -105,6 +110,10 @@ namespace ModContainers
 	};
 
 
+
+
+
+	// DefaultMap concepts --------------------------------------------------------------------------------------------------------------------------
 
 	namespace Details
 	{
@@ -335,7 +344,7 @@ namespace ModContainers
 
 		public: // methods
 
-			explicit EntryIterator(const address entry) : current(entry) {}
+			EntryIterator(const address entry) : current(entry) {}
 
 
 			[[nodiscard]] address operator*() const
@@ -373,8 +382,8 @@ namespace ModContainers
 		}
 
 
-		[[nodiscard]] auto begin() const {return EntryIterator(this->first);}
-		[[nodiscard]] auto end  () const {return EntryIterator(this->sentinel);}
+		[[nodiscard]] EntryIterator begin() const {return this->first;}
+		[[nodiscard]] EntryIterator end  () const {return this->sentinel;}
 	};
 
 
@@ -407,7 +416,7 @@ namespace ModContainers
 		}
 
 
-		void ReserveCapacity(const size_t capacity)
+		void Reserve(const size_t capacity)
 		{
 			this->pointers.reserve(capacity);
 		}

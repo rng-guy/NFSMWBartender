@@ -1,7 +1,7 @@
 ﻿
-── ■ │ WHAT'S THIS APPENDIX ABOUT? (v4.00.00) │ ■ ─────────────────────────────────────────────────
+── ■ │ WHAT IS THIS DOCUMENT? (v4.00.00) │ ■ ──────────────────────────────────────────────────────
 
-View this document on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/APPENDIX.md
+VIEW THIS FILE on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/Docs/READMORE.md
 
 This file contains the full TECHNICAL DETAILS AND LIMITATIONS of Bartender and its features,
 and it also mentions any incompatible features of other .asi mods wherever they are relevant.
@@ -645,10 +645,14 @@ Regarding STRATEGY REQUESTS ("BartenderSettings\Advanced\Strategies.ini"):
 
  Regarding HEAT GAIN / LOSS ("BartenderSettings\Advanced\Heat.ini"):
 
- • The "0x80deb840" VltEd array and the "TimePerHeatLevel" VltEd parameter control the pace
-   at which you gain passive Heat in pursuits: The former sets the base amount of time 
-   (in seconds) required to gain a Heat level passively, while the latter multiplies
-   this base amount by whatever number you define for it.
+ • The "0x80deb840" VltEd array and the "TimePerHeatLevel" VltEd parameter control
+   the pace at which you gain passive Heat in pursuits: The former sets the base
+   amount of time (in seconds) required to gain a Heat level passively, while
+   the latter multiplies this base amount by whatever number you define for it.
+
+ • In the vanilla game, all Challenge Series events use the 15h value (i.e. at index 14)
+   of the "0x80deb840" VltEd array at every Heat level. This naturally locks their Heat
+   escalation to Sonny's; Bartender allows you to define independent values instead.
 
  • Both Bartender and the game always respect the minimum and maximum available Heat levels
    set in VltEd. In Career mode, you can define the maximum Heat level through each rival's

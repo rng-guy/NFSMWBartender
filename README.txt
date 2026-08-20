@@ -1,7 +1,7 @@
 
 ── ■ │ WHAT IS NFSMW BARTENDER? (v4.00.00) │ ■ ────────────────────────────────────────────────────
 
-VIEW THIS DOCUMENT with better formatting on GitHub: https://github.com/rng-guy/NFSMWBartender
+VIEW THIS FILE on GitHub: https://github.com/rng-guy/NFSMWBartender
 
 Bartender adds NEW CUSTOMISATION OPTIONS for pursuits. These new options come in two feature sets:
  • the "BASIC"    FEATURE SET lets you change many otherwise hard-coded values of the game, and
@@ -108,6 +108,7 @@ The "Basic" feature set CAN FIX THREE MORE BUGS / ISSUES, depending on its confi
 
 The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • which roadblock setups can spawn through roadblock requests,
+ • whether the game may recycle distant cop vehicles to create roadblocks,
  • how likely the cops are to call out roadblock / spike spawns over the radio,
  • how many chasing cops can (re)spawn regardless of the remaining engagement count,
  • below what total number of active cops in the world the game can spawn new chasing cops,
@@ -200,7 +201,7 @@ TO INSTALL Bartender:
 
 AFTER INSTALLING Bartender:
  1) • edit the configuration (.ini) files in the "BartenderSettings" folder to your liking; and
- 2) • if you encounter any issues or want more feature details, see the "APPENDIX.txt" file.
+ 2) • if you encounter any issues or want more background info, see the "READMORE.txt" file.
 
 TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. There's no need
 to remove the optional missing textures, as the game doesn't use them without Bartender.

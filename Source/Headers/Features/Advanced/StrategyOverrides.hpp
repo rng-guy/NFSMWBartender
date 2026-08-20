@@ -192,7 +192,7 @@ namespace StrategyOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "New vehicle", copVehicle, "without Strategy in", this->pursuit);
 
-				return; // should never happen
+				ASSERT_UNREACHABLE_THEN(return);
 			}
 
 			this->vehiclesOfCurrentStrategy.insert(copVehicle);
@@ -220,7 +220,7 @@ namespace StrategyOverrides
 		static void __fastcall WatchHeavyStrategy(const address pursuit)
 		{
 			auto* const manager = StrategyManager::FindInstance(pursuit);
-			if (not manager) return; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
 			manager->StopUnblockTimer();
 
@@ -229,7 +229,7 @@ namespace StrategyOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Invalid HeavyStrategy pointer in", pursuit);
 
-				return; // should never happen
+				ASSERT_UNREACHABLE_THEN(return);
 			}
 
 			const int strategyID = AsReference<int>(manager->heavyStrategy);
@@ -250,8 +250,6 @@ namespace StrategyOverrides
 
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "HeavyStrategy", strategyID, "in", pursuit);
-
-				return; // should never happen
 			}
 
 			if constexpr (Globals::loggingEnabled)
@@ -264,7 +262,7 @@ namespace StrategyOverrides
 		static void __fastcall WatchLeaderStrategy(const address pursuit)
 		{
 			auto* const manager = StrategyManager::FindInstance(pursuit);
-			if (not manager) return; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
 			manager->StopUnblockTimer();
 
@@ -273,7 +271,7 @@ namespace StrategyOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Invalid LeaderStrategy pointer in", pursuit);
 
-				return; // should never happen
+				ASSERT_UNREACHABLE_THEN(return);
 			}
 
 			const int strategyID = AsReference<int>(manager->leaderStrategy);
@@ -305,7 +303,7 @@ namespace StrategyOverrides
 		static void __fastcall ClearWatchedStrategy(const address pursuit)
 		{
 			auto* const manager = StrategyManager::FindInstance(pursuit);
-			if (not manager) return; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
 			manager->StopUnblockTimer();
 
@@ -317,7 +315,7 @@ namespace StrategyOverrides
 		[[nodiscard]] static float __fastcall GetFullPursuitLength(const address pursuit)
 		{
 			const auto* const manager = StrategyManager::FindInstance(pursuit);
-			if (not manager) return 0.f; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return 0.f);
 
 			return Globals::simulationTime - manager->pursuitStartTimestamp;
 		}
@@ -326,7 +324,7 @@ namespace StrategyOverrides
 		[[nodiscard]] static size_t __fastcall GetNextHeavy3Count(const address pursuit)
 		{
 			const auto* const manager = StrategyManager::FindInstance(pursuit);
-			if (not manager) return 2; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return 2);
 
 			return manager->nextHeavy3Count;
 		}

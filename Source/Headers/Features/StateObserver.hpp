@@ -124,7 +124,7 @@ namespace StateObserver
 		const bool    racerAtFault
 	) {
 		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
-		if (not copAIVehiclePursuit) return false; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
 
 		const address pursuit = Globals::GetPursuitOfPerpVehicle(perpVehicle);
 
@@ -138,8 +138,11 @@ namespace StateObserver
 			if (pursuit) // may not be cop's pursuit (vanilla behaviour)
 			{
 				const auto NotifyCopDamaged = AsFunction<void __thiscall (address, address)>(0x40AF40);
-				NotifyCopDamaged(pursuit, copVehicle); // for "cops hit" tracking in perp pursuit
 
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogFull(pursuit, logTag, copVehicle, "tagged");
+
+				NotifyCopDamaged(pursuit,    copVehicle);
 				ProcessTaggedCop(copVehicle, perpVehicle);
 			}
 		}
@@ -458,8 +461,6 @@ namespace StateObserver
 
 	void __fastcall ProcessGameplay(const address soundAI)
 	{
-		const auto OriginalFunction = AsFunction<void __thiscall (address)>(ProcessGameplayOriginal);
-
 		// Apply hooked logic fist
 		const auto IsRacing = AsFunction<bool __thiscall (address)>(0x409500);
 
@@ -471,8 +472,8 @@ namespace StateObserver
 
 		PursuitObserver::UpdateFeatureState();
 
-		// Call original function last
-		OriginalFunction(soundAI);
+		// Call original function last (actually __thiscall with 0 arguments)
+		AsFunction<decltype(ProcessGameplay)>(ProcessGameplayOriginal)(soundAI);
 	}
 
 
@@ -481,13 +482,11 @@ namespace StateObserver
 
 	void ProcessWorldLoad()
 	{
-		const auto OriginalFunction = AsFunction<void ()>(ProcessWorldLoadOriginal);
-
 		// Apply hooked logic fist
 		CopSpawnOverrides::FullResetFeatureState();
 
 		// Call original function last
-		OriginalFunction();
+		AsFunction<decltype(ProcessWorldLoad)>(ProcessWorldLoadOriginal)();
 	}
 
 
@@ -496,8 +495,6 @@ namespace StateObserver
 
 	void ProcessEventRestart()
 	{
-		const auto OriginalFunction = AsFunction<void ()>(ProcessEventRestartOriginal);
-
 		// Apply hooked logic fist
 		playerHeatLevel               = 0;
 		Globals::playerHeatLevelKnown = false;
@@ -505,7 +502,7 @@ namespace StateObserver
 		CopSpawnOverrides::SoftResetFeatureState();
 
 		// Call original function last
-		OriginalFunction();
+		AsFunction<decltype(ProcessEventRestart)>(ProcessEventRestartOriginal)();
 	}
 
 

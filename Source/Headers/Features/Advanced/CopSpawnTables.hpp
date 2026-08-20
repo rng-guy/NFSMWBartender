@@ -82,6 +82,9 @@ namespace CopSpawnTables
 			const int   copCount, 
 			const int   copChance
 		) {
+			if (copCount  < 1) return false;
+			if (copChance < 1) return false;
+
 			const vault copType = Globals::GetVaultHash(copName);
 			if (not Globals::IsVehicleTypeCar(copType)) return false;
 
@@ -96,7 +99,7 @@ namespace CopSpawnTables
 				copChance
 			);
 
-			if (isNewType and (copCount > 0))
+			if (isNewType)
 				this->currentTotalCopChance += copChance;
 
 			return isNewType;
@@ -163,14 +166,26 @@ namespace CopSpawnTables
 
 			copEntry.numActive += change;
 
-			if constexpr (Globals::loggingEnabled)
+			if (copEntry.numActive < 0)
 			{
-				if (copEntry.numActive < 0)
+				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Negative active count for", copEntry.copName);
+
+				ASSERT_UNREACHABLE;
 			}
 
 			if (wasAvailable != copEntry.IsAvailable())
+			{
 				this->currentTotalCopChance += (wasAvailable) ? -copEntry.chance : copEntry.chance;
+
+				if (this->currentTotalCopChance < 0)
+				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::LogWarning(logTag, "Negative total current cop chance");
+
+					ASSERT_UNREACHABLE;
+				}
+			}
 
 			return true;
 		}
@@ -208,16 +223,18 @@ namespace CopSpawnTables
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogWarning(logTag, "Failed to select vehicle:", cumulativeChance, chanceThreshold);
 
-			return nullptr; // should never happen
+			ASSERT_UNREACHABLE_THEN(return nullptr);
 		}
 
 
 		void Log(const LogLiteral header) const
 		{
+			static RELEASE_CONSTINIT FormatBuffer::Buffer buffer;
+
 			HeatParameters::LogParameter(header, this->GetTotalMaxCopCount());
 
 			for (const auto& [copType, copEntry] : this->copTypeToEntry)
-				Globals::LogDetail(copEntry.copName, copEntry.maxCount, '/', copEntry.chance);
+				Globals::LogDetail(buffer.Format("{:<22}", copEntry.copName), copEntry.maxCount, '/', copEntry.chance);
 		}
 	};
 
@@ -263,9 +280,9 @@ namespace CopSpawnTables
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
 				// Parse spawn-table entries
-				const size_t           heatLevel  = heatLevelID + 1;
-				const std::string_view section    = buffer.Format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
-				const size_t           numEntries = parser.ParseUser<const char*, int, int>(section, copNames, {copCounts, {1}}, {copChances, {1}});
+				const size_t heatLevel  = heatLevelID + 1;
+				const auto   section    = buffer.Format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
+				const size_t numEntries = parser.ParseUser<const char*, int, int>(section, copNames, {copCounts, {1}}, {copChances, {1}});
 
 				// Attempt to add new entries to table
 				bool  theseEntriesValid = true;

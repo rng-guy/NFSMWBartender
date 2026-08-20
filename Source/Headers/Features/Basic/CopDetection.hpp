@@ -105,7 +105,7 @@ namespace CopDetection
 	[[nodiscard]] bool __fastcall GetsMiniMapIcon(const address copVehicle)
 	{
 		const address copAIVehicle = Globals::GetAIVehicleOfVehicle(copVehicle);
-		if (not copAIVehicle) return false; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(copAIVehicle, return false);
 
 		bool& iconIsKept = AsReference<bool>(copAIVehicle - 0x4C + 0x81); // padding byte
 		if (iconIsKept) return true; // mini-map icon already kept
@@ -129,7 +129,7 @@ namespace CopDetection
 
 		// Check distance to player vehicle
 		const address playerVehicle = Globals::GetVehicleOfPerpVehicle(Globals::playerPerpVehicle);
-		if (not playerVehicle) return false; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(playerVehicle, return false);
 
 		const auto    GetVehiclePosition = AsFunction<address __thiscall (address)>(0x688340);
 		const address copPosition        = GetVehiclePosition(copVehicle);

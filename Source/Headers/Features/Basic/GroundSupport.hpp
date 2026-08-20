@@ -180,7 +180,7 @@ namespace GroundSuppport
 		const auto GetSupportNode = AsFunction<address __thiscall (address)>(0x418EE0);
 
 		const address supportNode = GetSupportNode(pursuit - 0x48);
-		if (not supportNode) return; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(supportNode, return);
 
 		const auto GetNumStrategies = AsFunction<size_t  __thiscall (address)>        (CountFunction);
 		const auto GetStrategy      = AsFunction<address __thiscall (address, size_t)>(RetrievalFunction);

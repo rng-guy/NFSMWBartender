@@ -103,20 +103,22 @@ namespace CopFleeOverrides
 			) {
 				const auto [pairIt, isNewVehicle] = this->copVehicleToTimestamp.try_emplace(copVehicle, Globals::simulationTime + fleeTimer);
 
-				if constexpr (Globals::loggingEnabled)
+				if (not isNewVehicle)
 				{
-					if (isNewVehicle)
-						Globals::LogFull(this->pursuit, logTag, copVehicle, "expires in", fleeTimer);
+					if constexpr (Globals::loggingEnabled)
+						Globals::LogWarning(logTag, copVehicle, "already scheduled");
 
-					else Globals::LogWarning(logTag, copVehicle, "already scheduled"); // should never happen
+					ASSERT_UNREACHABLE;
 				}
+				else if constexpr (Globals::loggingEnabled)
+					Globals::LogFull(this->pursuit, logTag, copVehicle, "expires in", fleeTimer);
 			}
 
 
 			bool MakeVehicleBail(const address copVehicle) const
 			{
 				const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
-				if (not copAIVehiclePursuit) return false; // should never happen
+				ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
 
 				const auto StartFlee = AsFunction<void __thiscall (address)>(0x423370);
 				StartFlee(copAIVehiclePursuit); // also updates vehicle goal(s) accordingly
@@ -205,7 +207,7 @@ namespace CopFleeOverrides
 			}
 
 
-			void ReserveCapacity(const size_t numVehicles)
+			void Reserve(const size_t numVehicles)
 			{
 				this->copVehicleToTimestamp.reserve(numVehicles);
 			}
@@ -214,7 +216,16 @@ namespace CopFleeOverrides
 			void AddVehicle(const address copVehicle)
 			{
 				const float strategyDuration = (this->strategy) ? AsReference<float>(this->strategy + 0x8) : 1.f;
-				this->ScheduleVehicle(copVehicle, strategyDuration); // should never be 1.f (unless user-defined)
+
+				if (not this->strategy)
+				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::LogWarning(logTag, "Invalid Strategy pointer in", this->pursuit);
+
+					ASSERT_UNREACHABLE;
+				}
+
+				this->ScheduleVehicle(copVehicle, strategyDuration);
 			}
 
 
@@ -292,7 +303,7 @@ namespace CopFleeOverrides
 			}
 			
 
-			void ReserveCapacity(const size_t numVehicles)
+			void Reserve(const size_t numVehicles)
 			{
 				this->copVehicles          .reserve(numVehicles);
 				this->copVehicleToTimestamp.reserve(numVehicles);
@@ -399,7 +410,7 @@ namespace CopFleeOverrides
 			if (not this->pursuitTargetKnown) return 0x0;
 
 			const address physicsObject = Globals::GetPhysicsObjectOfPursuitTarget(this->pursuit);
-			if (not physicsObject) return 0x0; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(physicsObject, return 0x0);
 
 			return AsReference<address>(physicsObject + 0x4C);
 		}
@@ -416,7 +427,7 @@ namespace CopFleeOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Invalid RigidBody for target in", this->pursuit);
 
-				return false; // should never happen
+				ASSERT_UNREACHABLE_THEN(return false);
 			}
 
 			const auto  GetSpeedXZ     = AsFunction<float __thiscall (address)>(0x6711F0);
@@ -475,12 +486,12 @@ namespace CopFleeOverrides
 			this->chaserVehicles.IsSchedulable = MembershipManager::IsNotInChaserTable;
 
 			// Container pre-allocations
-			this->heavyVehicles .ReserveCapacity(10);
-			this->leaderVehicles.ReserveCapacity(10);
+			this->heavyVehicles .Reserve(10);
+			this->leaderVehicles.Reserve(10);
 
-			this->chaserVehicles         .ReserveCapacity(50);
-			this->joinedHeavyVehicles    .ReserveCapacity(10);
-			this->joinedRoadblockVehicles.ReserveCapacity(10);
+			this->chaserVehicles         .Reserve(50);
+			this->joinedHeavyVehicles    .Reserve(10);
+			this->joinedRoadblockVehicles.Reserve(10);
 		}
 
 

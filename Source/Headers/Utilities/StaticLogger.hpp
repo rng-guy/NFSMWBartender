@@ -16,7 +16,7 @@
 
 
 
-namespace BasicLogger
+namespace StaticLogger
 {
 	// Format wrappers ------------------------------------------------------------------------------------------------------------------------------
 
@@ -30,6 +30,7 @@ namespace BasicLogger
 	};
 
 
+
 	template<typename T>
 	requires std::integral<T>
 	struct LogDec
@@ -38,6 +39,7 @@ namespace BasicLogger
 
 		T value;
 	};
+
 
 
 	template<typename T>
@@ -56,11 +58,7 @@ namespace BasicLogger
 	// LogLiteral class -----------------------------------------------------------------------------------------------------------------------------
 
 	template <bool isEnabled>
-	class LogLiteral {};
-
-
-	template <>
-	class LogLiteral</* isEnabled = */ true>
+	class LogLiteral
 	{
 	private: // members
 
@@ -86,6 +84,7 @@ namespace BasicLogger
 			return this->GetView();
 		}
 	};
+
 
 
 	template <>
@@ -118,11 +117,7 @@ namespace BasicLogger
 	// LogString class ------------------------------------------------------------------------------------------------------------------------------
 
 	template <bool isEnabled>
-	class LogString {};
-
-
-	template <>
-	class LogString</* isEnabled = */ true>
+	class LogString
 	{
 	private: // members
 
@@ -151,6 +146,7 @@ namespace BasicLogger
 			return this->GetView();
 		}
 	};
+
 
 
 	template <>
@@ -185,7 +181,8 @@ namespace BasicLogger
 
 	// Logger class ---------------------------------------------------------------------------------------------------------------------------------
 
-	template <size_t ...indents>
+	template <auto isEnabled, size_t ...indents>
+	requires std::same_as<std::remove_cv_t<decltype(isEnabled)>, bool> // prevents conversions
 	class Logger
 	{
 	private: // members
@@ -295,7 +292,9 @@ namespace BasicLogger
 
 	public: // methods
 
-		Logger() = default;
+		Logger() noexcept = default;
+
+		explicit Logger(const std::filesystem::path& path) : file(path) {}
 
 
 		[[nodiscard]] bool IsOpen() const noexcept
@@ -306,23 +305,19 @@ namespace BasicLogger
 
 		bool Open(const std::filesystem::path& path) noexcept
 		{
-			if (not this->IsOpen())
-				this->file.open(path, std::ios::app);
+			if (this->IsOpen()) return false;
+
+			this->file.open(path, std::ios::app);
 
 			return this->IsOpen();
 		}
 
 
-		explicit Logger(const std::filesystem::path& path)
-		{
-			this->Open(path);
-		}
-
-
 		bool Close() noexcept
 		{
-			if (this->IsOpen())
-				this->file.close();
+			if (not this->IsOpen()) return false;
+
+			this->file.close();
 
 			return (not this->IsOpen());
 		}
@@ -341,6 +336,43 @@ namespace BasicLogger
 				std::fill_n(std::ostreambuf_iterator<char>(this->file), numWhitespaces, ' ');
 
 			this->PrintLine(std::forward<Ts>(segments)...);
+		}
+	};
+
+
+
+	template <size_t ...indents>
+	class Logger</* isEnabled = */ false, indents...>
+	{
+	public: // methods
+
+		Logger() noexcept = default;
+
+		explicit Logger(const std::filesystem::path&) {}
+
+
+		[[nodiscard]] bool IsOpen() const noexcept
+		{
+			return false;
+		}
+
+
+		bool Open(const std::filesystem::path&) noexcept
+		{
+			return false;
+		}
+
+
+		bool Close() noexcept
+		{
+			return false;
+		}
+
+
+		template <size_t indentLevel = 0, typename ...Ts>
+		void Log(Ts&& ...)
+		{
+			static_assert(indentLevel < 1 + sizeof...(indents), "Invalid indentLevel");
 		}
 	};
 }

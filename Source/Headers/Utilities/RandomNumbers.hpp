@@ -50,7 +50,7 @@ namespace RandomNumbers
 
 	public: // methods
 
-		constexpr void SetSeed(uint64_t seed)
+		constexpr void SetSeed(uint64_t seed) noexcept
 		{
 			this->seed = seed;
 

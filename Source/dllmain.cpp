@@ -61,10 +61,8 @@ static void __cdecl InitialiseBartender
 	const size_t  numArgs,
 	const address argArray
 ) {
-	const auto OriginalFunction = AsFunction<void __cdecl (size_t, address)>(InitialiseBartenderOriginal);
-
 	// Call original function first
-	OriginalFunction(numArgs, argArray);
+	AsFunction<decltype(InitialiseBartender)>(InitialiseBartenderOriginal)(numArgs, argArray);
 
 	#ifdef _DEBUG
 	while (not IsDebuggerPresent()); // halt until debugger is attached
@@ -82,19 +80,21 @@ static void __cdecl InitialiseBartender
 		Globals::LogFull(logSection, logTag, "Bartender v4.00.00");
 
 		// Check for other mods
-		constexpr std::array fileNames =
+		static constexpr std::array fileNames =
 		{
 			"X360Stuff.asi",
+			"Mempoolulator.asi",
 			"NFSMWUnlimiter.asi",    
 			"XNFSMusicPlayer.asi", 
 			"NFSMWSpeedFixer.asi",
-			"NFSMWExtraOptions.asi", 
-			"NFSMWLimitAdjuster.asi", 
+			"NFSMWExtraOptions.asi",
+			"NFSMWHDReflections.asi",
+			"NFSMWLimitAdjuster.asi",
 			"NFSMWOpenLimitAdjuster_gcp.asi",
 			"NFSMostWanted.WidescreenFix.asi"
 		};
 
-		for (const auto fileName : fileNames)
+		for (const char* const fileName : fileNames)
 			if (MemoryTools::IsModuleLoaded(fileName)) Globals::LogPlain('+', fileName);
 	}
 

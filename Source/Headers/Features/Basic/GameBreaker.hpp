@@ -70,7 +70,7 @@ namespace GameBreaker
 
 	[[nodiscard]] bool __fastcall IsInPursuit(const address localPlayer)
 	{
-		if (not localPlayer) return false; // should never happen
+		ASSERT_CONDITION_THEN_IF_FALSE(localPlayer, return false);
 
 		for (const address pursuit : ModContainers::PursuitList())
 			if (localPlayer == Globals::GetLocalPlayerOfPursuit(pursuit)) return true;

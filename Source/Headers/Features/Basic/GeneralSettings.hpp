@@ -99,21 +99,21 @@ namespace GeneralSettings
 		};
 
 		// Generate Heat-level lookup table
-		using SceneSpan = std::span<const char* const>; // dynamic
+		using Span = std::span<const char* const>; // dynamic
 
-		static constexpr std::array heatLevelTable = 
+		static constexpr std::array heatLevelScenesTable = 
 		{ 
-			SceneSpan(scenesLevel1), // Heat level 0
-			SceneSpan(scenesLevel1), // Heat level 1
-			SceneSpan(scenesLevel2), // Heat level 2
-			SceneSpan(scenesLevel3), // Heat level 3
-			SceneSpan(scenesOthers)  // Heat level 4+
+			Span(scenesLevel1), // Heat level 0
+			Span(scenesLevel1), // Heat level 1
+			Span(scenesLevel2), // Heat level 2
+			Span(scenesLevel3), // Heat level 3
+			Span(scenesOthers)  // Heat level 4+
 		};
 
 		// Select random cutscene by Heat level
-		heatLevel = std::min<size_t>(heatLevel, heatLevelTable.size() - 1);
+		heatLevel = std::min<size_t>(heatLevel, heatLevelScenesTable.size() - 1);
 
-		const auto&  candidates  = heatLevelTable[heatLevel];
+		const auto&  candidates  = heatLevelScenesTable[heatLevel];
 		const size_t sceneID     = Globals::prng.GenerateIndex(candidates);
 		const auto   randomScene = candidates[sceneID];
 

@@ -212,7 +212,7 @@ namespace HeatParameters
 			const T          initial
 		)
 			requires (not Details::IsBoundsCompatible<T>) 
-			: name(name), current(initial), limits({})
+			: name(name), current(initial), limits()
 		{
 		}
 
@@ -737,16 +737,16 @@ namespace HeatParameters
 		template <typename T> struct IsRegular<Value   <T>> : std::true_type  {};
 		template <typename T> struct IsRegular<Interval<T>> : std::true_type  {};
 
-		template <typename ...T>
-		concept AreRegular = (IsRegular<T>::value and ...);
+		template <typename ...Ts>
+		concept AreRegular = ((sizeof...(Ts) > 0) and ... and IsRegular<Ts>::value);
 
 
 		template <typename T> struct IsOptional                      : std::false_type {};
 		template <typename T> struct IsOptional<OptionalValue   <T>> : std::true_type  {};
 		template <typename T> struct IsOptional<OptionalInterval<T>> : std::true_type  {};
 
-		template <typename ...T>
-		concept AreOptional = (IsOptional<T>::value and ...);
+		template <typename ...Ts>
+		concept AreOptional = ((sizeof...(Ts) > 0) and ... and IsOptional<Ts>::value);
 
 
 

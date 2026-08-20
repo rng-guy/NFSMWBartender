@@ -64,6 +64,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -87,6 +88,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -114,7 +116,7 @@
     <ClInclude Include="Source\Headers\Common\ModContainers.hpp" />
     <ClInclude Include="Source\Headers\Common\ParameterSets.hpp" />
     <ClInclude Include="Source\Headers\Common\PersistentStrings.hpp" />
-    <ClInclude Include="Source\Headers\Utilities\BasicLogger.hpp" />
+    <ClInclude Include="Source\Headers\Utilities\StaticLogger.hpp" />
     <ClInclude Include="Source\Headers\Utilities\FlatContainers.hpp" />
     <ClInclude Include="Source\Headers\Utilities\FormatBuffer.hpp" />
     <ClInclude Include="Source\Headers\Utilities\MemoryTools.hpp" />
@@ -143,7 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
-    <None Include="Docs\APPENDIX.md" />
+    <None Include="Docs\READMORE.md" />
     <None Include="Config\Advanced\CarSpawns.ini" />
     <None Include="Config\Advanced\CarTables.ini" />
     <None Include="Config\Advanced\Heat.ini" />
@@ -175,8 +177,8 @@
     <Image Include="Thumbnail.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Docs\APPENDIX.txt" />
-    <Text Include="Docs\README.txt" />
+    <Text Include="Docs\READMORE.txt" />
+    <Text Include="README.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -193,7 +195,8 @@
       <BinarySourceFiles Include="$(ProjectDir)Binary\Source\**\*.*" Exclude="$(ProjectDir)Binary\Source\FixMissingTextures.end" />
       <EditorSourceFiles Include="$(ProjectDir)Editor\Source\**\*.*" />
       <EditorImageFiles Include="$(ProjectDir)Editor\Images\**\*.*" />
-      <DocumentationTxtFiles Include="$(ProjectDir)Docs\*.txt" />
+      <DocumentationTxtFiles Include="$(ProjectDir)README.txt" />
+      <DocumentationTxtFiles Include="$(ProjectDir)Docs\READMORE.txt" />
       <RoadblockEditor Include="$(ProjectDir)Editor\RoadblockEditor.html" />
       <FixMissingTextures Include="$(ProjectDir)Binary\Source\FixMissingTextures.end" />
     </ItemGroup>

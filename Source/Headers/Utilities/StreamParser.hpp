@@ -70,12 +70,12 @@ namespace StreamParser
 
 			constexpr size_t markSize = 3; // bytes
 
-			char buffer[markSize];
-			stream.read(buffer, markSize);
+			std::array<char, markSize> buffer = {};
+			stream.read(buffer.data(), markSize);
 
 			// Skip the first three bytes if the UTF-8 BOM is present
 			const size_t numReads = static_cast<size_t>(stream.gcount());
-			if (std::string_view(buffer, numReads) == "\xEF\xBB\xBF") return;
+			if (std::string_view(buffer.data(), numReads) == "\xEF\xBB\xBF") return;
 
 			// Reset stream
 			stream.clear();
@@ -121,21 +121,21 @@ namespace StreamParser
 
 
 
-		[[nodiscard]] constexpr std::string_view TrimLeft(const std::string_view view) noexcept
+		[[nodiscard]] inline std::string_view TrimLeft(const std::string_view view) noexcept
 		{
 			const auto startIt = std::find_if_not(view.begin(), view.end(), IsWhitespace);
 			return {startIt, view.end()};
 		}
 
 
-		[[nodiscard]] constexpr std::string_view TrimRight(const std::string_view view) noexcept
+		[[nodiscard]] inline std::string_view TrimRight(const std::string_view view) noexcept
 		{
 			const auto endIt = std::find_if_not(view.rbegin(), view.rend(), IsWhitespace);
 			return {view.begin(), endIt.base()};
 		}
 
 
-		[[nodiscard]] constexpr std::string_view Trim(const std::string_view view) noexcept
+		[[nodiscard]] inline std::string_view Trim(const std::string_view view) noexcept
 		{
 			return TrimRight(TrimLeft(view));
 		}
@@ -174,7 +174,7 @@ namespace StreamParser
 	}
 
 
-	constexpr bool ParseFromString
+	inline bool ParseFromString
 	(
 		const std::string_view source,
 		bool&                  value
@@ -202,7 +202,7 @@ namespace StreamParser
 
 	template <typename V>
 	requires Concepts::IsModernStringOrView<V>
-	constexpr bool ParseFromString
+	inline bool ParseFromString
 	(
 		const std::string_view source,
 		V&                     value
@@ -215,7 +215,7 @@ namespace StreamParser
 	}
 
 
-	constexpr bool ParseFromString
+	inline bool ParseFromString
 	(
 		const std::string& source,
 		const char*&       value
@@ -228,7 +228,7 @@ namespace StreamParser
 	}
 
 
-	constexpr bool ParseFromString
+	inline bool ParseFromString
 	(
 		const char* const source,
 		const char*&      value
@@ -243,7 +243,7 @@ namespace StreamParser
 
 
 	template <typename S, typename ...Vs>
-	requires (Concepts::IsAnyStringOrView<S> and Concepts::AreParseable<Vs...> and Concepts::AreCompatible<S, Vs...>)
+	requires (Concepts::IsAnyStringOrView<S> and Concepts::AreCompatible<S, Vs...> and Concepts::AreParseable<Vs...>)
 	inline bool ParseFromStrings
 	(
 		const std::span<const S>    sources,
@@ -295,13 +295,13 @@ namespace StreamParser
 
 	private: // methods
 
-		[[nodiscard]] static constexpr std::string_view GetContent(const std::string_view line) noexcept
+		[[nodiscard]] static std::string_view GetContent(const std::string_view line) noexcept
 		{
 			return Details::Trim(line.substr(0, line.find(comment)));
 		}
 
 
-		[[nodiscard]] static constexpr std::optional<std::string_view> GetSectionName(const std::string_view content) noexcept
+		[[nodiscard]] static std::optional<std::string_view> GetSectionName(const std::string_view content) noexcept
 		{
 			if (not content.starts_with(start)) return std::nullopt;
 			if (not content.ends_with  (end))   return std::nullopt;
@@ -310,22 +310,22 @@ namespace StreamParser
 		}
 
 
-		[[nodiscard]] static bool SplitValues
+		[[nodiscard]] static bool SplitValue
 		(
-			const std::string_view         source,
+			const std::string_view         value,
 			std::vector<std::string_view>& segments
 		) {
 			segments.clear();
 
 			size_t startPosition = 0;
 
-			while (startPosition <= source.length())
+			while (startPosition <= value.length())
 			{
-				const size_t endPosition    = source.find(separator, startPosition);
+				const size_t endPosition    = value.find(separator, startPosition);
 				const bool   isFinalSegment = (endPosition == std::string_view::npos);
 				const size_t segmentLength  = (isFinalSegment) ? std::string_view::npos : (endPosition - startPosition);
 
-				const std::string_view segment = Details::Trim(source.substr(startPosition, segmentLength));
+				const std::string_view segment = Details::Trim(value.substr(startPosition, segmentLength));
 				if (segment.empty()) return false;
 
 				segments.push_back(segment);
@@ -338,7 +338,7 @@ namespace StreamParser
 		}
 
 
-		[[nodiscard]] static std::optional<std::string_view> GetKey
+		[[nodiscard]] static std::optional<std::string_view> GetKeyAndSplitValue
 		(
 			const std::string_view         content,
 			std::vector<std::string_view>& segments
@@ -349,10 +349,10 @@ namespace StreamParser
 			const std::string_view key = Details::TrimRight(content.substr(0, firstAssign));
 			if (key.empty()) return std::nullopt; // missing key
 
-			const std::string_view values = Details::TrimLeft(content.substr(firstAssign + 1));
-			if (values.empty()) return std::nullopt; // missing value(s)
+			const std::string_view value = Details::TrimLeft(content.substr(firstAssign + 1));
+			if (value.empty()) return std::nullopt; // missing value(s)
 
-			if (not Parser::SplitValues(values, segments)) return std::nullopt; // empty value(s)
+			if (not Parser::SplitValue(value, segments)) return std::nullopt; // empty segment(s)
 
 			return key;
 		}
@@ -376,8 +376,9 @@ namespace StreamParser
 
 			std::vector<std::string_view> segments;
 
-			Details::SkipByteOrderMark(stream); // seriously, screw Notepad
 			this->sections.reserve(this->sections.size() + sectionCapacity);
+
+			Details::SkipByteOrderMark(stream); // man, screw Notepad
 
 			while (std::getline(stream, line))
 			{
@@ -407,7 +408,7 @@ namespace StreamParser
 				// Attempt to parse the line content as a key-value pair
 				if (not currentSection) continue; // no active section
 
-				const auto key = this->GetKey(content, segments);
+				const auto key = this->GetKeyAndSplitValue(content, segments);
 				if (not key) continue; // invalid key or value(s)
 
 				const auto [pairIt, isNewPair] = currentSection->try_emplace(*key);
@@ -476,7 +477,7 @@ namespace StreamParser
 		) {
 			size_t numReads = 0;
 
-			keys.reserve        (keys  .size() + section.size());
+			keys        .reserve(keys  .size() + section.size());
 			(..., values.reserve(values.size() + section.size()));
 
 			const auto ExtractValues = [&](auto&& ...candidates) -> void

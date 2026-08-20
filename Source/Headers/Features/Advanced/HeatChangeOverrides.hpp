@@ -139,6 +139,12 @@ namespace HeatChangeOverrides
 		}
 
 
+		[[nodiscard]] static HeatManager* FindInstanceByPerpVehicle(const address perpVehicle)
+		{
+			return HeatManager::FindInstance(Globals::GetPursuitOfPerpVehicle(perpVehicle));
+		}
+
+
 	public: // members
 
 		inline static constinit const bool& isEnabled = anyFeatureEnabled;
@@ -171,9 +177,8 @@ namespace HeatChangeOverrides
 			const address copVehicle, 
 			const address perpVehicle
 		) {
-			const address pursuit = Globals    ::GetPursuitOfPerpVehicle(perpVehicle);
-			auto* const   manager = HeatManager::FindInstance           (pursuit);
-			if (not manager) return; // should never happen
+			auto* const manager = HeatManager::FindInstanceByPerpVehicle(perpVehicle);
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
 			const float heatChange = heatInteractions.GetTaggingChange(copVehicle);
 			manager->AddToPendingHeatChange(heatChange);
@@ -186,9 +191,8 @@ namespace HeatChangeOverrides
 			const address perpVehicle,
 			const byte    numCopAssaulted
 		) {
-			const address pursuit = Globals    ::GetPursuitOfPerpVehicle(perpVehicle);
-			auto* const   manager = HeatManager::FindInstance           (pursuit);
-			if (not manager) return; // should never happen
+			auto* const manager = HeatManager::FindInstanceByPerpVehicle(perpVehicle);
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
 			const float heatChange = heatInteractions.GetAssaultChange(copVehicle, numCopAssaulted);
 			manager->AddToPendingHeatChange(heatChange);
@@ -201,7 +205,7 @@ namespace HeatChangeOverrides
 			const int     damageAmount
 		) {
 			auto* const manager = HeatManager::FindInstance(pursuit);
-			if (not manager) return; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
 			const float heatChange = static_cast<float>(damageAmount) * propertyHeatChange.current;
 			manager->AddToPendingHeatChange(heatChange);
@@ -214,7 +218,7 @@ namespace HeatChangeOverrides
 			const address copVehicle
 		) {
 			auto* const manager = HeatManager::FindInstance(pursuit);
-			if (not manager) return; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
 			const float heatChange = heatInteractions.GetWreckingChange(copVehicle);
 			manager->AddToPendingHeatChange(heatChange);
@@ -226,7 +230,7 @@ namespace HeatChangeOverrides
 			if (Globals::IsPursuitInCooldownMode(pursuit)) return 0.f;
 
 			auto* const manager = HeatManager::FindInstance(pursuit);
-			if (not manager) return 0.f; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return 0.f);
 
 			const float heatChange = manager->pendingHeatChange;
 

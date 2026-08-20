@@ -120,6 +120,7 @@ The "Basic" feature set **can fix three more bugs / issues**, depending on its c
 
 The "Advanced" feature set **lets you change** (per Heat level)
 * which roadblock setups can spawn through roadblock requests,
+* whether the game may recycle distant cop vehicles to create roadblocks,
 * how likely the cops are to call out roadblock / spike spawns over the radio,
 * how many chasing cops can (re)spawn regardless of the remaining engagement count,
 * below what total number of active cops in the world the game can spawn new chasing cops,
@@ -226,7 +227,7 @@ The "Advanced" feature set **can fix five more bugs / issues**, depending on its
 
 **After installing** Bartender: 
 1. edit the configuration (`.ini`) files in the `BartenderSettings` folder to your liking; and
-2. if you encounter any issues or want more feature details, see the [appendix file](Docs/APPENDIX.md).
+2. if you encounter any issues or want more background info, see the [details file](Docs/READMORE.md).
 
 &nbsp;
 

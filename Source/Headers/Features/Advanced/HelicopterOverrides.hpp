@@ -114,10 +114,12 @@ namespace HelicopterOverrides
 
 		void TakeOwnership(const address copVehicle) const
 		{
-			if constexpr (Globals::loggingEnabled)
+			if (this->helicopterOwner and (not this->IsOwner()))
 			{
-				if (this->helicopterOwner and (not this->IsOwner()))
+				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Owner mismatch:", this->helicopterOwner, '/', this->pursuit);
+
+				ASSERT_UNREACHABLE;
 			}
 
 			this->helicopterOwner = this->pursuit;
@@ -182,10 +184,10 @@ namespace HelicopterOverrides
 			if (not Globals::IsPursuitInCooldownMode(this->pursuit)) return;
 
 			const address soundAI = AsReference<address>(0x993CC8);
-			if (not soundAI) return; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(soundAI, return);
 
 			const address helicopterActor = AsReference<address>(soundAI + 0xE0);
-			if (not helicopterActor) return; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(helicopterActor, return);
 
 			const auto CallOutSweep = AsFunction<void __thiscall (address)>(0x717D40);
 			CallOutSweep(helicopterActor); // requests radio callout for helicopter search
@@ -213,15 +215,14 @@ namespace HelicopterOverrides
 
 		[[nodiscard]] static float* GetFuelTimePointer()
 		{ 
-			if (not HelicopterManager::helicopter) return nullptr; // should never happen
-			return AsPointer<float>(HelicopterManager::helicopter + 0x7D8);
+			return (HelicopterManager::helicopter) ? AsPointer<float>(HelicopterManager::helicopter + 0x7D8) : nullptr;
 		}
 
 
 		[[nodiscard]] static float GetFuelTime()
 		{
 			const float* const fuelTime = HelicopterManager::GetFuelTimePointer();
-			if (not fuelTime) return 0.f; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(fuelTime, return 0.f);
 
 			return *fuelTime;
 		}
@@ -238,7 +239,7 @@ namespace HelicopterOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Invalid fuel pointer");
 
-				return; // should never happen
+				ASSERT_UNREACHABLE_THEN(return);
 			}
 
 			*fuelTime = amount;
@@ -434,10 +435,12 @@ namespace HelicopterOverrides
 			}
 			else
 			{
-				if constexpr (Globals::loggingEnabled)
+				if (this->IsHelicopterRejoining())
 				{
-					if (this->IsHelicopterRejoining())
+					if constexpr (Globals::loggingEnabled)
 						Globals::LogWarning(logTag, "Expected ownership in", this->pursuit);
+
+					ASSERT_UNREACHABLE;
 				}
 
 				this->ProcessNewHelicopter(copVehicle);
@@ -480,8 +483,10 @@ namespace HelicopterOverrides
 				if (HelicopterManager::helicopterName)
 					return HelicopterManager::helicopterName;
 
-				else if constexpr (Globals::loggingEnabled)
+				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Invalid name pointer");
+
+				ASSERT_UNREACHABLE;
 			}
 
 			return helicopterVehicle.current;
@@ -496,9 +501,17 @@ namespace HelicopterOverrides
 
 	[[nodiscard]] bool __fastcall IsSearchSpawnAllowed(const address pursuit)
 	{
-		const address attribute   = Globals::GetFromPursuitlevel(pursuit, "SearchModeHeliSpawnChance"_vlt);
-		const float   spawnChance = (attribute) ? AsReference<float>(attribute) : 0.f; // should never fail
-		const bool    isAllowed   = Globals::prng.DoPercentTrial<float>(spawnChance);
+		const float* const spawnChance = AsPointer<float>(Globals::GetFromPursuitLevel(pursuit, "SearchModeHeliSpawnChance"_vlt));
+		
+		if (not spawnChance)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogWarning(logTag, "Invalid SearchModeHeliSpawnChance pointer in", pursuit);
+
+			ASSERT_UNREACHABLE;
+		}
+
+		const bool isAllowed = ((spawnChance) and Globals::prng.DoPercentTrial<float>(*spawnChance));
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogFull(pursuit, logTag, "Search", (isAllowed) ? "allowed" : "blocked");

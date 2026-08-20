@@ -5,11 +5,13 @@
 #include <vector>
 #include <format>
 #include <utility>
+#include <cstdlib>
 #include <fstream>
 #include <optional>
 #include <concepts>
 #include <filesystem>
 #include <string_view>
+#include <type_traits>
 
 #include "Globals.hpp"
 
@@ -45,12 +47,12 @@ namespace ConfigParser
 
 
 
-	// Auxiliary data structures --------------------------------------------------------------------------------------------------------------------
+	// Parser helpers -------------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
-	struct Bounds 
+	class Bounds 
 	{
-	// Methods
+	public: // methods
 
 		void Enforce(auto&) const {}
 	};
@@ -58,23 +60,37 @@ namespace ConfigParser
 
 	template <typename T>
 	requires Concepts::IsBoundsCompatible<T>
-	struct Bounds<T>
+	class Bounds<T>
 	{
-	// Members
+	private: // members
 
 		std::optional<T> lower;
 		std::optional<T> upper;
 
 
-	// Methods
+	public: // methods
+
+		constexpr Bounds
+		(
+			const std::optional<T>& lower = {},
+			const std::optional<T>& upper = {}
+		)
+			: lower(lower), upper(upper)
+		{
+			if (not (this->lower and this->upper)) return;
+			if (*(this->lower) <= *(this->upper))  return;
+
+			if (not std::is_constant_evaluated())
+				ASSERT_UNREACHABLE_THEN(this->lower = this->upper);
+			
+			else std::abort(); // fails to compile instead
+		}
+
 
 		void Enforce(T& value) const
 		{
-			const auto& lower = this->lower;
-			const auto& upper = this->upper;
-
-			if (lower and (value < *lower)) value = *lower;
-			if (upper and (value > *upper)) value = *upper;
+			if (this->lower and (value < *(this->lower))) value = *(this->lower);
+			if (this->upper and (value > *(this->upper))) value = *(this->upper);
 		}
 
 
@@ -155,7 +171,7 @@ namespace ConfigParser
 				if (pairIt != this->pathToSections.end())
 					pairIt->second.swap(this->sections); // sections now empty
 
-				else this->sections.clear(); // should never happen
+				else ASSERT_UNREACHABLE_THEN(this->sections.clear());
 			}
 
 			this->currentFilePath = std::move(newFilePath);
@@ -306,8 +322,8 @@ namespace ConfigParser
 				// Parse row without default(s) first
 				if (foundSection != this->sections.end())
 				{
-					const std::string_view format = this->buffer.Format(keyFormat, keyStartIndex + rowID);
-					isValidRows[rowID]            = this->GetValues<Vs...>(foundSection->second, format, parameters.values[rowID]...);
+					const auto format  = this->buffer.Format(keyFormat, keyStartIndex + rowID);
+					isValidRows[rowID] = this->GetValues<Vs...>(foundSection->second, format, parameters.values[rowID]...);
 				}
 
 				// Apply default(s) to invalid row
@@ -336,7 +352,7 @@ namespace ConfigParser
 		) 
 			const
 		{
-			keys.clear();
+			keys                   .clear();
 			(..., parameters.values.clear());
 
 			const size_t numReads = this->GetFullSection<K, Vs...>(section, keys, parameters.values...);

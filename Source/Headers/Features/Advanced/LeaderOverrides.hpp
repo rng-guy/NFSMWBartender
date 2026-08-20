@@ -260,7 +260,13 @@ namespace LeaderOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogFull(this->pursuit, logTag, "Strategy ID now", this->lastStrategyID);
 			}
-			else this->lastStrategyID = 0; // should never happen
+			else
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid LeaderStrategy pointer in", this->pursuit);
+
+				ASSERT_UNREACHABLE_THEN(this->lastStrategyID = 0);
+			}
 
 			this->SetCrossStatus(Status::ACTIVE);
 
@@ -275,11 +281,11 @@ namespace LeaderOverrides
 				this->crossAggroTimer.LoadInterval(leader7CrossAggroDelay);
 				break;
 
-			default: // should never happen
+			default:
 				this->crossAggroTimer.DisableInterval();
 
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "LeaderStrategy", this->lastStrategyID, "in", pursuit);
+					Globals::LogWarning(logTag, "LeaderStrategy", this->lastStrategyID, " Cross in", this->pursuit);
 			}
 
 			this->crossAggroTimer.Start();
@@ -305,8 +311,11 @@ namespace LeaderOverrides
 				this->henchmenAggroTimer.LoadInterval(leader7HenchAggroDelay);
 				break;
 
-			default: // should never happen
+			default:
 				this->henchmenAggroTimer.DisableInterval();
+
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "LeaderStrategy", this->lastStrategyID, "henchmen in", this->pursuit);
 			}
 
 			this->henchmenAggroTimer.Start();

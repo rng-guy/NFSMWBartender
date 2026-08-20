@@ -91,7 +91,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogWarning(logTag, "Unknown AddVehicle caller:", caller);
 
-			return CopLabel::UNKNOWN;
+			ASSERT_UNREACHABLE_THEN(return CopLabel::UNKNOWN);
 		}
 
 
@@ -110,11 +110,15 @@ namespace PursuitObserver
 		explicit PursuitObserver(const address pursuit) : pursuit(pursuit)
 		{
 			if constexpr (Globals::loggingEnabled)
+			{
+				Globals::LogFull("     NEW", logTag, "Pursuit", this->pursuit);
+
 				Globals::LogPlain('+', this, this->name);
+			}
 
 			// Container pre-allocations
-			this->reactions        .ReserveCapacity(6);
-			this->copVehicleToLabel.reserve        (100);
+			this->reactions        .Reserve(6);
+			this->copVehicleToLabel.reserve(100);
 
 			// Reaction features
 			this->AttachReaction<CopSpawnOverrides  ::ChasersManager>   ();
@@ -136,7 +140,11 @@ namespace PursuitObserver
 		~PursuitObserver()
 		{
 			if constexpr (Globals::loggingEnabled)
+			{
+				Globals::LogFull("     DEL", logTag, "Pursuit", this->pursuit);
+
 				Globals::LogPlain('-', this, this->name);
+			}
 		}
 
 
@@ -174,7 +182,7 @@ namespace PursuitObserver
 		}
 
 
-		address GetPursuit() const
+		[[nodiscard]] address GetPursuit() const
 		{
 			return this->pursuit;
 		}
@@ -187,7 +195,7 @@ namespace PursuitObserver
 			const address caller
 		) {
 			auto* const observer = PursuitObserver::FindInstance(pursuit);
-			if (not observer) return; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(observer, return);
 
 			const CopLabel copLabel               = observer->InferCopLabelFromCaller(caller);
 			const auto     [pairIt, isNewVehicle] = observer->copVehicleToLabel.try_emplace(copVehicle, copLabel);
@@ -197,7 +205,7 @@ namespace PursuitObserver
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, '=', copVehicle, copLabel, "is already", pairIt->second);
 
-				return; // should never happen
+				ASSERT_UNREACHABLE_THEN(return);
 			}
 
 			// Process new vehicle
@@ -215,7 +223,7 @@ namespace PursuitObserver
 			const address copVehicle
 		) {
 			auto* const observer = PursuitObserver::FindInstance(pursuit);
-			if (not observer) return; // should never happen
+			ASSERT_CONDITION_THEN_IF_FALSE(observer, return);
 
 			const auto foundVehicle = observer->copVehicleToLabel.find(copVehicle);
 
@@ -224,7 +232,7 @@ namespace PursuitObserver
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Unknown vehicle", copVehicle, Globals::GetVehicleName(copVehicle), "in", pursuit);
 
-				return; // should never happen
+				ASSERT_UNREACHABLE_THEN(return);
 			}
 
 			// Process known vehicle
@@ -262,11 +270,8 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogWarning(logTag, "Duplicate pursuit", pursuit);
 
-			return; // should never happen
+			ASSERT_UNREACHABLE_THEN(return);
 		}
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::LogFull("     NEW", logTag, "Pursuit", pursuit);
 
 		observers.EmplaceObject(pursuit);
 	}
@@ -295,9 +300,6 @@ namespace PursuitObserver
 		{
 			if ((*it)->GetPursuit() != pursuit) continue; // wrong pursuit
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogFull("     DEL", logTag, "Pursuit", pursuit);
-
 			observers.EraseObject(it);
 
 			return; // deleted
@@ -305,6 +307,8 @@ namespace PursuitObserver
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogWarning(logTag, "Unknown pursuit", pursuit);
+
+		ASSERT_UNREACHABLE;
 	}
 
 
