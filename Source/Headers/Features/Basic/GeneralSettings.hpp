@@ -7,6 +7,7 @@
 #include <string_view>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 
@@ -53,16 +54,16 @@ namespace GeneralSettings
 	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, copFlipByTimer,     {0.f}); // seconds
 	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, racerFlipResetDelay,{0.f}); // seconds
 
-	// Conversions
-	float bountyFrequency = 1.f / bountyInterval.current; // hertz
+	// Parameter conversions
+	float bountyFrequency; // hertz
 	
-	float bustRate          = 1.f / bustTimer.current; // hertz
-	float resetBustScale    = std::max<float>(bustTimer.current / 1.25f, 4.f);
-	float recoveryBustDelta = -.25f * std::max<float>(bustTimer.current / 2.5f, 2.f);
+	float bustRate;          // hertz
+	float resetBustScale;    // unity
+	float recoveryBustDelta; // unity
 
-	float halfEvadeRate = .5f / evadeTimer.current; // hertz
+	float halfEvadeRate; // hertz
 
-	// Code caves
+	// Vehicle maps
 	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(bool, copTypeToIsBreakerImmune, false);
 
 
@@ -454,13 +455,16 @@ namespace GeneralSettings
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	void ParseTrackingSettings(const HeatParameters::Parser& parser)
+	void ExtractTrackingSettings(const ConfigParser::Parser& parser)
 	{
-		const auto ParseTracking = [&parser](const std::string_view key, bool& isTracked) -> bool
+		const auto* const section = parser.GetSection("Pursuits:Races");
+		if (not section) return; // file missing; keep tracking disabled
+
+		const auto ExtractSetting = [section](const std::string_view key, bool& isTracked) -> bool
 		{
-			parser.ParseFromFile<bool>("Pursuits:Races", key, {isTracked});
+			ConfigParser::Parser::ExtractScalars<bool>(section, key, {isTracked});
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -468,46 +472,59 @@ namespace GeneralSettings
 					Globals::LogPlain("Tracking", key);
 			}
 
-			return isTracked; // for immediate toggle checking
+			return isTracked; // for immediate toggle check
 		};
 
-		if (ParseTracking("pursuitLength", trackPursuitLength))
+		if (ExtractSetting("pursuitLength", trackPursuitLength))
 			MemoryTools::MakeRangeNOP<0x443CBE, 0x443CC8>();
 
-		if (ParseTracking("unitsInPursuit", trackUnitsInPursuit))
+		if (ExtractSetting("unitsInPursuit", trackUnitsInPursuit))
 			MemoryTools::MakeRangeNOP<0x41911B, 0x419125>();
 
-		if (ParseTracking("copsLost", trackCopsLost))
+		if (ExtractSetting("copsLost", trackCopsLost))
 			MemoryTools::MakeRangeNOP<0x42B761, 0x42B76B>();
 
-		if (ParseTracking("copsDamaged", trackCopsDamaged))
+		if (ExtractSetting("copsDamaged", trackCopsDamaged))
 			MemoryTools::MakeRangeNOP<0x40AF43, 0x40AF4D>();
 
-		if (ParseTracking("copsDestroyed", trackCopsDestroyed))
+		if (ExtractSetting("copsDestroyed", trackCopsDestroyed))
 		{
 			MemoryTools::MakeRangeNOP<0x4094E0, 0x4094EA>(); // cop bounty
 			MemoryTools::MakeRangeNOP<0x418F3B, 0x418F41>(); // cops destroyed
 			MemoryTools::MakeRangeNOP<0x43EA15, 0x43EA19>(); // total cops destroyed
 		}
 
-		if (ParseTracking("passiveBounty", trackPassiveBounty))
+		if (ExtractSetting("passiveBounty", trackPassiveBounty))
 			MemoryTools::MakeRangeNOP<0x4094A0, 0x4094AA>();
 
-		if (ParseTracking("propertyDamage", trackPropertyDamage))
+		if (ExtractSetting("propertyDamage", trackPropertyDamage))
 			MemoryTools::MakeRangeNOP<0x409463, 0x409467>();
 
-		if (ParseTracking("infractions", trackInfractions))
+		if (ExtractSetting("infractions", trackInfractions))
 			MemoryTools::MakeRangeNOP<0x5FDDDC, 0x5FDDE7>();
 	}
 
 
 
-	bool ParsePursuitBreakerImmunities(const HeatParameters::Parser& parser)
+	void UpdateParameterConversions()
+	{
+		bountyFrequency = 1.f / bountyInterval.current;
+
+		bustRate          = 1.f / bustTimer.current;
+		resetBustScale    = std::max<float>(bustTimer.current / 1.25f, 4.f);
+		recoveryBustDelta = -.125f * resetBustScale;
+
+		halfEvadeRate = .5f / evadeTimer.current;
+	}
+
+
+
+	[[nodiscard]] bool ExtractIsBreakerImmunes(const ConfigParser::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 		std::vector<bool>             isBreakerImmunes;
 
-		parser.ParseUser<std::string_view, bool>("Vehicles:Breakers", copNames, {isBreakerImmunes});
+		parser.ExtractVectors<std::string_view, bool>("Vehicles:Breakers", copNames, {isBreakerImmunes});
 
 		return copTypeToIsBreakerImmune.Fill
 		(
@@ -521,7 +538,7 @@ namespace GeneralSettings
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
 	void ApplyFixes()
 	{
@@ -541,37 +558,40 @@ namespace GeneralSettings
 
 
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.LoadFile(HeatParameters::configPathBasic, "General.ini")) return false;
+		if (not parser.ParseFile(HeatParameters::configPathBasic, "General.ini")) return false;
 
 		// Race tracking (and code modifications)
-		ParseTrackingSettings(parser);
+		ExtractTrackingSettings(parser);
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Pursuits:Rivals", rivalPursuitsEnabled);
+		HeatParameters::Extract(parser, "Pursuits:Rivals", rivalPursuitsEnabled);
 
-		HeatParameters::Parse(parser, "Bounty:Interval", bountyInterval);
+		HeatParameters::Extract(parser, "Bounty:Interval", bountyInterval);
 
-		HeatParameters::Parse(parser, "Bounty:Combo", maxBountyMultiplier);
+		HeatParameters::Extract(parser, "Bounty:Combo", maxBountyMultiplier);
 
-		HeatParameters::Parse(parser, "State:Busting", bustTimer, maxBustDistance);
+		HeatParameters::Extract(parser, "State:Busting", bustTimer, maxBustDistance);
 
-		HeatParameters::Parse(parser, "State:Evading", evadeTimer);
+		HeatParameters::Extract(parser, "State:Evading", evadeTimer);
 
-		HeatParameters::Parse(parser, "Evading:Hiding", carsAffectedByHiding, helisAffectedByHiding);
+		HeatParameters::Extract(parser, "Evading:Hiding", carsAffectedByHiding, helisAffectedByHiding);
 
-		HeatParameters::Parse(parser, "Flipping:Damaged", copFlipByDamageEnabled);
+		HeatParameters::Extract(parser, "Flipping:Damaged", copFlipByDamageEnabled);
 
-		HeatParameters::Parse(parser, "Flipping:Time", copFlipByTimer);
+		HeatParameters::Extract(parser, "Flipping:Time", copFlipByTimer);
 
-		HeatParameters::Parse(parser, "Flipping:Reset", racerFlipResetDelay);
+		HeatParameters::Extract(parser, "Flipping:Reset", racerFlipResetDelay);
+
+		// Parameter conversions
+		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Pursuit-breaker immunity
-		if (ParsePursuitBreakerImmunities(parser))
+		if (ExtractIsBreakerImmunes(parser))
 		{
 			// Code modifications (conditional)
 			MemoryTools::MakeRangeJMP<pursuitBreakerCheckEntrance, pursuitBreakerCheckExit>(PursuitBreakerCheck);
@@ -612,24 +632,17 @@ namespace GeneralSettings
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 
+		// Heat parameters
 		rivalPursuitsEnabled.SetToHeatState(state);
 
 		bountyInterval.SetToHeatState(state);
 
 		maxBountyMultiplier.SetToHeatState(state);
 
-		bountyFrequency = 1.f / bountyInterval.current;
-
 		bustTimer      .SetToHeatState(state);
 		maxBustDistance.SetToHeatState(state);
 
-		bustRate          = 1.f / bustTimer.current;
-		resetBustScale    = std::max<float>(bustTimer.current / 1.25f, 4.f);
-		recoveryBustDelta = -.25f * std::max<float>(bustTimer.current / 2.5f, 2.f);
-
 		evadeTimer.SetToHeatState(state);
-
-		halfEvadeRate = .5f / evadeTimer.current;
 
 		carsAffectedByHiding .SetToHeatState(state);
 		helisAffectedByHiding.SetToHeatState(state);
@@ -639,5 +652,8 @@ namespace GeneralSettings
 		copFlipByTimer.SetToHeatState(state);
 
 		racerFlipResetDelay.SetToHeatState(state);
+
+		// Parameter conversions
+		UpdateParameterConversions();
 	}
 }

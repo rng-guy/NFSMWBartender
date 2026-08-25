@@ -39,8 +39,8 @@ using MemoryTools::AsFunction;
 using vault  = uint32_t;
 using binary = uint32_t;
 
-using byte = MemoryTools::byte;
-using word = MemoryTools::word;
+using byte = MemoryTools::byte; // aliased to suppress transient includes
+using word = MemoryTools::word; // aliased to suppress transient includes
 
 using address = MemoryTools::address;
 
@@ -63,7 +63,10 @@ namespace Globals
 	bool advancedSetEnabled = false;
 
 	// Game timer
-	uint32_t numPausedTicks = 0;
+	bool isGameplayPaused = true;
+
+	uint32_t numGameTicksOnLastPause = 0;
+	uint32_t numFullyPausedGameTicks = 0;
 
 	// Random-number generator
 	RandomNumbers::Generator prng;
@@ -92,10 +95,10 @@ namespace Globals
 	const auto GetVehicleName = AsFunction<const char* __thiscall (address)>(0x688090); // for PVehicle
 
 	// Common data pointers
-	const float&    simulationTime = AsReference<float>   (0x9885D8); // seconds
 	const address&  copManager     = AsReference<address> (0x90D5F4);
-	const uint32_t& numGameTicks   = AsReference<uint32_t>(0x925B14);
+	const uint32_t& numGameTicks   = AsReference<uint32_t>(0x925B14); // ticks
 	const float&    ticksToTime    = AsReference<float>   (0x890984); // seconds / tick
+	const float&    simulationTime = AsReference<float>   (0x9885D8); // seconds
 
 
 
@@ -109,9 +112,19 @@ namespace Globals
 	}
 
 
-	[[nodiscard]] float GetUnpausedGameTime()
+
+	[[nodiscard]] float GetNonGameplayTime()
 	{
-		return ticksToTime * static_cast<float>(numGameTicks - numPausedTicks);
+		const uint32_t numBaseTicks = (isGameplayPaused) ? (numGameTicks - numGameTicksOnLastPause) : 0;
+		return ticksToTime * static_cast<float>(numBaseTicks + numFullyPausedGameTicks);
+	}
+
+
+
+	[[nodiscard]] float GetGameplayTime()
+	{
+		const uint32_t numBaseTicks = (isGameplayPaused) ? numGameTicksOnLastPause : numGameTicks;
+		return ticksToTime * static_cast<float>(numBaseTicks - numFullyPausedGameTicks);
 	}
 
 

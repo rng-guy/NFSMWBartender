@@ -28,26 +28,28 @@ namespace ConfigParser
 	namespace Concepts
 	{
 		template <typename V>
+		concept IsPureEnum = StreamParser::Concepts::IsPureEnum<V>; // templated to suppress transient includes
+
+		template <typename V>
 		concept IsPureArithmetic = StreamParser::Concepts::IsPureArithmetic<V>; // templated to suppress transient includes
 		
+
 		template <typename V>
 		concept IsBoundsCompatible = (IsPureArithmetic<V> and (not std::same_as<V, bool>));
 
 
-		using StreamParser::Concepts::AreNonAllocating;
-
 		template <typename ...Vs>
-		concept AreParseable = (StreamParser::Concepts::AreParseable<Vs...> and AreNonAllocating<Vs...>);
+		concept AreExtractable = (StreamParser::Concepts::AreExtractable<Vs...>); // templated to suppress transient includes
 
 		template <typename K, typename ...Vs>
-		concept AreSectionParseable = (StreamParser::Concepts::AreSectionParseable<K, Vs...> and AreNonAllocating<Vs...>);
+		concept AreSectionExtractable = (StreamParser::Concepts::AreSectionExtractable<K, Vs...>); // templated to suppress transient includes
 	}
 
 	
 
 
 
-	// Parser helpers -------------------------------------------------------------------------------------------------------------------------------
+	// Bounds class ---------------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
 	class Bounds 
@@ -56,6 +58,7 @@ namespace ConfigParser
 
 		void Enforce(auto&) const {}
 	};
+
 
 
 	template <typename T>
@@ -103,9 +106,13 @@ namespace ConfigParser
 
 
 
+
+
+	// Parser helpers -------------------------------------------------------------------------------------------------------------------------------
+
 	template <typename T>
-	requires Concepts::AreParseable<T>
-	struct Parameter
+	requires Concepts::AreExtractable<T>
+	struct ScalarField
 	{
 	// Members
 
@@ -115,23 +122,25 @@ namespace ConfigParser
 	};
 
 
+
 	template <typename T, size_t numRows>
-	requires Concepts::AreParseable<T>
-	struct Format
+	requires Concepts::AreExtractable<T>
+	struct ArrayField
 	{
 	// Members
 
 		std::array<T, numRows>& values;
 
-		std::optional<T> defaultValue; // mutated in "ParseFormat"
+		std::optional<T> defaultValue; // mutated in "ExtractArrays"
 
 		[[no_unique_address]] const Bounds<T> limits = {};
 	};
 
 
+
 	template <typename T>
-	requires Concepts::AreParseable<T>
-	struct User
+	requires Concepts::AreExtractable<T>
+	struct VectorField
 	{
 	// Members
 
@@ -144,17 +153,26 @@ namespace ConfigParser
 
 
 
-	// Config-file parser with bounds checking and fixed-format support -----------------------------------------------------------------------------
+	// Parser class ---------------------------------------------------------------------------------------------------------------------------------
 
 	class Parser : protected StreamParser::Parser<>
 	{
-	private: // members
+	private: // aliases
 
-		mutable FormatBuffer::Buffer buffer;
+		using Base = StreamParser::Parser<>;
+
+
+	public: // aliases (for interfaces)
+
+		using Section    = Base::Section;    // aliased to suppress transient includes
+		using SectionMap = Base::SectionMap; // aliased to suppress transient includes
+
+
+	private: // members
 
 		std::filesystem::path currentFilePath;
 
-		FlatContainers::Map<std::filesystem::path, Parser::Sections> pathToSections;
+		FlatContainers::Map<std::filesystem::path, Parser::SectionMap> pathToSectionMap;
 
 
 	private: // methods
@@ -166,12 +184,12 @@ namespace ConfigParser
 			// Return currently parsed file to cache
 			if (not this->currentFilePath.empty())
 			{
-				const auto pairIt = this->pathToSections.find(this->currentFilePath);
+				const auto pairIt = this->pathToSectionMap.find(this->currentFilePath);
 
-				if (pairIt != this->pathToSections.end())
-					pairIt->second.swap(this->sections); // sections now empty
+				if (pairIt != this->pathToSectionMap.end())
+					pairIt->second.swap(this->nameToSection); // section map now empty
 
-				else ASSERT_UNREACHABLE_THEN(this->sections.clear());
+				else ASSERT_UNREACHABLE_THEN(this->nameToSection.clear());
 			}
 
 			this->currentFilePath = std::move(newFilePath);
@@ -188,6 +206,10 @@ namespace ConfigParser
 
 	public: // methods
 
+		using Base::GetSection;
+		using Base::GetSectionMap;
+
+
 		explicit Parser
 		(
 			const size_t fileCapacity           = 0,
@@ -196,12 +218,12 @@ namespace ConfigParser
 		) 
 			: sectionCapacityPerFile(sectionCapacityPerFile), pairCapacityPerSection(pairCapacityPerSection)
 		{
-			this->pathToSections.reserve(fileCapacity);
+			this->pathToSectionMap.reserve(fileCapacity);
 		}
 
 
-		// May invalidate retrieved const char* and string_view
-		bool LoadFile
+		// May invalidate retrieved views and pointers
+		bool ParseFile
 		(
 			const std::filesystem::path& root,
 			const std::string_view       fileName
@@ -221,7 +243,7 @@ namespace ConfigParser
 			if (this->currentFilePath.empty()) return true;
 	
 			// Attempt to create new (empty) cache entry for new file
-			const auto [pairIt, isNewPath] = this->pathToSections.try_emplace(this->currentFilePath);
+			const auto [pairIt, isNewPath] = this->pathToSectionMap.try_emplace(this->currentFilePath);
 
 			// Check cache for new file 
 			if (not isNewPath)
@@ -229,7 +251,7 @@ namespace ConfigParser
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogPlain("Load:", fileName);
 
-				this->sections.swap(pairIt->second); // existing cache entry now empty
+				this->nameToSection.swap(pairIt->second); // existing cache entry now empty
 
 				return true; // file loaded from cache
 			}
@@ -261,104 +283,185 @@ namespace ConfigParser
 		}
 
 
-		[[nodiscard]] const auto& GetSections() const
-		{
-			return this->sections;
-		}
-
-
-		// Invalidates retrieved const char* and string_view
+		// Invalidates retrieved views and pointers
 		void ClearFiles()
 		{
-			this->currentFilePath.clear();
-			this->pathToSections .clear();
-			this->sections       .clear();
+			this->currentFilePath .clear();
+			this->pathToSectionMap.clear();
+			this->nameToSection   .clear();
 		}
 
 
-		// Value(s) from parsed file
+		// A single row of values
 		template <typename ...Vs>
-		requires Concepts::AreParseable<Vs...>
-		bool ParseFromFile
+		requires Concepts::AreExtractable<Vs...>
+		static bool ExtractScalars
 		(
-			const std::string_view    section,
+			const Section* const      section,
 			const std::string_view    key,
-			const Parameter<Vs>    ...parameters
+			const ScalarField<Vs>  ...scalars
+		) {
+			const bool allExtracted = (section and Parser::ExtractValues<Vs...>(section, key, scalars.value...));
+
+			(..., scalars.limits.Enforce(scalars.value));
+
+			return allExtracted;
+		}
+
+
+		// A single row of values
+		template <typename ...Vs>
+		requires Concepts::AreExtractable<Vs...>
+		static bool ExtractScalars
+		(
+			const Section&            section,
+			const std::string_view    key,
+			const ScalarField<Vs>  ...scalars
+		) {
+			return Parser::ExtractScalars<Vs...>(&section, key, scalars...);
+		}
+
+
+		// A single row of values
+		template <typename ...Vs>
+		requires Concepts::AreExtractable<Vs...>
+		bool ExtractScalars
+		(
+			const std::string_view    sectionName,
+			const std::string_view    key,
+			const ScalarField<Vs>  ...scalars
 		) 
 			const
 		{
-			const bool areValid = this->GetValues<Vs...>(section, key, parameters.value...);
-			(..., parameters.limits.Enforce(parameters.value));
-
-			return areValid;
+			const Section* const section = this->GetSection(sectionName);
+			return this->ExtractScalars<Vs...>(section, key, scalars...);
 		}
 
 
-		// Fixed-format value(s) from parsed file
+		// Row(s) with fixed-format key(s)
 		template <size_t numRows, typename ...Vs>
-		requires Concepts::AreParseable<Vs...>
-		std::array<bool, numRows> ParseFormat
+		requires Concepts::AreExtractable<Vs...>
+		static std::array<bool, numRows> ExtractArrays
 		(
-			const std::string_view              section,
+			const Section* const                section,
 			const std::string_view              defaultKey,
 			const std::format_string<size_t>    keyFormat,
 			const size_t                        keyStartIndex,
-			Format<Vs, numRows>              ...parameters
-		) 
-			const 
-		{
-			const auto foundSection      = this->sections.find(section);
-			const bool hasFullDefaultRow = (parameters.defaultValue.has_value() and ...);
+			ArrayField<Vs, numRows>          ...arrays
+		) {
+			FormatBuffer::Buffer buffer;
 
-			// Parse default value(s)
-			if (hasFullDefaultRow and (not defaultKey.empty()) and (foundSection != this->sections.end()))
-				this->GetValues<Vs...>(foundSection->second, defaultKey, {*(parameters.defaultValue)}...);
+			const bool hasFullDefaultRow = (arrays.defaultValue.has_value() and ...);
 
-			// Parse each row column-wise
-			std::array<bool, numRows> isValidRows = {};
+			// Attempt default-value extraction(s)
+			if (section and hasFullDefaultRow and (not defaultKey.empty()))
+				Parser::ExtractValues<Vs...>(section, defaultKey, {*(arrays.defaultValue)}...);
+
+			// Attempt row extraction(s)
+			std::array<bool, numRows> rowExtracteds = {};
 
 			for (size_t rowID = 0; rowID < numRows; ++rowID)
 			{
-				// Parse row without default(s) first
-				if (foundSection != this->sections.end())
+				if (section)
 				{
-					const auto format  = this->buffer.Format(keyFormat, keyStartIndex + rowID);
-					isValidRows[rowID] = this->GetValues<Vs...>(foundSection->second, format, parameters.values[rowID]...);
+					const auto key       = buffer.Format(keyFormat, keyStartIndex + rowID);
+					rowExtracteds[rowID] = Parser::ExtractValues<Vs...>(section, key, arrays.values[rowID]...);
 				}
 
-				// Apply default(s) to invalid row
-				if (isValidRows[rowID])    continue;
+				if (rowExtracteds[rowID])  continue;
 				if (not hasFullDefaultRow) continue;
 
-				(..., (parameters.values[rowID] = *(parameters.defaultValue)));
+				// Apply default(s) if extraction failed
+				(..., (arrays.values[rowID] = *(arrays.defaultValue)));
 
-				isValidRows[rowID] = true; // row now valid
+				rowExtracteds[rowID] = true; // row now valid
 			}
 
-			(..., parameters.limits.Enforce(parameters.values));
+			(..., arrays.limits.Enforce(arrays.values));
 
-			return isValidRows;
+			return rowExtracteds;
+		}
+
+
+		// Row(s) with fixed-format key(s)
+		template <size_t numRows, typename ...Vs>
+		requires Concepts::AreExtractable<Vs...>
+		static std::array<bool, numRows> ExtractArrays
+		(
+			const Section&                      section,
+			const std::string_view              defaultKey,
+			const std::format_string<size_t>    keyFormat,
+			const size_t                        keyStartIndex,
+			const ArrayField<Vs, numRows>    ...arrays
+		) {
+			return Parser::ExtractArrays<numRows, Vs...>(&section, defaultKey, keyFormat, keyStartIndex, arrays...);
+		}
+
+
+		// Row(s) with fixed-format key(s)
+		template <size_t numRows, typename ...Vs>
+		requires Concepts::AreExtractable<Vs...>
+		std::array<bool, numRows> ExtractArrays
+		(
+			const std::string_view              sectionName,
+			const std::string_view              defaultKey,
+			const std::format_string<size_t>    keyFormat,
+			const size_t                        keyStartIndex,
+			const ArrayField<Vs, numRows>    ...arrays
+		) 
+			const 
+		{
+			const Section* const section = this->GetSection(sectionName);
+			return this->ExtractArrays<numRows, Vs...>(section, defaultKey, keyFormat, keyStartIndex, arrays...);
 		}
 
 		
-		// User-defined key-value pair(s) from parsed file
+		// All keys and rows of a given section
 		template <typename K, typename ...Vs>
-		requires Concepts::AreSectionParseable<K, Vs...>
-		size_t ParseUser
+		requires Concepts::AreSectionExtractable<K, Vs...>
+		static size_t ExtractVectors
 		(
-			const std::string_view    section,
+			const Section* const     section,
+			std::vector<K>&          keys,
+			const VectorField<Vs> ...vectors
+		) {
+			keys                .clear();
+			(..., vectors.values.clear());
+
+			const size_t numExtracted = (section) ? Parser::ExtractSection<K, Vs...>(section, keys, vectors.values...) : 0;
+
+			(..., vectors.limits.Enforce(vectors.values));
+
+			return numExtracted;
+		}
+
+
+		// All keys and rows of a given section
+		template <typename K, typename ...Vs>
+		requires Concepts::AreSectionExtractable<K, Vs...>
+		static size_t ExtractVectors
+		(
+			const Section&           section,
+			std::vector<K>&          keys,
+			const VectorField<Vs> ...vectors
+		) {
+			return Parser::ExtractVectors<K, Vs...>(&section, keys, vectors...);
+		}
+
+
+		// All keys and rows of a given section
+		template <typename K, typename ...Vs>
+		requires Concepts::AreSectionExtractable<K, Vs...>
+		size_t ExtractVectors
+		(
+			const std::string_view    sectionName,
 			std::vector<K>&           keys,
-			const User <Vs>        ...parameters
+			const VectorField<Vs>  ...vectors
 		) 
 			const
 		{
-			keys                   .clear();
-			(..., parameters.values.clear());
-
-			const size_t numReads = this->GetFullSection<K, Vs...>(section, keys, parameters.values...);
-			(..., parameters.limits.Enforce(parameters.values));
-
-			return numReads;
+			const Section* const section = this->GetSection(sectionName);
+			return this->ExtractVectors<K, Vs...>(section, keys, vectors...);
 		}
 	};
 }

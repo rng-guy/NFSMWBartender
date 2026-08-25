@@ -6,11 +6,11 @@
 #include <vector>
 #include <string>
 #include <utility>
-#include <optional>
 #include <algorithm>
 #include <string_view>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/HeatParameters.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
@@ -19,16 +19,17 @@
 
 namespace RoadblockOverrides
 {
-	// Roadblock (part) structs ---------------------------------------------------------------------------------------------------------------------
+	// Vanilla types --------------------------------------------------------------------------------------------------------------------------------
 
-	// Part (matches vanilla layout)
-	enum RBPartType : int // C-style for implicit casting
+	enum class RBPartType : int
 	{
 		NONE     = 0,
 		CAR      = 1,
 		SAWHORSE = 2,
 		SPIKES   = 3
 	};
+
+
 
 	struct RBPart
 	{
@@ -45,9 +46,8 @@ namespace RoadblockOverrides
 
 
 
-	// Table (matches vanilla layout)
 	constexpr size_t maxNumParts = 6;
-
+	
 	struct RBTable
 	{
 	// Members
@@ -55,20 +55,25 @@ namespace RoadblockOverrides
 		float  minRoadWidth    = 0.f; // metres
 		size_t numCarsRequired = 0;   // cars
 
-		RBPart parts[maxNumParts]; // default-initialised
+		RBPart parts[maxNumParts]; // C-style for game compatibility
 	};
 
 	static_assert(sizeof(RBTable) == 104, "Table-size mismatch");
 
 
 
-	// Setup (mod-specific)
-	struct RBSetup
-	{
-	// Members
 
-		RBTable original;
-		RBTable mirrored;
+
+	// RBSetup class --------------------------------------------------------------------------------------------------------------------------------
+
+	class RBSetup
+	{
+	private: // friends
+
+		friend bool ExtractRoadblockSetup(const auto&, RBSetup&);
+
+
+	private: // members
 
 		bool hasSpikes  = false;
 		bool canStretch = true;
@@ -76,14 +81,23 @@ namespace RoadblockOverrides
 		float maxRoadWidth = 0.f; // metres
 		float mirrorChance = 0.f; // percent
 
+		RBTable original; // same constraints as mirrored
+		RBTable mirrored; // same constraints as original
+
 		HEAT_PARAMETER_VALUE(int, chance, 100, {0}); // relative
 
-		[[no_unique_address]] const LogString name;
+		[[no_unique_address]] LogString name;
 
-
-	// Methods
+	
+	public: // methods
 
 		explicit RBSetup(const std::string_view name) : name(name) {}
+
+
+		void SetToHeatState(const HeatParameters::HeatState state)
+		{
+			this->chance.SetToHeatStateSilently(state);
+		}
 
 
 		[[nodiscard]] bool IsAvailable() const
@@ -92,15 +106,21 @@ namespace RoadblockOverrides
 		}
 
 
-		[[nodiscard]] bool IsCompatbleRoadWidth(const float roadWidth) const
+		[[nodiscard]] int GetChance() const
 		{
-			return ((roadWidth >= this->original.minRoadWidth) and (roadWidth < this->maxRoadWidth)); // same as mirrored
+			return this->chance.current;
+		}
+
+
+		[[nodiscard]] bool HasSpikes() const
+		{
+			return this->hasSpikes;
 		}
 
 
 		[[nodiscard]] size_t GetNumCarsRequired() const
 		{
-			return this->original.numCarsRequired; // same as mirrored
+			return this->original.numCarsRequired;
 		}
 
 
@@ -110,18 +130,19 @@ namespace RoadblockOverrides
 		}
 
 
+		[[nodiscard]] bool IsCompatbleRoadWidth(const float roadWidth) const
+		{
+			return ((roadWidth >= this->original.minRoadWidth) and (roadWidth < this->maxRoadWidth));
+		}
+
+
 		[[nodiscard]] const RBTable& GetRandomTable() const
 		{
 			const bool isMirrored = Globals::prng.DoPercentTrial<float>(this->mirrorChance);
 
 			if constexpr (Globals::loggingEnabled)
-			{
-				if (isMirrored)
-					Globals::LogPlain("Setup:", this->name, "(mirrored)");
-
-				else Globals::LogPlain("Setup:", this->name);
-			}
-
+				Globals::LogPlain("Setup:", this->name, (isMirrored) ? "(mirrored)" : "(regular)");
+			
 			return (isMirrored) ? this->mirrored : this->original;
 		}
 
@@ -132,9 +153,15 @@ namespace RoadblockOverrides
 		}
 
 
-		[[nodiscard]] bool IsMirrorEnabled() const
+		[[nodiscard]] bool IsMirrorable() const
 		{
 			return (this->mirrorChance > 0.f);
+		}
+
+
+		[[nodiscard]] const LogString& GetName() const
+		{
+			return this->name;
 		}
 	};
 
@@ -150,9 +177,9 @@ namespace RoadblockOverrides
 	constexpr LogLiteral logTag  = "[RBL]";
 	constexpr LogLiteral logName = "RoadblockOverrides";
 
-	// Types and aliases
+	// Aliases
 	template <typename T>
-	using PartArray = std::array<T, maxNumParts>;
+	using PartDataArray = std::array<T, maxNumParts>;
 
 	// Heat parameters
 	constinit HEAT_PARAMETER_VALUE(bool, mayRecycleDistantCops, true);
@@ -162,9 +189,6 @@ namespace RoadblockOverrides
 
 	// Custom roadblock setups
 	RELEASE_CONSTINIT std::vector<RBSetup> roadblockSetups;
-
-	// Setup parsing
-	constexpr std::string_view setupPrefix = "Setups:";
 
 	// Code caves
 	address requestPursuit = 0x0;
@@ -271,7 +295,7 @@ namespace RoadblockOverrides
 			if (not setup.IsAvailable())                   continue;
 			if (not setup.IsCompatbleRoadWidth(roadWidth)) continue;
 
-			auto& parameters = (setup.hasSpikes) ? spike : regular;
+			auto& parameters = (setup.HasSpikes()) ? spike : regular;
 
 			++(parameters.numCandidates);
 
@@ -387,11 +411,13 @@ namespace RoadblockOverrides
 		{
 			if (not setup.IsAvailable()) continue;
 
-			size_t& numSetups = (setup.hasSpikes) ? counts.numSpikes       : counts.numRegular;
-			size_t& numMirror = (setup.hasSpikes) ? counts.numMirrorSpikes : counts.numMirrorRegular;
+			const bool hasSpikes = setup.HasSpikes();
+
+			size_t& numSetups = (hasSpikes) ? counts.numSpikes       : counts.numRegular;
+			size_t& numMirror = (hasSpikes) ? counts.numMirrorSpikes : counts.numMirrorRegular;
 
 			numSetups += 1;
-			numMirror += setup.IsMirrorEnabled();
+			numMirror += setup.IsMirrorable();
 		}
 
 		return counts;
@@ -423,13 +449,13 @@ namespace RoadblockOverrides
 
 		for (const RBSetup& setup : roadblockSetups)
 		{
-			if (setup.hasSpikes != needsSpikes) continue;
+			if (setup.HasSpikes() != needsSpikes) continue;
 
 			if (not setup.IsAvailable())                    continue;
 			if (not setup.IsCompatbleRoadWidth(roadWidth))  continue;
 			if (not setup.IsCompatibleCarCount(maxNumCars)) continue;
 
-			totalChance += setup.chance.current;
+			totalChance += setup.GetChance();
 			candidates.push_back(&setup);
 		}
 
@@ -451,7 +477,7 @@ namespace RoadblockOverrides
 
 		for (const RBSetup* const setup : candidates)
 		{
-			cumulativeChance += setup->chance.current;
+			cumulativeChance += setup->GetChance();
 			if (cumulativeChance < chanceThreshold) continue;
 
 			const auto* const table = &(setup->GetRandomTable());
@@ -644,60 +670,41 @@ namespace RoadblockOverrides
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] std::optional<RBSetup> ParseRoadblockSetup
+	[[nodiscard]] bool ExtractRoadblockParts
 	(
-		const HeatParameters::Parser& parser,
-		const std::string_view        section
+		const auto& section,
+		RBTable&    table
 	) {
-		if (section.find(setupPrefix) > 0) return std::nullopt; // not setup
+		bool hasSpikes = false;
 
-		RBSetup setup(section.substr(setupPrefix.length()));
+		// Attempt parts extraction
+		using ConfigParser::ArrayField; // for template-argument deduction
 
-		RBTable& table = setup.original; // same constraints as mirrored
+		PartDataArray<RBPartType> partTypeIDs  = {};
+		PartDataArray<float>      partOffsetsX = {};
+		PartDataArray<float>      partOffsetsY = {};
+		PartDataArray<float>      orientations = {};
 
-		// Parse and validate width values
-		if (not parser.ParseFromFile<float, float>(section, "extent", {table.minRoadWidth, {.001f}}, {setup.maxRoadWidth, {0.f}}))
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogDetail('-', setup.name, "(no extent)");
-
-			return std::nullopt; // invalid setup
-		}
-
-		if (table.minRoadWidth >= setup.maxRoadWidth)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogDetail('-', setup.name, "(invalid extent)");
-
-			return std::nullopt; // invalid setup
-		}
-
-		// Parse roadblock-part parameters
-		PartArray<int>   partTypeIDs  = {};
-		PartArray<float> partOffsetsX = {};
-		PartArray<float> partOffsetsY = {};
-		PartArray<float> orientations = {};
-
-		const PartArray<bool> isValids = parser.ParseFormat<maxNumParts, int, float, float, float>
+		const auto isExtracteds = ConfigParser::Parser::ExtractArrays
 		(
 			section,
 			{}, // no "default" value(s)
 			"part{:02}",
 			HeatParameters::configFormatStart,
-			{partTypeIDs},
-			{partOffsetsX},
-			{partOffsetsY},
-			{orientations}
+			ArrayField(partTypeIDs),
+			ArrayField(partOffsetsX),
+			ArrayField(partOffsetsY),
+			ArrayField(orientations)
 		);
 
-		// Process roadblock parts
+		// Process parts
 		size_t numValidParts = 0;
 
 		for (size_t partID = 0; partID < maxNumParts; ++partID)
 		{
-			if (not isValids[partID]) continue; // invalid part
+			if (not isExtracteds[partID]) continue; // invalid part
 
 			switch (partTypeIDs[partID])
 			{
@@ -709,11 +716,11 @@ namespace RoadblockOverrides
 				break;
 
 			case RBPartType::SPIKES:
-				setup.hasSpikes = true;
+				hasSpikes = true;
 				break;
 
 			default:
-				continue; // invalid part
+				continue; // invalid part type
 			}
 
 			// Remove full rotation(s) and convert to positive value
@@ -722,68 +729,109 @@ namespace RoadblockOverrides
 			// Update part parameters
 			table.parts[numValidParts++] =
 			{
-				static_cast<RBPartType>(partTypeIDs[partID]),
+				partTypeIDs [partID],
 				partOffsetsX[partID],
 				partOffsetsY[partID],
 				orientations[partID]
 			};
 		}
 
-		// Validate car count
-		if (table.numCarsRequired == 0)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogDetail('-', setup.name, "(no car(s))");
+		return hasSpikes;
+	}
 
-			return std::nullopt; // invalid setup
-		}
 
-		// Parse and validate "chance" parameter(s)
-		HeatParameters::Parse(parser, section, setup.chance);
 
-		if (setup.chance.GetMaximum() < 1)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogDetail('-', setup.name, "(unused)");
+	[[nodiscard]] RBTable CreateMirroredTable(const RBTable& table)
+	{
+		RBTable mirrored = table;
 
-			return std::nullopt; // unused setup
-		}
-
-		// Parse other optional parameters
-		parser.ParseFromFile<bool> (section, "stretch", {setup.canStretch});
-		parser.ParseFromFile<float>(section, "mirror",  {setup.mirrorChance, {0.f, 100.f}});
-
-		// Create mirrored table
-		setup.mirrored = table;
-
-		for (RBPart& part : setup.mirrored.parts)
+		for (RBPart& part : mirrored.parts)
 		{
 			if (part.type == RBPartType::NONE) break; // no more part(s)
 
 			part.offsetX     = -part.offsetX;
 			part.orientation = 1.f - part.orientation;
 
-			if (part.type == RBPartType::SPIKES) // spike-strip direction
+			if (part.type == RBPartType::SPIKES) // spike-strip pattern
 				part.orientation = std::fmod(part.orientation + .5f, 1.f);
 		}
 
-		return setup;
+		return mirrored;
 	}
 
 
 
-	bool ParseRoadblockSetups(const HeatParameters::Parser& parser)
+	[[nodiscard]] bool ExtractRoadblockSetup
+	(
+		const auto& section,
+		RBSetup&    setup
+	) {
+		RBTable& table = setup.original;
+
+		// Extract road widths
+		if (not ConfigParser::Parser::ExtractScalars<float, float>(section, "extent", {table.minRoadWidth, {.001f}}, {setup.maxRoadWidth, {0.f}}))
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogDetail('-', setup.name, "(no extent)");
+
+			return false; // missing road width(s)
+		}
+
+		if (table.minRoadWidth >= setup.maxRoadWidth)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogDetail('-', setup.name, "(invalid extent)");
+
+			return false; // invalid road width(s)
+		}
+
+		// Extract roadblock parts
+		setup.hasSpikes = ExtractRoadblockParts(section, table);
+
+		if (table.numCarsRequired == 0)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogDetail('-', setup.name, "(no car(s))");
+
+			return false; // invalid part(s)
+		}
+
+		// Extract spawn parameters
+		HeatParameters::Extract(section, setup.chance);
+
+		if (setup.chance.GetMaximum() < 1)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogDetail('-', setup.name, "(unused)");
+
+			return false; // unused setup
+		}
+
+		ConfigParser::Parser::ExtractScalars<bool> (section, "stretch", {setup.canStretch});
+		ConfigParser::Parser::ExtractScalars<float>(section, "mirror",  {setup.mirrorChance, {0.f, 100.f}});
+
+		// Create mirrored roadblock table
+		setup.mirrored = CreateMirroredTable(table);
+
+		return true;
+	}
+
+
+
+	[[nodiscard]] bool ExtractRoadblockSetups(const ConfigParser::Parser& parser)
 	{
+		constexpr std::string_view setupPrefix = "Setups:";
+
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogPlain("Roadblock setups:");
 
-		const auto& sections = parser.GetSections();
+		const auto& nameToSection = parser.GetSectionMap();
 
 		// Check (potential) setup count
 		size_t maxNumSetups = 0;
 
-		for (const auto& [section, contents] : sections)
-			maxNumSetups += (section.find(setupPrefix) == 0);
+		for (const auto& [name, section] : nameToSection)
+			maxNumSetups += name.starts_with(setupPrefix);
 
 		if (maxNumSetups == 0)
 		{
@@ -792,16 +840,21 @@ namespace RoadblockOverrides
 
 			return false; // no setups; disable feature
 		}
-		else if constexpr (Globals::loggingEnabled)
+		
+		if constexpr (Globals::loggingEnabled)
 			Globals::LogDetail(LogDec(maxNumSetups), "setup(s) provided");
 
-		// Parse and validate setups
+		// Extract roadblock setups
 		roadblockSetups.reserve(maxNumSetups);
 
-		for (const auto& [section, contents] : sections)
+		for (const auto& [name, section] : nameToSection)
 		{
-			if (auto setup = ParseRoadblockSetup(parser, section))
-				roadblockSetups.push_back(std::move(*setup));
+			if (not name.starts_with(setupPrefix)) continue; // not setup
+
+			RBSetup setup(name.substr(setupPrefix.size()));
+			if (not ExtractRoadblockSetup(section, setup)) continue; // invalid setup
+
+			roadblockSetups.push_back(std::move(setup));
 		}
 
 		// Log and shrink setup vector
@@ -828,22 +881,22 @@ namespace RoadblockOverrides
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
+		parser.ParseFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Roadblocks:Recycling", mayRecycleDistantCops);
+		HeatParameters::Extract(parser, "Roadblocks:Recycling", mayRecycleDistantCops);
 
-		HeatParameters::Parse(parser, "Roadblocks:Radio", spawnCalloutChance, spikeCalloutChance);
+		HeatParameters::Extract(parser, "Roadblocks:Radio", spawnCalloutChance, spikeCalloutChance);
 
 		// Roadblock setups
-		if (ParseRoadblockSetups(parser))
+		if (ExtractRoadblockSetups(parser))
 		{
 			// Code changes (conditional)
 			MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
@@ -887,7 +940,7 @@ namespace RoadblockOverrides
 
 		// Roadblock setups
 		for (RBSetup& setup : roadblockSetups)
-			setup.chance.SetToHeatStateWithoutLog(state);
+			setup.SetToHeatState(state);
 
 		if constexpr (Globals::loggingEnabled)
 		{

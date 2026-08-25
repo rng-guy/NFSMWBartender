@@ -3,6 +3,7 @@
 #include <string_view>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 #include "../../Common/PersistentStrings.hpp"
@@ -302,6 +303,9 @@ namespace CopSpawnOverrides
 
 	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, roadblockJoinLimit, {0}); // cars
 
+	// Parameter conversions
+	float squaredChaserSpawnClearance; // metres²
+
 	// Inline hashes for ASM
 	enum class VaultHash : vault
 	{
@@ -309,16 +313,13 @@ namespace CopSpawnOverrides
 	};
 
 	// Code caves
-	bool        eventHasScriptedPursuit = false;   // scripted free-roam pursuits request a cop before they know their Heat level,
-	bool        usePrefetchedCopName    = false;   // so we must prefetch a valid cop name using their event's Heat level instead
-	const char* prefetchedCopName       = nullptr; // (this is completely unrelated to knowing the player vehicle's Heat level)
-	
 	RELEASE_CONSTINIT COP_CONTINGENT(patrolSpawns,    CopSpawnTables::patrolSpawnTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(scriptedSpawns,  CopSpawnTables::scriptedSpawnTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(roadblockSpawns, CopSpawnTables::roadblockSpawnTable);
 
-	// Conversions
-	float squaredChaserSpawnClearance = chaserSpawnClearance.current * chaserSpawnClearance.current; // metres²
+	bool        eventHasScriptedPursuit = false;   // scripted free-roam pursuits request a cop before they know their Heat level,
+	bool        usePrefetchedCopName    = false;   // so we must prefetch a valid cop name using their event's Heat level instead
+	const char* prefetchedCopName       = nullptr; // (this is completely unrelated to knowing the player vehicle's Heat level)
 
 
 
@@ -773,6 +774,27 @@ namespace CopSpawnOverrides
 
 
 
+	void ProcessSoftEventReset()
+	{
+		usePrefetchedCopName = eventHasScriptedPursuit;
+
+		patrolSpawns   .ClearVehicles();
+		scriptedSpawns .ClearVehicles();
+		roadblockSpawns.ClearVehicles();
+	}
+
+
+
+	void ProcessHardEventReset()
+	{
+		eventHasScriptedPursuit = false;
+		prefetchedCopName       = nullptr;
+
+		ProcessSoftEventReset();
+	}
+
+
+
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
@@ -1205,13 +1227,16 @@ namespace CopSpawnOverrides
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	void ParseTrackingSettings(const HeatParameters::Parser& parser)
+	void ExtractTrackingSettings(const ConfigParser::Parser& parser)
 	{
-		const auto ParseTracking = [&parser](const std::string_view key, bool& isTracked) -> void
+		const auto* const section = parser.GetSection("Board:Tracking");
+		if (not section) return; // file missing; keep tracking disabled
+
+		const auto ExtractSetting = [section](const std::string_view key, bool& isTracked) -> void
 		{
-			parser.ParseFromFile<bool>("Board:Tracking", key, {isTracked});
+			ConfigParser::Parser::ExtractScalars<bool>(section, key, {isTracked});
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -1220,44 +1245,54 @@ namespace CopSpawnOverrides
 			}
 		};
 
-		ParseTracking("heavyCops",     trackHeavyVehicles);
-		ParseTracking("leaderCops",    trackLeaderVehicles);
-		ParseTracking("roadblockCops", trackRoadblockVehicles);
+		ExtractSetting("heavyCops",     trackHeavyVehicles);
+		ExtractSetting("leaderCops",    trackLeaderVehicles);
+		ExtractSetting("roadblockCops", trackRoadblockVehicles);
+	}
+
+
+
+	void UpdateParameterConversions()
+	{
+		squaredChaserSpawnClearance = chaserSpawnClearance.current * chaserSpawnClearance.current;
 	}
 
 
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
+		parser.ParseFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
 
 		// Pursuit-board tracking
-		ParseTrackingSettings(parser);
+		ExtractTrackingSettings(parser);
 
 		// Heat parameters (first file)
-		HeatParameters::Parse(parser, "Chasers:Limits", activeChaserLimit);
+		HeatParameters::Extract(parser, "Chasers:Limits", activeChaserLimit);
 
-		HeatParameters::Parse(parser, "Chasers:Independence", chasersAreIndependent);
+		HeatParameters::Extract(parser, "Chasers:Independence", chasersAreIndependent);
 
-		HeatParameters::Parse(parser, "Chasers:Decrement", onlyDestroyedDecrement);
+		HeatParameters::Extract(parser, "Chasers:Decrement", onlyDestroyedDecrement);
 
-		HeatParameters::Parse(parser, "Chasers:Backup", transitionTriggersBackup);
+		HeatParameters::Extract(parser, "Chasers:Backup", transitionTriggersBackup);
 
-		HeatParameters::Parse(parser, "Chasers:Clearance", chaserSpawnClearance);
+		HeatParameters::Extract(parser, "Chasers:Clearance", chaserSpawnClearance);
 
-		HeatParameters::Parse(parser, "Traffic:Independence", trafficIgnoresChasers, trafficIgnoresRoadblocks);
+		HeatParameters::Extract(parser, "Traffic:Independence", trafficIgnoresChasers, trafficIgnoresRoadblocks);
 
 		// Heat parameters (second file)
-		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
+		parser.ParseFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
 
-		HeatParameters::Parse(parser, "Joining:Limit", roadblockJoinLimit);
+		HeatParameters::Extract(parser, "Joining:Limit", roadblockJoinLimit);
+
+		// Parameter conversions
+		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Container pre-allocations
 		patrolSpawns   .Reserve(20);
@@ -1326,36 +1361,30 @@ namespace CopSpawnOverrides
 
 		chaserSpawnClearance.SetToHeatState(state);
 
-		squaredChaserSpawnClearance = chaserSpawnClearance.current * chaserSpawnClearance.current;
-
 		trafficIgnoresChasers   .SetToHeatState(state);
 		trafficIgnoresRoadblocks.SetToHeatState(state);
 
 		roadblockJoinLimit.SetToHeatState(state);
+
+		// Parameter conversions
+		UpdateParameterConversions();
 	}
 
 
 
-	void SoftResetFeatureState()
+	void NotifyOfSoftEventReset()
 	{
 		if (not anyFeatureEnabled) return;
 
-		usePrefetchedCopName = eventHasScriptedPursuit;
-
-		patrolSpawns   .ClearVehicles();
-		scriptedSpawns .ClearVehicles();
-		roadblockSpawns.ClearVehicles();
+		ProcessSoftEventReset();
 	}
 
 
 
-	void FullResetFeatureState()
+	void NotifyOfHardEventReset()
 	{
 		if (not anyFeatureEnabled) return;
 
-		eventHasScriptedPursuit = false;
-		prefetchedCopName       = nullptr;
-
-		SoftResetFeatureState();
+		ProcessHardEventReset();
 	}
 }

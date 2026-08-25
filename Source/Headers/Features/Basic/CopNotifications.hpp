@@ -5,6 +5,7 @@
 #include <string_view>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 #include "../../Common/PersistentStrings.hpp"
@@ -23,9 +24,10 @@ namespace CopNotifications
 	constexpr LogLiteral logTag  = "[NTF]";
 	constexpr LogLiteral logName = "CopNotifications";
 
-	// Code caves 
+	// Vehicle maps
 	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(const char*, copTypeToNotificationText, ""); // C-style for game compatibility
-	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(binary,      copTypeToNotificationIcon, "COPS_TAKENOUT_ICON"_bin);
+
+	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(binary, copTypeToNotificationIcon, "COPS_TAKENOUT_ICON"_bin);
 
 
 
@@ -72,14 +74,14 @@ namespace CopNotifications
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	bool ParseNotificationTexts(const HeatParameters::Parser& parser)
+	[[nodiscard]] bool ExtractNotificationTexts(const ConfigParser::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 		std::vector<std::string_view> stringOrNames;
 
-		parser.ParseUser<std::string_view, std::string_view>("Vehicles:Notifications", copNames, {stringOrNames});
+		parser.ExtractVectors<std::string_view, std::string_view>("Vehicles:Notifications", copNames, {stringOrNames});
 
 		const auto StringOrNameToNotification = [](const std::string_view stringOrName) -> const char*
 		{
@@ -99,12 +101,12 @@ namespace CopNotifications
 
 
 
-	bool ParseNotificationIcons(const HeatParameters::Parser& parser)
+	[[nodiscard]] bool ExtractNotificationIcons(const ConfigParser::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 		std::vector<std::string_view> iconLabels;
 
-		parser.ParseUser<std::string_view, std::string_view>("Notifications:Icons", copNames, {iconLabels});
+		parser.ExtractVectors<std::string_view, std::string_view>("Notifications:Icons", copNames, {iconLabels});
 
 		const auto IsValidGlobalTexture = [](const binary iconKey) -> bool
 		{
@@ -122,32 +124,32 @@ namespace CopNotifications
 
 
 
-	bool ParseNotifications(const HeatParameters::Parser& parser)
+	[[nodiscard]] bool ExtractNotifications(const ConfigParser::Parser& parser)
 	{
-		const bool textMapIsValid = ParseNotificationTexts(parser);
-		const bool iconMapIsValid = ParseNotificationIcons(parser);
+		const bool textMapInitialised = ExtractNotificationTexts(parser);
+		const bool iconMapInitialised = ExtractNotificationIcons(parser);
 
-		if (textMapIsValid) MemoryTools::MakeRangeJMP<notificationTextEntrance, notificationTextExit>(NotificationText);
-		if (iconMapIsValid) MemoryTools::MakeRangeJMP<notificationIconEntrance, notificationIconExit>(NotificationIcon);
+		if (textMapInitialised) MemoryTools::MakeRangeJMP<notificationTextEntrance, notificationTextExit>(NotificationText);
+		if (iconMapInitialised) MemoryTools::MakeRangeJMP<notificationIconEntrance, notificationIconExit>(NotificationIcon);
 
-		return (textMapIsValid or iconMapIsValid);
+		return (textMapInitialised or iconMapInitialised);
 	}
 
 
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Destruction notifications (and code modifications)
-		if (not ParseNotifications(parser)) return false; // no valid notifications; disable feature
+		if (not ExtractNotifications(parser)) return false; // no valid notifications; disable feature
 
 		// Status flag
 		anyFeatureEnabled = true;

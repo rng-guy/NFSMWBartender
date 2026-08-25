@@ -2,11 +2,10 @@
 
 #include <vector>
 #include <optional>
-#include <string_view>
 
 #include "../../Common/Globals.hpp"
-#include "../../Common/HeatParameters.hpp"
 #include "../../Common/ConfigParser.hpp"
+#include "../../Common/HeatParameters.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
 
@@ -163,30 +162,28 @@ namespace InteractiveMusic
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	bool ParsePlaylist(const HeatParameters::Parser& parser)
+	[[nodiscard]] bool ExtractPlaylist(const ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogPlain("Playlist parsing:");
 
-		const auto& sections     = parser.GetSections();
-		const auto  foundSection = sections.find("Music:Playlist");
+		const auto* const section = parser.GetSection("Music:Playlist");
 
-		if (foundSection == sections.end())
+		if (not section)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogDetail("no section provided");
+				Globals::LogDetail("no track(s) provided");
 
 			return false; // missing section; disable feature
 		}
 
 		// Validate and add track IDs
-		const auto& pairs = foundSection->second;
-		playlist.reserve(pairs.size());
+		playlist.reserve(section->size());
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogDetail(LogDec(pairs.size()), "track(s) provided");
+			Globals::LogDetail(LogDec(section->size()), "track(s) provided");
 
 		constexpr auto ValuesToThemeID = [](const auto& values) -> std::optional<int>
 		{
@@ -202,22 +199,35 @@ namespace InteractiveMusic
 			return std::nullopt;
 		};
 
-		for (const auto& [key, values] : pairs)
+		for (const auto& [key, values] : *section)
 		{
-			if (key.find("track") == 0) // key starts with "track"
+			if (not key.starts_with("track"))
 			{
-				if (const auto themeID = ValuesToThemeID(values)) // value valid
-					playlist.push_back(*themeID);
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogDetail('-', key, "(invalid format)");
 
-				else if constexpr (Globals::loggingEnabled) // value invalid
-					Globals::LogDetail('-', key, "(invalid value)");
+				continue; // invalid key
 			}
-			else if constexpr (Globals::loggingEnabled) // key invalid
-				Globals::LogDetail('-', key, "(invalid format)");
+
+			if (const auto themeID = ValuesToThemeID(values))
+				playlist.push_back(*themeID);
+
+			else if constexpr (Globals::loggingEnabled)
+				Globals::LogDetail('-', key, "(invalid value)");
 		}
 
 		if constexpr (Globals::loggingEnabled)
+		{
 			Globals::LogDetail(LogDec(playlist.size()), "track(s) valid");
+
+			if (not playlist.empty())
+			{
+				Globals::LogPlain("Playlist:");
+
+				for (size_t trackID = 0; trackID < playlist.size(); ++trackID)
+					Globals::LogDetail("track", LogDec(trackID + 1), "= theme", playlist[trackID] + 1);
+			}
+		}
 
 		playlist.shrink_to_fit();
 	
@@ -226,22 +236,17 @@ namespace InteractiveMusic
 
 
 
-	void ParseSettings(const HeatParameters::Parser& parser)
+	void ExtractSettings(const ConfigParser::Parser& parser)
 	{
-		constexpr std::string_view section = "Playlist:Settings";
+		const auto* const section = parser.GetSection("Playlist:Settings");
+		
+		transitionsEnabled = parser.ExtractScalars<float>(section, "lengthPerTrack", {lengthPerTrack, {10.f}});
 
-		transitionsEnabled = parser.ParseFromFile<float>(section, "lengthPerTrack", {lengthPerTrack});
-
-		parser.ParseFromFile<bool>(section, "shuffleFirstTrack", {shuffleFirstTrack});
-		parser.ParseFromFile<bool>(section, "shuffleAfterFirst", {shuffleAfterFirst});
+		parser.ExtractScalars<bool>(section, "shuffleFirstTrack", {shuffleFirstTrack});
+		parser.ExtractScalars<bool>(section, "shuffleAfterFirst", {shuffleAfterFirst});
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogPlain("Playlist:");
-
-			for (size_t trackID = 0; trackID < playlist.size(); ++trackID)
-				Globals::LogDetail("track", LogDec(trackID + 1), "= theme", playlist[trackID] + 1);
-
 			if (transitionsEnabled)
 				Globals::LogPlain("Length per track:", lengthPerTrack);
 
@@ -256,19 +261,19 @@ namespace InteractiveMusic
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Theme playlist
-		if (not ParsePlaylist(parser)) return false; // no valid theme(s); disable feature
+		if (not ExtractPlaylist(parser)) return false; // no valid theme(s); disable feature
 
-		ParseSettings(parser);
+		ExtractSettings(parser);
 
 		// Code modifications 
 		MemoryTools::MakeRangeJMP<nextTrackEntrance,       nextTrackExit>      (NextTrack);

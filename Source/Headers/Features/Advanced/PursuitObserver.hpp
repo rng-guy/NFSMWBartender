@@ -6,6 +6,7 @@
 #include <concepts>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 
@@ -278,7 +279,7 @@ namespace PursuitObserver
 
 
 
-	void NotifyOfHeatStateUpdate()
+	void NotifyObserversOfHeatStateUpdate()
 	{
 		for (const auto& observer : observers)
 			observer->ProcessHeatStateUpdate();
@@ -286,7 +287,7 @@ namespace PursuitObserver
 
 
 
-	void NotifyOfGameplay()
+	void NotifyObserversOfGameplay()
 	{
 		for (const auto& observer : observers)
 			observer->ProcessGameplay();
@@ -422,9 +423,9 @@ namespace PursuitObserver
 
 	
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if (not CopSpawnTables::InitialiseFeatures(parser)) return false;
 
@@ -464,15 +465,33 @@ namespace PursuitObserver
 		HeatChangeOverrides::SetToHeatState(state);
 		RoadblockOverrides ::SetToHeatState(state);
 
-		NotifyOfHeatStateUpdate();
+		NotifyObserversOfHeatStateUpdate();
 	}
 
 
 
-	void UpdateFeatureState() 
+	void NotifyOfGameplay()
 	{
 		if (not anyFeatureEnabled) return;
 
-		NotifyOfGameplay();
+		NotifyObserversOfGameplay();
+	}
+
+
+
+	void NotifyOfSoftEventReset()
+	{
+		if (not anyFeatureEnabled) return;
+
+		CopSpawnOverrides::NotifyOfSoftEventReset();
+	}
+
+
+
+	void NotifyOfHardEventReset()
+	{
+		if (not anyFeatureEnabled) return;
+
+		CopSpawnOverrides::NotifyOfHardEventReset();
 	}
 }

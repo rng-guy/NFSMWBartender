@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/HeatParameters.hpp"
 #include "../../Common/PersistentStrings.hpp"
 
@@ -692,37 +693,37 @@ namespace HelicopterOverrides
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.LoadFile(HeatParameters::configPathAdvanced, "Helicopter.ini");
+		parser.ParseFile(HeatParameters::configPathAdvanced, "Helicopter.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Helicopter:Vehicle", helicopterVehicle);
+		HeatParameters::Extract(parser, "Helicopter:Vehicle", helicopterVehicle);
 
-		HeatParameters::Parse(parser, "Helicopter:FirstSpawn", firstSpawnDelay);
+		HeatParameters::Extract(parser, "Helicopter:FirstSpawn", firstSpawnDelay);
 
-		HeatParameters::Parse(parser, "Helicopter:FuelRespawn", fuelRespawnDelay);
+		HeatParameters::Extract(parser, "Helicopter:FuelRespawn", fuelRespawnDelay);
 
-		HeatParameters::Parse(parser, "Helicopter:WreckRespawn", wreckRespawnDelay);
+		HeatParameters::Extract(parser, "Helicopter:WreckRespawn", wreckRespawnDelay);
 
-		HeatParameters::Parse(parser, "Helicopter:LostRespawn", lostRespawnDelay);
+		HeatParameters::Extract(parser, "Helicopter:LostRespawn", lostRespawnDelay);
 
-		HeatParameters::Parse(parser, "Helicopter:LostRejoin", lostRejoinDelay, minRejoinFuelTime);
+		HeatParameters::Extract(parser, "Helicopter:LostRejoin", lostRejoinDelay, minRejoinFuelTime);
 
-		HeatParameters::Parse(parser, "Helicopter:FuelTime", fuelTime);
+		HeatParameters::Extract(parser, "Helicopter:FuelTime", fuelTime);
 
-		HeatParameters::Parse(parser, "Helicopter:Chasing", chaseSpawnDistance);
+		HeatParameters::Extract(parser, "Helicopter:Chasing", chaseSpawnDistance);
 
-		HeatParameters::Parse(parser, "Helicopter:Searching", searchSpawnDistance);
+		HeatParameters::Extract(parser, "Helicopter:Searching", searchSpawnDistance);
 
-		HeatParameters::Parse(parser, "Helicopter:Roadblocks", affectedByRoadblock);
+		HeatParameters::Extract(parser, "Helicopter:Roadblocks", affectedByRoadblock);
 
-		HeatParameters::Parse(parser, "Helicopter:Ramming", rammingCooldown);
+		HeatParameters::Extract(parser, "Helicopter:Ramming", rammingCooldown);
 
 		// Check and make vehicle names persistent
 		if (HeatParameters::ResolveHelicopterNames(helicopterVehicle))

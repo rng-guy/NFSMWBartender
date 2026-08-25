@@ -245,6 +245,7 @@ namespace MemoryTools
 	}
 
 
+
 	template <typename T>
 	requires std::is_function_v<T>
 	inline address ReplaceCall

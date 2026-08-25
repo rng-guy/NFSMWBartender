@@ -81,7 +81,6 @@ namespace HeatParameters
 	}
 
 
-
 	void LogMissingParameter(const LogLiteral name)
 	{
 		Globals::LogPlain(PadParameterName(name), "(missing)");
@@ -93,16 +92,11 @@ namespace HeatParameters
 
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
-	using Parser = ConfigParser::Parser; // aliased to suppress transient includes
-
-	template <typename T>
-	using Bounds = ConfigParser::Bounds<T>; // templated to suppress transient includes
-
 	template <typename T>
 	using HeatLevelArray = std::array<T, maxHeatLevel>;
 
 	template <typename T>
-	using Format = ConfigParser::Format<T, maxHeatLevel>;
+	using Bounds = ConfigParser::Bounds<T>; // templated to suppress transient includes
 
 
 
@@ -144,7 +138,6 @@ namespace HeatParameters
 
 	namespace Details
 	{
-		using ConfigParser::Concepts::IsPureArithmetic;
 		using ConfigParser::Concepts::IsBoundsCompatible;
 
 
@@ -152,10 +145,10 @@ namespace HeatParameters
 		concept IsNonOwningString = (std::same_as<T, const char*> or std::same_as<T, std::string_view>);
 
 		template <typename T>
-		concept IsCopyCompatible = (IsPureArithmetic<T> or IsNonOwningString<T>);
+		concept IsCopyCompatible = (ConfigParser::Concepts::AreExtractable<T> and std::is_trivially_copyable_v<T>);
 
 		template <typename T>
-		concept IsBoolean = std::same_as<T, bool>;
+		concept IsPureBoolean = std::same_as<T, bool>;
 
 
 		template <class T>
@@ -200,7 +193,7 @@ namespace HeatParameters
 			const T          initial,
 			const Bounds<T>& limits = {}
 		) 
-			requires Details::IsBoundsCompatible<T> 
+			requires Details::IsBoundsCompatible<T>
 			: name(name), current(initial), limits(limits)
 		{
 		}
@@ -211,7 +204,7 @@ namespace HeatParameters
 			const LogLiteral name, 
 			const T          initial
 		)
-			requires (not Details::IsBoundsCompatible<T>) 
+			requires (not Details::IsBoundsCompatible<T>)
 			: name(name), current(initial), limits()
 		{
 		}
@@ -235,7 +228,7 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatStateWithoutLog(const HeatState state)
+		void SetToHeatStateSilently(const HeatState state)
 		{
 			this->current = this->GetHeatStateEntry(state);
 		}
@@ -243,7 +236,7 @@ namespace HeatParameters
 
 		void SetToHeatState(const HeatState state) 
 		{
-			this->SetToHeatStateWithoutLog(state);
+			this->SetToHeatStateSilently(state);
 
 			if constexpr (Globals::loggingEnabled)
 				LogParameter(this->name, this->current);
@@ -293,7 +286,7 @@ namespace HeatParameters
 
 
 		[[nodiscard]] bool AnyTrue() const 
-		requires Details::IsBoolean<T>
+		requires Details::IsPureBoolean<T>
 		{
 			for (const bool forRaces : {false, true})
 			{
@@ -306,7 +299,7 @@ namespace HeatParameters
 
 
 		[[nodiscard]] bool AllTrue() const 
-		requires Details::IsBoolean<T>
+		requires Details::IsPureBoolean<T>
 		{
 			for (const bool forRaces : {false, true})
 			{
@@ -358,29 +351,29 @@ namespace HeatParameters
 			const LogLiteral name, 
 			const Bounds<T>& limits = {}
 		)
-			requires Details::IsBoundsCompatible<T> 
+			requires Details::IsBoundsCompatible<T>
 			: name(name), value("value", T(), limits) 
 		{
 		}
 
 
-		constexpr OptionalValue(const LogLiteral name) 
-			requires (not Details::IsBoundsCompatible<T>) 
+		constexpr OptionalValue(const LogLiteral name)
+			requires (not Details::IsBoundsCompatible<T>)
 			: name(name), value("value", T()) 
 		{
 		}
 
 
-		void SetToHeatStateWithoutLog(const HeatState state)
+		void SetToHeatStateSilently(const HeatState state)
 		{
-			this->isEnabled.SetToHeatStateWithoutLog(state);
-			this->value    .SetToHeatStateWithoutLog(state);
+			this->isEnabled.SetToHeatStateSilently(state);
+			this->value    .SetToHeatStateSilently(state);
 		}
 
 
 		void SetToHeatState(const HeatState state) 
 		{
-			this->SetToHeatStateWithoutLog(state);
+			this->SetToHeatStateSilently(state);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -446,7 +439,7 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatStateWithoutLog(const HeatState state)
+		void SetToHeatStateSilently(const HeatState state)
 		{
 			this->current = &(this->GetHeatStateEntry(state));
 		}
@@ -455,7 +448,7 @@ namespace HeatParameters
 		void SetToHeatState(const HeatState state) 
 		requires Details::IsLoggable<T>
 		{
-			this->SetToHeatStateWithoutLog(state);
+			this->SetToHeatStateSilently(state);
 
 			if constexpr (Globals::loggingEnabled)
 				this->current->Log(this->name);
@@ -493,17 +486,17 @@ namespace HeatParameters
 		constexpr explicit OptionalPointer(const LogLiteral name) : name(name), pointer("pointer") {}
 
 
-		void SetToHeatStateWithoutLog(const HeatState state)
+		void SetToHeatStateSilently(const HeatState state)
 		{
-			this->isEnabled.SetToHeatStateWithoutLog(state);
-			this->pointer  .SetToHeatStateWithoutLog(state);
+			this->isEnabled.SetToHeatStateSilently(state);
+			this->pointer  .SetToHeatStateSilently(state);
 		}
 
 
 		void SetToHeatState(const HeatState state) 
 		requires Details::IsLoggable<T>
 		{
-			this->SetToHeatStateWithoutLog(state);
+			this->SetToHeatStateSilently(state);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -558,16 +551,16 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatStateWithoutLog(const HeatState state)
+		void SetToHeatStateSilently(const HeatState state)
 		{
-			this->min.SetToHeatStateWithoutLog(state);
-			this->max.SetToHeatStateWithoutLog(state);
+			this->min.SetToHeatStateSilently(state);
+			this->max.SetToHeatStateSilently(state);
 		}
 
 
 		void SetToHeatState(const HeatState state)
 		{
-			this->SetToHeatStateWithoutLog(state);
+			this->SetToHeatStateSilently(state);
 
 			if constexpr (Globals::loggingEnabled)
 				LogParameter(this->name, this->min.current, "to", this->max.current);
@@ -630,16 +623,16 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatStateWithoutLog(const HeatState state)
+		void SetToHeatStateSilently(const HeatState state)
 		{
-			this->isEnabled.SetToHeatStateWithoutLog(state);
-			this->interval .SetToHeatStateWithoutLog(state);
+			this->isEnabled.SetToHeatStateSilently(state);
+			this->interval .SetToHeatStateSilently(state);
 		}
 
 
 		void SetToHeatState(const HeatState state)
 		{
-			this->SetToHeatStateWithoutLog(state);
+			this->SetToHeatStateSilently(state);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -733,6 +726,10 @@ namespace HeatParameters
 
 	namespace Details
 	{
+		template <typename T>
+		using ArrayField = ConfigParser::ArrayField<T, maxHeatLevel>;
+
+
 		template <typename T> struct IsRegular              : std::false_type {};
 		template <typename T> struct IsRegular<Value   <T>> : std::true_type  {};
 		template <typename T> struct IsRegular<Interval<T>> : std::true_type  {};
@@ -749,9 +746,13 @@ namespace HeatParameters
 		concept AreOptional = ((sizeof...(Ts) > 0) and ... and IsOptional<Ts>::value);
 
 
+		template <class ...HeatParameters>
+		concept AreExtractable = (AreRegular<HeatParameters...> or AreOptional<HeatParameters...>);
+
+
 
 		template <typename T>
-		[[nodiscard]] Format<T> ToFormatWithDefault
+		[[nodiscard]] ArrayField<T> AsFieldWithDefault
 		(
 			const bool forRaces,
 			Value<T>&  value
@@ -761,7 +762,7 @@ namespace HeatParameters
 
 
 		template <typename T>
-		[[nodiscard]] Format<T> ToFormatWithoutDefault
+		[[nodiscard]] ArrayField<T> AsFieldWithoutDefault
 		(
 			const bool forRaces,
 			Value<T>&  value
@@ -772,82 +773,57 @@ namespace HeatParameters
 
 
 		template <typename T>
-		[[nodiscard]] auto CreateFormatTuple
+		[[nodiscard]] auto GetFields
 		(
 			const bool forRaces,
 			Value<T>&  value
 		) {
 			return std::tuple
 			(
-				ToFormatWithDefault<T>(forRaces, value)
+				AsFieldWithDefault<T>(forRaces, value)
 			);
 		}
 
 
 		template <typename T>
-		[[nodiscard]] auto CreateFormatTuple
+		[[nodiscard]] auto GetFields
 		(
 			const bool        forRaces,
 			OptionalValue<T>& optionalValue
 		) {
 			return std::tuple
 			(
-				ToFormatWithoutDefault<T>(forRaces, optionalValue.value)
+				AsFieldWithoutDefault<T>(forRaces, optionalValue.value)
 			);
 		}
 
 
 
 		template <typename T>
-		[[nodiscard]] auto CreateFormatTuple
+		[[nodiscard]] auto GetFields
 		(
 			const bool   forRaces,
 			Interval<T>& interval
 		) {
 			return std::tuple
 			(
-				ToFormatWithDefault<T>(forRaces, interval.min),
-				ToFormatWithDefault<T>(forRaces, interval.max)
+				AsFieldWithDefault<T>(forRaces, interval.min),
+				AsFieldWithDefault<T>(forRaces, interval.max)
 			);
 		}
 
 
 		template <typename T>
-		[[nodiscard]] auto CreateFormatTuple
+		[[nodiscard]] auto GetFields
 		(
 			const bool           forRaces,
 			OptionalInterval<T>& optionalInterval
 		) {
 			return std::tuple
 			(
-				ToFormatWithoutDefault<T>(forRaces, optionalInterval.interval.min),
-				ToFormatWithoutDefault<T>(forRaces, optionalInterval.interval.max)
+				AsFieldWithoutDefault<T>(forRaces, optionalInterval.interval.min),
+				AsFieldWithoutDefault<T>(forRaces, optionalInterval.interval.max)
 			);
-		}
-
-
-
-		template <class ...HeatParameters>
-		HeatLevelArray<bool> ParseHeatLevelArray
-		(
-			const bool                forRaces,
-			const Parser&             parser,
-			const std::string_view    section,
-			HeatParameters&        ...parameters
-		) {
-			const auto ParseFormats = [&](auto&& ...formats) -> HeatLevelArray<bool>
-			{
-				return parser.ParseFormat<maxHeatLevel>
-				(
-					section,
-					configDefaultKey,
-					(forRaces) ? configFormatRace : configFormatRoam,
-					configFormatStart,
-					formats...
-				);
-			};
-
-			return std::apply(ParseFormats, std::tuple_cat(CreateFormatTuple(forRaces, parameters)...));
 		}
 
 
@@ -867,7 +843,7 @@ namespace HeatParameters
 
 
 
-		void DoPostProcessing(const auto&) {}
+		void DoPostProcessing(auto&) {}
 
 
 		template <typename T>
@@ -888,24 +864,63 @@ namespace HeatParameters
 
 
 
-	// Generic parsing function --------------------------------------------------------------------------------------------------------------------
+	// Parameter-extraction function ----------------------------------------------------------------------------------------------------------------
 
 	template <class ...HeatParameters>
-	requires (Details::AreRegular<HeatParameters...> or Details::AreOptional<HeatParameters...>)
-	void Parse
+	requires Details::AreExtractable<HeatParameters...>
+	void Extract
 	(
-		const Parser&             parser,
-		const std::string_view    section,
-		HeatParameters&        ...parameters
+		const ConfigParser::Parser::Section* const    section,
+		HeatParameters&                            ...parameters
 	) {
 		for (const bool forRaces : {false, true})
 		{
-			const HeatLevelArray<bool> isEnableds = Details::ParseHeatLevelArray<HeatParameters...>(forRaces, parser, section, parameters...);
+			// Extract arrays for free-roam / race Heat-levels separately
+			const auto ExtractArrays = [forRaces, section](auto&& ...fields) -> HeatLevelArray<bool>
+			{
+				return ConfigParser::Parser::ExtractArrays
+				(
+					section,
+					configDefaultKey,
+					(forRaces) ? configFormatRace : configFormatRoam,
+					configFormatStart,
+					fields...
+				);
+			};
 
+			const auto isEnableds = std::apply(ExtractArrays, std::tuple_cat(Details::GetFields(forRaces, parameters)...));
+
+			// For optionals, successful exraction enables them
 			if constexpr (Details::AreOptional<HeatParameters...>)
 				(..., (parameters.isEnabled.GetHeatLevelArray(forRaces) = isEnableds));
 		}
 
 		(..., Details::DoPostProcessing(parameters));
+	}
+
+
+
+	template <class ...HeatParameters>
+	requires Details::AreExtractable<HeatParameters...>
+	void Extract
+	(
+		const ConfigParser::Parser::Section&    section,
+		HeatParameters&                      ...parameters
+	) {
+		Extract<HeatParameters...>(&section, parameters...);
+	}
+
+
+
+	template <class ...HeatParameters>
+	requires Details::AreExtractable<HeatParameters...>
+	void Extract
+	(
+		const ConfigParser::Parser&    parser,
+		const std::string_view         sectionName,
+		HeatParameters&             ...parameters
+	) {
+		const auto* const section = parser.GetSection(sectionName);
+		Extract<HeatParameters...>(section, parameters...);
 	}
 }

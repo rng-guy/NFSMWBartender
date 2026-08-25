@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 
@@ -431,33 +432,33 @@ namespace LeaderOverrides
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
+		parser.ParseFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Leader5:CrossAggro", leader5CrossAggroDelay);
+		HeatParameters::Extract(parser, "Leader5:CrossAggro", leader5CrossAggroDelay);
 
-		HeatParameters::Parse(parser, "Leader5:ExpireReset", leader5ExpireResetDelay);
+		HeatParameters::Extract(parser, "Leader5:ExpireReset", leader5ExpireResetDelay);
 
-		HeatParameters::Parse(parser, "Leader5:WreckReset", leader5WreckResetDelay);
+		HeatParameters::Extract(parser, "Leader5:WreckReset", leader5WreckResetDelay);
 
-		HeatParameters::Parse(parser, "Leader5:LostReset", leader5LostResetDelay);
+		HeatParameters::Extract(parser, "Leader5:LostReset", leader5LostResetDelay);
 
-		HeatParameters::Parse(parser, "Leader7:CrossAggro", leader7CrossAggroDelay);
+		HeatParameters::Extract(parser, "Leader7:CrossAggro", leader7CrossAggroDelay);
 
-		HeatParameters::Parse(parser, "Leader7:HenchmenAggro", leader7HenchAggroDelay);
+		HeatParameters::Extract(parser, "Leader7:HenchmenAggro", leader7HenchAggroDelay);
 
-		HeatParameters::Parse(parser, "Leader7:ExpireReset", leader7ExpireResetDelay);
+		HeatParameters::Extract(parser, "Leader7:ExpireReset", leader7ExpireResetDelay);
 
-		HeatParameters::Parse(parser, "Leader7:WreckReset", leader7WreckResetDelay);
+		HeatParameters::Extract(parser, "Leader7:WreckReset", leader7WreckResetDelay);
 
-		HeatParameters::Parse(parser, "Leader7:LostReset", leader7LostResetDelay);
+		HeatParameters::Extract(parser, "Leader7:LostReset", leader7LostResetDelay);
 
 		// Code modifications
 		MemoryTools::MakeRangeNOP<0x42B6A2, 0x42B6B4>(); // Cross flag = 0

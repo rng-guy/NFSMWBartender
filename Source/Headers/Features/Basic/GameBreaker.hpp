@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ParameterSets.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
@@ -182,24 +183,24 @@ namespace GameBreaker
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.LoadFile(HeatParameters::configPathBasic, "Speedbreaker.ini")) return false;
+		if (not parser.ParseFile(HeatParameters::configPathBasic, "Speedbreaker.ini")) return false;
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Speedbreaker:Mechanics", passiveRechargeEnabled, driftRechargeEnabled);
+		HeatParameters::Extract(parser, "Speedbreaker:Mechanics", passiveRechargeEnabled, driftRechargeEnabled);
 
-		HeatParameters::Parse(parser, "Speedbreaker:Active", canGainWhenActive, canLoseWhenActive);
+		HeatParameters::Extract(parser, "Speedbreaker:Active", canGainWhenActive, canLoseWhenActive);
 
-		HeatParameters::Parse(parser, "Speedbreaker:Inactive", canGainWhenInactive, canLoseWhenInactive);
+		HeatParameters::Extract(parser, "Speedbreaker:Inactive", canGainWhenInactive, canLoseWhenInactive);
 
 		// Parameter sets
-		breakerInteractions.Parse(parser, "Speedbreaker");
+		breakerInteractions.Extract(parser, "Speedbreaker");
 
 		// Code changes
 		MemoryTools::MakeRangeJMP<driftRechargeEntrance,   driftRechargeExit>  (DriftRecharge);

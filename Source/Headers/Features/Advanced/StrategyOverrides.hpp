@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 
@@ -627,9 +628,9 @@ namespace StrategyOverrides
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	void InitialiseStackReplacements()
+	void AllocateStackReplacements()
 	{
 		static RELEASE_CONSTINIT std::vector<float> vectorStacks;
 
@@ -648,28 +649,28 @@ namespace StrategyOverrides
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
+		parser.ParseFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Heavy3:Count", numVehiclesPerHeavy3s);
+		HeatParameters::Extract(parser, "Heavy3:Count", numVehiclesPerHeavy3s);
 
-		HeatParameters::Parse(parser, "Heavy3:Unblocking", heavy3UnblockDelay);
+		HeatParameters::Extract(parser, "Heavy3:Unblocking", heavy3UnblockDelay);
 
-		HeatParameters::Parse(parser, "Heavy4:Unblocking", heavy4UnblockDelay);
+		HeatParameters::Extract(parser, "Heavy4:Unblocking", heavy4UnblockDelay);
 
-		HeatParameters::Parse(parser, "Leader5:Unblocking", leader5UnblockDelay);
+		HeatParameters::Extract(parser, "Leader5:Unblocking", leader5UnblockDelay);
 
-		HeatParameters::Parse(parser, "Leader7:Unblocking", leader7UnblockDelay);
+		HeatParameters::Extract(parser, "Leader7:Unblocking", leader7UnblockDelay);
 
 		// Stack replacements
-		InitialiseStackReplacements();
+		AllocateStackReplacements();
 
 		// Code modifications (general)
 		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4

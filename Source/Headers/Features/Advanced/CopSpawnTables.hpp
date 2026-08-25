@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 #include "../../Common/PersistentStrings.hpp"
@@ -257,11 +258,11 @@ namespace CopSpawnTables
 	
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	bool ParseTablePointer
+	[[nodiscard]] bool ExtractTablePointer
 	(
-		const HeatParameters::Parser&        parser,
+		const ConfigParser::Parser&          parser,
 		const std::string_view               tableName,
 		HeatParameters::Pointer<SpawnTable>& tablePointer
 	) {
@@ -273,20 +274,25 @@ namespace CopSpawnTables
 		std::vector<int>         copCounts;
 		std::vector<int>         copChances;
 
+		const auto countsVectorField  = ConfigParser::VectorField(copCounts,  {1});
+		const auto chancesVectorField = ConfigParser::VectorField(copChances, {1});
+
 		for (const bool forRaces : {false, true})
 		{
 			auto& tableArray = tablePointer.GetHeatLevelArray(forRaces);
 
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
-				// Parse spawn-table entries
-				const size_t heatLevel  = heatLevelID + 1;
-				const auto   section    = buffer.Format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
-				const size_t numEntries = parser.ParseUser<const char*, int, int>(section, copNames, {copCounts, {1}}, {copChances, {1}});
+				const size_t heatLevel = heatLevelID + 1;
+
+				// Extract spawn-table entries
+				const auto   sectionName = buffer.Format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
+				const size_t numEntries  = parser.ExtractVectors(sectionName, copNames, countsVectorField, chancesVectorField);
 
 				// Attempt to add new entries to table
-				bool  theseEntriesValid = true;
-				auto& levelTable        = tableArray[heatLevelID];
+				bool theseEntriesValid = true;
+
+				auto& levelTable = tableArray[heatLevelID];
 
 				for (size_t entryID = 0; entryID < numEntries; ++entryID)
 				{
@@ -318,10 +324,10 @@ namespace CopSpawnTables
 
 
 
-	bool ParseSpawnTables(const HeatParameters::Parser& parser)
+	[[nodiscard]] bool ExtractSpawnTables(const ConfigParser::Parser& parser)
 	{
 		// All free-roam "Chasers" tables must be non-empty to serve as fallbacks
-		bool allTableEntriesValid = ParseTablePointer(parser, "Chasers", chaserSpawnTable);
+		bool allTableEntriesValid = ExtractTablePointer(parser, "Chasers", chaserSpawnTable);
 
 		for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 		{
@@ -333,10 +339,10 @@ namespace CopSpawnTables
 			return false; // empty free-roam "Chasers" table
 		}
 		
-		// Parse non-"Chasers" tables (may be empty)
-		allTableEntriesValid &= ParseTablePointer(parser, "Patrols",    patrolSpawnTable);
-		allTableEntriesValid &= ParseTablePointer(parser, "Scripted",   scriptedSpawnTable);
-		allTableEntriesValid &= ParseTablePointer(parser, "Roadblocks", roadblockSpawnTable);
+		// Extract non-"Chasers" tables (may be empty)
+		allTableEntriesValid &= ExtractTablePointer(parser, "Patrols",    patrolSpawnTable);
+		allTableEntriesValid &= ExtractTablePointer(parser, "Scripted",   scriptedSpawnTable);
+		allTableEntriesValid &= ExtractTablePointer(parser, "Roadblocks", roadblockSpawnTable);
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -365,17 +371,17 @@ namespace CopSpawnTables
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.LoadFile(HeatParameters::configPathAdvanced, "CarTables.ini")) return false;
+		if (not parser.ParseFile(HeatParameters::configPathAdvanced, "CarTables.ini")) return false;
 
 		// Heat parameters
-		if (not ParseSpawnTables(parser)) return false; // free-roam "Chasers" table(s) empty; disable feature
+		if (not ExtractSpawnTables(parser)) return false; // free-roam "Chasers" table(s) empty; disable feature
 
 		// Status flag
 		anyFeatureEnabled = true;

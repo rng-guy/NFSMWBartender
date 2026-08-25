@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 
@@ -39,9 +40,9 @@ namespace CopFleeOverrides
 	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, joinedHeavy3FleeDelay, {1.f}); // seconds
 	constinit OPTIONAL_HEAT_PARAMETER_VALUE   (int,   joinedHeavy3Threshold, {0});   // cars
 
-	// Conversions
-	float baseSpeedThreshold = heavy3SpeedThreshold.current / 3.6f; // metres / second
-	float jerkSpeedThreshold = baseSpeedThreshold * .625f;          // metres / second
+	// Parameter conversions
+	float baseSpeedThreshold; // metres / second
+	float jerkSpeedThreshold; // metres / second
 
 	// Inline hashes for ASM
 	enum class VaultHash : vault
@@ -618,33 +619,48 @@ namespace CopFleeOverrides
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	void UpdateParameterConversions()
+	{
+		baseSpeedThreshold = heavy3SpeedThreshold.current / 3.6f;
+		jerkSpeedThreshold = baseSpeedThreshold * .625f;
+	}
+
+
+
+
+
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
+
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
 		// Heat parameters (first file)
-		parser.LoadFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
+		parser.ParseFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
 
-		HeatParameters::Parse(parser, "Chasers:Fleeing", chaserFleeDelay, chaserThreshold);
+		HeatParameters::Extract(parser, "Chasers:Fleeing", chaserFleeDelay, chaserThreshold);
 
 		// Heat parameters (second file)
-		parser.LoadFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
+		parser.ParseFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
 
-		HeatParameters::Parse(parser, "Joining:Fleeing", joinedRoadblockFleeDelay, joinedRoadblockThreshold);
+		HeatParameters::Extract(parser, "Joining:Fleeing", joinedRoadblockFleeDelay, joinedRoadblockThreshold);
 
 		// Heat parameters (third file)
-		parser.LoadFile(HeatParameters::configPathAdvanced, "Strategies.ini");
+		parser.ParseFile(HeatParameters::configPathAdvanced, "Strategies.ini");
 
-		HeatParameters::Parse(parser, "Heavy3:Cancellation", heavy3SpeedThreshold);
+		HeatParameters::Extract(parser, "Heavy3:Cancellation", heavy3SpeedThreshold);
 
-		HeatParameters::Parse(parser, "Heavy3:Joining", heavy3JoiningEnabled);
+		HeatParameters::Extract(parser, "Heavy3:Joining", heavy3JoiningEnabled);
 
-		HeatParameters::Parse(parser, "Joining:Limit", heavy3JoinLimit);
+		HeatParameters::Extract(parser, "Joining:Limit", heavy3JoinLimit);
 
-		HeatParameters::Parse(parser, "Joining:Fleeing", joinedHeavy3FleeDelay, joinedHeavy3Threshold);
+		HeatParameters::Extract(parser, "Joining:Fleeing", joinedHeavy3FleeDelay, joinedHeavy3Threshold);
+
+		// Parameter conversions
+		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Code modifications 
 		MemoryTools::MakeRangeJMP<goalUpdateEntrance, goalUpdateExit>(GoalUpdate);
@@ -664,6 +680,7 @@ namespace CopFleeOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 
+		// Heat parameters
 		chaserFleeDelay.SetToHeatState(state);
 		chaserThreshold.SetToHeatState(state);
 
@@ -679,7 +696,7 @@ namespace CopFleeOverrides
 		joinedHeavy3FleeDelay.SetToHeatState(state);
 		joinedHeavy3Threshold.SetToHeatState(state);
 
-		baseSpeedThreshold = heavy3SpeedThreshold.current / 3.6f;
-		jerkSpeedThreshold = baseSpeedThreshold * .625f;
+		// Parameter conversions
+		UpdateParameterConversions();
 	}
 }

@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../Common/Globals.hpp"
+#include "../Common/ConfigParser.hpp"
 #include "../Common/HeatParameters.hpp"
 
 #include "../Utilities/MemoryTools.hpp"
@@ -15,7 +16,6 @@
 #include "Basic/GeneralSettings.hpp"
 
 #include "Advanced/PursuitObserver.hpp"
-#include "Advanced/CopSpawnOverrides.hpp"
 #include "Advanced/HeatChangeOverrides.hpp"
 
 
@@ -27,7 +27,7 @@ namespace StateObserver
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[STA]";
+	constexpr LogLiteral logTag  = "[SOB]";
 	constexpr LogLiteral logName = "StateObserver";
 
 	// Code caves
@@ -153,7 +153,7 @@ namespace StateObserver
 		byte& numCopAssaulted = AsReference<byte>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
 
 		if (numCopAssaulted < std::numeric_limits<byte>::max())
-			++numCopAssaulted;
+			++numCopAssaulted; // tracked separately for each vehicle
 
 		if (pursuit) // may not be cop's pursuit (vanilla behaviour)
 		{
@@ -173,25 +173,28 @@ namespace StateObserver
 		const int newStateID, 
 		const int oldStateID
 	) {
-		if (newStateID == oldStateID) return;
+		const bool isPaused  = (oldStateID == 3);
+		const bool wasPaused = (newStateID == 3);
 
-		// Update tracker for paused game ticks
-		static constinit uint32_t numTicksOnPaused = 0;
+		if (not (isPaused or wasPaused)) return;
 
-		if (newStateID == 4) // paused
+		if (isPaused and wasPaused)
 		{
-			numTicksOnPaused = Globals::numGameTicks;
-
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogTagged(logTag, "Game paused");
-		}
-		else if (oldStateID == 4) // unpaused
-		{
-			Globals::numPausedTicks += Globals::numGameTicks - numTicksOnPaused;
+				Globals::LogWarning(logTag, "Invalid game-state update");
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogTagged(logTag, "Game unpaused");
+			ASSERT_UNREACHABLE_THEN(return);
 		}
+
+		Globals::isGameplayPaused = isPaused;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogTagged(logTag, "Gameplay", (isPaused) ? "paused" : "unpaused");
+
+		if (isPaused) 
+			Globals::numGameTicksOnLastPause = Globals::numGameTicks;
+
+		else Globals::numFullyPausedGameTicks += Globals::numGameTicks - Globals::numGameTicksOnLastPause;
 	}
 
 
@@ -339,7 +342,7 @@ namespace StateObserver
 			mov dword ptr [esi + 0x2C], eax
 
 			mov ecx, eax
-			call ProcessGameStateUpdate // ecx: newState; edx: oldState
+			call ProcessGameStateUpdate // ecx: newStateID; edx: oldStateID
 
 			conclusion:
 			jmp dword ptr [gameStateUpdateExit]
@@ -467,10 +470,11 @@ namespace StateObserver
 		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
 		{
 			playerIsRacing = (not playerIsRacing);
+
 			ProcessHeatStateUpdate();
 		}
 
-		PursuitObserver::UpdateFeatureState();
+		PursuitObserver::NotifyOfGameplay();
 
 		// Call original function last (actually __thiscall with 0 arguments)
 		AsFunction<decltype(ProcessGameplay)>(ProcessGameplayOriginal)(soundAI);
@@ -483,7 +487,7 @@ namespace StateObserver
 	void ProcessWorldLoad()
 	{
 		// Apply hooked logic fist
-		CopSpawnOverrides::FullResetFeatureState();
+		PursuitObserver::NotifyOfHardEventReset();
 
 		// Call original function last
 		AsFunction<decltype(ProcessWorldLoad)>(ProcessWorldLoadOriginal)();
@@ -499,7 +503,7 @@ namespace StateObserver
 		playerHeatLevel               = 0;
 		Globals::playerHeatLevelKnown = false;
 
-		CopSpawnOverrides::SoftResetFeatureState();
+		PursuitObserver::NotifyOfSoftEventReset();
 
 		// Call original function last
 		AsFunction<decltype(ProcessEventRestart)>(ProcessEventRestartOriginal)();
@@ -509,9 +513,9 @@ namespace StateObserver
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(const HeatParameters::Parser& parser)
+	bool InitialiseFeatures(const ConfigParser::Parser& parser)
 	{
 		// Code modifications 
 		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first perp-damage check

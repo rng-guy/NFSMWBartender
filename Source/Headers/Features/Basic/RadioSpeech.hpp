@@ -3,11 +3,13 @@
 #include <vector>
 #include <string_view>
 
-#include "..\..\Common\Globals.hpp"
-#include "..\..\Common\ModContainers.hpp"
-#include "..\..\Common\HeatParameters.hpp"
+#include "../../Common/Globals.hpp"
 
-#include "..\..\Utilities\MemoryTools.hpp"
+#include "../../Common/ConfigParser.hpp"
+#include "../../Common/ModContainers.hpp"
+#include "../../Common/HeatParameters.hpp"
+
+#include "../../Utilities/MemoryTools.hpp"
 
 
 
@@ -22,7 +24,7 @@ namespace RadioSpeech
 	constexpr LogLiteral logName = "RadioSpeech";
 
 	// Enums
-	enum Jurisdiction : int // C-style for implicit casting
+	enum class Jurisdiction : int
 	{
 		CITY    = 0,
 		STATE   = 1,
@@ -39,13 +41,14 @@ namespace RadioSpeech
 	};
 
 	// Heat parameters
-	constinit HEAT_PARAMETER_VALUE(int, heatJurisdictionID, Jurisdiction::CITY);
+	constinit HEAT_PARAMETER_VALUE(Jurisdiction, heatJurisdictionID, Jurisdiction::CITY);
+
+	// Vehicle maps
+	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(Battalion, copTypeToBattalion, Battalion::PATROL);
 
 	// Code caves 
 	size_t lastReportedHeatLevel = 1;
 	int    lastJurisdictionID    = 0;
-
-	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(Battalion, copTypeToBattalion, Battalion::PATROL);
 
 
 
@@ -53,7 +56,7 @@ namespace RadioSpeech
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	int __fastcall GetCallsignsOffset(const Battalion battalion)
+	[[nodiscard]] int __fastcall GetCallsignsOffset(const Battalion battalion)
 	{
 		switch (battalion)
 		{
@@ -132,6 +135,8 @@ namespace RadioSpeech
 	// Resets transition state whenever a new player pursuit begins
 	__declspec(naked) void PlayerPursuit()
 	{
+		using enum Jurisdiction;
+
 		__asm
 		{
 			mov dword ptr [lastReportedHeatLevel], 1
@@ -244,6 +249,8 @@ namespace RadioSpeech
 	{
 		static constexpr address jurisdictionReportSkip = 0x71D49A;
 
+		using enum Jurisdiction;
+
 		__asm
 		{
 			mov eax, dword ptr [heatJurisdictionID.current]
@@ -268,32 +275,31 @@ namespace RadioSpeech
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	void ParseJurisdictions(const HeatParameters::Parser& parser)
+	void ExtractJurisdictions(const ConfigParser::Parser& parser)
 	{
-		auto defaultJurisdiction = Jurisdiction::CITY;
-
-		const auto NameToJurisdiction = [&defaultJurisdiction](const std::string_view name) -> Jurisdiction
+		constexpr auto NameToJurisdiction = [](const std::string_view name) -> Jurisdiction
 		{
 			if (name == "city")    return Jurisdiction::CITY;
 			if (name == "state")   return Jurisdiction::STATE;
 			if (name == "federal") return Jurisdiction::FEDERAL;
 
-			return defaultJurisdiction;
+			return heatJurisdictionID.current;
 		};
 
-		constexpr std::string_view section = "Heat:Jurisdiction";
+		const auto* const section = parser.GetSection("Heat:Jurisdiction");
 
-		// Parse string representations of jurisdictions first
+		// Extract string representations of jurisdictions first
 		HEAT_PARAMETER_VALUE(std::string_view, jurisdictionNames, "city");
-		HeatParameters::Parse(parser, section, jurisdictionNames);
 
-		// Validate and convert new "default" value (if applicable)
+		HeatParameters::Extract(section, jurisdictionNames); // initialises values regardless of extraction success
+
+		// Extract new "default" value
 		std::string_view newDefaultName;
 
-		if (parser.ParseFromFile<std::string_view>(section, HeatParameters::configDefaultKey, {newDefaultName}))
-			defaultJurisdiction = NameToJurisdiction(newDefaultName);
+		if (ConfigParser::Parser::ExtractScalars<std::string_view>(section, HeatParameters::configDefaultKey, {newDefaultName}))
+			heatJurisdictionID.current = NameToJurisdiction(newDefaultName); // necessary because string "default" may be invalid enum
 
 		// Validate and convert Heat-level values
 		for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
@@ -305,12 +311,12 @@ namespace RadioSpeech
 
 
 
-	bool ParseCallsigns(const HeatParameters::Parser& parser)
+	[[nodiscard]] bool ExtractBattalions(const ConfigParser::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 		std::vector<std::string_view> battalionNames;
 
-		parser.ParseUser<std::string_view, std::string_view>("Vehicles:Callsigns", copNames, {battalionNames});
+		parser.ExtractVectors("Vehicles:Callsigns", copNames, ConfigParser::VectorField(battalionNames));
 
 		// Populate callsign map
 		constexpr auto NameToBattalion = [](const std::string_view name) -> Battalion
@@ -337,7 +343,7 @@ namespace RadioSpeech
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
 	void ApplyFixes()
 	{
@@ -351,18 +357,18 @@ namespace RadioSpeech
 
 
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Jurisdictions
-		ParseJurisdictions(parser);
+		ExtractJurisdictions(parser);
 
-		// Callsigns
-		if (ParseCallsigns(parser))
+		// Callsign battalions
+		if (ExtractBattalions(parser))
 		{
 			// Code modifications (conditional)
 			MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up stack variable

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ParameterSets.hpp"
 #include "../../Common/HeatParameters.hpp"
 
@@ -148,20 +149,20 @@ namespace NitrousCharge
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.LoadFile(HeatParameters::configPathBasic, "Nitrous.ini")) return false;
+		if (not parser.ParseFile(HeatParameters::configPathBasic, "Nitrous.ini")) return false;
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Nitrous:Time", passiveRechargeEnabled);
+		HeatParameters::Extract(parser, "Nitrous:Time", passiveRechargeEnabled);
 
 		// Parameter sets
-		nitrousInteractions.Parse(parser, "Nitrous");
+		nitrousInteractions.Extract(parser, "Nitrous");
 
 		// Code changes
 		MemoryTools::MakeRangeJMP<passiveRechargeEntrance, passiveRechargeExit>(PassiveRecharge);

@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ParameterSets.hpp"
 #include "../../Common/HeatParameters.hpp"
 
@@ -481,12 +482,13 @@ namespace HeatChangeOverrides
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	void ParseDamageChanges(const HeatParameters::Parser& parser)
+	void ExtractDamageChanges(const ConfigParser::Parser& parser)
 	{
 		HEAT_PARAMETER_VALUE(int, propertyToHeat, 0);
-		HeatParameters::Parse(parser, "Heat:Property", propertyToHeat);
+
+		HeatParameters::Extract(parser, "Heat:Property", propertyToHeat);
 
 		for (const bool forRaces : {false, true})
 		{
@@ -502,30 +504,30 @@ namespace HeatChangeOverrides
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.LoadFile(HeatParameters::configPathAdvanced, "Heat.ini");
+		parser.ParseFile(HeatParameters::configPathAdvanced, "Heat.ini");
 
 		// Heat parameters
-		HeatParameters::Parse(parser, "Heat:Time", heatTimerEnabled);
+		HeatParameters::Extract(parser, "Heat:Time", heatTimerEnabled);
 
-		HeatParameters::Parse(parser, "Time:Challenges", challengeScale);
+		HeatParameters::Extract(parser, "Time:Challenges", challengeScale);
 
-		HeatParameters::Parse(parser, "Heat:Deployments", chaserHeatChange, supportHeatChange, helicopterHeatChange);
+		HeatParameters::Extract(parser, "Heat:Deployments", chaserHeatChange, supportHeatChange, helicopterHeatChange);
 
-		HeatParameters::Parse(parser, "Heat:Roadblocks", roadblockHeatChange, spikesHeatChange);
+		HeatParameters::Extract(parser, "Heat:Roadblocks", roadblockHeatChange, spikesHeatChange);
 
-		HeatParameters::Parse(parser, "Heat:Traffic", trafficHitHeatChange);
+		HeatParameters::Extract(parser, "Heat:Traffic", trafficHitHeatChange);
 
-		ParseDamageChanges(parser);
+		ExtractDamageChanges(parser);
 
 		// Parameter sets
-		heatInteractions.Parse(parser, "Heat");
+		heatInteractions.Extract(parser, "Heat");
 
 		// Code modifications (general)
 		MemoryTools::Write<byte>(0xEB, {0x44307F}); // Heat limits in Challenge Series events

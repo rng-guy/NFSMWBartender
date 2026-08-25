@@ -2,11 +2,13 @@
 
 #include <array>
 #include <cmath>
+#include <limits>
 #include <cstdint>
 #include <algorithm>
 #include <string_view>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/HeatParameters.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
@@ -73,8 +75,9 @@ namespace HelicopterVision
 		static constinit float currentVisionState  = 0.f; // out-of-sight (0) to within-sight (1)
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
-		const float currentTimestamp  = Globals::GetUnpausedGameTime();
-		bool&       isKnownCopVehicle = AsReference<bool>(copAIVehicle - 0x4C + 0x769); // padding byte
+		bool& isKnownCopVehicle = AsReference<bool>(copAIVehicle - 0x4C + 0x769); // padding byte
+
+		const float currentTimestamp = Globals::GetGameplayTime();
 
 		if (isKnownCopVehicle)
 		{
@@ -88,8 +91,8 @@ namespace HelicopterVision
 		}
 		else
 		{
-			isKnownCopVehicle  = true;
 			currentVisionState = 0.f;
+			isKnownCopVehicle  = true;
 		}
 
 		currentColour       = InterpolateColour(currentVisionState);
@@ -182,44 +185,43 @@ namespace HelicopterVision
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	bool ParseColour
+	[[nodiscard]] bool ExtractColour
 	(
-		const HeatParameters::Parser& parser,
-		const std::string_view        colourName,
-		Colour&                       colour
+		const ConfigParser::Parser& parser,
+		const std::string_view      colourName,
+		Colour&                     colour
 	) {
+		constexpr ConfigParser::Bounds<int> limits(0, std::numeric_limits<byte>::max());
+
 		ARGB<int> rawChannels = {};
 
-		constexpr HeatParameters::Bounds<int> limits(0, 255);
-
-		const bool isProvided = parser.ParseFromFile<int, int, int, int, float>
+		const bool allExtracted = parser.ExtractScalars<int, int, int, int, float>
 		(
 			"Helicopter:Vision",
 			colourName,
-			{rawChannels[1], limits}, // red
-			{rawChannels[2], limits}, // green
-			{rawChannels[3], limits}, // blue
-			{rawChannels[0], limits}, // alpha
+			{rawChannels[1],          limits}, // red
+			{rawChannels[2],          limits}, // green
+			{rawChannels[3],          limits}, // blue
+			{rawChannels[0],          limits}, // alpha
 			{colour.transitionLength, {.001f}}
 		);
 
-		if (isProvided)
-		{
-			for (size_t channelID = 0; channelID < numChannels; ++channelID)
-				colour.channels[channelID] = static_cast<float>(rawChannels[channelID]);
-		}
+		if (not allExtracted) return false;
 
-		return isProvided;
+		for (size_t channelID = 0; channelID < numChannels; ++channelID)
+			colour.channels[channelID] = static_cast<float>(rawChannels[channelID]);
+
+		return true;
 	}
 
 
 
-	bool ParseColours(const HeatParameters::Parser& parser)
+	[[nodiscard]] bool ExtractColours(const ConfigParser::Parser& parser)
 	{
 		// Out-of-sight colour
-		if (not ParseColour(parser, "outOfSight", outOfSight))
+		if (not ExtractColour(parser, "outOfSight", outOfSight))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogPlain("No valid out-of-sight colour");
@@ -228,7 +230,7 @@ namespace HelicopterVision
 		}
 
 		// Within-sight colour
-		if (not ParseColour(parser, "withinSight", withinSight))
+		if (not ExtractColour(parser, "withinSight", withinSight))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogPlain("No valid within-sight colour");
@@ -249,7 +251,7 @@ namespace HelicopterVision
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
 	void ApplyFixes()
 	{
@@ -259,15 +261,15 @@ namespace HelicopterVision
 
 
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Cone colours
-		if (not ParseColours(parser)) return false; // invalid colours; disable feature
+		if (not ExtractColours(parser)) return false; // invalid colours; disable feature
 
 		// Code modifications
 		MemoryTools::MakeRangeJMP<worldMapIconEntrance, worldMapIconExit>(WorldMapIcon);

@@ -29,31 +29,36 @@ namespace StreamParser
 		concept IsLegacyString = std::same_as<T, const char*>;
 
 		template <typename T>
-		concept IsModernString = std::same_as<T, std::string>;
+		concept IsOwningString = std::same_as<T, std::string>;
 
 		template <typename T>
-		concept IsModernStringOrView = (IsModernString<T> or std::same_as<T, std::string_view>);
+		concept IsOwningStringOrView = (IsOwningString<T> or std::same_as<T, std::string_view>);
 
 		template <typename T>
-		concept IsAnyStringOrView = (IsLegacyString<T> or IsModernStringOrView<T>);
+		concept IsTerminatedString = (IsLegacyString<T> or IsOwningString<T>);
+
 
 		template <typename T>
-		concept IsTerminatedString = (IsLegacyString<T> or IsModernString<T>);
+		concept IsAnyStringOrView = (IsLegacyString<T> or IsOwningStringOrView<T>);
+
+		template <typename V>
+		concept IsPureEnum = (std::is_enum_v<V> and std::same_as<V, std::remove_cvref_t<V>>);
 
 		template <typename V>
 		concept IsPureArithmetic = (std::is_arithmetic_v<V> and std::same_as<V, std::remove_cvref_t<V>>);
 
+
 		template <typename ...Vs>
-		concept AreParseable = ((sizeof...(Vs) > 0) and ... and (IsAnyStringOrView<Vs> or IsPureArithmetic<Vs>));
+		concept AreExtractable = ((sizeof...(Vs) > 0) and ... and (IsAnyStringOrView<Vs> or IsPureEnum<Vs> or IsPureArithmetic<Vs>));
 
 		template <typename S, typename ...Vs>
 		concept AreCompatible = (IsTerminatedString<S> or (not (IsTerminatedString<Vs> or ...)));
 
 		template <typename K, typename ...Vs>
-		concept AreSectionParseable = (IsAnyStringOrView<K> and AreParseable<Vs...>);
+		concept AreSectionExtractable = (IsAnyStringOrView<K> and AreExtractable<Vs...>);
 
 		template <typename ...Vs>
-		concept AreNonAllocating = ((not IsModernString<Vs>) and ...);
+		concept AreNonAllocating = ((not IsOwningString<Vs>) and ...);
 	}
 
 
@@ -100,6 +105,7 @@ namespace StreamParser
 			return false;
 		}
 
+
 		
 		template <char ...chars>
 		[[nodiscard]] consteval bool AreUniqueNonWhitespace() noexcept
@@ -145,11 +151,11 @@ namespace StreamParser
 
 
 
-	// String-parsing functions ---------------------------------------------------------------------------------------------------------------------
+	// String-extraction functions ------------------------------------------------------------------------------------------------------------------
 
 	template <typename V>
 	requires Concepts::IsPureArithmetic<V>
-	inline bool ParseFromString
+	inline bool ExtractFromString
 	(
 		const std::string_view source,
 		V&                     value
@@ -174,7 +180,7 @@ namespace StreamParser
 	}
 
 
-	inline bool ParseFromString
+	inline bool ExtractFromString
 	(
 		const std::string_view source,
 		bool&                  value
@@ -201,8 +207,28 @@ namespace StreamParser
 
 
 	template <typename V>
-	requires Concepts::IsModernStringOrView<V>
-	inline bool ParseFromString
+	requires Concepts::IsPureEnum<V>
+	inline bool ExtractFromString
+	(
+		const std::string_view source,
+		V&                     value
+	)
+		noexcept
+	{
+		auto result = std::underlying_type_t<V>();
+
+		if (not ExtractFromString(source, result)) return false;
+
+		value = static_cast<V>(result);
+
+		return true;
+	}
+
+
+
+	template <typename V>
+	requires Concepts::IsOwningStringOrView<V>
+	inline bool ExtractFromString
 	(
 		const std::string_view source,
 		V&                     value
@@ -215,7 +241,7 @@ namespace StreamParser
 	}
 
 
-	inline bool ParseFromString
+	inline bool ExtractFromString
 	(
 		const std::string& source,
 		const char*&       value
@@ -228,7 +254,7 @@ namespace StreamParser
 	}
 
 
-	inline bool ParseFromString
+	inline bool ExtractFromString
 	(
 		const char* const source,
 		const char*&      value
@@ -243,8 +269,8 @@ namespace StreamParser
 
 
 	template <typename S, typename ...Vs>
-	requires (Concepts::IsAnyStringOrView<S> and Concepts::AreCompatible<S, Vs...> and Concepts::AreParseable<Vs...>)
-	inline bool ParseFromStrings
+	requires (Concepts::IsAnyStringOrView<S> and Concepts::AreCompatible<S, Vs...> and Concepts::AreExtractable<Vs...>)
+	inline bool ExtractFromStrings
 	(
 		const std::span<const S>    sources,
 		Vs&                      ...values
@@ -254,18 +280,19 @@ namespace StreamParser
 		constexpr size_t numSegments = sizeof...(Vs);
 		if (numSegments != sources.size()) return false;
 
-		return [&]<size_t ...segmentID>(std::index_sequence<segmentID...>) -> bool
+		const auto ExtractFromSegments = [&]<size_t ...segmentIDs>(const std::index_sequence<segmentIDs...>) -> bool
 		{
 			std::tuple<Vs...> candidates;
 
-			const bool allParsed = (ParseFromString(sources[segmentID], std::get<segmentID>(candidates)) and ...);
+			const bool allExtracted = (ExtractFromString(sources[segmentIDs], std::get<segmentIDs>(candidates)) and ...);
 
-			if (allParsed)
-				(..., (values = std::move(std::get<segmentID>(candidates))));
+			if (allExtracted)
+				(..., (values = std::move(std::get<segmentIDs>(candidates))));
 
-			return allParsed;
-		}
-		(std::make_index_sequence<numSegments>());
+			return allExtracted;
+		};
+
+		return ExtractFromSegments(std::make_index_sequence<numSegments>());
 	}
 
 
@@ -284,13 +311,16 @@ namespace StreamParser
 		using Name   = std::string;
 		using Values = std::vector<std::string>;
 
-		using Section  = FlatContainers::Map<Key,  Values>;
-		using Sections = FlatContainers::Map<Name, Section>;
+
+	public: // aliases (for interfaces)
+
+		using Section    = FlatContainers::Map<Key,  Values>;
+		using SectionMap = FlatContainers::Map<Name, Section>;
 
 
 	protected: // members
 
-		Sections sections;
+		SectionMap nameToSection;
 
 
 	private: // methods
@@ -363,7 +393,7 @@ namespace StreamParser
 		constexpr Parser() noexcept = default;
 
 
-		// Invalidates retrieved const char* and string_view
+		// Invalidates retrieved views and pointers
 		void ParseStream
 		(
 			std::istream& stream,
@@ -376,7 +406,7 @@ namespace StreamParser
 
 			std::vector<std::string_view> segments;
 
-			this->sections.reserve(this->sections.size() + sectionCapacity);
+			this->nameToSection.reserve(this->nameToSection.size() + sectionCapacity);
 
 			Details::SkipByteOrderMark(stream); // man, screw Notepad
 
@@ -392,7 +422,7 @@ namespace StreamParser
 				{
 					if (not sectionName->empty())
 					{
-						const auto [pairIt, isNewName] = this->sections.try_emplace(*sectionName);
+						const auto [pairIt, isNewName] = this->nameToSection.try_emplace(*sectionName);
 						Section&   section             = pairIt->second;
 
 						if (isNewName)
@@ -433,9 +463,37 @@ namespace StreamParser
 		}
 
 
+		[[nodiscard]] const Section* GetSection(const std::string_view sectionName) const
+		{
+			const auto foundName = this->nameToSection.find(sectionName);
+			if (foundName == this->nameToSection.end()) return nullptr;
+
+			return &(foundName->second);
+		}
+
+
 		template <typename ...Vs>
-		requires Concepts::AreParseable<Vs...>
-		static bool GetValues
+		requires Concepts::AreExtractable<Vs...>
+		static bool ExtractValues
+		(
+			const Section* const      section,
+			const std::string_view    key,
+			Vs&                    ...values
+		)
+			noexcept(Concepts::AreNonAllocating<Vs...>)
+		{
+			if (not section) return false;
+
+			const auto foundKey = section->find(key);
+			if (foundKey == section->end()) return false;
+
+			return ExtractFromStrings<std::string, Vs...>(foundKey->second, values...);
+		}
+
+
+		template <typename ...Vs>
+		requires Concepts::AreExtractable<Vs...>
+		static bool ExtractValues
 		(
 			const Section&            section,
 			const std::string_view    key,
@@ -443,48 +501,45 @@ namespace StreamParser
 		) 
 			noexcept(Concepts::AreNonAllocating<Vs...>)
 		{
-			const auto foundKey = section.find(key);
-			if (foundKey == section.end()) return false;
-
-			return ParseFromStrings<std::string, Vs...>(foundKey->second, values...);
+			return Parser::ExtractValues<Vs...>(&section, key, values...);
 		}
 
 
 		template <typename ...Vs>
-		requires Concepts::AreParseable<Vs...>
-		bool GetValues
+		requires Concepts::AreExtractable<Vs...>
+		bool ExtractValues
 		(
-			const std::string_view    section,
+			const std::string_view    sectionName,
 			const std::string_view    key,
 			Vs&                    ...values
 		) 
 			const noexcept(Concepts::AreNonAllocating<Vs...>)
 		{
-			const auto foundSection = this->sections.find(section);
-			if (foundSection == this->sections.end()) return false;
-
-			return this->GetValues<Vs...>(foundSection->second, key, values...);
+			const Section* const section = this->GetSection(sectionName);
+			return this->ExtractValues<Vs...>(section, key, values...);
 		}
 
 
 		template <typename K, typename ...Vs>
-		requires Concepts::AreSectionParseable<K, Vs...>
-		static size_t GetFullSection
+		requires Concepts::AreSectionExtractable<K, Vs...>
+		static size_t ExtractSection
 		(
-			const Section&      section,
-			std::vector<K>&     keys,
-			std::vector<Vs>& ...values
+			const Section* const    section,
+			std::vector<K>&         keys,
+			std::vector<Vs>&     ...values
 		) {
-			size_t numReads = 0;
+			size_t numExtracted = 0;
 
-			keys        .reserve(keys  .size() + section.size());
-			(..., values.reserve(values.size() + section.size()));
+			if (not section) return numExtracted;
+
+			keys        .reserve(keys  .size() + section->size());
+			(..., values.reserve(values.size() + section->size()));
 
 			const auto ExtractValues = [&](auto&& ...candidates) -> void
 			{
-				for (const auto& [key, strings] : section)
+				for (const auto& [key, strings] : *section)
 				{
-					if (not ParseFromStrings<std::string, Vs...>(strings, candidates...)) continue;
+					if (not ExtractFromStrings<std::string, Vs...>(strings, candidates...)) continue;
 
 					(..., values.push_back(std::move(candidates))); // safe, as all parsed
 
@@ -493,43 +548,53 @@ namespace StreamParser
 
 					else keys.emplace_back(key);
 
-					++numReads;
+					++numExtracted;
 				}
 			};
 
 			std::apply(ExtractValues, std::tuple<Vs...>());
 
-			return numReads;
+			return numExtracted;
 		}
 
 
 		template <typename K, typename ...Vs>
-		requires Concepts::AreSectionParseable<K, Vs...>
-		size_t GetFullSection
+		requires Concepts::AreSectionExtractable<K, Vs...>
+		static size_t ExtractSection
 		(
-			const std::string_view    section,
+			const Section&      section,
+			std::vector<K>&     keys,
+			std::vector<Vs>& ...values
+		) {
+			return Parser::ExtractSection<K, Vs...>(&section, keys, values...);
+		}
+
+
+		template <typename K, typename ...Vs>
+		requires Concepts::AreSectionExtractable<K, Vs...>
+		size_t ExtractSection
+		(
+			const std::string_view    sectionName,
 			std::vector<K>&           keys,
 			std::vector<Vs>&       ...values
 		) 
 			const
 		{
-			const auto foundSection = this->sections.find(section);
-			if (foundSection == this->sections.end()) return 0;
-
-			return this->GetFullSection<K, Vs...>(foundSection->second, keys, values...);
+			const Section* const section = this->GetSection(sectionName);
+			return this->ExtractSection<K, Vs...>(section, keys, values...);
 		}
 
 
-		[[nodiscard]] const Sections& GetSections() const noexcept
+		[[nodiscard]] const SectionMap& GetSectionMap() const noexcept
 		{
-			return this->sections;
+			return this->nameToSection;
 		}
 
 
-		// Invalidates retrieved const char* and string_view
-		void ClearParsedStrings() noexcept
+		// Invalidates retrieved views and pointers
+		void ClearSectionMap() noexcept
 		{
-			this->sections.clear();
+			this->nameToSection.clear();
 		}
 	};
 }

@@ -29,24 +29,25 @@
 #include <debugapi.h>
 #endif
 
-#include "Headers\Common\Globals.hpp"
-#include "Headers\Common\HeatParameters.hpp"
+#include "Headers/Common/Globals.hpp"
+#include "Headers/Common/ConfigParser.hpp"
+#include "Headers/Common/HeatParameters.hpp"
 
-#include "Headers\Utilities\MemoryTools.hpp"
+#include "Headers/Utilities/MemoryTools.hpp"
 
-#include "Headers\Features\Basic\GameBreaker.hpp"
-#include "Headers\Features\Basic\NitrousCharge.hpp"
-#include "Headers\Features\Basic\RadioSpeech.hpp"
-#include "Headers\Features\Basic\CopDetection.hpp"
-#include "Headers\Features\Basic\GroundSupport.hpp"
-#include "Headers\Features\Basic\GeneralSettings.hpp"
-#include "Headers\Features\Basic\HelicopterVision.hpp"
-#include "Headers\Features\Basic\InteractiveMusic.hpp"
-#include "Headers\Features\Basic\CopNotifications.hpp"
+#include "Headers/Features/Basic/GameBreaker.hpp"
+#include "Headers/Features/Basic/NitrousCharge.hpp"
+#include "Headers/Features/Basic/RadioSpeech.hpp"
+#include "Headers/Features/Basic/CopDetection.hpp"
+#include "Headers/Features/Basic/GroundSupport.hpp"
+#include "Headers/Features/Basic/GeneralSettings.hpp"
+#include "Headers/Features/Basic/HelicopterVision.hpp"
+#include "Headers/Features/Basic/InteractiveMusic.hpp"
+#include "Headers/Features/Basic/CopNotifications.hpp"
 
-#include "Headers\Features\Advanced\PursuitObserver.hpp"
+#include "Headers/Features/Advanced/PursuitObserver.hpp"
 
-#include "Headers\Features\StateObserver.hpp"
+#include "Headers/Features/StateObserver.hpp"
 
 
 
@@ -80,7 +81,7 @@ static void __cdecl InitialiseBartender
 		Globals::LogFull(logSection, logTag, "Bartender v4.00.00");
 
 		// Check for other mods
-		static constexpr std::array fileNames =
+		constexpr std::array fileNames =
 		{
 			"X360Stuff.asi",
 			"Mempoolulator.asi",
@@ -95,12 +96,15 @@ static void __cdecl InitialiseBartender
 		};
 
 		for (const char* const fileName : fileNames)
-			if (MemoryTools::IsModuleLoaded(fileName)) Globals::LogPlain('+', fileName);
+		{
+			if (MemoryTools::IsModuleLoaded(fileName)) 
+				Globals::LogPlain('+', fileName);
+		}
 	}
 
-	HeatParameters::Parser parser(/* fileCapactity = */ 6, /* sectionCapacityPerFile = */ 30, /* pairCapacityPerSection = */ 25);
+	ConfigParser::Parser parser(/* fileCapactity = */ 6, /* sectionCapacityPerFile = */ 30, /* pairCapacityPerSection = */ 25);
 
-	// Parse and initialise "Basic" feature set
+	// Initialise "Basic" feature set
 	Globals::basicSetEnabled |= CopNotifications::InitialiseFeatures(parser);
 	Globals::basicSetEnabled |= RadioSpeech     ::InitialiseFeatures(parser);
 	Globals::basicSetEnabled |= CopDetection    ::InitialiseFeatures(parser);
@@ -130,7 +134,7 @@ static void __cdecl InitialiseBartender
 		MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
 	}
 
-	// Parse and initialise "Advanced" feature set
+	// Initialise "Advanced" feature set
 	Globals::advancedSetEnabled = PursuitObserver::InitialiseFeatures(parser);
 
 	// Apply Heat and state observer

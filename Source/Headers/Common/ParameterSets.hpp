@@ -5,6 +5,7 @@
 #include <string_view>
 
 #include "Globals.hpp"
+#include "ConfigParser.hpp"
 #include "ModContainers.hpp"
 #include "HeatParameters.hpp"
 
@@ -41,14 +42,14 @@ namespace ParameterSets
 
 		static void ParseVehicleMap
 		(
-			const HeatParameters::Parser&          parser,
-			const std::string_view                 section,
+			const ConfigParser::Parser&            parser,
+			const std::string_view                 sectionName,
 			ModContainers::DefaultVaultMap<float>& vehicleMap
 		) {
 			std::vector<std::string_view> copNames;
 			std::vector<float>            changes;
 
-			parser.ParseUser<std::string_view, float>(section, copNames, {changes});
+			parser.ExtractVectors<std::string_view, float>(sectionName, copNames, {changes});
 
 			vehicleMap.Fill
 			(
@@ -68,21 +69,21 @@ namespace ParameterSets
 
 	public: // methods
 
-		void Parse
+		void Extract
 		(
-			const HeatParameters::Parser& parser,
-			const std::string_view        featureTag
+			const ConfigParser::Parser& parser,
+			const std::string_view      featureTag
 		) {
 			FormatBuffer::Buffer buffer;
 
 			// Heat parameters
-			HeatParameters::Parse(parser, buffer.Format("{}:Tagging", featureTag), this->copTagChange);
+			HeatParameters::Extract(parser, buffer.Format("{}:Tagging", featureTag), this->copTagChange);
 
-			HeatParameters::Parse(parser, buffer.Format("{}:Assault", featureTag), this->changePerAssault);
+			HeatParameters::Extract(parser, buffer.Format("{}:Assault", featureTag), this->changePerAssault);
 
-			HeatParameters::Parse(parser, "Assault:Limit", this->maxNumAssaultsPerCop);
+			HeatParameters::Extract(parser, "Assault:Limit", this->maxNumAssaultsPerCop);
 
-			HeatParameters::Parse(parser, buffer.Format("{}:Wrecking", featureTag), this->copWreckChange);
+			HeatParameters::Extract(parser, buffer.Format("{}:Wrecking", featureTag), this->copWreckChange);
 
 			// Vehicle-to-change maps
 			this->ParseVehicleMap(parser, "Tagging:Vehicles", this->copTypeToTagChange);

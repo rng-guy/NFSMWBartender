@@ -5,6 +5,7 @@
 #include <string_view>
 
 #include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 
@@ -18,33 +19,39 @@ namespace CopDetection
 
 	class IconColourTracker
 	{
+	private: // aliases
+
+		using TimeQuery = float ();
+
+
 	private: // members
 
-		const bool useUnpausedTime;
+		bool isNewMapObject = true;
 
-		bool  isNewMapObject      = true;
+		TimeQuery* GetElapsedTime;
+		float      colourUpdateInterval;
+
 		float nextUpdateTimestamp = 0.f;
-
+		
 
 	public: // methods
 
-		constexpr explicit IconColourTracker(const bool useUnpausedTime) : useUnpausedTime(useUnpausedTime) {}
-
-
-		IconColourTracker(IconColourTracker&&)      = delete;
-		IconColourTracker(const IconColourTracker&) = delete;
-		
-		IconColourTracker& operator=(IconColourTracker&&)      = delete;
-		IconColourTracker& operator=(const IconColourTracker&) = delete;
-
-
-		[[nodiscard]] bool ShouldUpdateColour()
+		consteval IconColourTracker
+		(
+			TimeQuery* const GetElapsedTime, 
+			const float      colourUpdateRate
+		)
+			: GetElapsedTime(GetElapsedTime), colourUpdateInterval(1.f / colourUpdateRate)
 		{
-			const float gameTime = (this->useUnpausedTime) ? Globals::GetUnpausedGameTime() : Globals::GetTotalGameTime();
-			if ((gameTime < this->nextUpdateTimestamp) and (not this->isNewMapObject)) return false;
+		}
 
-			constexpr float frameTime = 1.f / 30.f; // seconds
-			this->nextUpdateTimestamp = gameTime + frameTime;
+
+		[[nodiscard]] bool YieldUpdateColour()
+		{
+			const float elapsedTime = this->GetElapsedTime();
+			if ((elapsedTime < this->nextUpdateTimestamp) and (not this->isNewMapObject)) return false;
+
+			this->nextUpdateTimestamp = elapsedTime + this->colourUpdateInterval;
 
 			this->isNewMapObject = false;
 
@@ -71,7 +78,7 @@ namespace CopDetection
 	constexpr LogLiteral logName = "CopDetection";
 
 	// Types
-	struct Settings
+	struct Detection
 	{
 	// Members
 
@@ -88,13 +95,16 @@ namespace CopDetection
 		CHOPPER = "CHOPPER"_vlt
 	};
 
+	// Vehicle maps
+	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true}); // metres (x3)
+
 	// Code caves
+	constexpr float colourUpdateRate = 30.f; // hertz
+
+	constinit IconColourTracker miniMapCops (Globals::GetGameplayTime,    colourUpdateRate);
+	constinit IconColourTracker worldMapCops(Globals::GetNonGameplayTime, colourUpdateRate);
+
 	bool updateWorldMapColours = false;
-
-	constinit IconColourTracker miniMapCops (/* useUnpausedTime = */ false);
-	constinit IconColourTracker worldMapCops(/* useUnpausedTime = */ true);
-
-	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(Settings, copTypeToSettings, {300.f, 0.f, 300.f, true}); // metres (x3)
 
 
 
@@ -122,8 +132,8 @@ namespace CopDetection
 		}
 
 		// Fetch icon-range data for vehicle type
-		const Settings& settings  = copTypeToSettings.GetReference(Globals::GetVehicleType(copVehicle));
-		const float     iconRange = (hasBeenInPursuit) ? settings.pursuitIconRange : settings.patrolIconRange;
+		const Detection& detection = copTypeToDetection.GetReference(Globals::GetVehicleType(copVehicle));
+		const float      iconRange = (hasBeenInPursuit) ? detection.pursuitIconRange : detection.patrolIconRange;
 
 		if (iconRange <= 0.f) return false;
 
@@ -138,7 +148,7 @@ namespace CopDetection
 		const auto GetSquaredDistance = AsFunction<float __cdecl (address, address)>(0x401930);
 		if (GetSquaredDistance(copPosition, playerPosition) > iconRange * iconRange) return false;
 		
-		iconIsKept = settings.keepsIcon;
+		iconIsKept = detection.keepsIcon;
 
 		return true;
 	}
@@ -147,7 +157,8 @@ namespace CopDetection
 
 	[[nodiscard]] float __fastcall GetRadarRange(const address copVehicle)
 	{
-		return copTypeToSettings.GetReference(Globals::GetVehicleType(copVehicle)).radarRange;
+		const vault copType = Globals::GetVehicleType(copVehicle);
+		return copTypeToDetection.GetReference(copType).radarRange;
 	}
 
 
@@ -165,7 +176,7 @@ namespace CopDetection
 		__asm
 		{
 			mov ecx, offset worldMapCops
-			call IconColourTracker::ShouldUpdateColour
+			call IconColourTracker::YieldUpdateColour
 			mov byte ptr [updateWorldMapColours], al
 
 			// Execute original code and resume
@@ -268,7 +279,7 @@ namespace CopDetection
 			push eax
 
 			mov ecx, offset miniMapCops
-			call IconColourTracker::ShouldUpdateColour
+			call IconColourTracker::YieldUpdateColour
 			test al, al
 
 			pop ecx
@@ -356,48 +367,50 @@ namespace CopDetection
 
 
 
-	// Parsing functions ----------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
 	std::fstream& operator<<
 	(
-		std::fstream&   stream,
-		const Settings& copSettings
+		std::fstream&    stream,
+		const Detection& detection
 	) {
 		constexpr std::string_view delimiter = ", ";
 
-		stream << copSettings.radarRange;
-		stream << delimiter << copSettings.patrolIconRange;
-		stream << delimiter << copSettings.pursuitIconRange;
-		stream << delimiter << ((copSettings.keepsIcon) ? "true" : "false");
+		stream << detection.radarRange;
+		stream << delimiter << detection.patrolIconRange;
+		stream << delimiter << detection.pursuitIconRange;
+		stream << delimiter << ((detection.keepsIcon) ? "true" : "false");
 
 		return stream;
 	}
 
 
 
-	bool ParseDetectionSettings(const HeatParameters::Parser& parser)
+	[[nodiscard]] bool ExtractDetections(const ConfigParser::Parser& parser)
 	{
+		using ConfigParser::VectorField; // for template-argument deduction
+
 		std::vector<std::string_view> copNames;
 		std::vector<float>            radarRanges;
 		std::vector<float>            patrolIconRanges;
 		std::vector<float>            pursuitIconRanges;
 		std::vector<bool>             keepsIcons;
 
-		const size_t numCopVehicles = parser.ParseUser<std::string_view, float, float, float, bool>
+		const size_t numCopVehicles = parser.ExtractVectors
 		(
 			"Vehicles:Detection",
 			copNames,
-			{radarRanges,       {0.f}},
-			{patrolIconRanges,  {0.f}},
-			{pursuitIconRanges, {0.f}},
-			{keepsIcons}
+			VectorField(radarRanges,       {0.f}),
+			VectorField(patrolIconRanges,  {0.f}),
+			VectorField(pursuitIconRanges, {0.f}),
+			VectorField(keepsIcons)
 		);
 
-		std::vector<Settings> settings(numCopVehicles);
+		std::vector<Detection> detections(numCopVehicles);
 
 		for (size_t vehicleID = 0; vehicleID < numCopVehicles; ++vehicleID)
 		{
-			settings[vehicleID] =
+			detections[vehicleID] =
 			{
 				radarRanges      [vehicleID],
 				patrolIconRanges [vehicleID],
@@ -406,11 +419,11 @@ namespace CopDetection
 			};
 		}
 
-		return copTypeToSettings.Fill
+		return copTypeToDetection.Fill
 		(
 			HeatParameters::configDefaultKey,
-			ModContainers::FillSetup(copNames , Globals::GetVaultHash,         Globals::IsVehicleTypeCar),
-			ModContainers::FillSetup(settings,  ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
+			ModContainers::FillSetup(copNames,   Globals::GetVaultHash,         Globals::IsVehicleTypeCar),
+			ModContainers::FillSetup(detections, ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
 		);
 	}
 
@@ -418,7 +431,7 @@ namespace CopDetection
 
 
 
-	// State management -----------------------------------------------------------------------------------------------------------------------------
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
 	void ApplyFixes()
 	{
@@ -438,15 +451,15 @@ namespace CopDetection
 
 
 
-	bool InitialiseFeatures(HeatParameters::Parser& parser)
+	bool InitialiseFeatures(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.LoadFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
-		// Detection settings
-		if (not ParseDetectionSettings(parser)) return false; // no valid settings; disable feature
+		// Radar detection
+		if (not ExtractDetections(parser)) return false; // no valid settings; disable feature
 
 		// Code modifications
 		MemoryTools::MakeRangeNOP<0x579E33, 0x579E69>(); // pursuit check
