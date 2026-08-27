@@ -37,8 +37,9 @@ namespace RoadblockOverrides
 
 		RBPartType type = RBPartType::NONE;
 
-		float offsetX     = 0.f; // metres
-		float offsetY     = 0.f; // metres
+		float offsetX = 0.f; // metres
+		float offsetY = 0.f; // metres
+
 		float orientation = 0.f; // full rotations
 	};
 
@@ -86,7 +87,7 @@ namespace RoadblockOverrides
 
 		HEAT_PARAMETER_VALUE(int, chance, 100, {0}); // relative
 
-		[[no_unique_address]] LogString name;
+		[[no_unique_address]] Globals::LogString name;
 
 	
 	public: // methods
@@ -159,7 +160,7 @@ namespace RoadblockOverrides
 		}
 
 
-		[[nodiscard]] const LogString& GetName() const
+		[[nodiscard]] const auto& GetName() const
 		{
 			return this->name;
 		}
@@ -174,8 +175,8 @@ namespace RoadblockOverrides
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[RBL]";
-	constexpr LogLiteral logName = "RoadblockOverrides";
+	constexpr Globals::LogLiteral logTag  = "[RBL]";
+	constexpr Globals::LogLiteral logName = "RoadblockOverrides";
 
 	// Aliases
 	template <typename T>
@@ -216,10 +217,10 @@ namespace RoadblockOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogWarning(logTag, "Invalid roadblockspikechance pointer in", pursuit);
 
-			ASSERT_UNREACHABLE;
+			ASSERT_UNREACHABLE_THEN(return 0.f);
 		}
 
-		return (spikeChance) ? *spikeChance : 0.f;
+		return *spikeChance;
 	}
 
 
@@ -279,7 +280,7 @@ namespace RoadblockOverrides
 	) {
 		requestPursuit = pursuit;
 
-		struct SetupParameters
+		struct RequestReport
 		{
 			size_t numCandidates = 0;
 
@@ -287,22 +288,22 @@ namespace RoadblockOverrides
 			size_t maxNumCars = std::numeric_limits<size_t>::min();
 		};
 
-		SetupParameters regular;
-		SetupParameters spike;
+		RequestReport regular;
+		RequestReport spike;
 
 		for (const RBSetup& setup : roadblockSetups)
 		{
 			if (not setup.IsAvailable())                   continue;
 			if (not setup.IsCompatbleRoadWidth(roadWidth)) continue;
 
-			auto& parameters = (setup.HasSpikes()) ? spike : regular;
+			auto& report = (setup.HasSpikes()) ? spike : regular;
 
-			++(parameters.numCandidates);
+			++(report.numCandidates);
 
 			const size_t numCars = setup.GetNumCarsRequired();
 
-			parameters.minNumCars = std::min<size_t>(parameters.minNumCars, numCars);
-			parameters.maxNumCars = std::max<size_t>(parameters.maxNumCars, numCars);
+			report.minNumCars = std::min<size_t>(report.minNumCars, numCars);
+			report.maxNumCars = std::max<size_t>(report.maxNumCars, numCars);
 		}
 
 		if constexpr (Globals::loggingEnabled)
@@ -310,7 +311,7 @@ namespace RoadblockOverrides
 			Globals::LogFull(requestPursuit, logTag, "Roadblock creation attempt");
 
 			Globals::LogPlain("Road width:", roadWidth);
-			Globals::LogPlain("Candidates:", LogDec(regular.numCandidates), '/', LogDec(spike.numCandidates));
+			Globals::LogPlain("Candidates:", Globals::LogDec(regular.numCandidates), '/', Globals::LogDec(spike.numCandidates));
 		}
 
 		const bool anyRegular = (regular.numCandidates > 0);
@@ -320,12 +321,12 @@ namespace RoadblockOverrides
 
 		hasSpikes = ShouldCustomRequestGetSpikes(anyRegular, anySpike);
 
-		const auto& parameters = (hasSpikes) ? spike : regular;
+		const auto& report = (hasSpikes) ? spike : regular;
 
-		minNumCars = parameters.minNumCars;
-		maxNumCars = parameters.maxNumCars;
+		minNumCars = report.minNumCars;
+		maxNumCars = report.maxNumCars;
 
-		return true; // attempt request
+		return true; // continue request
 	}
 
 
@@ -441,7 +442,7 @@ namespace RoadblockOverrides
 		{
 			Globals::LogFull(requestPursuit, logTag, "Selecting", (needsSpikes) ? "spike" : "regular", "setup");
 
-			Globals::LogPlain("Car budget:", LogDec(maxNumCars));
+			Globals::LogPlain("Car budget:", Globals::LogDec(maxNumCars));
 		}
 
 		// Find eligible setups
@@ -473,7 +474,7 @@ namespace RoadblockOverrides
 		const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, totalChance);
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogPlain(LogDec(candidates.size()), "candidate(s)");
+			Globals::LogPlain(Globals::LogDec(candidates.size()), "candidate(s)");
 
 		for (const RBSetup* const setup : candidates)
 		{
@@ -680,23 +681,14 @@ namespace RoadblockOverrides
 		bool hasSpikes = false;
 
 		// Attempt parts extraction
-		using ConfigParser::ArrayField; // for template-argument deduction
-
 		PartDataArray<RBPartType> partTypeIDs  = {};
 		PartDataArray<float>      partOffsetsX = {};
 		PartDataArray<float>      partOffsetsY = {};
 		PartDataArray<float>      orientations = {};
 
-		const auto isExtracteds = ConfigParser::Parser::ExtractArrays
+		const PartDataArray<bool> isExtracteds = ConfigParser::Parser::ExtractArrays<maxNumParts, RBPartType, float, float, float>
 		(
-			section,
-			{}, // no "default" value(s)
-			"part{:02}",
-			HeatParameters::configFormatStart,
-			ArrayField(partTypeIDs),
-			ArrayField(partOffsetsX),
-			ArrayField(partOffsetsY),
-			ArrayField(orientations)
+			section, {}, "part{:02}", HeatParameters::configFormatStart, {partTypeIDs}, {partOffsetsX}, {partOffsetsY}, {orientations}
 		);
 
 		// Process parts
@@ -727,13 +719,15 @@ namespace RoadblockOverrides
 			orientations[partID] -= std::floor(orientations[partID]);
 
 			// Update part parameters
-			table.parts[numValidParts++] =
+			table.parts[numValidParts] =
 			{
 				partTypeIDs [partID],
 				partOffsetsX[partID],
 				partOffsetsY[partID],
 				orientations[partID]
 			};
+
+			++numValidParts;
 		}
 
 		return hasSpikes;
@@ -842,7 +836,7 @@ namespace RoadblockOverrides
 		}
 		
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogDetail(LogDec(maxNumSetups), "setup(s) provided");
+			Globals::LogDetail(Globals::LogDec(maxNumSetups), "setup(s) provided");
 
 		// Extract roadblock setups
 		roadblockSetups.reserve(maxNumSetups);
@@ -862,12 +856,12 @@ namespace RoadblockOverrides
 		{
 			if (not roadblockSetups.empty())
 			{
-				Globals::LogDetail(LogDec(roadblockSetups.size()), "setup(s) valid");
+				Globals::LogDetail(Globals::LogDec(roadblockSetups.size()), "setup(s) valid");
 
 				const auto [numRegular, numSpikes, numMirrorRegular, numMirrorSpikes] = CountAvailableSetups();
 
-				Globals::LogDetail(LogDec(numRegular), "regular,", LogDec(numMirrorRegular), "mirrored");
-				Globals::LogDetail(LogDec(numSpikes),  "spikes, ", LogDec(numMirrorSpikes),  "mirrored");
+				Globals::LogDetail(Globals::LogDec(numRegular), "regular,", Globals::LogDec(numMirrorRegular), "mirrored");
+				Globals::LogDetail(Globals::LogDec(numSpikes),  "spikes, ", Globals::LogDec(numMirrorSpikes),  "mirrored");
 			}
 			else Globals::LogDetail("no setup(s) valid");
 		}
@@ -948,8 +942,8 @@ namespace RoadblockOverrides
 
 			const auto [numRegular, numSpikes, numMirrorRegular, numMirrorSpikes] = CountAvailableSetups();
 
-			Globals::LogPlain("numRegularRoadblocks    ", LogDec(numRegular), '/', LogDec(numMirrorRegular));
-			Globals::LogPlain("numSpikeRoadblocks      ", LogDec(numSpikes),  '/', LogDec(numMirrorSpikes));
+			Globals::LogPlain("numRegularRoadblocks    ", Globals::LogDec(numRegular), '/', Globals::LogDec(numMirrorRegular));
+			Globals::LogPlain("numSpikeRoadblocks      ", Globals::LogDec(numSpikes),  '/', Globals::LogDec(numMirrorSpikes));
 		}
 	}
 }

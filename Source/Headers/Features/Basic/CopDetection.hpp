@@ -29,9 +29,10 @@ namespace CopDetection
 		bool isNewMapObject = true;
 
 		TimeQuery* GetElapsedTime;
-		float      colourUpdateInterval;
 
-		float nextUpdateTimestamp = 0.f;
+		float colourUpdateInterval; // seconds
+
+		float nextUpdateTimestamp = 0.f; // seconds
 		
 
 	public: // methods
@@ -74,17 +75,17 @@ namespace CopDetection
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[DET]";
-	constexpr LogLiteral logName = "CopDetection";
+	constexpr Globals::LogLiteral logTag  = "[DET]";
+	constexpr Globals::LogLiteral logName = "CopDetection";
 
 	// Types
 	struct Detection
 	{
 	// Members
 
-		float radarRange;
-		float patrolIconRange;
-		float pursuitIconRange;
+		float radarRange;       // metres
+		float patrolIconRange;  // metres
+		float pursuitIconRange; // metres
 
 		bool keepsIcon;
 	};
@@ -96,7 +97,7 @@ namespace CopDetection
 	};
 
 	// Vehicle maps
-	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true}); // metres (x3)
+	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true});
 
 	// Code caves
 	constexpr float colourUpdateRate = 30.f; // hertz
@@ -388,22 +389,16 @@ namespace CopDetection
 
 	[[nodiscard]] bool ExtractDetections(const ConfigParser::Parser& parser)
 	{
-		using ConfigParser::VectorField; // for template-argument deduction
-
 		std::vector<std::string_view> copNames;
-		std::vector<float>            radarRanges;
-		std::vector<float>            patrolIconRanges;
-		std::vector<float>            pursuitIconRanges;
-		std::vector<bool>             keepsIcons;
 
-		const size_t numCopVehicles = parser.ExtractVectors
+		std::vector<float> radarRanges;
+		std::vector<float> patrolIconRanges;
+		std::vector<float> pursuitIconRanges;
+		std::vector<bool>  keepsIcons;
+
+		const size_t numCopVehicles = parser.ExtractVectors<std::string_view, float, float, float, bool>
 		(
-			"Vehicles:Detection",
-			copNames,
-			VectorField(radarRanges,       {0.f}),
-			VectorField(patrolIconRanges,  {0.f}),
-			VectorField(pursuitIconRanges, {0.f}),
-			VectorField(keepsIcons)
+			"Vehicles:Detection", copNames, {radarRanges, {0.f}}, {patrolIconRanges, {0.f}}, {pursuitIconRanges, {0.f}}, {keepsIcons}
 		);
 
 		std::vector<Detection> detections(numCopVehicles);

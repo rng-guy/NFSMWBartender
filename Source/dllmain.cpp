@@ -70,8 +70,8 @@ static void __cdecl InitialiseBartender
 	#endif
 
 	// Initialise log and config parser
-	constexpr LogLiteral logTag     = "[MOD]";
-	constexpr LogLiteral logSection = " SESSION";
+	constexpr Globals::LogLiteral logTag     = "[MOD]";
+	constexpr Globals::LogLiteral logSection = " SESSION";
 
 	if constexpr (Globals::loggingEnabled)
 	{

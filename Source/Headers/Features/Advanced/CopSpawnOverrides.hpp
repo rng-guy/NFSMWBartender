@@ -25,8 +25,8 @@ namespace CopSpawnOverrides
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[SPA]";
-	constexpr LogLiteral logName = "CopSpawnOverrides";
+	constexpr Globals::LogLiteral logTag  = "[SPA]";
+	constexpr Globals::LogLiteral logName = "CopSpawnOverrides";
 
 
 
@@ -45,7 +45,7 @@ namespace CopSpawnOverrides
 
 	private: // members
 
-		int numTotalActiveCops = 0;
+		int numTotalActiveCops = 0; // cars
 
 		const address             pursuit; // pursuit-locked and immobile
 		const TablePointer* const source;  // reference would break constinit in MSVC
@@ -54,9 +54,9 @@ namespace CopSpawnOverrides
 
 		CopSpawnTables::SpawnTable table;
 
-		ModContainers::VaultMap<int> copTypeToNumActive;
+		ModContainers::VaultMap<int> copTypeToNumActive; // cars
 
-		[[no_unique_address]] LogLiteral name;
+		[[no_unique_address]] Globals::LogLiteral name;
 
 
 	private: // methods
@@ -107,8 +107,8 @@ namespace CopSpawnOverrides
 
 		constexpr Contingent
 		(
-			const LogLiteral    name, 
-			const TablePointer& source
+			const Globals::LogLiteral name, 
+			const TablePointer&       source
 		) 
 			: name(name), source(&source), pursuit(0x0), table()
 		{
@@ -117,9 +117,9 @@ namespace CopSpawnOverrides
 
 		Contingent
 		(
-			const LogLiteral    name,
-			const TablePointer& source,
-			const address       pursuit
+			const Globals::LogLiteral name,
+			const TablePointer&       source,
+			const address             pursuit
 		) 
 			: name(name), source(&source), pursuit(pursuit), table(*(source.current))
 		{
@@ -333,26 +333,28 @@ namespace CopSpawnOverrides
 
 		bool waveParametersKnown = false;
 
-		int maxNumPatrolCars           = 0;
-		int numSupportVehicles         = 0;
-		int numTrackedNonChasers       = 0;
-		int numJoinedRoadblockVehicles = 0;
+		int maxNumPatrolCars           = 0; // cars
+		int numSupportVehicles         = 0; // cars
+		int numTrackedNonChasers       = 0; // cars
+		int numJoinedRoadblockVehicles = 0; // cars
 
-		int&   pursuitStatus = AsReference<int>  (this->pursuit + 0x218);
-		float& backupTimer   = AsReference<float>(this->pursuit + 0x21C);
+		int& pursuitStatus = AsReference<int>(this->pursuit + 0x218);
 
-		int& fullWaveCapacity       = AsReference<int>(this->pursuit + 0x144);
-		int& numCopsLostInWave      = AsReference<int>(this->pursuit + 0x14C);
-		int& numCopsToTriggerBackup = AsReference<int>(this->pursuit + 0x148);
+		float& backupTimer = AsReference<float>(this->pursuit + 0x21C); // seconds
 
-		const bool&  isPerpBusted      = AsReference<bool> (this->pursuit + 0xE8);
-		const bool&  bailingPursuit    = AsReference<bool> (this->pursuit + 0xE9);
-		const bool&  isFreeRoamPursuit = AsReference<bool> (this->pursuit + 0xA8);
-		const float& copSpawnCooldown  = AsReference<float>(this->pursuit + 0xCC);
+		int& fullWaveCapacity       = AsReference<int>(this->pursuit + 0x144); // cars
+		int& numCopsLostInWave      = AsReference<int>(this->pursuit + 0x14C); // cars
+		int& numCopsToTriggerBackup = AsReference<int>(this->pursuit + 0x148); // cars
+
+		const bool& isPerpBusted      = AsReference<bool>(this->pursuit + 0xE8);
+		const bool& bailingPursuit    = AsReference<bool>(this->pursuit + 0xE9);
+		const bool& isFreeRoamPursuit = AsReference<bool>(this->pursuit + 0xA8);
+
+		const float& copSpawnCooldown  = AsReference<float>(this->pursuit + 0xCC); // seconds
 
 		COP_CONTINGENT(chaserSpawns, CopSpawnTables::chaserSpawnTable, this->pursuit);
 
-		inline static constexpr LogLiteral name = "ChasersManager";
+		inline static constexpr Globals::LogLiteral name = "ChasersManager";
 
 
 	private: // methods
@@ -764,7 +766,8 @@ namespace CopSpawnOverrides
 		{
 			const size_t safeHeatLevel = HeatParameters::ClampHeatLevel(eventHeatLevel);
 			const auto&  spawnTable    = CopSpawnTables::scriptedSpawnTable.roam[safeHeatLevel - 1];
-			prefetchedCopName          = spawnTable.GetNameOfAvailableCop();
+
+			prefetchedCopName = spawnTable.GetNameOfAvailableCop();
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogTagged(logTag, "First scripted cop:", prefetchedCopName);

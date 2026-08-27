@@ -22,8 +22,8 @@ namespace HeatChangeOverrides
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[CNG]";
-	constexpr LogLiteral logName = "HeatChangeOverrides";
+	constexpr Globals::LogLiteral logTag  = "[CNG]";
+	constexpr Globals::LogLiteral logName = "HeatChangeOverrides";
 
 	// Heat parameters
 	constinit HEAT_PARAMETER_VALUE(bool, heatTimerEnabled, true);
@@ -114,7 +114,7 @@ namespace HeatChangeOverrides
 			CountTracker(this->pursuit, 0x168, trafficHitHeatChange)
 		};
 
-		inline static constexpr LogLiteral name = "HeatManager";
+		inline static constexpr Globals::LogLiteral name = "HeatManager";
 	
 
 	private: // methods
@@ -173,7 +173,7 @@ namespace HeatChangeOverrides
 		}
 
 
-		static void NotifyOfTaggedCop
+		static void ProcessTaggedCop
 		(
 			const address copVehicle, 
 			const address perpVehicle
@@ -186,7 +186,7 @@ namespace HeatChangeOverrides
 		}
 
 
-		static void NotifyOfAssaultedCop
+		static void ProcessAssaultedCop
 		(
 			const address copVehicle,
 			const address perpVehicle,
@@ -200,7 +200,7 @@ namespace HeatChangeOverrides
 		}
 
 
-		static void __fastcall NotifyOfPropertyDamage
+		static void __fastcall ProcessPropertyDamage
 		(
 			const address pursuit,
 			const int     damageAmount
@@ -213,7 +213,7 @@ namespace HeatChangeOverrides
 		}
 
 
-		static void NotifyOfDestroyedCop
+		static void ProcessDestroyedCop
 		(
 			const address pursuit,
 			const address copVehicle
@@ -402,7 +402,7 @@ namespace HeatChangeOverrides
 
 			mov ecx, esi
 			mov edx, dword ptr [esp + 0x14]
-			call HeatManager::NotifyOfPropertyDamage // ecx: pursuit; edx: damageAmount
+			call HeatManager::ProcessPropertyDamage // ecx: pursuit; edx: damageAmount
 
 			pop edx
 
@@ -583,7 +583,7 @@ namespace HeatChangeOverrides
 	) {
 		if (not anyFeatureEnabled) return;
 
-		HeatManager::NotifyOfTaggedCop(copVehicle, perpVehicle);
+		HeatManager::ProcessTaggedCop(copVehicle, perpVehicle);
 	}
 
 
@@ -596,7 +596,7 @@ namespace HeatChangeOverrides
 	) {
 		if (not anyFeatureEnabled) return;
 
-		HeatManager::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
+		HeatManager::ProcessAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
 	}
 
 
@@ -608,6 +608,6 @@ namespace HeatChangeOverrides
 	) {
 		if (not anyFeatureEnabled) return;
 
-		HeatManager::NotifyOfDestroyedCop(pursuit, copVehicle);
+		HeatManager::ProcessDestroyedCop(pursuit, copVehicle);
 	}
 }

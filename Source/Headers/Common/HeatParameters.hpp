@@ -27,6 +27,18 @@ namespace HeatParameters
 	constexpr size_t maxHeatLevel = 10;
 	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
 
+	// Types and aliases
+	template <typename T>
+	using HeatLevelArray = std::array<T, maxHeatLevel>;
+
+	struct HeatState
+	{
+	// Members
+
+		bool   isRace;
+		size_t level;
+	};
+
 	// Configuration files
 	constexpr std::string_view configDefaultKey = "default";
 	
@@ -37,6 +49,24 @@ namespace HeatParameters
 	const std::filesystem::path configPathMain     = "scripts/BartenderSettings";
 	const std::filesystem::path configPathBasic    = configPathMain / "Basic";
 	const std::filesystem::path configPathAdvanced = configPathMain / "Advanced";
+
+
+
+
+
+	// Heat-level indices ---------------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] consteval auto GenerateHeatLevelIDs()
+	{
+		HeatLevelArray<size_t> heatLevelIDs = {};
+
+		for (size_t heatLevelID = 0; heatLevelID < maxHeatLevel; ++heatLevelID)
+			heatLevelIDs[heatLevelID] = heatLevelID;
+
+		return heatLevelIDs;
+	}
+
+	constexpr auto heatLevelIDs = GenerateHeatLevelIDs();
 
 
 
@@ -62,7 +92,7 @@ namespace HeatParameters
 
 	// Logging functions ----------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] std::string_view PadParameterName(const LogLiteral name)
+	[[nodiscard]] std::string_view PadParameterName(const Globals::LogLiteral name)
 	{
 		static RELEASE_CONSTINIT FormatBuffer::Buffer buffer;
 
@@ -74,14 +104,14 @@ namespace HeatParameters
 	template <typename ...Ts>
 	void LogParameter
 	(
-		const LogLiteral    name, 
-		Ts&&             ...segments
+		const Globals::LogLiteral    name, 
+		Ts&&                      ...segments
 	) {
 		Globals::LogPlain(PadParameterName(name), std::forward<Ts>(segments)...);
 	}
 
 
-	void LogMissingParameter(const LogLiteral name)
+	void LogMissingParameter(const Globals::LogLiteral name)
 	{
 		Globals::LogPlain(PadParameterName(name), "(missing)");
 	}
@@ -90,51 +120,7 @@ namespace HeatParameters
 
 
 
-	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
-
-	template <typename T>
-	using HeatLevelArray = std::array<T, maxHeatLevel>;
-
-	template <typename T>
-	using Bounds = ConfigParser::Bounds<T>; // templated to suppress transient includes
-
-
-
-
-
-	// Heat-level indices ---------------------------------------------------------------------------------------------------------------------------
-
-	[[nodiscard]] consteval auto GenerateHeatLevelIDs()
-	{
-		HeatLevelArray<size_t> heatLevelIDs = {};
-
-		for (size_t heatLevelID = 0; heatLevelID < maxHeatLevel; ++heatLevelID)
-			heatLevelIDs[heatLevelID] = heatLevelID;
-
-		return heatLevelIDs;
-	}
-
-	constexpr auto heatLevelIDs = GenerateHeatLevelIDs();
-
-
-
-
-
-	// HeatState struct -----------------------------------------------------------------------------------------------------------------------------
-
-	struct HeatState
-	{
-	// Members
-
-		bool   isRace;
-		size_t level;
-	};
-
-
-
-
-
-	// Parameter concepts ---------------------------------------------------------------------------------------------------------------------------
+	// Parameter helpers ----------------------------------------------------------------------------------------------------------------------------
 
 	namespace Details
 	{
@@ -154,7 +140,7 @@ namespace HeatParameters
 		template <class T>
 		concept IsLoggable = requires (const T& type)
 		{
-			{type.Log(LogLiteral())} -> std::same_as<void>;
+			{type.Log(Globals::LogLiteral())} -> std::same_as<void>;
 		};
 	}
 
@@ -172,9 +158,9 @@ namespace HeatParameters
 	{
 	private: // members
 
-		[[no_unique_address]] Bounds<T> limits;
+		[[no_unique_address]] ConfigParser::Bounds<T> limits;
 
-		[[no_unique_address]] LogLiteral name;
+		[[no_unique_address]] Globals::LogLiteral name;
 
 
 	public: // members (for ASM access)
@@ -189,9 +175,9 @@ namespace HeatParameters
 
 		constexpr Value
 		(
-			const LogLiteral name,
-			const T          initial,
-			const Bounds<T>& limits = {}
+			const Globals::LogLiteral      name,
+			const T                        initial,
+			const ConfigParser::Bounds<T>& limits = {}
 		) 
 			requires Details::IsBoundsCompatible<T>
 			: name(name), current(initial), limits(limits)
@@ -201,8 +187,8 @@ namespace HeatParameters
 
 		constexpr Value
 		(
-			const LogLiteral name, 
-			const T          initial
+			const Globals::LogLiteral name, 
+			const T                   initial
 		)
 			requires (not Details::IsBoundsCompatible<T>)
 			: name(name), current(initial), limits()
@@ -243,13 +229,13 @@ namespace HeatParameters
 		}
 		
 
-		[[nodiscard]] Bounds<T> GetLimits() const
+		[[nodiscard]] auto GetLimits() const
 		{
 			return this->limits;
 		}
 
 
-		[[nodiscard]] LogLiteral GetName() const
+		[[nodiscard]] auto GetName() const
 		{
 			return this->name;
 		}
@@ -334,7 +320,7 @@ namespace HeatParameters
 	{
 	private: // members
 
-		[[no_unique_address]] LogLiteral name;
+		[[no_unique_address]] Globals::LogLiteral name;
 
 
 	public: // members (for ASM access)
@@ -348,8 +334,8 @@ namespace HeatParameters
 
 		constexpr explicit OptionalValue
 		(
-			const LogLiteral name, 
-			const Bounds<T>& limits = {}
+			const Globals::LogLiteral      name, 
+			const ConfigParser::Bounds<T>& limits = {}
 		)
 			requires Details::IsBoundsCompatible<T>
 			: name(name), value("value", T(), limits) 
@@ -357,7 +343,7 @@ namespace HeatParameters
 		}
 
 
-		constexpr OptionalValue(const LogLiteral name)
+		constexpr OptionalValue(const Globals::LogLiteral name)
 			requires (not Details::IsBoundsCompatible<T>)
 			: name(name), value("value", T()) 
 		{
@@ -385,7 +371,7 @@ namespace HeatParameters
 		}
 
 
-		[[nodiscard]] LogLiteral GetName() const
+		[[nodiscard]] auto GetName() const
 		{
 			return this->name;
 		}
@@ -405,7 +391,7 @@ namespace HeatParameters
 	{
 	private: // members
 
-		[[no_unique_address]] LogLiteral name;
+		[[no_unique_address]] Globals::LogLiteral name;
 
 
 	public: // members (for ASM access)
@@ -418,7 +404,7 @@ namespace HeatParameters
 
 	public: // methods
 
-		constexpr explicit Pointer(const LogLiteral name) : name(name) {}
+		constexpr explicit Pointer(const Globals::LogLiteral name) : name(name) {}
 
 
 		[[nodiscard]] auto& GetHeatLevelArray(const bool forRaces)
@@ -455,7 +441,7 @@ namespace HeatParameters
 		}
 
 
-		[[nodiscard]] LogLiteral GetName() const
+		[[nodiscard]] auto GetName() const
 		{
 			return this->name;
 		}
@@ -471,7 +457,7 @@ namespace HeatParameters
 	{
 	private: // members
 
-		[[no_unique_address]] LogLiteral name;
+		[[no_unique_address]] Globals::LogLiteral name;
 
 
 	public: // members (for ASM access)
@@ -483,7 +469,7 @@ namespace HeatParameters
 
 	public: // methods
 
-		constexpr explicit OptionalPointer(const LogLiteral name) : name(name), pointer("pointer") {}
+		constexpr explicit OptionalPointer(const Globals::LogLiteral name) : name(name), pointer("pointer") {}
 
 
 		void SetToHeatStateSilently(const HeatState state)
@@ -508,7 +494,7 @@ namespace HeatParameters
 		}
 
 
-		[[nodiscard]] LogLiteral GetName() const
+		[[nodiscard]] auto GetName() const
 		{
 			return this->name;
 		}
@@ -528,7 +514,7 @@ namespace HeatParameters
 	{
 	private: // members
 
-		[[no_unique_address]] LogLiteral name;
+		[[no_unique_address]] Globals::LogLiteral name;
 
 
 	public: // members (for ASM access)
@@ -541,10 +527,10 @@ namespace HeatParameters
 
 		constexpr Interval
 		(
-			const LogLiteral name,
-			const T          initialMin,
-			const T          initialMax,
-			const Bounds<T>& limits = {}
+			const Globals::LogLiteral      name,
+			const T                        initialMin,
+			const T                        initialMax,
+			const ConfigParser::Bounds<T>& limits = {}
 		) 
 			: name(name), min("min", initialMin, limits), max("max", initialMax, limits)
 		{
@@ -567,7 +553,7 @@ namespace HeatParameters
 		}
 
 
-		[[nodiscard]] LogLiteral GetName() const
+		[[nodiscard]] auto GetName() const
 		{
 			return this->name;
 		}
@@ -601,7 +587,7 @@ namespace HeatParameters
 	{
 	private: // members
 
-		[[no_unique_address]] LogLiteral name;
+		[[no_unique_address]] Globals::LogLiteral name;
 
 
 	public: // members (for ASM access)
@@ -615,8 +601,8 @@ namespace HeatParameters
 
 		constexpr explicit OptionalInterval
 		(
-			const LogLiteral name, 
-			const Bounds<T>& limits = {}
+			const Globals::LogLiteral      name, 
+			const ConfigParser::Bounds<T>& limits = {}
 		) 
 			: name(name), interval("interval", T(), T(), limits) 
 		{
@@ -644,7 +630,7 @@ namespace HeatParameters
 		}
 
 
-		[[nodiscard]] LogLiteral GetName() const
+		[[nodiscard]] auto GetName() const
 		{
 			return this->name;
 		}
@@ -689,7 +675,7 @@ namespace HeatParameters
 					if (allTypesValid)
 						Globals::LogPlain(vehicleValue.GetName(), (forRaces) ? "(race)" : "(roam)");
 
-					Globals::LogDetail(LogDec(heatLevel), levelVehicleName, "->", vehicleValue.current);
+					Globals::LogDetail(Globals::LogDec(heatLevel), levelVehicleName, "->", vehicleValue.current);
 				}
 
 				levelVehicleName = vehicleValue.current; // already persistent
@@ -880,15 +866,11 @@ namespace HeatParameters
 			{
 				return ConfigParser::Parser::ExtractArrays
 				(
-					section,
-					configDefaultKey,
-					(forRaces) ? configFormatRace : configFormatRoam,
-					configFormatStart,
-					fields...
+					section, configDefaultKey, (forRaces) ? configFormatRace : configFormatRoam, configFormatStart, fields...
 				);
 			};
 
-			const auto isEnableds = std::apply(ExtractArrays, std::tuple_cat(Details::GetFields(forRaces, parameters)...));
+			const HeatLevelArray<bool> isEnableds = std::apply(ExtractArrays, std::tuple_cat(Details::GetFields(forRaces, parameters)...));
 
 			// For optionals, successful exraction enables them
 			if constexpr (Details::AreOptional<HeatParameters...>)

@@ -17,8 +17,8 @@ namespace GameBreaker
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[GBR]";
-	constexpr LogLiteral logName = "GameBreaker";
+	constexpr Globals::LogLiteral logTag  = "[GBR]";
+	constexpr Globals::LogLiteral logName = "GameBreaker";
 
 	// Heat parameters
 	constinit HEAT_PARAMETER_VALUE(bool, passiveRechargeEnabled, true);
@@ -74,7 +74,9 @@ namespace GameBreaker
 		ASSERT_CONDITION_THEN_IF_FALSE(localPlayer, return false);
 
 		for (const address pursuit : ModContainers::PursuitList())
+		{
 			if (localPlayer == Globals::GetLocalPlayerOfPursuit(pursuit)) return true;
+		}
 
 		return false;
 	}
@@ -116,9 +118,9 @@ namespace GameBreaker
 		const address copVehicle
 	) {
 		const float breakerChange = breakerInteractions.GetWreckingChange(copVehicle);
-		if (breakerChange == 0.f) return;
 
-		ChargeSpeedbreakerOfTarget(pursuit, breakerChange);
+		if (breakerChange != 0.f)
+			ChargeSpeedbreakerOfTarget(pursuit, breakerChange);
 	}
 
 

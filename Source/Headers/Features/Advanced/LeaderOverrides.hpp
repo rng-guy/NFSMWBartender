@@ -18,8 +18,8 @@ namespace LeaderOverrides
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[LDR]";
-	constexpr LogLiteral logName = "LeaderOverrides";
+	constexpr Globals::LogLiteral logTag  = "[LDR]";
+	constexpr Globals::LogLiteral logName = "LeaderOverrides";
 
 	// Heat parameters
 	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, leader5CrossAggroDelay, {1.f}); // seconds
@@ -67,7 +67,7 @@ namespace LeaderOverrides
 		address crossVehicle = 0x0;
 		Status  crossStatus  = Status::PENDING;
 
-		float expirationTimestamp = Globals::simulationTime;
+		float expirationTimestamp = Globals::simulationTime; // seconds
 
 		int&  crossFlag    = AsReference<int> (this->pursuit + 0x164);
 	    bool& skipPriority = AsReference<bool>(this->pursuit + 0x214);
@@ -80,14 +80,14 @@ namespace LeaderOverrides
 		PursuitFeatures::IntervalTimer crossAggroTimer;
 		PursuitFeatures::IntervalTimer henchmenAggroTimer;
 
-		inline static constexpr LogLiteral name = "LeaderManager";
+		inline static constexpr Globals::LogLiteral name = "LeaderManager";
 
 
 	private: // methods
 
 		void SetCrossStatus(const Status status)
 		{
-			LogLiteral statusName;
+			Globals::LogLiteral statusName;
 
 			switch (status)
 			{
@@ -175,7 +175,7 @@ namespace LeaderOverrides
 
 		void UpdateFlagResetTimer()
 		{
-			LogLiteral statusName;
+			Globals::LogLiteral statusName;
 
 			// Reset-timer selection
 			switch (this->crossStatus)

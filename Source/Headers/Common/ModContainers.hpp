@@ -152,7 +152,7 @@ namespace ModContainers
 
 		V defaultValue;
 
-		[[no_unique_address]] LogLiteral name;
+		[[no_unique_address]] Globals::LogLiteral name;
 
 
 	private: // methods
@@ -167,7 +167,7 @@ namespace ModContainers
 			const size_t numPairs = std::min<size_t>(keySetup.source.size(), valueSetup.source.size());
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogDetail(LogDec(numPairs), "pair(s) provided");
+				Globals::LogDetail(Globals::LogDec(numPairs), "pair(s) provided");
 
 			this->reserve(this->size() + numPairs);
 
@@ -234,8 +234,8 @@ namespace ModContainers
 
 		constexpr DefaultMap
 		(
-			const LogLiteral name, 
-			const V          defaultValue
+			const Globals::LogLiteral name, 
+			const V                   defaultValue
 		) 
 			: name(name), defaultValue(defaultValue) 
 		{
@@ -276,7 +276,7 @@ namespace ModContainers
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				Globals::LogDetail(LogDec(numValidPairs), "pair(s) valid");
+				Globals::LogDetail(Globals::LogDec(numValidPairs), "pair(s) valid");
 
 				if (hasNewDefault)
 					Globals::LogDetail("new default:", this->defaultValue);
@@ -301,7 +301,7 @@ namespace ModContainers
 		}
 
 
-		[[nodiscard]] LogLiteral GetName() const
+		[[nodiscard]] auto GetName() const
 		{
 			return this->name;
 		}

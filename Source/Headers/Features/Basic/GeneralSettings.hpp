@@ -22,8 +22,8 @@ namespace GeneralSettings
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[GEN]";
-	constexpr LogLiteral logName = "GeneralSettings";
+	constexpr Globals::LogLiteral logTag  = "[GEN]";
+	constexpr Globals::LogLiteral logName = "GeneralSettings";
 
 	// Pursuit behaviour
 	bool trackPursuitLength  = false;
@@ -39,7 +39,7 @@ namespace GeneralSettings
 	constinit HEAT_PARAMETER_VALUE(bool, rivalPursuitsEnabled, true);
 
 	constinit HEAT_PARAMETER_VALUE(float, bountyInterval,      10.f, {.001f}); // seconds
-	constinit HEAT_PARAMETER_VALUE(int,   maxBountyMultiplier, 3,    {1});     // scale
+	constinit HEAT_PARAMETER_VALUE(int,   maxBountyMultiplier, 3,    {1});     // unity
 
 	constinit HEAT_PARAMETER_VALUE(float, bustTimer,       5.f,  {.001f}); // seconds
 	constinit HEAT_PARAMETER_VALUE(float, maxBustDistance, 15.f, {0.f});   // metres

@@ -4,9 +4,9 @@
 #include <cstdint>
 #include <string_view>
 
-#include "..\Utilities\MemoryTools.hpp"
-#include "..\Utilities\StaticLogger.hpp"
-#include "..\Utilities\RandomNumbers.hpp"
+#include "../Utilities/MemoryTools.hpp"
+#include "../Utilities/StaticLogger.hpp"
+#include "../Utilities/RandomNumbers.hpp"
 
 
 
@@ -39,19 +39,10 @@ using MemoryTools::AsFunction;
 using vault  = uint32_t;
 using binary = uint32_t;
 
-using byte = MemoryTools::byte; // aliased to suppress transient includes
-using word = MemoryTools::word; // aliased to suppress transient includes
+using byte = MemoryTools::byte;
+using word = MemoryTools::word;
 
 using address = MemoryTools::address;
-
-template <typename T> 
-using LogBin = StaticLogger::LogBin<T>; // templated to suppress transient includes
-
-template <typename T> 
-using LogDec = StaticLogger::LogDec<T>; // templated to suppress transient includes
-
-template <typename T> 
-using LogHex = StaticLogger::LogHex<T>; // templated to suppress transient includes
 
 
 
@@ -81,10 +72,19 @@ namespace Globals
 	// Statically toggled logging
 	constexpr bool loggingEnabled = false;
 
-	StaticLogger::Logger<loggingEnabled, 9, 15, 17> logger;
+	template <typename T>
+	using LogBin = StaticLogger::LogBin<T>;
+
+	template <typename T>
+	using LogDec = StaticLogger::LogDec<T>;
+
+	template <typename T>
+	using LogHex = StaticLogger::LogHex<T>;
 
 	using LogLiteral = StaticLogger::LogLiteral<loggingEnabled>;
 	using LogString  = StaticLogger::LogString <loggingEnabled>;
+
+	StaticLogger::Logger<loggingEnabled, 9, 15, 17> logger;
 
 	// Common function pointers
 	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // for Pursuit
@@ -143,7 +143,7 @@ namespace Globals
 
 		const auto Shift = [&input](const size_t i, const size_t n) -> vault
 		{
-			// force zero-extension first to avoid underflow in second cast
+			// Force zero-extension first to avoid underflow in second cast
 			return (static_cast<vault>(static_cast<unsigned char>(input[i])) << n);
 		};
 
@@ -219,7 +219,7 @@ namespace Globals
 		const char* const string,
 		const size_t      length
 	) {
-		return GetVaultHash({ string, length });
+		return GetVaultHash({string, length});
 	}
 
 
@@ -266,9 +266,7 @@ namespace Globals
 		const auto GetPursuitNodeAttribute = AsFunction<address __thiscall (address, vault, size_t)>(0x454810);
 
 		const address node = GetPursuitNode(pursuit);
-		if (not node) return 0x0; // unknown node
-
-		return GetPursuitNodeAttribute(node, attributeKey, attributeIndex);
+		return (node) ? GetPursuitNodeAttribute(node, attributeKey, attributeIndex) : 0x0;
 	}
 
 
@@ -319,43 +317,35 @@ namespace Globals
 
 	[[nodiscard]] address GetAIVehicleOfVehicle(const address vehicle)
 	{
-		if (not vehicle) return 0x0;
-		return AsReference<address>(vehicle + 0x54);
+		return (vehicle) ? AsReference<address>(vehicle + 0x54) : 0x0;
 	}
 	
 
 	[[nodiscard]] address GetAIVehiclePursuitOfVehicle(const address copVehicle)
 	{
 		const address copAIVehicle = GetAIVehicleOfVehicle(copVehicle);
-		if (not copAIVehicle) return 0x0;
-
-		return copAIVehicle + (0x758 - 0x4C);
+		return (copAIVehicle) ? (copAIVehicle + (0x758 - 0x4C)) : 0x0;
 	}
 
 
 
 	[[nodiscard]] address GetAIVehicleOfPerpVehicle(const address perpVehicle)
 	{
-		if (not perpVehicle) return 0x0;
-		return perpVehicle - (0x758 - 0x4C);
+		return (perpVehicle) ? (perpVehicle - (0x758 - 0x4C)) : 0x0;
 	}
 	
 
 	[[nodiscard]] address GetVehicleOfPerpVehicle(const address perpVehicle)
 	{
 		const address perpAIVehicle = GetAIVehicleOfPerpVehicle(perpVehicle);
-		if (not perpAIVehicle) return 0x0;
-
-		return AsReference<address>(perpAIVehicle - 0x4);
+		return (perpAIVehicle) ? AsReference<address>(perpAIVehicle - 0x4) : 0x0;
 	}
 
 
 	[[nodiscard]] address GetPursuitOfPerpVehicle(const address perpVehicle)
 	{
 		const address perpAIVehicle = GetAIVehicleOfPerpVehicle(perpVehicle);
-		if (not perpAIVehicle) return 0x0;
-
-		return AsReference<address>(perpAIVehicle + 0x70);
+		return (perpAIVehicle) ? AsReference<address>(perpAIVehicle + 0x70) : 0x0;
 	}
 
 
@@ -414,19 +404,14 @@ namespace Globals
 	[[nodiscard]] address GetLocalPlayerOfPursuit(const address pursuit)
 	{
 		const address physicsObject = GetPhysicsObjectOfPursuitTarget(pursuit);
-		if (not physicsObject) return 0x0;
-
-		return AsReference<address>(physicsObject + 0x58);
+		return (physicsObject) ? AsReference<address>(physicsObject + 0x58) : 0x0;
 	}
 
 
 
 	[[nodiscard]] bool IsPursuitInCooldownMode(const address pursuit)
 	{
-		if (not pursuit) return false;
-
-		const int pursuitStatus = AsReference<int>(pursuit + 0x218);
-		return (pursuitStatus == 2); // "COOLDOWN" mode
+		return (pursuit and (AsReference<int>(pursuit + 0x218) == 2)); // "COOLDOWN" mode
 	}
 
 
@@ -500,9 +485,6 @@ namespace Globals
 
 
 
-// Unscoped aliases (cont.)
-using Globals::LogLiteral;
-using Globals::LogString;
-
+// Unscoped operators
 using Globals::operator""_vlt;
 using Globals::operator""_bin;

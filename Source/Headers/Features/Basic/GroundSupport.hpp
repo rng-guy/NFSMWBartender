@@ -22,8 +22,8 @@ namespace GroundSuppport
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[SUP]";
-	constexpr LogLiteral logName = "GroundSuppport";
+	constexpr Globals::LogLiteral logTag  = "[SUP]";
+	constexpr Globals::LogLiteral logName = "GroundSuppport";
 
 	// Heat parameters
 	constinit HEAT_PARAMETER_VALUE(bool, rivalRoadblockEnabled, true);
@@ -171,8 +171,8 @@ namespace GroundSuppport
 
 
 
-	template <address CountFunction, address RetrievalFunction, auto IsStrategyAvailable>
-	requires std::predicate<decltype(IsStrategyAvailable), address, address>
+	template <address GetCount, address GetEntry, auto IsAvailable>
+	requires std::predicate<decltype(IsAvailable), address, address>
 	void MarshalStrategies
 	(
 		const address         pursuit,
@@ -183,15 +183,15 @@ namespace GroundSuppport
 		const address supportNode = GetSupportNode(pursuit - 0x48);
 		ASSERT_CONDITION_THEN_IF_FALSE(supportNode, return);
 
-		const auto GetNumStrategies = AsFunction<size_t  __thiscall (address)>        (CountFunction);
-		const auto GetStrategy      = AsFunction<address __thiscall (address, size_t)>(RetrievalFunction);
+		const auto GetNumStrategies = AsFunction<size_t  __thiscall (address)>        (GetCount);
+		const auto GetStrategy      = AsFunction<address __thiscall (address, size_t)>(GetEntry);
 
 		const size_t numStrategies = GetNumStrategies(supportNode);
 
 		for (size_t strategyID = 0; strategyID < numStrategies; ++strategyID)
 		{
 			const address strategy = GetStrategy(supportNode, strategyID);
-			if (not IsStrategyAvailable(pursuit, strategy)) continue;
+			if (not IsAvailable(pursuit, strategy)) continue;
 
 			const int chance = AsReference<int>(strategy + 0x4);
 
@@ -230,7 +230,7 @@ namespace GroundSuppport
 
 
 
-	bool __fastcall SetRandomStrategy(const address pursuit) 
+	[[nodiscard]] bool __fastcall SetRandomStrategy(const address pursuit) 
 	{
 		static RELEASE_CONSTINIT std::vector<address> candidates;
 
@@ -267,9 +267,9 @@ namespace GroundSuppport
 		if constexpr (Globals::loggingEnabled)
 		{
 			const int strategyID = AsReference<int>(randomStrategy);
+			Globals::LogFull(pursuit, logTag, "Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
 
-			Globals::LogFull (pursuit, logTag, "Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
-			Globals::LogPlain("Candidate", LogDec(candidateID + 1), '/', LogDec(candidates.size()));
+			Globals::LogPlain("Candidate", Globals::LogDec(candidateID + 1), '/', Globals::LogDec(candidates.size()));
 		}
 
 		candidates.clear();
@@ -316,7 +316,7 @@ namespace GroundSuppport
 			// Next, whether the global cop-spawn limit isn't in effect
 			if (CopSpawnOverrides::chasersAreIndependent.current) return true;
 
-			// Last, whether the global cop-spawn limit hasn't been reached yet
+			// Last, whether the global cop-spawn limit has yet to be reached
 			return (GetNumGlobalMobileCops() < CopSpawnOverrides::activeChaserLimit.max.current);
 		}
 

@@ -16,8 +16,8 @@ namespace NitrousCharge
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[NOS]";
-	constexpr LogLiteral logName = "NitrousCharge";
+	constexpr Globals::LogLiteral logTag  = "[NOS]";
+	constexpr Globals::LogLiteral logName = "NitrousCharge";
 
 	// Heat parameters
 	constinit HEAT_PARAMETER_VALUE(bool, passiveRechargeEnabled, true);
@@ -113,9 +113,9 @@ namespace NitrousCharge
 		ASSERT_CONDITION_THEN_IF_FALSE(perpVehicle, return);
 
 		const float nitrousChange = nitrousInteractions.GetWreckingChange(copVehicle);
-		if (nitrousChange == 0.f) return;
 
-		ChargeNitrous(perpVehicle, nitrousChange);
+		if (nitrousChange != 0.f)
+			ChargeNitrous(perpVehicle, nitrousChange);
 	}
 
 

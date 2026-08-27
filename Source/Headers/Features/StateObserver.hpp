@@ -1,7 +1,6 @@
 #pragma once
 
 #include <limits>
-#include <cstdint>
 
 #include "../Common/Globals.hpp"
 #include "../Common/ConfigParser.hpp"
@@ -27,8 +26,8 @@ namespace StateObserver
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[SOB]";
-	constexpr LogLiteral logName = "StateObserver";
+	constexpr Globals::LogLiteral logTag  = "[SOB]";
+	constexpr Globals::LogLiteral logName = "StateObserver";
 
 	// Code caves
 	size_t playerHeatLevel = 0;
@@ -47,9 +46,9 @@ namespace StateObserver
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (state.level != playerHeatLevel)
-				Globals::LogWarning(logTag, "Heat level", LogDec(playerHeatLevel), "out of range");
+				Globals::LogWarning(logTag, "Heat level", Globals::LogDec(playerHeatLevel), "out of range");
 
-			Globals::LogHeat(logTag, "Heat level now", LogDec(state.level), (playerIsRacing) ? "(race)" : "(roam)");
+			Globals::LogHeat(logTag, "Heat level now", Globals::LogDec(state.level), (playerIsRacing) ? "(race)" : "(roam)");
 		}
 
 		// Update Heat-level flag
@@ -158,7 +157,7 @@ namespace StateObserver
 		if (pursuit) // may not be cop's pursuit (vanilla behaviour)
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogFull(pursuit, logTag, copVehicle, "assaults:", LogDec(numCopAssaulted));
+				Globals::LogFull(pursuit, logTag, copVehicle, "assaults:", Globals::LogDec(numCopAssaulted));
 
 			ProcessAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
 		}

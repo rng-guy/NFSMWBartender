@@ -20,8 +20,8 @@ namespace RadioSpeech
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[RAD]";
-	constexpr LogLiteral logName = "RadioSpeech";
+	constexpr Globals::LogLiteral logTag  = "[RAD]";
+	constexpr Globals::LogLiteral logName = "RadioSpeech";
 
 	// Enums
 	enum class Jurisdiction : int
@@ -56,7 +56,7 @@ namespace RadioSpeech
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] int __fastcall GetCallsignsOffset(const Battalion battalion)
+	[[nodiscard]] ptrdiff_t __fastcall GetCallsignsOffset(const Battalion battalion)
 	{
 		switch (battalion)
 		{

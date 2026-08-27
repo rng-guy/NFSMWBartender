@@ -1,8 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <algorithm>
-
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
@@ -23,11 +20,18 @@ namespace StrategyOverrides
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[STR]";
-	constexpr LogLiteral logName = "StrategyOverrides";
+	constexpr Globals::LogLiteral logTag  = "[STR]";
+	constexpr Globals::LogLiteral logName = "StrategyOverrides";
+
+	// Spawn limits
+	constexpr size_t maxNumVehiclesPerHeavy3 = 20; // cars
+	constexpr size_t maxNumVehiclesPerHeavy4 = 6;  // cars
+
+	// Aliases
+	using Vector4Ds = float[maxNumVehiclesPerHeavy3][4]; // C-style for ASM
 
 	// Heat parameters
-	constinit HEAT_PARAMETER_INTERVAL(int, numVehiclesPerHeavy3s, 2, 2, {1, 20});
+	constinit HEAT_PARAMETER_INTERVAL(int, numVehiclesPerHeavy3s, 2, 2, {1, maxNumVehiclesPerHeavy3}); // cars
 
 	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, heavy3UnblockDelay, {1.f}); // seconds
 
@@ -38,11 +42,8 @@ namespace StrategyOverrides
 	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, leader7UnblockDelay, {1.f}); // seconds
 
 	// Code caves
-	constexpr size_t maxNumVehiclesPerHeavy4  = 6; // cars
-	constexpr size_t numFloatsPerHeavy3Vector = 4; // floats
-
-	float* heavy3SpawnPositions = nullptr;
-	float* heavy3InitialVectors = nullptr;
+	constinit Vector4Ds heavy3SpawnPositions; // C-style for ASM
+	constinit Vector4Ds heavy3InitialVectors; // C-style for ASM
 
 
 
@@ -54,11 +55,11 @@ namespace StrategyOverrides
 	{
 	private: // members
 
-		size_t nextHeavy3Count = 2;
+		int nextHeavy3Count = 2; // cars
 
-		const float pursuitStartTimestamp = Globals::simulationTime;
+		const float pursuitStartTimestamp = Globals::simulationTime; // seconds
 
-		int& numStrategyVehicles = AsReference<int>(this->pursuit + 0x18C);
+		int& numStrategyVehicles = AsReference<int>(this->pursuit + 0x18C); // cars
 	
 		const address& heavyStrategy  = AsReference<address>(this->pursuit + 0x194);
 		const address& leaderStrategy = AsReference<address>(this->pursuit + 0x198);
@@ -67,17 +68,17 @@ namespace StrategyOverrides
 
 		ModContainers::AddressSet vehiclesOfCurrentStrategy;
 
-		inline static constexpr LogLiteral name = "StrategyManager";
+		inline static constexpr Globals::LogLiteral name = "StrategyManager";
 
 
 	private: // methods
 
 		void UpdateNextHeavy3Count()
 		{
-			this->nextHeavy3Count = static_cast<size_t>(numVehiclesPerHeavy3s.GetRandomValue());
+			this->nextHeavy3Count = numVehiclesPerHeavy3s.GetRandomValue();
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogFull(this->pursuit, logTag, "Next HeavyStrategy 3 count:", LogDec(this->nextHeavy3Count));
+				Globals::LogFull(this->pursuit, logTag, "Next HeavyStrategy 3 count:", this->nextHeavy3Count);
 		}
 
 
@@ -322,7 +323,7 @@ namespace StrategyOverrides
 		}
 
 
-		[[nodiscard]] static size_t __fastcall GetNextHeavy3Count(const address pursuit)
+		[[nodiscard]] static int __fastcall GetNextHeavy3Count(const address pursuit)
 		{
 			const auto* const manager = StrategyManager::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return 2);
@@ -422,8 +423,8 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov esi, dword ptr [heavy3SpawnPositions]
-			mov edi, dword ptr [heavy3InitialVectors]
+			mov esi, offset heavy3SpawnPositions
+			mov edi, offset heavy3InitialVectors
 
 			add esi, ebx // vector offset
 			add edi, ebx // vector offset
@@ -475,22 +476,19 @@ namespace StrategyOverrides
 	{
 		__asm
 		{
-			mov ecx, dword ptr [numFloatsPerHeavy3Vector]
-			mov edx, dword ptr [heavy3SpawnPositions]
+			mov edx, offset heavy3SpawnPositions
 			
 			mov edi, eax
 			add edx, ebp // vector offset
-			dec ecx
 
-			negation:
-			fld dword ptr [edx + ecx * 0x4]
-			fchs // original multiplies by -1.0
-			fstp dword ptr [edx + ecx * 0x4]
+			mov ecx, 0x80000000 // sign-bit mask
 
-			dec ecx
-			jnl negation // elements remaining
+			xor dword ptr [edx + 0x0], ecx
+			xor dword ptr [edx + 0x4], ecx
+			xor dword ptr [edx + 0x8], ecx
+			xor dword ptr [edx + 0xC], ecx
 
-			mov eax, dword ptr [heavy3InitialVectors]
+			mov eax, offset heavy3InitialVectors
 
 			mov ecx, edi
 			add eax, ebp // vector offset
@@ -628,27 +626,6 @@ namespace StrategyOverrides
 
 
 
-	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
-
-	void AllocateStackReplacements()
-	{
-		static RELEASE_CONSTINIT std::vector<float> vectorStacks;
-
-		const size_t numFloatsPerStack = numFloatsPerHeavy3Vector * std::max<size_t>(numVehiclesPerHeavy3s.GetMaximum(), 5);
-
-		if constexpr (Globals::loggingEnabled)
-			Globals::LogPlain("New stack size:", LogDec(numFloatsPerStack), "floats");
-
-		vectorStacks.resize(2 * numFloatsPerStack);
-
-		heavy3SpawnPositions = vectorStacks.data();
-		heavy3InitialVectors = vectorStacks.data() + numFloatsPerStack;
-	}
-
-
-
-
-
 	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
 	bool InitialiseFeatures(ConfigParser::Parser& parser)
@@ -669,12 +646,9 @@ namespace StrategyOverrides
 
 		HeatParameters::Extract(parser, "Leader7:Unblocking", leader7UnblockDelay);
 
-		// Stack replacements
-		AllocateStackReplacements();
-
 		// Code modifications (general)
 		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4
-		MemoryTools::Write<byte>  (maxNumVehiclesPerHeavy4, {0x43E7CD}); // car budget
+		MemoryTools::Write<byte>  (maxNumVehiclesPerHeavy4, {0x43E7CD}); // car budget (actually unused)
 
 		MemoryTools::Write<byte>   (0xE9,  {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
 		MemoryTools::Write<address>(0x2A3, {0x44384B});

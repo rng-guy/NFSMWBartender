@@ -15,9 +15,9 @@
 
 #include "Globals.hpp"
 
-#include "..\Utilities\StreamParser.hpp"
-#include "..\Utilities\FormatBuffer.hpp"
-#include "..\Utilities\FlatContainers.hpp"
+#include "../Utilities/StreamParser.hpp"
+#include "../Utilities/FormatBuffer.hpp"
+#include "../Utilities/FlatContainers.hpp"
 
 
 
@@ -28,10 +28,10 @@ namespace ConfigParser
 	namespace Concepts
 	{
 		template <typename V>
-		concept IsPureEnum = StreamParser::Concepts::IsPureEnum<V>; // templated to suppress transient includes
+		concept IsPureEnum = StreamParser::Concepts::IsPureEnum<V>;
 
 		template <typename V>
-		concept IsPureArithmetic = StreamParser::Concepts::IsPureArithmetic<V>; // templated to suppress transient includes
+		concept IsPureArithmetic = StreamParser::Concepts::IsPureArithmetic<V>;
 		
 
 		template <typename V>
@@ -39,10 +39,10 @@ namespace ConfigParser
 
 
 		template <typename ...Vs>
-		concept AreExtractable = (StreamParser::Concepts::AreExtractable<Vs...>); // templated to suppress transient includes
+		concept AreExtractable = (StreamParser::Concepts::AreExtractable<Vs...>);
 
 		template <typename K, typename ...Vs>
-		concept AreSectionExtractable = (StreamParser::Concepts::AreSectionExtractable<K, Vs...>); // templated to suppress transient includes
+		concept AreSectionExtractable = (StreamParser::Concepts::AreSectionExtractable<K, Vs...>);
 	}
 
 	
@@ -164,8 +164,8 @@ namespace ConfigParser
 
 	public: // aliases (for interfaces)
 
-		using Section    = Base::Section;    // aliased to suppress transient includes
-		using SectionMap = Base::SectionMap; // aliased to suppress transient includes
+		using Section    = Base::Section;   
+		using SectionMap = Base::SectionMap;
 
 
 	private: // members

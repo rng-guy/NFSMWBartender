@@ -22,8 +22,8 @@ namespace HelicopterVision
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[VIS]";
-	constexpr LogLiteral logName = "HelicopterVision";
+	constexpr Globals::LogLiteral logTag  = "[VIS]";
+	constexpr Globals::LogLiteral logName = "HelicopterVision";
 
 	// Types and aliases
 	constexpr size_t numChannels = 4;

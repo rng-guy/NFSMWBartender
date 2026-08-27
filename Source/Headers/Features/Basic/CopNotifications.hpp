@@ -21,8 +21,8 @@ namespace CopNotifications
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[NTF]";
-	constexpr LogLiteral logName = "CopNotifications";
+	constexpr Globals::LogLiteral logTag  = "[NTF]";
+	constexpr Globals::LogLiteral logName = "CopNotifications";
 
 	// Vehicle maps
 	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(const char*, copTypeToNotificationText, ""); // C-style for game compatibility
@@ -124,7 +124,7 @@ namespace CopNotifications
 
 
 
-	[[nodiscard]] bool ExtractNotifications(const ConfigParser::Parser& parser)
+	[[nodiscard]] bool InitialiseNotifications(const ConfigParser::Parser& parser)
 	{
 		const bool textMapInitialised = ExtractNotificationTexts(parser);
 		const bool iconMapInitialised = ExtractNotificationIcons(parser);
@@ -149,7 +149,7 @@ namespace CopNotifications
 		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
 
 		// Destruction notifications (and code modifications)
-		if (not ExtractNotifications(parser)) return false; // no valid notifications; disable feature
+		if (not InitialiseNotifications(parser)) return false; // no valid notifications; disable feature
 
 		// Status flag
 		anyFeatureEnabled = true;

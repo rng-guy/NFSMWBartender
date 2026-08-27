@@ -21,8 +21,8 @@ namespace HelicopterOverrides
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[HEL]";
-	constexpr LogLiteral logName = "HelicopterOverrides";
+	constexpr Globals::LogLiteral logTag  = "[HEL]";
+	constexpr Globals::LogLiteral logName = "HelicopterOverrides";
 
 	// Heat parameters
 	constinit HEAT_PARAMETER_VALUE(const char*, helicopterVehicle, "copheli");
@@ -85,7 +85,8 @@ namespace HelicopterOverrides
 		float fuelTimeOnRejoin    = 0.f;  // seconds
 		float minFuelTimeToRejoin = 10.f; // seconds
 
-		int&  numHelisDeployed   = AsReference<int> (this->pursuit + 0x150);
+		int& numHelisDeployed = AsReference<int>(this->pursuit + 0x150); // helicopters
+
 		bool& searchSpawnAllowed = AsReference<bool>(this->pursuit + 0xD4);
 
 		inline static constinit address     helicopterOwner = 0x0;
@@ -93,7 +94,7 @@ namespace HelicopterOverrides
 
 		inline static const address& helicopter = AsReference<address>(0x90D61C);
 
-		inline static constexpr LogLiteral name = "HelicopterManager";
+		inline static constexpr Globals::LogLiteral name = "HelicopterManager";
 
 
 	private: // methods
@@ -257,7 +258,7 @@ namespace HelicopterOverrides
 		{
 			if (not this->isPlayerPursuit) return;
 
-			LogLiteral timerName;
+			Globals::LogLiteral timerName;
 
 			switch (this->helicopterStatus)
 			{

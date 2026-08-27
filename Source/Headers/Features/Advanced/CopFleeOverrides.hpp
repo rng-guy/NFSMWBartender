@@ -21,8 +21,8 @@ namespace CopFleeOverrides
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[FLE]";
-	constexpr LogLiteral logName = "CopFleeOverrides";
+	constexpr Globals::LogLiteral logTag  = "[FLE]";
+	constexpr Globals::LogLiteral logName = "CopFleeOverrides";
 
 	// Heat parameters
 	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, chaserFleeDelay, {1.f}); // seconds
@@ -63,7 +63,7 @@ namespace CopFleeOverrides
 		{
 		protected: // members
 
-			size_t numPendingExpired = 0;
+			int numPendingExpired = 0; // cars
 
 			const address pursuit; // pursuit-locked and immobile
 
@@ -75,15 +75,15 @@ namespace CopFleeOverrides
 			// Whether a given expired cop vehicle should actually be forced to bail the pursuit
 			std::function<bool (const address)> ShouldExpiredVehicleBail = [](const address copVehicle) -> bool {return true;};
 
-			[[no_unique_address]] LogLiteral name;
+			[[no_unique_address]] Globals::LogLiteral name;
 
 
 		protected: // methods
 
 			SchedulerBase
 			(
-				const LogLiteral name,
-				const address    pursuit
+				const Globals::LogLiteral name,
+				const address             pursuit
 			)
 				: name(name), pursuit(pursuit)
 			{
@@ -102,7 +102,8 @@ namespace CopFleeOverrides
 				const address copVehicle,
 				const float   fleeTimer
 			) {
-				const auto [pairIt, isNewVehicle] = this->copVehicleToTimestamp.try_emplace(copVehicle, Globals::simulationTime + fleeTimer);
+				const float fleeTimestamp          = Globals::simulationTime + fleeTimer;
+				const auto  [pairIt, isNewVehicle] = this->copVehicleToTimestamp.try_emplace(copVehicle, fleeTimestamp);
 
 				if (not isNewVehicle)
 				{
@@ -168,13 +169,23 @@ namespace CopFleeOverrides
 			}
 
 
-			[[nodiscard]] size_t GetNumScheduled() const
+			[[nodiscard]] int GetNumScheduled() const
 			{
-				return this->copVehicleToTimestamp.size() - this->numPendingExpired;
+				const int numScheduled = static_cast<int>(this->copVehicleToTimestamp.size()) - this->numPendingExpired;
+
+				if (numScheduled < 0)
+				{
+					if constexpr (Globals::loggingEnabled)
+						Globals::LogWarning(logTag, "Miscounted schedule in", this->pursuit);
+
+					ASSERT_UNREACHABLE;
+				}
+
+				return numScheduled;
 			}
 
 
-			[[nodiscard]] LogLiteral GetName() const
+			[[nodiscard]] auto GetName() const
 			{
 				return this->name;
 			}
@@ -199,9 +210,9 @@ namespace CopFleeOverrides
 
 			StrategyScheduler
 			(
-				const LogLiteral name,
-				const address    pursuit,
-				const ptrdiff_t  strategyOffset
+				const Globals::LogLiteral name,
+				const address             pursuit,
+				const ptrdiff_t           strategyOffset
 			)
 				: SchedulerBase(name, pursuit), strategy(AsReference<address>(pursuit + strategyOffset))
 			{
@@ -280,20 +291,18 @@ namespace CopFleeOverrides
 
 			PursuitScheduler
 			(
-				const LogLiteral                               name,
+				const Globals::LogLiteral                      name,
 				const address                                  pursuit,
 				const HeatParameters::OptionalInterval<float>& fleeDelay,
-				const HeatParameters::OptionalValue   <int>&   fleeThreshold
+				const HeatParameters::OptionalValue<int>&      fleeThreshold
 			)
 				: SchedulerBase(name, pursuit), fleeDelay(fleeDelay), fleeThreshold(fleeThreshold)
 			{
 				// Scheduled non-Strategy cops may only expire if the number of "Chasers" is above some threshold
 				this->ShouldCheckForExpiration = [this]() -> bool
 				{
-					if (this->fleeThreshold.isEnabled.current)
-						return (static_cast<int>(this->GetNumActiveChasers()) > this->fleeThreshold.value.current);
-
-					return true;
+					if (not this->fleeThreshold.isEnabled.current) return true; // no active threshold
+					return (static_cast<int>(this->GetNumActiveChasers()) > this->fleeThreshold.value.current);
 				};
 
 				// Expired pursuit cops always bail and must also be un-tracked
@@ -369,7 +378,7 @@ namespace CopFleeOverrides
 
 		const bool& isJerk = AsReference<bool>(this->pursuit + 0x238);
 
-		inline static constexpr LogLiteral name = "MembershipManager";
+		inline static constexpr Globals::LogLiteral name = "MembershipManager";
 
 
 	private: // methods
@@ -386,9 +395,7 @@ namespace CopFleeOverrides
 			if (not heavy3JoiningEnabled     .current) return false;
 			if (not heavy3JoinLimit.isEnabled.current) return true;
 
-			const int numJoinedHeavy3s = static_cast<int>(this->joinedHeavyVehicles.GetNumVehicles());
-
-			return (numJoinedHeavy3s < heavy3JoinLimit.value.current);
+			return (static_cast<int>(this->joinedHeavyVehicles.GetNumVehicles()) < heavy3JoinLimit.value.current);
 		}
 
 
@@ -440,8 +447,8 @@ namespace CopFleeOverrides
 
 		void CheckForHeavyCancellation()
 		{
-			if (this->heavyVehicles.GetNumScheduled() == 0) return;
-			if (not this->ShouldHeavyVehiclesBail())        return;
+			if (this->heavyVehicles.GetNumScheduled() < 1) return;
+			if (not this->ShouldHeavyVehiclesBail())       return;
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(this->pursuit, logTag, "Bailing HeavyStrategy3");

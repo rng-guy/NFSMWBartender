@@ -14,8 +14,8 @@ namespace PursuitFeatures
 	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
 
 	// Logging
-	constexpr LogLiteral logTag  = "[PFT]";
-	constexpr LogLiteral logName = "PursuitFeatures";
+	constexpr Globals::LogLiteral logTag  = "[PFT]";
+	constexpr Globals::LogLiteral logName = "PursuitFeatures";
 
 
 
@@ -150,7 +150,9 @@ namespace PursuitFeatures
 		[[nodiscard]] static Feature* FindInstance(const address pursuit)
 		{
 			for (auto* const instance : Searchable::instances)
+			{
 				if (instance->GetPursuit() == pursuit) return instance;
+			}
 
 			return nullptr;
 		}
@@ -172,14 +174,16 @@ namespace PursuitFeatures
 	{
 	private: // members
 
-		bool  isEnabled = false;
-		float minLength = 1.f;
-		float maxLength = 1.f;
+		bool isEnabled = false;
 
-		bool  isSet          = false;
-		float length         = 0.f;
-		float startTimestamp = 0.f;
-		float endTimestamp   = 0.f;
+		float minLength = 1.f; // seconds
+		float maxLength = 1.f; // seconds
+
+		bool isSet = false;
+
+		float length         = 0.f; // seconds
+		float startTimestamp = 0.f; // seconds
+		float endTimestamp   = 0.f; // seconds
 
 
 	private: // methods

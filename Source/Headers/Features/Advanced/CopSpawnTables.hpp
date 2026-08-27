@@ -22,8 +22,8 @@ namespace CopSpawnTables
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[TAB]";
-	constexpr LogLiteral logName = "CopSpawnTables";
+	constexpr Globals::LogLiteral logTag  = "[TAB]";
+	constexpr Globals::LogLiteral logName = "CopSpawnTables";
 
 
 
@@ -41,8 +41,8 @@ namespace CopSpawnTables
 
 			const char* copName; // C-style for game compatibility
 
-			int numActive;
-			int maxCount;
+			int numActive; // cars
+			int maxCount;  // cars
 
 			int chance; // relative
 
@@ -170,7 +170,7 @@ namespace CopSpawnTables
 			if (copEntry.numActive < 0)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "Negative active count for", copEntry.copName);
+					Globals::LogWarning(logTag, "Miscounted", copEntry.copName);
 
 				ASSERT_UNREACHABLE;
 			}
@@ -182,7 +182,7 @@ namespace CopSpawnTables
 				if (this->currentTotalCopChance < 0)
 				{
 					if constexpr (Globals::loggingEnabled)
-						Globals::LogWarning(logTag, "Negative total current cop chance");
+						Globals::LogWarning(logTag, "Miscounted total cop chance");
 
 					ASSERT_UNREACHABLE;
 				}
@@ -228,7 +228,7 @@ namespace CopSpawnTables
 		}
 
 
-		void Log(const LogLiteral header) const
+		void Log(const Globals::LogLiteral header) const
 		{
 			static RELEASE_CONSTINIT FormatBuffer::Buffer buffer;
 
@@ -270,12 +270,9 @@ namespace CopSpawnTables
 
 		FormatBuffer::Buffer buffer;
 
-		std::vector<const char*> copNames; // C-style for game compatibility
+		std::vector<const char*> copNames;
 		std::vector<int>         copCounts;
 		std::vector<int>         copChances;
-
-		const auto countsVectorField  = ConfigParser::VectorField(copCounts,  {1});
-		const auto chancesVectorField = ConfigParser::VectorField(copChances, {1});
 
 		for (const bool forRaces : {false, true})
 		{
@@ -287,7 +284,7 @@ namespace CopSpawnTables
 
 				// Extract spawn-table entries
 				const auto   sectionName = buffer.Format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
-				const size_t numEntries  = parser.ExtractVectors(sectionName, copNames, countsVectorField, chancesVectorField);
+				const size_t numEntries  = parser.ExtractVectors<const char*, int, int>(sectionName, copNames, {copCounts, {1}}, {copChances, {1}});
 
 				// Attempt to add new entries to table
 				bool theseEntriesValid = true;
@@ -301,7 +298,7 @@ namespace CopSpawnTables
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (theseEntriesValid)
-							Globals::LogPlain(tableName, LogDec(heatLevel), (forRaces) ? "(race)" : "(roam)");
+							Globals::LogPlain(tableName, Globals::LogDec(heatLevel), (forRaces) ? "(race)" : "(roam)");
 
 						Globals::LogDetail('-', copNames[entryID], copCounts[entryID], copChances[entryID]);
 					}
@@ -312,7 +309,7 @@ namespace CopSpawnTables
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (not theseEntriesValid)
-						Globals::LogDetail(LogDec(levelTable.GetNumCopEntries()), "type(s) left");
+						Globals::LogDetail(Globals::LogDec(levelTable.GetNumCopEntries()), "type(s) left");
 				}
 
 				allEntriesValid &= theseEntriesValid;
@@ -334,7 +331,7 @@ namespace CopSpawnTables
 			if (not chaserSpawnTable.roam[heatLevelID].IsEmpty()) continue;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("No Chasers for Heat level", LogDec(heatLevelID + 1));
+				Globals::LogPlain("No Chasers for Heat level", Globals::LogDec(heatLevelID + 1));
 
 			return false; // empty free-roam "Chasers" table
 		}

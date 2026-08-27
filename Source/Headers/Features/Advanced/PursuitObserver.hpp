@@ -31,8 +31,8 @@ namespace PursuitObserver
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[OBS]";
-	constexpr LogLiteral logName = "PursuitObserver";
+	constexpr Globals::LogLiteral logTag  = "[OBS]";
+	constexpr Globals::LogLiteral logName = "PursuitObserver";
 
 
 
@@ -59,7 +59,7 @@ namespace PursuitObserver
 
 		ModContainers::PointerStorage<PursuitFeatures::Reaction> reactions;
 
-		inline static constexpr LogLiteral name = "PursuitObserver";
+		inline static constexpr Globals::LogLiteral name = "PursuitObserver";
 
 
 	private: // methods

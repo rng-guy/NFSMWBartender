@@ -18,8 +18,8 @@ namespace InteractiveMusic
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr LogLiteral logTag  = "[MUS]";
-	constexpr LogLiteral logName = "InteractiveMusic";
+	constexpr Globals::LogLiteral logTag  = "[MUS]";
+	constexpr Globals::LogLiteral logName = "InteractiveMusic";
 	
 	// General	
 	RELEASE_CONSTINIT std::vector<int> playlist;
@@ -183,7 +183,7 @@ namespace InteractiveMusic
 		playlist.reserve(section->size());
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogDetail(LogDec(section->size()), "track(s) provided");
+			Globals::LogDetail(Globals::LogDec(section->size()), "track(s) provided");
 
 		constexpr auto ValuesToThemeID = [](const auto& values) -> std::optional<int>
 		{
@@ -218,14 +218,14 @@ namespace InteractiveMusic
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogDetail(LogDec(playlist.size()), "track(s) valid");
+			Globals::LogDetail(Globals::LogDec(playlist.size()), "track(s) valid");
 
 			if (not playlist.empty())
 			{
 				Globals::LogPlain("Playlist:");
 
 				for (size_t trackID = 0; trackID < playlist.size(); ++trackID)
-					Globals::LogDetail("track", LogDec(trackID + 1), "= theme", playlist[trackID] + 1);
+					Globals::LogDetail("track", Globals::LogDec(trackID + 1), "= theme", playlist[trackID] + 1);
 			}
 		}
 
