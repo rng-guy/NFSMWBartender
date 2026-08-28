@@ -227,7 +227,7 @@ The "Advanced" feature set **can fix five more bugs / issues**, depending on its
 
 **After installing** Bartender: 
 1. edit the configuration (`.ini`) files in the `BartenderSettings` folder to your liking; and
-2. if you encounter any issues or want more background info, see the [details file](Docs/READMORE.md).
+2. if you encounter any issues or want more background info, see the [`READMORE.md`](Docs/READMORE.md) file.
 
 &nbsp;
 
@@ -255,7 +255,7 @@ Bartender's **"Basic" feature set** changes the way the game accesses some VltEd
 
 &nbsp;
 
-Bartender's **"Advanced" feature set** forces the game to no longer ignore the roadblock-related `pursuitlevels` and the Strategy-related `pursuitsupport` VltEd settings in race pursuits. The feature set also replaces four specific `pursuitlevels` parameters in all pursuits:
+Bartender's **"Advanced" feature set** forces the game to no longer ignore the roadblock-related `pursuitlevels` and the Strategy-related `pursuitsupport` VltEd settings in race pursuits. The feature set also replaces three specific `pursuitlevels` parameters in all pursuits:
 * the `cops` array,
 * `HeliFuelTime`, and
 * `TimeBetweenHeliActive`.
