@@ -69,10 +69,7 @@ namespace CopFleeOverrides
 
 			ModContainers::AddressMap<float> copVehicleToTimestamp;
 
-			// Whether currently scheduled cops should be checked for expiration
-			std::function<bool ()> ShouldCheckForExpiration = []() -> bool {return true;};
-
-			// Whether a given expired cop vehicle should actually be forced to bail the pursuit
+			std::function<bool ()>              ShouldCheckForExpiration = []()                         -> bool {return true;};
 			std::function<bool (const address)> ShouldExpiredVehicleBail = [](const address copVehicle) -> bool {return true;};
 
 			[[no_unique_address]] Globals::LogLiteral name;
