@@ -4,7 +4,7 @@
 VIEW THIS FILE on GitHub: https://github.com/rng-guy/NFSMWBartender
 
 Bartender adds NEW CUSTOMISATION OPTIONS for pursuits. These new options come in two feature sets:
- • the "BASIC"    FEATURE SET lets you change many otherwise hard-coded values of the game, and
+ • the "BASIC"    FEATURE SET lets you change many otherwise hard-coded behaviours of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
 Bartender's DEFAULT SETTINGS match the vanilla game's, except for the bug / issue fixes.

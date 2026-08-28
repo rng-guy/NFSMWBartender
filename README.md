@@ -2,7 +2,7 @@
 ![POV: Cross busts your sorry ass at Rockport's hottest bar.](Thumbnail.jpg "Graphic design is my passion.")
 
 Bartender adds **new customisation options** for pursuits to *Need for Speed: Most Wanted* (2005). These new options come in two feature sets:
-* the **"Basic" feature set** lets you change many otherwise hard-coded values of the game, and
+* the **"Basic" feature set** lets you change many otherwise hard-coded behaviours of the game, and
 * the **"Advanced" feature set** lets you [change cop-spawning behaviour and tables](https://youtu.be/4o4rhrwuMKU) without limits.
 
 &nbsp;
