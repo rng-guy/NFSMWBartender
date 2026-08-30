@@ -11,7 +11,7 @@
 
 namespace NitrousCharge
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -156,7 +156,7 @@ namespace NitrousCharge
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(HeatParameters::configPathBasic, "Nitrous.ini")) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileNitrous)) return false;
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Nitrous:Time", passiveRechargeEnabled);

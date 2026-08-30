@@ -17,7 +17,7 @@
 
 namespace GroundSuppport
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -80,7 +80,7 @@ namespace GroundSuppport
 		const int strategyID = AsReference<int>(heavyStrategy);
 
 		const int  heavyChance = AsReference<int>(heavyStrategy + 0xC);
-		const bool isHeavy     = Globals::prng.DoPercentTrial<int>(heavyChance);
+		const bool isHeavy     = Globals::pRNG.DoPercentTrial<int>(heavyChance);
 
 		switch (strategyID)
 		{
@@ -195,7 +195,7 @@ namespace GroundSuppport
 
 			const int chance = AsReference<int>(strategy + 0x4);
 
-			if (Globals::prng.DoPercentTrial<int>(chance))
+			if (Globals::pRNG.DoPercentTrial<int>(chance))
 				candidates.push_back(strategy);
 		}
 	}
@@ -258,7 +258,7 @@ namespace GroundSuppport
 		}
 
 		// Select an eligible Strategy at random
-		const size_t  candidateID     = Globals::prng.GenerateIndex(candidates);
+		const size_t  candidateID     = Globals::pRNG.GenerateIndex(candidates);
 		const address randomStrategy  = candidates[candidateID];
 		const bool    isHeavyStrategy = (candidateID < numHeavyStrategies);
 
@@ -859,7 +859,7 @@ namespace GroundSuppport
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(HeatParameters::configPathBasic, "Support.ini")) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileSupport)) return false;
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Support:Rivals", rivalRoadblockEnabled, rivalHeavyEnabled, rivalLeaderEnabled);

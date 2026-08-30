@@ -5,7 +5,6 @@
 
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
-#include "../../Common/HeatParameters.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
 
@@ -13,7 +12,7 @@
 
 namespace InteractiveMusic
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -41,7 +40,7 @@ namespace InteractiveMusic
 
 	[[nodiscard]] int GetFirstTrack()
 	{
-		currentTrackID = (shuffleFirstTrack) ? Globals::prng.GenerateIndex(playlist) : 0;
+		currentTrackID = (shuffleFirstTrack) ? Globals::pRNG.GenerateIndex(playlist) : 0;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogTagged(logTag, "First pursuit theme:", playlist[currentTrackID] + 1);
@@ -56,7 +55,7 @@ namespace InteractiveMusic
 		const size_t numTracks = playlist.size();
 
 		if (shuffleAfterFirst and (numTracks > 2))
-			currentTrackID += Globals::prng.GenerateNumber<size_t>(1, numTracks - 1);
+			currentTrackID += Globals::pRNG.GenerateNumber<size_t>(1, numTracks - 1);
 
 		else ++currentTrackID;
 
@@ -268,7 +267,7 @@ namespace InteractiveMusic
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileCosmetic)) return false;
 
 		// Theme playlist
 		if (not ExtractPlaylist(parser)) return false; // no valid theme(s); disable feature

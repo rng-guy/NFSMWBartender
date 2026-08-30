@@ -21,17 +21,19 @@
 
 namespace StateObserver
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr Globals::LogLiteral logTag  = "[SOB]";
+	constexpr Globals::LogLiteral logTag  = "[STO]";
 	constexpr Globals::LogLiteral logName = "StateObserver";
 
-	// Code caves
-	size_t playerHeatLevel = 0;
-	bool   playerIsRacing  = false;
+	// First player vehicle
+	address playerPerpVehicle = 0x0;
+
+	// Gameplay updates
+	bool forceNextGameplayUpdate = true;
 
 
 
@@ -39,29 +41,36 @@ namespace StateObserver
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	void ProcessHeatStateUpdate()
-	{
-		const HeatParameters::HeatState state(playerIsRacing, HeatParameters::ClampHeatLevel(playerHeatLevel));
+	void __fastcall ProcessHeatStateUpdate
+	(
+		const bool   isRacing,
+		const size_t heatLevel
+	) {
+		static constinit HeatParameters::HeatState oldState{.isRace = false, .level = 0};
+
+		const HeatParameters::HeatState newState(isRacing, HeatParameters::ClampHeatLevel(heatLevel));
+		if (newState == oldState) return; // state unchanged; skip redundant Heat-level update(s)
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			if (state.level != playerHeatLevel)
-				Globals::LogWarning(logTag, "Heat level", Globals::LogDec(playerHeatLevel), "out of range");
+			if (newState.level != heatLevel)
+				Globals::LogWarning(logTag, "Heat level", Globals::LogDec(heatLevel), "out of range");
 
-			Globals::LogHeat(logTag, "Heat level now", Globals::LogDec(state.level), (playerIsRacing) ? "(race)" : "(roam)");
+			Globals::LogHeat(logTag, "Heat level now", Globals::LogDec(newState.level), (isRacing) ? "(race)" : "(roam)");
 		}
 
-		// Update Heat-level flag
-		Globals::playerHeatLevelKnown = true;
-
-		// Update Heat parameters
-		RadioSpeech    ::SetToHeatState(state);
-		GeneralSettings::SetToHeatState(state);
-		GroundSuppport ::SetToHeatState(state);
-		NitrousCharge  ::SetToHeatState(state);
-		GameBreaker    ::SetToHeatState(state);
+		// "Basic" feature set
+		RadioSpeech    ::SetToHeatState(newState);
+		GeneralSettings::SetToHeatState(newState);
+		GroundSuppport ::SetToHeatState(newState);
+		NitrousCharge  ::SetToHeatState(newState);
+		GameBreaker    ::SetToHeatState(newState);
 			
-		PursuitObserver::SetToHeatState(state);
+		// "Advanced" feature set
+		PursuitObserver::SetToHeatState(newState);
+
+		// State cache
+		oldState = newState;
 	}
 
 
@@ -120,7 +129,7 @@ namespace StateObserver
 	(
 		const address copVehicle,
 		const address perpVehicle,
-		const bool    racerAtFault
+		const bool    perpAtFault
 	) {
 		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
 		ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
@@ -147,7 +156,7 @@ namespace StateObserver
 		}
 
 		// Process assault by perp
-		if (not racerAtFault) return false;
+		if (not perpAtFault) return false;
 
 		byte& numCopAssaulted = AsReference<byte>(copAIVehiclePursuit - 0x758 + 0x76A); // padding byte
 
@@ -188,7 +197,7 @@ namespace StateObserver
 		Globals::isGameplayPaused = isPaused;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogTagged(logTag, "Gameplay", (isPaused) ? "paused" : "unpaused");
+			Globals::LogTagged(logTag, "Gameplay", (isPaused) ? "paused" : "resumed");
 
 		if (isPaused) 
 			Globals::numGameTicksOnLastPause = Globals::numGameTicks;
@@ -201,6 +210,31 @@ namespace StateObserver
 
 
 	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+
+	constexpr address gameTicksEntrance = 0x65C73F;
+	constexpr address gameTicksExit     = 0x65C746;
+
+	// Checks game ticks for unsigned overflow
+	__declspec(naked) void GameTicks()
+	{
+		__asm
+		{
+			mov edx, 0x925968 // loop counter
+
+			add ecx, eax
+			jnc conclusion // no overflow
+
+			mov dword ptr [Globals::numFullyPausedGameTicks], 0
+			mov dword ptr [Globals::numGameTicksOnLastPause], ecx
+
+			conclusion:
+			mov eax, dword ptr [edx]
+
+			jmp dword ptr [gameTicksExit]
+		}
+	}
+
+
 
 	constexpr address copDestroyedEntrance = 0x418F30;
 	constexpr address copDestroyedExit     = 0x418F3B;
@@ -261,7 +295,7 @@ namespace StateObserver
 		{
 			mov edi, eax
 
-			mov edx, dword ptr [Globals::playerPerpVehicle]
+			mov edx, dword ptr [playerPerpVehicle]
 			test edx, edx
 			je conclusion // player vehicle unknown
 
@@ -269,7 +303,7 @@ namespace StateObserver
 			je conclusion // is player vehicle
 
 			mov eax, dword ptr [edx + 0x1C] // player Heat
-			mov dword ptr [esp + 0x24], eax // new perp Heat
+			mov dword ptr [esp + 0x24], eax // rival Heat
 
 			conclusion:
 			// Execute original code and resume
@@ -358,16 +392,10 @@ namespace StateObserver
 	{
 		__asm
 		{
-			cmp eax, dword ptr [Globals::playerPerpVehicle]
-			jne conclusion // not stored vehicle
+			cmp eax, dword ptr [playerPerpVehicle]
+			jne conclusion // not stored player vehicle
 
-			xor ecx, ecx
-
-			mov dword ptr [Globals::playerPerpVehicle], ecx
-			mov byte ptr [Globals::playerHeatLevelKnown], cl
-
-			mov dword ptr [playerHeatLevel], ecx
-			mov byte ptr [playerIsRacing], cl
+			mov dword ptr [playerPerpVehicle], 0x0
 
 			conclusion:
 			// Execute original code and resume
@@ -387,21 +415,27 @@ namespace StateObserver
 	{
 		__asm
 		{
-			cmp ebp, dword ptr [playerHeatLevel]
-			je conclusion // Heat unchanged
-
-			cmp esi, dword ptr [Globals::playerPerpVehicle]
+			cmp esi, dword ptr [playerPerpVehicle]
 			jne conclusion // not player vehicle
 
-			cmp dword ptr [esp + 0x20], 0x416A75 // caller
-			je conclusion                        // not true Heat
+			mov edx, ebp // new Heat level
 
-			mov dword ptr [playerHeatLevel], ebp
-			call ProcessHeatStateUpdate
+			cmp dword ptr [esp + 0x20], 0x416A75
+			cmove edx, edi // is race preparation
+
+			cmp edx, edi
+			jne update // Heat level changed
+
+			cmp bl, byte ptr [esi + 0x2E]
+			je conclusion // race status unchanged
+
+			update:
+			movzx ecx, bl
+			call ProcessHeatStateUpdate // cl: isRacing; edx: heatLevel
 
 			conclusion:
 			// Execute original code and resume
-			cmp bl, byte ptr [esi + 0x2E] // previous race status
+			cmp bl, byte ptr [esi + 0x2E]
 			setne al
 			cmp ebp, edi
 
@@ -417,15 +451,31 @@ namespace StateObserver
 	// Stores the player's AIPerpVehicle
 	__declspec(naked) void PlayerConstructor()
 	{
+		static constexpr address FloatToInt = 0x7C4B80;
+
 		__asm
 		{
+			// Execute original code first
 			lea eax, dword ptr [esi + 0x758]
 			mov dword ptr [eax], 0x892988
 
-			cmp dword ptr [Globals::playerPerpVehicle], 0x0
-			jne conclusion // vehicle already stored
+			cmp dword ptr [playerPerpVehicle], 0x0
+			jne conclusion // already stored
 
-			mov dword ptr [Globals::playerPerpVehicle], eax
+			mov dword ptr [playerPerpVehicle], eax
+
+			push ecx
+
+			movzx ebx, byte ptr [eax + 0x2E]
+
+			fld dword ptr [eax + 0x1C]
+			call dword ptr [FloatToInt]
+
+			mov ecx, ebx
+			mov edx, eax
+			call ProcessHeatStateUpdate // cl: isRacing; edx: heatLevel
+
+			pop ecx
 
 			conclusion:
 			jmp dword ptr [playerConstructorExit]
@@ -455,28 +505,36 @@ namespace StateObserver
 
 
 
-
+	
 
 	// Hooking functions ----------------------------------------------------------------------------------------------------------------------------
 
 	address ProcessGameplayOriginal = 0x0;
 
-	void __fastcall ProcessGameplay(const address soundAI)
+	void __fastcall ProcessGameplay(const address simSystem)
 	{
-		// Apply hooked logic fist
-		const auto IsRacing = AsFunction<bool __thiscall (address)>(0x409500);
+		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
-		if (Globals::playerPerpVehicle and (playerIsRacing != IsRacing(Globals::playerPerpVehicle)))
+		// Call original function first (actually __thiscall with 0 arguments)
+		AsFunction<decltype(ProcessGameplay)>(ProcessGameplayOriginal)(simSystem);
+
+		// Check update timestamp
+		const float timestamp = Globals::GetGameplayTime();
+
+		constexpr float updateInterval = 1.f / 10.f; // seconds
+
+		if ((not forceNextGameplayUpdate) and (timestamp < lastUpdateTimestamp + updateInterval))
 		{
-			playerIsRacing = (not playerIsRacing);
-
-			ProcessHeatStateUpdate();
+			// Guard against potential wrap-around / reset
+			if (timestamp >= lastUpdateTimestamp) return;
 		}
 
+		// "Advanced" feature set
 		PursuitObserver::NotifyOfGameplay();
 
-		// Call original function last (actually __thiscall with 0 arguments)
-		AsFunction<decltype(ProcessGameplay)>(ProcessGameplayOriginal)(soundAI);
+		// Timestamp update
+		lastUpdateTimestamp     = timestamp;
+		forceNextGameplayUpdate = false;
 	}
 
 
@@ -486,6 +544,8 @@ namespace StateObserver
 	void ProcessWorldLoad()
 	{
 		// Apply hooked logic fist
+		forceNextGameplayUpdate = true;
+
 		PursuitObserver::NotifyOfHardEventReset();
 
 		// Call original function last
@@ -499,9 +559,8 @@ namespace StateObserver
 	void ProcessEventRestart()
 	{
 		// Apply hooked logic fist
-		playerHeatLevel               = 0;
-		Globals::playerHeatLevelKnown = false;
-
+		forceNextGameplayUpdate = true;
+		
 		PursuitObserver::NotifyOfSoftEventReset();
 
 		// Call original function last
@@ -519,6 +578,7 @@ namespace StateObserver
 		// Code modifications 
 		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first perp-damage check
 
+		MemoryTools::MakeRangeJMP<gameTicksEntrance,             gameTicksExit>            (GameTicks);
 		MemoryTools::MakeRangeJMP<copDestroyedEntrance,          copDestroyedExit>         (CopDestroyed);
 		MemoryTools::MakeRangeJMP<perpCollisionEntrance,         perpCollisionExit>        (PerpCollision);
 		MemoryTools::MakeRangeJMP<heatEqualiserEntrance,         heatEqualiserExit>        (HeatEqualiser);
@@ -530,9 +590,9 @@ namespace StateObserver
 		MemoryTools::MakeRangeJMP<playerConstructorEntrance,     playerConstructorExit>    (PlayerConstructor);
 		MemoryTools::MakeRangeJMP<resetAIVehiclePursuitEntrance, resetAIVehiclePursuitExit>(ResetAIVehiclePursuit);
 
-		ProcessGameplayOriginal     = MemoryTools::ReplaceCall(0x721609, ProcessGameplay);     // SoundAI::SyncPursuit (0x720850)
-		ProcessWorldLoadOriginal    = MemoryTools::ReplaceCall(0x662ADC, ProcessWorldLoad);    // nullsub_174          (0x6C39C0)
-		ProcessEventRestartOriginal = MemoryTools::ReplaceCall(0x63090B, ProcessEventRestart); // World_RestoreProps   (0x74D320)
+		ProcessGameplayOriginal     = MemoryTools::ReplaceCall(0x6F6EE6, ProcessGameplay);     // SimSystem::UpdateFrame (0x6F6CF0)
+		ProcessWorldLoadOriginal    = MemoryTools::ReplaceCall(0x662ADC, ProcessWorldLoad);    // nullsub_174            (0x6C39C0)
+		ProcessEventRestartOriginal = MemoryTools::ReplaceCall(0x63090B, ProcessEventRestart); // World_RestoreProps     (0x74D320)
 		
 		// Status flag
 		anyFeatureEnabled = true;

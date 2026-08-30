@@ -139,7 +139,7 @@ namespace RoadblockOverrides
 
 		[[nodiscard]] const RBTable& GetRandomTable() const
 		{
-			const bool isMirrored = Globals::prng.DoPercentTrial<float>(this->mirrorChance);
+			const bool isMirrored = Globals::pRNG.DoPercentTrial<float>(this->mirrorChance);
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogPlain("Setup:", this->name, (isMirrored) ? "(mirrored)" : "(regular)");
@@ -170,7 +170,7 @@ namespace RoadblockOverrides
 
 
 
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -268,7 +268,7 @@ namespace RoadblockOverrides
 		if (not anyRegular) return true;  // regular impossible
 		if (not anySpike)   return false; // spikes  impossible
 
-		return Globals::prng.DoPercentTrial<float>(spikeChance); // either possible
+		return Globals::pRNG.DoPercentTrial<float>(spikeChance); // either possible
 	}
 
 
@@ -308,7 +308,7 @@ namespace RoadblockOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogFull(requestPursuit, logTag, "Roadblock creation attempt");
+			Globals::LogFull(requestPursuit, logTag, "Roadblock attempt");
 
 			Globals::LogPlain("Road width:", roadWidth);
 			Globals::LogPlain("Candidates:", Globals::LogDec(regular.numCandidates), '/', Globals::LogDec(spike.numCandidates));
@@ -362,7 +362,7 @@ namespace RoadblockOverrides
 		if (Globals::IsPursuitInCooldownMode(pursuit)) return;
 		if (not Globals::IsPlayerPursuit(pursuit))     return;
 
-		if (not Globals::prng.DoPercentTrial<float>(spawnCalloutChance.current))
+		if (not Globals::pRNG.DoPercentTrial<float>(spawnCalloutChance.current))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(pursuit, logTag, "No callout");
@@ -370,7 +370,7 @@ namespace RoadblockOverrides
 			return; // skip callout
 		}
 
-		if (hasSpikes and Globals::prng.DoPercentTrial<float>(spikeCalloutChance.current))
+		if (hasSpikes and Globals::pRNG.DoPercentTrial<float>(spikeCalloutChance.current))
 		{
 			const auto CallOutSpikes = AsFunction<void __cdecl (int)>(0x71DAC0);
 
@@ -471,7 +471,7 @@ namespace RoadblockOverrides
 
 		// Select a random eligible setup
 		int       cumulativeChance = 0;
-		const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, totalChance);
+		const int chanceThreshold  = Globals::pRNG.GenerateNumber<int>(1, totalChance);
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogPlain(Globals::LogDec(candidates.size()), "candidate(s)");
@@ -681,14 +681,14 @@ namespace RoadblockOverrides
 		bool hasSpikes = false;
 
 		// Attempt parts extraction
-		PartDataArray<RBPartType> partTypeIDs  = {};
-		PartDataArray<float>      partOffsetsX = {};
-		PartDataArray<float>      partOffsetsY = {};
+		PartDataArray<RBPartType> types        = {};
+		PartDataArray<float>      offsetXs     = {};
+		PartDataArray<float>      offsetYs     = {};
 		PartDataArray<float>      orientations = {};
 
 		const PartDataArray<bool> isExtracteds = ConfigParser::Parser::ExtractArrays<maxNumParts, RBPartType, float, float, float>
 		(
-			section, {}, "part{:02}", HeatParameters::configFormatStart, {partTypeIDs}, {partOffsetsX}, {partOffsetsY}, {orientations}
+			section, /* defaultKey = */ {}, "part{:02}", /* keyStartIndex = */ 1, {types}, {offsetXs}, {offsetYs}, {orientations}
 		);
 
 		// Process parts
@@ -698,7 +698,7 @@ namespace RoadblockOverrides
 		{
 			if (not isExtracteds[partID]) continue; // invalid part
 
-			switch (partTypeIDs[partID])
+			switch (types[partID])
 			{
 			case RBPartType::CAR:
 				++(table.numCarsRequired);
@@ -721,10 +721,10 @@ namespace RoadblockOverrides
 			// Update part parameters
 			table.parts[numValidParts] =
 			{
-				partTypeIDs [partID],
-				partOffsetsX[partID],
-				partOffsetsY[partID],
-				orientations[partID]
+				.type        = types       [partID],
+				.offsetX     = offsetXs    [partID],
+				.offsetY     = offsetYs    [partID],
+				.orientation = orientations[partID]
 			};
 
 			++numValidParts;
@@ -824,7 +824,7 @@ namespace RoadblockOverrides
 		// Check (potential) setup count
 		size_t maxNumSetups = 0;
 
-		for (const auto& [name, section] : nameToSection)
+		for (const auto& [name, _] : nameToSection)
 			maxNumSetups += name.starts_with(setupPrefix);
 
 		if (maxNumSetups == 0)
@@ -882,7 +882,7 @@ namespace RoadblockOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
+		parser.ParseFile(Globals::pathAdvanced, Globals::fileRoadblocks);
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Roadblocks:Recycling", mayRecycleDistantCops);

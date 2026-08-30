@@ -15,12 +15,12 @@
 
 namespace StrategyOverrides
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr Globals::LogLiteral logTag  = "[STR]";
+	constexpr Globals::LogLiteral logTag  = "[STG]";
 	constexpr Globals::LogLiteral logName = "StrategyOverrides";
 
 	// Spawn limits
@@ -90,27 +90,26 @@ namespace StrategyOverrides
 
 		void StopUnblockTimer()
 		{
-			if (not this->unblockTimer.IsSet()) return;
+			if (not this->unblockTimer.HasStartTimestamp()) return;
 
-			this->unblockTimer             .Stop();
+			this->unblockTimer.ClearStartTimestamp();
+
 			this->vehiclesOfCurrentStrategy.clear();
-
 			this->UpdateNumStrategyVehicles();
 		}
 
 
 		void StartUnblockTimer()
 		{
-			if (this->unblockTimer.IsSet()) return;
+			if (this->unblockTimer.HasStartTimestamp()) return;
 
-			this->unblockTimer.Start();
+			this->unblockTimer.SetStartTimestamp();
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->unblockTimer.IsIntervalEnabled())
-					Globals::LogFull(this->pursuit, logTag, "Unblocking in", this->unblockTimer.GetLength());
+				Globals::LogFull(this->pursuit, logTag, "New unblock timer");
 
-				else Globals::LogFull(this->pursuit, logTag, "Strategy blocking fully");
+				this->unblockTimer.Log("Unblocking");
 			}
 		}
 
@@ -189,7 +188,7 @@ namespace StrategyOverrides
 		{
 			if (not this->IsStrategyCop(copLabel)) return;
 
-			if (not this->unblockTimer.IsSet())
+			if (not this->unblockTimer.HasStartTimestamp())
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "New vehicle", copVehicle, "without Strategy in", this->pursuit);
@@ -633,7 +632,7 @@ namespace StrategyOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(HeatParameters::configPathAdvanced, "Strategies.ini");
+		parser.ParseFile(Globals::pathAdvanced, Globals::fileStrategies);
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Heavy3:Count", numVehiclesPerHeavy3s);

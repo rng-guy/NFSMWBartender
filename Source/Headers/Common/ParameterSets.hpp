@@ -31,20 +31,20 @@ namespace ParameterSets
 		HEAT_PARAMETER_VALUE(float, copWreckChange, {0.f});
 
 		// Vehicle maps
-		DEFAULT_VAULT_MAP(float, copTypeToTagChange, 0.f);
+		VEHICLE_MAP(float, copTypeToTagChange, 0.f);
 
-		DEFAULT_VAULT_MAP(float, copTypeToAssaultChange, 0.f);
+		VEHICLE_MAP(float, copTypeToAssaultChange, 0.f);
 
-		DEFAULT_VAULT_MAP(float, copTypeToWreckChange, 0.f);
+		VEHICLE_MAP(float, copTypeToWreckChange, 0.f);
 
 
 	private: // methods
 
-		static void ParseVehicleMap
+		static void ExtractMap
 		(
-			const ConfigParser::Parser&            parser,
-			const std::string_view                 sectionName,
-			ModContainers::DefaultVaultMap<float>& vehicleMap
+			const ConfigParser::Parser&       parser,
+			const std::string_view            sectionName,
+			ModContainers::VehicleMap<float>& vehicleMap
 		) {
 			std::vector<std::string_view> copNames;
 			std::vector<float>            changes;
@@ -53,7 +53,6 @@ namespace ParameterSets
 
 			vehicleMap.Fill
 			(
-				HeatParameters::configDefaultKey,
 				ModContainers::FillSetup(copNames, Globals::GetVaultHash,         Globals::DoesVehicleTypeExist),
 				ModContainers::FillSetup(changes,  ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
 			);
@@ -86,11 +85,11 @@ namespace ParameterSets
 			HeatParameters::Extract(parser, buffer.Format("{}:Wrecking", featureTag), this->copWreckChange);
 
 			// Vehicle-to-change maps
-			this->ParseVehicleMap(parser, "Tagging:Vehicles", this->copTypeToTagChange);
+			this->ExtractMap(parser, "Tagging:Vehicles", this->copTypeToTagChange);
 
-			this->ParseVehicleMap(parser, "Assault:Vehicles", this->copTypeToAssaultChange);
+			this->ExtractMap(parser, "Assault:Vehicles", this->copTypeToAssaultChange);
 
-			this->ParseVehicleMap(parser, "Wrecking:Vehicles", this->copTypeToWreckChange);
+			this->ExtractMap(parser, "Wrecking:Vehicles", this->copTypeToWreckChange);
 		}
 
 

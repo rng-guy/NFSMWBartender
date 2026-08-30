@@ -26,12 +26,12 @@
 
 namespace PursuitObserver
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr Globals::LogLiteral logTag  = "[OBS]";
+	constexpr Globals::LogLiteral logTag  = "[PSO]";
 	constexpr Globals::LogLiteral logName = "PursuitObserver";
 
 
@@ -199,7 +199,7 @@ namespace PursuitObserver
 			ASSERT_CONDITION_THEN_IF_FALSE(observer, return);
 
 			const CopLabel copLabel               = observer->InferCopLabelFromCaller(caller);
-			const auto     [pairIt, isNewVehicle] = observer->copVehicleToLabel.try_emplace(copVehicle, copLabel);
+			const auto     [pairIt, isNewVehicle] = observer->copVehicleToLabel.insert(copVehicle, copLabel);
 			
 			if (not isNewVehicle)
 			{
@@ -251,7 +251,7 @@ namespace PursuitObserver
 
 	
 
-	// Parameters (cont.) ---------------------------------------------------------------------------------------------------------------------------
+	// Feature setup (cont.) ------------------------------------------------------------------------------------------------------------------------
 
 	// Code caves
 	RELEASE_CONSTINIT ModContainers::PointerStorage<PursuitObserver> observers;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <span>
+#include <optional>
 #include <concepts>
 
 #include "../../Common/Globals.hpp"
@@ -11,7 +12,7 @@
 
 namespace PursuitFeatures
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[PFT]";
@@ -174,127 +175,177 @@ namespace PursuitFeatures
 	{
 	private: // members
 
-		bool isEnabled = false;
+		std::optional<float> startTimestamp;
+		std::optional<float> endTimestamp;
 
-		float minLength = 1.f; // seconds
-		float maxLength = 1.f; // seconds
+		bool isIntervalEnabled = false;
 
-		bool isSet = false;
-
-		float length         = 0.f; // seconds
-		float startTimestamp = 0.f; // seconds
-		float endTimestamp   = 0.f; // seconds
+		float minLength = 0.f;
+		float maxLength = 0.f;
 
 
 	private: // methods
 
-		void UpdateLength()
+		void UpdateEndTimestamp()
 		{
-			this->length       = Globals::prng.GenerateNumber<float>(this->minLength, this->maxLength);
-			this->endTimestamp = this->startTimestamp + this->length;
-		}
-
-
-	public: // methods
-
-		bool Start()
-		{
-			if (this->isSet)
+			if (this->startTimestamp and this->isIntervalEnabled)
 			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "Timer already set");
-
-				ASSERT_UNREACHABLE_THEN(return false);
+				const float length = Globals::pRNG.GenerateNumber<float>(this->minLength, this->maxLength);
+				this->endTimestamp = *(this->startTimestamp) + length;
 			}
-
-			this->isSet          = true;
-			this->startTimestamp = Globals::simulationTime;
-
-			if (this->isEnabled)
-				this->UpdateLength();
-
-			return true;
+			else this->endTimestamp.reset();
 		}
 
 
-		bool Stop()
-		{
-			if (not this->isSet) return false;
-
-			this->isSet = false;
-
-			return true;
-		}
-
-
-		void DisableInterval()
-		{
-			this->isEnabled = false;
-		}
-
-
-		void UpdateParameters
+		void UpdateInterval
 		(
 			const bool  isEnabled,
 			const float minLength,
 			const float maxLength
 		) {
-			this->isEnabled = isEnabled;
-			if (not this->isEnabled) return;
+			this->isIntervalEnabled = isEnabled;
 
 			this->minLength = minLength;
 			this->maxLength = maxLength;
 
-			if (this->isSet)
-				this->UpdateLength();
+			this->UpdateEndTimestamp();
+		}
+
+
+		[[nodiscard]] float ComputeTimeLeft() const
+		{
+			return *(this->endTimestamp) - Globals::simulationTime;
+		}
+
+
+	public: // methods
+
+		void SetStartTimestamp()
+		{
+			this->startTimestamp = Globals::simulationTime;
+
+			this->UpdateEndTimestamp();
+		}
+
+
+		void SetStartTimestampIfNone()
+		{
+			if (this->startTimestamp) return;
+
+			this->SetStartTimestamp();
+		}
+
+
+		void ClearStartTimestamp()
+		{
+			this->startTimestamp.reset();
+
+			this->UpdateEndTimestamp();
+		}
+
+
+		[[nodiscard]] bool HasStartTimestamp() const
+		{
+			return this->startTimestamp.has_value();
+		}
+
+
+		[[nodiscard]] std::optional<float> GetStartTimestamp() const
+		{
+			return this->startTimestamp;
+		}
+
+
+		void LoadInterval
+		(
+			const float minLength,
+			const float maxLength
+		) {
+			this->UpdateInterval
+			(
+				/* isEnabled = */ true, 
+				minLength, 
+				maxLength
+			);
 		}
 
 
 		void LoadInterval(const HeatParameters::Interval<float>& interval)
 		{
-			this->UpdateParameters(Globals::playerHeatLevelKnown, interval.min.current, interval.max.current);
+			this->LoadInterval
+			(
+				interval.min.current, 
+				interval.max.current
+			);
 		}
 
 
 		void LoadInterval(const HeatParameters::OptionalInterval<float>& optionalInterval)
 		{
-			const bool  isEnabled = (Globals::playerHeatLevelKnown and optionalInterval.isEnabled.current);
-			const auto& interval  = optionalInterval.interval;
-
-			this->UpdateParameters(isEnabled, interval.min.current, interval.max.current);
+			this->UpdateInterval
+			(
+				optionalInterval.isEnabled   .current,
+				optionalInterval.interval.min.current, 
+				optionalInterval.interval.max.current
+			);
 		}
 
 
-		[[nodiscard]] bool IsSet() const
+		void DisableInterval()
 		{
-			return this->isSet;
+			this->isIntervalEnabled = false;
+
+			this->UpdateEndTimestamp();
 		}
 
 
 		[[nodiscard]] bool IsIntervalEnabled() const
 		{
-			return this->isEnabled;
+			return this->isIntervalEnabled;
 		}
 
 
-		[[nodiscard]] float GetLength() const
+		[[nodiscard]] bool HasEndTimestamp() const
 		{
-			return this->length;
+			return this->endTimestamp.has_value();
 		}
 
 
-		[[nodiscard]] float GetTimeLeft() const
+		[[nodiscard]] std::optional<float> GetEndTimestamp() const
 		{
-			return this->endTimestamp - Globals::simulationTime;
+			return this->endTimestamp;
+		}
+
+
+		[[nodiscard]] std::optional<float> GetLength() const
+		{
+			if (not this->startTimestamp) return std::nullopt;
+			if (not this->endTimestamp)   return std::nullopt;
+
+			return *(this->endTimestamp) - *(this->startTimestamp);
+		}
+
+
+		[[nodiscard]] std::optional<float> GetTimeLeft() const
+		{
+			if (not this->endTimestamp) return std::nullopt;
+			return this->ComputeTimeLeft();
 		}
 
 
 		[[nodiscard]] bool HasExpired() const
 		{
-			if (not this->isSet)     return false;
-			if (not this->isEnabled) return false;
+			if (not this->endTimestamp) return false;
+			return (this->ComputeTimeLeft() <= 0.f);
+		}
 
-			return (this->GetTimeLeft() <= 0.f);
+
+		void Log(const Globals::LogLiteral actionName) const
+		{
+			if (const auto length = this->GetLength())
+				Globals::LogPlain(actionName, "in", *length);
+
+			else Globals::LogPlain(actionName, "suspended");
 		}
 	};
 }

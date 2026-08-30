@@ -17,7 +17,7 @@
 
 namespace HeatChangeOverrides
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -129,8 +129,6 @@ namespace HeatChangeOverrides
 
 		void ProcessTrackerYields()
 		{
-			if (not Globals::playerHeatLevelKnown) return;
-
 			float totalHeatChange = 0.f;
 
 			for (CountTracker& tracker : this->countTrackers)
@@ -511,7 +509,7 @@ namespace HeatChangeOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(HeatParameters::configPathAdvanced, "Heat.ini");
+		parser.ParseFile(Globals::pathAdvanced, Globals::fileHeat);
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Heat:Time", heatTimerEnabled);

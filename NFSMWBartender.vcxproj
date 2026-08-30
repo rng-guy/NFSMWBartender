@@ -210,6 +210,6 @@
     <Copy SourceFiles="@(EditorImageFiles)" DestinationFolder="$(CustomOutputDir)Assets\Images\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(DocumentationTxtFiles)" DestinationFolder="$(CustomOutputDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(RoadblockEditor)" DestinationFolder="$(CustomOutputDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(FixMissingTextures)" DestinationFiles="$(CustomOutputDir)FixMissingTextures.txt" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(FixMissingTextures)" DestinationFolder="$(CustomOutputDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <filesystem>
 #include <string_view>
 
 #include "../Utilities/MemoryTools.hpp"
@@ -48,30 +49,42 @@ using address = MemoryTools::address;
 
 namespace Globals
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Common data ----------------------------------------------------------------------------------------------------------------------------------
 
-	bool basicSetEnabled    = false;
-	bool advancedSetEnabled = false;
+	RandomNumbers::Generator pRNG;
 
-	// Game timer
+	// In-game timer
 	bool isGameplayPaused = true;
 
 	uint32_t numGameTicksOnLastPause = 0;
 	uint32_t numFullyPausedGameTicks = 0;
 
-	// Random-number generator
-	RandomNumbers::Generator prng;
-
-	// Player state
-	address playerPerpVehicle    = 0x0;
-	bool    playerHeatLevelKnown = false;
-
-	// Hackjob floating-point coefficient
+	// Hackjob floating-point correction
 	constexpr float floatScale = 1.f + 1e-6f;
 
-	// Statically toggled logging
+	// Function pointers
+	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // pursuit
+	const auto IsVehicleDestroyed  = AsFunction<bool __thiscall (address)>(0x688170); // vehicle
+	const auto ClearSupportRequest = AsFunction<void __thiscall (address)>(0x42BCF0); // pursuit
+
+	const auto GetVehicleType = AsFunction<vault       __thiscall (address)>(0x6880A0); // vehicle
+	const auto GetVehicleName = AsFunction<const char* __thiscall (address)>(0x688090); // vehicle
+
+	// Non-function pointers
+	const address&  copManager     = AsReference<address> (0x90D5F4);
+	const uint32_t& numGameTicks   = AsReference<uint32_t>(0x925B14); // ticks (actually int)
+	const float&    ticksToTime    = AsReference<float>   (0x890984); // seconds / tick
+	const float&    simulationTime = AsReference<float>   (0x9885D8); // seconds
+
+
+
+
+
+	// Logging setup --------------------------------------------------------------------------------------------------------------------------------
+
 	constexpr bool loggingEnabled = false;
 
+	// Aliases
 	template <typename T>
 	using LogBin = StaticLogger::LogBin<T>;
 
@@ -84,21 +97,37 @@ namespace Globals
 	using LogLiteral = StaticLogger::LogLiteral<loggingEnabled>;
 	using LogString  = StaticLogger::LogString <loggingEnabled>;
 
+	// Statically toggled logger
 	StaticLogger::Logger<loggingEnabled, 9, 15, 17> logger;
 
-	// Common function pointers
-	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // for Pursuit
-	const auto IsVehicleDestroyed  = AsFunction<bool __thiscall (address)>(0x688170); // for PVehicle
-	const auto ClearSupportRequest = AsFunction<void __thiscall (address)>(0x42BCF0); // for Pursuit
 
-	const auto GetVehicleType = AsFunction<vault       __thiscall (address)>(0x6880A0); // for PVehicle
-	const auto GetVehicleName = AsFunction<const char* __thiscall (address)>(0x688090); // for PVehicle
 
-	// Common data pointers
-	const address&  copManager     = AsReference<address> (0x90D5F4);
-	const uint32_t& numGameTicks   = AsReference<uint32_t>(0x925B14); // ticks
-	const float&    ticksToTime    = AsReference<float>   (0x890984); // seconds / tick
-	const float&    simulationTime = AsReference<float>   (0x9885D8); // seconds
+
+
+	// Extraction setup -----------------------------------------------------------------------------------------------------------------------------
+
+	constexpr std::string_view defaultKey = "default";
+
+	// Directory paths
+	constexpr std::string_view configRoot = "scripts/BartenderSettings";
+
+	const auto pathBasic    = std::filesystem::path(configRoot) / "Basic";
+	const auto pathAdvanced = std::filesystem::path(configRoot) / "Advanced";
+
+	// "Basic" feature set
+	constexpr std::string_view fileCosmetic     = "Cosmetic.ini";
+	constexpr std::string_view fileGeneral      = "General.ini";
+	constexpr std::string_view fileNitrous      = "Nitrous.ini";
+	constexpr std::string_view fileSpeedbreaker = "Speedbreaker.ini";
+	constexpr std::string_view fileSupport      = "Support.ini";
+
+	// "Advanced" feature set
+	constexpr std::string_view fileCarSpawns  = "CarSpawns.ini";
+	constexpr std::string_view fileCarTables  = "CarTables.ini";
+	constexpr std::string_view fileHeat       = "Heat.ini";
+	constexpr std::string_view fileHelicopter = "Helicopter.ini";
+	constexpr std::string_view fileRoadblocks = "Roadblocks.ini";
+	constexpr std::string_view fileStrategies = "Strategies.ini";
 
 
 
@@ -106,25 +135,34 @@ namespace Globals
 
 	// Timer functions ------------------------------------------------------------------------------------------------------------------------------
 
+	[[nodiscard]] uint32_t GetNumGameplayTicks()
+	{
+		return ((isGameplayPaused) ? numGameTicksOnLastPause : numGameTicks) - numFullyPausedGameTicks;
+	}
+
+
+	[[nodiscard]] uint32_t GetNumNonGameplayTicks()
+	{
+		return numGameTicks - GetNumGameplayTicks();
+	}
+
+
+
 	[[nodiscard]] float GetTotalGameTime()
 	{
 		return ticksToTime * static_cast<float>(numGameTicks);
 	}
 
 
-
-	[[nodiscard]] float GetNonGameplayTime()
+	[[nodiscard]] float GetGameplayTime()
 	{
-		const uint32_t numBaseTicks = (isGameplayPaused) ? (numGameTicks - numGameTicksOnLastPause) : 0;
-		return ticksToTime * static_cast<float>(numBaseTicks + numFullyPausedGameTicks);
+		return ticksToTime * static_cast<float>(GetNumGameplayTicks());
 	}
 
 
-
-	[[nodiscard]] float GetGameplayTime()
+	[[nodiscard]] float GetNonGameplayTime()
 	{
-		const uint32_t numBaseTicks = (isGameplayPaused) ? numGameTicksOnLastPause : numGameTicks;
-		return ticksToTime * static_cast<float>(numBaseTicks - numFullyPausedGameTicks);
+		return ticksToTime * static_cast<float>(GetNumNonGameplayTicks());
 	}
 
 
@@ -417,7 +455,7 @@ namespace Globals
 
 
 
-
+	
 	// Logging functions ----------------------------------------------------------------------------------------------------------------------------
 
 	template <typename ...Ts>

@@ -17,7 +17,7 @@
 
 namespace CopSpawnTables
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -91,14 +91,16 @@ namespace CopSpawnTables
 
 			PersistentStrings::Make(copType, copName);
 
-			const auto [pairIt, isNewType] = this->copTypeToEntry.try_emplace
-			(
-				copType, 
-				copName,
-				/* numActive = */ 0,  
-				copCount,
-				copChance
-			);
+			// Technically wasteful, but clearer
+			const CopEntry entry =
+			{
+				.copName   = copName,
+				.numActive = 0,
+				.maxCount  = copCount,
+				.chance    = copChance
+			};
+
+			const auto [_, isNewType] = this->copTypeToEntry.insert(copType, entry);
 
 			if (isNewType)
 				this->currentTotalCopChance += copChance;
@@ -138,7 +140,7 @@ namespace CopSpawnTables
 		{
 			int totalCopCount = 0;
 
-			for (const auto& [copType, copEntry] : this->copTypeToEntry)
+			for (const auto& [_, copEntry] : this->copTypeToEntry)
 				totalCopCount += copEntry.maxCount;
 
 			return totalCopCount;
@@ -209,9 +211,9 @@ namespace CopSpawnTables
 			if (not this->IsAnyCopAvailable()) return nullptr;
 
 			int       cumulativeChance = 0;
-			const int chanceThreshold  = Globals::prng.GenerateNumber<int>(1, this->currentTotalCopChance);
+			const int chanceThreshold  = Globals::pRNG.GenerateNumber<int>(1, this->currentTotalCopChance);
 
-			for (const auto& [copType, copEntry] : this->copTypeToEntry)
+			for (const auto& [_, copEntry] : this->copTypeToEntry)
 			{
 				if (not copEntry.IsAvailable()) continue;
 
@@ -234,7 +236,7 @@ namespace CopSpawnTables
 
 			HeatParameters::LogParameter(header, this->GetTotalMaxCopCount());
 
-			for (const auto& [copType, copEntry] : this->copTypeToEntry)
+			for (const auto& [_, copEntry] : this->copTypeToEntry)
 				Globals::LogDetail(buffer.Format("{:<22}", copEntry.copName), copEntry.maxCount, '/', copEntry.chance);
 		}
 	};
@@ -243,7 +245,7 @@ namespace CopSpawnTables
 
 
 
-	// Parameters (cont.) ---------------------------------------------------------------------------------------------------------------------------
+	// Feature setup (cont.) ------------------------------------------------------------------------------------------------------------------------
 
 	// Heat parameters
 	RELEASE_CONSTINIT HEAT_PARAMETER_POINTER(SpawnTable, chaserSpawnTable);
@@ -375,7 +377,7 @@ namespace CopSpawnTables
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(HeatParameters::configPathAdvanced, "CarTables.ini")) return false;
+		if (not parser.ParseFile(Globals::pathAdvanced, Globals::fileCarTables)) return false;
 
 		// Heat parameters
 		if (not ExtractSpawnTables(parser)) return false; // free-roam "Chasers" table(s) empty; disable feature

@@ -2,12 +2,12 @@
 
 #include <array>
 #include <tuple>
-#include <limits>
 #include <format>
+#include <limits>
+#include <ranges>
 #include <optional>
 #include <concepts>
 #include <algorithm>
-#include <filesystem>
 #include <string_view>
 #include <type_traits>
 
@@ -21,11 +21,13 @@
 
 namespace HeatParameters
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Parameter setup ------------------------------------------------------------------------------------------------------------------------------
 
-	// Heat-level limit
 	constexpr size_t maxHeatLevel = 10;
 	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
+
+	// Heat-level indices
+	constexpr auto heatLevelIDs = std::views::iota(size_t(0), maxHeatLevel);
 
 	// Types and aliases
 	template <typename T>
@@ -37,36 +39,12 @@ namespace HeatParameters
 
 		bool   isRace;
 		size_t level;
+
+
+	// Methods
+
+		[[nodiscard]] bool operator==(const HeatState&) const = default;
 	};
-
-	// Configuration files
-	constexpr std::string_view configDefaultKey = "default";
-	
-	constexpr size_t                     configFormatStart = 1;
-	constexpr std::format_string<size_t> configFormatRoam  = "heat{:02}";
-	constexpr std::format_string<size_t> configFormatRace  = "race{:02}";
-
-	const std::filesystem::path configPathMain     = "scripts/BartenderSettings";
-	const std::filesystem::path configPathBasic    = configPathMain / "Basic";
-	const std::filesystem::path configPathAdvanced = configPathMain / "Advanced";
-
-
-
-
-
-	// Heat-level indices ---------------------------------------------------------------------------------------------------------------------------
-
-	[[nodiscard]] consteval auto GenerateHeatLevelIDs()
-	{
-		HeatLevelArray<size_t> heatLevelIDs = {};
-
-		for (size_t heatLevelID = 0; heatLevelID < maxHeatLevel; ++heatLevelID)
-			heatLevelIDs[heatLevelID] = heatLevelID;
-
-		return heatLevelIDs;
-	}
-
-	constexpr auto heatLevelIDs = GenerateHeatLevelIDs();
 
 
 
@@ -573,7 +551,7 @@ namespace HeatParameters
 
 		[[nodiscard]] T GetRandomValue() const
 		{
-			return Globals::prng.GenerateNumber<T>(this->min.current, this->max.current);
+			return Globals::pRNG.GenerateNumber<T>(this->min.current, this->max.current);
 		}
 	};
 
@@ -864,9 +842,12 @@ namespace HeatParameters
 			// Extract arrays for free-roam / race Heat-levels separately
 			const auto ExtractArrays = [forRaces, section](auto&& ...fields) -> HeatLevelArray<bool>
 			{
+				constexpr std::format_string<size_t> keyFormatRoam = "heat{:02}";
+				constexpr std::format_string<size_t> keyFormatRace = "race{:02}";
+
 				return ConfigParser::Parser::ExtractArrays
 				(
-					section, configDefaultKey, (forRaces) ? configFormatRace : configFormatRoam, configFormatStart, fields...
+					section, Globals::defaultKey, (forRaces) ? keyFormatRace : keyFormatRoam, /* keyStartIndex = */ 1, fields...
 				);
 			};
 

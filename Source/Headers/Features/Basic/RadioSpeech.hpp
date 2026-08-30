@@ -15,7 +15,7 @@
 
 namespace RadioSpeech
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -44,7 +44,7 @@ namespace RadioSpeech
 	constinit HEAT_PARAMETER_VALUE(Jurisdiction, heatJurisdictionID, Jurisdiction::CITY);
 
 	// Vehicle maps
-	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(Battalion, copTypeToBattalion, Battalion::PATROL);
+	RELEASE_CONSTINIT VEHICLE_MAP(Battalion, copTypeToBattalion, Battalion::PATROL);
 
 	// Code caves 
 	size_t lastReportedHeatLevel = 1;
@@ -163,7 +163,7 @@ namespace RadioSpeech
 		{
 			push eax // copType
 			mov ecx, offset copTypeToBattalion
-			call ModContainers::DefaultVaultMap<Battalion>::GetValue
+			call ModContainers::VehicleMap<Battalion>::GetValue
 			cmp eax, CROSS
 
 			mov dword ptr [esp + 0x28], eax // freed variable
@@ -231,7 +231,7 @@ namespace RadioSpeech
 		{
 			push eax                   // copType
 			mov ecx, offset copTypeToBattalion
-			call ModContainers::DefaultVaultMap<Battalion>::GetValue
+			call ModContainers::VehicleMap<Battalion>::GetValue
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B] // is "rhino"
 
@@ -298,8 +298,8 @@ namespace RadioSpeech
 		// Extract new "default" value
 		std::string_view newDefaultName;
 
-		if (ConfigParser::Parser::ExtractScalars<std::string_view>(section, HeatParameters::configDefaultKey, {newDefaultName}))
-			heatJurisdictionID.current = NameToJurisdiction(newDefaultName); // necessary because string "default" may be invalid enum
+		if (ConfigParser::Parser::ExtractScalars<std::string_view>(section, Globals::defaultKey, {newDefaultName}))
+			heatJurisdictionID.current = NameToJurisdiction(newDefaultName); // string "default" may be invalid enum
 
 		// Validate and convert Heat-level values
 		for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
@@ -333,7 +333,6 @@ namespace RadioSpeech
 
 		return copTypeToBattalion.Fill
 		(
-			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames,       Globals::GetVaultHash, Globals::IsVehicleTypeCar),
 			ModContainers::FillSetup(battalionNames, NameToBattalion,       IsBattalionValid)
 		);
@@ -362,7 +361,7 @@ namespace RadioSpeech
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileCosmetic)) return false;
 
 		// Jurisdictions
 		ExtractJurisdictions(parser);

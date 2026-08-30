@@ -17,7 +17,7 @@
 
 namespace GeneralSettings 
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -64,7 +64,7 @@ namespace GeneralSettings
 	float halfEvadeRate; // hertz
 
 	// Vehicle maps
-	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(bool, copTypeToIsBreakerImmune, false);
+	RELEASE_CONSTINIT VEHICLE_MAP(bool, copTypeToIsBreakerImmune, false);
 
 
 
@@ -115,7 +115,7 @@ namespace GeneralSettings
 		heatLevel = std::min<size_t>(heatLevel, heatLevelScenesTable.size() - 1);
 
 		const auto&  candidates  = heatLevelScenesTable[heatLevel];
-		const size_t sceneID     = Globals::prng.GenerateIndex(candidates);
+		const size_t sceneID     = Globals::pRNG.GenerateIndex(candidates);
 		const auto   randomScene = candidates[sceneID];
 
 		if constexpr (Globals::loggingEnabled)
@@ -409,7 +409,7 @@ namespace GeneralSettings
 
 			push eax // copType
 			mov ecx, offset copTypeToIsBreakerImmune
-			call ModContainers::DefaultVaultMap<bool>::GetValue
+			call ModContainers::VehicleMap<bool>::GetValue
 			test al, al
 
 			conclusion:
@@ -528,7 +528,6 @@ namespace GeneralSettings
 
 		return copTypeToIsBreakerImmune.Fill
 		(
-			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames,         Globals::GetVaultHash,         Globals::DoesVehicleTypeExist),
 			ModContainers::FillSetup(isBreakerImmunes, ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
 		);
@@ -563,7 +562,7 @@ namespace GeneralSettings
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(HeatParameters::configPathBasic, "General.ini")) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileGeneral)) return false;
 
 		// Race tracking (and code modifications)
 		ExtractTrackingSettings(parser);

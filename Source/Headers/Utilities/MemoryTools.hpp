@@ -168,7 +168,7 @@ namespace MemoryTools
 
 			MakeRangeNOP(start, end);
 
-			Write<byte>     (0xE9, {start}); // jump near, relative
+			Write<byte>     (0xE9,                     {start}); // jump near, relative
 			Write<ptrdiff_t>(target - nextInstruction, {jumpTargetOffset});
 		}
 	}
@@ -226,15 +226,6 @@ namespace MemoryTools
 		const address callSite,
 		const address newTarget
 	) {
-		const byte opcode = AsReference<byte>(callSite);
-
-		if (opcode != 0xE8) // not call (near, relative)
-		{
-			MessageBoxA(NULL, "Invalid hooking target. Contact the mod author.", "Fatal hooking error", MB_ICONERROR);
-
-			TerminateProcess(GetCurrentProcess(), 1); // if this ever happens, the mod is broken and very likely to crash anyway
-		}
-
 		const address callOffset      = callSite   + sizeof(byte);
 		const address nextInstruction = callOffset + sizeof(ptrdiff_t);
 

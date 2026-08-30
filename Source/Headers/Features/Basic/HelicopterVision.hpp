@@ -9,7 +9,6 @@
 
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
-#include "../../Common/HeatParameters.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
 
@@ -17,7 +16,7 @@
 
 namespace HelicopterVision
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -44,7 +43,7 @@ namespace HelicopterVision
 	constinit Colour outOfSight;
 	constinit Colour withinSight;
 
-	uint32_t currentColour = 0x0;
+	uint32_t currentColourValue = 0x0;
 
 
 
@@ -54,13 +53,13 @@ namespace HelicopterVision
 
 	[[nodiscard]] uint32_t InterpolateColour(const float state)
 	{
-		uint32_t colour = 0x0;
+		uint32_t colour = 0x0; // format: 0xAARRGGBB
+
+		const auto& min = outOfSight .channels;
+		const auto& max = withinSight.channels;
 
 		for (size_t channelID = 0; channelID < numChannels; ++channelID)
-		{
-			const float channel = std::lerp(outOfSight.channels[channelID], withinSight.channels[channelID], state);
-			colour              = (colour << 8) | static_cast<byte>(channel); // colour integer of format 0xAARRGGBB
-		}
+			colour = (colour << 8) | static_cast<byte>(std::lerp(min[channelID], max[channelID], state));
 
 		return colour;
 	}
@@ -72,31 +71,32 @@ namespace HelicopterVision
 		const address copAIVehicle,
 		const bool    canSeeTarget
 	) {
-		static constinit float currentVisionState  = 0.f; // out-of-sight (0) to within-sight (1)
+		static constinit float visionState         = 0.f; // out-of-sight (0) to within-sight (1)
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
-		bool& isKnownCopVehicle = AsReference<bool>(copAIVehicle - 0x4C + 0x769); // padding byte
+		bool& isKnownVehicle = AsReference<bool>(copAIVehicle - 0x4C + 0x769); // padding byte
 
-		const float currentTimestamp = Globals::GetGameplayTime();
+		const float timestamp = Globals::GetGameplayTime();
 
-		if (isKnownCopVehicle)
+		if (isKnownVehicle)
 		{
-			const float timeDelta = currentTimestamp - lastUpdateTimestamp;
+			// Guard against potential wrap-around / reset
+			const float timeDelta = std::max<float>(timestamp - lastUpdateTimestamp, 0.f);
 
 			const float deltaDirection = (canSeeTarget) ? 1.f         : -1.f;
 			const auto& targetColour   = (canSeeTarget) ? withinSight : outOfSight;
 			
-			currentVisionState += deltaDirection * timeDelta / targetColour.transitionLength;
-			currentVisionState  = std::clamp<float>(currentVisionState, 0.f, 1.f);
+			visionState += deltaDirection * timeDelta / targetColour.transitionLength;
+			visionState  = std::clamp<float>(visionState, 0.f, 1.f);
 		}
 		else
 		{
-			currentVisionState = 0.f;
-			isKnownCopVehicle  = true;
+			isKnownVehicle = true;
+			visionState    = 0.f;
 		}
 
-		currentColour       = InterpolateColour(currentVisionState);
-		lastUpdateTimestamp = currentTimestamp;
+		currentColourValue  = InterpolateColour(visionState);
+		lastUpdateTimestamp = timestamp;
 	}
 
 
@@ -104,7 +104,7 @@ namespace HelicopterVision
 	void __fastcall ApplyColour(const address interfaceObject)
 	{
 		const auto SetFEngColour = AsFunction<void __cdecl (address, uint32_t)>(0x5157E0);
-		SetFEngColour(interfaceObject, currentColour); // persists until overridden with another call
+		SetFEngColour(interfaceObject, currentColourValue); // persists until overridden
 	}
 
 
@@ -121,14 +121,14 @@ namespace HelicopterVision
 	{
 		__asm
 		{
-			mov dword ptr [currentColour], 0x0 // invisible
+			mov dword ptr [currentColourValue], 0x0 // invisible
 
 			mov ecx, dword ptr [esi]
 			call Globals::IsVehicleDestroyed
 			test al, al
 			jne colour // helicopter destroyed
 
-			mov dword ptr [currentColour], 0xFF90B8FF // vanilla
+			mov dword ptr [currentColourValue], 0xFF90B8FF // vanilla
 
 			cmp byte ptr [anyFeatureEnabled], 1
 			jne colour // cone feature disabled
@@ -189,17 +189,17 @@ namespace HelicopterVision
 
 	[[nodiscard]] bool ExtractColour
 	(
-		const ConfigParser::Parser& parser,
-		const std::string_view      colourName,
-		Colour&                     colour
+		const auto&            section,
+		const std::string_view colourName,
+		Colour&                colour
 	) {
 		constexpr ConfigParser::Bounds<int> limits(0, std::numeric_limits<byte>::max());
 
 		ARGB<int> rawChannels = {};
 
-		const bool allExtracted = parser.ExtractScalars<int, int, int, int, float>
+		const bool allExtracted = ConfigParser::Parser::ExtractScalars<int, int, int, int, float>
 		(
-			"Helicopter:Vision",
+			section,
 			colourName,
 			{rawChannels[1],          limits}, // red
 			{rawChannels[2],          limits}, // green
@@ -220,8 +220,10 @@ namespace HelicopterVision
 
 	[[nodiscard]] bool ExtractColours(const ConfigParser::Parser& parser)
 	{
+		const auto* const section = parser.GetSection("Helicopter:Vision");
+
 		// Out-of-sight colour
-		if (not ExtractColour(parser, "outOfSight", outOfSight))
+		if (not ExtractColour(section, "outOfSight", outOfSight))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogPlain("No valid out-of-sight colour");
@@ -230,7 +232,7 @@ namespace HelicopterVision
 		}
 
 		// Within-sight colour
-		if (not ExtractColour(parser, "withinSight", withinSight))
+		if (not ExtractColour(section, "withinSight", withinSight))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogPlain("No valid within-sight colour");
@@ -266,7 +268,7 @@ namespace HelicopterVision
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileCosmetic)) return false;
 
 		// Cone colours
 		if (not ExtractColours(parser)) return false; // invalid colours; disable feature

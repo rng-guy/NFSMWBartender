@@ -13,7 +13,7 @@
 
 namespace LeaderOverrides
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -117,7 +117,8 @@ namespace LeaderOverrides
 		{
 			if (not this->flagResetTimer.HasExpired()) return;
 
-			this->flagResetTimer.Stop();
+			this->flagResetTimer.ClearStartTimestamp();
+
 			this->SetCrossStatus(Status::PENDING);
 		}
 
@@ -135,7 +136,7 @@ namespace LeaderOverrides
 				return;
 			}
 
-			this->flagResetTimer.UpdateParameters(/* isEnabled = */ true, 1.f, 1.f); // vanilla-like
+			this->flagResetTimer.LoadInterval(1.f, 1.f); // vanilla-like
 		}
 
 
@@ -169,29 +170,29 @@ namespace LeaderOverrides
 				return;
 			}
 
-			this->flagResetTimer.UpdateParameters(/* isEnabled = */ true, 1.f, 1.f); // vanilla-like
+			this->flagResetTimer.LoadInterval(1.f, 1.f); // vanilla-like
 		}
 
 
 		void UpdateFlagResetTimer()
 		{
-			Globals::LogLiteral statusName;
+			Globals::LogLiteral resetName;
 
 			// Reset-timer selection
 			switch (this->crossStatus)
 			{
 			case Status::EXPIRED:
-				statusName = "(expire)";
+				resetName = "Flag reset (expire)";
 				this->ProcessCrossExpiration();
 				break;
 
 			case Status::WRECKED:
-				statusName = "(wreck)";
+				resetName = "Flag reset (wreck)";
 				this->ProcessCrossWreck();
 				break;
 
 			case Status::LOST:
-				statusName = "(lost)";
+				resetName = "Flag reset (lost)";
 				this->ProcessCrossLoss();
 				break;
 
@@ -199,22 +200,20 @@ namespace LeaderOverrides
 				return; // ACTIVE, PENDING
 			}
 
-			if (not flagResetTimer.IsSet())
-				this->flagResetTimer.Start();
+			this->flagResetTimer.SetStartTimestampIfNone();
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->flagResetTimer.IsIntervalEnabled())
-					Globals::LogFull(this->pursuit, logTag, "Flag reset", statusName, "in", this->flagResetTimer.GetTimeLeft());
+				Globals::LogFull(this->pursuit, logTag, "New flag-reset timer");
 
-				else Globals::LogFull(this->pursuit, logTag, "Flag reset", statusName, "suspended");
+				this->flagResetTimer.Log(resetName);
 			}
 		}
 
 
 		void MakeHenchmenAggro()
 		{
-			this->henchmenAggroTimer.Stop();
+			this->henchmenAggroTimer.ClearStartTimestamp();
 
 			for (const address copVehicle : this->passiveHenchmenVehicles)
 				Globals::EndSupportGoalOfVehicle(copVehicle);
@@ -233,7 +232,8 @@ namespace LeaderOverrides
 		{
 			if (this->crossAggroTimer.HasExpired())
 			{
-				this->crossAggroTimer.Stop();
+				this->crossAggroTimer.ClearStartTimestamp();
+
 				Globals::EndSupportGoalOfVehicle(this->crossVehicle);
 				
 				if constexpr (Globals::loggingEnabled)
@@ -247,7 +247,7 @@ namespace LeaderOverrides
 
 		void ProcessAddedCross(const address copVehicle)
 		{
-			this->flagResetTimer.Stop();
+			this->flagResetTimer.ClearStartTimestamp();
 
 			this->skipPriority        = true;
 			this->crossVehicle        = copVehicle;
@@ -263,10 +263,12 @@ namespace LeaderOverrides
 			}
 			else
 			{
+				this->lastStrategyID = 0;
+
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Invalid LeaderStrategy pointer in", this->pursuit);
 
-				ASSERT_UNREACHABLE_THEN(this->lastStrategyID = 0);
+				ASSERT_UNREACHABLE;
 			}
 
 			this->SetCrossStatus(Status::ACTIVE);
@@ -284,17 +286,15 @@ namespace LeaderOverrides
 
 			default:
 				this->crossAggroTimer.DisableInterval();
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "LeaderStrategy", this->lastStrategyID, " Cross in", this->pursuit);
 			}
 
-			this->crossAggroTimer.Start();
+			this->crossAggroTimer.SetStartTimestamp();
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->crossAggroTimer.IsIntervalEnabled())
-					Globals::LogFull(this->pursuit, logTag, "Cross aggro in", this->crossAggroTimer.GetLength());
+				Globals::LogFull(this->pursuit, logTag, "New aggro timer (Cross)");
+
+				this->crossAggroTimer.Log("Cross aggro");
 			}
 		}
 
@@ -303,7 +303,7 @@ namespace LeaderOverrides
 		{
 			this->passiveHenchmenVehicles.insert(copVehicle);
 
-			if (this->henchmenAggroTimer.IsSet()) return;
+			if (this->henchmenAggroTimer.HasStartTimestamp()) return;
 
 			// Aggro-timer selection
 			switch (this->lastStrategyID)
@@ -314,24 +314,22 @@ namespace LeaderOverrides
 
 			default:
 				this->henchmenAggroTimer.DisableInterval();
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "LeaderStrategy", this->lastStrategyID, "henchmen in", this->pursuit);
 			}
 
-			this->henchmenAggroTimer.Start();
+			this->henchmenAggroTimer.SetStartTimestamp();
 
 			if constexpr (Globals::loggingEnabled)
 			{
-				if (this->henchmenAggroTimer.IsIntervalEnabled())
-					Globals::LogFull(this->pursuit, logTag, "Henchmen aggro in", this->henchmenAggroTimer.GetLength());
+				Globals::LogFull(this->pursuit, logTag, "New aggro timer (henchmen)");
+
+				this->henchmenAggroTimer.Log("Henchmen aggro");
 			}
 		}
 
 
 		void ProcessRemovedCross(const address copVehicle)
 		{
-			this->crossAggroTimer.Stop();
+			this->crossAggroTimer.ClearStartTimestamp();
 
 			this->crossVehicle = 0x0;
 
@@ -355,7 +353,7 @@ namespace LeaderOverrides
 			if (not this->passiveHenchmenVehicles.erase(copVehicle)) return;
 			if (not this->passiveHenchmenVehicles.empty())           return;
 
-			this->henchmenAggroTimer.Stop();
+			this->henchmenAggroTimer.ClearStartTimestamp();
 		}
 
 
@@ -439,7 +437,7 @@ namespace LeaderOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(HeatParameters::configPathAdvanced, "Strategies.ini");
+		parser.ParseFile(Globals::pathAdvanced, Globals::fileStrategies);
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Leader5:CrossAggro", leader5CrossAggroDelay);

@@ -102,22 +102,29 @@ static void __cdecl InitialiseBartender
 		}
 	}
 
-	ConfigParser::Parser parser(/* fileCapactity = */ 6, /* sectionCapacityPerFile = */ 30, /* pairCapacityPerSection = */ 25);
+	ConfigParser::Parser parser
+	(
+		/* fileCapactity          = */ 6, 
+		/* sectionCapacityPerFile = */ 30, 
+		/* pairCapacityPerSection = */ 25
+	);
 
 	// Initialise "Basic" feature set
-	Globals::basicSetEnabled |= CopNotifications::InitialiseFeatures(parser);
-	Globals::basicSetEnabled |= RadioSpeech     ::InitialiseFeatures(parser);
-	Globals::basicSetEnabled |= CopDetection    ::InitialiseFeatures(parser);
-	Globals::basicSetEnabled |= HelicopterVision::InitialiseFeatures(parser);
-	Globals::basicSetEnabled |= InteractiveMusic::InitialiseFeatures(parser);
-	Globals::basicSetEnabled |= GeneralSettings ::InitialiseFeatures(parser);
-	Globals::basicSetEnabled |= GroundSuppport  ::InitialiseFeatures(parser);
-	Globals::basicSetEnabled |= NitrousCharge   ::InitialiseFeatures(parser);
-	Globals::basicSetEnabled |= GameBreaker     ::InitialiseFeatures(parser);
+	bool basicSetEnabled = false;
+
+	basicSetEnabled |= CopNotifications::InitialiseFeatures(parser);
+	basicSetEnabled |= RadioSpeech     ::InitialiseFeatures(parser);
+	basicSetEnabled |= CopDetection    ::InitialiseFeatures(parser);
+	basicSetEnabled |= HelicopterVision::InitialiseFeatures(parser);
+	basicSetEnabled |= InteractiveMusic::InitialiseFeatures(parser);
+	basicSetEnabled |= GeneralSettings ::InitialiseFeatures(parser);
+	basicSetEnabled |= GroundSuppport  ::InitialiseFeatures(parser);
+	basicSetEnabled |= NitrousCharge   ::InitialiseFeatures(parser);
+	basicSetEnabled |= GameBreaker     ::InitialiseFeatures(parser);
 
 	parser.ClearFiles();
 
-	if (Globals::basicSetEnabled)
+	if (basicSetEnabled)
 	{
 		// Apply feature-specific fixes
 		RadioSpeech     ::ApplyFixes();
@@ -135,18 +142,18 @@ static void __cdecl InitialiseBartender
 	}
 
 	// Initialise "Advanced" feature set
-	Globals::advancedSetEnabled = PursuitObserver::InitialiseFeatures(parser);
+	const bool advancedSetEnabled = PursuitObserver::InitialiseFeatures(parser);
 
 	// Apply Heat and state observer
-	if (Globals::basicSetEnabled or Globals::advancedSetEnabled)
-		StateObserver::InitialiseFeatures(parser);
+	if (basicSetEnabled or advancedSetEnabled)
+		StateObserver::InitialiseFeatures(parser); // pointless otherwise
 
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::LogFull(logSection, logTag, "Features");
 
-		Globals::LogPlain("Basic    set", (Globals::basicSetEnabled)    ? "enabled" : "disabled");
-		Globals::LogPlain("Advanced set", (Globals::advancedSetEnabled) ? "enabled" : "disabled");
+		Globals::LogPlain("Basic    set", (basicSetEnabled)    ? "enabled" : "disabled");
+		Globals::LogPlain("Advanced set", (advancedSetEnabled) ? "enabled" : "disabled");
 	}
 }
 

@@ -52,7 +52,7 @@ namespace ModContainers
 
 
 
-	// DefaultMap helpers ---------------------------------------------------------------------------------------------------------------------------
+	// VehicleMap structs ---------------------------------------------------------------------------------------------------------------------------
 
 	struct IdentityCopy
 	{
@@ -87,7 +87,7 @@ namespace ModContainers
 	// Aliases
 
 		using RawType    = RawT;
-		using ReturnType = std::invoke_result_t<Converter, const RawT&>;
+		using ResultType = std::invoke_result_t<Converter, const RawT&>;
 
 
 	// Members
@@ -100,12 +100,12 @@ namespace ModContainers
 
 	// Methods
 
-		[[nodiscard]] std::optional<ReturnType> Parse(const size_t valueID) const
+		[[nodiscard]] std::optional<ResultType> Process(const size_t valueID) const
 		{
-			const auto result = this->Convert(this->source[valueID]);
+			auto result = this->Convert(this->source[valueID]); // non-const for moving
 			if (not this->IsValid(result)) return std::nullopt;
 
-			return result;
+			return std::move(result);
 		}
 	};
 
@@ -113,7 +113,7 @@ namespace ModContainers
 
 
 
-	// DefaultMap concepts --------------------------------------------------------------------------------------------------------------------------
+	// VehicleMap concepts --------------------------------------------------------------------------------------------------------------------------
 
 	namespace Details
 	{
@@ -124,29 +124,30 @@ namespace ModContainers
 		struct IsFillSetup<FillSetup<RawType, Converter, Validator>> : std::true_type {};
 
 
-		template <class Setup, typename ReturnT>
-		concept IsCompatibleReturnType = std::convertible_to<typename Setup::ReturnType, ReturnT>;
+		template <class Setup, typename ResultT>
+		concept IsCompatibleResultType = std::convertible_to<typename Setup::ResultType, ResultT>;
 
-		template <class Setup, typename ReturnT>
-		concept IsCompatibleSetup = (IsFillSetup<Setup>::value and IsCompatibleReturnType<Setup, ReturnT>);
+		template <class Setup, typename ResultT>
+		concept IsCompatibleSetup = (IsFillSetup<Setup>::value and IsCompatibleResultType<Setup, ResultT>);
 
 
-		template <class KeySetup, typename DefaultK>
-		concept IsCompatibleDefaultKeyType = std::equality_comparable_with<typename KeySetup::RawType, DefaultK>;
+		template <class KeySetup>
+		concept IsCompatibleWithDefaultKey = std::equality_comparable_with<typename KeySetup::RawType, decltype(Globals::defaultKey)>;
 
-		template <class KeySetup, typename K, typename DefaultK>
-		concept IsCompatibleKeySetup = (IsCompatibleSetup<KeySetup, K> and IsCompatibleDefaultKeyType<KeySetup, DefaultK>);
+		template <class KeySetup>
+		concept IsCompatibleKeySetup = (IsCompatibleSetup<KeySetup, vault> and IsCompatibleWithDefaultKey<KeySetup>);
 	}
 
 
 
 
 
-	// DefaultMap class -----------------------------------------------------------------------------------------------------------------------------
+	// VehicleMap class -----------------------------------------------------------------------------------------------------------------------------
 
-	template <typename K, typename V>
-	requires (std::is_trivially_copyable_v<K> and std::is_trivially_copyable_v<V>)
-	class DefaultMap : protected Map<K, V>
+	#define VEHICLE_MAP(type, name, ...) ModContainers::VehicleMap<type> name{#name, __VA_ARGS__}
+
+	template <typename V>
+	class VehicleMap : protected Map<vault, V>
 	{
 	private: // members
 
@@ -155,31 +156,74 @@ namespace ModContainers
 		[[no_unique_address]] Globals::LogLiteral name;
 
 
-	private: // methods
+	public: // methods
 
-		template <typename DefaultK, class KeySetup, class ValueSetup>
-		bool FillFromPairs
+		constexpr VehicleMap
 		(
-			const DefaultK&  defaultKey,
+			const Globals::LogLiteral name, 
+			const V&                  defaultValue
+		) 
+			: name(name), defaultValue(defaultValue)
+		{
+		}
+
+
+		constexpr VehicleMap
+		(
+			const Globals::LogLiteral name,
+			V&&                       defaultValue
+		)
+			: name(name), defaultValue(std::move(defaultValue))
+		{
+		}
+
+
+		template <class KeySetup, class ValueSetup>
+		requires (Details::IsCompatibleKeySetup<KeySetup> and Details::IsCompatibleSetup<ValueSetup, V>)
+		bool Fill
+		(
 			const KeySetup   keySetup,
 			const ValueSetup valueSetup
 		) {
-			const size_t numPairs = std::min<size_t>(keySetup.source.size(), valueSetup.source.size());
+			this->clear();
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogPlain(this->name);
+
+			// Validate vector sources
+			if (keySetup.source.size() != valueSetup.source.size())
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogDetail("sizes mismatched");
+
+				ASSERT_UNREACHABLE_THEN(return false);
+			}
+
+			if (keySetup.source.empty()) 
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogDetail("no pair(s) provided");
+
+				return false; // no pair(s)
+			}
+
+			// Reserve map capacity
+			const size_t numPairs = keySetup.source.size();
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogDetail(Globals::LogDec(numPairs), "pair(s) provided");
 
-			this->reserve(this->size() + numPairs);
+			this->reserve(numPairs);
 
-			// Parse key-value pairs
+			// Process key-value pairs
 			bool hasNewDefault = false;
 
 			for (size_t pairID = 0; pairID < numPairs; ++pairID)
 			{
 				const auto& rawKey = keySetup.source[pairID];
 
-				// Parse value
-				const auto value = valueSetup.Parse(pairID);
+				// Process value (non-const for moving)
+				auto value = valueSetup.Process(pairID);
 
 				if (not value)
 				{
@@ -190,12 +234,12 @@ namespace ModContainers
 				}
 
 				// Check for default key
-				if (rawKey == defaultKey)
+				if (rawKey == Globals::defaultKey)
 				{
 					if (not hasNewDefault)
 					{
 						hasNewDefault      = true;
-						this->defaultValue = *value;
+						this->defaultValue = std::move(*value);
 					}
 					else if constexpr (Globals::loggingEnabled)
 						Globals::LogDetail('-', rawKey, "(duplicate default)");
@@ -203,8 +247,8 @@ namespace ModContainers
 					continue; // default key
 				}
 
-				// Parse as regular key
-				const auto key = keySetup.Parse(pairID);
+				// Process as regular key
+				const auto key = keySetup.Process(pairID);
 
 				if (not key)
 				{
@@ -214,8 +258,8 @@ namespace ModContainers
 					continue; // invalid key
 				}
 
-				// Insert key-vaue pair
-				const auto [pairIt, isNewPair] = this->try_emplace(*key, *value);
+				// Insert regular key-value pair
+				const auto [_, isNewPair] = this->insert(*key, std::move(*value));
 
 				if constexpr (Globals::loggingEnabled)
 				{
@@ -226,44 +270,7 @@ namespace ModContainers
 
 			this->shrink_to_fit();
 
-			return hasNewDefault;
-		}
-
-
-	public: // methods
-
-		constexpr DefaultMap
-		(
-			const Globals::LogLiteral name, 
-			const V                   defaultValue
-		) 
-			: name(name), defaultValue(defaultValue) 
-		{
-		}
-
-
-		template <typename DefaultK, class KeySetup, class ValueSetup>
-		requires (Details::IsCompatibleKeySetup<KeySetup, K, DefaultK> and Details::IsCompatibleSetup<ValueSetup, V>)
-		bool Fill
-		(
-			const DefaultK&  defaultKey,
-			const KeySetup   keySetup,
-			const ValueSetup valueSetup
-		) {
-			this->clear();
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain(this->name);
-
-			if (keySetup.source.empty() or valueSetup.source.empty())
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogDetail("no pair(s) provided");
-
-				return false; // no pair(s)
-			}
-
-			const bool   hasNewDefault = this->FillFromPairs(defaultKey, keySetup, valueSetup);
+			// Check resulting map size
 			const size_t numValidPairs = this->size() + hasNewDefault;
 
 			if (numValidPairs == 0)
@@ -286,7 +293,7 @@ namespace ModContainers
 		}
 
 
-		[[nodiscard]] const V& GetReference(const K key) const
+		[[nodiscard]] const V& GetReference(const vault key) const
 		{
 			const auto foundPair = this->find(key);
 			if (foundPair == this->end()) return this->defaultValue;
@@ -295,7 +302,7 @@ namespace ModContainers
 		}
 
 
-		[[nodiscard]] V GetValue(const K key) const
+		[[nodiscard]] V GetValue(const vault key) const
 		{
 			return this->GetReference(key);
 		}
@@ -306,24 +313,6 @@ namespace ModContainers
 			return this->name;
 		}
 	};
-
-
-
-
-
-	// Scoped aliases (cont.) -----------------------------------------------------------------------------------------------------------------------
-
-	#define DEFAULT_VAULT_MAP(type, name, ...) ModContainers::DefaultVaultMap<type> name{#name, __VA_ARGS__}
-
-	template <typename V>
-	using DefaultVaultMap = DefaultMap<vault, V>;
-
-
-
-	#define DEFAULT_ADDRESS_MAP(type, name, ...) ModContainers::DefaultAddressMap<type> name{#name, __VA_ARGS__}
-
-	template <typename V>
-	using DefaultAddressMap = DefaultMap<address, V>;
 
 
 

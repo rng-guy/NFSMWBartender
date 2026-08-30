@@ -7,7 +7,6 @@
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
-#include "../../Common/HeatParameters.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
 
@@ -15,9 +14,9 @@
 
 namespace CopDetection
 {
-	// IconColourTracker class ----------------------------------------------------------------------------------------------------------------------
+	// ColourTracker class --------------------------------------------------------------------------------------------------------------------------
 
-	class IconColourTracker
+	class ColourTracker
 	{
 	private: // aliases
 
@@ -26,35 +25,31 @@ namespace CopDetection
 
 	private: // members
 
-		bool isNewMapObject = true;
+		TimeQuery* GetTimestamp;
 
-		TimeQuery* GetElapsedTime;
-
-		float colourUpdateInterval; // seconds
-
-		float nextUpdateTimestamp = 0.f; // seconds
+		float lastUpdateTimestamp = 0.f; // seconds
+		bool  forceNextUpdate     = true;
 		
 
 	public: // methods
 
-		consteval IconColourTracker
-		(
-			TimeQuery* const GetElapsedTime, 
-			const float      colourUpdateRate
-		)
-			: GetElapsedTime(GetElapsedTime), colourUpdateInterval(1.f / colourUpdateRate)
+		consteval explicit ColourTracker(TimeQuery* const GetTimestamp) : GetTimestamp(GetTimestamp) {}
+
+
+		[[nodiscard]] bool YieldShouldUpdate()
 		{
-		}
+			const float timestamp = this->GetTimestamp();
 
+			constexpr float updateInterval = 1.f / 30.f; // seconds
 
-		[[nodiscard]] bool YieldUpdateColour()
-		{
-			const float elapsedTime = this->GetElapsedTime();
-			if ((elapsedTime < this->nextUpdateTimestamp) and (not this->isNewMapObject)) return false;
+			if ((not this->forceNextUpdate) and (timestamp < this->lastUpdateTimestamp + updateInterval))
+			{
+				// Guard against potential wrap-around / reset
+				if (timestamp >= this->lastUpdateTimestamp) return false;
+			}
 
-			this->nextUpdateTimestamp = elapsedTime + this->colourUpdateInterval;
-
-			this->isNewMapObject = false;
+			this->lastUpdateTimestamp = timestamp;
+			this->forceNextUpdate     = false;
 
 			return true;
 		}
@@ -62,7 +57,7 @@ namespace CopDetection
 
 		void Reset()
 		{
-			this->isNewMapObject = true;
+			this->forceNextUpdate = true;
 		}
 	};
 
@@ -70,7 +65,7 @@ namespace CopDetection
 
 
 
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -97,13 +92,11 @@ namespace CopDetection
 	};
 
 	// Vehicle maps
-	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true});
+	RELEASE_CONSTINIT VEHICLE_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true});
 
 	// Code caves
-	constexpr float colourUpdateRate = 30.f; // hertz
-
-	constinit IconColourTracker miniMapCops (Globals::GetGameplayTime,    colourUpdateRate);
-	constinit IconColourTracker worldMapCops(Globals::GetNonGameplayTime, colourUpdateRate);
+	constinit ColourTracker miniMapCops (Globals::GetGameplayTime);
+	constinit ColourTracker worldMapCops(Globals::GetNonGameplayTime);
 
 	bool updateWorldMapColours = false;
 
@@ -113,8 +106,11 @@ namespace CopDetection
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] bool __fastcall GetsMiniMapIcon(const address copVehicle)
-	{
+	[[nodiscard]] bool __fastcall ShouldDrawIcon
+	(
+		const address copVehicle,
+		const address playerVehicle
+	) {
 		const address copAIVehicle = Globals::GetAIVehicleOfVehicle(copVehicle);
 		ASSERT_CONDITION_THEN_IF_FALSE(copAIVehicle, return false);
 
@@ -133,18 +129,16 @@ namespace CopDetection
 		}
 
 		// Fetch icon-range data for vehicle type
-		const Detection& detection = copTypeToDetection.GetReference(Globals::GetVehicleType(copVehicle));
-		const float      iconRange = (hasBeenInPursuit) ? detection.pursuitIconRange : detection.patrolIconRange;
+		const auto& detection = copTypeToDetection.GetReference(Globals::GetVehicleType(copVehicle));
+		const float iconRange = (hasBeenInPursuit) ? detection.pursuitIconRange : detection.patrolIconRange;
 
 		if (iconRange <= 0.f) return false;
 
 		// Check distance to player vehicle
-		const address playerVehicle = Globals::GetVehicleOfPerpVehicle(Globals::playerPerpVehicle);
-		ASSERT_CONDITION_THEN_IF_FALSE(playerVehicle, return false);
+		const auto GetVehiclePosition = AsFunction<address __thiscall (address)>(0x688340);
 
-		const auto    GetVehiclePosition = AsFunction<address __thiscall (address)>(0x688340);
-		const address copPosition        = GetVehiclePosition(copVehicle);
-		const address playerPosition     = GetVehiclePosition(playerVehicle);
+		const address copPosition    = GetVehiclePosition(copVehicle);
+		const address playerPosition = GetVehiclePosition(playerVehicle);
 
 		const auto GetSquaredDistance = AsFunction<float __cdecl (address, address)>(0x401930);
 		if (GetSquaredDistance(copPosition, playerPosition) > iconRange * iconRange) return false;
@@ -177,7 +171,7 @@ namespace CopDetection
 		__asm
 		{
 			mov ecx, offset worldMapCops
-			call IconColourTracker::YieldUpdateColour
+			call ColourTracker::YieldShouldUpdate
 			mov byte ptr [updateWorldMapColours], al
 
 			// Execute original code and resume
@@ -209,9 +203,10 @@ namespace CopDetection
 			jne limitation // map feature disabled
 
 			mov ecx, dword ptr [esi]
-			call GetsMiniMapIcon // ecx: copVehicle
+			mov edx, dword ptr [ebp + 0x8]
+			call ShouldDrawIcon // ecx: copVehicle; edx: playerVehicle
 			test al, al
-			je skip              // no icon
+			je skip             // do not draw icon
 
 			limitation:
 			cmp dword ptr [esp + 0x18], 8 // icon count
@@ -280,7 +275,7 @@ namespace CopDetection
 			push eax
 
 			mov ecx, offset miniMapCops
-			call IconColourTracker::YieldUpdateColour
+			call ColourTracker::YieldShouldUpdate
 			test al, al
 
 			pop ecx
@@ -330,7 +325,7 @@ namespace CopDetection
 		__asm
 		{
 			mov ecx, offset miniMapCops
-			call IconColourTracker::Reset
+			call ColourTracker::Reset
 
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x1C]
@@ -353,7 +348,7 @@ namespace CopDetection
 			push eax
 
 			mov ecx, offset worldMapCops
-			call IconColourTracker::Reset
+			call ColourTracker::Reset
 
 			pop eax
 			
@@ -375,11 +370,13 @@ namespace CopDetection
 		std::fstream&    stream,
 		const Detection& detection
 	) {
+		stream << detection.radarRange;
+
 		constexpr std::string_view delimiter = ", ";
 
-		stream << detection.radarRange;
 		stream << delimiter << detection.patrolIconRange;
 		stream << delimiter << detection.pursuitIconRange;
+
 		stream << delimiter << ((detection.keepsIcon) ? "true" : "false");
 
 		return stream;
@@ -407,16 +404,15 @@ namespace CopDetection
 		{
 			detections[vehicleID] =
 			{
-				radarRanges      [vehicleID],
-				patrolIconRanges [vehicleID],
-				pursuitIconRanges[vehicleID],
-				keepsIcons       [vehicleID]
+				.radarRange       = radarRanges      [vehicleID],
+				.patrolIconRange  = patrolIconRanges [vehicleID],
+				.pursuitIconRange = pursuitIconRanges[vehicleID],
+				.keepsIcon        = keepsIcons       [vehicleID]
 			};
 		}
 
 		return copTypeToDetection.Fill
 		(
-			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames,   Globals::GetVaultHash,         Globals::IsVehicleTypeCar),
 			ModContainers::FillSetup(detections, ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
 		);
@@ -451,7 +447,7 @@ namespace CopDetection
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileCosmetic)) return false;
 
 		// Radar detection
 		if (not ExtractDetections(parser)) return false; // no valid settings; disable feature

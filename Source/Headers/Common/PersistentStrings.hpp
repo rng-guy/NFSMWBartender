@@ -35,8 +35,8 @@ namespace PersistentStrings
 		const vault            hash,
 		const std::string_view string
 	) {
-		const auto [pairIt, isNewHash] = vaultHashToString.try_emplace(hash, string);
-		return *(pairIt->second); // guaranteed to stay valid until game process terminates
+		const auto [pairIt, _] = vaultHashToString.try_emplace(hash, string);
+		return *(pairIt->second); // guaranteed to stay valid for the session
 	}
 
 

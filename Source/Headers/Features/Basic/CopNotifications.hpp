@@ -7,7 +7,6 @@
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
-#include "../../Common/HeatParameters.hpp"
 #include "../../Common/PersistentStrings.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
@@ -16,7 +15,7 @@
 
 namespace CopNotifications
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -25,9 +24,9 @@ namespace CopNotifications
 	constexpr Globals::LogLiteral logName = "CopNotifications";
 
 	// Vehicle maps
-	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(const char*, copTypeToNotificationText, ""); // C-style for game compatibility
+	RELEASE_CONSTINIT VEHICLE_MAP(const char*, copTypeToNotificationText, ""); // C-style for game compatibility
 
-	RELEASE_CONSTINIT DEFAULT_VAULT_MAP(binary, copTypeToNotificationIcon, "COPS_TAKENOUT_ICON"_bin);
+	RELEASE_CONSTINIT VEHICLE_MAP(binary, copTypeToNotificationIcon, "COPS_TAKENOUT_ICON"_bin);
 
 
 
@@ -45,7 +44,7 @@ namespace CopNotifications
 		{
 			push dword ptr [esp + 0x54] // copType
 			mov ecx, offset copTypeToNotificationText
-			call ModContainers::DefaultVaultMap<const char*>::GetValue
+			call ModContainers::VehicleMap<const char*>::GetValue
 			cmp byte ptr [eax], '\0'
 
 			jmp dword ptr [notificationTextExit]
@@ -64,7 +63,7 @@ namespace CopNotifications
 		{
 			push dword ptr [esp + 0x60] // copType
 			mov ecx, offset copTypeToNotificationIcon
-			call ModContainers::DefaultVaultMap<binary>::GetValue
+			call ModContainers::VehicleMap<binary>::GetValue
 
 			jmp dword ptr [notificationIconExit]
 		}
@@ -93,7 +92,6 @@ namespace CopNotifications
 
 		return copTypeToNotificationText.Fill
 		(
-			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames,      Globals::GetVaultHash,      Globals::DoesVehicleTypeExist),
 			ModContainers::FillSetup(stringOrNames, StringOrNameToNotification, ModContainers::AlwaysValid())
 		);
@@ -116,7 +114,6 @@ namespace CopNotifications
 
 		return copTypeToNotificationIcon.Fill
 		(
-			HeatParameters::configDefaultKey,
 			ModContainers::FillSetup(copNames,    Globals::GetVaultHash,  Globals::DoesVehicleTypeExist),
 			ModContainers::FillSetup(iconLabels,  Globals::GetBinaryHash, IsValidGlobalTexture)
 		);
@@ -146,7 +143,7 @@ namespace CopNotifications
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(HeatParameters::configPathBasic, "Cosmetic.ini")) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileCosmetic)) return false;
 
 		// Destruction notifications (and code modifications)
 		if (not InitialiseNotifications(parser)) return false; // no valid notifications; disable feature

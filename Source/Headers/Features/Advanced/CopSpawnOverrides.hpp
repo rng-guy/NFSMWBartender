@@ -20,7 +20,7 @@
 
 namespace CopSpawnOverrides
 {
-	// Parameters -----------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
@@ -68,7 +68,7 @@ namespace CopSpawnOverrides
 		) {
 			if (change == 0) return true;
 
-			const auto [pairIt, isNewType] = this->copTypeToNumActive.try_emplace(copType, 0);
+			const auto [pairIt, _] = this->copTypeToNumActive.insert(copType, /* numActive = */ 0);
 
 			int& numActiveCops = pairIt->second;
 
@@ -280,7 +280,7 @@ namespace CopSpawnOverrides
 
 
 
-	// Parameters (cont.) ---------------------------------------------------------------------------------------------------------------------------
+	// Feature setup (cont.) ------------------------------------------------------------------------------------------------------------------------
 
 	// Pursuit-board tracking
 	bool trackHeavyVehicles     = false;
@@ -361,15 +361,10 @@ namespace CopSpawnOverrides
 
 		void UpdateSpawnTable()
 		{
-			if (Globals::playerHeatLevelKnown)
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogFull(this->pursuit, logTag, "Updating table");
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(this->pursuit, logTag, "Updating table");
 
-				this->chaserSpawns.UpdateSpawnTable();
-			}
-			else if constexpr (Globals::loggingEnabled)
-				Globals::LogFull(this->pursuit, logTag, "Skipping updating spawn table");
+			this->chaserSpawns.UpdateSpawnTable();
 		}
 
 
@@ -428,8 +423,6 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] bool MayNewChaserSpawn() const
 		{
-			if (not Globals::playerHeatLevelKnown) return false;
-
 			if (this->isPerpBusted)           return false;
 			if (this->bailingPursuit)         return false;
 			if (this->copSpawnCooldown > 0.f) return false;
@@ -716,29 +709,26 @@ namespace CopSpawnOverrides
 
 	[[nodiscard]] const char* __fastcall GetNameOfNewNonChaser(const address caller)
 	{
-		if (Globals::playerHeatLevelKnown)
+		switch (caller)
 		{
-			switch (caller)
-			{
-			case 0x4269E6: // helicopter
-				return HelicopterOverrides::HelicopterManager::GetHelicopterName();
+		case 0x4269E6: // helicopter
+			return HelicopterOverrides::HelicopterManager::GetHelicopterName();
 
-			case 0x42EAAD: // first cop of milestone / bounty pursuit
-				return patrolSpawns.GetNameOfAvailableCopWithFallback();
+		case 0x42EAAD: // first cop of milestone / bounty pursuit
+			return patrolSpawns.GetNameOfAvailableCopWithFallback();
 
-			case 0x430DAD: // free patrol
-				return patrolSpawns.GetNameOfAvailableCop();
+		case 0x430DAD: // free patrol
+			return patrolSpawns.GetNameOfAvailableCop();
 				
-			case 0x43E049: // roadblock
-				return roadblockSpawns.GetNewNameOfAvailableCopWithFallback();
-			}
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogWarning(logTag, "Unknown ByClass return address:", caller);
-
-			ASSERT_UNREACHABLE;
+		case 0x43E049: // roadblock
+			return roadblockSpawns.GetNewNameOfAvailableCopWithFallback();
 		}
 
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogWarning(logTag, "Unknown ByClass return address:", caller);
+
+		ASSERT_UNREACHABLE;
+		
 		return nullptr;
 	}
 
@@ -1163,9 +1153,6 @@ namespace CopSpawnOverrides
 			jmp conclusion  // prefetched name used
 
 			replacement:
-			cmp byte ptr [Globals::playerHeatLevelKnown], 1
-			jne conclusion // Heat level unknown
-
 			mov ecx, offset scriptedSpawns
 			call Contingent::GetNameOfAvailableCopWithFallback
 			mov esi, eax
@@ -1271,7 +1258,7 @@ namespace CopSpawnOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(HeatParameters::configPathAdvanced, "CarSpawns.ini");
+		parser.ParseFile(Globals::pathAdvanced, Globals::fileCarSpawns);
 
 		// Pursuit-board tracking
 		ExtractTrackingSettings(parser);
@@ -1290,7 +1277,7 @@ namespace CopSpawnOverrides
 		HeatParameters::Extract(parser, "Traffic:Independence", trafficIgnoresChasers, trafficIgnoresRoadblocks);
 
 		// Heat parameters (second file)
-		parser.ParseFile(HeatParameters::configPathAdvanced, "Roadblocks.ini");
+		parser.ParseFile(Globals::pathAdvanced, Globals::fileRoadblocks);
 
 		HeatParameters::Extract(parser, "Joining:Limit", roadblockJoinLimit);
 
