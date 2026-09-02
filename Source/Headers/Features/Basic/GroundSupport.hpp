@@ -5,13 +5,9 @@
 
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
-#include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
-
-#include "../Advanced/CopSpawnOverrides.hpp"
-#include "../Advanced/LeaderOverrides.hpp"
 
 
 
@@ -36,16 +32,6 @@ namespace GroundSuppport
 	constinit HEAT_PARAMETER_INTERVAL(float, roadblockSpawnDistance, 250.f, 250.f, {0.f, 400.f}); // metres
 
 	constinit HEAT_PARAMETER_VALUE(bool, roadblockEndsFormation, true);
-
-	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, regularRBJoinTimer, {0.f}); // seconds
-	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, backupRBJoinTimer,  {0.f}); // seconds
-
-	constinit HEAT_PARAMETER_VALUE(bool, reactToCooldownMode, true);
-	constinit HEAT_PARAMETER_VALUE(bool, reactToSpikesHit,    true);
-
-	constinit HEAT_PARAMETER_VALUE(float, maxRBJoinDistance,       500.f, {0.f}); // metres
-	constinit HEAT_PARAMETER_VALUE(float, maxRBJoinElevationDelta, 1.5f,  {0.f}); // metres
-	constinit HEAT_PARAMETER_VALUE(int,   maxRBJoinCount,          1,     {0});   // cars
 
 	constinit HEAT_PARAMETER_INTERVAL(float, strategyCooldown, 10.f, 10.f, {1.f}); // seconds
 
@@ -279,89 +265,15 @@ namespace GroundSuppport
 
 
 
-	[[nodiscard]] int GetNumGlobalMobileCops()
-	{
-		int numGlobalMobileCops = AsReference<int>(Globals::copManager + 0x94); // cops loaded
-
-		for (const address pursuit : ModContainers::PursuitList())
-		{
-			const address roadblock = AsReference<address>(pursuit + 0x84);
-			if (not roadblock) continue; // no active roadblock
-
-			const address firstVehicleEntry = AsReference<address>(roadblock + 0xC);
-			const address lastVehicleEntry  = AsReference<address>(roadblock + 0x10);
-
-			if (lastVehicleEntry > firstVehicleEntry)
-				numGlobalMobileCops -= (lastVehicleEntry - firstVehicleEntry) / sizeof(address);
-		}
-
-		return numGlobalMobileCops;
-	}
 
 
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] bool __fastcall MayRoadblockVehicleJoin(const address pursuit)
-	{
-		const int numVehiclesJoined = AsReference<int>(pursuit + 0x23C);
-		if (numVehiclesJoined >= maxRBJoinCount.current) return false;
-
-		const float distanceToRoadblock = AsReference<float>(pursuit + 0x7C);
-		if (distanceToRoadblock > maxRBJoinDistance.current) return false;
-
-		if (CopSpawnOverrides::anyFeatureEnabled)
-		{
-			// First, whether the pursuit itself cannot accept more roadblock vehicles
-			if (not CopSpawnOverrides::ChasersManager::HasRoadblockVehicleCapacity(pursuit)) return false;
-
-			// Next, whether the global cop-spawn limit isn't in effect
-			if (CopSpawnOverrides::chasersAreIndependent.current) return true;
-
-			// Last, whether the global cop-spawn limit has yet to be reached
-			return (GetNumGlobalMobileCops() < CopSpawnOverrides::activeChaserLimit.max.current);
-		}
-
-		return (GetNumGlobalMobileCops() < 8); // vanilla limit
-	}
-
-
-
-	[[nodiscard]] bool __fastcall MayDetachCops(const address roadblock)
-	{
-		const address pursuit       = AsReference<address>(roadblock + 0x28);
-		const int     pursuitStatus = AsReference<int>    (pursuit   + 0x218);
-
-		const float joinTimer = AsReference<float>(roadblock + 0x58);
-
-		switch (pursuitStatus)
-		{
-		case 0: // default pursuit state
-			return (regularRBJoinTimer.isEnabled.current and (joinTimer > regularRBJoinTimer.value.current));
-
-		case 1: // active "Backup" timer
-			return (backupRBJoinTimer.isEnabled.current and (joinTimer > backupRBJoinTimer.value.current));
-
-		case 2: // "COOLDOWN" mode
-			return reactToCooldownMode.current;
-		}
-
-		return false;
-	}
-
-
-
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
-
-	constexpr address onAttachedEntrance = 0x424036;
-	constexpr address onAttachedExit     = 0x42403C;
-
-	// Updates the Cross flag whenever a Cross replacement joins
-	__declspec(naked) void OnAttached()
+	// Updates the Cross flag whenever he joins a given pursuit
+	ASSEMBLY_DETOUR(OnAttached, /* begin = */ 0x424036, /* end = */ 0x42403C)
 	{
 		__asm
 		{
-			cmp byte ptr [LeaderOverrides::anyFeatureEnabled], 1
-			je conclusion // flag managed by "Advanced" feature set
-
 			mov edx, dword ptr [edi + 0x54]     // AIVehicle
 			cmp byte ptr [edx - 0x4C + 0x83], 1 // padding byte: Cross flag (car)
 			jne conclusion                      // not Cross' vehicle
@@ -372,17 +284,14 @@ namespace GroundSuppport
 			// Execute original code and resume
 			fild dword ptr [esi + 0x148]
 
-			jmp dword ptr [onAttachedExit]
+			EXIT_ASSEMBLY_DETOUR(OnAttached)
 		}
 	}
 
 
 
-	constexpr address onDetachedEntrance = 0x42B5F1;
-	constexpr address onDetachedExit     = 0x42B616;
-
-	// Checks whether a despawning vehicle was a Cross replacement
-	__declspec(naked) void OnDetached()
+	// Checks whether a despawning vehicle was Cross
+	ASSEMBLY_DETOUR(OnDetached, 0x42B5F1, 0x42B616)
 	{
 		__asm
 		{
@@ -393,17 +302,14 @@ namespace GroundSuppport
 			mov eax, dword ptr [esi + 0x54]     // AIVehicle
 			cmp byte ptr [eax - 0x4C + 0x83], 1 // padding byte: Cross flag (car)
 
-			jmp dword ptr [onDetachedExit]
+			EXIT_ASSEMBLY_DETOUR(OnDetached)
 		}
 	}
 
 
 
-	constexpr address crossSpawnEntrance = 0x41F7D9;
-	constexpr address crossSpawnExit     = 0x41F7E0;
-
 	// Marks Cross' replacement for later identification
-	__declspec(naked) void CrossSpawn()
+	ASSEMBLY_DETOUR(CrossSpawn, 0x41F7D9, 0x41F7E0)
 	{
 		__asm
 		{
@@ -416,17 +322,14 @@ namespace GroundSuppport
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x90]
 
-			jmp dword ptr [crossSpawnExit]
+			EXIT_ASSEMBLY_DETOUR(CrossSpawn)
 		}
 	}
 
 
 
-	constexpr address henchmenSubEntrance = 0x41F485;
-	constexpr address henchmenSubExit     = 0x41F497;
-
-	// Replaces henchmen vehicles
-	__declspec(naked) void HenchmenSub()
+	// Replaces henchmen vehicles before they spawn
+	ASSEMBLY_DETOUR(HenchmenSub, 0x41F485, 0x41F497)
 	{
 		__asm
 		{
@@ -441,34 +344,28 @@ namespace GroundSuppport
 
 			mov esi, dword ptr [esp + 0x60]
 
-			jmp dword ptr [henchmenSubExit]
+			EXIT_ASSEMBLY_DETOUR(HenchmenSub)
 		}
 	}
 
 
 
-	constexpr address heavySelectorEntrance = 0x41F1A4;
-	constexpr address heavySelectorExit     = 0x41F1C8;
-
-	// Replaces HeavyStrategy vehicles
-	__declspec(naked) void HeavySelector()
+	// Replaces HeavyStrategy vehicles before they spawn
+	ASSEMBLY_DETOUR(HeavySelector, 0x41F1A4, 0x41F1C8)
 	{
 		__asm
 		{
 			mov ecx, dword ptr [esi]
 			call SelectHeavyVehicle // ecx: heavyStrategy
 
-			jmp dword ptr [heavySelectorExit]
+			EXIT_ASSEMBLY_DETOUR(HeavySelector)
 		}
 	}
 
 
 
-	constexpr address crossSelectorEntrance = 0x41F504;
-	constexpr address crossSelectorExit     = 0x41F50C;
-
-	// Replaces Cross' vehicle
-	__declspec(naked) void CrossSelector()
+	// Replaces Cross' vehicle before he spawns
+	ASSEMBLY_DETOUR(CrossSelector, 0x41F504, 0x41F50C)
 	{
 		__asm
 		{
@@ -481,23 +378,20 @@ namespace GroundSuppport
 			test edi, edi
 			mov eax, edi
 
-			jmp dword ptr [crossSelectorExit]
+			EXIT_ASSEMBLY_DETOUR(CrossSelector)
 		}
 	}
 
 
 
-	constexpr address crossPriorityEntrance = 0x419724;
-	constexpr address crossPriorityExit     = 0x41972A;
-
 	// Can skip the Cross priority request in rival pursuits
-	__declspec(naked) void CrossPriority()
+	ASSEMBLY_DETOUR(CrossPriority, 0x419724, 0x41972A)
 	{
-		static constexpr address crossPrioritySkip = 0x419780;
+		static constexpr address disabledExit = 0x419780;
 
 		__asm
 		{
-			jne skip // priority flag set
+			jne disabled // priority flag set
 
 			cmp byte ptr [rivalLeaderEnabled.current], 1
 			je conclusion // no rival discrimination
@@ -505,29 +399,26 @@ namespace GroundSuppport
 			mov ecx, esi
 			call Globals::IsPlayerPursuit
 			test al, al
-			je skip // not player pursuit
+			je disabled // not player pursuit
 
 			conclusion:
 			// Execute original code and resume
 			mov ecx, ebp
 			xor ebx, ebx
 
-			jmp dword ptr [crossPriorityExit]
+			EXIT_ASSEMBLY_DETOUR(CrossPriority)
 
-			skip:
-			jmp dword ptr [crossPrioritySkip]
+			disabled:
+			jmp dword ptr [disabledExit]
 		}
 	}
 
 
 
-	constexpr address rivalRoadblockEntrance = 0x419563;
-	constexpr address rivalRoadblockExit     = 0x419568;
-
 	// Can skip roadblock requests in rival pursuits
-	__declspec(naked) void RivalRoadblock()
+	ASSEMBLY_DETOUR(RivalRoadblock, 0x419563, 0x419568)
 	{
-		static constexpr address rivalRoadblockSkip = 0x4195CD;
+		static constexpr address disabledExit = 0x4195CD;
 
 		__asm
 		{
@@ -536,7 +427,7 @@ namespace GroundSuppport
 
 			call Globals::IsPlayerPursuit
 			test al, al
-			je skip // not player pursuit
+			je disabled // not player pursuit
 
 			mov ecx, esi
 			mov edx, dword ptr [esi]
@@ -546,20 +437,17 @@ namespace GroundSuppport
 			call dword ptr [edx + 0x28] // AIPursuit::IsPerpInSight
 			cmp al, 1
 
-			jmp dword ptr [rivalRoadblockExit]
+			EXIT_ASSEMBLY_DETOUR(RivalRoadblock)
 
-			skip:
-			jmp dword ptr [rivalRoadblockSkip]
+			disabled:
+			jmp dword ptr [disabledExit]
 		}
 	}
 
 
 
-	constexpr address priorityOutcomeEntrance = 0x419770;
-	constexpr address priorityOutcomeExit     = 0x419776;
-
-	// Reports the outcome of LeaderStrategy priority for logging purposes
-	__declspec(naked) void PriorityOutcome()
+	// Logs the outcome of LeaderStrategy priority checks
+	ASSEMBLY_DETOUR(PriorityOutcome, 0x419770, 0x419776)
 	{
 		__asm
 		{
@@ -569,17 +457,14 @@ namespace GroundSuppport
 			mov ecx, esi
 			call ReportPriorityOutcome // ecx: pursuit
 
-			jmp dword ptr [priorityOutcomeExit]
+			EXIT_ASSEMBLY_DETOUR(PriorityOutcome)
 		}
 	}
 
 
 
-	constexpr address requestCooldownEntrance = 0x4196D7;
-	constexpr address requestCooldownExit     = 0x4196E4;
-
 	// Updates the Strategy cooldown after each request
-	__declspec(naked) void RequestCooldown()
+	ASSEMBLY_DETOUR(RequestCooldown, 0x4196D7, 0x4196E4)
 	{
 		__asm
 		{
@@ -590,17 +475,14 @@ namespace GroundSuppport
 			// Execute original code and resume
 			lea ecx, dword ptr [esi - 0x48]
 
-			jmp dword ptr [requestCooldownExit]
+			EXIT_ASSEMBLY_DETOUR(RequestCooldown)
 		}
 	}
 
 
 
-	constexpr address heavySpeedSetupEntrance = 0x421526;
-	constexpr address heavySpeedSetupExit     = 0x421545;
-
 	// Sets the initial speed of HeavyStrategy 3 vehicles
-	__declspec(naked) void HeavySpeedSetup()
+	ASSEMBLY_DETOUR(HeavySpeedSetup, 0x421526, 0x421545)
 	{
 		__asm
 		{
@@ -616,50 +498,41 @@ namespace GroundSuppport
 			fstp st(0)
 			fstp dword ptr [esp + 0x4]
 
-			jmp dword ptr [heavySpeedSetupExit]
+			EXIT_ASSEMBLY_DETOUR(HeavySpeedSetup)
 		}
 	}
 
 
 
-	constexpr address heavySpeedUpdateEntrance = 0x4215F6;
-	constexpr address heavySpeedUpdateExit     = 0x4215FB;
-
 	// Updates the speed of HeavyStrategy 3 vehicles
-	__declspec(naked) void HeavySpeedUpdate()
+	ASSEMBLY_DETOUR(HeavySpeedUpdate, 0x4215F6, 0x4215FB)
 	{
 		__asm
 		{
 			push dword ptr [rammingSpeedLimit]
 
-			jmp dword ptr [heavySpeedUpdateExit]
+			EXIT_ASSEMBLY_DETOUR(HeavySpeedUpdate)
 		}
 	}
 
 
 
-	constexpr address roadblockCooldownEntrance = 0x419535;
-	constexpr address roadblockCooldownExit     = 0x41954C;
-
 	// Updates the non-Strategy roadblock cooldown after each request
-	__declspec(naked) void RoadblockCooldown()
+	ASSEMBLY_DETOUR(RoadblockCooldown, 0x419535, 0x41954C)
 	{
 		__asm
 		{
 			mov ecx, offset roadblockCooldown
 			call HeatParameters::Interval<float>::GetRandomValue
 
-			jmp dword ptr [roadblockCooldownExit]
+			EXIT_ASSEMBLY_DETOUR(RoadblockCooldown)
 		}
 	}
 
 
 
-	constexpr address roadblockDistanceEntrance = 0x43DE45;
-	constexpr address roadblockDistanceExit     = 0x43DE4A;
-
 	// Changes the distance at which roadblocks can spawn from racers
-	__declspec(naked) void RoadblockDistance()
+	ASSEMBLY_DETOUR(RoadblockDistance, 0x43DE45, 0x43DE4A)
 	{
 		__asm
 		{
@@ -671,17 +544,14 @@ namespace GroundSuppport
 			mov ecx, dword ptr [esp]
 			fstp dword ptr [esp]
 
-			jmp dword ptr [roadblockDistanceExit]
+			EXIT_ASSEMBLY_DETOUR(RoadblockDistance)
 		}
 	}
 
 
 
-	constexpr address strategySelectionEntrance = 0x41978D;
-	constexpr address strategySelectionExit     = 0x41984E;
-
 	// Selects a random available Strategy without any biases
-	__declspec(naked) void StrategySelection()
+	ASSEMBLY_DETOUR(StrategySelection, 0x41978D, 0x41984E)
 	{
 		__asm
 		{
@@ -692,51 +562,14 @@ namespace GroundSuppport
 			xor edi, edi
 			sub edi, eax
 
-			jmp dword ptr [strategySelectionExit]
+			EXIT_ASSEMBLY_DETOUR(StrategySelection)
 		}
 	}
 
 
-
-	constexpr address spikesHitReactionEntrance = 0x63BB9A;
-	constexpr address spikesHitReactionExit     = 0x63BBA6;
-
-	// Can suppress roadblock reactions to spike-strip hits
-	__declspec(naked) void SpikesHitReaction()
-	{
-		static constexpr float maxJoinRange = 80.f; // metres
-
-		__asm
-		{
-			// Execute original code first
-			mov eax, dword ptr [eax + 0x70] // roadblock pursuit
-			test eax, eax
-			je conclusion                   // no pursuit
-
-			cmp byte ptr [reactToSpikesHit.current], 0
-			je conclusion // reaction disabled
-
-			mov edx, eax
-
-			fld dword ptr [edx + 0x7C] // distance to target
-			fcomp dword ptr [maxJoinRange]
-			fnstsw ax
-			test ah, 0x41
-
-			mov eax, edx
-
-			conclusion:
-			jmp dword ptr [spikesHitReactionExit]
-		}
-	}
-
-
-
-	constexpr address roadblockFormationEntrance = 0x40AE5A;
-	constexpr address roadblockFormationExit     = 0x40AE63;
 
 	// Can prevent roadblock spawns from cancelling cop formations
-	__declspec(naked) void RoadblockFormation()
+	ASSEMBLY_DETOUR(RoadblockFormation, 0x40AE5A, 0x40AE63)
 	{
 		__asm
 		{
@@ -750,51 +583,7 @@ namespace GroundSuppport
 			test al, al
 
 			conclusion:
-			jmp dword ptr [roadblockFormationExit]
-		}
-	}
-
-
-
-	constexpr address roadblockJoinCountEntrance = 0x4443A6;
-	constexpr address roadblockJoinCountExit     = 0x4443AE;
-
-	// Enforces the join limit for roadblock vehicles
-	__declspec(naked) void RoadblockJoinCount()
-	{
-		static constexpr address roadblockJoinCountSkip = 0x444400;
-
-		__asm
-		{
-			lea ecx, dword ptr [esi + 0x40]
-			call MayRoadblockVehicleJoin // ecx: pursuit
-			test al, al
-			je skip                      // may not join
-
-			jmp dword ptr [roadblockJoinCountExit]
-
-			skip:
-			jmp dword ptr [roadblockJoinCountSkip]
-		}
-	}
-
-
-
-	constexpr address roadblockJoinTimerEntrance = 0x42BF06;
-	constexpr address roadblockJoinTimerExit     = 0x42BF2B;
-
-	// Checks the timer for joining from roadblocks
-	__declspec(naked) void RoadblockJoinTimer()
-	{
-		__asm
-		{
-			fstp dword ptr [ebp + 0x58] // join timer
-
-			mov ecx, ebp
-			call MayDetachCops // ecx: roadblock
-			cmp al, 1
-
-			jmp dword ptr [roadblockJoinTimerExit]
+			EXIT_ASSEMBLY_DETOUR(RoadblockFormation)
 		}
 	}
 
@@ -845,11 +634,8 @@ namespace GroundSuppport
 
 	void ApplyFixes()
 	{
-		// Also fixes the unintended biases in the Strategy-selection process
-		MemoryTools::MakeRangeJMP<strategySelectionEntrance, strategySelectionExit>(StrategySelection);
-
-		// Also prevents excessive joining from roadblocks
-		MemoryTools::MakeRangeJMP<roadblockJoinCountEntrance, roadblockJoinCountExit>(RoadblockJoinCount);
+		// Biases in the Strategy-selection process
+		PATCH_ASSEMBLY_DETOUR(StrategySelection);
 	}
 
 
@@ -869,12 +655,6 @@ namespace GroundSuppport
 		HeatParameters::Extract(parser, "Roadblocks:Distance", roadblockSpawnDistance);
 
 		HeatParameters::Extract(parser, "Roadblocks:Formations", roadblockEndsFormation);
-
-		HeatParameters::Extract(parser, "Roadblocks:Joining", regularRBJoinTimer, backupRBJoinTimer);
-
-		HeatParameters::Extract(parser, "Roadblocks:Reactions", reactToCooldownMode, reactToSpikesHit);
-
-		HeatParameters::Extract(parser, "Joining:Definitions", maxRBJoinDistance, maxRBJoinElevationDelta, maxRBJoinCount);
 
 		HeatParameters::Extract(parser, "Strategies:Cooldown", strategyCooldown);
 
@@ -897,32 +677,26 @@ namespace GroundSuppport
 		ResolveAllVehicleNames();
 
 		// Code modifications (geneal)
-		MemoryTools::Write<float*>(&(maxRBJoinDistance      .current), {0x42BEBC});
-		MemoryTools::Write<float*>(&(maxRBJoinElevationDelta.current), {0x42BE3A});
-
-		MemoryTools::MakeRangeNOP<0x42BEB6, 0x42BEBA>(); // roadblock-joining flag reset
 		MemoryTools::MakeRangeNOP<0x42402A, 0x424036>(); // Cross flag = 1
 
-		MemoryTools::MakeRangeJMP<onAttachedEntrance,         onAttachedExit>        (OnAttached);
-		MemoryTools::MakeRangeJMP<onDetachedEntrance,         onDetachedExit>        (OnDetached);
-		MemoryTools::MakeRangeJMP<crossSpawnEntrance,         crossSpawnExit>        (CrossSpawn);
-		MemoryTools::MakeRangeJMP<henchmenSubEntrance,        henchmenSubExit>       (HenchmenSub);
-		MemoryTools::MakeRangeJMP<heavySelectorEntrance,      heavySelectorExit>     (HeavySelector);
-		MemoryTools::MakeRangeJMP<crossSelectorEntrance,      crossSelectorExit>     (CrossSelector);
-		MemoryTools::MakeRangeJMP<crossPriorityEntrance,      crossPriorityExit>     (CrossPriority);
-		MemoryTools::MakeRangeJMP<rivalRoadblockEntrance,     rivalRoadblockExit>    (RivalRoadblock);
-		MemoryTools::MakeRangeJMP<requestCooldownEntrance,    requestCooldownExit>   (RequestCooldown);
-		MemoryTools::MakeRangeJMP<heavySpeedSetupEntrance,    heavySpeedSetupExit>   (HeavySpeedSetup);
-		MemoryTools::MakeRangeJMP<heavySpeedUpdateEntrance,   heavySpeedUpdateExit>  (HeavySpeedUpdate);
-		MemoryTools::MakeRangeJMP<roadblockCooldownEntrance,  roadblockCooldownExit> (RoadblockCooldown);
-		MemoryTools::MakeRangeJMP<roadblockDistanceEntrance,  roadblockDistanceExit> (RoadblockDistance);
-		MemoryTools::MakeRangeJMP<spikesHitReactionEntrance,  spikesHitReactionExit> (SpikesHitReaction);
-		MemoryTools::MakeRangeJMP<roadblockFormationEntrance, roadblockFormationExit>(RoadblockFormation);
-		MemoryTools::MakeRangeJMP<roadblockJoinTimerEntrance, roadblockJoinTimerExit>(RoadblockJoinTimer);
+		PATCH_ASSEMBLY_DETOUR(OnAttached);
+		PATCH_ASSEMBLY_DETOUR(OnDetached);
+		PATCH_ASSEMBLY_DETOUR(CrossSpawn);
+		PATCH_ASSEMBLY_DETOUR(HenchmenSub);
+		PATCH_ASSEMBLY_DETOUR(HeavySelector);
+		PATCH_ASSEMBLY_DETOUR(CrossSelector);
+		PATCH_ASSEMBLY_DETOUR(CrossPriority);
+		PATCH_ASSEMBLY_DETOUR(RivalRoadblock);
+		PATCH_ASSEMBLY_DETOUR(RequestCooldown);
+		PATCH_ASSEMBLY_DETOUR(HeavySpeedSetup);
+		PATCH_ASSEMBLY_DETOUR(HeavySpeedUpdate);
+		PATCH_ASSEMBLY_DETOUR(RoadblockCooldown);
+		PATCH_ASSEMBLY_DETOUR(RoadblockDistance);
+		PATCH_ASSEMBLY_DETOUR(RoadblockFormation);
 
 		// Code modifications (logging)
 		if constexpr (Globals::loggingEnabled)
-			MemoryTools::MakeRangeJMP<priorityOutcomeEntrance, priorityOutcomeExit>(PriorityOutcome);
+			PATCH_ASSEMBLY_DETOUR(PriorityOutcome);
 
 		// Status flag
 		anyFeatureEnabled = true;
@@ -949,16 +723,6 @@ namespace GroundSuppport
 
 		roadblockSpawnDistance.SetToHeatState(state);
 		roadblockEndsFormation.SetToHeatState(state);
-
-		regularRBJoinTimer.SetToHeatState(state);
-		backupRBJoinTimer .SetToHeatState(state);
-
-		reactToCooldownMode.SetToHeatState(state);
-		reactToSpikesHit   .SetToHeatState(state);
-
-		maxRBJoinDistance      .SetToHeatState(state);
-		maxRBJoinElevationDelta.SetToHeatState(state);
-		maxRBJoinCount         .SetToHeatState(state);
 
 		strategyCooldown.SetToHeatState(state);
 

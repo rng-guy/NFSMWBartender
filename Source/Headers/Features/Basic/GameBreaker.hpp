@@ -33,7 +33,7 @@ namespace GameBreaker
 	// Parameter sets
 	RELEASE_CONSTINIT ParameterSets::CopInteractions breakerInteractions; // seconds
 
-	// Code caves
+	// Assembly detours
 	float pendingCollisionBreakerChange = 0.f;
 
 
@@ -127,13 +127,10 @@ namespace GameBreaker
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address driftRechargeEntrance = 0x6A99BC;
-	constexpr address driftRechargeExit     = 0x6A99C1;
-
-	// Toggles drift-based Speedbreaker recharging
-	__declspec(naked) void DriftRecharge()
+	// Toggles drift-based Speedbreaker recharging for player vehicles
+	ASSEMBLY_DETOUR(DriftRecharge, /* begin = */ 0x6A99BC, /* end = */ 0x6A99C1)
 	{
 		__asm
 		{
@@ -151,17 +148,14 @@ namespace GameBreaker
 			test al, al
 
 			conclusion:
-			jmp dword ptr [driftRechargeExit]
+			EXIT_ASSEMBLY_DETOUR(DriftRecharge)
 		}
 	}
 
 
 
-	constexpr address passiveRechargeEntrance = 0x6EDDDE;
-	constexpr address passiveRechargeExit     = 0x6EDDE3;
-
-	// Toggles passive Speedbreaker recharging
-	__declspec(naked) void PassiveRecharge()
+	// Toggles passive Speedbreaker recharging for player vehicles
+	ASSEMBLY_DETOUR(PassiveRecharge, 0x6EDDDE, 0x6EDDE3)
 	{
 		__asm
 		{
@@ -177,7 +171,7 @@ namespace GameBreaker
 			test al, al
 
 			conclusion:
-			jmp dword ptr [passiveRechargeExit]
+			EXIT_ASSEMBLY_DETOUR(PassiveRecharge)
 		}
 	}
 
@@ -205,8 +199,8 @@ namespace GameBreaker
 		breakerInteractions.Extract(parser, "Speedbreaker");
 
 		// Code changes
-		MemoryTools::MakeRangeJMP<driftRechargeEntrance,   driftRechargeExit>  (DriftRecharge);
-		MemoryTools::MakeRangeJMP<passiveRechargeEntrance, passiveRechargeExit>(PassiveRecharge);
+		PATCH_ASSEMBLY_DETOUR(DriftRecharge);
+		PATCH_ASSEMBLY_DETOUR(PassiveRecharge);
 
 		// Status flag
 		anyFeatureEnabled = true;

@@ -52,9 +52,6 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • the internal cooldown between Heavy / LeaderStrategy requests,
  • how far away roadblocks can spawn from the pursuit target,
  • whether successful roadblock spawns cancel the current cop formation,
- • when and to what extent (if at all) roadblock cops can join pursuits,
- • whether roadblocks react to the pursuit target entering "COOLDOWN" mode,
- • whether roadblocks react to the pursuit target hitting their spike strips,
  • the maximum speed of scripted ramming attempts through HeavyStrategy 3,
  • whether HeavyStrategy 3 requests interact with roadblock requests and spawns,
  • which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
@@ -78,14 +75,13 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and
  • the selection, order, and length of interactive themes that play during your pursuits.
 
-The "Basic" feature set ALWAYS FIXES FOURTEEN BUGS / ISSUES automatically:
+The "Basic" feature set ALWAYS FIXES THIRTEEN BUGS / ISSUES automatically:
  • the game no longer fails to select certain arrest cutscenes,
  • the game now always updates the passive-bounty increment after races,
  • the (mini-)map icons for cop cars now always flash at their intended pace,
  • transitions to Heat levels > 5 now trigger their proper radio announcements,
  • the cops no longer announce each Heat level just once per game launch at most,
  • the game now reads VltEd arrays correctly at each Blacklist rank and Heat level,
- • cops joining pursuits from roadblocks no longer ignore all cop-related spawn limits,
  • the helicopter mini-map icon is now always visible whenever a helicopter is active,
  • the helicopter vision-cone icon now always disappears whenever a helicopter is destroyed,
  • helicopters no longer cast static blob-shadows (like cars do) with incorrect placements,
@@ -117,6 +113,9 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • whether only destroyed chasing cops can decrement the remaining engagement count,
  • whether Heat transitions immediately trigger backup to update the engagement count,
  • how far away new chasing cops must spawn from all already active cops,
+ • when and to what extent (if at all) roadblock cops can join pursuits,
+ • whether roadblocks react to the pursuit target entering "COOLDOWN" mode,
+ • whether roadblocks react to the pursuit target hitting their spike strips,
  • above what count (if at all) no more cops can join the pursuit from roadblocks,
  • when exactly (if at all) and how many cops that joined from roadblocks can flee,
  • when exactly (if at all) and how many chasing cops from other Heat levels can flee,
@@ -160,9 +159,11 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how likely each roadblock setup is to spawn with horizontally mirrored parts instead, and
  • which active non-chasing cops the engagement count shown above the pursuit board also tracks.
 
-The "Advanced" feature set ALWAYS FIXES ELEVEN BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES THIRTEEN BUGS / ISSUES automatically:
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
+ • cops in roadblocks can no longer prevent chasing cops from spawning,
  • the cops no longer stop calling out roadblocks / spikes over the radio,
+ • cops joining pursuits from roadblocks no longer ignore cop-related spawn limits,
  • Challenge Series events now use the Heat level limits defined for them in VltEd,
  • the game no longer ignores VltEd settings for roadblocks and Strategies in races,
  • the Heat gauge no longer skips the transition animation for rapid Heat-level changes,

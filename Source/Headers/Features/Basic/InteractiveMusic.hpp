@@ -29,7 +29,7 @@ namespace InteractiveMusic
 	bool shuffleFirstTrack = true;
 	bool shuffleAfterFirst = false;
 
-	// Code caves
+	// Assembly detours
 	size_t currentTrackID = 0;
 
 
@@ -71,29 +71,23 @@ namespace InteractiveMusic
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address nextTrackEntrance = 0x4E7A0D;
-	constexpr address nextTrackExit     = 0x4E7A17;
-
-	// Picks the next interactive pursuit track
-	__declspec(naked) void NextTrack()
+	// Picks the next interactive pursuit track to play in an active pursuit
+	ASSEMBLY_DETOUR(NextTrack, /* begin = */ 0x4E7A0D, /* end = */ 0x4E7A17)
 	{
 		__asm
 		{
 			call GetNextTrack
 
-			jmp dword ptr [nextTrackExit]
+			EXIT_ASSEMBLY_DETOUR(NextTrack)
 		}
 	}
 
 
 
-	constexpr address firstTrackEntrance = 0x4F8A5D;
-	constexpr address firstTrackExit     = 0x4F8A6C;
-
-	// Picks the first interactive pursuit track after a loading screen
-	__declspec(naked) void FirstTrack()
+	// Picks the first interactive pursuit track to play
+	ASSEMBLY_DETOUR(FirstTrack, 0x4F8A5D, 0x4F8A6C)
 	{
 		__asm
 		{
@@ -103,17 +97,14 @@ namespace InteractiveMusic
 			mov ecx, dword ptr [esp + 0x2C]
 			add esp, 0x14
 
-			jmp dword ptr [firstTrackExit]
+			EXIT_ASSEMBLY_DETOUR(FirstTrack)
 		}
 	}
 
 
-
-	constexpr address mainTransitionEntrance = 0x71B1F4;
-	constexpr address mainTransitionExit     = 0x71B205;
 
 	// First function that checks for theme transitions
-	__declspec(naked) void MainTransition()
+	ASSEMBLY_DETOUR(MainTransition, 0x71B1F4, 0x71B205)
 	{
 		__asm
 		{
@@ -128,17 +119,14 @@ namespace InteractiveMusic
 			test ah, 0x41
 
 			conclusion:
-			jmp dword ptr [mainTransitionExit]
+			EXIT_ASSEMBLY_DETOUR(MainTransition)
 		}
 	}
 
 
 
-	constexpr address otherTransitionEntrance = 0x71B768;
-	constexpr address otherTransitionExit     = 0x71B779;
-
 	// Second function that checks for theme transitions
-	__declspec(naked) void OtherTransition()
+	ASSEMBLY_DETOUR(OtherTransition, 0x71B768, 0x71B779)
 	{
 		__asm
 		{
@@ -153,7 +141,7 @@ namespace InteractiveMusic
 			test ah, 0x41
 
 			conclusion:
-			jmp dword ptr [otherTransitionExit]
+			EXIT_ASSEMBLY_DETOUR(OtherTransition)
 		}
 	}
 
@@ -275,10 +263,10 @@ namespace InteractiveMusic
 		ExtractSettings(parser);
 
 		// Code modifications 
-		MemoryTools::MakeRangeJMP<nextTrackEntrance,       nextTrackExit>      (NextTrack);
-		MemoryTools::MakeRangeJMP<firstTrackEntrance,      firstTrackExit>     (FirstTrack);
-		MemoryTools::MakeRangeJMP<mainTransitionEntrance,  mainTransitionExit> (MainTransition);
-		MemoryTools::MakeRangeJMP<otherTransitionEntrance, otherTransitionExit>(OtherTransition);
+		PATCH_ASSEMBLY_DETOUR(NextTrack);
+		PATCH_ASSEMBLY_DETOUR(FirstTrack);
+		PATCH_ASSEMBLY_DETOUR(MainTransition);
+		PATCH_ASSEMBLY_DETOUR(OtherTransition);
 
 		// Status flag
 		anyFeatureEnabled = true;

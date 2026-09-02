@@ -53,17 +53,16 @@
 
 
 
-// Hooking functions --------------------------------------------------------------------------------------------------------------------------------
+// Hook functions -----------------------------------------------------------------------------------------------------------------------------------
 
-address InitialiseBartenderOriginal = 0x0;
+HOOK_ORIGINAL(InitialiseBartender);
 
 static void __cdecl InitialiseBartender
 (
-	const size_t  numArgs,
+	const size_t  numArgs, 
 	const address argArray
 ) {
-	// Call original function first
-	AsFunction<decltype(InitialiseBartender)>(InitialiseBartenderOriginal)(numArgs, argArray);
+	CALL_HOOK_ORIGINAL(InitialiseBartender, numArgs, argArray);
 
 	#ifdef _DEBUG
 	while (not IsDebuggerPresent()); // halt until debugger is attached
@@ -178,7 +177,7 @@ BOOL WINAPI DllMain
 		return FALSE; // should never happen (assuming the user has actually read the README, which... yeah...)
 	}
 
-	InitialiseBartenderOriginal = MemoryTools::ReplaceCall(0x6665B4, InitialiseBartender); // InitializeEverything (0x665FC0)
+	PATCH_HOOK_FUNCTION(InitialiseBartender, 0x6665B4); // InitializeEverything (0x665FC0)
 
 	return TRUE;
 }

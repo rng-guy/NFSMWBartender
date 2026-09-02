@@ -46,7 +46,7 @@ namespace RadioSpeech
 	// Vehicle maps
 	RELEASE_CONSTINIT VEHICLE_MAP(Battalion, copTypeToBattalion, Battalion::PATROL);
 
-	// Code caves 
+	// ASM detours
 	size_t lastReportedHeatLevel = 1;
 	int    lastJurisdictionID    = 0;
 
@@ -74,45 +74,39 @@ namespace RadioSpeech
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
-
-	constexpr address heatCheckEntrance = 0x71D370;
-	constexpr address heatCheckExit     = 0x71D3AE;
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
 	// Checks whether a new Heat-level announcement is due
-	__declspec(naked) void HeatCheck()
+	ASSEMBLY_DETOUR(HeatCheck, /* begin = */ 0x71D370, /* end = */ 0x71D3AE)
 	{
-		static constexpr address heatCheckSkip = 0x71D433;
+		static constexpr address silenceExit = 0x71D433;
 
 		__asm
 		{
 			mov ebp, dword ptr [esi + 0x104] // current Heat level
 
 			cmp ebp, dword ptr [lastReportedHeatLevel]
-			je skip // already reported
+			je silence // already reported
 
 			mov dword ptr [lastReportedHeatLevel], ebp
 
 			cmp ebp, 10
-			jg skip // new Heat Level > 10
+			jg silence // new Heat Level > 10
 
 			sub ebp, 2
-			jl skip // new Heat level < 2
+			jl silence // new Heat level < 2
 
-			jmp dword ptr [heatCheckExit]
+			EXIT_ASSEMBLY_DETOUR(HeatCheck)
 
-			skip:
-			jmp dword ptr [heatCheckSkip]
+			silence:
+			jmp dword ptr [silenceExit]
 		}
 	}
 
 
 
-	constexpr address heatReportEntrance = 0x71D428;
-	constexpr address heatReportExit     = 0x71D42F;
-
 	// Converts the Heat-level ID into a copspeech offset
-	__declspec(naked) void HeatReport()
+	ASSEMBLY_DETOUR(HeatReport, 0x71D428, 0x71D42F)
 	{
 		__asm
 		{
@@ -123,17 +117,14 @@ namespace RadioSpeech
 
 			mov ecx, ebp
 
-			jmp dword ptr [heatReportExit]
+			EXIT_ASSEMBLY_DETOUR(HeatReport)
 		}
 	}
 
 
 
-	constexpr address playerPursuitEntrance = 0x704F70;
-	constexpr address playerPursuitExit     = 0x704F76;
-
 	// Resets transition state whenever a new player pursuit begins
-	__declspec(naked) void PlayerPursuit()
+	ASSEMBLY_DETOUR(PlayerPursuit, 0x704F70, 0x704F76)
 	{
 		using enum Jurisdiction;
 
@@ -145,17 +136,14 @@ namespace RadioSpeech
 			// Execute original code and resume
 			mov dword ptr [esi + 0x130], edi
 
-			jmp dword ptr [playerPursuitExit]
+			EXIT_ASSEMBLY_DETOUR(PlayerPursuit)
 		}
 	}
 
 
 
-	constexpr address callsignsCheckEntrance = 0x71FB01;
-	constexpr address callsignsCheckExit     = 0x71FB06;
-
 	// Retrieves the current vehicle's callsign
-	__declspec(naked) void CallsignsCheck()
+	ASSEMBLY_DETOUR(CallsignsCheck, 0x71FB01, 0x71FB06)
 	{
 		using enum Battalion;
 
@@ -168,19 +156,16 @@ namespace RadioSpeech
 
 			mov dword ptr [esp + 0x28], eax // freed variable
 
-			jmp dword ptr [callsignsCheckExit]
+			EXIT_ASSEMBLY_DETOUR(CallsignsCheck)
 		}
 	}
 
 
 
-	constexpr address firstCallsignsEntrance = 0x71FB27;
-	constexpr address firstCallsignsExit     = 0x71FB76;
-
 	// The first callsigns-specific part of the assignment function
-	__declspec(naked) void FirstCallsigns()
+	ASSEMBLY_DETOUR(FirstCallsigns, 0x71FB27, 0x71FB76)
 	{
-		static constexpr address firstCallsignsSkip = 0x71FB8B;
+		static constexpr address specialExit = 0x71FB8B;
 
 		using enum Battalion;
 
@@ -189,41 +174,35 @@ namespace RadioSpeech
 			mov ecx, dword ptr [esp + 0x28] // from "CallsignsCheck"
 
 			cmp ecx, PATROL
-			je conclusion // is "patrol"
+			jne special // not "patrol"
 
-			call GetCallsignsOffset // ecx: callsigns
+			EXIT_ASSEMBLY_DETOUR(FirstCallsigns)
 
-			jmp dword ptr [firstCallsignsSkip]
+			special:
+			call GetCallsignsOffset // ecx: battalion
 
-			conclusion:
-			jmp dword ptr [firstCallsignsExit]
+			jmp dword ptr [specialExit]
 		}
 	}
 
 
 
-	constexpr address secondCallsignsEntrance = 0x71FCCD;
-	constexpr address secondCallsignsExit     = 0x71FCDD;
-
 	// The second callsigns-specific part of the assignment function
-	__declspec(naked) void SecondCallsigns()
+	ASSEMBLY_DETOUR(SecondCallsigns, 0x71FCCD, 0x71FCDD)
 	{
 		__asm
 		{
 			mov ecx, dword ptr [esp + 0x28] // from "CallsignsCheck"
-			call GetCallsignsOffset         // ecx: callsigns
+			call GetCallsignsOffset         // ecx: battalion
 
-			jmp dword ptr [secondCallsignsExit]
+			EXIT_ASSEMBLY_DETOUR(SecondCallsigns)
 		}
 	}
 
 
 
-	constexpr address collisionCalloutEntrance = 0x71C073;
-	constexpr address collisionCalloutExit     = 0x71C08D;
-
 	// Picks radio callouts in response to collisions with racers
-	__declspec(naked) void CollisionCallout()
+	ASSEMBLY_DETOUR(CollisionCallout, 0x71C073, 0x71C08D)
 	{
 		using enum Battalion;
 
@@ -235,19 +214,16 @@ namespace RadioSpeech
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B] // is "rhino"
 
-			jmp dword ptr [collisionCalloutExit]
+			EXIT_ASSEMBLY_DETOUR(CollisionCallout)
 		}
 	}
 
 
 
-	constexpr address jurisdictionReportEntrance = 0x71D44D;
-	constexpr address jurisdictionReportExit     = 0x71D48F;
-
 	// Decides which jurisdiction to announce after a Heat-level change
-	__declspec(naked) void JurisdictionReport()
+	ASSEMBLY_DETOUR(JurisdictionReport, 0x71D44D, 0x71D48F)
 	{
-		static constexpr address jurisdictionReportSkip = 0x71D49A;
+		static constexpr address silenceExit = 0x71D49A;
 
 		using enum Jurisdiction;
 
@@ -255,19 +231,19 @@ namespace RadioSpeech
 		{
 			mov eax, dword ptr [heatJurisdictionID.current]
 			cmp eax, dword ptr [lastJurisdictionID]
-			je skip // same jurisdiction
+			je silence // same jurisdiction
 
 			mov dword ptr [lastJurisdictionID], eax
 
 			cmp eax, CITY
-			je skip // default jurisdiction
+			je silence // default jurisdiction
 
 			push eax
 
-			jmp dword ptr [jurisdictionReportExit]
+			EXIT_ASSEMBLY_DETOUR(JurisdictionReport)
 
-			skip:
-			jmp dword ptr [jurisdictionReportSkip]
+			silence:
+			jmp dword ptr [silenceExit]
 		}
 	}
 
@@ -346,12 +322,12 @@ namespace RadioSpeech
 
 	void ApplyFixes()
 	{
-		// All these fix radio announcements for Heat levels > 5
-		MemoryTools::MakeRangeNOP<0x71D345, 0x71D370>(); // Heat-level 1 filter
+		// Radio announcements for Heat levels > 5
+		MemoryTools::MakeRangeNOP<0x71D345, 0x71D370>(); // Heat-level filter
 
-		MemoryTools::MakeRangeJMP<heatCheckEntrance,     heatCheckExit>    (HeatCheck);
-		MemoryTools::MakeRangeJMP<heatReportEntrance,    heatReportExit>   (HeatReport);
-		MemoryTools::MakeRangeJMP<playerPursuitEntrance, playerPursuitExit>(PlayerPursuit);
+		PATCH_ASSEMBLY_DETOUR(HeatCheck);
+		PATCH_ASSEMBLY_DETOUR(HeatReport);
+		PATCH_ASSEMBLY_DETOUR(PlayerPursuit);
 	}
 
 
@@ -372,14 +348,14 @@ namespace RadioSpeech
 			// Code modifications (conditional)
 			MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up stack variable
 
-			MemoryTools::MakeRangeJMP<callsignsCheckEntrance,   callsignsCheckExit>  (CallsignsCheck);
-			MemoryTools::MakeRangeJMP<firstCallsignsEntrance,   firstCallsignsExit>  (FirstCallsigns);
-			MemoryTools::MakeRangeJMP<secondCallsignsEntrance,  secondCallsignsExit> (SecondCallsigns);
-			MemoryTools::MakeRangeJMP<collisionCalloutEntrance, collisionCalloutExit>(CollisionCallout);
+			PATCH_ASSEMBLY_DETOUR(CallsignsCheck);
+			PATCH_ASSEMBLY_DETOUR(FirstCallsigns);
+			PATCH_ASSEMBLY_DETOUR(SecondCallsigns);
+			PATCH_ASSEMBLY_DETOUR(CollisionCallout);
 		}
 
 		// Code modifications (general)
-		MemoryTools::MakeRangeJMP<jurisdictionReportEntrance, jurisdictionReportExit>(JurisdictionReport);
+		PATCH_ASSEMBLY_DETOUR(JurisdictionReport);
 
 		// Status flag
 		anyFeatureEnabled = true;

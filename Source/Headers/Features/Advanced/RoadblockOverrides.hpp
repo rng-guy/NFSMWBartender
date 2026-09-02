@@ -188,14 +188,23 @@ namespace RoadblockOverrides
 	constinit HEAT_PARAMETER_VALUE(float, spawnCalloutChance, 100.f, {0.f, 100.f}); // percent
 	constinit HEAT_PARAMETER_VALUE(float, spikeCalloutChance, 50.f,  {0.f, 100.f}); // percent
 
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, chaseRBJoinTimer,  {0.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, backupRBJoinTimer, {0.f}); // seconds
+
+	constinit HEAT_PARAMETER_VALUE(bool, reactToCooldownMode, true);
+	constinit HEAT_PARAMETER_VALUE(bool, reactToSpikesHit,    true);
+
+	constinit HEAT_PARAMETER_VALUE(float, maxRBJoinDistance,       500.f, {0.f}); // metres
+	constinit HEAT_PARAMETER_VALUE(float, maxRBJoinElevationDelta, 1.5f,  {0.f}); // metres
+
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, maxJoinCountPerRB, {0}); // cars
+
 	// Custom roadblock setups
 	RELEASE_CONSTINIT std::vector<RBSetup> roadblockSetups;
 
-	// Code caves
-	address requestPursuit = 0x0;
-
-	size_t minNumCars = 0;
-	size_t maxNumCars = 0;
+	// Assembly detours
+	address requestPursuit  = 0x0;
+	size_t  numCarsToSource = 0;
 
 	float maxStretchScale = 1.14f;
 
@@ -283,9 +292,7 @@ namespace RoadblockOverrides
 		struct RequestReport
 		{
 			size_t numCandidates = 0;
-
-			size_t minNumCars = std::numeric_limits<size_t>::max();
-			size_t maxNumCars = std::numeric_limits<size_t>::min();
+			size_t maxNumCars    = 0;
 		};
 
 		RequestReport regular;
@@ -298,12 +305,9 @@ namespace RoadblockOverrides
 
 			auto& report = (setup.HasSpikes()) ? spike : regular;
 
+			report.maxNumCars = std::max<size_t>(report.maxNumCars, setup.GetNumCarsRequired());
+
 			++(report.numCandidates);
-
-			const size_t numCars = setup.GetNumCarsRequired();
-
-			report.minNumCars = std::min<size_t>(report.minNumCars, numCars);
-			report.maxNumCars = std::max<size_t>(report.maxNumCars, numCars);
 		}
 
 		if constexpr (Globals::loggingEnabled)
@@ -319,12 +323,8 @@ namespace RoadblockOverrides
 
 		if (not IsCustomRequestFeasible(anyRegular, anySpike)) return false; // cancel request
 
-		hasSpikes = ShouldCustomRequestGetSpikes(anyRegular, anySpike);
-
-		const auto& report = (hasSpikes) ? spike : regular;
-
-		minNumCars = report.minNumCars;
-		maxNumCars = report.maxNumCars;
+		hasSpikes       = ShouldCustomRequestGetSpikes(anyRegular, anySpike);
+		numCarsToSource = (hasSpikes) ? spike.maxNumCars : regular.maxNumCars;
 
 		return true; // continue request
 	}
@@ -392,6 +392,16 @@ namespace RoadblockOverrides
 
 
 
+	[[nodiscard]] bool __fastcall IsJoinCountExhausted(const address pursuit)
+	{
+		if (not maxJoinCountPerRB.isEnabled.current) return false;
+
+		const int numVehiclesJoined = AsReference<int>(pursuit + 0x23C);
+		return (numVehiclesJoined >= maxJoinCountPerRB.value.current);
+	}
+
+
+
 	[[nodiscard]] auto CountAvailableSetups()
 	{
 		struct Counts
@@ -422,6 +432,36 @@ namespace RoadblockOverrides
 		}
 
 		return counts;
+	}
+
+
+
+	[[nodiscard]] bool __fastcall HasJoinTimerExpired(const address roadblock)
+	{
+		const address pursuit       = AsReference<address>(roadblock + 0x28);
+		const int     pursuitStatus = AsReference<int>    (pursuit   + 0x218);
+
+		const auto HasExpired = [roadblock](const auto& joinTimer) -> bool
+		{
+			if (not joinTimer.isEnabled.current) return false;
+
+			const float timeInProximity = AsReference<float>(roadblock + 0x58);
+			return (timeInProximity >= joinTimer.value.current);
+		};
+
+		switch (pursuitStatus)
+		{
+		case 0: // default pursuit state
+			return HasExpired(chaseRBJoinTimer);
+
+		case 1: // active "Backup" timer
+			return HasExpired(backupRBJoinTimer);
+
+		case 2: // "COOLDOWN" mode
+			return reactToCooldownMode.current;
+		}
+
+		return false;
 	}
 
 
@@ -501,13 +541,48 @@ namespace RoadblockOverrides
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address spikeLaneEntrance = 0x43E574;
-	constexpr address spikeLaneExit     = 0x43E57B;
+	// Checks the timer for joining from roadblocks
+	ASSEMBLY_DETOUR(JoinTimer, /* begin = */ 0x42BF06, /* end = */ 0x42BF2B)
+	{
+		__asm
+		{
+			fstp dword ptr [ebp + 0x58] // join timer
 
-	// Records the last spike-strip position
-	__declspec(naked) void SpikeLane()
+			mov ecx, ebp
+			call HasJoinTimerExpired // ecx: roadblock
+			cmp al, 1
+
+			EXIT_ASSEMBLY_DETOUR(JoinTimer)
+		}
+	}
+
+
+
+	// Enforces the per-roadblock join count
+	ASSEMBLY_DETOUR(JoinCount, 0x444397, 0x4443AC)
+	{
+		__asm
+		{
+			mov ecx, dword ptr [esi + 0xC4]
+
+			cmp byte ptr [ecx + 0x5C], 1
+			jne conclusion // not ready to join
+
+			lea ecx, dword ptr [esi + 0x40]
+			call IsJoinCountExhausted // ecx: pursuit
+			test al, al
+
+			conclusion:
+			EXIT_ASSEMBLY_DETOUR(JoinCount)
+		}
+	}
+
+
+
+	// Records the last spike-strip position in the current roadblock
+	ASSEMBLY_DETOUR(SpikeLane, 0x43E574, 0x43E57B)
 	{
 		__asm
 		{
@@ -516,17 +591,14 @@ namespace RoadblockOverrides
 			// Execute original code and resume
 			lea ecx, dword ptr [esp + 0xA4]
 
-			jmp dword ptr [spikeLaneExit]
+			EXIT_ASSEMBLY_DETOUR(SpikeLane)
 		}
 	}
 
 
 
-	constexpr address spikeCheckEntrance = 0x43E1C5;
-	constexpr address spikeCheckExit     = 0x43E1CD;
-
 	// Records whether the roadblock needs spikes
-	__declspec(naked) void SpikeCheck()
+	ASSEMBLY_DETOUR(SpikeCheck, 0x43E1C5, 0x43E1CD)
 	{
 		__asm
 		{
@@ -536,34 +608,28 @@ namespace RoadblockOverrides
 
 			mov byte ptr [hasSpikes], al
 
-			jmp dword ptr [spikeCheckExit]
+			EXIT_ASSEMBLY_DETOUR(SpikeCheck)
 		}
 	}
 
 
 	
-	constexpr address customScaleEntrance = 0x43E345;
-	constexpr address customScaleExit     = 0x43E34D;
-
 	// Enforces the maximum stretch-scale of the custom roadblock
-	__declspec(naked) void CustomScale()
+	ASSEMBLY_DETOUR(CustomScale, 0x43E345, 0x43E34D)
 	{
 		__asm
 		{
 			mov eax, dword ptr [maxStretchScale]
 			mov dword ptr [esp + 0x2C], eax
 
-			jmp dword ptr [customScaleExit]
+			EXIT_ASSEMBLY_DETOUR(CustomScale)
 		}
 	}
 
 
 
-	constexpr address copRecyclingEntrance = 0x43E0EF;
-	constexpr address copRecyclingExit     = 0x43E0F5;
-
 	// Decides whether to recycle cops for the roadblock
-	__declspec(naked) void CopRecycling()
+	ASSEMBLY_DETOUR(CopRecycling, 0x43E0EF, 0x43E0F5)
 	{
 		__asm
 		{
@@ -576,17 +642,14 @@ namespace RoadblockOverrides
 			cmp byte ptr [mayRecycleDistantCops.current], 0
 
 			conclusion:
-			jmp dword ptr [copRecyclingExit]
+			EXIT_ASSEMBLY_DETOUR(CopRecycling)
 		}
 	}
 
 
 
-	constexpr address requestOutcomeEntrance = 0x43E20C;
-	constexpr address requestOutcomeExit     = 0x43E213;
-
 	// Processes the outcome of the roadblock request
-	__declspec(naked) void RequestOutcome()
+	ASSEMBLY_DETOUR(RequestOutcome, 0x43E20C, 0x43E213)
 	{
 		__asm
 		{
@@ -602,24 +665,21 @@ namespace RoadblockOverrides
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x4B4]
 
-			jmp dword ptr [requestOutcomeExit]
+			EXIT_ASSEMBLY_DETOUR(RequestOutcome)
 		}
 	}
 
 
 
-	constexpr address customCarBudgetEntrance = 0x43E146;
-	constexpr address customCarBudgetExit     = 0x43E1C5;
-
 	// Checks the required car budget for the custom request
-	__declspec(naked) void CustomCarBudget()
+	ASSEMBLY_DETOUR(CustomCarBudget, 0x43E146, 0x43E1C5)
 	{
-		static constexpr address customCarBudgetSkip = 0x43E1E2;
+		static constexpr address failureExit = 0x43E1E2;
 
 		__asm
 		{
-			cmp ebp, dword ptr [minNumCars]
-			jl skip // insufficient car budget
+			cmp ebp, dword ptr [numCarsToSource]
+			jl failure // insufficient car budget
 
 			mov al, byte ptr [hasSpikes]
 			mov byte ptr [esp + 0x10], al
@@ -628,22 +688,19 @@ namespace RoadblockOverrides
 			mov esi, dword ptr [esp + 0x4C4]
 			xor edi, edi
 
-			jmp dword ptr [customCarBudgetExit]
+			EXIT_ASSEMBLY_DETOUR(CustomCarBudget)
 
-			skip:
-			jmp dword ptr [customCarBudgetSkip]
+			failure:
+			jmp dword ptr [failureExit]
 		}
 	}
 
 
 
-	constexpr address newCustomRequestEntrance = 0x43DF2A;
-	constexpr address newCustomRequestExit     = 0x43DF8A;
-
 	// Processes the new roadblock request for custom setups
-	__declspec(naked) void NewCustomRequest()
+	ASSEMBLY_DETOUR(NewCustomRequest, 0x43DF2A, 0x43DF8A)
 	{
-		static constexpr address newCustomRequestSkip = 0x43E1F3;
+		static constexpr address cancellationExit = 0x43E1F3;
 
 		__asm
 		{
@@ -653,17 +710,48 @@ namespace RoadblockOverrides
 			push dword ptr [esp + 0x4C8] // pursuit
 			call UpdateAndAssessCustomRequest
 			test al, al
-			je skip                      // request unfeasible
+			je cancellation              // request unfeasible
 
-			mov esi, dword ptr [maxNumCars]
+			mov esi, dword ptr [numCarsToSource]
 
-			jmp dword ptr [newCustomRequestExit]
+			EXIT_ASSEMBLY_DETOUR(NewCustomRequest)
 
-			skip:
+			cancellation:
 			mov ecx, dword ptr [esp + 0x4C0]
 			call CancelCustomRequest // ecx: caller
 
-			jmp dword ptr [newCustomRequestSkip]
+			jmp dword ptr [cancellationExit]
+		}
+	}
+
+
+
+	// Can suppress roadblock reactions to spike-strip hits
+	ASSEMBLY_DETOUR(SpikesHitReaction, 0x63BB9A, 0x63BBA6)
+	{
+		static constexpr float maxJoinRange = 80.f; // metres
+
+		__asm
+		{
+			// Execute original code first
+			mov eax, dword ptr [eax + 0x70] // roadblock pursuit
+			test eax, eax
+			je conclusion                   // no pursuit
+
+			cmp byte ptr [reactToSpikesHit.current], 0
+			je conclusion // reaction disabled
+
+			mov edx, eax
+
+			fld dword ptr [edx + 0x7C] // distance to target
+			fcomp dword ptr [maxJoinRange]
+			fnstsw ax
+			test ah, 0x41
+
+			mov eax, edx
+
+			conclusion:
+			EXIT_ASSEMBLY_DETOUR(SpikesHitReaction)
 		}
 	}
 
@@ -889,27 +977,42 @@ namespace RoadblockOverrides
 
 		HeatParameters::Extract(parser, "Roadblocks:Radio", spawnCalloutChance, spikeCalloutChance);
 
+		HeatParameters::Extract(parser, "Roadblocks:Joining", chaseRBJoinTimer, backupRBJoinTimer);
+
+		HeatParameters::Extract(parser, "Joining:Reactions", reactToCooldownMode, reactToSpikesHit);
+
+		HeatParameters::Extract(parser, "Joining:Proximity", maxRBJoinDistance, maxRBJoinElevationDelta);
+
+		HeatParameters::Extract(parser, "Joining:Count", maxJoinCountPerRB);
+
 		// Roadblock setups
 		if (ExtractRoadblockSetups(parser))
 		{
 			// Code changes (conditional)
+			MemoryTools::Write<size_t>(maxNumParts,      {0x40AFD9});
 			MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
 
 			MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable); // replaces game function
 
-			MemoryTools::MakeRangeJMP<customScaleEntrance,      customScaleExit>     (CustomScale);
-			MemoryTools::MakeRangeJMP<customCarBudgetEntrance,  customCarBudgetExit> (CustomCarBudget);
-			MemoryTools::MakeRangeJMP<newCustomRequestEntrance, newCustomRequestExit>(NewCustomRequest);
+			PATCH_ASSEMBLY_DETOUR(CustomScale);
+			PATCH_ASSEMBLY_DETOUR(CustomCarBudget);
+			PATCH_ASSEMBLY_DETOUR(NewCustomRequest);
 		}
 
 		// Code Changes (general)
+		MemoryTools::Write<float*>(&(maxRBJoinDistance      .current), {0x42BEBC});
+		MemoryTools::Write<float*>(&(maxRBJoinElevationDelta.current), {0x42BE3A});
+
 		MemoryTools::MakeRangeNOP<0x71F184, 0x71F19F>(); // regular callout
 		MemoryTools::MakeRangeNOP<0x71F091, 0x71F096>(); // spikes  callout
 
-		MemoryTools::MakeRangeJMP<spikeLaneEntrance,      spikeLaneExit>     (SpikeLane);
-		MemoryTools::MakeRangeJMP<spikeCheckEntrance,     spikeCheckExit>    (SpikeCheck);
-		MemoryTools::MakeRangeJMP<copRecyclingEntrance,   copRecyclingExit>  (CopRecycling);
-		MemoryTools::MakeRangeJMP<requestOutcomeEntrance, requestOutcomeExit>(RequestOutcome);
+		PATCH_ASSEMBLY_DETOUR(JoinTimer);
+		PATCH_ASSEMBLY_DETOUR(JoinCount);
+		PATCH_ASSEMBLY_DETOUR(SpikeLane);
+		PATCH_ASSEMBLY_DETOUR(SpikeCheck);
+		PATCH_ASSEMBLY_DETOUR(CopRecycling);
+		PATCH_ASSEMBLY_DETOUR(RequestOutcome);
+		PATCH_ASSEMBLY_DETOUR(SpikesHitReaction);
 
 		// Status flag
 		anyFeatureEnabled = true;
@@ -931,6 +1034,17 @@ namespace RoadblockOverrides
 
 		spawnCalloutChance.SetToHeatState(state);
 		spikeCalloutChance.SetToHeatState(state);
+
+		chaseRBJoinTimer .SetToHeatState(state);
+		backupRBJoinTimer.SetToHeatState(state);
+
+		reactToCooldownMode.SetToHeatState(state);
+		reactToSpikesHit   .SetToHeatState(state);
+
+		maxRBJoinDistance      .SetToHeatState(state);
+		maxRBJoinElevationDelta.SetToHeatState(state);
+
+		maxJoinCountPerRB.SetToHeatState(state);
 
 		// Roadblock setups
 		for (RBSetup& setup : roadblockSetups)

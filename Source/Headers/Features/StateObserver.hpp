@@ -209,13 +209,10 @@ namespace StateObserver
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address gameTicksEntrance = 0x65C73F;
-	constexpr address gameTicksExit     = 0x65C746;
-
-	// Checks game ticks for unsigned overflow
-	__declspec(naked) void GameTicks()
+	// Checks game ticks for unsigned overflow to adjust mod-internal timer
+	ASSEMBLY_DETOUR(GameTicks, /* begin = */ 0x65C73F, /* end = */ 0x65C746)
 	{
 		__asm
 		{
@@ -230,17 +227,14 @@ namespace StateObserver
 			conclusion:
 			mov eax, dword ptr [edx]
 
-			jmp dword ptr [gameTicksExit]
+			EXIT_ASSEMBLY_DETOUR(GameTicks)
 		}
 	}
 
 
 
-	constexpr address copDestroyedEntrance = 0x418F30;
-	constexpr address copDestroyedExit     = 0x418F3B;
-
 	// Trigges whenever a cop is destroyed
-	__declspec(naked) void CopDestroyed()
+	ASSEMBLY_DETOUR(CopDestroyed, 0x418F30, 0x418F3B)
 	{
 		__asm
 		{
@@ -253,17 +247,14 @@ namespace StateObserver
 			// Execute original code and resume
 			cmp byte ptr [esi + 0xA8], 0
 
-			jmp dword ptr [copDestroyedExit]
+			EXIT_ASSEMBLY_DETOUR(CopDestroyed)
 		}
 	}
 
 
 
-	constexpr address perpCollisionEntrance = 0x429C8B;
-	constexpr address perpCollisionExit     = 0x429CBB;
-
 	// Checks whether collisions with cops constitute assault
-	__declspec(naked) void PerpCollision()
+	ASSEMBLY_DETOUR(PerpCollision, 0x429C8B, 0x429CBB)
 	{
 		__asm
 		{
@@ -279,17 +270,14 @@ namespace StateObserver
 			call ShouldCollisionTriggerInfraction
 			test al, al
 
-			jmp dword ptr [perpCollisionExit]
+			EXIT_ASSEMBLY_DETOUR(PerpCollision)
 		}
 	}
 
 
 
-	constexpr address heatEqualiserEntrance = 0x409084;
-	constexpr address heatEqualiserExit     = 0x40908A;
-
 	// Non-player drivers have the same Heat as the player
-	__declspec(naked) void HeatEqualiser()
+	ASSEMBLY_DETOUR(HeatEqualiser, 0x409084, 0x40908A)
 	{
 		__asm
 		{
@@ -309,38 +297,32 @@ namespace StateObserver
 			// Execute original code and resume
 			fld dword ptr [esp + 0x24] // new perp Heat
 
-			jmp dword ptr [heatEqualiserExit]
+			EXIT_ASSEMBLY_DETOUR(HeatEqualiser)
 		}
 	}
 
 
 
-	constexpr address resetAIVehicleEntrance = 0x414D6C;
-	constexpr address resetAIVehicleExit     = 0x414D72;
-
 	// Resets repurposed padding bytes of AIPursuit objects
-	__declspec(naked) void ResetAIVehicle()
+	ASSEMBLY_DETOUR(ResetAIVehicle, 0x414D6C, 0x414D72)
 	{
 		__asm
 		{
 			// Execute original code first
 			mov byte ptr [esi + 0x80], bl
 
-			mov byte ptr [esi + 0x81], bl // "CopDetection.h"
-			mov byte ptr [esi + 0x82], bl // "CopDetection.h"
-			mov byte ptr [esi + 0x83], bl // "GroundSuppport.h"
+			mov byte ptr [esi + 0x81], bl // used in "CopDetection.hpp"
+			mov byte ptr [esi + 0x82], bl // used in "CopDetection.hpp"
+			mov byte ptr [esi + 0x83], bl // used in "GroundSuppport.hpp"
 
-			jmp dword ptr [resetAIVehicleExit]
+			EXIT_ASSEMBLY_DETOUR(ResetAIVehicle)
 		}
 	}
 
 
 
-	constexpr address collisionResultEntrance = 0x429EDA;
-	constexpr address collisionResultExit     = 0x429EDF;
-
 	// Triggers after every perp-collision processing
-	__declspec(naked) void CollisionResult()
+	ASSEMBLY_DETOUR(CollisionResult, 0x429EDA, 0x429EDF)
 	{
 		__asm
 		{
@@ -353,17 +335,14 @@ namespace StateObserver
 			mov ecx, dword ptr [esp + 0x40]
 			pop edi
 
-			jmp dword ptr [collisionResultExit]
+			EXIT_ASSEMBLY_DETOUR(CollisionResult)
 		}
 	}
 
 
 
-	constexpr address gameStateUpdateEntrance = 0x6F6D6D;
-	constexpr address gameStateUpdateExit     = 0x6F6D75;
-
 	// Triggers on game-state updates (e.g. (un)pausing)
-	__declspec(naked) void GameStateUpdate()
+	ASSEMBLY_DETOUR(GameStateUpdate, 0x6F6D6D, 0x6F6D75)
 	{
 		__asm
 		{
@@ -378,17 +357,14 @@ namespace StateObserver
 			call ProcessGameStateUpdate // ecx: newStateID; edx: oldStateID
 
 			conclusion:
-			jmp dword ptr [gameStateUpdateExit]
+			EXIT_ASSEMBLY_DETOUR(GameStateUpdate)
 		}
 	}
 
 
 
-	constexpr address playerDestructorEntrance = 0x43506C;
-	constexpr address playerDestructorExit     = 0x435073;
-
 	// Clears the player's AIPerpVehicle
-	__declspec(naked) void PlayerDestructor()
+	ASSEMBLY_DETOUR(PlayerDestructor, 0x43506C, 0x435073)
 	{
 		__asm
 		{
@@ -401,17 +377,14 @@ namespace StateObserver
 			// Execute original code and resume
 			fld dword ptr [eax + 0x1C] // perp Heat
 
-			jmp dword ptr [playerDestructorExit]
+			EXIT_ASSEMBLY_DETOUR(PlayerDestructor)
 		}
 	}
 
 
 
-	constexpr address heatLevelObserverEntrance = 0x4090BE;
-	constexpr address heatLevelObserverExit     = 0x4090C6;
-
 	// Triggers on Heat-level changes for the player
-	__declspec(naked) void HeatLevelObserver()
+	ASSEMBLY_DETOUR(HeatLevelObserver, 0x4090BE, 0x4090C6)
 	{
 		__asm
 		{
@@ -439,17 +412,14 @@ namespace StateObserver
 			setne al
 			cmp ebp, edi
 
-			jmp dword ptr [heatLevelObserverExit]
+			EXIT_ASSEMBLY_DETOUR(HeatLevelObserver)
 		}
 	}
 
 
 
-	constexpr address playerConstructorEntrance = 0x43F005;
-	constexpr address playerConstructorExit     = 0x43F00F;
-
 	// Stores the player's AIPerpVehicle
-	__declspec(naked) void PlayerConstructor()
+	ASSEMBLY_DETOUR(PlayerConstructor, 0x43F005, 0x43F00F)
 	{
 		static constexpr address FloatToInt = 0x7C4B80;
 
@@ -478,28 +448,25 @@ namespace StateObserver
 			pop ecx
 
 			conclusion:
-			jmp dword ptr [playerConstructorExit]
+			EXIT_ASSEMBLY_DETOUR(PlayerConstructor)
 		}
 	}
 
 
 
-	constexpr address resetAIVehiclePursuitEntrance = 0x416B7A;
-	constexpr address resetAIVehiclePursuitExit     = 0x416B80;
-
 	// Resets repurposed padding bytes of AIVehiclePursuit objects
-	__declspec(naked) void ResetAIVehiclePursuit()
+	ASSEMBLY_DETOUR(ResetAIVehiclePursuit, 0x416B7A, 0x416B80)
 	{
 		__asm
 		{
 			// Execute original code first
 			mov byte ptr [esi + 0x768], al
 
-			mov byte ptr [esi + 0x769], al // "HelicopterVision.h"
-			mov byte ptr [esi + 0x76A], al // "StateObserver.h"
-			mov byte ptr [esi + 0x76B], al // "CopSpawnOverrides.h"
+			mov byte ptr [esi + 0x769], al // used in "HelicopterVision.hpp"
+			mov byte ptr [esi + 0x76A], al // used in "StateObserver.hpp"
+			mov byte ptr [esi + 0x76B], al // used in "CopSpawnOverrides.hpp"
 
-			jmp dword ptr [resetAIVehiclePursuitExit]
+			EXIT_ASSEMBLY_DETOUR(ResetAIVehiclePursuit)
 		}
 	}
 
@@ -507,16 +474,15 @@ namespace StateObserver
 
 	
 
-	// Hooking functions ----------------------------------------------------------------------------------------------------------------------------
+	// Hook functions -------------------------------------------------------------------------------------------------------------------------------
 
-	address ProcessGameplayOriginal = 0x0;
+	HOOK_ORIGINAL(ProcessGameplay);
 
 	void __fastcall ProcessGameplay(const address simSystem)
 	{
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
-		// Call original function first (actually __thiscall with 0 arguments)
-		AsFunction<decltype(ProcessGameplay)>(ProcessGameplayOriginal)(simSystem);
+		CALL_HOOK_ORIGINAL(ProcessGameplay, simSystem); // actually __thiscall with 0 arguments
 
 		// Check update timestamp
 		const float timestamp = Globals::GetGameplayTime();
@@ -539,32 +505,30 @@ namespace StateObserver
 
 
 
-	address ProcessWorldLoadOriginal = 0x0;
+	HOOK_ORIGINAL(ProcessWorldLoad);
 
-	void ProcessWorldLoad()
+	void __cdecl ProcessWorldLoad()
 	{
 		// Apply hooked logic fist
 		forceNextGameplayUpdate = true;
 
 		PursuitObserver::NotifyOfHardEventReset();
 
-		// Call original function last
-		AsFunction<decltype(ProcessWorldLoad)>(ProcessWorldLoadOriginal)();
+		CALL_HOOK_ORIGINAL(ProcessWorldLoad);
 	}
 
 
 
-	address ProcessEventRestartOriginal = 0x0;
+	HOOK_ORIGINAL(ProcessEventRestart);
 
-	void ProcessEventRestart()
+	void __cdecl ProcessEventRestart()
 	{
 		// Apply hooked logic fist
 		forceNextGameplayUpdate = true;
 		
 		PursuitObserver::NotifyOfSoftEventReset();
 
-		// Call original function last
-		AsFunction<decltype(ProcessEventRestart)>(ProcessEventRestartOriginal)();
+		CALL_HOOK_ORIGINAL(ProcessEventRestart);
 	}
 
 
@@ -578,21 +542,21 @@ namespace StateObserver
 		// Code modifications 
 		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first perp-damage check
 
-		MemoryTools::MakeRangeJMP<gameTicksEntrance,             gameTicksExit>            (GameTicks);
-		MemoryTools::MakeRangeJMP<copDestroyedEntrance,          copDestroyedExit>         (CopDestroyed);
-		MemoryTools::MakeRangeJMP<perpCollisionEntrance,         perpCollisionExit>        (PerpCollision);
-		MemoryTools::MakeRangeJMP<heatEqualiserEntrance,         heatEqualiserExit>        (HeatEqualiser);
-		MemoryTools::MakeRangeJMP<resetAIVehicleEntrance,        resetAIVehicleExit>       (ResetAIVehicle);
-		MemoryTools::MakeRangeJMP<collisionResultEntrance,       collisionResultExit>      (CollisionResult);
-		MemoryTools::MakeRangeJMP<gameStateUpdateEntrance,       gameStateUpdateExit>      (GameStateUpdate);
-		MemoryTools::MakeRangeJMP<playerDestructorEntrance,      playerDestructorExit>     (PlayerDestructor);
-		MemoryTools::MakeRangeJMP<heatLevelObserverEntrance,     heatLevelObserverExit>    (HeatLevelObserver);
-		MemoryTools::MakeRangeJMP<playerConstructorEntrance,     playerConstructorExit>    (PlayerConstructor);
-		MemoryTools::MakeRangeJMP<resetAIVehiclePursuitEntrance, resetAIVehiclePursuitExit>(ResetAIVehiclePursuit);
+		PATCH_ASSEMBLY_DETOUR(GameTicks);
+		PATCH_ASSEMBLY_DETOUR(CopDestroyed);
+		PATCH_ASSEMBLY_DETOUR(PerpCollision);
+		PATCH_ASSEMBLY_DETOUR(HeatEqualiser);
+		PATCH_ASSEMBLY_DETOUR(ResetAIVehicle);
+		PATCH_ASSEMBLY_DETOUR(CollisionResult);
+		PATCH_ASSEMBLY_DETOUR(GameStateUpdate);
+		PATCH_ASSEMBLY_DETOUR(PlayerDestructor);
+		PATCH_ASSEMBLY_DETOUR(HeatLevelObserver);
+		PATCH_ASSEMBLY_DETOUR(PlayerConstructor);
+		PATCH_ASSEMBLY_DETOUR(ResetAIVehiclePursuit);
 
-		ProcessGameplayOriginal     = MemoryTools::ReplaceCall(0x6F6EE6, ProcessGameplay);     // SimSystem::UpdateFrame (0x6F6CF0)
-		ProcessWorldLoadOriginal    = MemoryTools::ReplaceCall(0x662ADC, ProcessWorldLoad);    // nullsub_174            (0x6C39C0)
-		ProcessEventRestartOriginal = MemoryTools::ReplaceCall(0x63090B, ProcessEventRestart); // World_RestoreProps     (0x74D320)
+		PATCH_HOOK_FUNCTION(ProcessGameplay,     0x6F6EE6); // SimSystem::UpdateFrame (0x6F6CF0)
+		PATCH_HOOK_FUNCTION(ProcessWorldLoad,    0x662ADC); // nullsub_174            (0x6C39C0)
+		PATCH_HOOK_FUNCTION(ProcessEventRestart, 0x63090B); // World_RestoreProps     (0x74D320)
 		
 		// Status flag
 		anyFeatureEnabled = true;

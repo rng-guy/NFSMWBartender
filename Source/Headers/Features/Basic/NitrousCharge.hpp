@@ -25,7 +25,7 @@ namespace NitrousCharge
 	// Parameter sets
 	RELEASE_CONSTINIT ParameterSets::CopInteractions nitrousInteractions; // seconds
 
-	// Code caves
+	// Assembly detours
 	float pendingCollisionNitrousChange = 0.f;
 
 
@@ -122,13 +122,10 @@ namespace NitrousCharge
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address passiveRechargeEntrance = 0x6929A4;
-	constexpr address passiveRechargeExit     = 0x6929A9;
-
-	// Toggles passive nitrous recharging
-	__declspec(naked) void PassiveRecharge()
+	// Toggles the passive recharging of nitrous for racers
+	ASSEMBLY_DETOUR(PassiveRecharge, /* begin = */ 0x6929A4, /* end = */ 0x6929A9)
 	{
 		__asm
 		{
@@ -141,7 +138,7 @@ namespace NitrousCharge
 			cmp al, 1
 
 			conclusion:
-			jmp dword ptr [passiveRechargeExit]
+			EXIT_ASSEMBLY_DETOUR(PassiveRecharge)
 		}
 	}
 
@@ -165,7 +162,7 @@ namespace NitrousCharge
 		nitrousInteractions.Extract(parser, "Nitrous");
 
 		// Code changes
-		MemoryTools::MakeRangeJMP<passiveRechargeEntrance, passiveRechargeExit>(PassiveRecharge);
+		PATCH_ASSEMBLY_DETOUR(PassiveRecharge);
 
 		// Status flag
 		anyFeatureEnabled = true;

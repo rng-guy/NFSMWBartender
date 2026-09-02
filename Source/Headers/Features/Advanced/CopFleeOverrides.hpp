@@ -585,13 +585,9 @@ namespace CopFleeOverrides
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address goalUpdateEntrance = 0x443917;
-	constexpr address goalUpdateExit     = 0x44391C;
-
-	// Prevents formations from overriding flee goals
-	__declspec(naked) void GoalUpdate()
+	ASSEMBLY_DETOUR(GoalUpdate, /* begin = */ 0x443917, /* end = */ 0x44391C) // prevents formations from overriding flee goals
 	{
 		using enum VaultHash;
 
@@ -604,7 +600,7 @@ namespace CopFleeOverrides
 			cmp dword ptr [edi - 0x758 + 0xC4], AIGOALFLEEPURSUIT
 
 			conclusion:
-			jmp dword ptr [goalUpdateExit]
+			EXIT_ASSEMBLY_DETOUR(GoalUpdate)
 		}
 	}
 
@@ -656,7 +652,7 @@ namespace CopFleeOverrides
 		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Code modifications 
-		MemoryTools::MakeRangeJMP<goalUpdateEntrance, goalUpdateExit>(GoalUpdate);
+		PATCH_ASSEMBLY_DETOUR(GoalUpdate);
 
 		// Status flag
 		anyFeatureEnabled = true;

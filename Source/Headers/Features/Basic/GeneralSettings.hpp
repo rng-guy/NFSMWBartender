@@ -128,36 +128,31 @@ namespace GeneralSettings
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address copComboEntrance = 0x418FBA;
-	constexpr address copComboExit     = 0x418FD2;
-
-	// Updates the combo-bounty counter
-	__declspec(naked) void CopCombo()
+	// Updates the combo-bounty counter and enforces its limits
+	ASSEMBLY_DETOUR(CopCombo, /* begin = */ 0x418FBA, /* end = */ 0x418FD2)
 	{
 		__asm
 		{
-			mov ecx, dword ptr [maxBountyMultiplier.current]
 			mov eax, dword ptr [esi + 0xF0] // combo count
+			mov ecx, dword ptr [maxBountyMultiplier.current]
 
 			inc eax
+
 			cmp eax, ecx
 			cmovl ecx, eax // count below maximum
 
 			mov dword ptr [esi + 0xF0], ecx
 
-			jmp dword ptr [copComboExit]
+			EXIT_ASSEMBLY_DETOUR(CopCombo)
 		}
 	}
 
 
 
-	constexpr address heatUpdateEntrance = 0x443DFD;
-	constexpr address heatUpdateExit     = 0x443E16;
-
 	// Forces unconditional bounty-gain updates after races
-	__declspec(naked) void HeatUpdate()
+	ASSEMBLY_DETOUR(HeatUpdate, 0x443DFD, 0x443E16)
 	{
 		__asm
 		{
@@ -170,55 +165,49 @@ namespace GeneralSettings
 			mov byte ptr [esi + 0x254], dl   // Cross priority flag
 
 			conclusion:
-			jmp dword ptr [heatUpdateExit]
+			EXIT_ASSEMBLY_DETOUR(HeatUpdate)
 		}
 	}
 
 
 
-	constexpr address copFlippingEntrance = 0x6B19AE;
-	constexpr address copFlippingExit     = 0x6B19CA;
-
 	// Checks whether flipped cop vehicles should be destroyed
-	__declspec(naked) void CopFlipping()
+	ASSEMBLY_DETOUR(CopFlipping, 0x6B19AE, 0x6B19CA)
 	{
-		static constexpr address copFlippingSkip = 0x6B1A0D;
+		static constexpr address disabledExit = 0x6B1A0D;
 
 		__asm
 		{
 			cmp byte ptr [copFlipByTimer.isEnabled.current], 1
-			jne damaged // time check disabled
+			jne damage // time check disabled
 
 			fld dword ptr [esi + 0xB8] // time spent flipped
 			fcomp dword ptr [copFlipByTimer.value.current]
 			fnstsw ax
 			test ah, 0x41
-			jne damaged                // delay has yet to expire
+			jne damage                 // delay has yet to expire
 
 			mov eax, dword ptr [esi + 0x4C]
 			lea ecx, dword ptr [esi + 0x4C]
 			call dword ptr [eax + 0x1C] // DamageVehicle::Destroy
-			jmp conclusion              // cop was destroyed
+			jmp conclusion              // cop now destroyed
 
-			damaged:
+			damage:
 			cmp byte ptr [copFlipByDamageEnabled.current], 1
-			jne skip // damage check disabled
+			jne disabled // damage check disabled
 
 			conclusion:
-			jmp dword ptr [copFlippingExit]
+			EXIT_ASSEMBLY_DETOUR(CopFlipping)
 
-			skip:
-			jmp dword ptr [copFlippingSkip]
+			disabled:
+			jmp dword ptr [disabledExit]
 		}
 	}
 
 
 
-	constexpr address arrestSceneEntrance = 0x44D7A9;
-	constexpr address arrestSceneExit     = 0x44D967;
-
 	// Selects a random arrest scene
-	__declspec(naked) void ArrestScene()
+	ASSEMBLY_DETOUR(ArrestScene, 0x44D7A9, 0x44D967)
 	{
 		__asm
 		{
@@ -230,17 +219,14 @@ namespace GeneralSettings
 			call GetRandomArrestScene // ecx: heatLevel
 			push eax
 
-			jmp dword ptr [arrestSceneExit]
+			EXIT_ASSEMBLY_DETOUR(ArrestScene)
 		}
 	}
 
 
 
-	constexpr address rivalPursuitEntrance = 0x426C9C;
-	constexpr address rivalPursuitExit     = 0x426CA4;
-
 	// Decides whether cops can start non-player pursuits
-	__declspec(naked) void RivalPursuit()
+	ASSEMBLY_DETOUR(RivalPursuit, 0x426C9C, 0x426CA4)
 	{
 		__asm
 		{
@@ -252,17 +238,14 @@ namespace GeneralSettings
 			test ecx, ecx
 
 			conclusion:
-			jmp dword ptr [rivalPursuitExit]
+			EXIT_ASSEMBLY_DETOUR(RivalPursuit)
 		}
 	}
 
 
 
-	constexpr address racerFlippingEntrance = 0x6A45A3;
-	constexpr address racerFlippingExit     = 0x6A45B1;
-
 	// Checks whether flipped racers should be reset
-	__declspec(naked) void RacerFlipping()
+	ASSEMBLY_DETOUR(RacerFlipping, 0x6A45A3, 0x6A45B1)
 	{
 		__asm
 		{
@@ -275,17 +258,14 @@ namespace GeneralSettings
 			test ah, 0x41
 
 			conclusion:
-			jmp dword ptr [racerFlippingExit]
+			EXIT_ASSEMBLY_DETOUR(RacerFlipping)
 		}
 	}
 
 
 
-	constexpr address passiveBountyEntrance = 0x44452F;
-	constexpr address passiveBountyExit     = 0x444542;
-
 	// Checks whether passive bounty is due
-	__declspec(naked) void PassiveBounty()
+	ASSEMBLY_DETOUR(PassiveBounty, 0x44452F, 0x444542)
 	{
 		__asm
 		{
@@ -300,17 +280,14 @@ namespace GeneralSettings
 			call dword ptr [edx + 0x3C] // AIPerpVehicle::AddToPendingRepPointsNormal
 
 			conclusion:
-			jmp dword ptr [passiveBountyExit]
+			EXIT_ASSEMBLY_DETOUR(PassiveBounty)
 		}
 	}
 
 
 
-	constexpr address maxBustDistanceEntrance = 0x444483;
-	constexpr address maxBustDistanceExit     = 0x44448B;
-
 	// Decides at which distance from cops racers can be busted
-	__declspec(naked) void MaxBustDistance()
+	ASSEMBLY_DETOUR(MaxBustDistance, 0x444483, 0x44448B)
 	{
 		__asm
 		{
@@ -327,17 +304,14 @@ namespace GeneralSettings
 			conclusion:
 			test bl, bl
 
-			jmp dword ptr [maxBustDistanceExit]
+			EXIT_ASSEMBLY_DETOUR(MaxBustDistance)
 		}
 	}
 	
 
 
-	constexpr address heatEscalationEntrance = 0x443D93;
-	constexpr address heatEscalationExit     = 0x443D9B;
-
 	// Corrects the VltEd array index based on Blacklist progress
-	__declspec(naked) void HeatEscalation()
+	ASSEMBLY_DETOUR(HeatEscalation, 0x443D93, 0x443D9B)
 	{
 		__asm
 		{
@@ -346,17 +320,14 @@ namespace GeneralSettings
 			dec eax
 			cmovl eax, edx // Blacklist index negative
 
-			jmp dword ptr [heatEscalationExit]
+			EXIT_ASSEMBLY_DETOUR(HeatEscalation)
 		}
 	}
 
 
 
-	constexpr address destructionBountyEntrance = 0x418F5B;
-	constexpr address destructionBountyExit     = 0x418F61;
-
 	// Corrects the VltEd array index based on Heat level
-	__declspec(naked) void DestructionBounty()
+	ASSEMBLY_DETOUR(DestructionBounty, 0x418F5B, 0x418F61)
 	{
 		__asm
 		{
@@ -367,34 +338,28 @@ namespace GeneralSettings
 			dec edi
 			cmovl edi, ecx // Heat index negative
 
-			jmp dword ptr [destructionBountyExit]
+			EXIT_ASSEMBLY_DETOUR(DestructionBounty)
 		}
 	}
 
 
 
-	constexpr address hiddenFromCarsEntrance = 0x416571;
-	constexpr address hiddenFromCarsExit     = 0x41657A;
-
 	// Decides whether racers are invisible to cop cars
-	__declspec(naked) void HiddenFromCars()
+	ASSEMBLY_DETOUR(HiddenFromCars, 0x416571, 0x41657A)
 	{
 		__asm
 		{
 			mov al, byte ptr [carsAffectedByHiding.current]
 			test al, byte ptr [edi + 0x2C] // hidden from cars
 
-			jmp dword ptr [hiddenFromCarsExit]
+			EXIT_ASSEMBLY_DETOUR(HiddenFromCars)
 		}
 	}
 
 
 
-	constexpr address pursuitBreakerCheckEntrance = 0x42E963;
-	constexpr address pursuitBreakerCheckExit     = 0x42E96C;
-
 	// Decides whether cops are affected by any active pursuit breakers
-	__declspec(naked) void PursuitBreakerCheck()
+	ASSEMBLY_DETOUR(PursuitBreakerCheck, 0x42E963, 0x42E96C)
 	{
 		__asm
 		{
@@ -413,41 +378,35 @@ namespace GeneralSettings
 			test al, al
 
 			conclusion:
-			jmp dword ptr [pursuitBreakerCheckExit]
+			EXIT_ASSEMBLY_DETOUR(PursuitBreakerCheck)
 		}
 	}
 
 
 
-	constexpr address hiddenFromRoadblocksEntrance = 0x444329;
-	constexpr address hiddenFromRoadblocksExit     = 0x444333;
-
 	// Decides whether racers are invisible to roadblocks
-	__declspec(naked) void HiddenFromRoadblocks()
+	ASSEMBLY_DETOUR(HiddenFromRoadblocks, 0x444329, 0x444333)
 	{
 		__asm
 		{
 			mov al, byte ptr [carsAffectedByHiding.current]
 			test al, byte ptr [ebp + 0x2C] // hidden from cars
 
-			jmp dword ptr [hiddenFromRoadblocksExit]
+			EXIT_ASSEMBLY_DETOUR(HiddenFromRoadblocks)
 		}
 	}
 
 
 
-	constexpr address hiddenFromHelicoptersEntrance = 0x417103;
-	constexpr address hiddenFromHelicoptersExit     = 0x41710C;
-
 	// Decides whether racers are invisible to helicopters
-	__declspec(naked) void HiddenFromHelicopters()
+	ASSEMBLY_DETOUR(HiddenFromHelicopters, 0x417103, 0x41710C)
 	{
 		__asm
 		{
 			mov al, byte ptr [helisAffectedByHiding.current]
 			test al, byte ptr [esi + 0x2D] // hidden from helicopters
 
-			jmp dword ptr [hiddenFromHelicoptersExit]
+			EXIT_ASSEMBLY_DETOUR(HiddenFromHelicopters)
 		}
 	}
 
@@ -541,18 +500,18 @@ namespace GeneralSettings
 
 	void ApplyFixes()
 	{
-		// Fixes update for passive bounty amount after race pursuits
-		MemoryTools::MakeRangeJMP<heatUpdateEntrance, heatUpdateExit>(HeatUpdate);
+		// Missing passive-bounty update after races
+		PATCH_ASSEMBLY_DETOUR(HeatUpdate);
 
-		// Fixes broken scene-selection logic for arrests
-		MemoryTools::MakeRangeJMP<arrestSceneEntrance, arrestSceneExit>(ArrestScene);
+		// Broken scene-selection logic for arrests
+		PATCH_ASSEMBLY_DETOUR(ArrestScene);
 
-		// Also fixes getting (hidden) BUSTED progress while the green EVADE bar fills
-		MemoryTools::MakeRangeJMP<maxBustDistanceEntrance, maxBustDistanceExit>(MaxBustDistance);
+		// BUSTED progress while EVADE bar fills
+		PATCH_ASSEMBLY_DETOUR(MaxBustDistance);
 
-		// Fixes incorrect array values read from VltEd
-		MemoryTools::MakeRangeJMP<heatEscalationEntrance,    heatEscalationExit>   (HeatEscalation);
-		MemoryTools::MakeRangeJMP<destructionBountyEntrance, destructionBountyExit>(DestructionBounty);
+		// Incorrect array values read from database
+		PATCH_ASSEMBLY_DETOUR(HeatEscalation);
+		PATCH_ASSEMBLY_DETOUR(DestructionBounty);
 	}
 
 
@@ -593,7 +552,7 @@ namespace GeneralSettings
 		if (ExtractIsBreakerImmunes(parser))
 		{
 			// Code modifications (conditional)
-			MemoryTools::MakeRangeJMP<pursuitBreakerCheckEntrance, pursuitBreakerCheckExit>(PursuitBreakerCheck);
+			PATCH_ASSEMBLY_DETOUR(PursuitBreakerCheck);
 		}
 
 		// Code modifications (general)
@@ -607,14 +566,14 @@ namespace GeneralSettings
 		MemoryTools::Write<float*>(&halfEvadeRate,        {0x444A3A});
 		MemoryTools::Write<float*>(&(evadeTimer.current), {0x4448E6, 0x444802, 0x4338F8});
 
-		MemoryTools::MakeRangeJMP<copComboEntrance,              copComboExit>             (CopCombo);
-		MemoryTools::MakeRangeJMP<copFlippingEntrance,           copFlippingExit>          (CopFlipping);
-		MemoryTools::MakeRangeJMP<rivalPursuitEntrance,          rivalPursuitExit>         (RivalPursuit);
-		MemoryTools::MakeRangeJMP<racerFlippingEntrance,         racerFlippingExit>        (RacerFlipping);
-		MemoryTools::MakeRangeJMP<passiveBountyEntrance,         passiveBountyExit>        (PassiveBounty);
-		MemoryTools::MakeRangeJMP<hiddenFromCarsEntrance,        hiddenFromCarsExit>       (HiddenFromCars);
-		MemoryTools::MakeRangeJMP<hiddenFromRoadblocksEntrance,  hiddenFromRoadblocksExit> (HiddenFromRoadblocks);
-		MemoryTools::MakeRangeJMP<hiddenFromHelicoptersEntrance, hiddenFromHelicoptersExit>(HiddenFromHelicopters);
+		PATCH_ASSEMBLY_DETOUR(CopCombo);
+		PATCH_ASSEMBLY_DETOUR(CopFlipping);
+		PATCH_ASSEMBLY_DETOUR(RivalPursuit);
+		PATCH_ASSEMBLY_DETOUR(RacerFlipping);
+		PATCH_ASSEMBLY_DETOUR(PassiveBounty);
+		PATCH_ASSEMBLY_DETOUR(HiddenFromCars);
+		PATCH_ASSEMBLY_DETOUR(HiddenFromRoadblocks);
+		PATCH_ASSEMBLY_DETOUR(HiddenFromHelicopters);
 
 		// Status flag
 		anyFeatureEnabled = true;

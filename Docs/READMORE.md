@@ -279,14 +279,6 @@ Regarding **ground support** ([`BartenderSettings\Basic\Support.ini`](../Config/
 
 * The `MinimumSupportDelay` VltEd parameter defines how much time needs to pass before the game can make non-Strategy roadblock and Strategy requests in a given pursuit.
 
-* Time-based joining from roadblocks happens only at Heat levels for which you define valid time values, and has no bearing on other methods through which roadblock cops may join. Only the time spent near a roadblock counts towards the trigger for this joining method.
-
-* Both the definition of when the pursuit target is "near" a roadblock and how many cops join per roadblock apply to all methods through which roadblock cops can join pursuits.
-
-* Roadblocks can react to the pursuit target entering "COOLDOWN" mode and / or spike-strip hits. In case of the former, some cops join the pursuit immediately; in the latter, all of them do.
-
-* Roadblock cops are affected by the global cop-spawn limit: they may only join a pursuit if the total number of all non-roadblock cops is below this global limit. If you enable independent "Chasers" spawns in the "Advanced" feature set, then this limit no longer takes roadblock, Strategy, and cops of other pursuits altogether into account.
-
 * To ensure HeavyStrategy 3 vehicles can actually reach the maximum speeds you define, you also need to adjust the `MAXIMUM_AI_SPEED` and `AccelerationMultiplier` parameters of their `aivehicle` VltEd nodes. At higher speeds, the ramming AI tends to steer worse.
 
 * All vehicles you define as replacements for HeavyStrategy 3 / 4 spawns should only be used for HeavyStrategy 3 / 4, and all vehicles you define as replacements for LeaderStrategy 5 / 7 spawns should only be used for LeaderStrategy 5 / 7. This is because the game may lose track of how many cops it has currently loaded in memory whenever it tries to recycle a Strategy cop as a regular cop (and vice versa). If, for example, you also want to use `copmidsize` as a HeavyStrategy 3 vehicle, then make a copy of its `pvehicle` VltEd node with a different name and use that one for HeavyStrategy 3 instead.
@@ -367,7 +359,7 @@ Regarding **car (de)spawning** ([`BartenderSettings\Advanced\CarSpawns.ini`](../
 
 * In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the minimum count.
 
-* The global cop-spawn limit determines whether the game can spawn more "Chasers" at any point. The game can spawn additional "Chasers" as long as the total amount of non-helicopter cops that currently exist across all pursuits is below this global limit. This also means that any active Strategy spawns, roadblocks, or NPC pursuits in general can affect how many more "Chasers" can still spawn in your pursuit (this is vanilla behaviour).
+* The global cop-spawn limit determines whether the game can spawn more "Chasers" at any point, but has no effect on roadblock or Strategy spawns whatsoever. The game can spawn additional "Chasers" as long as the total amount of non-roadblock cops that currently exist across all pursuits is below this global limit. This also means that any active Strategy spawns or NPC pursuits in general can affect how many more "Chasers" can still spawn in your own pursuit. The vanilla game actually counts roadblock cops as well; Bartender doesn't, as the vanilla game is perfectly content to request and spawn roadblocks while the number of non-roadblock cops is already at the global limit, meaning roadblocks shouldn't actually matter at all.
 
 * The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
 
@@ -464,6 +456,16 @@ Regarding **strategy requests** ([`BartenderSettings\Advanced\Strategies.ini`](.
 &nbsp;
 
 Regarding **roadblock behaviour and setups** ([`BartenderSettings\Advanced\Roadblocks.ini`](../Config/Advanced/Roadblocks.ini)):
+
+* Time-based joining from roadblocks happens only at Heat levels for which you define valid time values, and has no bearing on other methods through which roadblock cops may join. Only the time spent near a roadblock counts towards the trigger for this joining method.
+
+* Both the definition of when the pursuit target is "near" a roadblock and how many cops join per roadblock apply to all methods through which roadblock cops can join pursuits.
+
+* Per-roadblock joining is limited only at Heat levels for which you define valid count values.
+
+* Roadblocks can react to the pursuit target entering "COOLDOWN" mode and / or spike-strip hits. In case of the former, some cops join the pursuit immediately; in the latter, all of them do.
+
+* Joining from roadblocks is affected by the global cop-spawn limit: they may only join if the total number of all non-roadblock cops is below this global limit. If you enable independent "Chasers" spawns, then this limit no longer affects joining from roadblocks.
 
 * The number of active cops that joined from roadblocks is limited only at Heat levels for which you define a valid limit value. These limits apply to each pursuit separately. If you also make "Chasers" spawns independent, then the global cop-spawn limit no longer applies to cops that join from roadblocks, too; they can always join unless you define a limit.
 

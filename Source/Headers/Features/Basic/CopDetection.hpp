@@ -94,7 +94,7 @@ namespace CopDetection
 	// Vehicle maps
 	RELEASE_CONSTINIT VEHICLE_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true});
 
-	// Code caves
+	// Assembly detours
 	constinit ColourTracker miniMapCops (Globals::GetGameplayTime);
 	constinit ColourTracker worldMapCops(Globals::GetNonGameplayTime);
 
@@ -160,13 +160,10 @@ namespace CopDetection
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address worldMapUpdateEntrance = 0x55B770;
-	constexpr address worldMapUpdateExit     = 0x55B776;
-
-	// Makes cop icons on the world map flash at a consistent pace
-	__declspec(naked) void WorldMapUpdate()
+	// Makes cop icons on the world map flash independently of frame rate
+	ASSEMBLY_DETOUR(WorldMapUpdate, /* begin = */ 0x55B770, /* end = */ 0x55B776)
 	{
 		__asm
 		{
@@ -177,19 +174,16 @@ namespace CopDetection
 			// Execute original code and resume
 			mov edi, dword ptr [esi + 0x154]
 
-			jmp dword ptr [worldMapUpdateExit]
+			EXIT_ASSEMBLY_DETOUR(WorldMapUpdate)
 		}
 	}
 
 
 
-	constexpr address copVehicleIconEntrance = 0x579EDF;
-	constexpr address copVehicleIconExit     = 0x579EE5;
-
 	// Decides which cop vehicle gets a mini-map icon
-	__declspec(naked) void CopVehicleIcon()
+	ASSEMBLY_DETOUR(CopVehicleIcon, 0x579EDF, 0x579EE5)
 	{
-		static constexpr address copVehicleIconSkip = 0x57A09F;
+		static constexpr address skipExit = 0x57A09F;
 
 		using enum VaultHash;
 
@@ -213,20 +207,17 @@ namespace CopDetection
 			jge skip                      // at icon cap
 
 			conclusion:
-			jmp dword ptr [copVehicleIconExit]
+			EXIT_ASSEMBLY_DETOUR(CopVehicleIcon)
 
 			skip:
-			jmp dword ptr [copVehicleIconSkip]
+			jmp dword ptr [skipExit]
 		}
 	}
 
 
 
-	constexpr address copVehicleRadarEntrance = 0x6EE206;
-	constexpr address copVehicleRadarExit     = 0x6EE20C;
-
 	// Sets the cop radar's detection range for cop vehicles
-	__declspec(naked) void CopVehicleRadar()
+	ASSEMBLY_DETOUR(CopVehicleRadar, 0x6EE206, 0x6EE20C)
 	{
 		__asm
 		{
@@ -235,17 +226,14 @@ namespace CopDetection
 			fxch st(1)
 			fcompp
 
-			jmp dword ptr [copVehicleRadarExit]
+			EXIT_ASSEMBLY_DETOUR(CopVehicleRadar)
 		}
 	}
 
 
 
-	constexpr address destructionCheckEntrance = 0x57A034;
-	constexpr address destructionCheckExit     = 0x57A03D;
-
 	// Ensures destroyed roadblock vehicles get white mini-map icons
-	__declspec(naked) void DestructionCheck()
+	ASSEMBLY_DETOUR(DestructionCheck, 0x57A034, 0x57A03D)
 	{
 		__asm
 		{
@@ -258,17 +246,14 @@ namespace CopDetection
 			cmp al, 1
 
 			conclusion:
-			jmp dword ptr [destructionCheckExit]
+			EXIT_ASSEMBLY_DETOUR(DestructionCheck)
 		}
 	}
 
 
 
-	constexpr address miniMapCopColoursEntrance = 0x579E16;
-	constexpr address miniMapCopColoursExit     = 0x579E1C;
-
 	// Makes cop icons on the mini-map flash at a consistent pace
-	__declspec(naked) void MiniMapCopColours()
+	ASSEMBLY_DETOUR(MiniMapCopColours, 0x579E16, 0x579E1C)
 	{
 		__asm
 		{
@@ -286,17 +271,14 @@ namespace CopDetection
 			conclusion:
 			cmp ecx, 8 + 1 // colour ticks
 
-			jmp dword ptr [miniMapCopColoursExit]
+			EXIT_ASSEMBLY_DETOUR(MiniMapCopColours)
 		}
 	}
 
 
 
-	constexpr address worldMapCopColoursEntrance = 0x51F70C;
-	constexpr address worldMapcopColoursExit     = 0x51F712;
-
 	// Makes cop icons on the world map flash at a consistent pace
-	__declspec(naked) void WorldMapCopColours()
+	ASSEMBLY_DETOUR(WorldMapCopColours, 0x51F70C, 0x51F712)
 	{
 		__asm
 		{
@@ -310,17 +292,14 @@ namespace CopDetection
 			conclusion:
 			mov eax, ecx
 
-			jmp dword ptr [worldMapcopColoursExit]
+			EXIT_ASSEMBLY_DETOUR(WorldMapCopColours)
 		}
 	}
 
 
 
-	constexpr address miniMapConstructorEntrance = 0x59DA9B;
-	constexpr address miniMapConstructorExit     = 0x59DAA0;
-
 	// Prepares the cop-icon state when a new mini-map is created
-	__declspec(naked) void MiniMapConstructor()
+	ASSEMBLY_DETOUR(MiniMapConstructor, 0x59DA9B, 0x59DAA0)
 	{
 		__asm
 		{
@@ -331,17 +310,14 @@ namespace CopDetection
 			mov ecx, dword ptr [esp + 0x1C]
 			pop edi
 
-			jmp dword ptr [miniMapConstructorExit]
+			EXIT_ASSEMBLY_DETOUR(MiniMapConstructor)
 		}
 	}
 
 
 
-	constexpr address worldMapConstructorEntrance = 0x5614FF;
-	constexpr address worldMapConstructorExit     = 0x561505;
-
 	// Prepares the cop-icon state when a new world map is created
-	__declspec(naked) void WorldMapConstructor()
+	ASSEMBLY_DETOUR(WorldMapConstructor, 0x5614FF, 0x561505)
 	{
 		__asm
 		{
@@ -355,7 +331,7 @@ namespace CopDetection
 			// Execute original code and resume
 			mov dword ptr [esi + 0x124], eax
 
-			jmp dword ptr [worldMapConstructorExit]
+			EXIT_ASSEMBLY_DETOUR(WorldMapConstructor)
 		}
 	}
 
@@ -426,18 +402,18 @@ namespace CopDetection
 
 	void ApplyFixes()
 	{
-		// These also fix the disappearing helicopter icon
+		// Disappearing helicopter icon (and some features)
 		MemoryTools::MakeRangeNOP<0x579EA2, 0x579EAB>(); // early icon-counter check
 
-		MemoryTools::MakeRangeJMP<copVehicleIconEntrance,   copVehicleIconExit>  (CopVehicleIcon);
-		MemoryTools::MakeRangeJMP<destructionCheckEntrance, destructionCheckExit>(DestructionCheck);
+		PATCH_ASSEMBLY_DETOUR(CopVehicleIcon);
+		PATCH_ASSEMBLY_DETOUR(DestructionCheck);
 
-		// Fixes update frequency for cop-icon colours
-		MemoryTools::MakeRangeJMP<worldMapUpdateEntrance,      worldMapUpdateExit>     (WorldMapUpdate);
-		MemoryTools::MakeRangeJMP<miniMapCopColoursEntrance,   miniMapCopColoursExit>  (MiniMapCopColours);
-		MemoryTools::MakeRangeJMP<worldMapCopColoursEntrance,  worldMapcopColoursExit> (WorldMapCopColours);
-		MemoryTools::MakeRangeJMP<miniMapConstructorEntrance,  miniMapConstructorExit> (MiniMapConstructor);
-		MemoryTools::MakeRangeJMP<worldMapConstructorEntrance, worldMapConstructorExit>(WorldMapConstructor);
+		// Update frequency for cop-icon colours
+		PATCH_ASSEMBLY_DETOUR(WorldMapUpdate);
+		PATCH_ASSEMBLY_DETOUR(MiniMapCopColours);
+		PATCH_ASSEMBLY_DETOUR(WorldMapCopColours);
+		PATCH_ASSEMBLY_DETOUR(MiniMapConstructor);
+		PATCH_ASSEMBLY_DETOUR(WorldMapConstructor);
 	}
 
 
@@ -458,7 +434,7 @@ namespace CopDetection
 		MemoryTools::MakeRangeNOP<0x579EF0, 0x579F0E>(); // engagement-radius check
 		MemoryTools::MakeRangeNOP<0x579FCD, 0x579FFD>(); // icon-flag checks
 
-		MemoryTools::MakeRangeJMP<copVehicleRadarEntrance, copVehicleRadarExit>(CopVehicleRadar);
+		PATCH_ASSEMBLY_DETOUR(CopVehicleRadar);
 
 		// Status flag
 		anyFeatureEnabled = true;

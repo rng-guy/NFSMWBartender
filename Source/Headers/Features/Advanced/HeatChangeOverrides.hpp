@@ -44,7 +44,7 @@ namespace HeatChangeOverrides
 	// Parameter sets
 	RELEASE_CONSTINIT ParameterSets::CopInteractions heatInteractions; // levels
 
-	// Code caves
+	// Assembly detours
 	size_t lastAnimatedHeatLevel = 0;
 	float  animationEndTimestamp = 0.f;
 
@@ -292,13 +292,10 @@ namespace HeatChangeOverrides
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address heatLimitsEntrance = 0x443171;
-	constexpr address heatLimitsExit     = 0x44317A;
-
-	// Ensures the Heat limits of pursuits are valid
-	__declspec(naked) void HeatLimits()
+	// Ensures the Heat limits of newly created pursuits are valid
+	ASSEMBLY_DETOUR(HeatLimits, /* begin = */ 0x443171, /* end = */ 0x44317A)
 	{
 		__asm
 		{
@@ -310,17 +307,14 @@ namespace HeatChangeOverrides
 			mov ecx, esi
 			mov dword ptr [esi + 0xE0], ebx
 			
-			jmp dword ptr [heatLimitsExit]
+			EXIT_ASSEMBLY_DETOUR(HeatLimits)
 		}
 	}
 
 
 
-	constexpr address passiveHeatEntrance = 0x443D4A;
-	constexpr address passiveHeatExit     = 0x443D50;
-
-	// Adds pending Heat changes from pursuit observers to racer Heat updates
-	__declspec(naked) void PassiveHeat()
+	// Adds pending Heat changes to racer-Heat updates
+	ASSEMBLY_DETOUR(PassiveHeat, 0x443D4A, 0x443D50)
 	{
 		__asm
 		{
@@ -335,17 +329,14 @@ namespace HeatChangeOverrides
 			cmp byte ptr [heatTimerEnabled.current], 0
 
 			conclusion:
-			jmp dword ptr [passiveHeatExit]
+			EXIT_ASSEMBLY_DETOUR(PassiveHeat)
 		}
 	}
 
 
 
-	constexpr address spikeCounterEntrance = 0x43E654;
-	constexpr address spikeCounterExit     = 0x43E663;
-
 	// Increments the "spikes deployed" counter correctly
-	__declspec(naked) void SpikeCounter()
+	ASSEMBLY_DETOUR(SpikeCounter, 0x43E654, 0x43E663)
 	{
 		__asm
 		{
@@ -357,17 +348,14 @@ namespace HeatChangeOverrides
 			inc dword ptr [edx + 0x17C]      // spike strips deployed
 
 			conclusion:
-			jmp dword ptr [spikeCounterExit]
+			EXIT_ASSEMBLY_DETOUR(SpikeCounter)
 		}
 	}
 
 
 
-	constexpr address supportCheckEntrance = 0x423FA2;
-	constexpr address supportCheckExit     = 0x423FF1;
-
 	// Checks for support cops to increment deployment counter
-	__declspec(naked) void SupportCheck()
+	ASSEMBLY_DETOUR(SupportCheck, 0x423FA2, 0x423FF1)
 	{
 		static constexpr address IsSupportVehicle = 0x419890;
 
@@ -382,17 +370,14 @@ namespace HeatChangeOverrides
 			call dword ptr [IsSupportVehicle]
 			cmp al, 1
 
-			jmp dword ptr [supportCheckExit]
+			EXIT_ASSEMBLY_DETOUR(SupportCheck)
 		}
 	}
 
 
 
-	constexpr address propertyDamageEntrance = 0x40945A;
-	constexpr address propertyDamageExit     = 0x409461;
-
 	// Notifies HeatManager of incurred property damage
-	__declspec(naked) void PropertyDamage()
+	ASSEMBLY_DETOUR(PropertyDamage, 0x40945A, 0x409461)
 	{
 		__asm
 		{
@@ -407,43 +392,37 @@ namespace HeatChangeOverrides
 			// Execute original code and resume
 			cmp dword ptr [edx + 0x1964], 2
 
-			jmp dword ptr [propertyDamageExit]
+			EXIT_ASSEMBLY_DETOUR(PropertyDamage)
 		}
 	}
 
 
 
-	constexpr address challengeScaleEntrance = 0x443D7B;
-	constexpr address challengeScaleExit     = 0x443D84;
-
 	// Adjusts the Heat-escalation scale in Challenge Series events
-	__declspec(naked) void ChallengeScale()
+	ASSEMBLY_DETOUR(ChallengeScale, 0x443D7B, 0x443D84)
 	{
-		static constexpr address IsChallengeEvent   = 0x404AC0;
-		static constexpr address challengeScaleSkip = 0x443DAD;
+		static constexpr address IsChallengeEvent = 0x404AC0;
+		static constexpr address challengeExit    = 0x443DAD;
 		
 		__asm
 		{
 			call dword ptr [IsChallengeEvent]
 			test al, al
-			je conclusion // not challenge event
+			jne challenge // is challenge event
 
-			mov eax, offset [challengeScale.current]
+			EXIT_ASSEMBLY_DETOUR(ChallengeScale)
 
-			jmp dword ptr [challengeScaleSkip]
+			challenge:
+			mov eax, offset challengeScale.current
 
-			conclusion:
-			jmp dword ptr [challengeScaleExit]
+			jmp dword ptr [challengeExit]
 		}
 	}
 
 
 
-	constexpr address heatMeterResetEntrance = 0x59CEDF;
-	constexpr address heatMeterResetExit     = 0x59CEE5;
-
 	// Prepares the meter state when a new Heat meter is created
-	__declspec(naked) void HeatMeterReset()
+	ASSEMBLY_DETOUR(HeatMeterReset, 0x59CEDF, 0x59CEE5)
 	{
 		__asm
 		{
@@ -455,24 +434,21 @@ namespace HeatChangeOverrides
 			mov dword ptr [lastAnimatedHeatLevel], ebx
 			mov dword ptr [animationEndTimestamp], ebx
 
-			jmp dword ptr [heatMeterResetExit]
+			EXIT_ASSEMBLY_DETOUR(HeatMeterReset)
 		}
 	}
 
 
 
-	constexpr address heatMeterUpdateEntrance = 0x56676D;
-	constexpr address heatMeterUpdateExit     = 0x5667C8;
-
 	// Manages the Heat-transition animation of the Heat meter
-	__declspec(naked) void HeatMeterUpdate()
+	ASSEMBLY_DETOUR(HeatMeterUpdate, 0x56676D, 0x5667C8)
 	{
 		__asm
 		{
 			mov ecx, esi
 			call UpdateHeatAnimation // ecx: heatMeter
 
-			jmp dword ptr [heatMeterUpdateExit]
+			EXIT_ASSEMBLY_DETOUR(HeatMeterUpdate)
 		}
 	}
 
@@ -530,14 +506,14 @@ namespace HeatChangeOverrides
 		// Code modifications (general)
 		MemoryTools::Write<byte>(0xEB, {0x44307F}); // Heat limits in Challenge Series events
 
-		MemoryTools::MakeRangeJMP<heatLimitsEntrance,      heatLimitsExit>     (HeatLimits);
-		MemoryTools::MakeRangeJMP<passiveHeatEntrance,     passiveHeatExit>    (PassiveHeat);
-		MemoryTools::MakeRangeJMP<spikeCounterEntrance,    spikeCounterExit>   (SpikeCounter);
-		MemoryTools::MakeRangeJMP<supportCheckEntrance,    supportCheckExit>   (SupportCheck);
-		MemoryTools::MakeRangeJMP<propertyDamageEntrance,  propertyDamageExit> (PropertyDamage);
-		MemoryTools::MakeRangeJMP<challengeScaleEntrance,  challengeScaleExit> (ChallengeScale);
-		MemoryTools::MakeRangeJMP<heatMeterResetEntrance,  heatMeterResetExit> (HeatMeterReset);
-		MemoryTools::MakeRangeJMP<heatMeterUpdateEntrance, heatMeterUpdateExit>(HeatMeterUpdate);
+		PATCH_ASSEMBLY_DETOUR(HeatLimits);
+		PATCH_ASSEMBLY_DETOUR(PassiveHeat);
+		PATCH_ASSEMBLY_DETOUR(SpikeCounter);
+		PATCH_ASSEMBLY_DETOUR(SupportCheck);
+		PATCH_ASSEMBLY_DETOUR(PropertyDamage);
+		PATCH_ASSEMBLY_DETOUR(ChallengeScale);
+		PATCH_ASSEMBLY_DETOUR(HeatMeterReset);
+		PATCH_ASSEMBLY_DETOUR(HeatMeterUpdate);
 
 		// Status flag
 		anyFeatureEnabled = true;

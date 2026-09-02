@@ -1,3 +1,16 @@
+#define MT_DETAILS_BEGIN(name)
+#define MT_DETAILS_END(name)
+#define MT_DETAILS_ADDRESS(variable, value)
+#define MT_DETAILS_RANGE(name, begin, end)
+#define ASSEMBLY_DETOUR(name, begin, end)
+#define EXIT_ASSEMBLY_DETOUR(name)
+#define PATCH_ASSEMBLY_DETOUR(name)
+
+#define MT_DETAILS_ORIGINAL(name)
+#define HOOK_ORIGINAL(name)
+#define CALL_HOOK_ORIGINAL(name, ...)
+#define PATCH_HOOK_FUNCTION(name, target)
+
 #define ASSERT_UNREACHABLE
 #define ASSERT_UNREACHABLE_THEN(expression)
 #define ASSERT_CONDITION_THEN_IF_FALSE(condition, expression)

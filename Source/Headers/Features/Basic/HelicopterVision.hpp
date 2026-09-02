@@ -39,7 +39,7 @@ namespace HelicopterVision
 		float transitionLength = .2f; // seconds
 	};
 
-	// Code caves
+	// Assembly detours
 	constinit Colour outOfSight;
 	constinit Colour withinSight;
 
@@ -111,13 +111,10 @@ namespace HelicopterVision
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address colourUpdateEntrance = 0x579FC6;
-	constexpr address colourUpdateExit     = 0x579FCB;
-
-	// Updates the helicopter's vision-cone colour and applies it on the mini-map
-	__declspec(naked) void ColourUpdate()
+	// Updates the helicopter's vision-cone colour and applies it to the icon
+	ASSEMBLY_DETOUR(ColourUpdate, /* begin = */ 0x579FC6, /* end = */ 0x579FCB)
 	{
 		__asm
 		{
@@ -153,17 +150,14 @@ namespace HelicopterVision
 			// Execute original code and resume
 			mov byte ptr [esp + 0x13], 1
 
-			jmp dword ptr [colourUpdateExit]
+			EXIT_ASSEMBLY_DETOUR(ColourUpdate)
 		}
 	}
 
 
 
-	constexpr address worldMapIconEntrance = 0x51F736;
-	constexpr address worldMapIconExit     = 0x51F73B;
-
 	// Applies the helicopter's vision-cone colour on the world map
-	__declspec(naked) void WorldMapIcon()
+	ASSEMBLY_DETOUR(WorldMapIcon, 0x51F736, 0x51F73B)
 	{
 		__asm
 		{
@@ -177,7 +171,7 @@ namespace HelicopterVision
 			xor eax, eax // restore zero flag
 
 			conclusion:
-			jmp dword ptr [worldMapIconExit]
+			EXIT_ASSEMBLY_DETOUR(WorldMapIcon)
 		}
 	}
 
@@ -257,8 +251,8 @@ namespace HelicopterVision
 
 	void ApplyFixes()
 	{
-		// Also fixes the helicopter cone icon staying visible if destroyed
-		MemoryTools::MakeRangeJMP<colourUpdateEntrance, colourUpdateExit>(ColourUpdate);
+		// Visible cone icon for destroyed helicopter
+		PATCH_ASSEMBLY_DETOUR(ColourUpdate); 
 	}
 
 
@@ -274,7 +268,7 @@ namespace HelicopterVision
 		if (not ExtractColours(parser)) return false; // invalid colours; disable feature
 
 		// Code modifications
-		MemoryTools::MakeRangeJMP<worldMapIconEntrance, worldMapIconExit>(WorldMapIcon);
+		PATCH_ASSEMBLY_DETOUR(WorldMapIcon);
 
 		// Status flag
 		anyFeatureEnabled = true;

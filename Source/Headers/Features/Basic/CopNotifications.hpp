@@ -32,13 +32,10 @@ namespace CopNotifications
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address notificationTextEntrance = 0x595B0D;
-	constexpr address notificationTextExit     = 0x595C41;
-
-	// Gets the notification text for destroyed cop vehicles
-	__declspec(naked) void NotificationText()
+	// Sets the notification text for destroyed cop vehicles
+	ASSEMBLY_DETOUR(NotificationText, /* begin = */ 0x595B0D, /* end = */ 0x595C41)
 	{
 		__asm
 		{
@@ -47,17 +44,14 @@ namespace CopNotifications
 			call ModContainers::VehicleMap<const char*>::GetValue
 			cmp byte ptr [eax], '\0'
 
-			jmp dword ptr [notificationTextExit]
+			EXIT_ASSEMBLY_DETOUR(NotificationText)
 		}
 	}
 
 
 
-	constexpr address notificationIconEntrance = 0x595C93;
-	constexpr address notificationIconExit     = 0x595CA0;
-
-	// Gets the notification icon for destroyed cop vehicles
-	__declspec(naked) void NotificationIcon()
+	// Sets the notification icon for destroyed cop vehicles
+	ASSEMBLY_DETOUR(NotificationIcon, 0x595C93, 0x595CA0)
 	{
 		__asm
 		{
@@ -65,7 +59,7 @@ namespace CopNotifications
 			mov ecx, offset copTypeToNotificationIcon
 			call ModContainers::VehicleMap<binary>::GetValue
 
-			jmp dword ptr [notificationIconExit]
+			EXIT_ASSEMBLY_DETOUR(NotificationIcon)
 		}
 	}
 
@@ -126,8 +120,8 @@ namespace CopNotifications
 		const bool textMapInitialised = ExtractNotificationTexts(parser);
 		const bool iconMapInitialised = ExtractNotificationIcons(parser);
 
-		if (textMapInitialised) MemoryTools::MakeRangeJMP<notificationTextEntrance, notificationTextExit>(NotificationText);
-		if (iconMapInitialised) MemoryTools::MakeRangeJMP<notificationIconEntrance, notificationIconExit>(NotificationIcon);
+		if (textMapInitialised) PATCH_ASSEMBLY_DETOUR(NotificationText);
+		if (iconMapInitialised) PATCH_ASSEMBLY_DETOUR(NotificationIcon);
 
 		return (textMapInitialised or iconMapInitialised);
 	}

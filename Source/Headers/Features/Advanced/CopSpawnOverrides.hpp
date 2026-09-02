@@ -304,7 +304,7 @@ namespace CopSpawnOverrides
 	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, roadblockJoinLimit, {0}); // cars
 
 	// Parameter conversions
-	float squaredChaserSpawnClearance; // metres²
+	float squaredChaserSpawnClearance; // metres squared
 
 	// Inline hashes for ASM
 	enum class VaultHash : vault
@@ -312,7 +312,7 @@ namespace CopSpawnOverrides
 		AIGOALPATROL = "AIGoalPatrol"_vlt
 	};
 
-	// Code caves
+	// Assembly detours
 	RELEASE_CONSTINIT COP_CONTINGENT(patrolSpawns,    CopSpawnTables::patrolSpawnTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(scriptedSpawns,  CopSpawnTables::scriptedSpawnTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(roadblockSpawns, CopSpawnTables::roadblockSpawnTable);
@@ -345,6 +345,8 @@ namespace CopSpawnOverrides
 		int& fullWaveCapacity       = AsReference<int>(this->pursuit + 0x144); // cars
 		int& numCopsLostInWave      = AsReference<int>(this->pursuit + 0x14C); // cars
 		int& numCopsToTriggerBackup = AsReference<int>(this->pursuit + 0x148); // cars
+
+		const address& roadblock = AsReference<address>(this->pursuit + 0x84);
 
 		const bool& isPerpBusted      = AsReference<bool>(this->pursuit + 0xE8);
 		const bool& bailingPursuit    = AsReference<bool>(this->pursuit + 0xE9);
@@ -415,9 +417,41 @@ namespace CopSpawnOverrides
 		}
 
 
-		[[nodiscard]] int GetNumTotalMobileCops() const
+		[[nodiscard]] int GetNumRoadblockVehicles() const
 		{
-			return this->chaserSpawns.GetNumTotalActiveCops() + this->numSupportVehicles + this->numJoinedRoadblockVehicles;
+			if (not this->roadblock) return 0;
+
+			const address firstVehicleEntry = AsReference<address>(this->roadblock + 0xC);
+			const address lastVehicleEntry  = AsReference<address>(this->roadblock + 0x10);
+
+			if (lastVehicleEntry < firstVehicleEntry)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid roadblock data in", this->pursuit);
+
+				ASSERT_UNREACHABLE_THEN(return 0);
+			}
+
+			return (lastVehicleEntry - firstVehicleEntry) / sizeof(address);
+		}
+
+
+		[[nodiscard]] static int GetGlobalNumNonRoadblockVehicles()
+		{
+			int numNonRoadblockVehicles = AsReference<int>(Globals::copManager + 0x94); // cops loaded
+
+			for (const auto* const instance : ChasersManager::GetInstances())
+				numNonRoadblockVehicles -= instance->GetNumRoadblockVehicles();
+
+			if (numNonRoadblockVehicles < 0)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid vehicle count:", numNonRoadblockVehicles);
+
+				ASSERT_UNREACHABLE_THEN(return 0);
+			}
+
+			return numNonRoadblockVehicles;
 		}
 
 
@@ -430,12 +464,10 @@ namespace CopSpawnOverrides
 			if (not this->chaserSpawns.IsAnyCopAvailable()) return false;
 
 			const int numActiveChasers  = this->chaserSpawns.GetNumTotalActiveCops();
-			const int numActiveVehicles = (chasersAreIndependent.current) ? numActiveChasers : this->GetNumTotalMobileCops();
+			const int numActiveVehicles = (chasersAreIndependent.current) ? numActiveChasers : this->GetGlobalNumNonRoadblockVehicles();
 
 			if (numActiveVehicles >= activeChaserLimit.max.current) return false;
-
-			if (Globals::IsPursuitInCooldownMode(this->pursuit))
-				return (numActiveChasers < this->maxNumPatrolCars);
+			if (Globals::IsPursuitInCooldownMode(this->pursuit))    return (numActiveChasers < this->maxNumPatrolCars);
 
 			return ((numActiveChasers < activeChaserLimit.min.current) or (this->GetWaveCapacity() > 0));
 		}
@@ -668,17 +700,14 @@ namespace CopSpawnOverrides
 		}
 
 
-		[[nodiscard]] static bool HasRoadblockVehicleCapacity(const address pursuit)
+		[[nodiscard]] static bool __fastcall MayRoadblockVehicleJoin(const address pursuit)
 		{
 			const auto* const manager = ChasersManager::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return false);
 
-			bool hasCapacity = (chasersAreIndependent.current or (manager->GetNumTotalMobileCops() < activeChaserLimit.max.current));
+			if (roadblockJoinLimit.isEnabled.current and (manager->numJoinedRoadblockVehicles >= roadblockJoinLimit.value.current)) return false;
 
-			if (roadblockJoinLimit.isEnabled.current)
-				hasCapacity &= (manager->numJoinedRoadblockVehicles < roadblockJoinLimit.value.current);
-
-			return hasCapacity;
+			return (chasersAreIndependent.current or (ChasersManager::GetGlobalNumNonRoadblockVehicles() < activeChaserLimit.max.current));
 		}
 
 
@@ -790,13 +819,10 @@ namespace CopSpawnOverrides
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address waveResetEntrance = 0x40A9E9;
-	constexpr address waveResetExit     = 0x40A9F3;
-
-	// Notifies "Chasers" managers of backup waves
-	__declspec(naked) void WaveReset()
+	// Notifies "Chasers" managers of arriving waves of backup cops
+	ASSEMBLY_DETOUR(WaveReset, /* begin = */ 0x40A9E9, /* end = */ 0x40A9F3)
 	{
 		__asm
 		{
@@ -806,17 +832,35 @@ namespace CopSpawnOverrides
 			mov ecx, esi
 			call ChasersManager::NotifyOfWaveReset // ecx: pursuit
 
-			jmp dword ptr [waveResetExit]
+			EXIT_ASSEMBLY_DETOUR(WaveReset)
 		}
 	}
 
 
 
-	constexpr address patrolSpawnEntrance = 0x430E37;
-	constexpr address patrolSpawnExit     = 0x430E3D;
+	// Processes join requests from roadblock vehicles
+	ASSEMBLY_DETOUR(JoinRequest, 0x4443AE, 0x4443B6)
+	{
+		__asm
+		{
+			cmp dword ptr [esi + 0xB8], edi
+			je conclusion // no vehicle(s)
+
+			lea ecx, dword ptr [esi + 0x40]
+			call ChasersManager::MayRoadblockVehicleJoin // ecx: pursuit
+			test al, al
+
+			mov eax, dword ptr [esi + 0xB8]
+
+			conclusion:
+			EXIT_ASSEMBLY_DETOUR(JoinRequest)
+		}
+	}
+
+
 
 	// Notifies "Patrols" contingent of successful "Patrols" spawns
-	__declspec(naked) void PatrolSpawn()
+	ASSEMBLY_DETOUR(PatrolSpawn, 0x430E37, 0x430E3D)
 	{
 		__asm
 		{
@@ -827,17 +871,14 @@ namespace CopSpawnOverrides
 			// Execute original code and resume
 			inc dword ptr [ebp + 0x94] // cops loaded
 
-			jmp dword ptr [patrolSpawnExit]
+			EXIT_ASSEMBLY_DETOUR(PatrolSpawn)
 		}
 	}
 
 
 
-	constexpr address copClearanceEntrance = 0x41A139;
-	constexpr address copClearanceExit     = 0x41A13F;
-
 	// Sets the minimum spawn distance between "Chasers"
-	__declspec(naked) void CopClearance()
+	ASSEMBLY_DETOUR(CopClearance, 0x41A139, 0x41A13F)
 	{
 		__asm
 		{
@@ -849,38 +890,14 @@ namespace CopSpawnOverrides
 
 			fcomp dword ptr [edx]
 
-			jmp dword ptr [copClearanceExit]
+			EXIT_ASSEMBLY_DETOUR(CopClearance)
 		}
 	}
 
 
-
-	constexpr address copSpawnLimitEntrance = 0x43EB84;
-	constexpr address copSpawnLimitExit     = 0x43EB90;
-
-	// Enforces the global cop-spawn limit (if applicable)
-	__declspec(naked) void CopSpawnLimit()
-	{
-		__asm
-		{
-			xor eax, eax
-
-			cmp byte ptr [chasersAreIndependent.current], 1
-			cmovne eax, dword ptr [edi + 0x94] // "Chasers" not independent
-
-			cmp eax, dword ptr [activeChaserLimit.max.current]
-
-			jmp dword ptr [copSpawnLimitExit]
-		}
-	}
-
-
-
-	constexpr address scriptedSpawnEntrance = 0x42E8A8;
-	constexpr address scriptedSpawnExit     = 0x42E8AF;
 
 	// Notifies "Scripted" contingent of successful "Scripted" spawns
-	__declspec(naked) void ScriptedSpawn()
+	ASSEMBLY_DETOUR(ScriptedSpawn, 0x42E8A8, 0x42E8AF)
 	{
 		__asm
 		{
@@ -902,17 +919,14 @@ namespace CopSpawnOverrides
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x314]
 
-			jmp dword ptr [scriptedSpawnExit]
+			EXIT_ASSEMBLY_DETOUR(ScriptedSpawn)
 		}
 	}
 
 
 
-	constexpr address patrolPursuitEntrance = 0x4224B0;
-	constexpr address patrolPursuitExit     = 0x4224B6;
-
 	// Notifies "Patrols" contingent of "Patrols" joining pursuits
-	__declspec(naked) void PatrolPursuit()
+	ASSEMBLY_DETOUR(PatrolPursuit, 0x4224B0, 0x4224B6)
 	{
 		using enum VaultHash;
 
@@ -936,17 +950,14 @@ namespace CopSpawnOverrides
 			// Execute original code and resume
 			mov ecx, dword ptr [edi + 0xB8]
 
-			jmp dword ptr [patrolPursuitExit]
+			EXIT_ASSEMBLY_DETOUR(PatrolPursuit)
 		}
 	}
 
 
 
-	constexpr address patrolDespawnEntrance = 0x415E03;
-	constexpr address patrolDespawnExit     = 0x415E08;
-
 	// Notifies "Patrols" contingent of "Patrols" despawns
-	__declspec(naked) void PatrolDespawn()
+	ASSEMBLY_DETOUR(PatrolDespawn, 0x415E03, 0x415E08)
 	{
 		using enum VaultHash;
 
@@ -970,20 +981,17 @@ namespace CopSpawnOverrides
 			// Execute original code and resume
 			xor eax, eax
 
-			jmp dword ptr [patrolDespawnExit]
+			EXIT_ASSEMBLY_DETOUR(PatrolDespawn)
 		}
 	}
 
 
 
-	constexpr address roadblockSpawnEntrance = 0x43E04F;
-	constexpr address roadblockSpawnExit     = 0x43E06C;
-
 	// Notifies "Roadblocks" contingent of successful "Roadblocks" spawns
-	__declspec(naked) void RoadblockSpawn()
+	ASSEMBLY_DETOUR(RoadblockSpawn, 0x43E04F, 0x43E06C)
 	{
 		static constexpr address AddVehicleToRoadblock = 0x43C4E0;
-		static constexpr address roadblockSpawnSkip    = 0x43E031;
+		static constexpr address generationExit        = 0x43E031;
 
 		__asm
 		{
@@ -1006,39 +1014,28 @@ namespace CopSpawnOverrides
 
 			conclusion:
 			dec edi
-			jne skip // car(s) left to generate
+			jne generation // car(s) left to generate
 
 			mov ecx, offset roadblockSpawns
 			call Contingent::ClearVehicles
 
-			jmp dword ptr [roadblockSpawnExit]
+			EXIT_ASSEMBLY_DETOUR(RoadblockSpawn)
 
-			skip:
-			jmp dword ptr [roadblockSpawnSkip]
+			generation:
+			jmp dword ptr [generationExit]
 		}
 	}
 
 
 
-	constexpr address trafficDensityEntrance = 0x426C4E;
-	constexpr address trafficDensityExit     = 0x426C6A;
-
 	// Decides whether the game may spawn more traffic cars
-	__declspec(naked) void TrafficDensity()
+	ASSEMBLY_DETOUR(TrafficDensity, 0x426C4E, 0x426C6A)
 	{
 		__asm
 		{
 			cmp byte ptr [trafficIgnoresChasers.current], 1
 			je roadblock // "Chasers" ignored
 
-			cmp byte ptr [chasersAreIndependent.current], 1
-			je chasers // "Chasers" independent
-
-			mov eax, dword ptr [ebx - 0x54 + 0x94] // cops loaded
-			cmp eax, dword ptr [activeChaserLimit.max.current]
-			jge roadblock                          // at or above spawn limit
-
-			chasers:
 			mov ecx, edi
 			call ChasersManager::IsChaserAvailable // ecx: pursuit
 			test al, al
@@ -1048,20 +1045,17 @@ namespace CopSpawnOverrides
 			cmp byte ptr [trafficIgnoresRoadblocks.current], 1
 			je conclusion // roadblocks ignored
 
-			cmp byte ptr [edi + 0x190], 0 // roadblock pending
+			cmp byte ptr [edi + 0x190], 0 // request flag
 
 			conclusion:
-			jmp dword ptr [trafficDensityExit]
+			EXIT_ASSEMBLY_DETOUR(TrafficDensity)
 		}
 	}
 
 
 
-	constexpr address copConstructorEntrance = 0x41EE72;
-	constexpr address copConstructorExit     = 0x41EE7C;
-
 	// Marks cop vehicles created outside of free-roam pursuits
-	__declspec(naked) void CopConstructor()
+	ASSEMBLY_DETOUR(CopConstructor, 0x41EE72, 0x41EE7C)
 	{
 		__asm
 		{
@@ -1071,17 +1065,14 @@ namespace CopSpawnOverrides
 			// Execute original code and resume
 			mov eax, dword ptr [esi + 0x54]
 
-			jmp dword ptr [copConstructorExit]
+			EXIT_ASSEMBLY_DETOUR(CopConstructor)
 		}
 	}
 
 
 
-	constexpr address recyclingCheckEntrance = 0x41ED5D;
-	constexpr address recyclingCheckExit     = 0x41ED66;
-
-	// Ensures that only free-roam cops can be recycled for free-roam cops (etc.)
-	__declspec(naked) void RecyclingCheck()
+	// Ensures only cops of same origin get recycled
+	ASSEMBLY_DETOUR(RecyclingCheck, 0x41ED5D, 0x41ED66)
 	{
 		__asm
 		{
@@ -1095,17 +1086,14 @@ namespace CopSpawnOverrides
 			cmp al, byte ptr [esi + 0xA9] // padding byte: creation context
 
 			conclusion:
-			jmp dword ptr [recyclingCheckExit]
+			EXIT_ASSEMBLY_DETOUR(RecyclingCheck)
 		}
 	}
 
 
 
-	constexpr address byClassRequestEntrance = 0x426610;
-	constexpr address byClassRequestExit     = 0x426730;
-
 	// Intercepts the game's requests for cop vehicles by class
-	__declspec(naked) void ByClassRequest()
+	ASSEMBLY_DETOUR(ByClassRequest, 0x426610, 0x426730)
 	{
 		static constexpr address GetAvailableCopVehicleByName = 0x41ECD0;
 
@@ -1123,17 +1111,14 @@ namespace CopSpawnOverrides
 			call dword ptr [GetAvailableCopVehicleByName]
 
 			conclusion:
-			jmp dword ptr [byClassRequestExit]
+			EXIT_ASSEMBLY_DETOUR(ByClassRequest)
 		}
 	}
 
 
 
-	constexpr address scriptedRequestEntrance = 0x42E718;
-	constexpr address scriptedRequestExit     = 0x42E721;
-
 	// Replaces "Scripted" cop vehicles
-	__declspec(naked) void ScriptedRequest()
+	ASSEMBLY_DETOUR(ScriptedRequest, 0x42E718, 0x42E721)
 	{
 		__asm
 		{
@@ -1160,17 +1145,14 @@ namespace CopSpawnOverrides
 			conclusion:
 			mov ecx, ebp
 
-			jmp dword ptr [scriptedRequestExit]
+			EXIT_ASSEMBLY_DETOUR(ScriptedRequest)
 		}
 	}
 
 
 
-	constexpr address firstScriptedCopEntrance = 0x61E2AE;
-	constexpr address firstScriptedCopExit     = 0x61E2B7;
-
 	// Prefetches name of first scripted cop to spawn in events
-	__declspec(naked) void FirstScriptedCop()
+	ASSEMBLY_DETOUR(FirstScriptedCop, 0x61E2AE, 0x61E2B7)
 	{
 		__asm
 		{
@@ -1180,17 +1162,14 @@ namespace CopSpawnOverrides
 			mov eax, dword ptr [prefetchedCopName]
 			test eax, eax
 
-			jmp dword ptr [firstScriptedCopExit]
+			EXIT_ASSEMBLY_DETOUR(FirstScriptedCop)
 		}
 	}
 
 
 
-	constexpr address scriptedSpawnResetEntrance = 0x42E901;
-	constexpr address scriptedSpawnResetExit     = 0x42E906;
-
 	// Notifies "Scripted" contingent of finished events
-	__declspec(naked) void ScriptedSpawnReset()
+	ASSEMBLY_DETOUR(ScriptedSpawnReset, 0x42E901, 0x42E906)
 	{
 		__asm
 		{
@@ -1209,7 +1188,7 @@ namespace CopSpawnOverrides
 			mov ecx, dword ptr [eax]
 			mov edx, dword ptr [eax + 0x4]
 
-			jmp dword ptr [scriptedSpawnResetExit]
+			EXIT_ASSEMBLY_DETOUR(ScriptedSpawnReset)
 		}
 	}
 
@@ -1293,10 +1272,9 @@ namespace CopSpawnOverrides
 		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
 		MemoryTools::Write<byte>(0x90, {0x4443E4}); // roadblock increment
 
-		MemoryTools::Write<word>(0x517D, {0x43EB90}); // undo count skip of "OpenLimitAdjuster"
+		MemoryTools::Write<vault>("ForceHeatLevel"_vlt, {0x61E295}); // "CopSpawnType" query
 
-		MemoryTools::Write<vault>(0xE4211F4F, {0x61E295}); // query "ForceHeatLevel" instead
-
+		MemoryTools::MakeRangeNOP<0x43EB84, 0x43EB92>(); // global spawn-limit check
 		MemoryTools::MakeRangeNOP<0x4442AC, 0x4442C2>(); // zero-wave / capacity increment
 		MemoryTools::MakeRangeNOP<0x57B186, 0x57B189>(); // helicopter increment
 		MemoryTools::MakeRangeNOP<0x42B74E, 0x42B771>(); // cops-lost increment
@@ -1304,21 +1282,21 @@ namespace CopSpawnOverrides
 
 		MemoryTools::MakeRangeJMP<0x42BA50, 0x42BCEE>(ChasersManager::GetNameOfNewChaser); // replaces game function
 
-		MemoryTools::MakeRangeJMP<waveResetEntrance,          waveResetExit>         (WaveReset);
-		MemoryTools::MakeRangeJMP<patrolSpawnEntrance,        patrolSpawnExit>       (PatrolSpawn);
-		MemoryTools::MakeRangeJMP<copClearanceEntrance,       copClearanceExit>      (CopClearance);
-		MemoryTools::MakeRangeJMP<copSpawnLimitEntrance,      copSpawnLimitExit>     (CopSpawnLimit);
-		MemoryTools::MakeRangeJMP<scriptedSpawnEntrance,      scriptedSpawnExit>     (ScriptedSpawn);
-		MemoryTools::MakeRangeJMP<patrolPursuitEntrance,      patrolPursuitExit>     (PatrolPursuit);
-		MemoryTools::MakeRangeJMP<patrolDespawnEntrance,      patrolDespawnExit>     (PatrolDespawn);
-		MemoryTools::MakeRangeJMP<roadblockSpawnEntrance,     roadblockSpawnExit>    (RoadblockSpawn);
-		MemoryTools::MakeRangeJMP<trafficDensityEntrance,     trafficDensityExit>    (TrafficDensity);
-		MemoryTools::MakeRangeJMP<copConstructorEntrance,     copConstructorExit>    (CopConstructor);
-		MemoryTools::MakeRangeJMP<recyclingCheckEntrance,     recyclingCheckExit>    (RecyclingCheck);
-		MemoryTools::MakeRangeJMP<byClassRequestEntrance,     byClassRequestExit>    (ByClassRequest);
-		MemoryTools::MakeRangeJMP<scriptedRequestEntrance,    scriptedRequestExit>   (ScriptedRequest);
-		MemoryTools::MakeRangeJMP<firstScriptedCopEntrance,   firstScriptedCopExit>  (FirstScriptedCop);
-		MemoryTools::MakeRangeJMP<scriptedSpawnResetEntrance, scriptedSpawnResetExit>(ScriptedSpawnReset);
+		PATCH_ASSEMBLY_DETOUR(WaveReset);
+		PATCH_ASSEMBLY_DETOUR(JoinRequest);
+		PATCH_ASSEMBLY_DETOUR(PatrolSpawn);
+		PATCH_ASSEMBLY_DETOUR(CopClearance);
+		PATCH_ASSEMBLY_DETOUR(ScriptedSpawn);
+		PATCH_ASSEMBLY_DETOUR(PatrolPursuit);
+		PATCH_ASSEMBLY_DETOUR(PatrolDespawn);
+		PATCH_ASSEMBLY_DETOUR(RoadblockSpawn);
+		PATCH_ASSEMBLY_DETOUR(TrafficDensity);
+		PATCH_ASSEMBLY_DETOUR(CopConstructor);
+		PATCH_ASSEMBLY_DETOUR(RecyclingCheck);
+		PATCH_ASSEMBLY_DETOUR(ByClassRequest);
+		PATCH_ASSEMBLY_DETOUR(ScriptedRequest);
+		PATCH_ASSEMBLY_DETOUR(FirstScriptedCop);
+		PATCH_ASSEMBLY_DETOUR(ScriptedSpawnReset);
 
 		// Status flag
 		anyFeatureEnabled = true;

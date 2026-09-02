@@ -1,12 +1,12 @@
 #pragma once
 
-#include <limits>
 #include <optional>
 #include <algorithm>
 
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/HeatParameters.hpp"
+#include "../../Common/PersistentStrings.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
 
@@ -48,7 +48,7 @@ namespace HelicopterOverrides
 
 	constinit HEAT_PARAMETER_INTERVAL(float, rammingCooldown, 8.f, 8.f, {1.f}); // seconds
 
-	// Code caves 
+	// ASM detours
 	bool hasLimitedFuel    = false;
 	bool skipBailoutSpeech = false;
 
@@ -148,24 +148,9 @@ namespace HelicopterOverrides
 		}
 
 
-		[[nodiscard]] float* GetFuelTimePointer() const
+		[[nodiscard]] static float* GetFuelTimePointer()
 		{ 
-			if (not this->helicopter)
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "Invalid fuel pointer in", this->pursuit);
-
-				ASSERT_UNREACHABLE_THEN(return nullptr);
-			}
-
-			return AsPointer<float>(this->helicopter + 0x7D8);
-		}
-
-
-		[[nodiscard]] float GetFuelTime() const
-		{
-			const float* const fuelTime = this->GetFuelTimePointer();
-			return (fuelTime) ? *fuelTime : 0.f;
+			return (HelicopterManager::helicopter) ? AsPointer<float>(HelicopterManager::helicopter + 0x7D8) : nullptr;
 		}
 
 
@@ -173,13 +158,20 @@ namespace HelicopterOverrides
 		{
 			if (not hasLimitedFuel) return;
 
-			if (float* const fuelTime = this->GetFuelTimePointer())
-			{
-				*fuelTime = amount;
+			float* const fuelTime = this->GetFuelTimePointer();
 
+			if (not fuelTime)
+			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogFull(this->pursuit, logTag, "Fuel time:", amount);
+					Globals::LogWarning(logTag, "Invalid fuel pointer in", this->pursuit);
+
+				ASSERT_UNREACHABLE_THEN(return);
 			}
+
+			*fuelTime = amount;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(this->pursuit, logTag, "Fuel time:", amount);
 		}
 
 
@@ -204,6 +196,8 @@ namespace HelicopterOverrides
 					.maxRejoinDelay    = rejoinDelay.max.current,
 					.minRejoinFuelTime = minFuelTime
 				};
+
+				PersistentStrings::Make(this->rejoinContext->helicopterName);
 
 				if (hasLimitedFuel)
 					maxBailoutFuelTime = std::min<float>(rejoinDelay.min.current + minFuelTime, maxBailoutFuelTime);
@@ -323,7 +317,7 @@ namespace HelicopterOverrides
 		}
 
 
-		[[nodiscard]] bool ScheduleRejoining()
+		[[nodiscard]] bool ScheduleRejoining(const float fuelTime)
 		{
 			if (not this->HasRejoinContext()) return false;
 
@@ -335,8 +329,7 @@ namespace HelicopterOverrides
 			this->spawnTimer.LoadInterval(context.minRejoinDelay, context.maxRejoinDelay);
 
 			// Calculate rejoin fuel
-			const float fuelTime    = this->GetFuelTime();
-			const auto  rejoinDelay = this->spawnTimer.GetLength();
+			const auto rejoinDelay = this->spawnTimer.GetLength();
 
 			if (not rejoinDelay)
 			{
@@ -472,14 +465,17 @@ namespace HelicopterOverrides
 
 			Status newStatus = Status::LOST;
 
-			if (Globals::IsVehicleDestroyed(copVehicle))
-				newStatus = Status::WRECKED;
+			if (not Globals::IsVehicleDestroyed(copVehicle))
+			{
+				const float* const fuelTime = this->GetFuelTimePointer();
 
-			else if (this->GetFuelTime() < 0.f)
-				newStatus = Status::EXPIRED;
+				if ((not fuelTime) or (*fuelTime <= 0.f))
+					newStatus = Status::EXPIRED;
 
-			else if (this->ScheduleRejoining())
-				newStatus = Status::REJOINING;
+				else if (this->ScheduleRejoining(*fuelTime))
+					newStatus = Status::REJOINING;
+			}
+			else newStatus = Status::WRECKED;
 
 			this->UpdateHelicopterStatus(newStatus);
 		}
@@ -549,13 +545,10 @@ namespace HelicopterOverrides
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
-	constexpr address fuelUpdateEntrance = 0x423519;
-	constexpr address fuelUpdateExit     = 0x423523;
-
-	// Updates the amount of fuel remaining
-	__declspec(naked) void FuelUpdate()
+	// Updates the amount of fuel remaining for the helicopter
+	ASSEMBLY_DETOUR(FuelUpdate, /* begin = */ 0x423519, /* end = */ 0x423523)
 	{
 		__asm
 		{
@@ -563,40 +556,31 @@ namespace HelicopterOverrides
 			jne conclusion // unlimited fuel
 
 			// Execute original code and resume
-			fsub dword ptr [esp + 0x8]  // time delta
-			fst dword ptr [esi + 0x7D8] // helicopter fuel
+			fsub dword ptr [esp + 0x8]
+			fst dword ptr [esi + 0x7D8]
 
 			conclusion:
-			jmp dword ptr [fuelUpdateExit]
+			EXIT_ASSEMBLY_DETOUR(FuelUpdate)
 		}
 	}
 
 
-
-	constexpr address defaultFuelEntrance = 0x42AD9B;
-	constexpr address defaultFuelExit     = 0x42ADA1;
 
 	// Sets the default helicopter fuel
-	__declspec(naked) void DefaultFuel()
+	ASSEMBLY_DETOUR(DefaultFuel, 0x42AD5E, 0x42ADA1)
 	{
-		static constexpr float fuelTime = std::numeric_limits<float>::max();
-
 		__asm
 		{
-			mov ecx, dword ptr [fuelTime]
-			mov dword ptr [esi + 0x34], ecx // helicopter fuel
+			mov dword ptr [esi + 0x34], 0x7F7FFFFF // MAX_FLOAT
 
-			jmp dword ptr [defaultFuelExit]
+			EXIT_ASSEMBLY_DETOUR(DefaultFuel)
 		}
 	}
 
 
 
-	constexpr address searchCheckEntrance = 0x444987;
-	constexpr address searchCheckExit     = 0x44498E;
-
-	// Checks whether the helicopter may spawn in "COOLDOWN" mode
-	__declspec(naked) void SearchCheck()
+	// Checks whether the helicopter may spawn to search
+	ASSEMBLY_DETOUR(SearchCheck, 0x444987, 0x44498E)
 	{
 		__asm
 		{
@@ -609,44 +593,38 @@ namespace HelicopterOverrides
 
 			lea ecx, dword ptr [esi + 0x40]
 
-			jmp dword ptr [searchCheckExit]
+			EXIT_ASSEMBLY_DETOUR(SearchCheck)
 		}
 	}
 
 
 
-	constexpr address earlyBailoutEntrance = 0x717C00;
-	constexpr address earlyBailoutExit     = 0x717C06;
-
-	// Decides whether to request a bailout announcement over the radio
-	__declspec(naked) void EarlyBailout()
+	// Decides whether to request a bailout announcement
+	ASSEMBLY_DETOUR(EarlyBailout, 0x717C00, 0x717C06)
 	{
-		static constexpr address earlyBailoutSkip = 0x717C34;
+		static constexpr address disabledExit = 0x717C34;
 
 		__asm
 		{
 			cmp byte ptr [skipBailoutSpeech], 1
-			je skip // speech disabled
+			je disabled // announcement disabled
 
 			// Execute original code and resume
 			sub esp, 0x8
 			push esi
 			mov esi, ecx
 
-			jmp dword ptr [earlyBailoutExit]
+			EXIT_ASSEMBLY_DETOUR(EarlyBailout)
 
-			skip:
-			jmp dword ptr [earlyBailoutSkip]
+			disabled:
+			jmp dword ptr [disabledExit]
 		}
 	}
 
 
 
-	constexpr address spawnDistanceEntrance = 0x426ABF;
-	constexpr address spawnDistanceExit     = 0x426AC4;
-
 	// Sets the spawn distance to the pursuit target
-	__declspec(naked) void SpawnDistance()
+	ASSEMBLY_DETOUR(SpawnDistance, 0x426ABF, 0x426AC4)
 	{
 		__asm
 		{
@@ -656,17 +634,14 @@ namespace HelicopterOverrides
 			push eax
 			fstp dword ptr [esp]
 
-			jmp dword ptr [spawnDistanceExit]
+			EXIT_ASSEMBLY_DETOUR(SpawnDistance)
 		}
 	}
 
 
 
-	constexpr address roadblockCheckEntrance = 0x419160;
-	constexpr address roadblockCheckExit     = 0x419168;
-
 	// Controls whether roadblocks affect helicopter behaviour
-	__declspec(naked) void RoadblockCheck()
+	ASSEMBLY_DETOUR(RoadblockCheck, 0x419160, 0x419168)
 	{
 		__asm
 		{
@@ -678,17 +653,14 @@ namespace HelicopterOverrides
 			test eax, eax
 
 			conclusion:
-			jmp dword ptr [roadblockCheckExit]
+			EXIT_ASSEMBLY_DETOUR(RoadblockCheck)
 		}
 	}
 
 
 
-	constexpr address rammingCooldownEntrance = 0x4128B2;
-	constexpr address rammingCooldownExit     = 0x4128B9;
-
 	// Sets the cooldown for HeliStrategy 2 ramming attempts
-	__declspec(naked) void RammingCooldown()
+	ASSEMBLY_DETOUR(RammingCooldown, 0x4128B2, 0x4128B9)
 	{
 		__asm
 		{
@@ -696,7 +668,7 @@ namespace HelicopterOverrides
 			call HeatParameters::Interval<float>::GetRandomValue
 			fstp dword ptr [esi + 0x64] // HeliStrategy 2 cooldown
 
-			jmp dword ptr [rammingCooldownExit]
+			EXIT_ASSEMBLY_DETOUR(RammingCooldown)
 		}
 	}
 
@@ -746,13 +718,13 @@ namespace HelicopterOverrides
 		// Code modifications 
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
 
-		MemoryTools::MakeRangeJMP<fuelUpdateEntrance,      fuelUpdateExit>     (FuelUpdate);
-		MemoryTools::MakeRangeJMP<defaultFuelEntrance,     defaultFuelExit>    (DefaultFuel);
-		MemoryTools::MakeRangeJMP<searchCheckEntrance,     searchCheckExit>    (SearchCheck);
-		MemoryTools::MakeRangeJMP<earlyBailoutEntrance,    earlyBailoutExit>   (EarlyBailout);
-		MemoryTools::MakeRangeJMP<spawnDistanceEntrance,   spawnDistanceExit>  (SpawnDistance);
-		MemoryTools::MakeRangeJMP<roadblockCheckEntrance,  roadblockCheckExit> (RoadblockCheck);
-		MemoryTools::MakeRangeJMP<rammingCooldownEntrance, rammingCooldownExit>(RammingCooldown);
+		PATCH_ASSEMBLY_DETOUR(FuelUpdate);
+		PATCH_ASSEMBLY_DETOUR(DefaultFuel);
+		PATCH_ASSEMBLY_DETOUR(SearchCheck);
+		PATCH_ASSEMBLY_DETOUR(EarlyBailout);
+		PATCH_ASSEMBLY_DETOUR(SpawnDistance);
+		PATCH_ASSEMBLY_DETOUR(RoadblockCheck);
+		PATCH_ASSEMBLY_DETOUR(RammingCooldown);
 
 		// Status flag
 		anyFeatureEnabled = true;

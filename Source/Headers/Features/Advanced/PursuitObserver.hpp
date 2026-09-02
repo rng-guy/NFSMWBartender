@@ -253,7 +253,7 @@ namespace PursuitObserver
 
 	// Feature setup (cont.) ------------------------------------------------------------------------------------------------------------------------
 
-	// Code caves
+	// Assembly detours
 	RELEASE_CONSTINIT ModContainers::PointerStorage<PursuitObserver> observers;
 
 
@@ -316,13 +316,10 @@ namespace PursuitObserver
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
-
-	constexpr address copAddedEntrance = 0x4338A0;
-	constexpr address copAddedExit     = 0x4338A5;
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
 	// Notifies pursuit observers of new cop vehicles
-	__declspec(naked) void CopAdded()
+	ASSEMBLY_DETOUR(CopAdded, /* begin = */ 0x4338A0, /* end = */ 0x4338A5)
 	{
 		__asm
 		{
@@ -339,17 +336,14 @@ namespace PursuitObserver
 			sub ecx, 0x1C
 			mov eax, dword ptr [ecx]
 
-			jmp dword ptr [copAddedExit]
+			EXIT_ASSEMBLY_DETOUR(CopAdded)
 		}
 	}
 
 
 
-	constexpr address copRemovedEntrance = 0x4338B0;
-	constexpr address copRemovedExit     = 0x4338B5;
-
 	// Notifies pursuit observers of removed cop vehicles
-	__declspec(naked) void CopRemoved()
+	ASSEMBLY_DETOUR(CopRemoved, 0x4338B0, 0x4338B5)
 	{
 		__asm
 		{
@@ -364,17 +358,14 @@ namespace PursuitObserver
 			sub ecx, 0x1C
 			mov eax, dword ptr [ecx]
 
-			jmp dword ptr [copRemovedExit]
+			EXIT_ASSEMBLY_DETOUR(CopRemoved)
 		}
 	}
 
 
 
-	constexpr address pursuitDestructorEntrance = 0x433775;
-	constexpr address pursuitDestructorExit     = 0x43377A;
-
 	// Removes observers of deleted pursuits
-	__declspec(naked) void PursuitDestructor()
+	ASSEMBLY_DETOUR(PursuitDestructor, 0x433775, 0x43377A)
 	{
 		__asm
 		{
@@ -390,17 +381,14 @@ namespace PursuitObserver
 			push ebx
 			push esi
 
-			jmp dword ptr [pursuitDestructorExit]
+			EXIT_ASSEMBLY_DETOUR(PursuitDestructor)
 		}
 	}
 
 
 
-	constexpr address pursuitConstructorEntrance = 0x4432D0;
-	constexpr address pursuitConstructorExit     = 0x4432D7;
-
 	// Adds observers for created pursuits
-	__declspec(naked) void PursuitConstructor()
+	ASSEMBLY_DETOUR(PursuitConstructor, 0x4432D0, 0x4432D7)
 	{
 		__asm
 		{
@@ -415,7 +403,7 @@ namespace PursuitObserver
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x8]
 
-			jmp dword ptr [pursuitConstructorExit]
+			EXIT_ASSEMBLY_DETOUR(PursuitConstructor)
 		}
 	}
 
@@ -439,10 +427,10 @@ namespace PursuitObserver
 		RoadblockOverrides ::InitialiseFeatures(parser);
 
 		// Code modifications
-		MemoryTools::MakeRangeJMP<copAddedEntrance,           copAddedExit>          (CopAdded);
-		MemoryTools::MakeRangeJMP<copRemovedEntrance,         copRemovedExit>        (CopRemoved);
-		MemoryTools::MakeRangeJMP<pursuitDestructorEntrance,  pursuitDestructorExit> (PursuitDestructor);
-		MemoryTools::MakeRangeJMP<pursuitConstructorEntrance, pursuitConstructorExit>(PursuitConstructor);
+		PATCH_ASSEMBLY_DETOUR(CopAdded);
+		PATCH_ASSEMBLY_DETOUR(CopRemoved);
+		PATCH_ASSEMBLY_DETOUR(PursuitDestructor);
+		PATCH_ASSEMBLY_DETOUR(PursuitConstructor);
 
 		// Status flag
 		anyFeatureEnabled = true;

@@ -41,7 +41,7 @@ namespace StrategyOverrides
 
 	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, leader7UnblockDelay, {1.f}); // seconds
 
-	// Code caves
+	// Assembly detours
 	constinit Vector4Ds heavy3SpawnPositions; // C-style for ASM
 	constinit Vector4Ds heavy3InitialVectors; // C-style for ASM
 
@@ -335,15 +335,12 @@ namespace StrategyOverrides
 
 
 
-	// Code caves -----------------------------------------------------------------------------------------------------------------------------------
-
-	constexpr address goalResetEntrance = 0x42B475;
-	constexpr address goalResetExit     = 0x42B47A;
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
 
 	// Prevents some Strategy resets from cancelling Strategy goals
-	__declspec(naked) void GoalReset()
+	ASSEMBLY_DETOUR(GoalReset, /* begin = */ 0x42B475, /* end = */ 0x42B47A)
 	{
-		static constexpr address goalResetSkip = 0x42B48E;
+		static constexpr address retainExit = 0x42B48E;
 
 		__asm
 		{
@@ -356,44 +353,38 @@ namespace StrategyOverrides
 			je reset          // allow goal reset
 
 			cmp ebx, 0x4431F4 // pursuit constructor
-			jne skip          // do not reset
+			jne retain        // do not reset
 
 			reset:
 			push ecx
 			mov ebx, esp
 			push 0
 
-			jmp dword ptr [goalResetExit]
+			EXIT_ASSEMBLY_DETOUR(GoalReset)
 
-			skip:
-			jmp dword ptr [goalResetSkip]
+			retain:
+			jmp dword ptr [retainExit]
 		}
 	}
 
 
 
-	constexpr address heavyGoalEntrance = 0x41F21F;
-	constexpr address heavyGoalExit     = 0x41F226;
-
 	// Ensures HeavyStrategy vehicles have the right goal
-	__declspec(naked) void HeavyGoal()
+	ASSEMBLY_DETOUR(HeavyGoal, 0x41F21F, 0x41F226)
 	{
 		__asm
 		{
 			mov edx, dword ptr [esp + 0x10]
 			mov eax, dword ptr [edx]
 
-			jmp dword ptr [heavyGoalExit]
+			EXIT_ASSEMBLY_DETOUR(HeavyGoal)
 		}
 	}
 
 
 
-	constexpr address heavy3CountEntrance = 0x41F170;
-	constexpr address heavy3CountExit     = 0x41F17D;
-
 	// Sets how many HeavyStrategy 3 vehicles spawn per request
-	__declspec(naked) void Heavy3Count()
+	ASSEMBLY_DETOUR(Heavy3Count, 0x41F170, 0x41F17D)
 	{
 		__asm
 		{	
@@ -408,17 +399,14 @@ namespace StrategyOverrides
 			// Execute original code and resume
 			mov dword ptr [esp + 0x10], 0x8EB1BC
 
-			jmp dword ptr [heavy3CountExit]
+			EXIT_ASSEMBLY_DETOUR(Heavy3Count)
 		}
 	}
 
 
 
-	constexpr address heavy3SetupEntrance = 0x41F314;
-	constexpr address heavy3SetupExit     = 0x41F31C;
-
 	// Makes the game use mod-allocated spawn vectors
-	__declspec(naked) void Heavy3Setup()
+	ASSEMBLY_DETOUR(Heavy3Setup, 0x41F314, 0x41F31C)
 	{
 		__asm
 		{
@@ -428,17 +416,14 @@ namespace StrategyOverrides
 			add esi, ebx // vector offset
 			add edi, ebx // vector offset
 
-			jmp dword ptr [heavy3SetupExit]
+			EXIT_ASSEMBLY_DETOUR(Heavy3Setup)
 		}
 	}
 
 
 
-	constexpr address clearRequestEntrance = 0x42B431;
-	constexpr address clearRequestExit     = 0x42B436;
-
 	// Notifies Strategy managers of cleared requests
-	__declspec(naked) void ClearRequest()
+	ASSEMBLY_DETOUR(ClearRequest, 0x42B431, 0x42B436)
 	{
 		__asm
 		{
@@ -461,17 +446,14 @@ namespace StrategyOverrides
 			conclusion:
 			test cl, cl
 
-			jmp dword ptr [clearRequestExit]
+			EXIT_ASSEMBLY_DETOUR(ClearRequest)
 		}
 	}
 
 
 
-	constexpr address heavy3PositionEntrance = 0x41F3C6;
-	constexpr address heavy3PositionExit     = 0x41F40A;
-
 	// Ensures proper accessing of mod-allocated spawn vectors
-	__declspec(naked) void Heavy3Position()
+	ASSEMBLY_DETOUR(Heavy3Position, 0x41F3C6, 0x41F40A)
 	{
 		__asm
 		{
@@ -495,17 +477,14 @@ namespace StrategyOverrides
 			push edx
 			push eax
 
-			jmp dword ptr [heavy3PositionExit]
+			EXIT_ASSEMBLY_DETOUR(Heavy3Position)
 		}
 	}
 
 
 
-	constexpr address leaderStrategyEntrance = 0x41F706;
-	constexpr address leaderStrategyExit     = 0x41F70D;
-
 	// Notifies Strategy managers of new LeaderStrategy requests
-	__declspec(naked) void LeaderStrategy()
+	ASSEMBLY_DETOUR(LeaderStrategy, 0x41F706, 0x41F70D)
 	{
 		__asm
 		{
@@ -515,17 +494,14 @@ namespace StrategyOverrides
 			// Execute original code and resume
 			mov eax, dword ptr [esp + 0x94]
 
-			jmp dword ptr [leaderStrategyExit]
+			EXIT_ASSEMBLY_DETOUR(LeaderStrategy)
 		}
 	}
 
 
 
-	constexpr address heavyStrategy3Entrance = 0x41F38F;
-	constexpr address heavyStrategy3Exit     = 0x41F396;
-
 	// Notifies Strategy managers of new HeavyStrategy3 requests
-	__declspec(naked) void HeavyStrategy3()
+	ASSEMBLY_DETOUR(HeavyStrategy3, 0x41F38F, 0x41F396)
 	{
 		__asm
 		{
@@ -535,17 +511,14 @@ namespace StrategyOverrides
 			// Execute original code and resume
 			mov eax, dword ptr [esp + 0xC8]
 
-			jmp dword ptr [heavyStrategy3Exit]
+			EXIT_ASSEMBLY_DETOUR(HeavyStrategy3)
 		}
 	}
 
 
 
-	constexpr address heavyStrategy4Entrance = 0x43E7DF;
-	constexpr address heavyStrategy4Exit     = 0x43E7E8;
-
 	// Notifies Strategy managers of new HeavyStrategy4 requests
-	__declspec(naked) void HeavyStrategy4()
+	ASSEMBLY_DETOUR(HeavyStrategy4, 0x43E7DF, 0x43E7E8)
 	{
 		__asm
 		{
@@ -556,17 +529,14 @@ namespace StrategyOverrides
 			mov ecx, dword ptr [esi]
 			mov dword ptr [esi + 0x78], 2 // Strategy request status
 
-			jmp dword ptr [heavyStrategy4Exit]
+			EXIT_ASSEMBLY_DETOUR(HeavyStrategy4)
 		}
 	}
 
 
-
-	constexpr address minStrategyDelayEntrance = 0x4196F4;
-	constexpr address minStrategyDelayExit     = 0x4196FA;
 
 	// Ensures cops can request available Strategies in races
-	__declspec(naked) void MinStrategyDelay()
+	ASSEMBLY_DETOUR(MinStrategyDelay, 0x4196F4, 0x4196FA)
 	{
 		__asm
 		{
@@ -575,17 +545,14 @@ namespace StrategyOverrides
 			fxch st(1)
 			fcompp
 
-			jmp dword ptr [minStrategyDelayExit]
+			EXIT_ASSEMBLY_DETOUR(MinStrategyDelay)
 		}
 	}
 
 
-
-	constexpr address minRoadblockDelayEntrance = 0x41950E;
-	constexpr address minRoadblockDelayExit     = 0x419514;
 
 	// Ensures cops can request non-Strategy roadblocks in races
-	__declspec(naked) void MinRoadblockDelay()
+	ASSEMBLY_DETOUR(MinRoadblockDelay, 0x41950E, 0x419514)
 	{
 		__asm
 		{
@@ -594,17 +561,14 @@ namespace StrategyOverrides
 			fxch st(1)
 			fcompp
 
-			jmp dword ptr [minRoadblockDelayExit]
+			EXIT_ASSEMBLY_DETOUR(MinRoadblockDelay)
 		}
 	}
 
 
 
-	constexpr address crossPriorityDelayEntrance = 0x419740;
-	constexpr address crossPriorityDelayExit     = 0x419746;
-
 	// Ensures cops can issue priority requests for Cross in races
-	__declspec(naked) void CrossPriorityDelay()
+	ASSEMBLY_DETOUR(CrossPriorityDelay, 0x419740, 0x419746)
 	{
 		__asm
 		{
@@ -617,7 +581,7 @@ namespace StrategyOverrides
 
 			pop ecx
 
-			jmp dword ptr [crossPriorityDelayExit]
+			EXIT_ASSEMBLY_DETOUR(CrossPriorityDelay)
 		}
 	}
 
@@ -655,22 +619,22 @@ namespace StrategyOverrides
 		MemoryTools::MakeRangeNOP<0x4240BD, 0x4240C3>(); // OnAttached increment
 		MemoryTools::MakeRangeNOP<0x42B717, 0x42B72E>(); // OnDetached decrement
 
-		MemoryTools::MakeRangeJMP<goalResetEntrance,      goalResetExit>     (GoalReset);
-		MemoryTools::MakeRangeJMP<heavyGoalEntrance,      heavyGoalExit>     (HeavyGoal);
-		MemoryTools::MakeRangeJMP<heavy3CountEntrance,    heavy3CountExit>   (Heavy3Count);
-		MemoryTools::MakeRangeJMP<heavy3SetupEntrance,    heavy3SetupExit>   (Heavy3Setup);
-		MemoryTools::MakeRangeJMP<clearRequestEntrance,   clearRequestExit>  (ClearRequest);
-		MemoryTools::MakeRangeJMP<heavy3PositionEntrance, heavy3PositionExit>(Heavy3Position);
-		MemoryTools::MakeRangeJMP<leaderStrategyEntrance, leaderStrategyExit>(LeaderStrategy);
-		MemoryTools::MakeRangeJMP<heavyStrategy3Entrance, heavyStrategy3Exit>(HeavyStrategy3);
-		MemoryTools::MakeRangeJMP<heavyStrategy4Entrance, heavyStrategy4Exit>(HeavyStrategy4);
+		PATCH_ASSEMBLY_DETOUR(GoalReset);
+		PATCH_ASSEMBLY_DETOUR(HeavyGoal);
+		PATCH_ASSEMBLY_DETOUR(Heavy3Count);
+		PATCH_ASSEMBLY_DETOUR(Heavy3Setup);
+		PATCH_ASSEMBLY_DETOUR(ClearRequest);
+		PATCH_ASSEMBLY_DETOUR(Heavy3Position);
+		PATCH_ASSEMBLY_DETOUR(LeaderStrategy);
+		PATCH_ASSEMBLY_DETOUR(HeavyStrategy3);
+		PATCH_ASSEMBLY_DETOUR(HeavyStrategy4);
 
 		// Code modifications (conditional)
 		if (not (GeneralSettings::anyFeatureEnabled and GeneralSettings::trackPursuitLength))
 		{
-			MemoryTools::MakeRangeJMP<minStrategyDelayEntrance,   minStrategyDelayExit>  (MinStrategyDelay);
-			MemoryTools::MakeRangeJMP<minRoadblockDelayEntrance,  minRoadblockDelayExit> (MinRoadblockDelay);
-			MemoryTools::MakeRangeJMP<crossPriorityDelayEntrance, crossPriorityDelayExit>(CrossPriorityDelay);
+			PATCH_ASSEMBLY_DETOUR(MinStrategyDelay);
+			PATCH_ASSEMBLY_DETOUR(MinRoadblockDelay);
+			PATCH_ASSEMBLY_DETOUR(CrossPriorityDelay);
 		}
 
 		// Status flag
