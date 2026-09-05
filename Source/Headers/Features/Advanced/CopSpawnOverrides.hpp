@@ -1,12 +1,12 @@
 #pragma once
 
+#include <span>
 #include <string_view>
 
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
-#include "../../Common/PersistentStrings.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
 
@@ -161,12 +161,7 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->pursuit)
-					{
-						if (const auto* const copName = PersistentStrings::Get(copType))
-							Globals::LogPlain("Copied", numActiveCops, *copName);
-
-						else Globals::LogPlain("Copied", numActiveCops, copType);
-					}
+						Globals::LogPlain("Copied", numActiveCops, Globals::GetNameOfVehicleType(copType));
 				}
 
 				this->table.ChangeNumActiveCops(copType, numActiveCops);
@@ -174,7 +169,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		void ClearVehicles()
+		void Clear()
 		{
 			this->numTotalActiveCops = 0;
 
@@ -796,13 +791,34 @@ namespace CopSpawnOverrides
 
 
 
+	void __stdcall ShuffleRoadblockVehicles
+	(
+		const address  pursuit,
+		address* const copVehicles,
+		const size_t   numCopVehicles
+	) {
+		const std::span vehicles(copVehicles, numCopVehicles);
+
+		Globals::pRNG.Shuffle(vehicles);
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::LogFull(pursuit, logTag, Globals::LogDec(vehicles.size()), "roadblock vehicle(s)");
+
+			for (const address vehicle : vehicles)
+				Globals::LogPlain(vehicle, Globals::GetVehicleName(vehicle));
+		}
+	}
+
+
+
 	void ProcessSoftEventReset()
 	{
 		usePrefetchedCopName = eventHasScriptedPursuit;
 
-		patrolSpawns   .ClearVehicles();
-		scriptedSpawns .ClearVehicles();
-		roadblockSpawns.ClearVehicles();
+		patrolSpawns   .Clear();
+		scriptedSpawns .Clear();
+		roadblockSpawns.Clear();
 	}
 
 
@@ -1017,7 +1033,7 @@ namespace CopSpawnOverrides
 			jne generation // car(s) left to generate
 
 			mov ecx, offset roadblockSpawns
-			call Contingent::ClearVehicles
+			call Contingent::Clear
 
 			EXIT_ASSEMBLY_DETOUR(RoadblockSpawn)
 
@@ -1179,7 +1195,7 @@ namespace CopSpawnOverrides
 			push eax
 
 			mov ecx, offset scriptedSpawns
-			call Contingent::ClearVehicles
+			call Contingent::Clear
 
 			pop eax
 
@@ -1189,6 +1205,25 @@ namespace CopSpawnOverrides
 			mov edx, dword ptr [eax + 0x4]
 
 			EXIT_ASSEMBLY_DETOUR(ScriptedSpawnReset)
+		}
+	}
+
+
+
+	// Shuffles the order of requested roadblock vehicles
+	ASSEMBLY_DETOUR(RoadblockShuffling, 0x43E406, 0x43E40E)
+	{
+		__asm
+		{
+			// Execute original code first
+			mov dword ptr [esp + 0x14], 0
+
+			push dword ptr [ebx - 0x4]   // numCopVehicles
+			push dword ptr [esp + 0x38]  // copVehicles
+			push dword ptr [esp + 0x4CC] // pursuit
+			call ShuffleRoadblockVehicles
+
+			EXIT_ASSEMBLY_DETOUR(RoadblockShuffling)
 		}
 	}
 
@@ -1297,6 +1332,7 @@ namespace CopSpawnOverrides
 		PATCH_ASSEMBLY_DETOUR(ScriptedRequest);
 		PATCH_ASSEMBLY_DETOUR(FirstScriptedCop);
 		PATCH_ASSEMBLY_DETOUR(ScriptedSpawnReset);
+		PATCH_ASSEMBLY_DETOUR(RoadblockShuffling);
 
 		// Status flag
 		anyFeatureEnabled = true;

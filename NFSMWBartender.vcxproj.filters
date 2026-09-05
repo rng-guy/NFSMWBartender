@@ -151,10 +151,7 @@
     <ClInclude Include="Source\Headers\Common\ParameterSets.hpp">
       <Filter>Source\Headers\Common</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\Common\PersistentStrings.hpp">
-      <Filter>Source\Headers\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Utilities\FormatBuffer.hpp">
+    <ClInclude Include="Source\Headers\Utilities\StringTools.hpp">
       <Filter>Source\Headers\Utilities</Filter>
     </ClInclude>
   </ItemGroup>

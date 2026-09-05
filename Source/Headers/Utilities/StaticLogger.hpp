@@ -12,7 +12,7 @@
 #include <string_view>
 #include <type_traits>
 
-#include "FormatBuffer.hpp"
+#include "StringTools.hpp"
 
 
 
@@ -189,7 +189,7 @@ namespace StaticLogger
 
 		std::fstream file;
 
-		mutable FormatBuffer::Buffer buffer;
+		mutable StringTools::FormatBuffer buffer;
 
 		inline static constexpr std::array indentWidths = {size_t(0), indents...};
 

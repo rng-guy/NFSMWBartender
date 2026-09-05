@@ -7,8 +7,6 @@
 
 #include "../../Utilities/MemoryTools.hpp"
 
-#include "../Basic/GeneralSettings.hpp"
-
 #include "PursuitFeatures.hpp"
 
 
@@ -609,7 +607,7 @@ namespace StrategyOverrides
 
 		HeatParameters::Extract(parser, "Leader7:Unblocking", leader7UnblockDelay);
 
-		// Code modifications (general)
+		// Code modifications
 		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4
 		MemoryTools::Write<byte>  (maxNumVehiclesPerHeavy4, {0x43E7CD}); // car budget (actually unused)
 
@@ -628,14 +626,9 @@ namespace StrategyOverrides
 		PATCH_ASSEMBLY_DETOUR(LeaderStrategy);
 		PATCH_ASSEMBLY_DETOUR(HeavyStrategy3);
 		PATCH_ASSEMBLY_DETOUR(HeavyStrategy4);
-
-		// Code modifications (conditional)
-		if (not (GeneralSettings::anyFeatureEnabled and GeneralSettings::trackPursuitLength))
-		{
-			PATCH_ASSEMBLY_DETOUR(MinStrategyDelay);
-			PATCH_ASSEMBLY_DETOUR(MinRoadblockDelay);
-			PATCH_ASSEMBLY_DETOUR(CrossPriorityDelay);
-		}
+		PATCH_ASSEMBLY_DETOUR(MinStrategyDelay);
+		PATCH_ASSEMBLY_DETOUR(MinRoadblockDelay);
+		PATCH_ASSEMBLY_DETOUR(CrossPriorityDelay);
 
 		// Status flag
 		anyFeatureEnabled = true;

@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <array>
-#include <limits>
 #include <vector>
 #include <string>
 #include <utility>
@@ -97,7 +96,7 @@ namespace RoadblockOverrides
 
 		void SetToHeatState(const HeatParameters::HeatState state)
 		{
-			this->chance.SetToHeatStateSilently(state);
+			this->chance.SetToHeatStateQuietly(state);
 		}
 
 
@@ -137,14 +136,15 @@ namespace RoadblockOverrides
 		}
 
 
-		[[nodiscard]] const RBTable& GetRandomTable() const
+		[[nodiscard]] bool DoMirrorTrial() const
 		{
-			const bool isMirrored = Globals::pRNG.DoPercentTrial<float>(this->mirrorChance);
+			return Globals::pRNG.DoPercentTrial<float>(this->mirrorChance);
+		}
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("Setup:", this->name, (isMirrored) ? "(mirrored)" : "(regular)");
-			
-			return (isMirrored) ? this->mirrored : this->original;
+
+		[[nodiscard]] const RBTable& GetTable(const bool mirrored) const
+		{
+			return (mirrored) ? this->mirrored : this->original;
 		}
 
 
@@ -203,8 +203,7 @@ namespace RoadblockOverrides
 	RELEASE_CONSTINIT std::vector<RBSetup> roadblockSetups;
 
 	// Assembly detours
-	address requestPursuit  = 0x0;
-	size_t  numCarsToSource = 0;
+	size_t numCarsToSource = 0;
 
 	float maxStretchScale = 1.14f;
 
@@ -236,15 +235,16 @@ namespace RoadblockOverrides
 
 	[[nodiscard]] bool IsCustomRequestFeasible
 	(
-		const bool anyRegular,
-		const bool anySpike
+		const address pursuit,
+		const bool    anyRegular,
+		const bool    anySpike
 	) {
 		if (anyRegular and anySpike)      return true;  // both    available
 		if (not (anyRegular or anySpike)) return false; // neither available
 
-		if (Globals::IsPursuitInCooldownMode(requestPursuit)) return anyRegular;
+		if (Globals::IsPursuitInCooldownMode(pursuit)) return anyRegular;
 
-		const float spikeChance = GetRoadblockSpikeChance(requestPursuit);
+		const float spikeChance = GetRoadblockSpikeChance(pursuit);
 
 		if (spikeChance <= 0.f)   return anyRegular; // always regular
 		if (spikeChance >= 100.f) return anySpike;   // always spike
@@ -256,20 +256,21 @@ namespace RoadblockOverrides
 
 	[[nodiscard]] bool ShouldCustomRequestGetSpikes
 	(
-		const bool anyRegular,
-		const bool anySpike
+		const address pursuit,
+		const bool    anyRegular,
+		const bool    anySpike
 	) {
 		if (not (anyRegular or anySpike))
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogWarning(logTag, "Incompatible request in", requestPursuit);
+				Globals::LogWarning(logTag, "Incompatible request in", pursuit);
 
 			ASSERT_UNREACHABLE_THEN(return false); // will fail anyway
 		}
 
-		if (Globals::IsPursuitInCooldownMode(requestPursuit)) return false;
+		if (Globals::IsPursuitInCooldownMode(pursuit)) return false;
 
-		const float spikeChance = GetRoadblockSpikeChance(requestPursuit);
+		const float spikeChance = GetRoadblockSpikeChance(pursuit);
 
 		if (spikeChance <= 0.f)   return false; // never spikes
 		if (spikeChance >= 100.f) return true;  // always spikes
@@ -282,13 +283,11 @@ namespace RoadblockOverrides
 
 
 
-	[[nodiscard]] bool __stdcall UpdateAndAssessCustomRequest
+	[[nodiscard]] bool __stdcall AssessNewCustomRequest
 	(
 		const address pursuit, 
 		const float   roadWidth
 	) {
-		requestPursuit = pursuit;
-
 		struct RequestReport
 		{
 			size_t numCandidates = 0;
@@ -312,7 +311,7 @@ namespace RoadblockOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogFull(requestPursuit, logTag, "Roadblock attempt");
+			Globals::LogFull(pursuit, logTag, "Roadblock attempt");
 
 			Globals::LogPlain("Road width:", roadWidth);
 			Globals::LogPlain("Candidates:", Globals::LogDec(regular.numCandidates), '/', Globals::LogDec(spike.numCandidates));
@@ -321,29 +320,35 @@ namespace RoadblockOverrides
 		const bool anyRegular = (regular.numCandidates > 0);
 		const bool anySpike   = (spike  .numCandidates > 0);
 
-		if (not IsCustomRequestFeasible(anyRegular, anySpike)) return false; // cancel request
+		if (not IsCustomRequestFeasible(pursuit, anyRegular, anySpike)) return false; // cancel request
 
-		hasSpikes       = ShouldCustomRequestGetSpikes(anyRegular, anySpike);
+		hasSpikes       = ShouldCustomRequestGetSpikes(pursuit, anyRegular, anySpike);
 		numCarsToSource = (hasSpikes) ? spike.maxNumCars : regular.maxNumCars;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogPlain((hasSpikes) ? "With" : "Without", "spikes");
 
 		return true; // continue request
 	}
 
 
 
-	void __fastcall CancelCustomRequest(const address caller) 
-	{
+	void __fastcall CancelCustomRequest
+	(
+		const address pursuit,
+		const address caller
+	) {
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogPlain("Cancelling request");
 
 		switch (caller)
 		{
 		case 0x43E7D6: // HeavyStrategy 4
-			Globals::ClearSupportRequest(requestPursuit);
+			Globals::ClearSupportRequest(pursuit);
 			return;
 
 		case 0x43EC3A: // non-Strategy roadblock
-			AsReference<bool>   (requestPursuit      + 0x190) = false; // request status
+			AsReference<bool>   (pursuit             + 0x190) = false; // request status
 			AsReference<address>(Globals::copManager + 0xBC)  = 0x0;   // roadblock pursuit
 			AsReference<int>    (Globals::copManager + 0xB8)  = 0;     // car count
 			return;
@@ -392,16 +397,6 @@ namespace RoadblockOverrides
 
 
 
-	[[nodiscard]] bool __fastcall IsJoinCountExhausted(const address pursuit)
-	{
-		if (not maxJoinCountPerRB.isEnabled.current) return false;
-
-		const int numVehiclesJoined = AsReference<int>(pursuit + 0x23C);
-		return (numVehiclesJoined >= maxJoinCountPerRB.value.current);
-	}
-
-
-
 	[[nodiscard]] auto CountAvailableSetups()
 	{
 		struct Counts
@@ -432,6 +427,16 @@ namespace RoadblockOverrides
 		}
 
 		return counts;
+	}
+
+
+
+	[[nodiscard]] bool __fastcall IsJoinCountExhausted(const address pursuit)
+	{
+		if (not maxJoinCountPerRB.isEnabled.current) return false;
+
+		const int numVehiclesJoined = AsReference<int>(pursuit + 0x23C);
+		return (numVehiclesJoined >= maxJoinCountPerRB.value.current);
 	}
 
 
@@ -479,11 +484,7 @@ namespace RoadblockOverrides
 		static RELEASE_CONSTINIT std::vector<const RBSetup*> candidates;
 
 		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::LogFull(requestPursuit, logTag, "Selecting", (needsSpikes) ? "spike" : "regular", "setup");
-
 			Globals::LogPlain("Car budget:", Globals::LogDec(maxNumCars));
-		}
 
 		// Find eligible setups
 		int totalChance = 0;
@@ -513,20 +514,22 @@ namespace RoadblockOverrides
 		int       cumulativeChance = 0;
 		const int chanceThreshold  = Globals::pRNG.GenerateNumber<int>(1, totalChance);
 
-		if constexpr (Globals::loggingEnabled)
-			Globals::LogPlain(Globals::LogDec(candidates.size()), "candidate(s)");
-
 		for (const RBSetup* const setup : candidates)
 		{
 			cumulativeChance += setup->GetChance();
 			if (cumulativeChance < chanceThreshold) continue;
 
-			const auto* const table = &(setup->GetRandomTable());
-			maxStretchScale         = setup->GetMaxStretchScale();
+			const bool mirrored = setup->DoMirrorTrial();
+			maxStretchScale     = setup->GetMaxStretchScale();
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogPlain(setup->GetName(), (mirrored) ? "(mirrored)" : "(original)");
+
+			const auto* const table = &(setup->GetTable(mirrored));
 
 			candidates.clear(); // safe due to immediate return
 
-			return table; // use random table
+			return table;
 		}
 
 		candidates.clear();
@@ -708,7 +711,7 @@ namespace RoadblockOverrides
 
 			push dword ptr [esp + 0x14]  // roadWidth
 			push dword ptr [esp + 0x4C8] // pursuit
-			call UpdateAndAssessCustomRequest
+			call AssessNewCustomRequest
 			test al, al
 			je cancellation              // request unfeasible
 
@@ -717,8 +720,9 @@ namespace RoadblockOverrides
 			EXIT_ASSEMBLY_DETOUR(NewCustomRequest)
 
 			cancellation:
-			mov ecx, dword ptr [esp + 0x4C0]
-			call CancelCustomRequest // ecx: caller
+			mov ecx, dword ptr [esp + 0x4C4]
+			mov edx, dword ptr [esp + 0x4C0]
+			call CancelCustomRequest // ecx: pursuit; edx: caller
 
 			jmp dword ptr [cancellationExit]
 		}
@@ -851,7 +855,12 @@ namespace RoadblockOverrides
 		RBTable& table = setup.original;
 
 		// Extract road widths
-		if (not ConfigParser::Parser::ExtractScalars<float, float>(section, "extent", {table.minRoadWidth, {.001f}}, {setup.maxRoadWidth, {0.f}}))
+		const bool widthsExtracted = ConfigParser::Parser::ExtractScalars<float, float>
+		(
+			section, "extent", {table.minRoadWidth, {.001f}}, {setup.maxRoadWidth, {.001f}}
+		);
+
+		if (not widthsExtracted)
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogDetail('-', setup.name, "(no extent)");

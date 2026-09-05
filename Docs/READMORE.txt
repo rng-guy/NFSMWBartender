@@ -87,7 +87,7 @@ in their "pvehicle" nodes because they inherit it from one of their parent nodes
 
 Regarding the "Basic" feature set AS A WHOLE:
 
- • The configuration (.ini) files for this feature set are located in "BartenderSettings\Basic".
+ • The configuration (.ini) files for this feature set are located in "BartenderSettings/Basic".
 
  • The unedited configuration files for this feature set mostly match the game's vanilla values.
 
@@ -122,7 +122,7 @@ Regarding the "Basic" feature set AS A WHOLE:
 
 
 
-Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
+Regarding COSMETIC FEATURES ("BartenderSettings/Basic/Cosmetic.ini"):
 
  • Both notification-related features are incompatible with the "EnableCopDestroyedStringHook"
    feature of the "NFSMW Unlimiter" mod by nlgxzef. To resolve this conflict, either delete 
@@ -203,7 +203,7 @@ Regarding COSMETIC FEATURES ("BartenderSettings\Basic\Cosmetic.ini"):
 
 
 
-Regarding GENERAL FEATURES ("BartenderSettings\Basic\General.ini"):
+Regarding GENERAL FEATURES ("BartenderSettings/Basic/General.ini"):
 
  • The "pursuitLength" tracking also allows the cops to request VltEd-enabled support in races.
 
@@ -244,7 +244,7 @@ Regarding GENERAL FEATURES ("BartenderSettings\Basic\General.ini"):
 
 
 
-Regarding NITROUS FEATURES ("BartenderSettings\Basic\Nitrous.ini"):
+Regarding NITROUS FEATURES ("BartenderSettings/Basic/Nitrous.ini"):
 
  • With performance tuning, a second of NOS charge may last longer / shorter in real time.
 
@@ -262,7 +262,7 @@ Regarding NITROUS FEATURES ("BartenderSettings\Basic\Nitrous.ini"):
 
 
 
-Regarding SPEEDBREAKER FEATURES ("BartenderSettings\Basic\Speedbreaker.ini"):
+Regarding SPEEDBREAKER FEATURES ("BartenderSettings/Basic/Speedbreaker.ini"):
 
  • In the vanilla game, you can recharge the Speedbreaker by driving fast enough or by drifting.
 
@@ -282,7 +282,7 @@ Regarding SPEEDBREAKER FEATURES ("BartenderSettings\Basic\Speedbreaker.ini"):
 
 
 
-Regarding GROUND SUPPORT ("BartenderSettings\Basic\Support.ini"):
+Regarding GROUND SUPPORT ("BartenderSettings/Basic/Support.ini"):
 
  • Very short spawn distances for roadblocks can cause noticeable pop-in as they spawn.
 
@@ -344,7 +344,7 @@ Regarding GROUND SUPPORT ("BartenderSettings\Basic\Support.ini"):
 
 Regarding the "Advanced" feature set AS A WHOLE:
 
- • The configuration (.ini) files for this feature set are located in "BartenderSettings\Advanced".
+ • The configuration (.ini) files for this feature set are located in "BartenderSettings/Advanced".
 
  • The unedited configuration files for this feature set resemble the game's vanilla values.
 
@@ -363,7 +363,7 @@ Regarding the "Advanced" feature set AS A WHOLE:
 
 
   
-Regarding COP SPAWN TABLES ("BartenderSettings\Advanced\CarTables.ini"):
+Regarding COP SPAWN TABLES ("BartenderSettings/Advanced/CarTables.ini"):
    
  • Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) 
    in place of all free-roam "Roadblocks", "Scripted", and "Patrols" spawn tables you leave empty.
@@ -395,15 +395,9 @@ Regarding COP SPAWN TABLES ("BartenderSettings\Advanced\CarTables.ini"):
    whenever a roadblock / script requests more vehicles in total than they would otherwise allow.
    This ensures the game cannot get stuck trying to spawn a roadblock or start a scripted event.
 
- • Vehicles in "Roadblocks" spawn tables are not equally likely to spawn in every vehicle position 
-   of a given roadblock setup. This is because the game processes roadblock spawns in a fixed,
-   setup-dependent order, making it (e.g.) more likely for vehicles with low "count" and high
-   "chance" values to spawn in any position the game happens to process first. This doesn't apply
-   to vehicles with "count" values of at least 6, as no roadblock consists of more than 6 cars.
-
  • Rarely, vehicles that are not in a "Roadblocks" spawn table may still show up in roadblocks.
-   This is a vanilla bug: it usually happens when the game attempts to spawn a vehicle while it's
-   processing a roadblock request, causing it to place the wrong car in the requested roadblock.
+   This is a vanilla issue: it usually happens when the game attempts to recycle vehicles as it
+   processes a roadblock request, causing it to place the wrong car in the requested roadblock.
    Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
  • To be precise, the "Scripted" spawn tables apply to LUA scripts that force cops to spawn;
@@ -424,7 +418,7 @@ Regarding COP SPAWN TABLES ("BartenderSettings\Advanced\CarTables.ini"):
 
 
 
-Regarding CAR (DE)SPAWNING ("BartenderSettings\Advanced\CarSpawns.ini"):
+Regarding CAR (DE)SPAWNING ("BartenderSettings/Advanced/CarSpawns.ini"):
 
  • The engagement count shown above the pursuit board is purely cosmetic: Bartender tracks
    all "Chasers" accurately behind the scenes and ensures that backups trigger as intended.
@@ -467,7 +461,7 @@ Regarding CAR (DE)SPAWNING ("BartenderSettings\Advanced\CarSpawns.ini"):
 
 
 
-Regarding HELICOPTER (RE)SPAWNING AND FUEL ("BartenderSettings\Advanced\Helicopter.ini"):
+Regarding HELICOPTER (RE)SPAWNING AND FUEL ("BartenderSettings/Advanced/Helicopter.ini"):
 
  • Bartender uses separate, random timers for (re)spawning the helicopter and setting its fuel.
    Each despawn context (e.g. the helicopter getting destroyed) has its own respawn-delay interval.
@@ -522,7 +516,7 @@ Regarding HELICOPTER (RE)SPAWNING AND FUEL ("BartenderSettings\Advanced\Helicopt
 
    
   
-Regarding STRATEGY REQUESTS ("BartenderSettings\Advanced\Strategies.ini"):
+Regarding STRATEGY REQUESTS ("BartenderSettings/Advanced/Strategies.ini"):
 
  • Defining low pursuit-target speed thresholds for HeavyStrategy 3 cops fixes the vanilla
    issue of them attempting to flee a given pursuit instantly without trying to ram anything.
@@ -582,7 +576,7 @@ Regarding STRATEGY REQUESTS ("BartenderSettings\Advanced\Strategies.ini"):
 
 
 
- Regarding ROADBLOCK BEHAVIOUR AND SETUPS ("BartenderSettings\Advanced\Roadblocks.ini"):
+ Regarding ROADBLOCK BEHAVIOUR AND SETUPS ("BartenderSettings/Advanced/Roadblocks.ini"):
 
  • Time-based joining from roadblocks happens only at Heat levels for which you define valid
    time values, and has no bearing on other methods through which roadblock cops may join.
@@ -647,7 +641,7 @@ Regarding STRATEGY REQUESTS ("BartenderSettings\Advanced\Strategies.ini"):
 
 
 
- Regarding HEAT GAIN / LOSS ("BartenderSettings\Advanced\Heat.ini"):
+ Regarding HEAT GAIN / LOSS ("BartenderSettings/Advanced/Heat.ini"):
 
  • The "0x80deb840" VltEd array and the "TimePerHeatLevel" VltEd parameter control
    the pace at which you gain passive Heat in pursuits: The former sets the base

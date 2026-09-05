@@ -101,7 +101,7 @@ namespace HelicopterVision
 
 
 
-	void __fastcall ApplyColour(const address interfaceObject)
+	void __fastcall ApplyCurrentColour(const address interfaceObject)
 	{
 		const auto SetFEngColour = AsFunction<void __cdecl (address, uint32_t)>(0x5157E0);
 		SetFEngColour(interfaceObject, currentColourValue); // persists until overridden
@@ -145,7 +145,7 @@ namespace HelicopterVision
 
 			colour:
 			mov ecx, dword ptr [ebx + 0xCC]
-			call ApplyColour // ecx: interfaceObject
+			call ApplyCurrentColour // ecx: interfaceObject
 
 			// Execute original code and resume
 			mov byte ptr [esp + 0x13], 1
@@ -166,7 +166,7 @@ namespace HelicopterVision
 			jne conclusion // skip drawing icon
 
 			mov ecx, dword ptr [esi + 0x3C]
-			call ApplyColour // ecx: interfaceObject
+			call ApplyCurrentColour // ecx: interfaceObject
 
 			xor eax, eax // restore zero flag
 

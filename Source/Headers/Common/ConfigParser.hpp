@@ -15,8 +15,8 @@
 
 #include "Globals.hpp"
 
+#include "../Utilities/StringTools.hpp"
 #include "../Utilities/StreamParser.hpp"
-#include "../Utilities/FormatBuffer.hpp"
 #include "../Utilities/FlatContainers.hpp"
 
 
@@ -284,7 +284,7 @@ namespace ConfigParser
 
 
 		// Invalidates retrieved views and pointers
-		void ClearFiles()
+		void Clear()
 		{
 			this->currentFilePath .clear();
 			this->pathToSectionMap.clear();
@@ -349,7 +349,7 @@ namespace ConfigParser
 			const size_t                        keyStartIndex,
 			ArrayField<Vs, numRows>          ...arrays
 		) {
-			FormatBuffer::Buffer buffer;
+			StringTools::FormatBuffer buffer;
 
 			const bool hasFullDefaultRow = (arrays.defaultValue.has_value() and ...);
 

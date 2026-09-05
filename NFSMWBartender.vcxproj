@@ -115,10 +115,9 @@
     <ClInclude Include="Source\Headers\Common\HeatParameters.hpp" />
     <ClInclude Include="Source\Headers\Common\ModContainers.hpp" />
     <ClInclude Include="Source\Headers\Common\ParameterSets.hpp" />
-    <ClInclude Include="Source\Headers\Common\PersistentStrings.hpp" />
     <ClInclude Include="Source\Headers\Utilities\StaticLogger.hpp" />
     <ClInclude Include="Source\Headers\Utilities\FlatContainers.hpp" />
-    <ClInclude Include="Source\Headers\Utilities\FormatBuffer.hpp" />
+    <ClInclude Include="Source\Headers\Utilities\StringTools.hpp" />
     <ClInclude Include="Source\Headers\Utilities\MemoryTools.hpp" />
     <ClInclude Include="Source\Headers\Utilities\RandomNumbers.hpp" />
     <ClInclude Include="Source\Headers\Utilities\StreamParser.hpp" />

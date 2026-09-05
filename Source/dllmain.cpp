@@ -80,7 +80,7 @@ static void __cdecl InitialiseBartender
 		Globals::LogFull(logSection, logTag, "Bartender v4.00.00");
 
 		// Check for other mods
-		constexpr std::array fileNames =
+		constexpr std::array modNames =
 		{
 			"X360Stuff.asi",
 			"Mempoolulator.asi",
@@ -94,10 +94,10 @@ static void __cdecl InitialiseBartender
 			"NFSMostWanted.WidescreenFix.asi"
 		};
 
-		for (const char* const fileName : fileNames)
+		for (const char* const modName : modNames)
 		{
-			if (MemoryTools::IsModuleLoaded(fileName)) 
-				Globals::LogPlain('+', fileName);
+			if (MemoryTools::IsModuleLoaded(modName))
+				Globals::LogPlain('+', modName);
 		}
 	}
 
@@ -121,7 +121,7 @@ static void __cdecl InitialiseBartender
 	basicSetEnabled |= NitrousCharge   ::InitialiseFeatures(parser);
 	basicSetEnabled |= GameBreaker     ::InitialiseFeatures(parser);
 
-	parser.ClearFiles();
+	parser.Clear();
 
 	if (basicSetEnabled)
 	{

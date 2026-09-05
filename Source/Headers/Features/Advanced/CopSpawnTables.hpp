@@ -9,9 +9,8 @@
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
-#include "../../Common/PersistentStrings.hpp"
 
-#include "../../Utilities/FormatBuffer.hpp"
+#include "../../Utilities/StringTools.hpp"
 
 
 
@@ -89,7 +88,7 @@ namespace CopSpawnTables
 			const vault copType = Globals::GetVaultHash(copName);
 			if (not Globals::IsVehicleTypeCar(copType)) return false;
 
-			PersistentStrings::Make(copType, copName);
+			Globals::vehicleNames.MakeIntern(copName);
 
 			// Technically wasteful, but clearer
 			const CopEntry entry =
@@ -232,7 +231,7 @@ namespace CopSpawnTables
 
 		void Log(const Globals::LogLiteral header) const
 		{
-			static RELEASE_CONSTINIT FormatBuffer::Buffer buffer;
+			static RELEASE_CONSTINIT StringTools::FormatBuffer buffer;
 
 			HeatParameters::LogParameter(header, this->GetTotalMaxCopCount());
 
@@ -270,7 +269,7 @@ namespace CopSpawnTables
 	) {
 		bool allEntriesValid = true;
 
-		FormatBuffer::Buffer buffer;
+		StringTools::FormatBuffer buffer;
 
 		std::vector<const char*> copNames;
 		std::vector<int>         copCounts;

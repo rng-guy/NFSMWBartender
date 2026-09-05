@@ -191,9 +191,17 @@ namespace RandomNumbers
 		// Samples from [0, range.size())
 		template <class Range>
 		requires std::ranges::sized_range<Range>
-		[[nodiscard]] size_t GenerateIndex(const Range& range)
+		[[nodiscard]] size_t GenerateIndex(Range&& range)
 		{
 			return this->GenerateIndex(std::ranges::size(range));
+		}
+
+
+		template <class Range>
+		requires std::ranges::random_access_range<Range>
+		void Shuffle(Range&& range)
+		{
+			std::ranges::shuffle(range, this->engine);
 		}
 	};
 }

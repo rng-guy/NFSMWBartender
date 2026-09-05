@@ -13,9 +13,8 @@
 
 #include "Globals.hpp"
 #include "ConfigParser.hpp"
-#include "PersistentStrings.hpp"
 
-#include "../Utilities/FormatBuffer.hpp"
+#include "../Utilities/StringTools.hpp"
 
 
 
@@ -39,11 +38,6 @@ namespace HeatParameters
 
 		bool   isRace;
 		size_t level;
-
-
-	// Methods
-
-		[[nodiscard]] bool operator==(const HeatState&) const = default;
 	};
 
 
@@ -70,9 +64,9 @@ namespace HeatParameters
 
 	// Logging functions ----------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] std::string_view PadParameterName(const Globals::LogLiteral name)
+	[[nodiscard]] std::string_view FormatName(const Globals::LogLiteral name)
 	{
-		static RELEASE_CONSTINIT FormatBuffer::Buffer buffer;
+		static RELEASE_CONSTINIT StringTools::FormatBuffer buffer;
 
 		return buffer.Format("{:<24}", name.GetView());
 	}
@@ -85,13 +79,13 @@ namespace HeatParameters
 		const Globals::LogLiteral    name, 
 		Ts&&                      ...segments
 	) {
-		Globals::LogPlain(PadParameterName(name), std::forward<Ts>(segments)...);
+		Globals::LogPlain(FormatName(name), std::forward<Ts>(segments)...);
 	}
 
 
 	void LogMissingParameter(const Globals::LogLiteral name)
 	{
-		Globals::LogPlain(PadParameterName(name), "(missing)");
+		Globals::LogPlain(FormatName(name), "(missing)");
 	}
 
 
@@ -192,7 +186,7 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatStateSilently(const HeatState state)
+		void SetToHeatStateQuietly(const HeatState state)
 		{
 			this->current = this->GetHeatStateEntry(state);
 		}
@@ -200,7 +194,7 @@ namespace HeatParameters
 
 		void SetToHeatState(const HeatState state) 
 		{
-			this->SetToHeatStateSilently(state);
+			this->SetToHeatStateQuietly(state);
 
 			if constexpr (Globals::loggingEnabled)
 				LogParameter(this->name, this->current);
@@ -255,7 +249,9 @@ namespace HeatParameters
 			for (const bool forRaces : {false, true})
 			{
 				for (const bool levelFlag : this->GetHeatLevelArray(forRaces))
+				{
 					if (levelFlag) return true;
+				}
 			}
 
 			return false;
@@ -268,23 +264,12 @@ namespace HeatParameters
 			for (const bool forRaces : {false, true})
 			{
 				for (const bool levelFlag : this->GetHeatLevelArray(forRaces))
+				{
 					if (not levelFlag) return false;
+				}
 			}
 
 			return true;
-		}
-
-
-		void MakePersistent() 
-		requires Details::IsNonOwningString<T>
-		{
-			PersistentStrings::Make(this->current);
-
-			for (const bool forRaces : {false, true})
-			{
-				for (T& levelString : this->GetHeatLevelArray(forRaces))
-					PersistentStrings::Make(levelString);
-			}
 		}
 	};
 
@@ -328,16 +313,16 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatStateSilently(const HeatState state)
+		void SetToHeatStateQuietly(const HeatState state)
 		{
-			this->isEnabled.SetToHeatStateSilently(state);
-			this->value    .SetToHeatStateSilently(state);
+			this->isEnabled.SetToHeatStateQuietly(state);
+			this->value    .SetToHeatStateQuietly(state);
 		}
 
 
 		void SetToHeatState(const HeatState state) 
 		{
-			this->SetToHeatStateSilently(state);
+			this->SetToHeatStateQuietly(state);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -403,7 +388,7 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatStateSilently(const HeatState state)
+		void SetToHeatStateQuietly(const HeatState state)
 		{
 			this->current = &(this->GetHeatStateEntry(state));
 		}
@@ -412,7 +397,7 @@ namespace HeatParameters
 		void SetToHeatState(const HeatState state) 
 		requires Details::IsLoggable<T>
 		{
-			this->SetToHeatStateSilently(state);
+			this->SetToHeatStateQuietly(state);
 
 			if constexpr (Globals::loggingEnabled)
 				this->current->Log(this->name);
@@ -450,17 +435,17 @@ namespace HeatParameters
 		constexpr explicit OptionalPointer(const Globals::LogLiteral name) : name(name), pointer("pointer") {}
 
 
-		void SetToHeatStateSilently(const HeatState state)
+		void SetToHeatStateQuietly(const HeatState state)
 		{
-			this->isEnabled.SetToHeatStateSilently(state);
-			this->pointer  .SetToHeatStateSilently(state);
+			this->isEnabled.SetToHeatStateQuietly(state);
+			this->pointer  .SetToHeatStateQuietly(state);
 		}
 
 
 		void SetToHeatState(const HeatState state) 
 		requires Details::IsLoggable<T>
 		{
-			this->SetToHeatStateSilently(state);
+			this->SetToHeatStateQuietly(state);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -515,16 +500,16 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatStateSilently(const HeatState state)
+		void SetToHeatStateQuietly(const HeatState state)
 		{
-			this->min.SetToHeatStateSilently(state);
-			this->max.SetToHeatStateSilently(state);
+			this->min.SetToHeatStateQuietly(state);
+			this->max.SetToHeatStateQuietly(state);
 		}
 
 
 		void SetToHeatState(const HeatState state)
 		{
-			this->SetToHeatStateSilently(state);
+			this->SetToHeatStateQuietly(state);
 
 			if constexpr (Globals::loggingEnabled)
 				LogParameter(this->name, this->min.current, "to", this->max.current);
@@ -587,16 +572,16 @@ namespace HeatParameters
 		}
 
 
-		void SetToHeatStateSilently(const HeatState state)
+		void SetToHeatStateQuietly(const HeatState state)
 		{
-			this->isEnabled.SetToHeatStateSilently(state);
-			this->interval .SetToHeatStateSilently(state);
+			this->isEnabled.SetToHeatStateQuietly(state);
+			this->interval .SetToHeatStateQuietly(state);
 		}
 
 
 		void SetToHeatState(const HeatState state)
 		{
-			this->SetToHeatStateSilently(state);
+			this->SetToHeatStateQuietly(state);
 
 			if constexpr (Globals::loggingEnabled)
 			{
@@ -629,21 +614,19 @@ namespace HeatParameters
 	) {
 		bool allTypesValid = true;
 
-		PersistentStrings::Make(vehicleValue.current); // initial (i.e. vanilla) value by default
+		Globals::vehicleNames.MakeIntern(vehicleValue.current); // vanilla value
 
 		for (const bool forRaces : {false, true})
 		{
-			size_t heatLevel = 0;
+			auto& array = vehicleValue.GetHeatLevelArray(forRaces);
 
-			for (T& levelVehicleName : vehicleValue.GetHeatLevelArray(forRaces))
+			for (const size_t heatLevelID : heatLevelIDs)
 			{
-				++heatLevel;
+				T& levelVehicleName = array[heatLevelID];
 
-				const vault vehicleType = Globals::GetVaultHash(levelVehicleName);
-
-				if (IsVehicleTypeValid(vehicleType))
+				if (IsVehicleTypeValid(Globals::GetVaultHash(levelVehicleName)))
 				{
-					PersistentStrings::Make(vehicleType, levelVehicleName);
+					Globals::vehicleNames.MakeIntern(levelVehicleName);
 
 					continue; // vehicle valid
 				}
@@ -653,10 +636,10 @@ namespace HeatParameters
 					if (allTypesValid)
 						Globals::LogPlain(vehicleValue.GetName(), (forRaces) ? "(race)" : "(roam)");
 
-					Globals::LogDetail(Globals::LogDec(heatLevel), levelVehicleName, "->", vehicleValue.current);
+					Globals::LogDetail(Globals::LogDec(heatLevelID + 1), levelVehicleName, "->", vehicleValue.current);
 				}
 
-				levelVehicleName = vehicleValue.current; // already persistent
+				levelVehicleName = vehicleValue.current; // already interned
 
 				allTypesValid = false;
 			}

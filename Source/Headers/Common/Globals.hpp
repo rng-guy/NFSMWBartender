@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <string_view>
 
+#include "../Utilities/StringTools.hpp"
 #include "../Utilities/MemoryTools.hpp"
 #include "../Utilities/StaticLogger.hpp"
 #include "../Utilities/RandomNumbers.hpp"
@@ -61,6 +62,9 @@ namespace Globals
 
 	// Hackjob floating-point correction
 	constexpr float floatScale = 1.f + 1e-6f;
+
+	// String pool for game-decoupled lifetimes
+	RELEASE_CONSTINIT StringTools::Pool vehicleNames;
 
 	// Function pointers
 	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // pursuit
@@ -312,6 +316,13 @@ namespace Globals
 
 
 	// Vehicle-type functions -----------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] const char* GetNameOfVehicleType(const vault type)
+	{
+		const address attribute = GetFromVault("pvehicle"_vlt, type, "CollectionName"_vlt);
+		return (attribute) ? AsReference<const char*>(attribute) : nullptr;
+	}
+
 
 	[[nodiscard]] vault GetClassOfVehicleType(const vault type)
 	{

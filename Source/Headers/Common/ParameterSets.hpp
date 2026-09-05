@@ -9,7 +9,7 @@
 #include "ModContainers.hpp"
 #include "HeatParameters.hpp"
 
-#include "../Utilities/FormatBuffer.hpp"
+#include "../Utilities/StringTools.hpp"
 
 
 
@@ -73,7 +73,7 @@ namespace ParameterSets
 			const ConfigParser::Parser& parser,
 			const std::string_view      featureTag
 		) {
-			FormatBuffer::Buffer buffer;
+			StringTools::FormatBuffer buffer;
 
 			// Heat parameters
 			HeatParameters::Extract(parser, buffer.Format("{}:Tagging", featureTag), this->copTagChange);

@@ -7,8 +7,8 @@
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
-#include "../../Common/PersistentStrings.hpp"
 
+#include "../../Utilities/StringTools.hpp"
 #include "../../Utilities/MemoryTools.hpp"
 
 
@@ -76,12 +76,16 @@ namespace CopNotifications
 
 		parser.ExtractVectors<std::string_view, std::string_view>("Vehicles:Notifications", copNames, {stringOrNames});
 
-		const auto StringOrNameToNotification = [](const std::string_view stringOrName) -> const char*
+		constexpr auto StringOrNameToNotification = [](std::string_view stringOrName) -> const char*
 		{
-			const auto        GetBinaryString = AsFunction<const char* __fastcall (int, binary)>(0x56BB80);
-			const char* const binaryString    = GetBinaryString(0, Globals::GetBinaryHash(stringOrName));
+			static RELEASE_CONSTINIT StringTools::Pool notifications;
 
-			return PersistentStrings::Create((binaryString) ? binaryString : stringOrName).c_str();
+			const auto GetBinaryString = AsFunction<const char* __fastcall (int, binary)>(0x56BB80);
+
+			if (const char* const binaryString = GetBinaryString(0, Globals::GetBinaryHash(stringOrName)))
+				stringOrName = binaryString; // is valid notification-string name in game database
+
+			return notifications.Intern(stringOrName).c_str();
 		};
 
 		return copTypeToNotificationText.Fill

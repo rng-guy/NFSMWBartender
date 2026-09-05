@@ -6,7 +6,6 @@
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/HeatParameters.hpp"
-#include "../../Common/PersistentStrings.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
 
@@ -197,7 +196,7 @@ namespace HelicopterOverrides
 					.minRejoinFuelTime = minFuelTime
 				};
 
-				PersistentStrings::Make(this->rejoinContext->helicopterName);
+				Globals::vehicleNames.MakeIntern(this->rejoinContext->helicopterName);
 
 				if (hasLimitedFuel)
 					maxBailoutFuelTime = std::min<float>(rejoinDelay.min.current + minFuelTime, maxBailoutFuelTime);

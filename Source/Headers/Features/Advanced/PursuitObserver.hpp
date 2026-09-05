@@ -57,7 +57,7 @@ namespace PursuitObserver
 
 		ModContainers::AddressMap<CopLabel> copVehicleToLabel;
 
-		ModContainers::PointerStorage<PursuitFeatures::Reaction> reactions;
+		ModContainers::StableVector<PursuitFeatures::Reaction> reactions;
 
 		inline static constexpr Globals::LogLiteral name = "PursuitObserver";
 
@@ -254,7 +254,7 @@ namespace PursuitObserver
 	// Feature setup (cont.) ------------------------------------------------------------------------------------------------------------------------
 
 	// Assembly detours
-	RELEASE_CONSTINIT ModContainers::PointerStorage<PursuitObserver> observers;
+	RELEASE_CONSTINIT ModContainers::StableVector<PursuitObserver> observers;
 
 
 

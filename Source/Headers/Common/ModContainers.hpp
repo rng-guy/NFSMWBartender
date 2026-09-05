@@ -38,18 +38,6 @@ namespace ModContainers
 
 
 
-	// Pointer-stable maps
-	template <typename K, typename V>
-	using StableMap = FlatContainers::Map<K, std::unique_ptr<V>>;
-
-	template <typename V>
-	using StableAddressMap = StableMap<address, V>;
-
-	template <typename V>
-	using StableVaultMap = StableMap<vault, V>;
-
-
-
 
 
 	// VehicleMap structs ---------------------------------------------------------------------------------------------------------------------------
@@ -379,10 +367,10 @@ namespace ModContainers
 
 
 
-	// PointerStorage class -------------------------------------------------------------------------------------------------------------------------
+	// StableVector class ---------------------------------------------------------------------------------------------------------------------------
 
 	template <class Base>
-	class PointerStorage
+	class StableVector
 	{
 	private: // members
 

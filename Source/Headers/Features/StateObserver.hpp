@@ -46,31 +46,31 @@ namespace StateObserver
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		static constinit HeatParameters::HeatState oldState{.isRace = false, .level = 0};
+		static constinit HeatParameters::HeatState state{.isRace = false, .level = 0};
 
-		const HeatParameters::HeatState newState(isRacing, HeatParameters::ClampHeatLevel(heatLevel));
-		if (newState == oldState) return; // state unchanged; skip redundant Heat-level update(s)
+		// Check whether Heat-state update is necessary
+		const size_t safeHeatLevel = HeatParameters::ClampHeatLevel(heatLevel);
+		if ((state.isRace == isRacing) and (state.level == safeHeatLevel)) return;
+
+		state = {.isRace = isRacing, .level = safeHeatLevel}; // new state
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			if (newState.level != heatLevel)
+			if (safeHeatLevel != heatLevel)
 				Globals::LogWarning(logTag, "Heat level", Globals::LogDec(heatLevel), "out of range");
 
-			Globals::LogHeat(logTag, "Heat level now", Globals::LogDec(newState.level), (isRacing) ? "(race)" : "(roam)");
+			Globals::LogHeat(logTag, "Heat level", Globals::LogDec(state.level), (state.isRace) ? "(race)" : "(roam)");
 		}
 
 		// "Basic" feature set
-		RadioSpeech    ::SetToHeatState(newState);
-		GeneralSettings::SetToHeatState(newState);
-		GroundSuppport ::SetToHeatState(newState);
-		NitrousCharge  ::SetToHeatState(newState);
-		GameBreaker    ::SetToHeatState(newState);
+		RadioSpeech    ::SetToHeatState(state);
+		GeneralSettings::SetToHeatState(state);
+		GroundSuppport ::SetToHeatState(state);
+		NitrousCharge  ::SetToHeatState(state);
+		GameBreaker    ::SetToHeatState(state);
 			
 		// "Advanced" feature set
-		PursuitObserver::SetToHeatState(newState);
-
-		// State cache
-		oldState = newState;
+		PursuitObserver::SetToHeatState(state);
 	}
 
 
@@ -107,7 +107,7 @@ namespace StateObserver
 		NitrousCharge::NotifyOfFinishedCollision(perpVehicle);
 		GameBreaker  ::NotifyOfFinishedCollision(perpVehicle);
 
-		// HeatChangeOverride doesn't need a notification for this
+		// HeatChangeOverride doesn't need this kind of notification
 	}
 
 

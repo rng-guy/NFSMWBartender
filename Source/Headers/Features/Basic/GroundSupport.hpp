@@ -372,7 +372,7 @@ namespace GroundSuppport
 			mov edi, eax
 
 			mov ecx, dword ptr [esi + 0x4]
-			call SelectCrossVehicle // ecx: LeaderStrategy
+			call SelectCrossVehicle // ecx: leaderStrategy
 			mov dword ptr [esp + 0x24], eax
 
 			test edi, edi
