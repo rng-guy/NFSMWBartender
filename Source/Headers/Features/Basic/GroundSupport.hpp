@@ -245,14 +245,14 @@ namespace GroundSuppport
 
 		// Select an eligible Strategy at random
 		const size_t  candidateID     = Globals::pRNG.GenerateIndex(candidates);
-		const address randomStrategy  = candidates[candidateID];
 		const bool    isHeavyStrategy = (candidateID < numHeavyStrategies);
+		const address randomStrategy  = candidates[candidateID];
 
 		SetStrategy(pursuit, randomStrategy, isHeavyStrategy);
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			const int strategyID = AsReference<int>(randomStrategy);
+			const int strategyID = AsReference<int>(randomStrategy); // valid for both all possible Strategy types
 			Globals::LogFull(pursuit, logTag, "Requesting", (isHeavyStrategy) ? "HeavyStrategy" : "LeaderStrategy", strategyID);
 
 			Globals::LogPlain("Candidate", Globals::LogDec(candidateID + 1), '/', Globals::LogDec(candidates.size()));
@@ -640,7 +640,7 @@ namespace GroundSuppport
 
 
 
-	bool InitialiseFeatures(ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);

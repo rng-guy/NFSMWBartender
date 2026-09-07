@@ -413,18 +413,18 @@ namespace PursuitObserver
 
 	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
-		if (not CopSpawnTables::InitialiseFeatures(parser)) return false;
+		if (not CopSpawnTables::Initialise(parser)) return false;
 
 		// Initialise sub-features
-		CopSpawnOverrides  ::InitialiseFeatures(parser);
-		CopFleeOverrides   ::InitialiseFeatures(parser);
-		LeaderOverrides    ::InitialiseFeatures(parser);
-		StrategyOverrides  ::InitialiseFeatures(parser);
-		HelicopterOverrides::InitialiseFeatures(parser);
-		HeatChangeOverrides::InitialiseFeatures(parser);
-		RoadblockOverrides ::InitialiseFeatures(parser);
+		CopSpawnOverrides  ::Initialise(parser);
+		CopFleeOverrides   ::Initialise(parser);
+		LeaderOverrides    ::Initialise(parser);
+		StrategyOverrides  ::Initialise(parser);
+		HelicopterOverrides::Initialise(parser);
+		HeatChangeOverrides::Initialise(parser);
+		RoadblockOverrides ::Initialise(parser);
 
 		// Code modifications
 		PATCH_ASSEMBLY_DETOUR(CopAdded);

@@ -589,7 +589,7 @@ namespace StrategyOverrides
 
 	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
@@ -611,9 +611,7 @@ namespace StrategyOverrides
 		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4
 		MemoryTools::Write<byte>  (maxNumVehiclesPerHeavy4, {0x43E7CD}); // car budget (actually unused)
 
-		MemoryTools::Write<byte>   (0xE9,  {0x44384A}); // skip vanilla "CollapseSpeed" HeavyStrategy check
-		MemoryTools::Write<address>(0x2A3, {0x44384B});
-
+		MemoryTools::MakeRangeNOP<0x44384A, 0x4438C0>(); // "CollapseSpeed" HeavyStrategy check
 		MemoryTools::MakeRangeNOP<0x4240BD, 0x4240C3>(); // OnAttached increment
 		MemoryTools::MakeRangeNOP<0x42B717, 0x42B72E>(); // OnDetached decrement
 

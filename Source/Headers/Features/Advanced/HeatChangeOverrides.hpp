@@ -480,7 +480,7 @@ namespace HeatChangeOverrides
 
 	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);

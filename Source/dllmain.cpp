@@ -55,14 +55,14 @@
 
 // Hook functions -----------------------------------------------------------------------------------------------------------------------------------
 
-HOOK_ORIGINAL(InitialiseBartender);
+HOOK_ORIGINAL(Initialise);
 
-static void __cdecl InitialiseBartender
+static void __cdecl Initialise
 (
 	const size_t  numArgs, 
 	const address argArray
 ) {
-	CALL_HOOK_ORIGINAL(InitialiseBartender, numArgs, argArray);
+	CALL_HOOK_ORIGINAL(Initialise, numArgs, argArray);
 
 	#ifdef _DEBUG
 	while (not IsDebuggerPresent()); // halt until debugger is attached
@@ -111,15 +111,15 @@ static void __cdecl InitialiseBartender
 	// Initialise "Basic" feature set
 	bool basicSetEnabled = false;
 
-	basicSetEnabled |= CopNotifications::InitialiseFeatures(parser);
-	basicSetEnabled |= RadioSpeech     ::InitialiseFeatures(parser);
-	basicSetEnabled |= CopDetection    ::InitialiseFeatures(parser);
-	basicSetEnabled |= HelicopterVision::InitialiseFeatures(parser);
-	basicSetEnabled |= InteractiveMusic::InitialiseFeatures(parser);
-	basicSetEnabled |= GeneralSettings ::InitialiseFeatures(parser);
-	basicSetEnabled |= GroundSuppport  ::InitialiseFeatures(parser);
-	basicSetEnabled |= NitrousCharge   ::InitialiseFeatures(parser);
-	basicSetEnabled |= GameBreaker     ::InitialiseFeatures(parser);
+	basicSetEnabled |= CopNotifications::Initialise(parser);
+	basicSetEnabled |= RadioSpeech     ::Initialise(parser);
+	basicSetEnabled |= CopDetection    ::Initialise(parser);
+	basicSetEnabled |= HelicopterVision::Initialise(parser);
+	basicSetEnabled |= InteractiveMusic::Initialise(parser);
+	basicSetEnabled |= GeneralSettings ::Initialise(parser);
+	basicSetEnabled |= GroundSuppport  ::Initialise(parser);
+	basicSetEnabled |= NitrousCharge   ::Initialise(parser);
+	basicSetEnabled |= GameBreaker     ::Initialise(parser);
 
 	parser.Clear();
 
@@ -141,11 +141,11 @@ static void __cdecl InitialiseBartender
 	}
 
 	// Initialise "Advanced" feature set
-	const bool advancedSetEnabled = PursuitObserver::InitialiseFeatures(parser);
+	const bool advancedSetEnabled = PursuitObserver::Initialise(parser);
 
 	// Apply Heat and state observer
 	if (basicSetEnabled or advancedSetEnabled)
-		StateObserver::InitialiseFeatures(parser); // pointless otherwise
+		StateObserver::Initialise(parser);
 
 	if constexpr (Globals::loggingEnabled)
 	{
@@ -177,7 +177,7 @@ BOOL WINAPI DllMain
 		return FALSE; // should never happen (assuming the user has actually read the README, which... yeah...)
 	}
 
-	PATCH_HOOK_FUNCTION(InitialiseBartender, 0x6665B4); // InitializeEverything (0x665FC0)
+	PATCH_HOOK_FUNCTION(Initialise, 0x6665B4); // InitializeEverything (0x665FC0)
 
 	return TRUE;
 }

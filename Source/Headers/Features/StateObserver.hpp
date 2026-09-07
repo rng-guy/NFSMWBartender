@@ -537,7 +537,7 @@ namespace StateObserver
 
 	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(const ConfigParser::Parser& parser)
+	bool Initialise(const ConfigParser::Parser& parser)
 	{
 		// Code modifications 
 		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first perp-damage check

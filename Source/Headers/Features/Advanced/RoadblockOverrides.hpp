@@ -233,7 +233,7 @@ namespace RoadblockOverrides
 
 
 
-	[[nodiscard]] bool IsCustomRequestFeasible
+	[[nodiscard]] bool IsRequestFeasible
 	(
 		const address pursuit,
 		const bool    anyRegular,
@@ -254,7 +254,7 @@ namespace RoadblockOverrides
 
 
 
-	[[nodiscard]] bool ShouldCustomRequestGetSpikes
+	[[nodiscard]] bool ShouldRequireSpikes
 	(
 		const address pursuit,
 		const bool    anyRegular,
@@ -283,19 +283,19 @@ namespace RoadblockOverrides
 
 
 
-	[[nodiscard]] bool __stdcall AssessNewCustomRequest
+	[[nodiscard]] bool __stdcall AssessRoadblockRequest
 	(
 		const address pursuit, 
 		const float   roadWidth
 	) {
-		struct RequestReport
+		struct SetupReport
 		{
-			size_t numCandidates = 0;
-			size_t maxNumCars    = 0;
+			size_t numSetups  = 0;
+			size_t maxNumCars = 0;
 		};
 
-		RequestReport regular;
-		RequestReport spike;
+		SetupReport regular;
+		SetupReport spike;
 
 		for (const RBSetup& setup : roadblockSetups)
 		{
@@ -306,23 +306,23 @@ namespace RoadblockOverrides
 
 			report.maxNumCars = std::max<size_t>(report.maxNumCars, setup.GetNumCarsRequired());
 
-			++(report.numCandidates);
+			++(report.numSetups);
 		}
+
+		const bool anyRegular = (regular.numSetups > 0);
+		const bool anySpike   = (spike  .numSetups > 0);
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			Globals::LogFull(pursuit, logTag, "Roadblock attempt");
 
 			Globals::LogPlain("Road width:", roadWidth);
-			Globals::LogPlain("Candidates:", Globals::LogDec(regular.numCandidates), '/', Globals::LogDec(spike.numCandidates));
+			Globals::LogPlain("Candidates:", Globals::LogDec(regular.numSetups), '/', Globals::LogDec(spike.numSetups));
 		}
 
-		const bool anyRegular = (regular.numCandidates > 0);
-		const bool anySpike   = (spike  .numCandidates > 0);
+		if (not IsRequestFeasible(pursuit, anyRegular, anySpike)) return false; // cancel request
 
-		if (not IsCustomRequestFeasible(pursuit, anyRegular, anySpike)) return false; // cancel request
-
-		hasSpikes       = ShouldCustomRequestGetSpikes(pursuit, anyRegular, anySpike);
+		hasSpikes       = ShouldRequireSpikes(pursuit, anyRegular, anySpike);
 		numCarsToSource = (hasSpikes) ? spike.maxNumCars : regular.maxNumCars;
 
 		if constexpr (Globals::loggingEnabled)
@@ -617,15 +617,45 @@ namespace RoadblockOverrides
 
 
 	
-	// Enforces the maximum stretch-scale of the custom roadblock
-	ASSEMBLY_DETOUR(CustomScale, 0x43E345, 0x43E34D)
+	// Pre-processes incoming roadblock requests
+	ASSEMBLY_DETOUR(NewRequest, 0x43DF2A, 0x43DF8A)
+	{
+		static constexpr address cancellationExit = 0x43E1F3;
+
+		__asm
+		{
+			fstp dword ptr [esp + 0x14]
+
+			push dword ptr [esp + 0x14]  // roadWidth
+			push dword ptr [esp + 0x4C8] // pursuit
+			call AssessRoadblockRequest
+			test al, al
+			je cancellation              // request unfeasible
+
+			mov esi, dword ptr [numCarsToSource]
+
+			EXIT_ASSEMBLY_DETOUR(NewRequest)
+
+			cancellation:
+			mov ecx, dword ptr [esp + 0x4C4]
+			mov edx, dword ptr [esp + 0x4C0]
+			call CancelCustomRequest // ecx: pursuit; edx: caller
+
+			jmp dword ptr [cancellationExit]
+		}
+	}
+
+
+
+	// Applies the maximum stretch-scale for roadblocks
+	ASSEMBLY_DETOUR(StretchScale, 0x43E345, 0x43E34D)
 	{
 		__asm
 		{
 			mov eax, dword ptr [maxStretchScale]
 			mov dword ptr [esp + 0x2C], eax
 
-			EXIT_ASSEMBLY_DETOUR(CustomScale)
+			EXIT_ASSEMBLY_DETOUR(StretchScale)
 		}
 	}
 
@@ -674,8 +704,8 @@ namespace RoadblockOverrides
 
 
 
-	// Checks the required car budget for the custom request
-	ASSEMBLY_DETOUR(CustomCarBudget, 0x43E146, 0x43E1C5)
+	// Checks the amount of sourced vehicles for roadblocks
+	ASSEMBLY_DETOUR(ActualCarBudget, 0x43E146, 0x43E1C5)
 	{
 		static constexpr address failureExit = 0x43E1E2;
 
@@ -691,40 +721,10 @@ namespace RoadblockOverrides
 			mov esi, dword ptr [esp + 0x4C4]
 			xor edi, edi
 
-			EXIT_ASSEMBLY_DETOUR(CustomCarBudget)
+			EXIT_ASSEMBLY_DETOUR(ActualCarBudget)
 
 			failure:
 			jmp dword ptr [failureExit]
-		}
-	}
-
-
-
-	// Processes the new roadblock request for custom setups
-	ASSEMBLY_DETOUR(NewCustomRequest, 0x43DF2A, 0x43DF8A)
-	{
-		static constexpr address cancellationExit = 0x43E1F3;
-
-		__asm
-		{
-			fstp dword ptr [esp + 0x14]
-
-			push dword ptr [esp + 0x14]  // roadWidth
-			push dword ptr [esp + 0x4C8] // pursuit
-			call AssessNewCustomRequest
-			test al, al
-			je cancellation              // request unfeasible
-
-			mov esi, dword ptr [numCarsToSource]
-
-			EXIT_ASSEMBLY_DETOUR(NewCustomRequest)
-
-			cancellation:
-			mov ecx, dword ptr [esp + 0x4C4]
-			mov edx, dword ptr [esp + 0x4C0]
-			call CancelCustomRequest // ecx: pursuit; edx: caller
-
-			jmp dword ptr [cancellationExit]
 		}
 	}
 
@@ -974,7 +974,7 @@ namespace RoadblockOverrides
 
 	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool InitialiseFeatures(ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
@@ -1001,11 +1001,11 @@ namespace RoadblockOverrides
 			MemoryTools::Write<size_t>(maxNumParts,      {0x40AFD9});
 			MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
 
-			MemoryTools::MakeRangeJMP<0x4063D0, 0x40644A>(SelectRoadblockTable); // replaces game function
+			MemoryTools::ReplaceCall(0x43E1D0, SelectRoadblockTable); // PickRoadblockSetup (0x4063D0)
 
-			PATCH_ASSEMBLY_DETOUR(CustomScale);
-			PATCH_ASSEMBLY_DETOUR(CustomCarBudget);
-			PATCH_ASSEMBLY_DETOUR(NewCustomRequest);
+			PATCH_ASSEMBLY_DETOUR(NewRequest);
+			PATCH_ASSEMBLY_DETOUR(StretchScale);
+			PATCH_ASSEMBLY_DETOUR(ActualCarBudget);
 		}
 
 		// Code Changes (general)

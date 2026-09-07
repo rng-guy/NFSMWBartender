@@ -72,51 +72,53 @@ namespace GeneralSettings
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] const char* __fastcall GetRandomArrestScene(size_t heatLevel)
+	[[nodiscard]] const char* __fastcall GetRandomArrestScene(const size_t heatLevel)
 	{
-		// Define available arrest cutscenes
-		static constexpr std::array scenesLevel1 =
-		{
-			"ArrestM01",  "ArrestM16",  "ArrestF02",  "ArrestF18",
-			"ArrestM01b", "ArrestM16b", "ArrestF02b", "ArrestF18b"
-		};
-
-		static constexpr std::array scenesLevel2 =
-		{
-			"ArrestM04",  "ArrestF23",
-			"ArrestM04b", "ArrestF23b"
-		};
-
-		static constexpr std::array scenesLevel3 =
-		{
-			"ArrestM07",  "ArrestM14",  "ArrestF14",  
-			"ArrestM07b", "ArrestM14b", "ArrestF14b"
-		};
-
-		static constexpr std::array scenesOthers =
+		// Define possible arrest cutscenes
+		static constexpr std::array others =
 		{
 			"ArrestM06",  "ArrestM19",  "ArrestF06",  "ArrestF07",
 			"ArrestM06b", "ArrestM19b", "ArrestF06b", "ArrestF07b"
 		};
 
-		// Generate Heat-level lookup table
-		using Span = std::span<const char* const>; // dynamic
+		static constexpr std::array level1 =
+		{
+			"ArrestM01",  "ArrestM16",  "ArrestF02",  "ArrestF18",
+			"ArrestM01b", "ArrestM16b", "ArrestF02b", "ArrestF18b"
+		};
 
-		static constexpr std::array heatLevelScenesTable = 
-		{ 
-			Span(scenesLevel1), // Heat level 0
-			Span(scenesLevel1), // Heat level 1
-			Span(scenesLevel2), // Heat level 2
-			Span(scenesLevel3), // Heat level 3
-			Span(scenesOthers)  // Heat level 4+
+		static constexpr std::array level2 =
+		{
+			"ArrestM04",  "ArrestF23",
+			"ArrestM04b", "ArrestF23b"
+		};
+
+		static constexpr std::array level3 =
+		{
+			"ArrestM07",  "ArrestM14",  "ArrestF14",  
+			"ArrestM07b", "ArrestM14b", "ArrestF14b"
 		};
 
 		// Select random cutscene by Heat level
-		heatLevel = std::min<size_t>(heatLevel, heatLevelScenesTable.size() - 1);
+		std::span<const char* const> candidates = others;
 
-		const auto&  candidates  = heatLevelScenesTable[heatLevel];
-		const size_t sceneID     = Globals::pRNG.GenerateIndex(candidates);
-		const auto   randomScene = candidates[sceneID];
+		switch (heatLevel)
+		{
+		case 0:
+		case 1:
+			candidates = level1;
+			break;
+
+		case 2:
+			candidates = level2;
+			break;
+
+		case 3:
+			candidates = level3;
+		}
+
+		const size_t      candidateID = Globals::pRNG.GenerateIndex(candidates);
+		const char* const randomScene = candidates[candidateID];
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogTagged(logTag, "Arrest scene:", randomScene);
@@ -516,7 +518,7 @@ namespace GeneralSettings
 
 
 
-	bool InitialiseFeatures(ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
