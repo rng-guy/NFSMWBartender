@@ -47,7 +47,7 @@ namespace HelicopterOverrides
 
 	constinit HEAT_PARAMETER_INTERVAL(float, rammingCooldown, 8.f, 8.f, {1.f}); // seconds
 
-	// ASM detours
+	// Assembly detours
 	bool hasLimitedFuel    = false;
 	bool skipBailoutSpeech = false;
 
@@ -627,10 +627,10 @@ namespace HelicopterOverrides
 	{
 		__asm
 		{
+			sub esp, 0x4
+
 			mov ecx, ebp
 			call GetSpawnDistance // ecx: pursuit
-
-			push eax
 			fstp dword ptr [esp]
 
 			EXIT_ASSEMBLY_DETOUR(SpawnDistance)

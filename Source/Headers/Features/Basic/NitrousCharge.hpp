@@ -161,7 +161,7 @@ namespace NitrousCharge
 		// Parameter sets
 		nitrousInteractions.Extract(parser, "Nitrous");
 
-		// Code changes
+		// Code modifications
 		PATCH_ASSEMBLY_DETOUR(PassiveRecharge);
 
 		// Status flag

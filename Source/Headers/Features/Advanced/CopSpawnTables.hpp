@@ -244,7 +244,7 @@ namespace CopSpawnTables
 
 
 
-	// Feature setup (cont.) ------------------------------------------------------------------------------------------------------------------------
+	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
 	// Heat parameters
 	RELEASE_CONSTINIT HEAT_PARAMETER_POINTER(SpawnTable, chaserSpawnTable);

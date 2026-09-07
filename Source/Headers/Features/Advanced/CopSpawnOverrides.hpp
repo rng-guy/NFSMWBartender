@@ -28,6 +28,30 @@ namespace CopSpawnOverrides
 	constexpr Globals::LogLiteral logTag  = "[SPA]";
 	constexpr Globals::LogLiteral logName = "CopSpawnOverrides";
 
+	// Pursuit-board tracking
+	bool trackHeavyVehicles     = false;
+	bool trackLeaderVehicles    = false;
+	bool trackRoadblockVehicles = false;
+
+	// Heat parameters
+	constinit HEAT_PARAMETER_INTERVAL(int, activeChaserLimit, 1, 8, {0}); // cars
+
+	constinit HEAT_PARAMETER_VALUE(bool, chasersAreIndependent, false);
+
+	constinit HEAT_PARAMETER_VALUE(bool, onlyDestroyedDecrement, false);
+
+	constinit HEAT_PARAMETER_VALUE(bool, transitionTriggersBackup, false);
+
+	constinit HEAT_PARAMETER_VALUE(float, chaserSpawnClearance, 40.f, {0.f}); // metres
+
+	constinit HEAT_PARAMETER_VALUE(bool, trafficIgnoresChasers,    false);
+	constinit HEAT_PARAMETER_VALUE(bool, trafficIgnoresRoadblocks, false);
+
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, roadblockJoinLimit, {0}); // cars
+
+	// Parameter conversions
+	float squaredChaserSpawnClearance; // metres squared
+
 
 
 
@@ -82,7 +106,7 @@ namespace CopSpawnOverrides
 				if (this->pursuit)
 				{
 					Globals::LogPlain("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
-					Globals::LogPlain("Available: ", this->table.GetNumAvailableCops(copType));
+					Globals::LogPlain(this->table.GetNumAvailableCops(copType), "more available");
 				}
 			}
 
@@ -275,31 +299,7 @@ namespace CopSpawnOverrides
 
 
 
-	// Feature setup (cont.) ------------------------------------------------------------------------------------------------------------------------
-
-	// Pursuit-board tracking
-	bool trackHeavyVehicles     = false;
-	bool trackLeaderVehicles    = false;
-	bool trackRoadblockVehicles = false;
-
-	// Heat parameters
-	constinit HEAT_PARAMETER_INTERVAL(int, activeChaserLimit, 1, 8, {0}); // cars
-
-	constinit HEAT_PARAMETER_VALUE(bool, chasersAreIndependent, false);
-
-	constinit HEAT_PARAMETER_VALUE(bool, onlyDestroyedDecrement, false);
-
-	constinit HEAT_PARAMETER_VALUE(bool, transitionTriggersBackup, false);
-
-	constinit HEAT_PARAMETER_VALUE(float, chaserSpawnClearance, 40.f, {0.f}); // metres
-
-	constinit HEAT_PARAMETER_VALUE(bool, trafficIgnoresChasers,    false);
-	constinit HEAT_PARAMETER_VALUE(bool, trafficIgnoresRoadblocks, false);
-
-	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, roadblockJoinLimit, {0}); // cars
-
-	// Parameter conversions
-	float squaredChaserSpawnClearance; // metres squared
+	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
 	// Inline hashes for ASM
 	enum class VaultHash : vault
@@ -749,7 +749,7 @@ namespace CopSpawnOverrides
 		}
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogWarning(logTag, "Unknown ByClass return address:", caller);
+			Globals::LogWarning(logTag, "Unknown ByClass caller:", caller);
 
 		ASSERT_UNREACHABLE;
 		
@@ -803,7 +803,7 @@ namespace CopSpawnOverrides
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			Globals::LogFull(pursuit, logTag, Globals::LogDec(vehicles.size()), "roadblock vehicle(s)");
+			Globals::LogFull(pursuit, logTag, "Roadblock vehicle(s)");
 
 			for (const address vehicle : vehicles)
 				Globals::LogPlain(vehicle, Globals::GetVehicleName(vehicle));
@@ -1315,7 +1315,7 @@ namespace CopSpawnOverrides
 		MemoryTools::MakeRangeNOP<0x42B74E, 0x42B771>(); // cops-lost increment
 		MemoryTools::MakeRangeNOP<0x4440D7, 0x4440DF>(); // membership check
 
-		MemoryTools::MakeRangeJMP<0x42BA50, 0x42BCEE>(ChasersManager::GetNameOfNewChaser); // replaces game function
+		MemoryTools::MakeRangeJMP<0x42BA50, 0x42BCEE>(ChasersManager::GetNameOfNewChaser); // AIPursuit::CopRequest
 
 		PATCH_ASSEMBLY_DETOUR(WaveReset);
 		PATCH_ASSEMBLY_DETOUR(JoinRequest);

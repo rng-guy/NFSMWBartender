@@ -198,7 +198,7 @@ namespace GameBreaker
 		// Parameter sets
 		breakerInteractions.Extract(parser, "Speedbreaker");
 
-		// Code changes
+		// Code modifications
 		PATCH_ASSEMBLY_DETOUR(DriftRecharge);
 		PATCH_ASSEMBLY_DETOUR(PassiveRecharge);
 

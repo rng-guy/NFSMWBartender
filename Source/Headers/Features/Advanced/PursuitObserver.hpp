@@ -251,7 +251,7 @@ namespace PursuitObserver
 
 	
 
-	// Feature setup (cont.) ------------------------------------------------------------------------------------------------------------------------
+	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
 	// Assembly detours
 	RELEASE_CONSTINIT ModContainers::StableVector<PursuitObserver> observers;

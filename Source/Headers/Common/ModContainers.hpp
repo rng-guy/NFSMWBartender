@@ -112,11 +112,11 @@ namespace ModContainers
 		struct IsFillSetup<FillSetup<RawType, Converter, Validator>> : std::true_type {};
 
 
-		template <class Setup, typename ResultT>
-		concept IsCompatibleResultType = std::convertible_to<typename Setup::ResultType, ResultT>;
+		template <typename ResultType, typename T>
+		concept IsCompatibleResultType = (std::assignable_from<T&, ResultType> and std::constructible_from<T, ResultType>);
 
-		template <class Setup, typename ResultT>
-		concept IsCompatibleSetup = (IsFillSetup<Setup>::value and IsCompatibleResultType<Setup, ResultT>);
+		template <class Setup, typename T>
+		concept IsCompatibleSetup = (IsFillSetup<Setup>::value and IsCompatibleResultType<typename Setup::ResultType, T>);
 
 
 		template <class KeySetup>
@@ -247,7 +247,7 @@ namespace ModContainers
 				}
 
 				// Insert regular key-value pair
-				const auto [_, isNewPair] = this->insert(*key, std::move(*value));
+				const auto [_, isNewPair] = this->try_emplace(*key, std::move(*value));
 
 				if constexpr (Globals::loggingEnabled)
 				{

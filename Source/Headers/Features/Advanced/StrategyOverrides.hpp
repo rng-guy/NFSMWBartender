@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
@@ -26,7 +28,7 @@ namespace StrategyOverrides
 	constexpr size_t maxNumVehiclesPerHeavy4 = 6;  // cars
 
 	// Aliases
-	using Vector4Ds = float[maxNumVehiclesPerHeavy3][4]; // C-style for ASM
+	using Vector4Ds = std::array<float, maxNumVehiclesPerHeavy3 * 4>; // 4D vectors
 
 	// Heat parameters
 	constinit HEAT_PARAMETER_INTERVAL(int, numVehiclesPerHeavy3s, 2, 2, {1, maxNumVehiclesPerHeavy3}); // cars
@@ -40,8 +42,8 @@ namespace StrategyOverrides
 	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, leader7UnblockDelay, {1.f}); // seconds
 
 	// Assembly detours
-	constinit Vector4Ds heavy3SpawnPositions; // C-style for ASM
-	constinit Vector4Ds heavy3InitialVectors; // C-style for ASM
+	constinit Vector4Ds heavy3SpawnPositions; // fully ASM-compatible
+	constinit Vector4Ds heavy3InitialVectors; // fully ASM-compatible
 
 
 

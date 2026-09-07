@@ -18,7 +18,36 @@
 
 namespace RoadblockOverrides
 {
-	// Vanilla types --------------------------------------------------------------------------------------------------------------------------------
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
+
+	bool anyFeatureEnabled = false;
+
+	// Logging
+	constexpr Globals::LogLiteral logTag  = "[RBL]";
+	constexpr Globals::LogLiteral logName = "RoadblockOverrides";
+
+	// Heat parameters
+	constinit HEAT_PARAMETER_VALUE(bool, mayRecycleDistantCops, true);
+
+	constinit HEAT_PARAMETER_VALUE(float, spawnCalloutChance, 100.f, {0.f, 100.f}); // percent
+	constinit HEAT_PARAMETER_VALUE(float, spikeCalloutChance, 50.f,  {0.f, 100.f}); // percent
+
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, chaseRBJoinTimer,  {0.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, backupRBJoinTimer, {0.f}); // seconds
+
+	constinit HEAT_PARAMETER_VALUE(bool, reactToCooldownMode, true);
+	constinit HEAT_PARAMETER_VALUE(bool, reactToSpikesHit,    true);
+
+	constinit HEAT_PARAMETER_VALUE(float, maxRBJoinDistance,       500.f, {0.f}); // metres
+	constinit HEAT_PARAMETER_VALUE(float, maxRBJoinElevationDelta, 1.5f,  {0.f}); // metres
+
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, maxJoinCountPerRB, {0}); // cars
+
+
+
+
+
+	// Game types -----------------------------------------------------------------------------------------------------------------------------------
 
 	enum class RBPartType : int
 	{
@@ -43,11 +72,16 @@ namespace RoadblockOverrides
 	};
 
 	static_assert(sizeof(RBPart) == 16, "Part-size mismatch");
-
+	
 
 
 	constexpr size_t maxNumParts = 6;
-	
+
+	template <typename T>
+	using PartArray = std::array<T, maxNumParts>;
+
+
+
 	struct RBTable
 	{
 	// Members
@@ -55,7 +89,7 @@ namespace RoadblockOverrides
 		float  minRoadWidth    = 0.f; // metres
 		size_t numCarsRequired = 0;   // cars
 
-		RBPart parts[maxNumParts]; // C-style for game compatibility
+		PartArray<RBPart> parts; // fully ASM-compatible
 	};
 
 	static_assert(sizeof(RBTable) == 104, "Table-size mismatch");
@@ -70,16 +104,17 @@ namespace RoadblockOverrides
 	{
 	private: // friends
 
-		friend bool ExtractRoadblockSetup(const auto&, RBSetup&);
+		friend bool ExtractRoadblockSetup(const auto&, RBSetup&); // forward declarations... grrr!
 
 
 	private: // members
 
-		bool hasSpikes  = false;
-		bool canStretch = true;
+		bool hasSpikes = false;
 
 		float maxRoadWidth = 0.f; // metres
-		float mirrorChance = 0.f; // percent
+
+		float mirrorChance = 0.f;  // percent
+		float stretchLimit = 14.f; // percent
 
 		RBTable original; // same constraints as mirrored
 		RBTable mirrored; // same constraints as original
@@ -150,7 +185,7 @@ namespace RoadblockOverrides
 
 		[[nodiscard]] float GetMaxStretchScale() const
 		{
-			return (this->canStretch) ? 1.14f : 1.f;
+			return 1.f + (this->stretchLimit / 100.f);
 		}
 
 
@@ -170,42 +205,14 @@ namespace RoadblockOverrides
 
 
 
-	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
-
-	bool anyFeatureEnabled = false;
-
-	// Logging
-	constexpr Globals::LogLiteral logTag  = "[RBL]";
-	constexpr Globals::LogLiteral logName = "RoadblockOverrides";
-
-	// Aliases
-	template <typename T>
-	using PartDataArray = std::array<T, maxNumParts>;
-
-	// Heat parameters
-	constinit HEAT_PARAMETER_VALUE(bool, mayRecycleDistantCops, true);
-
-	constinit HEAT_PARAMETER_VALUE(float, spawnCalloutChance, 100.f, {0.f, 100.f}); // percent
-	constinit HEAT_PARAMETER_VALUE(float, spikeCalloutChance, 50.f,  {0.f, 100.f}); // percent
-
-	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, chaseRBJoinTimer,  {0.f}); // seconds
-	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, backupRBJoinTimer, {0.f}); // seconds
-
-	constinit HEAT_PARAMETER_VALUE(bool, reactToCooldownMode, true);
-	constinit HEAT_PARAMETER_VALUE(bool, reactToSpikesHit,    true);
-
-	constinit HEAT_PARAMETER_VALUE(float, maxRBJoinDistance,       500.f, {0.f}); // metres
-	constinit HEAT_PARAMETER_VALUE(float, maxRBJoinElevationDelta, 1.5f,  {0.f}); // metres
-
-	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, maxJoinCountPerRB, {0}); // cars
+	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
 	// Custom roadblock setups
 	RELEASE_CONSTINIT std::vector<RBSetup> roadblockSetups;
 
 	// Assembly detours
-	size_t numCarsToSource = 0;
-
-	float maxStretchScale = 1.14f;
+	size_t numCarsToSource = 0;     // used only if setups non-empty
+	float  maxStretchScale = 1.14f; // used only if setups non-empty
 
 	bool hasSpikes = false;
 	int  spikeLane = 0;
@@ -215,6 +222,41 @@ namespace RoadblockOverrides
 
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	void __cdecl ReportSelectionAttempt
+	(
+		const address pursuit,
+		const float   roadWidth,
+		const size_t  maxNumCars,
+		const bool    needsSpikes
+	) {
+		if constexpr (Globals::loggingEnabled)
+		{
+			Globals::LogFull(pursuit, logTag, "Roadblock selection");
+
+			if (roadblockSetups.empty())
+			{
+				Globals::LogPlain("Has spikes:", needsSpikes);
+				Globals::LogPlain("Road width:", roadWidth);
+			}
+
+			Globals::LogPlain("Car budget:", Globals::LogDec(maxNumCars));
+		}
+	}
+
+
+
+	[[nodiscard]] float __stdcall ApplyStretchScale(const float widthRatio)
+	{
+		const float clampedRatio = (maxStretchScale > 1.f) ? std::clamp<float>(widthRatio, 1.f, maxStretchScale) : 1.f;
+
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogPlain(widthRatio, "->", clampedRatio);
+
+		return clampedRatio;
+	}
+
+
 
 	[[nodiscard]] float GetRoadblockSpikeChance(const address pursuit)
 	{
@@ -326,14 +368,14 @@ namespace RoadblockOverrides
 		numCarsToSource = (hasSpikes) ? spike.maxNumCars : regular.maxNumCars;
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogPlain((hasSpikes) ? "With" : "Without", "spikes");
+			Globals::LogPlain("Has spikes:", hasSpikes);
 
 		return true; // continue request
 	}
 
 
 
-	void __fastcall CancelCustomRequest
+	void __fastcall CancelRoadblockRequest
 	(
 		const address pursuit,
 		const address caller
@@ -359,7 +401,7 @@ namespace RoadblockOverrides
 
 		ASSERT_UNREACHABLE;
 	}
-	
+
 
 
 	void __fastcall RequestRoadblockCallout(const address pursuit)
@@ -483,9 +525,6 @@ namespace RoadblockOverrides
 	) {
 		static RELEASE_CONSTINIT std::vector<const RBSetup*> candidates;
 
-		if constexpr (Globals::loggingEnabled)
-			Globals::LogPlain("Car budget:", Globals::LogDec(maxNumCars));
-
 		// Find eligible setups
 		int totalChance = 0;
 
@@ -505,7 +544,7 @@ namespace RoadblockOverrides
 		if (candidates.empty())
 		{
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogWarning(logTag, "No suitable candidate(s)");
+				Globals::LogWarning(logTag, "No candidate(s)");
 
 			ASSERT_UNREACHABLE_THEN(return nullptr);
 		}
@@ -535,7 +574,7 @@ namespace RoadblockOverrides
 		candidates.clear();
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogWarning(logTag, "Failed to select roadblock setup");
+			Globals::LogWarning(logTag, "Failed to select setup");
 
 		ASSERT_UNREACHABLE_THEN(return nullptr);
 	}
@@ -600,23 +639,6 @@ namespace RoadblockOverrides
 
 
 
-	// Records whether the roadblock needs spikes
-	ASSEMBLY_DETOUR(SpikeCheck, 0x43E1C5, 0x43E1CD)
-	{
-		__asm
-		{
-			// Execute original code first
-			mov eax, dword ptr [esp + 0x10]
-			mov ecx, dword ptr [esp + 0x14]
-
-			mov byte ptr [hasSpikes], al
-
-			EXIT_ASSEMBLY_DETOUR(SpikeCheck)
-		}
-	}
-
-
-	
 	// Pre-processes incoming roadblock requests
 	ASSEMBLY_DETOUR(NewRequest, 0x43DF2A, 0x43DF8A)
 	{
@@ -639,7 +661,7 @@ namespace RoadblockOverrides
 			cancellation:
 			mov ecx, dword ptr [esp + 0x4C4]
 			mov edx, dword ptr [esp + 0x4C0]
-			call CancelCustomRequest // ecx: pursuit; edx: caller
+			call CancelRoadblockRequest // ecx: pursuit; edx: caller
 
 			jmp dword ptr [cancellationExit]
 		}
@@ -648,12 +670,19 @@ namespace RoadblockOverrides
 
 
 	// Applies the maximum stretch-scale for roadblocks
-	ASSEMBLY_DETOUR(StretchScale, 0x43E345, 0x43E34D)
+	ASSEMBLY_DETOUR(StretchScale, 0x43E31D, 0x43E359)
 	{
 		__asm
 		{
-			mov eax, dword ptr [maxStretchScale]
-			mov dword ptr [esp + 0x2C], eax
+			push ecx
+
+			sub esp, 0x4
+
+			fstp dword ptr [esp] // widthRatio
+			call ApplyStretchScale
+			fstp dword ptr [esp + 0x30]
+
+			pop ecx
 
 			EXIT_ASSEMBLY_DETOUR(StretchScale)
 		}
@@ -681,31 +710,26 @@ namespace RoadblockOverrides
 
 
 
-	// Processes the outcome of the roadblock request
-	ASSEMBLY_DETOUR(RequestOutcome, 0x43E20C, 0x43E213)
+	// Records whether vanilla roadblocks have spikes
+	ASSEMBLY_DETOUR(VanillaSpike, 0x43E1DA, 0x43E1E0)
 	{
 		__asm
 		{
-			test al, al
-			je conclusion // request failed
+			mov al, byte ptr [esp + 0x10]
+			mov byte ptr [hasSpikes], al
 
-			mov ecx, dword ptr [esp + 0x4C4]
-			call RequestRoadblockCallout // ecx: pursuit
-
-			mov al, 1 // restore value
-
-			conclusion:
 			// Execute original code and resume
-			mov ecx, dword ptr [esp + 0x4B4]
+			mov dword ptr [esp + 0x18], ecx
+			cmp ecx, edi
 
-			EXIT_ASSEMBLY_DETOUR(RequestOutcome)
+			EXIT_ASSEMBLY_DETOUR(VanillaSpike)
 		}
 	}
 
 
-
+	
 	// Checks the amount of sourced vehicles for roadblocks
-	ASSEMBLY_DETOUR(ActualCarBudget, 0x43E146, 0x43E1C5)
+	ASSEMBLY_DETOUR(CarBudgetCheck, 0x43E146, 0x43E1C5)
 	{
 		static constexpr address failureExit = 0x43E1E2;
 
@@ -721,10 +745,56 @@ namespace RoadblockOverrides
 			mov esi, dword ptr [esp + 0x4C4]
 			xor edi, edi
 
-			EXIT_ASSEMBLY_DETOUR(ActualCarBudget)
+			EXIT_ASSEMBLY_DETOUR(CarBudgetCheck)
 
 			failure:
 			jmp dword ptr [failureExit]
+		}
+	}
+
+
+	
+	// Prepares arguments for roadblock-selection function
+	ASSEMBLY_DETOUR(SelectionAttempt, 0x43E1C5, 0x43E1D0)
+	{
+		__asm
+		{
+			// Execute original code first
+			movzx eax, byte ptr [esp + 0x10]
+			mov ecx, dword ptr [esp + 0x14]
+
+			push eax // needsSpikes
+			push ebp // maxNumCars
+			push ecx // roadWidth
+
+			push dword ptr [esp + 0x4D0] // pursuit
+			call ReportSelectionAttempt
+			add esp, 0x4
+
+			EXIT_ASSEMBLY_DETOUR(SelectionAttempt)
+		}
+	}
+
+
+
+	// Processes the outcome of the roadblock request
+	ASSEMBLY_DETOUR(RoadblockOutcome, 0x43E20C, 0x43E213)
+	{
+		__asm
+		{
+			test al, al
+			je conclusion // request failed
+
+			mov ecx, dword ptr [esp + 0x4C4]
+			call RequestRoadblockCallout // ecx: pursuit
+
+			mov al, 1 // restore value
+
+			conclusion:
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x4B4]
+
+			EXIT_ASSEMBLY_DETOUR(RoadblockOutcome)
 		}
 	}
 
@@ -773,12 +843,12 @@ namespace RoadblockOverrides
 		bool hasSpikes = false;
 
 		// Attempt parts extraction
-		PartDataArray<RBPartType> types        = {};
-		PartDataArray<float>      offsetXs     = {};
-		PartDataArray<float>      offsetYs     = {};
-		PartDataArray<float>      orientations = {};
+		PartArray<RBPartType> types        = {};
+		PartArray<float>      offsetXs     = {};
+		PartArray<float>      offsetYs     = {};
+		PartArray<float>      orientations = {};
 
-		const PartDataArray<bool> isExtracteds = ConfigParser::Parser::ExtractArrays<maxNumParts, RBPartType, float, float, float>
+		const PartArray<bool> isExtracteds = ConfigParser::Parser::ExtractArrays<maxNumParts, RBPartType, float, float, float>
 		(
 			section, /* defaultKey = */ {}, "part{:02}", /* keyStartIndex = */ 1, {types}, {offsetXs}, {offsetYs}, {orientations}
 		);
@@ -898,8 +968,8 @@ namespace RoadblockOverrides
 			return false; // unused setup
 		}
 
-		ConfigParser::Parser::ExtractScalars<bool> (section, "stretch", {setup.canStretch});
 		ConfigParser::Parser::ExtractScalars<float>(section, "mirror",  {setup.mirrorChance, {0.f, 100.f}});
+		ConfigParser::Parser::ExtractScalars<float>(section, "stretch", {setup.stretchLimit, {0.f, 20.f}});
 
 		// Create mirrored roadblock table
 		setup.mirrored = CreateMirroredTable(table);
@@ -997,18 +1067,18 @@ namespace RoadblockOverrides
 		// Roadblock setups
 		if (ExtractRoadblockSetups(parser))
 		{
-			// Code changes (conditional)
-			MemoryTools::Write<size_t>(maxNumParts,      {0x40AFD9});
-			MemoryTools::Write<float*>(&maxStretchScale, {0x43E334});
+			// Code modifications (conditional)
+			MemoryTools::Write<size_t>(maxNumParts, {0x40AFD9}); // spikes reaction
 
 			MemoryTools::ReplaceCall(0x43E1D0, SelectRoadblockTable); // PickRoadblockSetup (0x4063D0)
 
 			PATCH_ASSEMBLY_DETOUR(NewRequest);
 			PATCH_ASSEMBLY_DETOUR(StretchScale);
-			PATCH_ASSEMBLY_DETOUR(ActualCarBudget);
+			PATCH_ASSEMBLY_DETOUR(CarBudgetCheck);
 		}
+		else PATCH_ASSEMBLY_DETOUR(VanillaSpike); // only for vanilla roadblocks
 
-		// Code Changes (general)
+		// Code modifications (general)
 		MemoryTools::Write<float*>(&(maxRBJoinDistance      .current), {0x42BEBC});
 		MemoryTools::Write<float*>(&(maxRBJoinElevationDelta.current), {0x42BE3A});
 
@@ -1018,10 +1088,13 @@ namespace RoadblockOverrides
 		PATCH_ASSEMBLY_DETOUR(JoinTimer);
 		PATCH_ASSEMBLY_DETOUR(JoinCount);
 		PATCH_ASSEMBLY_DETOUR(SpikeLane);
-		PATCH_ASSEMBLY_DETOUR(SpikeCheck);
 		PATCH_ASSEMBLY_DETOUR(CopRecycling);
-		PATCH_ASSEMBLY_DETOUR(RequestOutcome);
+		PATCH_ASSEMBLY_DETOUR(RoadblockOutcome);
 		PATCH_ASSEMBLY_DETOUR(SpikesHitReaction);
+
+		// Code modifications (logging)
+		if constexpr (Globals::loggingEnabled)
+			PATCH_ASSEMBLY_DETOUR(SelectionAttempt);
 
 		// Status flag
 		anyFeatureEnabled = true;

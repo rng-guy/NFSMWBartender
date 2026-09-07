@@ -8,7 +8,6 @@
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/ModContainers.hpp"
 
-#include "../../Utilities/StringTools.hpp"
 #include "../../Utilities/MemoryTools.hpp"
 
 
@@ -24,9 +23,20 @@ namespace CopNotifications
 	constexpr Globals::LogLiteral logName = "CopNotifications";
 
 	// Vehicle maps
-	RELEASE_CONSTINIT VEHICLE_MAP(const char*, copTypeToNotificationText, ""); // C-style for game compatibility
+	RELEASE_CONSTINIT VEHICLE_MAP(std::string, copTypeToNotificationText, {});
 
 	RELEASE_CONSTINIT VEHICLE_MAP(binary, copTypeToNotificationIcon, "COPS_TAKENOUT_ICON"_bin);
+
+
+
+
+
+	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] const char* __fastcall GetNotificationText(const vault copType)
+	{
+		return copTypeToNotificationText.GetReference(copType).c_str();
+	}
 
 
 
@@ -39,9 +49,8 @@ namespace CopNotifications
 	{
 		__asm
 		{
-			push dword ptr [esp + 0x54] // copType
-			mov ecx, offset copTypeToNotificationText
-			call ModContainers::VehicleMap<const char*>::GetValue
+			mov ecx, dword ptr [esp + 0x54]
+			call GetNotificationText // ecx: copType
 			cmp byte ptr [eax], '\0'
 
 			EXIT_ASSEMBLY_DETOUR(NotificationText)
@@ -76,16 +85,14 @@ namespace CopNotifications
 
 		parser.ExtractVectors<std::string_view, std::string_view>("Vehicles:Notifications", copNames, {stringOrNames});
 
-		constexpr auto StringOrNameToNotification = [](std::string_view stringOrName) -> const char*
+		constexpr auto StringOrNameToNotification = [](const std::string_view stringOrName) -> std::string_view
 		{
-			static RELEASE_CONSTINIT StringTools::Pool notifications;
-
 			const auto GetBinaryString = AsFunction<const char* __fastcall (int, binary)>(0x56BB80);
 
 			if (const char* const binaryString = GetBinaryString(0, Globals::GetBinaryHash(stringOrName)))
-				stringOrName = binaryString; // is valid notification-string name in game database
+				return binaryString; // is valid notification-string name in game database
 
-			return notifications.Intern(stringOrName).c_str();
+			return stringOrName;
 		};
 
 		return copTypeToNotificationText.Fill
@@ -104,7 +111,7 @@ namespace CopNotifications
 
 		parser.ExtractVectors<std::string_view, std::string_view>("Notifications:Icons", copNames, {iconLabels});
 
-		const auto IsValidGlobalTexture = [](const binary iconKey) -> bool
+		constexpr auto IsValidGlobalTexture = [](const binary iconKey) -> bool
 		{
 			const auto GetTextureInfo = AsFunction<address __cdecl (binary, bool, bool)>(0x503400);
 			return GetTextureInfo(iconKey, /* includeUnloadedTextures = */ false, /* returnDefaultIfNotFound = */ false);
@@ -121,13 +128,13 @@ namespace CopNotifications
 
 	[[nodiscard]] bool InitialiseNotifications(const ConfigParser::Parser& parser)
 	{
-		const bool textMapInitialised = ExtractNotificationTexts(parser);
-		const bool iconMapInitialised = ExtractNotificationIcons(parser);
+		const bool textMapExtracted = ExtractNotificationTexts(parser);
+		const bool iconMapExtracted = ExtractNotificationIcons(parser);
 
-		if (textMapInitialised) PATCH_ASSEMBLY_DETOUR(NotificationText);
-		if (iconMapInitialised) PATCH_ASSEMBLY_DETOUR(NotificationIcon);
+		if (textMapExtracted) PATCH_ASSEMBLY_DETOUR(NotificationText);
+		if (iconMapExtracted) PATCH_ASSEMBLY_DETOUR(NotificationIcon);
 
-		return (textMapInitialised or iconMapInitialised);
+		return (textMapExtracted or iconMapExtracted);
 	}
 
 
