@@ -43,7 +43,9 @@ namespace HelicopterVision
 	constinit Colour outOfSight;
 	constinit Colour withinSight;
 
-	uint32_t currentColourValue = 0x0;
+	uint32_t currentColour = 0x0;
+
+	bool isNewWorldMap = false;
 
 
 
@@ -66,7 +68,7 @@ namespace HelicopterVision
 
 
 
-	void __fastcall UpdateColourBySight
+	[[nodiscard]] uint32_t YieldColourBySight
 	(
 		const address copAIVehicle,
 		const bool    canSeeTarget
@@ -74,14 +76,11 @@ namespace HelicopterVision
 		static constinit float visionState         = 0.f; // out-of-sight (0) to within-sight (1)
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
-		bool& isKnownVehicle = AsReference<bool>(copAIVehicle - 0x4C + 0x769); // padding byte
-
 		const float timestamp = Globals::GetGameplayTime();
 
-		if (isKnownVehicle)
+		if (bool& isKnownVehicle = AsReference<bool>(copAIVehicle - 0x4C + 0x769)) // padding byte
 		{
-			// Guard against potential wrap-around / reset
-			const float timeDelta = std::max<float>(timestamp - lastUpdateTimestamp, 0.f);
+			const float timeDelta = std::max<float>(timestamp - lastUpdateTimestamp, 0.f); // guard against wrap-around / reset
 
 			const float deltaDirection = (canSeeTarget) ? 1.f         : -1.f;
 			const auto& targetColour   = (canSeeTarget) ? withinSight : outOfSight;
@@ -95,16 +94,36 @@ namespace HelicopterVision
 			visionState    = 0.f;
 		}
 
-		currentColourValue  = InterpolateColour(visionState);
 		lastUpdateTimestamp = timestamp;
+
+		return InterpolateColour(visionState);
 	}
 
 
 
-	void __fastcall ApplyCurrentColour(const address interfaceObject)
+	[[nodiscard]] uint32_t __fastcall GetNewColour(const address copVehicle)
+	{
+		if (Globals::IsVehicleDestroyed(copVehicle)) return 0x0;        // invisible
+		if (not anyFeatureEnabled)                   return 0xFF90B8FF; // vanilla
+
+		const address copAIVehicle        = Globals::GetAIVehicleOfVehicle       (copVehicle);
+		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
+
+		const auto    GetPursuitTarget = AsFunction<address __thiscall (address)>(0x409860);
+		const address pursuitTarget    = GetPursuitTarget(copAIVehiclePursuit);
+
+		const auto CanSeeTarget = AsFunction<bool __thiscall (address, address)>(0x4170D0);
+		const bool canSeeTarget = (pursuitTarget and CanSeeTarget(copAIVehiclePursuit, pursuitTarget));
+
+		return YieldColourBySight(copAIVehicle, canSeeTarget);
+	}
+
+
+
+	void __fastcall ApplyCurrentColour(const address element)
 	{
 		const auto SetFEngColour = AsFunction<void __cdecl (address, uint32_t)>(0x5157E0);
-		SetFEngColour(interfaceObject, currentColourValue); // persists until overridden
+		SetFEngColour(element, currentColour); // persists until next SetFEngColour call
 	}
 
 
@@ -118,35 +137,17 @@ namespace HelicopterVision
 	{
 		__asm
 		{
-			mov dword ptr [currentColourValue], 0x0 // invisible
-
 			mov ecx, dword ptr [esi]
-			call Globals::IsVehicleDestroyed
-			test al, al
-			jne colour // helicopter destroyed
+			call GetNewColour // ecx: copVehicle
+			cmp dword ptr [currentColour], eax
+			je conclusion     // colour unchanged
 
-			mov dword ptr [currentColourValue], 0xFF90B8FF // vanilla
+			mov dword ptr [currentColour], eax
 
-			cmp byte ptr [anyFeatureEnabled], 1
-			jne colour // cone feature disabled
-
-			mov eax, dword ptr [esi]
-			mov edx, dword ptr [eax + 0x54] // AIVehicle
-			push edx
-
-			push dword ptr [edx + 0x54] // target
-			mov ecx, edi
-			mov edx, dword ptr [edi]
-			call dword ptr [edx + 0x7C] // AIVehicleHelicopter::CanSeeTarget
-
-			pop ecx
-			movzx edx, al
-			call UpdateColourBySight // ecx: copAIVehicle, edx: canSeeTarget
-
-			colour:
 			mov ecx, dword ptr [ebx + 0xCC]
-			call ApplyCurrentColour // ecx: interfaceObject
+			call ApplyCurrentColour // ecx: element
 
+			conclusion:
 			// Execute original code and resume
 			mov byte ptr [esp + 0x13], 1
 
@@ -165,13 +166,34 @@ namespace HelicopterVision
 			cmp byte ptr [esi + 0x34], 0
 			jne conclusion // skip drawing icon
 
+			cmp byte ptr [isNewWorldMap], 0
+			je conclusion
+
 			mov ecx, dword ptr [esi + 0x3C]
-			call ApplyCurrentColour // ecx: interfaceObject
+			call ApplyCurrentColour // ecx: element
+
+			mov byte ptr [isNewWorldMap], 0
 
 			xor eax, eax // restore zero flag
 
 			conclusion:
 			EXIT_ASSEMBLY_DETOUR(WorldMapIcon)
+		}
+	}
+
+
+
+	// Updates the world-map flag when a new world map is created
+	ASSEMBLY_DETOUR(WorldMapConstructor, 0x561505, 0x56150B)
+	{
+		__asm
+		{
+			mov byte ptr [isNewWorldMap], 1
+
+			// Execute original code and resume
+			mov dword ptr [esi + 0x128], eax
+
+			EXIT_ASSEMBLY_DETOUR(WorldMapConstructor)
 		}
 	}
 
@@ -269,6 +291,7 @@ namespace HelicopterVision
 
 		// Code modifications
 		PATCH_ASSEMBLY_DETOUR(WorldMapIcon);
+		PATCH_ASSEMBLY_DETOUR(WorldMapConstructor);
 
 		// Status flag
 		anyFeatureEnabled = true;

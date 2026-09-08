@@ -290,7 +290,7 @@ namespace ModContainers
 		}
 
 
-		[[nodiscard]] V GetValue(const vault key) const
+		[[nodiscard]] V __thiscall GetValue(const vault key) const
 		{
 			return this->GetReference(key);
 		}
@@ -381,13 +381,13 @@ namespace ModContainers
 
 		template <class Derived = Base, typename ...ValArgs>
 		requires std::derived_from<Derived, Base>
-		void EmplaceObject(ValArgs&&... args)
+		void Emplace(ValArgs&&... args)
 		{
 			this->pointers.push_back(std::make_unique<Derived>(std::forward<ValArgs>(args)...));
 		}
 
 
-		auto EraseObject(const decltype(pointers)::const_iterator cit)
+		auto Erase(const decltype(pointers)::const_iterator cit)
 		{
 			return this->pointers.erase(cit);
 		}

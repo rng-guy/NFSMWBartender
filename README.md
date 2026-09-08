@@ -124,7 +124,8 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * whether spawning decisions for traffic cars are independent of those for cops,
 * whether only destroyed chasing cops can decrement the remaining engagement count,
 * whether Heat transitions immediately trigger backup to update the engagement count,
-* how far away new chasing cops must spawn from all already active cops,
+* how far ahead new chasing cops must spawn from the pursuit target,
+* how far away new chasing cops must spawn from all already active vehicles,
 * when and to what extent (if at all) roadblock cops can join pursuits,
 * whether roadblocks react to the pursuit target entering "COOLDOWN" mode,
 * whether roadblocks react to the pursuit target hitting their spike strips,
@@ -145,6 +146,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * how far away the helicopter can spawn to chase you,
 * how far away the helicopter can spawn to search for you,
 * whether the presence of roadblocks affects the helicopter's navigation behaviour,
+* beyond what distance to you the helicopter may ignore all world geometry for pathing,
 * the internal cooldown between the helicopter's ramming attempts through HeliStrategy 2,
 * below what pursuit-target speed HeavyStrategy 3 cops cancel their ramming attempts,
 * how many cops can spawn through each successful HeavyStrategy 3 request,
@@ -175,10 +177,12 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **always fixes thirteen bugs / issues** automatically:
+The "Advanced" feature set **always fixes fifteen bugs / issues** automatically:
+* chasing cops that exceed their type-specific count no longer flee,
 * HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
 * cops in roadblocks can no longer prevent chasing cops from spawning,
 * the cops no longer stop calling out roadblocks / spikes over the radio,
+* the helicopter no longer competes with chasing cops for spawn opportunities,
 * cops joining pursuits from roadblocks no longer ignore cop-related spawn limits,
 * Challenge Series races now use the Heat level limits defined for them in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),
 * the game no longer ignores VltEd settings for roadblocks and Strategies in races,
@@ -192,8 +196,9 @@ The "Advanced" feature set **always fixes thirteen bugs / issues** automatically
 
 &nbsp;
 
-The "Advanced" feature set **can fix five more bugs / issues**, depending on its configuration:
+The "Advanced" feature set **can fix six more bugs / issues**, depending on its configuration:
 * failed roadblock spawn attempts can no longer stall spawns for chasing cops,
+* the helicopter can no longer fall behind and despawn due to chase-pathing issues,
 * the cops no longer inadvertently fail to request four of the vanilla roadblock setups,
 * the helicopter can no longer waste its spawns by losing the pursuit target nearly instantly,
 * HeavyStrategy 3 cops no longer spawn in passive mode without trying to ram anything, and

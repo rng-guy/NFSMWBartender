@@ -68,13 +68,16 @@ namespace Globals
 
 	// Function pointers
 	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // pursuit
-	const auto IsVehicleDestroyed  = AsFunction<bool __thiscall (address)>(0x688170); // vehicle
 	const auto ClearSupportRequest = AsFunction<void __thiscall (address)>(0x42BCF0); // pursuit
 
-	const auto GetVehicleType = AsFunction<vault       __thiscall (address)>(0x6880A0); // vehicle
-	const auto GetVehicleName = AsFunction<const char* __thiscall (address)>(0x688090); // vehicle
+	const auto GetAvailableCopVehicleByName = AsFunction<address __thiscall (address, const char*)>(0x41ECD0); // cop manager
+
+	const auto GetVehicleType     = AsFunction<vault       __thiscall (address)>(0x6880A0); // vehicle
+	const auto GetVehicleName     = AsFunction<const char* __thiscall (address)>(0x688090); // vehicle
+	const auto IsVehicleDestroyed = AsFunction<bool        __thiscall (address)>(0x688170); // vehicle
 
 	// Non-function pointers
+	const address&  raceStatus     = AsReference<address> (0x91E000);
 	const address&  copManager     = AsReference<address> (0x90D5F4);
 	const uint32_t& numGameTicks   = AsReference<uint32_t>(0x925B14); // ticks (actually int)
 	const float&    ticksToTime    = AsReference<float>   (0x890984); // seconds / tick

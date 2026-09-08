@@ -322,7 +322,7 @@ namespace CopSpawnTables
 
 
 
-	[[nodiscard]] bool ExtractSpawnTables(const ConfigParser::Parser& parser)
+	[[nodiscard]] bool ExtractSpawnTablePointers(const ConfigParser::Parser& parser)
 	{
 		// All free-roam "Chasers" tables must be non-empty to serve as fallbacks
 		bool allTableEntriesValid = ExtractTablePointer(parser, "Chasers", chaserSpawnTable);
@@ -379,7 +379,7 @@ namespace CopSpawnTables
 		if (not parser.ParseFile(Globals::pathAdvanced, Globals::fileCarTables)) return false;
 
 		// Heat parameters
-		if (not ExtractSpawnTables(parser)) return false; // free-roam "Chasers" table(s) empty; disable feature
+		if (not ExtractSpawnTablePointers(parser)) return false; // free-roam "Chasers" table(s) empty; disable feature
 
 		// Status flag
 		anyFeatureEnabled = true;

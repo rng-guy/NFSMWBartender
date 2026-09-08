@@ -98,11 +98,11 @@ namespace PursuitObserver
 
 		template <class Feature>
 		requires std::derived_from<Feature, PursuitFeatures::Reaction>
-		void AttachReaction()
+		void Attach()
 		{
 			if (not Feature::isEnabled) return;
 
-			this->reactions.EmplaceObject<Feature>(this->pursuit);
+			this->reactions.Emplace<Feature>(this->pursuit);
 		}
 
 
@@ -119,15 +119,15 @@ namespace PursuitObserver
 
 			// Container pre-allocations
 			this->reactions        .Reserve(6);
-			this->copVehicleToLabel.reserve(100);
+			this->copVehicleToLabel.reserve(80);
 
 			// Reaction features
-			this->AttachReaction<CopSpawnOverrides  ::ChasersManager>   ();
-			this->AttachReaction<CopFleeOverrides   ::MembershipManager>();
-			this->AttachReaction<HelicopterOverrides::HelicopterManager>();
-			this->AttachReaction<StrategyOverrides  ::StrategyManager>  ();
-			this->AttachReaction<LeaderOverrides    ::LeaderManager>    ();
-			this->AttachReaction<HeatChangeOverrides::HeatManager>      ();
+			this->Attach<CopSpawnOverrides  ::ChasersManager>   ();
+			this->Attach<CopFleeOverrides   ::MembershipManager>();
+			this->Attach<HelicopterOverrides::HelicopterManager>();
+			this->Attach<StrategyOverrides  ::StrategyManager>  ();
+			this->Attach<LeaderOverrides    ::LeaderManager>    ();
+			this->Attach<HeatChangeOverrides::HeatManager>      ();
 		}
 
 
@@ -274,7 +274,7 @@ namespace PursuitObserver
 			ASSERT_UNREACHABLE_THEN(return);
 		}
 
-		observers.EmplaceObject(pursuit);
+		observers.Emplace(pursuit);
 	}
 
 
@@ -301,7 +301,7 @@ namespace PursuitObserver
 		{
 			if ((*it)->GetPursuit() != pursuit) continue; // wrong pursuit
 
-			observers.EraseObject(it);
+			observers.Erase(it);
 
 			return; // deleted
 		}

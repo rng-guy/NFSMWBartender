@@ -36,7 +36,7 @@ namespace CopDetection
 		consteval explicit ColourTracker(TimeQuery* const GetTimestamp) : GetTimestamp(GetTimestamp) {}
 
 
-		[[nodiscard]] bool YieldShouldUpdate()
+		[[nodiscard]] bool __thiscall YieldShouldUpdate()
 		{
 			const float timestamp = this->GetTimestamp();
 
@@ -44,8 +44,7 @@ namespace CopDetection
 
 			if ((not this->forceNextUpdate) and (timestamp < this->lastUpdateTimestamp + updateInterval))
 			{
-				// Guard against potential wrap-around / reset
-				if (timestamp >= this->lastUpdateTimestamp) return false;
+				if (timestamp >= this->lastUpdateTimestamp) return false; // guard against wrap-around / reset
 			}
 
 			this->lastUpdateTimestamp = timestamp;
@@ -55,7 +54,7 @@ namespace CopDetection
 		}
 
 
-		void Reset()
+		void __thiscall Reset()
 		{
 			this->forceNextUpdate = true;
 		}
@@ -321,16 +320,14 @@ namespace CopDetection
 	{
 		__asm
 		{
-			push eax
+			// Execute original code first
+			mov dword ptr [esi + 0x124], eax
 
 			mov ecx, offset worldMapCops
 			call ColourTracker::Reset
 
-			pop eax
+			xor eax, eax // restore value
 			
-			// Execute original code and resume
-			mov dword ptr [esi + 0x124], eax
-
 			EXIT_ASSEMBLY_DETOUR(WorldMapConstructor)
 		}
 	}

@@ -14,7 +14,6 @@
 
 #include "CopSpawnTables.hpp"
 #include "PursuitFeatures.hpp"
-#include "HelicopterOverrides.hpp"
 
 
 
@@ -41,6 +40,8 @@ namespace CopSpawnOverrides
 	constinit HEAT_PARAMETER_VALUE(bool, onlyDestroyedDecrement, false);
 
 	constinit HEAT_PARAMETER_VALUE(bool, transitionTriggersBackup, false);
+
+	constinit HEAT_PARAMETER_INTERVAL(float, chaserSpawnDistance, 230.f, 230.f, {150.f, 400.f}); // metres
 
 	constinit HEAT_PARAMETER_VALUE(float, chaserSpawnClearance, 40.f, {0.f}); // metres
 
@@ -193,7 +194,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		void Clear()
+		void __thiscall Clear()
 		{
 			this->numTotalActiveCops = 0;
 
@@ -212,7 +213,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		void AddVehicle(const address copVehicle)
+		void __thiscall AddVehicle(const address copVehicle)
 		{
 			this->AddVehicleByType(Globals::GetVehicleType(copVehicle));
 		}
@@ -224,7 +225,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		bool RemoveVehicle(const address copVehicle)
+		bool __thiscall RemoveVehicle(const address copVehicle)
 		{
 			return this->RemoveVehicleByType(Globals::GetVehicleType(copVehicle));
 		}
@@ -257,7 +258,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		[[nodiscard]] const char* GetNameOfAvailableCopWithFallback() const
+		[[nodiscard]] const char* __thiscall GetNameOfAvailableCopWithFallback() const
 		{
 			if (const auto nameFromTable = this->GetNameOfAvailableCop()) return nameFromTable;
 				
@@ -723,10 +724,9 @@ namespace CopSpawnOverrides
 
 	[[nodiscard]] bool IsEventActive()
 	{
-		const address raceStatusObject = AsReference<address>(0x91E000);
-		ASSERT_CONDITION_THEN_IF_FALSE(raceStatusObject, return false);
+		ASSERT_CONDITION_THEN_IF_FALSE(Globals::raceStatus, return false);
 
-		return (AsReference<int>(raceStatusObject + 0x1960) != 0);
+		return (AsReference<int>(Globals::raceStatus + 0x1960) != 0);
 	}
 
 
@@ -735,9 +735,6 @@ namespace CopSpawnOverrides
 	{
 		switch (caller)
 		{
-		case 0x4269E6: // helicopter
-			return HelicopterOverrides::HelicopterManager::GetHelicopterName();
-
 		case 0x42EAAD: // first cop of milestone / bounty pursuit
 			return patrolSpawns.GetNameOfAvailableCopWithFallback();
 
@@ -760,13 +757,10 @@ namespace CopSpawnOverrides
 
 	[[nodiscard]] bool CurrentEventForcesPursuit()
 	{
-		const address raceStatus = AsReference<address>(0x91E000);
-		ASSERT_CONDITION_THEN_IF_FALSE(raceStatus, return false);
+		ASSERT_CONDITION_THEN_IF_FALSE(Globals::raceStatus, return false);
 
-		const auto    IsPursuitEvent = AsFunction <bool __thiscall (address)>(0x5FBE70);
-		const address raceParameters = AsReference<address>                  (raceStatus + 0x1968);
-
-		return IsPursuitEvent(raceParameters);
+		const auto IsPursuitEvent = AsFunction<bool __thiscall (address)>(0x5FBE70);
+		return IsPursuitEvent(AsReference<address>(Globals::raceStatus + 0x1968));
 	}
 
 
@@ -791,23 +785,12 @@ namespace CopSpawnOverrides
 
 
 
-	void __stdcall ShuffleRoadblockVehicles
+	void __fastcall ShuffleRoadblockVehicles
 	(
-		const address  pursuit,
 		address* const copVehicles,
 		const size_t   numCopVehicles
 	) {
-		const std::span vehicles(copVehicles, numCopVehicles);
-
-		Globals::pRNG.Shuffle(vehicles);
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			Globals::LogFull(pursuit, logTag, "Roadblock vehicle(s)");
-
-			for (const address vehicle : vehicles)
-				Globals::LogPlain(vehicle, Globals::GetVehicleName(vehicle));
-		}
+		Globals::pRNG.Shuffle(std::span(copVehicles, numCopVehicles));
 	}
 
 
@@ -907,6 +890,22 @@ namespace CopSpawnOverrides
 			fcomp dword ptr [edx]
 
 			EXIT_ASSEMBLY_DETOUR(CopClearance)
+		}
+	}
+
+
+
+	// Determines the spawn distance for new "Chasers"
+	ASSEMBLY_DETOUR(SpawnDistance, 0x431419, 0x431426)
+	{
+		__asm
+		{
+			push ecx
+
+			mov ecx, offset chaserSpawnDistance
+			call HeatParameters::Interval<float>::GetRandomValue
+
+			EXIT_ASSEMBLY_DETOUR(SpawnDistance)
 		}
 	}
 
@@ -1111,8 +1110,6 @@ namespace CopSpawnOverrides
 	// Intercepts the game's requests for cop vehicles by class
 	ASSEMBLY_DETOUR(ByClassRequest, 0x426610, 0x426730)
 	{
-		static constexpr address GetAvailableCopVehicleByName = 0x41ECD0;
-
 		__asm
 		{
 			mov dword ptr [esp + 0x4], ecx
@@ -1124,7 +1121,7 @@ namespace CopSpawnOverrides
 
 			push eax
 			mov ecx, dword ptr [esp + 0x8]
-			call dword ptr [GetAvailableCopVehicleByName]
+			call Globals::GetAvailableCopVehicleByName
 
 			conclusion:
 			EXIT_ASSEMBLY_DETOUR(ByClassRequest)
@@ -1218,10 +1215,9 @@ namespace CopSpawnOverrides
 			// Execute original code first
 			mov dword ptr [esp + 0x14], 0
 
-			push dword ptr [ebx - 0x4]   // numCopVehicles
-			push dword ptr [esp + 0x38]  // copVehicles
-			push dword ptr [esp + 0x4CC] // pursuit
-			call ShuffleRoadblockVehicles
+			mov ecx, dword ptr [esp + 0x34] 
+			mov edx, dword ptr [ebx - 0x4]
+			call ShuffleRoadblockVehicles // ecx: copVehicles; edx: numCopVehicles
 
 			EXIT_ASSEMBLY_DETOUR(RoadblockShuffling)
 		}
@@ -1286,6 +1282,8 @@ namespace CopSpawnOverrides
 
 		HeatParameters::Extract(parser, "Chasers:Backup", transitionTriggersBackup);
 
+		HeatParameters::Extract(parser, "Chasers:Distance", chaserSpawnDistance);
+
 		HeatParameters::Extract(parser, "Chasers:Clearance", chaserSpawnClearance);
 
 		HeatParameters::Extract(parser, "Traffic:Independence", trafficIgnoresChasers, trafficIgnoresRoadblocks);
@@ -1311,8 +1309,8 @@ namespace CopSpawnOverrides
 
 		MemoryTools::MakeRangeNOP<0x43EB84, 0x43EB92>(); // global spawn-limit check
 		MemoryTools::MakeRangeNOP<0x4442AC, 0x4442C2>(); // zero-wave / capacity increment
-		MemoryTools::MakeRangeNOP<0x57B186, 0x57B189>(); // helicopter increment
-		MemoryTools::MakeRangeNOP<0x42B74E, 0x42B771>(); // cops-lost increment
+		MemoryTools::MakeRangeNOP<0x57B186, 0x57B189>(); // helicopter           increment
+		MemoryTools::MakeRangeNOP<0x42B74E, 0x42B771>(); // cops-lost            increment
 		MemoryTools::MakeRangeNOP<0x4440D7, 0x4440DF>(); // membership check
 
 		MemoryTools::MakeRangeJMP<0x42BA50, 0x42BCEE>(ChasersManager::GetNameOfNewChaser); // AIPursuit::CopRequest
@@ -1321,6 +1319,7 @@ namespace CopSpawnOverrides
 		PATCH_ASSEMBLY_DETOUR(JoinRequest);
 		PATCH_ASSEMBLY_DETOUR(PatrolSpawn);
 		PATCH_ASSEMBLY_DETOUR(CopClearance);
+		PATCH_ASSEMBLY_DETOUR(SpawnDistance);
 		PATCH_ASSEMBLY_DETOUR(ScriptedSpawn);
 		PATCH_ASSEMBLY_DETOUR(PatrolPursuit);
 		PATCH_ASSEMBLY_DETOUR(PatrolDespawn);
@@ -1362,6 +1361,8 @@ namespace CopSpawnOverrides
 		onlyDestroyedDecrement.SetToHeatState(state);
 
 		transitionTriggersBackup.SetToHeatState(state);
+
+		chaserSpawnDistance.SetToHeatState(state);
 
 		chaserSpawnClearance.SetToHeatState(state);
 

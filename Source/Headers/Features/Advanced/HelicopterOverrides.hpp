@@ -39,6 +39,8 @@ namespace HelicopterOverrides
 
 	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, fuelTime, {1.f}); // seconds
 
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(float, catchUpThreshold, {0.f}); // metres
+
 	constinit HEAT_PARAMETER_INTERVAL(float, chaseSpawnDistance, 250.f, 250.f, {0.f, 450.f}); // metres
 
 	constinit HEAT_PARAMETER_INTERVAL(float, searchSpawnDistance, 250.f, 250.f, {0.f, 450.f}); // metres
@@ -46,6 +48,9 @@ namespace HelicopterOverrides
 	constinit HEAT_PARAMETER_VALUE(bool, affectedByRoadblock, true);
 
 	constinit HEAT_PARAMETER_INTERVAL(float, rammingCooldown, 8.f, 8.f, {1.f}); // seconds
+
+	// Parameter conversions
+	float squaredCatchUpThreshold; // metres squared
 
 	// Assembly detours
 	bool hasLimitedFuel    = false;
@@ -97,9 +102,9 @@ namespace HelicopterOverrides
 
 		PursuitFeatures::IntervalTimer spawnTimer;
 
-		int& numHelisDeployed = AsReference<int>(this->pursuit + 0x150); // helicopters
+		int& numHelicoptersDeployed = AsReference<int>(this->pursuit + 0x150); // helicopters
 
-		bool& searchSpawnAllowed = AsReference<bool>(this->pursuit + 0xD4);
+		bool& maySpawnToSearch = AsReference<bool>(this->pursuit + 0xD4);
 
 		inline static constinit std::optional<RejoinContext> rejoinContext;
 
@@ -211,7 +216,7 @@ namespace HelicopterOverrides
 		[[nodiscard]] bool IsBlockedByCooldownMode() const
 		{
 			if (not Globals::IsPursuitInCooldownMode(this->pursuit)) return false;
-			return (not (this->IsHelicopterRejoining() or this->searchSpawnAllowed));
+			return (not (this->IsHelicopterRejoining() or this->maySpawnToSearch));
 		}
 
 
@@ -229,6 +234,12 @@ namespace HelicopterOverrides
 			CallOutSweep(helicopterActor); // requests radio callout for helicopter search
 		}
 
+		
+		[[nodiscard]] static bool IsRoadblockSpawnPending()
+		{
+			return AsReference<address>(Globals::copManager + 0xBC);
+		}
+
 
 		void MakeSpawnAttempt() const
 		{
@@ -237,6 +248,7 @@ namespace HelicopterOverrides
 			if (this->IsBlockedByRejoining())      return;
 			if (not this->spawnTimer.HasExpired()) return;
 			if (this->IsBlockedByCooldownMode())   return;
+			if (this->IsRoadblockSpawnPending())   return;
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(this->pursuit, logTag, "Requesting helicopter");
@@ -298,8 +310,8 @@ namespace HelicopterOverrides
 			switch (status)
 			{
 			case Status::ACTIVE:
-				this->searchSpawnAllowed = false;
-				skipBailoutSpeech        = false;
+				this->maySpawnToSearch = false;
+				skipBailoutSpeech      = false;
 				break;
 
 			case Status::EXPIRED:
@@ -445,7 +457,7 @@ namespace HelicopterOverrides
 
 				this->SetFuelTime(this->rejoinContext->fuelTimeOnRejoin);
 
-				--(this->numHelisDeployed);
+				--(this->numHelicoptersDeployed);
 			}
 			else this->ProcessNewHelicopter(copVehicle);
 			
@@ -480,10 +492,8 @@ namespace HelicopterOverrides
 		}
 
 
-		[[nodiscard]] static const char* GetHelicopterName()
+		[[nodiscard]] static const char* __cdecl GetHelicopterName()
 		{
-			if (not HelicopterManager::isEnabled) return nullptr;
-
 			if (HelicopterManager::rejoinContext)
 			{
 				if (HelicopterManager::rejoinContext->helicopterName)
@@ -538,6 +548,22 @@ namespace HelicopterOverrides
 			Globals::LogPlain("Spawn distance:", distance, (isSearch) ? "(search)" : "(chase)");
 
 		return distance;
+	}
+
+
+
+	void __stdcall EnforceCatchUpThreshold
+	(
+		const float deltaX,
+		const float deltaZ
+	) {
+		if (not catchUpThreshold.isEnabled.current) return;
+
+		bool& ignoreHeliSheet = AsReference<bool>(0x90D621);
+		if (ignoreHeliSheet) return; // no need to change
+
+		const float squaredDistance = deltaX * deltaX + deltaZ * deltaZ;
+		ignoreHeliSheet = (squaredDistance >= squaredCatchUpThreshold);
 	}
 
 
@@ -622,6 +648,24 @@ namespace HelicopterOverrides
 
 
 
+	// Attempts to spawn a new helicopter
+	ASSEMBLY_DETOUR(SpawnAttempt, 0x4269D0, 0x4269E6)
+	{
+		__asm
+		{
+			call HelicopterManager::GetHelicopterName
+
+			push eax
+			mov dword ptr [esp + 0x48], esp
+			mov ecx, dword ptr [esp + 0x38]
+			call Globals::GetAvailableCopVehicleByName
+
+			EXIT_ASSEMBLY_DETOUR(SpawnAttempt)
+		}
+	}
+
+
+
 	// Sets the spawn distance to the pursuit target
 	ASSEMBLY_DETOUR(SpawnDistance, 0x426ABF, 0x426AC4)
 	{
@@ -658,6 +702,29 @@ namespace HelicopterOverrides
 
 
 
+	// Calculates the helicopter's distance to its target
+	ASSEMBLY_DETOUR(TargetDistance, 0x4127F9, 0x412803)
+	{
+		__asm
+		{
+			push eax
+
+			push dword ptr [esp + 0x24] // deltaZ
+			push dword ptr [esp + 0x20] // deltaX
+			call EnforceCatchUpThreshold
+
+			pop ecx
+
+			// Execute original code and resume
+			mov edx, dword ptr [ecx]
+			call dword ptr [edx + 0x11C]
+
+			EXIT_ASSEMBLY_DETOUR(TargetDistance)
+		}
+	}
+
+
+
 	// Sets the cooldown for HeliStrategy 2 ramming attempts
 	ASSEMBLY_DETOUR(RammingCooldown, 0x4128B2, 0x4128B9)
 	{
@@ -669,6 +736,17 @@ namespace HelicopterOverrides
 
 			EXIT_ASSEMBLY_DETOUR(RammingCooldown)
 		}
+	}
+
+
+
+
+
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
+
+	void UpdateParameterConversions()
+	{
+		squaredCatchUpThreshold = catchUpThreshold.value.current * catchUpThreshold.value.current;
 	}
 
 
@@ -699,6 +777,8 @@ namespace HelicopterOverrides
 
 		HeatParameters::Extract(parser, "Helicopter:FuelTime", fuelTime);
 
+		HeatParameters::Extract(parser, "Helicopter:Pathing", catchUpThreshold);
+
 		HeatParameters::Extract(parser, "Helicopter:Chasing", chaseSpawnDistance);
 
 		HeatParameters::Extract(parser, "Helicopter:Searching", searchSpawnDistance);
@@ -706,6 +786,9 @@ namespace HelicopterOverrides
 		HeatParameters::Extract(parser, "Helicopter:Roadblocks", affectedByRoadblock);
 
 		HeatParameters::Extract(parser, "Helicopter:Ramming", rammingCooldown);
+
+		// Parameter conversions
+		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Check and make vehicle names persistent
 		if (HeatParameters::ResolveHelicopterNames(helicopterVehicle))
@@ -717,12 +800,17 @@ namespace HelicopterOverrides
 		// Code modifications 
 		MemoryTools::Write<float*>(&maxBailoutFuelTime, {0x709F9F, 0x7078B0});
 
+		MemoryTools::MakeRangeNOP<0x43EBA7, 0x43EBBE>(); // helicopter spawn (first  part)
+		MemoryTools::MakeRangeNOP<0x43EBC0, 0x43EBCA>(); // helicopter spawn (second part)
+
 		PATCH_ASSEMBLY_DETOUR(FuelUpdate);
 		PATCH_ASSEMBLY_DETOUR(DefaultFuel);
 		PATCH_ASSEMBLY_DETOUR(SearchCheck);
 		PATCH_ASSEMBLY_DETOUR(EarlyBailout);
+		PATCH_ASSEMBLY_DETOUR(SpawnAttempt);
 		PATCH_ASSEMBLY_DETOUR(SpawnDistance);
 		PATCH_ASSEMBLY_DETOUR(RoadblockCheck);
+		PATCH_ASSEMBLY_DETOUR(TargetDistance);
 		PATCH_ASSEMBLY_DETOUR(RammingCooldown);
 
 		// Status flag
@@ -740,6 +828,7 @@ namespace HelicopterOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 
+		// Heat parameters
 		helicopterVehicle.SetToHeatState(state);
 		
 		firstSpawnDelay.SetToHeatState(state);
@@ -755,6 +844,8 @@ namespace HelicopterOverrides
 
 		fuelTime.SetToHeatState(state);
 
+		catchUpThreshold.SetToHeatState(state);
+
 		chaseSpawnDistance.SetToHeatState(state);
 
 		searchSpawnDistance.SetToHeatState(state);
@@ -762,5 +853,8 @@ namespace HelicopterOverrides
 		affectedByRoadblock.SetToHeatState(state);
 
 		rammingCooldown.SetToHeatState(state);
+
+		// Conversions
+		UpdateParameterConversions();
 	}
 }

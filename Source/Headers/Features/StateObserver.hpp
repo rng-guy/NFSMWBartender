@@ -491,8 +491,7 @@ namespace StateObserver
 
 		if ((not forceNextGameplayUpdate) and (timestamp < lastUpdateTimestamp + updateInterval))
 		{
-			// Guard against potential wrap-around / reset
-			if (timestamp >= lastUpdateTimestamp) return;
+			if (timestamp >= lastUpdateTimestamp) return; // guard against wrap-around / reset
 		}
 
 		// "Advanced" feature set

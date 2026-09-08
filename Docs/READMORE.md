@@ -411,6 +411,10 @@ Regarding **helicopter (de / re)spawning** ([`BartenderSettings/Advanced/Helicop
 
 * Bartender replaces vehicles that aren't helicopters with `copheli`.
 
+* Collision toggling only triggers at Heat levels for which you define valid threshold values.
+
+* In the vanilla game, the helicopter can get stuck at certain points of the map, making it fall behind and potentially despawn outright as a result. This happens because the helicopter must maintain a minimum altitude that's dependent on its current location on the map; lifting this constraint for short time allows the helicopter to catch up and continue its pursuit.
+
 &nbsp;
 
 Regarding **strategy requests** ([`BartenderSettings/Advanced/Strategies.ini`](../Config/Advanced/Strategies.ini)):
