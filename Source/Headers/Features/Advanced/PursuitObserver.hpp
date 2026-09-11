@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <memory>
-#include <utility>
 #include <concepts>
 
 #include "../../Common/Globals.hpp"
@@ -55,14 +54,35 @@ namespace PursuitObserver
 		bool delayedPursuitUpdatePending   = true;
 		bool delayedHeatStateUpdatePending = true;
 
-		ModContainers::AddressMap<CopLabel> copVehicleToLabel;
-
 		ModContainers::StableVector<PursuitFeatures::Reaction> reactions;
 
 		inline static constexpr Globals::LogLiteral name = "PursuitObserver";
 
 
 	private: // methods
+
+		[[nodiscard]] static CopLabel& GetCopLabelOfVehicle(const address copVehicle)
+		{
+			const address copAIVehicle = Globals::GetAIVehicleOfVehicle(copVehicle);
+			return AsReference<CopLabel>(copAIVehicle - 0x4C + 0x769); // padding byte
+		}
+
+
+		[[nodiscard]] static bool SetCopLabelOfVehicle
+		(
+			const address  copVehicle, 
+			const CopLabel copLabel
+		) {
+			constexpr CopLabel defaultLabel = static_cast<CopLabel>(0);
+
+			CopLabel& oldLabel = PursuitObserver::GetCopLabelOfVehicle(copVehicle);
+			if ((oldLabel == defaultLabel) == (copLabel == defaultLabel)) return false;
+
+			oldLabel = copLabel;
+
+			return true;
+		}
+
 
 		[[nodiscard]] static CopLabel InferCopLabelFromCaller(const address caller)
 		{
@@ -118,8 +138,7 @@ namespace PursuitObserver
 			}
 
 			// Container pre-allocations
-			this->reactions        .Reserve(6);
-			this->copVehicleToLabel.reserve(80);
+			this->reactions.Reserve(6);
 
 			// Reaction features
 			this->Attach<CopSpawnOverrides  ::ChasersManager>   ();
@@ -198,23 +217,22 @@ namespace PursuitObserver
 			auto* const observer = PursuitObserver::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(observer, return);
 
-			const CopLabel copLabel               = observer->InferCopLabelFromCaller(caller);
-			const auto     [pairIt, isNewVehicle] = observer->copVehicleToLabel.insert(copVehicle, copLabel);
-			
-			if (not isNewVehicle)
+			const CopLabel newLabel = observer->InferCopLabelFromCaller(caller);
+
+			if (not PursuitObserver::SetCopLabelOfVehicle(copVehicle, newLabel))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, '=', copVehicle, copLabel, "is already", pairIt->second);
+					Globals::LogWarning(logTag, '=', copVehicle, newLabel, "is already", PursuitObserver::GetCopLabelOfVehicle(copVehicle));
 
 				ASSERT_UNREACHABLE_THEN(return);
 			}
 
 			// Process new vehicle
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogFull(pursuit, logTag, '+', copVehicle, copLabel, Globals::GetVehicleName(copVehicle));
+				Globals::LogFull(pursuit, logTag, '+', copVehicle, newLabel, Globals::GetVehicleName(copVehicle));
 
 			for (const auto& reaction : observer->reactions)
-				reaction->ReactToAddedVehicle(copVehicle, copLabel);
+				reaction->ReactToAddedVehicle(copVehicle, newLabel);
 		}
 
 
@@ -226,9 +244,9 @@ namespace PursuitObserver
 			auto* const observer = PursuitObserver::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(observer, return);
 
-			const auto foundVehicle = observer->copVehicleToLabel.find(copVehicle);
+			const CopLabel oldLabel = PursuitObserver::GetCopLabelOfVehicle(copVehicle);
 
-			if (foundVehicle == observer->copVehicleToLabel.end())
+			if (not PursuitObserver::SetCopLabelOfVehicle(copVehicle, CopLabel::UNKNOWN))
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Unknown vehicle", copVehicle, Globals::GetVehicleName(copVehicle), "in", pursuit);
@@ -238,12 +256,10 @@ namespace PursuitObserver
 
 			// Process known vehicle
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogFull(pursuit, logTag, '-', copVehicle, foundVehicle->second, Globals::GetVehicleName(copVehicle));
+				Globals::LogFull(pursuit, logTag, '-', copVehicle, oldLabel, Globals::GetVehicleName(copVehicle));
 
 			for (const auto& reaction : observer->reactions)
-				reaction->ReactToRemovedVehicle(copVehicle, foundVehicle->second);
-
-			observer->copVehicleToLabel.erase(foundVehicle);
+				reaction->ReactToRemovedVehicle(copVehicle, oldLabel);
 		}
 	};
 

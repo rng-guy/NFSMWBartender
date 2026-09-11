@@ -344,13 +344,13 @@ namespace HeatParameters
 
 
 
-	// Pointer-parameter classes --------------------------------------------------------------------------------------------------------------------
+	// Object-parameter classes ---------------------------------------------------------------------------------------------------------------------
 
-	#define HEAT_PARAMETER_POINTER(type, name) HeatParameters::Pointer<type> name{#name}
+	#define HEAT_PARAMETER_OBJECT(type, name) HeatParameters::Object<type> name{#name}
 
 	template <class T>
 	requires (not Details::IsCopyCompatible<T>)
-	class Pointer
+	class Object
 	{
 	private: // members
 
@@ -367,7 +367,7 @@ namespace HeatParameters
 
 	public: // methods
 
-		constexpr explicit Pointer(const Globals::LogLiteral name) : name(name) {}
+		constexpr explicit Object(const Globals::LogLiteral name) : name(name) {}
 
 
 		[[nodiscard]] auto& GetHeatLevelArray(const bool forRaces)
@@ -412,11 +412,11 @@ namespace HeatParameters
 
 
 
-	#define OPTIONAL_HEAT_PARAMETER_POINTER(type, name) HeatParameters::OptionalPointer<type> name{#name}
+	#define OPTIONAL_HEAT_PARAMETER_OBJECT(type, name) HeatParameters::OptionalObject<type> name{#name}
 
 	template <class T>
 	requires (not Details::IsCopyCompatible<T>)
-	class OptionalPointer
+	class OptionalObject
 	{
 	private: // members
 
@@ -427,18 +427,18 @@ namespace HeatParameters
 
 		HEAT_PARAMETER_VALUE(bool, isEnabled, false);
 
-		Pointer<T> pointer;
+		Object<T> object;
 
 
 	public: // methods
 
-		constexpr explicit OptionalPointer(const Globals::LogLiteral name) : name(name), pointer("pointer") {}
+		constexpr explicit OptionalObject(const Globals::LogLiteral name) : name(name), object("object") {}
 
 
 		void SetToHeatStateQuietly(const HeatState state)
 		{
 			this->isEnabled.SetToHeatStateQuietly(state);
-			this->pointer  .SetToHeatStateQuietly(state);
+			this->object   .SetToHeatStateQuietly(state);
 		}
 
 

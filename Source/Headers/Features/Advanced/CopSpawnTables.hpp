@@ -197,7 +197,7 @@ namespace CopSpawnTables
 		{
 			this->currentTotalCopChance = 0;
 
-			for (auto& [copType, copEntry] : this->copTypeToEntry)
+			for (auto& [_, copEntry] : this->copTypeToEntry)
 			{
 				copEntry.numActive           = 0;
 				this->currentTotalCopChance += copEntry.chance;
@@ -247,13 +247,13 @@ namespace CopSpawnTables
 	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
 	// Heat parameters
-	RELEASE_CONSTINIT HEAT_PARAMETER_POINTER(SpawnTable, chaserSpawnTable);
+	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, chaserSpawnTable);
 
-	RELEASE_CONSTINIT HEAT_PARAMETER_POINTER(SpawnTable, patrolSpawnTable);
+	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, patrolSpawnTable);
 
-	RELEASE_CONSTINIT HEAT_PARAMETER_POINTER(SpawnTable, scriptedSpawnTable);
+	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, scriptedSpawnTable);
 
-	RELEASE_CONSTINIT HEAT_PARAMETER_POINTER(SpawnTable, roadblockSpawnTable);
+	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, roadblockSpawnTable);
 
 
 	
@@ -261,11 +261,11 @@ namespace CopSpawnTables
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] bool ExtractTablePointer
+	[[nodiscard]] bool ExtractTableObject
 	(
-		const ConfigParser::Parser&          parser,
-		const std::string_view               tableName,
-		HeatParameters::Pointer<SpawnTable>& tablePointer
+		const ConfigParser::Parser&         parser,
+		const std::string_view              tableName,
+		HeatParameters::Object<SpawnTable>& tableObject
 	) {
 		bool allEntriesValid = true;
 
@@ -277,7 +277,7 @@ namespace CopSpawnTables
 
 		for (const bool forRaces : {false, true})
 		{
-			auto& tableArray = tablePointer.GetHeatLevelArray(forRaces);
+			auto& tableArray = tableObject.GetHeatLevelArray(forRaces);
 
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
@@ -325,7 +325,7 @@ namespace CopSpawnTables
 	[[nodiscard]] bool ExtractSpawnTablePointers(const ConfigParser::Parser& parser)
 	{
 		// All free-roam "Chasers" tables must be non-empty to serve as fallbacks
-		bool allTableEntriesValid = ExtractTablePointer(parser, "Chasers", chaserSpawnTable);
+		bool allTableEntriesValid = ExtractTableObject(parser, "Chasers", chaserSpawnTable);
 
 		for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 		{
@@ -338,9 +338,9 @@ namespace CopSpawnTables
 		}
 		
 		// Extract non-"Chasers" tables (may be empty)
-		allTableEntriesValid &= ExtractTablePointer(parser, "Patrols",    patrolSpawnTable);
-		allTableEntriesValid &= ExtractTablePointer(parser, "Scripted",   scriptedSpawnTable);
-		allTableEntriesValid &= ExtractTablePointer(parser, "Roadblocks", roadblockSpawnTable);
+		allTableEntriesValid &= ExtractTableObject(parser, "Patrols",    patrolSpawnTable);
+		allTableEntriesValid &= ExtractTableObject(parser, "Scripted",   scriptedSpawnTable);
+		allTableEntriesValid &= ExtractTableObject(parser, "Roadblocks", roadblockSpawnTable);
 
 		if constexpr (Globals::loggingEnabled)
 		{

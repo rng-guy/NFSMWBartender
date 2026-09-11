@@ -448,6 +448,14 @@ Regarding CAR (DE)SPAWNING ("BartenderSettings/Advanced/CarSpawns.ini"):
    to each pursuit separately instead of globally. With this, the limit only counts and affects
    spawning decisions for "Chasers"; other vehicles (e.g. roadblocks) can no longer block them.
 
+ • Location restrictions only apply at Heat levels for which you define valid distance values.
+
+ • The vanilla game imposes spawn-location restrictions on "Chasers" in races: all "Chasers" must
+   spawn on the same road as the pursuit target, and strictly ahead of it. This basically ensures
+   no cops spawn beyond any race barriers, but it also leads to clustering and very predictable
+   spawn patterns. The vanilla game also imposes this restriction on Challenge Series pursuits,
+   but Bartender makes those use the free-roam restrictions (should you define any) instead.
+
  • Very small spawning clearances for "Chasers" may lead to stacked spawns and congested roads.
 
  • "Chasers" flee only at Heat levels for which you define valid flee-delay values and thresholds.
@@ -470,40 +478,20 @@ Regarding HELICOPTER (RE)SPAWNING AND FUEL ("BartenderSettings/Advanced/Helicopt
 
  • In a given pursuit, the helicopter must have a successful first spawn at some point before
    context-dependent respawns can happen. Such first spawns carry over across Heat transitions.
+
+ • The helicopter spawns with limited fuel only at Heat levels for which you define valid
+   fuel-time values. Unlimited fuel means you must either lose or destroy the helicopter.
  
  • If you don't define valid respawn-delay values for some despawn context (e.g. destruction),
    then the helicopter won't respawn if that context happens. If a transition to another Heat
    level with valid respawn-delay values takes place, however, the helicopter may respawn again.
 
- • The helicopter can rejoin after losing you only at Heat levels for which you define valid 
-   rejoin-delay and minimum-fuel values. The helicopter can only rejoin if it loses you.
+ • The helicopter may (re)spawn once in each "COOLDOWN" phase of your pursuits.
+   Whether this is possible depends on the "SearchModeHeliSpawnChance" VltEd parameter:
+   Every time you enter "COOLDOWN" mode in a pursuit, Bartender rolls against this chance;
+   if successful, the helicopter may then (re)spawn once according to its (re)spawn delays.
 
- • The helicopter rejoins with whatever amount of fuel it had left, minus the rejoin delay.
-   If the helicopter were to rejoin with less fuel than the required minimum, it counts
-   as losing you and triggers the appropriate respawn delay instead.
-
- • If the helicopter loses you in "COOLDOWN" mode, it may not rejoin in response.
-
- • Whether an active helicopter may rejoin a given pursuit is unaffected by Heat transitions,
-   as this is locked in as soon as it (re)spawns. This means a rejoining helicopter can keep
-   rejoining your pursuit until it either gets destroyed or runs out of fuel. Its vehicle
-   is also locked in to ensure it rejoins with the same model and overall properties.
-
- • Rejoining helicopters don't count towards the total number of helicopters deployed.
-
- • Enabling rejoining prevents the helicopter from wasting spawns if it loses you instantly.
-
- • The helicopter spawns with limited fuel only at Heat levels for which you define valid
-   fuel-time values. Unlimited fuel means you must either lose or destroy the helicopter.
-
- • The helicopter may (re)spawn once in each "COOLDOWN" phase of your pursuits. Whether this
-   is possible depends on the "SearchModeHeliSpawnChance" VltEd parameter: Every time you enter
-   "COOLDOWN" mode, Bartender rolls against this chance; if successful, the helicopter may
-   then (re)spawn once according to its delays. If you enter "COOLDOWN" mode with a helicopter
-   already scheduled to rejoin, it will rejoin regardless of this random roll. After rejoining,
-   the helicopter may then not respawn again in any way until you exit "COOLDOWN" mode.
-
- • The helicopter only ever (re)spawns and rejoins in your pursuits.
+ • The helicopter only ever (re)spawns in your pursuits.
 
  • Only one helicopter can ever be active at any given time. This is a game limitation;
    we could technically spawn more, but they would count as cars and behave very oddly.

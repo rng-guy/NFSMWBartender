@@ -76,9 +76,12 @@ namespace Globals
 	const auto GetVehicleName     = AsFunction<const char* __thiscall (address)>(0x688090); // vehicle
 	const auto IsVehicleDestroyed = AsFunction<bool        __thiscall (address)>(0x688170); // vehicle
 
-	// Non-function pointers
-	const address&  raceStatus     = AsReference<address> (0x91E000);
-	const address&  copManager     = AsReference<address> (0x90D5F4);
+	// Object pointers
+	const address& raceStatus = AsReference<address>(0x91E000);
+	const address& copManager = AsReference<address>(0x90D5F4);
+	const address& helicopter = AsReference<address>(0x90D61C);
+
+	// Data pointers
 	const uint32_t& numGameTicks   = AsReference<uint32_t>(0x925B14); // ticks (actually int)
 	const float&    ticksToTime    = AsReference<float>   (0x890984); // seconds / tick
 	const float&    simulationTime = AsReference<float>   (0x9885D8); // seconds

@@ -45,7 +45,8 @@ namespace HelicopterVision
 
 	uint32_t currentColour = 0x0;
 
-	bool isNewWorldMap = false;
+	bool isNewHelicopter = true;
+	bool isNewWorldMap   = true;
 
 
 
@@ -53,7 +54,7 @@ namespace HelicopterVision
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] uint32_t InterpolateColour(const float state)
+	[[nodiscard]] uint32_t InterpolateColour(const float visionState)
 	{
 		uint32_t colour = 0x0; // format: 0xAARRGGBB
 
@@ -61,50 +62,53 @@ namespace HelicopterVision
 		const auto& max = withinSight.channels;
 
 		for (size_t channelID = 0; channelID < numChannels; ++channelID)
-			colour = (colour << 8) | static_cast<byte>(std::lerp(min[channelID], max[channelID], state));
+			colour = (colour << 8) | static_cast<byte>(std::lerp(min[channelID], max[channelID], visionState));
 
 		return colour;
 	}
 
 
 
-	[[nodiscard]] uint32_t YieldColourBySight
-	(
-		const address copAIVehicle,
-		const bool    canSeeTarget
-	) {
-		static constinit float visionState         = 0.f; // out-of-sight (0) to within-sight (1)
+	[[nodiscard]] uint32_t YieldColourBySight(const bool canSeeTarget) 
+	{
+		static constinit float currentVisionState  = 0.f; // out-of-sight (0) to within-sight (1)
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
 		const float timestamp = Globals::GetGameplayTime();
 
-		if (bool& isKnownVehicle = AsReference<bool>(copAIVehicle - 0x4C + 0x769)) // padding byte
+		if (not isNewHelicopter)
 		{
 			const float timeDelta = std::max<float>(timestamp - lastUpdateTimestamp, 0.f); // guard against wrap-around / reset
 
 			const float deltaDirection = (canSeeTarget) ? 1.f         : -1.f;
 			const auto& targetColour   = (canSeeTarget) ? withinSight : outOfSight;
 			
-			visionState += deltaDirection * timeDelta / targetColour.transitionLength;
-			visionState  = std::clamp<float>(visionState, 0.f, 1.f);
+			currentVisionState += deltaDirection * timeDelta / targetColour.transitionLength;
+			currentVisionState  = std::clamp<float>(currentVisionState, 0.f, 1.f);
 		}
-		else
-		{
-			isKnownVehicle = true;
-			visionState    = 0.f;
-		}
+		else currentVisionState = 0.f;
 
 		lastUpdateTimestamp = timestamp;
 
-		return InterpolateColour(visionState);
+		return InterpolateColour(currentVisionState);
 	}
 
 
 
-	[[nodiscard]] uint32_t __fastcall GetNewColour(const address copVehicle)
+	[[nodiscard]] uint32_t __cdecl GetNewColour()
 	{
+		if (not Globals::helicopter)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogWarning(logTag, "Invalid helicopter pointer");
+
+			ASSERT_UNREACHABLE_THEN(return 0x0);
+		}
+
+		const address copVehicle = AsReference<address>(Globals::helicopter + 0x4C - 0x4);
+
 		if (Globals::IsVehicleDestroyed(copVehicle)) return 0x0;        // invisible
-		if (not anyFeatureEnabled)                   return 0xFF90B8FF; // vanilla
+		if (not anyFeatureEnabled)                   return 0xFF90B8FF; // vanilla colour
 
 		const address copAIVehicle        = Globals::GetAIVehicleOfVehicle       (copVehicle);
 		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
@@ -115,7 +119,7 @@ namespace HelicopterVision
 		const auto CanSeeTarget = AsFunction<bool __thiscall (address, address)>(0x4170D0);
 		const bool canSeeTarget = (pursuitTarget and CanSeeTarget(copAIVehiclePursuit, pursuitTarget));
 
-		return YieldColourBySight(copAIVehicle, canSeeTarget);
+		return YieldColourBySight(canSeeTarget);
 	}
 
 
@@ -137,11 +141,16 @@ namespace HelicopterVision
 	{
 		__asm
 		{
-			mov ecx, dword ptr [esi]
-			call GetNewColour // ecx: copVehicle
-			cmp dword ptr [currentColour], eax
-			je conclusion     // colour unchanged
+			call GetNewColour
 
+			cmp byte ptr [isNewHelicopter], 1
+			je update // new helicopter
+
+			cmp dword ptr [currentColour], eax
+			je conclusion // colour unchanged
+
+			update:
+			mov byte ptr [isNewHelicopter], 0
 			mov dword ptr [currentColour], eax
 
 			mov ecx, dword ptr [ebx + 0xCC]
@@ -178,6 +187,22 @@ namespace HelicopterVision
 
 			conclusion:
 			EXIT_ASSEMBLY_DETOUR(WorldMapIcon)
+		}
+	}
+
+
+
+	// Initialises the fuel of the newly spawned helicopter
+	ASSEMBLY_DETOUR(HelicopterSpawn, 0x42AD53, 0x42AD59)
+	{
+		__asm
+		{
+			mov byte ptr [isNewHelicopter], 1
+
+			// Execute original code and resume
+			lea eax, dword ptr [esi - 0x7A4]
+
+			EXIT_ASSEMBLY_DETOUR(HelicopterSpawn)
 		}
 	}
 
@@ -273,8 +298,11 @@ namespace HelicopterVision
 
 	void ApplyFixes()
 	{
-		// Visible cone icon for destroyed helicopter
+		// Visible cone of destroyed helicopter
 		PATCH_ASSEMBLY_DETOUR(ColourUpdate); 
+		PATCH_ASSEMBLY_DETOUR(WorldMapIcon);
+		PATCH_ASSEMBLY_DETOUR(HelicopterSpawn);
+		PATCH_ASSEMBLY_DETOUR(WorldMapConstructor);
 	}
 
 
@@ -288,10 +316,6 @@ namespace HelicopterVision
 
 		// Cone colours
 		if (not ExtractColours(parser)) return false; // invalid colours; disable feature
-
-		// Code modifications
-		PATCH_ASSEMBLY_DETOUR(WorldMapIcon);
-		PATCH_ASSEMBLY_DETOUR(WorldMapConstructor);
 
 		// Status flag
 		anyFeatureEnabled = true;

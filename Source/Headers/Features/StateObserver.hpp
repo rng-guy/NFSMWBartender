@@ -462,7 +462,7 @@ namespace StateObserver
 			// Execute original code first
 			mov byte ptr [esi + 0x768], al
 
-			mov byte ptr [esi + 0x769], al // used in "HelicopterVision.hpp"
+			mov byte ptr [esi + 0x769], al // used in "PursuitObserver.hpp"
 			mov byte ptr [esi + 0x76A], al // used in "StateObserver.hpp"
 			mov byte ptr [esi + 0x76B], al // used in "CopSpawnOverrides.hpp"
 

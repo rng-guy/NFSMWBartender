@@ -41,7 +41,7 @@ namespace CopSpawnOverrides
 
 	constinit HEAT_PARAMETER_VALUE(bool, transitionTriggersBackup, false);
 
-	constinit HEAT_PARAMETER_INTERVAL(float, chaserSpawnDistance, 230.f, 230.f, {150.f, 400.f}); // metres
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, chaserSpawnDistance, {150.f, 400.f});
 
 	constinit HEAT_PARAMETER_VALUE(float, chaserSpawnClearance, 40.f, {0.f}); // metres
 
@@ -65,15 +65,15 @@ namespace CopSpawnOverrides
 	{
 	private: // aliases
 
-		using TablePointer = HeatParameters::Pointer<CopSpawnTables::SpawnTable>;
+		using TableObject = HeatParameters::Object<CopSpawnTables::SpawnTable>;
 
 
 	private: // members
 
 		int numTotalActiveCops = 0; // cars
 
-		const address             pursuit; // pursuit-locked and immobile
-		const TablePointer* const source;  // reference would break constinit in MSVC
+		const address            pursuit; // pursuit-locked and immobile
+		const TableObject* const source;  // reference would break constinit in MSVC
 		
 		mutable const char* cachedCopName = nullptr; // only cleared on spawn success
 
@@ -133,7 +133,7 @@ namespace CopSpawnOverrides
 		constexpr Contingent
 		(
 			const Globals::LogLiteral name, 
-			const TablePointer&       source
+			const TableObject&        source
 		) 
 			: name(name), source(&source), pursuit(0x0), table()
 		{
@@ -143,7 +143,7 @@ namespace CopSpawnOverrides
 		Contingent
 		(
 			const Globals::LogLiteral name,
-			const TablePointer&       source,
+			const TableObject&        source,
 			const address             pursuit
 		) 
 			: name(name), source(&source), pursuit(pursuit), table(*(source.current))
@@ -895,22 +895,6 @@ namespace CopSpawnOverrides
 
 
 
-	// Determines the spawn distance for new "Chasers"
-	ASSEMBLY_DETOUR(SpawnDistance, 0x431419, 0x431426)
-	{
-		__asm
-		{
-			push ecx
-
-			mov ecx, offset chaserSpawnDistance
-			call HeatParameters::Interval<float>::GetRandomValue
-
-			EXIT_ASSEMBLY_DETOUR(SpawnDistance)
-		}
-	}
-
-
-
 	// Notifies "Scripted" contingent of successful "Scripted" spawns
 	ASSEMBLY_DETOUR(ScriptedSpawn, 0x42E8A8, 0x42E8AF)
 	{
@@ -1002,6 +986,46 @@ namespace CopSpawnOverrides
 
 
 
+	// Selects the spawn-location algorithm for "Chasers"
+	ASSEMBLY_DETOUR(SpawnLocation, 0x430E7B, 0x430E9F)
+	{
+		__asm
+		{
+			push ebx
+			push ebp
+			push esi
+			push edi
+
+			mov dword ptr [esp + 0x38], ecx
+			mov esi, dword ptr [esp + 0x380]
+
+			mov bl, byte ptr [chaserSpawnDistance.isEnabled.current]
+
+			mov edx, dword ptr [esi]
+			mov ecx, esi
+
+			EXIT_ASSEMBLY_DETOUR(SpawnLocation)
+		}
+	}
+
+	
+
+	// Determines the spawn distance for new "Chasers"
+	ASSEMBLY_DETOUR(SpawnDistance, 0x431419, 0x431426)
+	{
+		__asm
+		{
+			push ecx
+
+			mov ecx, offset chaserSpawnDistance.interval
+			call HeatParameters::Interval<float>::GetRandomValue
+
+			EXIT_ASSEMBLY_DETOUR(SpawnDistance)
+		}
+	}
+	
+
+
 	// Notifies "Roadblocks" contingent of successful "Roadblocks" spawns
 	ASSEMBLY_DETOUR(RoadblockSpawn, 0x43E04F, 0x43E06C)
 	{
@@ -1023,6 +1047,7 @@ namespace CopSpawnOverrides
 			call dword ptr [edx + 0x80] // PVehicle::Activate
 
 			lea eax, dword ptr [esp + 0x1C]
+
 			push eax
 			lea ecx, dword ptr [esp + 0x48]
 			call dword ptr [AddVehicleToRoadblock]
@@ -1282,7 +1307,7 @@ namespace CopSpawnOverrides
 
 		HeatParameters::Extract(parser, "Chasers:Backup", transitionTriggersBackup);
 
-		HeatParameters::Extract(parser, "Chasers:Distance", chaserSpawnDistance);
+		HeatParameters::Extract(parser, "Chasers:Locations", chaserSpawnDistance);
 
 		HeatParameters::Extract(parser, "Chasers:Clearance", chaserSpawnClearance);
 
@@ -1319,10 +1344,11 @@ namespace CopSpawnOverrides
 		PATCH_ASSEMBLY_DETOUR(JoinRequest);
 		PATCH_ASSEMBLY_DETOUR(PatrolSpawn);
 		PATCH_ASSEMBLY_DETOUR(CopClearance);
-		PATCH_ASSEMBLY_DETOUR(SpawnDistance);
 		PATCH_ASSEMBLY_DETOUR(ScriptedSpawn);
 		PATCH_ASSEMBLY_DETOUR(PatrolPursuit);
 		PATCH_ASSEMBLY_DETOUR(PatrolDespawn);
+		PATCH_ASSEMBLY_DETOUR(SpawnLocation);
+		PATCH_ASSEMBLY_DETOUR(SpawnDistance);
 		PATCH_ASSEMBLY_DETOUR(RoadblockSpawn);
 		PATCH_ASSEMBLY_DETOUR(TrafficDensity);
 		PATCH_ASSEMBLY_DETOUR(CopConstructor);
