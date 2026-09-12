@@ -42,8 +42,8 @@ namespace StrategyOverrides
 	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, leader7UnblockDelay, {1.f}); // seconds
 
 	// Assembly detours
-	constinit Vector4Ds heavy3SpawnPositions; // fully ASM-compatible
-	constinit Vector4Ds heavy3InitialVectors; // fully ASM-compatible
+	constinit Vector4Ds heavy3SpawnPositions = {}; // fully ASM-compatible
+	constinit Vector4Ds heavy3InitialVectors = {}; // fully ASM-compatible
 
 
 

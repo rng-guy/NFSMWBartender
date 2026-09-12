@@ -259,9 +259,27 @@ namespace StaticLogger
 		}
 
 
+		void Print(const std::string& value) noexcept
+		{
+			if (value.empty())
+				this->file << "EMPTY_STRING";
+
+			else this->file << value;
+		}
+
+
+		void Print(const std::string_view value) noexcept
+		{
+			if (value.empty())
+				this->file << "EMPTY_VIEW";
+
+			else this->file << value;
+		}
+
+
 		void Print(const char* const value) noexcept
 		{
-			this->file << ((value) ? value : "nullptr");
+			this->file << ((value) ? value : "NULL_CHAR");
 		}
 
 

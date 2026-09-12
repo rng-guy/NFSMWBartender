@@ -39,10 +39,10 @@ namespace RandomNumbers
 
 		[[nodiscard]] static constexpr uint64_t ApplySplitmix64(uint64_t& state) noexcept
 		{
-			uint64_t z = (state += 0x9e3779b97f4a7c15);
+			uint64_t z = (state += 0x9E3779B97F4A7C15);
 
-			z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-			z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+			z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9;
+			z = (z ^ (z >> 27)) * 0x94D049BB133111EB;
 
 			return z ^ (z >> 31);
 		}

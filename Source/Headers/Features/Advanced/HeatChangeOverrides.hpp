@@ -52,54 +52,57 @@ namespace HeatChangeOverrides
 
 
 
+	// CountTracker class ---------------------------------------------------------------------------------------------------------------------------
+
+	class CountTracker
+	{
+	private: // members
+
+		int lastCount = 0;
+
+		const int&                         count;         // pursuit-locked (through count) and immobile
+		const HeatParameters::Value<float>& heatPerCount; // count-locked upon construction
+
+
+	public: // methods
+
+		CountTracker
+		(
+			const address                       pursuit,
+			const ptrdiff_t                     offset,
+			const HeatParameters::Value<float>& heatPerCount
+		)
+			: count(AsReference<int>(pursuit + offset)), heatPerCount(heatPerCount)
+		{
+		}
+
+
+		CountTracker(CountTracker&&)      = delete;
+		CountTracker(const CountTracker&) = delete;
+
+		CountTracker& operator=(CountTracker&&)      = delete;
+		CountTracker& operator=(const CountTracker&) = delete;
+
+
+		[[nodiscard]] float YieldHeatChange()
+		{
+			const int change = this->count - this->lastCount;
+
+			this->lastCount += change;
+			if (change <= 0) return 0.f;
+
+			return static_cast<float>(change) * this->heatPerCount.current;
+		}
+	};
+
+
+
+
+
 	// HeatManager class ----------------------------------------------------------------------------------------------------------------------------
 
 	class HeatManager : public PursuitFeatures::Reaction, public PursuitFeatures::Searchable<HeatManager>
 	{
-	private: // types
-
-		class CountTracker
-		{
-		private: // members
-
-			int lastCount = 0;
-
-			const int&                          count;        // pursuit-locked (through count) and immobile
-			const HeatParameters::Value<float>& heatPerCount; // count-locked upon construction
-
-
-		public: // methods
-
-			CountTracker
-			(
-				const address                       pursuit,
-				const ptrdiff_t                     offset,
-				const HeatParameters::Value<float>& heatPerCount
-			)
-				: count(AsReference<int>(pursuit + offset)), heatPerCount(heatPerCount)
-			{
-			}
-
-
-			CountTracker(CountTracker&&)      = delete;
-			CountTracker(const CountTracker&) = delete;
-
-			CountTracker& operator=(CountTracker&&)      = delete;
-			CountTracker& operator=(const CountTracker&) = delete;
-
-
-			[[nodiscard]] float YieldHeatChange()
-			{
-				const int change = this->count - this->lastCount;
-
-				this->lastCount += change;
-				if (change <= 0) return 0.f;
-
-				return static_cast<float>(change) * this->heatPerCount.current;
-			}
-		};
-
-
 	private: // members
 
 		float pendingHeatChange = 0.f;
@@ -266,26 +269,27 @@ namespace HeatChangeOverrides
 
 	void __fastcall UpdateHeatAnimation(const address heatMeter)
 	{
-		const float  totalGameTime    = Globals::GetTotalGameTime();
+		const float timestamp = Globals::GetTotalGameTime();
+
 		const size_t currentHeatLevel = static_cast<size_t>(AsReference<float>(heatMeter + 0x40));
 		const bool   isNewHeatLevel   = (currentHeatLevel != lastAnimatedHeatLevel);
 
 		lastAnimatedHeatLevel = currentHeatLevel; // update regardless of actual animation
 
-		if (totalGameTime < animationEndTimestamp) return; // animation still active
+		if (timestamp < animationEndTimestamp) return; // animation still active
 
 		const auto IsFEngScriptSet = AsFunction<bool __cdecl (address, uint32_t)>      (0x514DA0);
 		const auto SetFEngScript   = AsFunction<void __cdecl (address, uint32_t, bool)>(0x514D10);
 
-		const address  interfaceObject = AsReference<address>(heatMeter + 0x44);
+		const address  heatLevelIcon   = AsReference<address>(heatMeter + 0x44);
 		const uint32_t animationScript = (isNewHeatLevel) ? 0x41E1FEDC : 0x1744B3;
 
-		if (IsFEngScriptSet(interfaceObject, animationScript)) return; // script already set
+		if (IsFEngScriptSet(heatLevelIcon, animationScript)) return; // script already set
 
-		SetFEngScript(interfaceObject, animationScript, /* enabled = */ true);
+		SetFEngScript(heatLevelIcon, animationScript, /* enabled = */ true);
 
 		if (isNewHeatLevel)
-			animationEndTimestamp = totalGameTime + 2.5f; // animation length (seconds)
+			animationEndTimestamp = timestamp + 2.5f; // animation length
 	}
 
 

@@ -77,7 +77,7 @@ The "Basic" feature set **also lets you change** (in general)
 * which notification icons the game displays whenever you destroy specific cop vehicles;
 * which radio callsigns and chatter specific cop vehicles can trigger in your pursuits;
 * under which conditions (if at all) specific cop vehicles can show up on the radar / mini-map;
-* how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and
+* how (if at all) line of sight affects the colour of the helicopter's cone-of-vision icon; and
 * the selection, order, and length of interactive themes that play during your pursuits.
 
 &nbsp;
@@ -215,7 +215,7 @@ The "Advanced" feature set **can fix six more bugs / issues**, depending on its 
 # 3 - How do I install Bartender for my game?
 
 **Before installing** Bartender:
-1. make sure your original copy of the game wasn't a repack or came pre-modified in any way,
+1. make sure your original copy of the game isn't a repack or came pre-modified in any way,
 2. read and understand the two sections about [mod (in)compatibilities](#4---which-mods-are-incompatible-with-bartender) and [dependencies](#5---which-mods-does-bartender-depend-on) below,
 3. make sure your game's `speed.exe` is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
 4. install an `.asi` loader or any mod with one (e.g. the [WideScreenFix](https://github.com/ThirteenAG/WidescreenFixesPack/releases/tag/nfsmw) mod by ThirteenAG).
@@ -223,11 +223,10 @@ The "Advanced" feature set **can fix six more bugs / issues**, depending on its 
 &nbsp;
 
 **To install** Bartender:
-1. download and unzip the [`NfSMW_Bartender_v4.00.0.7z`](https://github.com/rng-guy/NFSMWBartender/releases/latest) archive;
-2. if it doesn't exist already, create a `scripts` folder in your game's installation folder;
-3. copy the `BartenderSettings` folder and `.asi` file to your game's `scripts` folder;
-4. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file; and
-5. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.
+1. download and extract the [`NfSMW_Bartender_v4.00.0.7z`](https://github.com/rng-guy/NFSMWBartender/releases/latest) archive;
+2. copy Bartender's `scripts` folder to your game's folder, replacing existing files;
+3. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file; and
+4. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.
 
 &nbsp;
 

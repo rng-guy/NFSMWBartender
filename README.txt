@@ -72,7 +72,7 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • which notification icons   the game displays whenever you destroy specific cop vehicles;
  • which radio callsigns and chatter specific cop vehicles can trigger in your pursuits;
  • under which conditions (if at all) specific cop vehicles can show up on the radar / mini-map;
- • how (if at all) line of sight affects the colour of the helicopter cone-of-vision icon; and
+ • how (if at all) line of sight affects the colour of the helicopter's cone-of-vision icon; and
  • the selection, order, and length of interactive themes that play during your pursuits.
 
 The "Basic" feature set ALWAYS FIXES THIRTEEN BUGS / ISSUES automatically:
@@ -194,16 +194,15 @@ The "Advanced" feature set CAN FIX SIX MORE BUGS / ISSUES, depending on its conf
 ── ■ │ 3 - HOW DO I INSTALL BARTENDER FOR MY GAME? │ ■ ────────────────────────────────────────────
 
 BEFORE INSTALLING Bartender:
- 1) • make sure your original copy of the game wasn't a repack or came pre-modified in any way,
+ 1) • make sure your original copy of the game isn't a repack or came pre-modified in any way,
  2) • read and understand the two sections about mod (in)compatibilities and dependencies below,
  3) • make sure your game's "speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
  4) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 
 TO INSTALL Bartender:
- 1) • if it doesn't exist already, create a "scripts" folder in your game's installation folder;
- 2) • copy the contents of Bartender's "scripts" folder to your game's "scripts" folder;
- 3) • if Bartender's .asi file gets flagged by your antivirus software, whitelist the file; and
- 4) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
+ 1) • copy Bartender's "scripts" folder to your game's folder, replacing existing files;
+ 2) • if Bartender's .asi file gets flagged by your antivirus software, whitelist the file; and
+ 3) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
 
 AFTER INSTALLING Bartender:
  1) • edit the configuration (.ini) files in the "BartenderSettings" folder to your liking; and

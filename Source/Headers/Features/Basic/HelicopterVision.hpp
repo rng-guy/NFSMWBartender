@@ -58,8 +58,8 @@ namespace HelicopterVision
 	{
 		uint32_t colour = 0x0; // format: 0xAARRGGBB
 
-		const auto& min = outOfSight .channels;
-		const auto& max = withinSight.channels;
+		const ARGB<float>& min = outOfSight .channels;
+		const ARGB<float>& max = withinSight.channels;
 
 		for (size_t channelID = 0; channelID < numChannels; ++channelID)
 			colour = (colour << 8) | static_cast<byte>(std::lerp(min[channelID], max[channelID], visionState));
@@ -78,10 +78,10 @@ namespace HelicopterVision
 
 		if (not isNewHelicopter)
 		{
-			const float timeDelta = std::max<float>(timestamp - lastUpdateTimestamp, 0.f); // guard against wrap-around / reset
+			const float timeDelta = std::max<float>(timestamp - lastUpdateTimestamp, 0.f); // for wrap-around / reset
 
-			const float deltaDirection = (canSeeTarget) ? 1.f         : -1.f;
-			const auto& targetColour   = (canSeeTarget) ? withinSight : outOfSight;
+			const float   deltaDirection = (canSeeTarget) ? +1.f        : -1.f;
+			const Colour& targetColour   = (canSeeTarget) ? withinSight : outOfSight;
 			
 			currentVisionState += deltaDirection * timeDelta / targetColour.transitionLength;
 			currentVisionState  = std::clamp<float>(currentVisionState, 0.f, 1.f);
@@ -228,7 +228,7 @@ namespace HelicopterVision
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] bool ExtractColour
+	bool ExtractColour
 	(
 		const auto&            section,
 		const std::string_view colourName,
@@ -259,7 +259,7 @@ namespace HelicopterVision
 
 
 
-	[[nodiscard]] bool ExtractColours(const ConfigParser::Parser& parser)
+	bool ExtractColours(const ConfigParser::Parser& parser)
 	{
 		const auto* const section = parser.GetSection("Helicopter:Vision");
 

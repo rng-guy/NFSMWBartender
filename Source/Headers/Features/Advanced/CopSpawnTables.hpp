@@ -28,44 +28,95 @@ namespace CopSpawnTables
 
 
 
+	// TableEntry class -----------------------------------------------------------------------------------------------------------------------------
+
+	class TableEntry
+	{
+	private: // members
+
+		const char* copName; // C-style for game compatibility
+
+		int numActive; // cars
+		int maxCount;  // cars
+
+		int chance; // relative
+
+
+	public: // methods
+
+		TableEntry
+		(
+			const char* const copName,
+			const int         maxCount,
+			const int         chance
+		)
+			: copName(copName), numActive(0), maxCount(maxCount), chance(chance)
+		{
+			Globals::vehicleNames.MakeIntern(this->copName);
+		}
+
+
+		[[nodiscard]] const char* GetCopName() const
+		{
+			return this->copName;
+		}
+
+
+		[[nodiscard]] int GetNumActive() const
+		{
+			return this->numActive;
+		}
+
+
+		int ChangeNumActive(const int change)
+		{
+			return (this->numActive += change);
+		}
+
+
+		void ResetNumActive()
+		{
+			this->numActive = 0;
+		}
+
+
+		[[nodiscard]] int GetMaxCount() const
+		{
+			return this->maxCount;
+		}
+
+
+		[[nodiscard]] int GetNumAvailable() const
+		{
+			return this->maxCount - this->numActive;
+		}
+
+
+		[[nodiscard]] bool IsAvailable() const
+		{
+			return (this->GetNumAvailable() > 0);
+		}
+
+
+		[[nodiscard]] int GetChance() const
+		{
+			return this->chance;
+		}
+	};
+
+
+
+
+
 	// SpawnTable class -----------------------------------------------------------------------------------------------------------------------------
 
 	class SpawnTable
 	{
-	private: // types
-
-		struct CopEntry
-		{
-		// Members
-
-			const char* copName; // C-style for game compatibility
-
-			int numActive; // cars
-			int maxCount;  // cars
-
-			int chance; // relative
-
-
-		// Methods
-
-			[[nodiscard]] int GetNumAvailable() const
-			{
-				return this->maxCount - this->numActive;
-			}
-
-
-			[[nodiscard]] bool IsAvailable() const
-			{
-				return (this->GetNumAvailable() > 0);
-			}
-		};
-
-
 	private: // members
 
 		int currentTotalCopChance = 0;
 
-		ModContainers::VaultMap<CopEntry> copTypeToEntry;
+		ModContainers::VaultMap<TableEntry> copTypeToEntry;
 
 
 	public: // methods
@@ -76,39 +127,28 @@ namespace CopSpawnTables
 		}
 
 
-		bool AddCopEntry
+		bool CreateNewEntry
 		(
-			const char* copName,
-			const int   copCount, 
-			const int   copChance
+			const char* const copName,
+			const int         maxCount, 
+			const int         chance
 		) {
-			if (copCount  < 1) return false;
-			if (copChance < 1) return false;
+			if (maxCount < 1) return false;
+			if (chance   < 1) return false;
 
 			const vault copType = Globals::GetVaultHash(copName);
 			if (not Globals::IsVehicleTypeCar(copType)) return false;
 
-			Globals::vehicleNames.MakeIntern(copName);
-
-			// Technically wasteful, but clearer
-			const CopEntry entry =
-			{
-				.copName   = copName,
-				.numActive = 0,
-				.maxCount  = copCount,
-				.chance    = copChance
-			};
-
-			const auto [_, isNewType] = this->copTypeToEntry.insert(copType, entry);
+			const auto [_, isNewType] = this->copTypeToEntry.try_emplace(copType, copName, maxCount, chance);
 
 			if (isNewType)
-				this->currentTotalCopChance += copChance;
+				this->currentTotalCopChance += chance;
 
 			return isNewType;
 		}
 
 
-		[[nodiscard]] size_t GetNumCopEntries() const
+		[[nodiscard]] size_t GetNumTypes() const
 		{
 			return this->copTypeToEntry.size();
 		}
@@ -126,27 +166,27 @@ namespace CopSpawnTables
 		}
 
 
-		[[nodiscard]] int GetMaxCopCount(const vault copType) const
+		[[nodiscard]] int GetMaxCount(const vault copType) const
 		{
 			const auto foundType = this->copTypeToEntry.find(copType);
 			if (foundType == this->copTypeToEntry.end()) return 0;
 
-			return foundType->second.maxCount;
+			return foundType->second.GetMaxCount();
 		}
 
 
-		[[nodiscard]] int GetTotalMaxCopCount() const
+		[[nodiscard]] int GetTotalMaxCount() const
 		{
-			int totalCopCount = 0;
+			int totalMaxCount = 0;
 
-			for (const auto& [_, copEntry] : this->copTypeToEntry)
-				totalCopCount += copEntry.maxCount;
+			for (const auto& [_, entry] : this->copTypeToEntry)
+				totalMaxCount += entry.GetMaxCount();
 
-			return totalCopCount;
+			return totalMaxCount;
 		}
 
 
-		[[nodiscard]] int GetNumAvailableCops(const vault copType) const
+		[[nodiscard]] int GetNumAvailable(const vault copType) const
 		{
 			const auto foundType = this->copTypeToEntry.find(copType);
 			if (foundType == this->copTypeToEntry.end()) return 0;
@@ -155,7 +195,7 @@ namespace CopSpawnTables
 		}
 
 
-		bool ChangeNumActiveCops
+		bool ChangeNumActive
 		(
 			const vault copType,
 			const int   change
@@ -163,22 +203,20 @@ namespace CopSpawnTables
 			const auto foundType = this->copTypeToEntry.find(copType);
 			if (foundType == this->copTypeToEntry.end()) return false;
 
-			CopEntry&  copEntry     = foundType->second;
-			const bool wasAvailable = copEntry.IsAvailable();
+			TableEntry& entry        = foundType->second;
+			const bool  wasAvailable = entry.IsAvailable();
 
-			copEntry.numActive += change;
-
-			if (copEntry.numActive < 0)
+			if (entry.ChangeNumActive(change) < 0)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "Miscounted", copEntry.copName);
+					Globals::LogWarning(logTag, "Miscounted", entry.GetCopName());
 
 				ASSERT_UNREACHABLE;
 			}
 
-			if (wasAvailable != copEntry.IsAvailable())
+			if (wasAvailable != entry.IsAvailable())
 			{
-				this->currentTotalCopChance += (wasAvailable) ? -copEntry.chance : copEntry.chance;
+				this->currentTotalCopChance += (wasAvailable) ? -entry.GetChance() : +entry.GetChance();
 
 				if (this->currentTotalCopChance < 0)
 				{
@@ -193,14 +231,31 @@ namespace CopSpawnTables
 		}
 
 
-		void ResetActiveCopCounts()
+		bool ResetNumActive(const vault copType)
+		{
+			const auto foundType = this->copTypeToEntry.find(copType);
+			if (foundType == this->copTypeToEntry.end()) return false;
+
+			TableEntry& entry = foundType->second;
+
+			if (not entry.IsAvailable())
+				this->currentTotalCopChance += entry.GetChance();
+
+			entry.ResetNumActive();
+
+			return true;
+		}
+
+
+		void ResetNumActive()
 		{
 			this->currentTotalCopChance = 0;
 
-			for (auto& [_, copEntry] : this->copTypeToEntry)
+			for (auto& [_, entry] : this->copTypeToEntry)
 			{
-				copEntry.numActive           = 0;
-				this->currentTotalCopChance += copEntry.chance;
+				entry.ResetNumActive();
+
+				this->currentTotalCopChance += entry.GetChance();
 			}
 		}
 
@@ -212,18 +267,18 @@ namespace CopSpawnTables
 			int       cumulativeChance = 0;
 			const int chanceThreshold  = Globals::pRNG.GenerateNumber<int>(1, this->currentTotalCopChance);
 
-			for (const auto& [_, copEntry] : this->copTypeToEntry)
+			for (const auto& [_, entry] : this->copTypeToEntry)
 			{
-				if (not copEntry.IsAvailable()) continue;
+				if (not entry.IsAvailable()) continue;
 
-				cumulativeChance += copEntry.chance;
+				cumulativeChance += entry.GetChance();
 
 				if (cumulativeChance >= chanceThreshold)
-					return copEntry.copName;
+					return entry.GetCopName();
 			}
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogWarning(logTag, "Failed to select vehicle:", cumulativeChance, chanceThreshold);
+				Globals::LogWarning(logTag, "Failed to select vehicle");
 
 			ASSERT_UNREACHABLE_THEN(return nullptr);
 		}
@@ -233,10 +288,10 @@ namespace CopSpawnTables
 		{
 			static RELEASE_CONSTINIT StringTools::FormatBuffer buffer;
 
-			HeatParameters::LogParameter(header, this->GetTotalMaxCopCount());
+			HeatParameters::LogParameter(header, this->GetTotalMaxCount());
 
 			for (const auto& [_, copEntry] : this->copTypeToEntry)
-				Globals::LogDetail(buffer.Format("{:<22}", copEntry.copName), copEntry.maxCount, '/', copEntry.chance);
+				Globals::LogDetail(buffer.Format("{:<22}", copEntry.GetCopName()), copEntry.GetMaxCount(), '/', copEntry.GetChance());
 		}
 	};
 
@@ -261,7 +316,7 @@ namespace CopSpawnTables
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] bool ExtractTableObject
+	bool ExtractTableObject
 	(
 		const ConfigParser::Parser&         parser,
 		const std::string_view              tableName,
@@ -272,8 +327,8 @@ namespace CopSpawnTables
 		StringTools::FormatBuffer buffer;
 
 		std::vector<const char*> copNames;
-		std::vector<int>         copCounts;
-		std::vector<int>         copChances;
+		std::vector<int>         maxCounts;
+		std::vector<int>         chances;
 
 		for (const bool forRaces : {false, true})
 		{
@@ -281,27 +336,25 @@ namespace CopSpawnTables
 
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
-				const size_t heatLevel = heatLevelID + 1;
-
 				// Extract spawn-table entries
-				const auto   sectionName = buffer.Format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevel, tableName);
-				const size_t numEntries  = parser.ExtractVectors<const char*, int, int>(sectionName, copNames, {copCounts, {1}}, {copChances, {1}});
+				const auto   sectionName = buffer.Format("{}{:02}:{}", (forRaces) ? "Race" : "Heat", heatLevelID + 1, tableName);
+				const size_t numEntries  = parser.ExtractVectors<const char*, int, int>(sectionName, copNames, {maxCounts, {1}}, {chances, {1}});
 
-				// Attempt to add new entries to table
+				// Attempt to add new entries
 				bool theseEntriesValid = true;
 
 				auto& levelTable = tableArray[heatLevelID];
 
 				for (size_t entryID = 0; entryID < numEntries; ++entryID)
 				{
-					if (levelTable.AddCopEntry(copNames[entryID], copCounts[entryID], copChances[entryID])) continue;
+					if (levelTable.CreateNewEntry(copNames[entryID], maxCounts[entryID], chances[entryID])) continue;
 
 					if constexpr (Globals::loggingEnabled)
 					{
 						if (theseEntriesValid)
-							Globals::LogPlain(tableName, Globals::LogDec(heatLevel), (forRaces) ? "(race)" : "(roam)");
+							Globals::LogPlain(tableName, Globals::LogDec(heatLevelID + 1), (forRaces) ? "(race)" : "(roam)");
 
-						Globals::LogDetail('-', copNames[entryID], copCounts[entryID], copChances[entryID]);
+						Globals::LogDetail('-', copNames[entryID], maxCounts[entryID], chances[entryID]);
 					}
 
 					theseEntriesValid = false;
@@ -310,7 +363,7 @@ namespace CopSpawnTables
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (not theseEntriesValid)
-						Globals::LogDetail(Globals::LogDec(levelTable.GetNumCopEntries()), "type(s) left");
+						Globals::LogDetail(Globals::LogDec(levelTable.GetNumTypes()), "type(s) left");
 				}
 
 				allEntriesValid &= theseEntriesValid;
@@ -322,7 +375,7 @@ namespace CopSpawnTables
 
 
 
-	[[nodiscard]] bool ExtractSpawnTablePointers(const ConfigParser::Parser& parser)
+	bool ExtractSpawnTablePointers(const ConfigParser::Parser& parser)
 	{
 		// All free-roam "Chasers" tables must be non-empty to serve as fallbacks
 		bool allTableEntriesValid = ExtractTableObject(parser, "Chasers", chaserSpawnTable);
@@ -349,14 +402,13 @@ namespace CopSpawnTables
 		}
 
 		// Replace all (now-)empty spawn tables
-		for (auto* const tablePointer : {&chaserSpawnTable, &patrolSpawnTable, &scriptedSpawnTable, &roadblockSpawnTable})
+		for (auto* const tableObject : {&chaserSpawnTable, &patrolSpawnTable, &scriptedSpawnTable, &roadblockSpawnTable})
 		{
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
-				auto& roam = tablePointer->roam[heatLevelID];
-				auto& race = tablePointer->race[heatLevelID];
+				auto& roam = tableObject->roam[heatLevelID];
+				auto& race = tableObject->race[heatLevelID];
 
-				// all free-roam "Chasers" tables are guaranteed to be non-empty at this point
 				if (roam.IsEmpty()) roam = chaserSpawnTable.roam[heatLevelID];
 				if (race.IsEmpty()) race = roam;
 			}

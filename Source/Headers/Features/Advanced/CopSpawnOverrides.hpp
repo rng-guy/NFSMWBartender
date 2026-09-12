@@ -86,7 +86,7 @@ namespace CopSpawnOverrides
 
 	private: // methods
 
-		bool ChangeNumActiveCops
+		bool ChangeNumActive
 		(
 			const vault copType, 
 			const int   change
@@ -100,14 +100,14 @@ namespace CopSpawnOverrides
 			numActiveCops            += change;
 			this->numTotalActiveCops += change;
 
-			this->table.ChangeNumActiveCops(copType, change);
+			this->table.ChangeNumActive(copType, change);
 
 			if constexpr (Globals::loggingEnabled)
 			{
 				if (this->pursuit)
 				{
 					Globals::LogPlain("Type ratio:", numActiveCops, '/', this->numTotalActiveCops);
-					Globals::LogPlain(this->table.GetNumAvailableCops(copType), "more available");
+					Globals::LogPlain(this->table.GetNumAvailable(copType), "more available");
 				}
 			}
 
@@ -189,7 +189,7 @@ namespace CopSpawnOverrides
 						Globals::LogPlain("Copied", numActiveCops, Globals::GetNameOfVehicleType(copType));
 				}
 
-				this->table.ChangeNumActiveCops(copType, numActiveCops);
+				this->table.ChangeNumActive(copType, numActiveCops);
 			}
 		}
 
@@ -199,7 +199,7 @@ namespace CopSpawnOverrides
 			this->numTotalActiveCops = 0;
 
 			this->cachedCopName = nullptr;
-			this->table.ResetActiveCopCounts();
+			this->table.ResetNumActive();
 
 			this->copTypeToNumActive.clear();
 		}
@@ -209,7 +209,7 @@ namespace CopSpawnOverrides
 		{
 			this->cachedCopName = nullptr; // almost always matches copType
 
-			this->ChangeNumActiveCops(copType, /* change = */ +1);
+			this->ChangeNumActive(copType, /* change = */ +1);
 		}
 
 
@@ -221,7 +221,7 @@ namespace CopSpawnOverrides
 
 		bool RemoveVehicleByType(const vault copType)
 		{
-			return this->ChangeNumActiveCops(copType, /* change = */ -1);
+			return this->ChangeNumActive(copType, /* change = */ -1);
 		}
 
 
@@ -868,7 +868,7 @@ namespace CopSpawnOverrides
 			call Contingent::AddVehicle
 
 			// Execute original code and resume
-			inc dword ptr [ebp + 0x94] // cops loaded
+			inc dword ptr [ebp + 0x94]
 
 			EXIT_ASSEMBLY_DETOUR(PatrolSpawn)
 		}
@@ -934,12 +934,12 @@ namespace CopSpawnOverrides
 			cmp eax, AIGOALPATROL
 			jne conclusion // not patrol goal
 
-			mov eax, dword ptr [edi + 0x4C - 0x4] // PVehicle
+			mov eax, dword ptr [edi + 0x4C - 0x4] // vehicle
 			cmp dword ptr [eax + 0x94], 2         // driver class
 			jne conclusion                        // not cop
 
 			cmp byte ptr [edi + 0x76B], 1 // padding byte: "Scripted" flag
-			je conclusion                 // "Scripted" cop
+			je conclusion                 // is "Scripted" cop
 
 			push eax // copVehicle
 			mov ecx, offset patrolSpawns
@@ -965,12 +965,12 @@ namespace CopSpawnOverrides
 			cmp dword ptr [esi + 0x78], AIGOALPATROL
 			jne conclusion // not patrol goal
 
-			mov eax, dword ptr [esi - 0x4] // PVehicle
+			mov eax, dword ptr [esi - 0x4] // vehicle
 			cmp dword ptr [eax + 0x94], 2  // driver class
 			jne conclusion                 // not cop
 
 			cmp byte ptr [esi - 0x4C + 0x76B], 1 // padding byte: "Scripted" flag
-			je conclusion                        // "Scripted" cop
+			je conclusion                        // is "Scripted" cop
 
 			push eax // copVehicle
 			mov ecx, offset patrolSpawns
@@ -1173,7 +1173,7 @@ namespace CopSpawnOverrides
 			mov eax, dword ptr [prefetchedCopName]
 			test eax, eax
 			cmovne esi, eax // prefetched name valid
-			jmp conclusion  // prefetched name used
+			jmp conclusion  // use prefetched name
 
 			replacement:
 			mov ecx, offset scriptedSpawns

@@ -159,9 +159,9 @@ namespace MemoryTools
 
 		inline void MakeRangeJMP
 		(
+			const address target,
 			const address start,
-			const address end,
-			const address target
+			const address end
 		) {
 			const address jumpTargetOffset = start            + sizeof(byte);
 			const address nextInstruction  = jumpTargetOffset + sizeof(ptrdiff_t);
@@ -230,7 +230,7 @@ namespace MemoryTools
 	{
 		static_assert(end >= start + sizeof(byte) + sizeof(ptrdiff_t), "Cannot accommodate JMP");
 
-		Details::MakeRangeJMP(start, end, target);
+		Details::MakeRangeJMP(target, start, end);
 	}
 
 

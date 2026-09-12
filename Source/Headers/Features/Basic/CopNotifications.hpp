@@ -78,7 +78,7 @@ namespace CopNotifications
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] bool ExtractNotificationTexts(const ConfigParser::Parser& parser)
+	bool ExtractNotificationTexts(const ConfigParser::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 		std::vector<std::string_view> stringOrNames;
@@ -87,6 +87,8 @@ namespace CopNotifications
 
 		constexpr auto StringOrNameToNotification = [](const std::string_view stringOrName) -> std::string_view
 		{
+			if (stringOrName == "/SKIP_NOTIFICATION") return {}; // empty string for skipping
+
 			const auto GetBinaryString = AsFunction<const char* __fastcall (int, binary)>(0x56BB80);
 
 			if (const char* const binaryString = GetBinaryString(0, Globals::GetBinaryHash(stringOrName)))
@@ -104,7 +106,7 @@ namespace CopNotifications
 
 
 
-	[[nodiscard]] bool ExtractNotificationIcons(const ConfigParser::Parser& parser)
+	bool ExtractNotificationIcons(const ConfigParser::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 		std::vector<std::string_view> iconLabels;
@@ -126,7 +128,7 @@ namespace CopNotifications
 
 
 
-	[[nodiscard]] bool InitialiseNotifications(const ConfigParser::Parser& parser)
+	bool InitialiseNotifications(const ConfigParser::Parser& parser)
 	{
 		const bool textMapExtracted = ExtractNotificationTexts(parser);
 		const bool iconMapExtracted = ExtractNotificationIcons(parser);

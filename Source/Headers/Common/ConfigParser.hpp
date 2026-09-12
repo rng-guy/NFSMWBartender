@@ -333,8 +333,7 @@ namespace ConfigParser
 		) 
 			const
 		{
-			const Section* const section = this->GetSection(sectionName);
-			return this->ExtractScalars<Vs...>(section, key, scalars...);
+			return this->ExtractScalars<Vs...>(this->GetSection(sectionName), key, scalars...);
 		}
 
 
@@ -411,8 +410,7 @@ namespace ConfigParser
 		) 
 			const 
 		{
-			const Section* const section = this->GetSection(sectionName);
-			return this->ExtractArrays<numRows, Vs...>(section, defaultKey, keyFormat, keyStartIndex, arrays...);
+			return this->ExtractArrays<numRows, Vs...>(this->GetSection(sectionName), defaultKey, keyFormat, keyStartIndex, arrays...);
 		}
 
 		
@@ -460,8 +458,7 @@ namespace ConfigParser
 		) 
 			const
 		{
-			const Section* const section = this->GetSection(sectionName);
-			return this->ExtractVectors<K, Vs...>(section, keys, vectors...);
+			return this->ExtractVectors<K, Vs...>(this->GetSection(sectionName), keys, vectors...);
 		}
 	};
 }

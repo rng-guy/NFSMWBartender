@@ -480,7 +480,7 @@ namespace GeneralSettings
 
 
 
-	[[nodiscard]] bool ExtractIsBreakerImmunes(const ConfigParser::Parser& parser)
+	bool ExtractIsBreakerImmunes(const ConfigParser::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 		std::vector<bool>             isBreakerImmunes;

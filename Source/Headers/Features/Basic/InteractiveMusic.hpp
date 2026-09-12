@@ -151,7 +151,7 @@ namespace InteractiveMusic
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] bool ExtractPlaylist(const ConfigParser::Parser& parser)
+	bool ExtractPlaylist(const ConfigParser::Parser& parser)
 	{
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogPlain("Playlist parsing:");

@@ -54,7 +54,7 @@ namespace CopFleeOverrides
 
 
 
-	// Scheduler classes ----------------------------------------------------------------------------------------------------------------------------
+	// SchedulerBase class --------------------------------------------------------------------------------------------------------------------------
 
 	class SchedulerBase
 	{
@@ -187,6 +187,10 @@ namespace CopFleeOverrides
 
 
 
+
+
+	// StrategyScheduler class ----------------------------------------------------------------------------------------------------------------------
+
 	class StrategyScheduler : public SchedulerBase
 	{
 	private: // members
@@ -247,6 +251,10 @@ namespace CopFleeOverrides
 	};
 
 
+
+
+
+	// PursuitScheduler class -----------------------------------------------------------------------------------------------------------------------
 
 	class PursuitScheduler : public SchedulerBase
 	{

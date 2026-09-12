@@ -85,7 +85,7 @@ namespace HeatParameters
 
 	void LogMissingParameter(const Globals::LogLiteral name)
 	{
-		Globals::LogPlain(FormatName(name), "(missing)");
+		Globals::LogPlain(FormatName(name), "(none)");
 	}
 
 
@@ -866,7 +866,6 @@ namespace HeatParameters
 		const std::string_view         sectionName,
 		HeatParameters&             ...parameters
 	) {
-		const auto* const section = parser.GetSection(sectionName);
-		Extract<HeatParameters...>(section, parameters...);
+		Extract<HeatParameters...>(parser.GetSection(sectionName), parameters...);
 	}
 }

@@ -287,7 +287,7 @@ namespace RadioSpeech
 
 
 
-	[[nodiscard]] bool ExtractBattalions(const ConfigParser::Parser& parser)
+	bool ExtractBattalions(const ConfigParser::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 		std::vector<std::string_view> battalionNames;

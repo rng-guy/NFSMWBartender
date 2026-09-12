@@ -404,7 +404,7 @@ namespace RoadblockOverrides
 
 
 
-	void __fastcall RequestRoadblockCallout(const address pursuit)
+	void __fastcall CallOutRoadblockSpawn(const address pursuit)
 	{
 		if (Globals::IsPursuitInCooldownMode(pursuit)) return;
 		if (not Globals::IsPlayerPursuit(pursuit))     return;
@@ -609,8 +609,8 @@ namespace RoadblockOverrides
 		{
 			mov ecx, dword ptr [esi + 0xC4]
 
-			cmp byte ptr [ecx + 0x5C], 1
-			jne conclusion // not ready to join
+			cmp byte ptr [ecx + 0x5C], 1 // join-status flag
+			jne conclusion               // not ready to join
 
 			lea ecx, dword ptr [esi + 0x40]
 			call IsJoinCountExhausted // ecx: pursuit
@@ -786,7 +786,7 @@ namespace RoadblockOverrides
 			je conclusion // request failed
 
 			mov ecx, dword ptr [esp + 0x4C4]
-			call RequestRoadblockCallout // ecx: pursuit
+			call CallOutRoadblockSpawn // ecx: pursuit
 
 			mov al, 1 // restore value
 
@@ -835,7 +835,7 @@ namespace RoadblockOverrides
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] bool ExtractRoadblockParts
+	bool ExtractRoadblockParts
 	(
 		const auto& section,
 		RBTable&    table
@@ -917,7 +917,7 @@ namespace RoadblockOverrides
 
 
 
-	[[nodiscard]] bool ExtractRoadblockSetup
+	bool ExtractRoadblockSetup
 	(
 		const auto& section,
 		RBSetup&    setup
@@ -979,7 +979,7 @@ namespace RoadblockOverrides
 
 
 
-	[[nodiscard]] bool ExtractRoadblockSetups(const ConfigParser::Parser& parser)
+	bool ExtractRoadblockSetups(const ConfigParser::Parser& parser)
 	{
 		constexpr std::string_view setupPrefix = "Setups:";
 

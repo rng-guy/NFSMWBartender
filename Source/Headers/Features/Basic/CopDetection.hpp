@@ -44,7 +44,7 @@ namespace CopDetection
 
 			if ((not this->forceNextUpdate) and (timestamp < this->lastUpdateTimestamp + updateInterval))
 			{
-				if (timestamp >= this->lastUpdateTimestamp) return false; // guard against wrap-around / reset
+				if (timestamp >= this->lastUpdateTimestamp) return false; // not wrap-around / reset
 			}
 
 			this->lastUpdateTimestamp = timestamp;
@@ -357,7 +357,7 @@ namespace CopDetection
 
 
 
-	[[nodiscard]] bool ExtractDetections(const ConfigParser::Parser& parser)
+	bool ExtractDetections(const ConfigParser::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
 
