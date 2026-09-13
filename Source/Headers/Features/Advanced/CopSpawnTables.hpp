@@ -343,7 +343,7 @@ namespace CopSpawnTables
 				// Attempt to add new entries
 				bool theseEntriesValid = true;
 
-				auto& levelTable = tableArray[heatLevelID];
+				SpawnTable& levelTable = tableArray[heatLevelID];
 
 				for (size_t entryID = 0; entryID < numEntries; ++entryID)
 				{
