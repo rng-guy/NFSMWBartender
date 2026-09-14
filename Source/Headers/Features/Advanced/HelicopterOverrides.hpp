@@ -1,8 +1,5 @@
 #pragma once
 
-#include <optional>
-#include <algorithm>
-
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/HeatParameters.hpp"
