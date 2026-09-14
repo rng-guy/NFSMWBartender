@@ -317,6 +317,32 @@ namespace HeatChangeOverrides
 
 
 
+	// Checks whether the current event is the "epic" pursuit
+	ASSEMBLY_DETOUR(EpicPursuit, 0x443004, 0x443023)
+	{
+		static constexpr address IsEpicPursuit = 0x5FC560;
+		static constexpr address epicExit      = 0x44306B;
+
+		__asm
+		{
+			push ecx
+
+			call dword ptr [IsEpicPursuit]
+			test al, al
+
+			pop ecx
+
+			jne epic // is "epic" pursuit
+			
+			EXIT_ASSEMBLY_DETOUR(EpicPursuit)
+
+			epic:
+			jmp dword ptr [epicExit]
+		}
+	}
+
+
+
 	// Adds pending Heat changes to racer-Heat updates
 	ASSEMBLY_DETOUR(PassiveHeat, 0x443D4A, 0x443D50)
 	{
@@ -511,6 +537,7 @@ namespace HeatChangeOverrides
 		MemoryTools::Write<byte>(0xEB, {0x44307F}); // Heat limits in Challenge Series events
 
 		PATCH_ASSEMBLY_DETOUR(HeatLimits);
+		PATCH_ASSEMBLY_DETOUR(EpicPursuit);
 		PATCH_ASSEMBLY_DETOUR(PassiveHeat);
 		PATCH_ASSEMBLY_DETOUR(SpikeCounter);
 		PATCH_ASSEMBLY_DETOUR(SupportCheck);

@@ -176,14 +176,15 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **always fixes sixteen bugs / issues** automatically:
+The "Advanced" feature set **always fixes seventeen bugs / issues** automatically:
 * chasing cops that exceed their type-specific count no longer flee,
 * HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
 * cops in roadblocks can no longer prevent chasing cops from spawning,
 * the cops no longer stop calling out roadblocks / spikes over the radio,
 * the helicopter no longer competes with chasing cops for spawn opportunities,
 * cops joining pursuits from roadblocks no longer ignore cop-related spawn limits,
-* Challenge Series races now use the Heat level limits defined for them in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),
+* the final Career pursuit now uses the Heat-level limits defined for it in [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html),
+* Challenge Series races now use the Heat level-limits defined for them in VltEd,
 * Challenge Series pursuits now use the free-roam spawning logic for chasing cops,
 * the game no longer ignores VltEd settings for roadblocks and Strategies in races,
 * the Heat gauge no longer skips the transition animation for rapid Heat-level changes,
