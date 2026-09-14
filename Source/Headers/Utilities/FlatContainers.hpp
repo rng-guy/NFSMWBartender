@@ -352,8 +352,26 @@ namespace FlatContainers
 		requires std::equality_comparable_with<KeyArg, key_type>
 		[[nodiscard]] constexpr const_iterator find(const KeyArg& key) const
 		{
-			const auto keyMatches = [&key](const value_type& pair) -> bool {return (pair.first == key);};
-			return std::find_if(this->begin(), this->end(), keyMatches);
+			return const_cast<Map*>(this)->find(key);
+		}
+
+
+		template <typename KeyArg>
+		requires std::equality_comparable_with<KeyArg, key_type>
+		[[nodiscard]] constexpr mapped_type* get(const KeyArg& key)
+		{
+			const auto foundKey = this->find(key);
+			if (foundKey == this->end()) return nullptr;
+
+			return &(foundKey->second);
+		}
+
+
+		template <typename KeyArg>
+		requires std::equality_comparable_with<KeyArg, key_type>
+		[[nodiscard]] constexpr const mapped_type* get(const KeyArg& key) const
+		{
+			return const_cast<Map*>(this)->get(key);
 		}
 
 

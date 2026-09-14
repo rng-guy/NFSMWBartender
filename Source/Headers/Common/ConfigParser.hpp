@@ -184,10 +184,8 @@ namespace ConfigParser
 			// Return currently parsed file to cache
 			if (not this->currentFilePath.empty())
 			{
-				const auto pairIt = this->pathToSectionMap.find(this->currentFilePath);
-
-				if (pairIt != this->pathToSectionMap.end())
-					pairIt->second.swap(this->nameToSection); // section map now empty
+				if (SectionMap* map = this->pathToSectionMap.get(this->currentFilePath))
+					map->swap(this->nameToSection); // section map now empty
 
 				else ASSERT_UNREACHABLE_THEN(this->nameToSection.clear());
 			}
@@ -373,7 +371,7 @@ namespace ConfigParser
 				// Apply default(s) if extraction failed
 				(..., (arrays.values[rowID] = *(arrays.defaultValue)));
 
-				rowExtracteds[rowID] = true; // row now valid
+				rowExtracteds[rowID] = true; // row now extracted
 			}
 
 			(..., arrays.limits.Enforce(arrays.values));

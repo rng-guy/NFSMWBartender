@@ -2,7 +2,6 @@
 
 #include <array>
 #include <vector>
-#include <utility>
 #include <string_view>
 
 #include "../../Common/Globals.hpp"
@@ -28,9 +27,9 @@ namespace CopSpawnTables
 
 
 
-	// TableEntry class -----------------------------------------------------------------------------------------------------------------------------
+	// Entry class ----------------------------------------------------------------------------------------------------------------------------------
 
-	class TableEntry
+	class Entry
 	{
 	private: // members
 
@@ -44,7 +43,7 @@ namespace CopSpawnTables
 
 	public: // methods
 
-		TableEntry
+		Entry
 		(
 			const char* const copName,
 			const int         maxCount,
@@ -116,16 +115,10 @@ namespace CopSpawnTables
 
 		int currentTotalCopChance = 0;
 
-		ModContainers::VaultMap<TableEntry> copTypeToEntry;
+		ModContainers::VaultMap<Entry> copTypeToEntry;
 
 
 	public: // methods
-
-		[[nodiscard]] bool ContainsCopType(const vault copType) const
-		{
-			return this->copTypeToEntry.contains(copType);
-		}
-
 
 		bool CreateNewEntry
 		(
@@ -154,6 +147,12 @@ namespace CopSpawnTables
 		}
 
 
+		[[nodiscard]] bool Contains(const vault copType) const
+		{
+			return this->copTypeToEntry.contains(copType);
+		}
+
+
 		[[nodiscard]] bool IsEmpty() const
 		{
 			return this->copTypeToEntry.empty();
@@ -168,10 +167,8 @@ namespace CopSpawnTables
 
 		[[nodiscard]] int GetMaxCount(const vault copType) const
 		{
-			const auto foundType = this->copTypeToEntry.find(copType);
-			if (foundType == this->copTypeToEntry.end()) return 0;
-
-			return foundType->second.GetMaxCount();
+			const Entry* const entry = this->copTypeToEntry.get(copType);
+			return (entry) ? entry->GetMaxCount() : 0;
 		}
 
 
@@ -188,10 +185,8 @@ namespace CopSpawnTables
 
 		[[nodiscard]] int GetNumAvailable(const vault copType) const
 		{
-			const auto foundType = this->copTypeToEntry.find(copType);
-			if (foundType == this->copTypeToEntry.end()) return 0;
-
-			return foundType->second.GetNumAvailable();
+			const Entry* const entry = this->copTypeToEntry.get(copType);
+			return (entry) ? entry->GetNumAvailable() : 0;
 		}
 
 
@@ -200,23 +195,22 @@ namespace CopSpawnTables
 			const vault copType,
 			const int   change
 		) {
-			const auto foundType = this->copTypeToEntry.find(copType);
-			if (foundType == this->copTypeToEntry.end()) return false;
+			Entry* const entry = this->copTypeToEntry.get(copType);
+			if (not entry) return false; // unknown type
 
-			TableEntry& entry        = foundType->second;
-			const bool  wasAvailable = entry.IsAvailable();
+			const bool wasAvailable = entry->IsAvailable();
 
-			if (entry.ChangeNumActive(change) < 0)
+			if (entry->ChangeNumActive(change) < 0)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "Miscounted", entry.GetCopName());
+					Globals::LogWarning(logTag, "Miscounted", entry->GetCopName());
 
 				ASSERT_UNREACHABLE;
 			}
 
-			if (wasAvailable != entry.IsAvailable())
+			if (wasAvailable != entry->IsAvailable())
 			{
-				this->currentTotalCopChance += (wasAvailable) ? -entry.GetChance() : +entry.GetChance();
+				this->currentTotalCopChance += (wasAvailable) ? -entry->GetChance() : +entry->GetChance();
 
 				if (this->currentTotalCopChance < 0)
 				{
@@ -233,15 +227,13 @@ namespace CopSpawnTables
 
 		bool ResetNumActive(const vault copType)
 		{
-			const auto foundType = this->copTypeToEntry.find(copType);
-			if (foundType == this->copTypeToEntry.end()) return false;
+			Entry* const entry = this->copTypeToEntry.get(copType);
+			if (not entry) return false; // unknown type
 
-			TableEntry& entry = foundType->second;
+			if (not entry->IsAvailable())
+				this->currentTotalCopChance += entry->GetChance();
 
-			if (not entry.IsAvailable())
-				this->currentTotalCopChance += entry.GetChance();
-
-			entry.ResetNumActive();
+			entry->ResetNumActive();
 
 			return true;
 		}

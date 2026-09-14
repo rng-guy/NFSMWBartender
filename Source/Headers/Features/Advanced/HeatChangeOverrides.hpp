@@ -254,6 +254,13 @@ namespace HeatChangeOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	[[nodiscard]] bool __cdecl IsCareerEvent()
+	{
+		return (Globals::raceStatus and (AsReference<int>(Globals::raceStatus + 0x1964) == 2)); // Career context
+	}
+
+
+
 	void __fastcall ClampHeatLimits(const address pursuit)
 	{
 		float& minHeat = AsReference<float>(pursuit + 0x9C);
@@ -431,14 +438,13 @@ namespace HeatChangeOverrides
 	// Adjusts the Heat-escalation scale in Challenge Series events
 	ASSEMBLY_DETOUR(ChallengeScale, 0x443D7B, 0x443D84)
 	{
-		static constexpr address IsChallengeEvent = 0x404AC0;
-		static constexpr address challengeExit    = 0x443DAD;
+		static constexpr address challengeExit = 0x443DAD;
 		
 		__asm
 		{
-			call dword ptr [IsChallengeEvent]
+			call IsCareerEvent
 			test al, al
-			jne challenge // is challenge event
+			je challenge // is challenge event
 
 			EXIT_ASSEMBLY_DETOUR(ChallengeScale)
 
@@ -534,7 +540,7 @@ namespace HeatChangeOverrides
 		heatInteractions.Extract(parser, "Heat");
 
 		// Code modifications (general)
-		MemoryTools::Write<byte>(0xEB, {0x44307F}); // Heat limits in Challenge Series events
+		MemoryTools::MakeRangeNOP<0x44306B, 0x44309F>(); // Heat limits in Challenge Series events
 
 		PATCH_ASSEMBLY_DETOUR(HeatLimits);
 		PATCH_ASSEMBLY_DETOUR(EpicPursuit);

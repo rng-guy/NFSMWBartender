@@ -145,7 +145,7 @@ The "Advanced" feature set **lets you change** (per Heat level)
 * how far away the helicopter can spawn to chase you,
 * how far away the helicopter can spawn to search for you,
 * whether the presence of roadblocks affects the helicopter's navigation behaviour,
-* beyond what distance to you the helicopter may ignore all world geometry for pathing,
+* beyond what distance to you (if at all) the helicopter may ignore altitude for pathing,
 * the internal cooldown between the helicopter's ramming attempts through HeliStrategy 2,
 * below what pursuit-target speed HeavyStrategy 3 cops cancel their ramming attempts,
 * how many cops can spawn through each successful HeavyStrategy 3 request,
@@ -170,9 +170,9 @@ The "Advanced" feature set **also lets you change** (in general)
 * how much Heat you gain / lose from tragging specific cop vehicles,
 * how much Heat you gain / lose from assaulting specific cop vehicles,
 * how much Heat you gain / lose from destroying specific cop vehicles,
-* what specific roadblock setups look like in terms of parts and their arrangement,
-* how likely each roadblock setup is to spawn with horizontally mirrored parts instead, and
-* which active non-chasing cops the engagement count shown above the pursuit board also tracks.
+* what specific roadblock setups look like in terms of parts and arrangement,
+* how likely each roadblock setup is to spawn horizontally mirrored instead, and
+* which active non-chasing cops the engagement count above the pursuit board also tracks.
 
 &nbsp;
 

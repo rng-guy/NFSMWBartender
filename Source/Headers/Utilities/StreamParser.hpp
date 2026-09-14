@@ -307,14 +307,14 @@ namespace StreamParser
 	{
 	protected: // aliases
 
-		using Key    = std::string;
-		using Name   = std::string;
-		using Values = std::vector<std::string>;
+		using Key     = std::string;
+		using Name    = std::string;
+		using Sources = std::vector<std::string>;
 
 
 	public: // aliases (for interfaces)
 
-		using Section    = FlatContainers::Map<Key,  Values>;
+		using Section    = FlatContainers::Map<Key,  Sources>;
 		using SectionMap = FlatContainers::Map<Name, Section>;
 
 
@@ -444,11 +444,11 @@ namespace StreamParser
 				const auto [pairIt, isNewPair] = currentSection->try_emplace(*key);
 				if (not isNewPair) continue; // key already exists
 
-				Values& values = pairIt->second;
-				values.reserve(segments.size());
+				Sources& sources = pairIt->second;
+				sources.reserve(segments.size());
 
 				for (const auto& segment : segments)
-					values.emplace_back(segment);
+					sources.emplace_back(segment);
 			}
 		}
 
@@ -465,10 +465,7 @@ namespace StreamParser
 
 		[[nodiscard]] const Section* GetSection(const std::string_view sectionName) const
 		{
-			const auto foundName = this->nameToSection.find(sectionName);
-			if (foundName == this->nameToSection.end()) return nullptr;
-
-			return &(foundName->second);
+			return this->nameToSection.get(sectionName);
 		}
 
 
@@ -484,10 +481,10 @@ namespace StreamParser
 		{
 			if (not section) return false;
 
-			const auto foundKey = section->find(key);
-			if (foundKey == section->end()) return false;
+			if (const Sources* const sources = section->get(key))
+				return ExtractFromStrings<std::string, Vs...>(*sources, values...);
 
-			return ExtractFromStrings<std::string, Vs...>(foundKey->second, values...);
+			return false;
 		}
 
 
@@ -515,8 +512,7 @@ namespace StreamParser
 		) 
 			const noexcept(Concepts::AreNonAllocating<Vs...>)
 		{
-			const Section* const section = this->GetSection(sectionName);
-			return this->ExtractValues<Vs...>(section, key, values...);
+			return this->ExtractValues<Vs...>(this->GetSection(sectionName), key, values...);
 		}
 
 
@@ -580,8 +576,7 @@ namespace StreamParser
 		) 
 			const
 		{
-			const Section* const section = this->GetSection(sectionName);
-			return this->ExtractSection<K, Vs...>(section, keys, values...);
+			return this->ExtractSection<K, Vs...>(this->GetSection(sectionName), keys, values...);
 		}
 
 

@@ -377,7 +377,7 @@ namespace CopFleeOverrides
 		[[nodiscard]] static bool IsNotInChaserTable(const address copVehicle)
 		{
 			const vault copType = Globals::GetVehicleType(copVehicle);
-			return (not CopSpawnTables::chaserSpawnTable.current->ContainsCopType(copType));
+			return (not CopSpawnTables::chaserSpawnTable.current->Contains(copType));
 		}
 
 

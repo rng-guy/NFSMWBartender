@@ -283,10 +283,8 @@ namespace ModContainers
 
 		[[nodiscard]] const V& GetReference(const vault key) const
 		{
-			const auto foundPair = this->find(key);
-			if (foundPair == this->end()) return this->defaultValue;
-
-			return foundPair->second;
+			const V* const value = this->get(key);
+			return (value) ? *value : this->defaultValue;
 		}
 
 
