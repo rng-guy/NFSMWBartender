@@ -66,7 +66,7 @@ namespace CopNotifications
 		{
 			push dword ptr [esp + 0x60] // copType
 			mov ecx, offset copTypeToNotificationIcon
-			call ModContainers::VehicleMap<binary>::GetValue
+			call ModContainers::VehicleMap<binary>::GetCopy
 
 			EXIT_ASSEMBLY_DETOUR(NotificationIcon)
 		}

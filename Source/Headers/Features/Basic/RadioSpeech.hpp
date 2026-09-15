@@ -151,7 +151,7 @@ namespace RadioSpeech
 		{
 			push eax // copType
 			mov ecx, offset copTypeToBattalion
-			call ModContainers::VehicleMap<Battalion>::GetValue
+			call ModContainers::VehicleMap<Battalion>::GetCopy
 			cmp eax, CROSS
 
 			mov dword ptr [esp + 0x28], eax // freed variable
@@ -210,7 +210,7 @@ namespace RadioSpeech
 		{
 			push eax                   // copType
 			mov ecx, offset copTypeToBattalion
-			call ModContainers::VehicleMap<Battalion>::GetValue
+			call ModContainers::VehicleMap<Battalion>::GetCopy
 			cmp eax, RHINO
 			sete byte ptr [esp + 0x2B] // is "rhino"
 

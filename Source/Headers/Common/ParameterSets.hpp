@@ -96,7 +96,7 @@ namespace ParameterSets
 		[[nodiscard]] float GetTaggingChange(const address copVehicle) const
 		{
 			const vault copType = Globals::GetVehicleType(copVehicle);
-			return this->copTagChange.current + this->copTypeToTagChange.GetValue(copType);
+			return this->copTagChange.current + this->copTypeToTagChange.GetCopy(copType);
 		}
 
 
@@ -110,14 +110,14 @@ namespace ParameterSets
 			if (not this->GetsCreditForAssault(numCopAssaulted)) return 0.f;
 
 			const vault copType = Globals::GetVehicleType(copVehicle);
-			return this->changePerAssault.current + this->copTypeToAssaultChange.GetValue(copType);
+			return this->changePerAssault.current + this->copTypeToAssaultChange.GetCopy(copType);
 		}
 
 
 		[[nodiscard]] float GetWreckingChange(const address copVehicle) const
 		{
 			const vault copType = Globals::GetVehicleType(copVehicle);
-			return this->copWreckChange.current + this->copTypeToWreckChange.GetValue(copType);
+			return this->copWreckChange.current + this->copTypeToWreckChange.GetCopy(copType);
 		}
 
 

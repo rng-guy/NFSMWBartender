@@ -288,7 +288,7 @@ namespace ModContainers
 		}
 
 
-		[[nodiscard]] V __thiscall GetValue(const vault key) const
+		[[nodiscard]] V __thiscall GetCopy(const vault key) const
 		{
 			return this->GetReference(key);
 		}

@@ -376,7 +376,7 @@ namespace GeneralSettings
 
 			push eax // copType
 			mov ecx, offset copTypeToIsBreakerImmune
-			call ModContainers::VehicleMap<bool>::GetValue
+			call ModContainers::VehicleMap<bool>::GetCopy
 			test al, al
 
 			conclusion:
