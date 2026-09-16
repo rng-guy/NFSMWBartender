@@ -160,12 +160,13 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how likely each roadblock setup is to spawn horizontally mirrored instead, and
  • which active non-chasing cops the engagement count above the pursuit board also tracks.
 
-The "Advanced" feature set ALWAYS FIXES SEVENTEEN BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES EIGHTEEN BUGS / ISSUES automatically:
  • chasing cops that exceed their type-specific count no longer flee,
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
  • cops in roadblocks can no longer prevent chasing cops from spawning,
  • the cops no longer stop calling out roadblocks / spikes over the radio,
  • the helicopter no longer competes with chasing cops for spawn opportunities,
+ • most cops in non-arrest cutscenes now use vehicles of your current Heat level,
  • cops joining pursuits from roadblocks no longer ignore cop-related spawn limits,
  • the final Career pursuit  now uses the Heat-level limits defined for it   in VltEd,
  • Challenge Series events   now use  the Heat-level limits defined for them in VltEd,

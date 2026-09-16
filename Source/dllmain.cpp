@@ -117,7 +117,7 @@ static void __cdecl Initialise
 	basicSetEnabled |= HelicopterVision::Initialise(parser);
 	basicSetEnabled |= InteractiveMusic::Initialise(parser);
 	basicSetEnabled |= GeneralSettings ::Initialise(parser);
-	basicSetEnabled |= GroundSuppport  ::Initialise(parser);
+	basicSetEnabled |= GroundSupport   ::Initialise(parser);
 	basicSetEnabled |= NitrousCharge   ::Initialise(parser);
 	basicSetEnabled |= GameBreaker     ::Initialise(parser);
 
@@ -130,7 +130,7 @@ static void __cdecl Initialise
 		CopDetection    ::ApplyFixes();
 		HelicopterVision::ApplyFixes();
 		GeneralSettings ::ApplyFixes();
-		GroundSuppport  ::ApplyFixes();
+		GroundSupport   ::ApplyFixes();
 
 		// Remove helicopter blob-shadow
 		MemoryTools::Write<float>(0.f, {0x903660});

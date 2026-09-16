@@ -65,7 +65,7 @@ namespace StateObserver
 		// "Basic" feature set
 		RadioSpeech    ::SetToHeatState(state);
 		GeneralSettings::SetToHeatState(state);
-		GroundSuppport ::SetToHeatState(state);
+		GroundSupport  ::SetToHeatState(state);
 		NitrousCharge  ::SetToHeatState(state);
 		GameBreaker    ::SetToHeatState(state);
 			
@@ -131,10 +131,10 @@ namespace StateObserver
 		const address perpVehicle,
 		const bool    perpAtFault
 	) {
-		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
+		const address copAIVehiclePursuit = Globals::Vehicle::GetAIVehiclePursuit(copVehicle);
 		ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
 
-		const address pursuit = Globals::GetPursuitOfPerpVehicle(perpVehicle);
+		const address pursuit = Globals::PerpVehicle::GetPursuit(perpVehicle);
 
 		// Process damaged cop vehicle
 		bool& damagedByRacer = AsReference<bool>(copAIVehiclePursuit + 0xB);

@@ -60,8 +60,9 @@ namespace Globals
 	uint32_t numGameTicksOnLastPause = 0;
 	uint32_t numFullyPausedGameTicks = 0;
 
-	// Hackjob floating-point correction
-	constexpr float floatScale = 1.f + 1e-6f;
+	// Floating-point constants
+	constexpr float floatScale  = 1.f + 1e-6f;  // don't even ask
+	constexpr float ticksToTime = 1.f / 4000.f; // seconds / tick
 
 	// String pool for game-decoupled lifetimes
 	RELEASE_CONSTINIT StringTools::Pool vehicleNames;
@@ -83,7 +84,6 @@ namespace Globals
 
 	// Data pointers
 	const uint32_t& numGameTicks   = AsReference<uint32_t>(0x925B14); // ticks (actually int)
-	const float&    ticksToTime    = AsReference<float>   (0x890984); // seconds / tick
 	const float&    simulationTime = AsReference<float>   (0x9885D8); // seconds
 
 
@@ -304,12 +304,14 @@ namespace Globals
 
 
 
-	[[nodiscard]] address GetFromPursuitLevel
+	[[nodiscard]] address GetFromPursuitLevels
 	(
 		const address pursuit,
 		const vault   attributeKey,
 		const size_t  attributeIndex = 0
 	) {
+		if (not pursuit) return 0x0;
+
 		const auto GetPursuitNode          = AsFunction<address __thiscall (address)>               (0x418E90);
 		const auto GetPursuitNodeAttribute = AsFunction<address __thiscall (address, vault, size_t)>(0x454810);
 
@@ -321,152 +323,169 @@ namespace Globals
 
 
 
-	// Vehicle-type functions -----------------------------------------------------------------------------------------------------------------------
+	// Custom Vehicle-type methods ------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] const char* GetNameOfVehicleType(const vault type)
+	namespace VehicleType
 	{
-		const address attribute = GetFromVault("pvehicle"_vlt, type, "CollectionName"_vlt);
-		return (attribute) ? AsReference<const char*>(attribute) : nullptr;
-	}
-
-
-	[[nodiscard]] vault GetClassOfVehicleType(const vault type)
-	{
-		const address attribute = GetFromVault("pvehicle"_vlt, type, "CLASS"_vlt);
-		return (attribute) ? AsReference<vault>(attribute + 0x8) : ""_vlt;
-	}
-
-
-
-	[[nodiscard]] bool DoesVehicleTypeExist(const vault type)
-	{
-		return (GetClassOfVehicleType(type) != ""_vlt);
-	}
-
-
-	[[nodiscard]] bool IsVehicleTypeCar(const vault type)
-	{
-		const vault typeClass = GetClassOfVehicleType(type);
-
-		switch (typeClass)
+		[[nodiscard]] const char* GetName(const vault type)
 		{
-		case     "CAR"_vlt:
-		case "TRACTOR"_vlt:
-			return true;
+			const address attribute = GetFromVault("pvehicle"_vlt, type, "CollectionName"_vlt);
+			return (attribute) ? AsReference<const char*>(attribute) : nullptr;
 		}
 
-		return false;
-	}
 
-
-	[[nodiscard]] bool IsVehicleTypeChopper(const vault type)
-	{
-		return (GetClassOfVehicleType(type) == "CHOPPER"_vlt);
-	}
-
+		[[nodiscard]] vault GetClass(const vault type)
+		{
+			const address attribute = GetFromVault("pvehicle"_vlt, type, "CLASS"_vlt);
+			return (attribute) ? AsReference<vault>(attribute + 0x8) : ""_vlt;
+		}
 
 
 
-
-	// Vehicle-object functions ---------------------------------------------------------------------------------------------------------------------
-
-	[[nodiscard]] address GetAIVehicleOfVehicle(const address vehicle)
-	{
-		return (vehicle) ? AsReference<address>(vehicle + 0x54) : 0x0;
-	}
-	
-
-	[[nodiscard]] address GetAIVehiclePursuitOfVehicle(const address copVehicle)
-	{
-		const address copAIVehicle = GetAIVehicleOfVehicle(copVehicle);
-		return (copAIVehicle) ? (copAIVehicle + (0x758 - 0x4C)) : 0x0;
-	}
+		[[nodiscard]] bool Exists(const vault type)
+		{
+			return (GetClass(type) != ""_vlt);
+		}
 
 
+		[[nodiscard]] bool IsCar(const vault type)
+		{
+			const vault typeClass = GetClass(type);
 
-	[[nodiscard]] address GetAIVehicleOfPerpVehicle(const address perpVehicle)
-	{
-		return (perpVehicle) ? (perpVehicle - (0x758 - 0x4C)) : 0x0;
-	}
-	
+			switch (typeClass)
+			{
+			case     "CAR"_vlt:
+			case "TRACTOR"_vlt:
+				return true;
+			}
 
-	[[nodiscard]] address GetVehicleOfPerpVehicle(const address perpVehicle)
-	{
-		const address perpAIVehicle = GetAIVehicleOfPerpVehicle(perpVehicle);
-		return (perpAIVehicle) ? AsReference<address>(perpAIVehicle - 0x4) : 0x0;
-	}
-
-
-	[[nodiscard]] address GetPursuitOfPerpVehicle(const address perpVehicle)
-	{
-		const address perpAIVehicle = GetAIVehicleOfPerpVehicle(perpVehicle);
-		return (perpAIVehicle) ? AsReference<address>(perpAIVehicle + 0x70) : 0x0;
-	}
+			return false;
+		}
 
 
-
-	bool EndSupportGoalOfVehicle(const address copVehicle)
-	{
-		const address copAIVehicle = GetAIVehicleOfVehicle(copVehicle);
-		if (not copAIVehicle) return false;
-
-		const address copAIVehiclePursuit = GetAIVehiclePursuitOfVehicle(copVehicle);
-		ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
-
-		const auto SetSupportGoal = AsFunction<void __thiscall (address, vault)>       (0x409850);
-		const auto SetVehicleGoal = AsFunction<void __thiscall (address, const vault&)>(0x422480);
-
-		SetSupportGoal(copAIVehiclePursuit, ""_vlt); // empty goal
-		SetVehicleGoal(copAIVehicle - 0x4C, "AIGoalPursuit"_vlt);
-
-		return true;
+		[[nodiscard]] bool IsChopper(const vault type)
+		{
+			return (GetClass(type) == "CHOPPER"_vlt);
+		}
 	}
 
 
 
 
 
-	// Pursuit functions ----------------------------------------------------------------------------------------------------------------------------
+	// Custom Vehicle-object methods ----------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] address GetPhysicsObjectOfPursuitTarget(const address pursuit)
+	namespace Vehicle
 	{
-		if (not pursuit) return 0x0;
+		[[nodiscard]] address GetAIVehicle(const address vehicle)
+		{
+			return (vehicle) ? AsReference<address>(vehicle + 0x54) : 0x0;
+		}
 
-		const address pursuitTarget = AsReference<address>(pursuit + 0x74);
-		ASSERT_CONDITION_THEN_IF_FALSE(pursuitTarget, return 0x0);
 
-		return AsReference<address>(pursuitTarget + 0x1C);
+		[[nodiscard]] address GetAIVehiclePursuit(const address copVehicle)
+		{
+			const address copAIVehicle = GetAIVehicle(copVehicle);
+			return (copAIVehicle) ? (copAIVehicle + (0x758 - 0x4C)) : 0x0;
+		}
+
+
+
+		bool EndSupportGoal(const address copVehicle)
+		{
+			const address copAIVehicle = GetAIVehicle(copVehicle);
+			if (not copAIVehicle) return false;
+
+			const address copAIVehiclePursuit = GetAIVehiclePursuit(copVehicle);
+			ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
+
+			const auto SetSupportGoal = AsFunction<void __thiscall (address, vault)>       (0x409850);
+			const auto SetVehicleGoal = AsFunction<void __thiscall (address, const vault&)>(0x422480);
+
+			SetSupportGoal(copAIVehiclePursuit, ""_vlt); // empty goal
+			SetVehicleGoal(copAIVehicle - 0x4C, "AIGoalPursuit"_vlt);
+
+			return true;
+		}
 	}
 
 
 
-	[[nodiscard]] address GetPerpVehicleOfPursuit(const address pursuit)
+
+
+	// Custom PerpVehicle-object methods ------------------------------------------------------------------------------------------------------------
+
+	namespace PerpVehicle
 	{
-		if (not pursuit) return 0x0;
+		[[nodiscard]] address GetAIVehicle(const address perpVehicle)
+		{
+			return (perpVehicle) ? (perpVehicle - (0x758 - 0x4C)) : 0x0;
+		}
 
-		const address pursuitTarget = AsReference<address>(pursuit + 0x74);
-		ASSERT_CONDITION_THEN_IF_FALSE(pursuitTarget, return 0x0);
 
-		address perpVehicle = 0x0;
+		[[nodiscard]] address GetVehicle(const address perpVehicle)
+		{
+			const address perpAIVehicle = GetAIVehicle(perpVehicle);
+			return (perpAIVehicle) ? AsReference<address>(perpAIVehicle - 0x4) : 0x0;
+		}
 
-		const auto FindPerpVehicle = AsFunction<bool __thiscall (address, address&)>(0x40E200);
-		FindPerpVehicle(pursuitTarget, perpVehicle); // only writes if search succeeds
-		
-		return perpVehicle;
+
+
+		[[nodiscard]] address GetPursuit(const address perpVehicle)
+		{
+			const address perpAIVehicle = GetAIVehicle(perpVehicle);
+			return (perpAIVehicle) ? AsReference<address>(perpAIVehicle + 0x70) : 0x0;
+		}
 	}
 
 
-	[[nodiscard]] address GetLocalPlayerOfPursuit(const address pursuit)
+
+
+
+	// Custom Pursuit-object methods ----------------------------------------------------------------------------------------------------------------
+
+	namespace Pursuit
 	{
-		const address physicsObject = GetPhysicsObjectOfPursuitTarget(pursuit);
-		return (physicsObject) ? AsReference<address>(physicsObject + 0x58) : 0x0;
-	}
+		[[nodiscard]] address GetPerpVehicle(const address pursuit)
+		{
+			if (not pursuit) return 0x0;
+
+			const address pursuitTarget = AsReference<address>(pursuit + 0x74);
+			ASSERT_CONDITION_THEN_IF_FALSE(pursuitTarget, return 0x0);
+
+			address perpVehicle = 0x0;
+
+			const auto FindPerpVehicle = AsFunction<bool __thiscall (address, address&)>(0x40E200);
+			FindPerpVehicle(pursuitTarget, perpVehicle); // only writes if search succeeds
+
+			return perpVehicle;
+		}
 
 
 
-	[[nodiscard]] bool IsPursuitInCooldownMode(const address pursuit)
-	{
-		return (pursuit and (AsReference<int>(pursuit + 0x218) == 2)); // "COOLDOWN" mode
+		[[nodiscard]] address GetPhysicsObjectOfTarget(const address pursuit)
+		{
+			if (not pursuit) return 0x0;
+
+			const address pursuitTarget = AsReference<address>(pursuit + 0x74);
+			ASSERT_CONDITION_THEN_IF_FALSE(pursuitTarget, return 0x0);
+
+			return AsReference<address>(pursuitTarget + 0x1C);
+		}
+
+
+		[[nodiscard]] address GetLocalPlayer(const address pursuit)
+		{
+			const address physicsObject = GetPhysicsObjectOfTarget(pursuit);
+			return (physicsObject) ? AsReference<address>(physicsObject + 0x58) : 0x0;
+		}
+
+
+
+		[[nodiscard]] bool IsSearching(const address pursuit)
+		{
+			return (pursuit and (AsReference<int>(pursuit + 0x218) == 2)); // "COOLDOWN" mode
+		}
 	}
 
 

@@ -39,7 +39,7 @@ namespace NitrousCharge
 		const address perpVehicle, 
 		const float   seconds
 	) {
-		const address perpAIVehicle = Globals::GetAIVehicleOfPerpVehicle(perpVehicle);
+		const address perpAIVehicle = Globals::PerpVehicle::GetAIVehicle(perpVehicle);
 		const address engineRacer   = AsReference<address>(perpAIVehicle + 0x90);
 
 		const address nitrousProperties = AsReference<address>(engineRacer       + 0xD0);
@@ -48,7 +48,7 @@ namespace NitrousCharge
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			const address pursuit = Globals::GetPursuitOfPerpVehicle(perpVehicle);
+			const address pursuit = Globals::PerpVehicle::GetPursuit(perpVehicle);
 			Globals::LogFull(pursuit, logTag, "Nitrous change:", seconds);
 		}
 
@@ -62,12 +62,12 @@ namespace NitrousCharge
 	{
 		if (passiveRechargeEnabled.current) return true;
 
-		const address vehicle = AsReference<address>(engineRacer - 0xC);
+		const address racerVehicle = AsReference<address>(engineRacer - 0xC);
 
-		const int driverClass = AsReference<int>(vehicle + 0x94);
+		const int driverClass = AsReference<int>(racerVehicle + 0x94);
 		if ((driverClass != 0) and (driverClass != 3)) return true; // not racer
 
-		const address racerAIVehicle = Globals::GetAIVehicleOfVehicle(vehicle);
+		const address racerAIVehicle = Globals::Vehicle::GetAIVehicle(racerVehicle);
 		const address pursuit        = AsReference<address>(racerAIVehicle + 0x70);
 
 		return (not pursuit);
@@ -96,7 +96,7 @@ namespace NitrousCharge
 	{
 		if (pendingCollisionNitrousChange == 0.f) return;
 
-		if (const address pursuit = Globals::GetPursuitOfPerpVehicle(perpVehicle))
+		if (Globals::PerpVehicle::GetPursuit(perpVehicle))
 			ChargeNitrous(perpVehicle, pendingCollisionNitrousChange);
 
 		pendingCollisionNitrousChange = 0.f;
@@ -109,7 +109,7 @@ namespace NitrousCharge
 		const address pursuit,
 		const address copVehicle
 	) {
-		const address perpVehicle = Globals::GetPerpVehicleOfPursuit(pursuit);
+		const address perpVehicle = Globals::Pursuit::GetPerpVehicle(pursuit);
 		ASSERT_CONDITION_THEN_IF_FALSE(perpVehicle, return);
 
 		const float nitrousChange = nitrousInteractions.GetWreckingChange(copVehicle);

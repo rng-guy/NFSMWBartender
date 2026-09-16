@@ -47,7 +47,7 @@ namespace GameBreaker
 		const address pursuit, 
 		const float   seconds
 	) {
-		const address localPlayer = Globals::GetLocalPlayerOfPursuit(pursuit);
+		const address localPlayer = Globals::Pursuit::GetLocalPlayer(pursuit);
 		if (not localPlayer) return; // not player pursuit
 
 		const bool isBreakerActive = AsReference<bool>(localPlayer + 0x34);
@@ -73,9 +73,9 @@ namespace GameBreaker
 	{
 		ASSERT_CONDITION_THEN_IF_FALSE(localPlayer, return false);
 
-		for (const address pursuit : ModContainers::PursuitList())
+		for (const address pursuit : ModContainers::PursuitView())
 		{
-			if (localPlayer == Globals::GetLocalPlayerOfPursuit(pursuit)) return true;
+			if (localPlayer == Globals::Pursuit::GetLocalPlayer(pursuit)) return true;
 		}
 
 		return false;
@@ -104,7 +104,7 @@ namespace GameBreaker
 	{
 		if (pendingCollisionBreakerChange == 0.f) return;
 
-		if (const address pursuit = Globals::GetPursuitOfPerpVehicle(perpVehicle))
+		if (const address pursuit = Globals::PerpVehicle::GetPursuit(perpVehicle))
 			ChargeSpeedbreakerOfTarget(pursuit, pendingCollisionBreakerChange);
 
 		pendingCollisionBreakerChange = 0.f;

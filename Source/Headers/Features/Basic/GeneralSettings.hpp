@@ -489,7 +489,7 @@ namespace GeneralSettings
 
 		return copTypeToIsBreakerImmune.Fill
 		(
-			ModContainers::FillSetup(copNames,         Globals::GetVaultHash,         Globals::DoesVehicleTypeExist),
+			ModContainers::FillSetup(copNames,         Globals::GetVaultHash,         Globals::VehicleType::Exists),
 			ModContainers::FillSetup(isBreakerImmunes, ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
 		);
 	}

@@ -110,7 +110,7 @@ namespace CopDetection
 		const address copVehicle,
 		const address playerVehicle
 	) {
-		const address copAIVehicle = Globals::GetAIVehicleOfVehicle(copVehicle);
+		const address copAIVehicle = Globals::Vehicle::GetAIVehicle(copVehicle);
 		ASSERT_CONDITION_THEN_IF_FALSE(copAIVehicle, return false);
 
 		bool& iconIsKept = AsReference<bool>(copAIVehicle - 0x4C + 0x81); // padding byte
@@ -386,7 +386,7 @@ namespace CopDetection
 
 		return copTypeToDetection.Fill
 		(
-			ModContainers::FillSetup(copNames,   Globals::GetVaultHash,         Globals::IsVehicleTypeCar),
+			ModContainers::FillSetup(copNames,   Globals::GetVaultHash,         Globals::VehicleType::IsCar),
 			ModContainers::FillSetup(detections, ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
 		);
 	}

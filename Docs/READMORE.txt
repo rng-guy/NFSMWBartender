@@ -321,11 +321,11 @@ Regarding GROUND SUPPORT ("BartenderSettings/Basic/Support.ini"):
    you also need to adjust the "MAXIMUM_AI_SPEED" and "AccelerationMultiplier" parameters
    of their "aivehicle" VltEd nodes. At higher speeds, the ramming AI tends to steer worse.
 
- • All vehicles you define as replacements for HeavyStrategy 3 / 4 spawns should only be used for
-   HeavyStrategy 3 / 4, and all vehicles you define as replacements for LeaderStrategy 5 / 7 spawns
-   should only be used for LeaderStrategy 5 / 7. This is because the game may lose track of how
-   many cops it has currently loaded in memory whenever it tries to recycle a Strategy cop 
-   as a regular cop (and vice versa). If, for example, you also want to use "copmidsize" 
+ • All vehicles you define as replacements for HeavyStrategy 3 / 4 spawns should only be used
+   for HeavyStrategy 3 / 4, and all vehicles you define as replacements for LeaderStrategy 5 / 7
+   spawns should only be used for LeaderStrategy 5 / 7. This is because the game may lose track
+   of how many cops it has currently loaded in memory whenever it tries to recycle a Strategy cop
+   as a regular cop (and vice versa). If, for example, you also want to use "copmidsize"
    as a HeavyStrategy 3 vehicle, then make a copy of its "pvehicle" VltEd node
    with a different name and use that one for HeavyStrategy 3 instead.
 
@@ -353,6 +353,15 @@ Regarding the "Advanced" feature set AS A WHOLE:
  • Bartender disables this feature set if any free-roam "Chasers" spawn table has no valid cars.
 
  • As long as this feature set isn't disabled, all its automatic fixes apply.
+
+ • With this feature set enabled, most cops featured in non-arrest cutscenes now use vehicles
+   of your current Heat level: Regular cops use the "Patrols" spawn table of this feature set, 
+   while supports use your vehicle definitions in the "Support.ini" file of the "Basic" feature
+   set; light SUVs use the light vehicle of the "[Heavy3:Vehicles]" parameter group in that file,
+   while Cross uses the vehicle of the "[Leader5:Vehicle]" group. If the "Basic" feature set is
+   disabled, Bartender doesn't replace support vehicles in cutscenes. Bartender also doesn't
+   replace "copghost" undercover vehicles hidden in traffic or vehicles in arrest cutscenes,
+   because 20 out of 26 arrest cutscenes rely on the special rigging of "copmidsize_nis".
 
  • Rarely, the engagement count above the pursuit board may appear to be inaccurate compared
    to how many cops are actually around you at a given moment. That's because, by default,

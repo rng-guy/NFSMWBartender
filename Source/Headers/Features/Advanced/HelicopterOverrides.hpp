@@ -92,7 +92,7 @@ namespace HelicopterOverrides
 		}
 
 
-		[[nodiscard]] static float* GetFuelTimePointer()
+		[[nodiscard]] static float* GetFuelTime()
 		{ 
 			return (Globals::helicopter) ? AsPointer<float>(Globals::helicopter + 0x7D8) : nullptr;
 		}
@@ -100,7 +100,7 @@ namespace HelicopterOverrides
 
 		void SetFuelTime(const float amount) const
 		{
-			float* const fuelTime = this->GetFuelTimePointer();
+			float* const fuelTime = this->GetFuelTime();
 
 			if (not fuelTime)
 			{
@@ -131,15 +131,15 @@ namespace HelicopterOverrides
 		}
 
 
-		[[nodiscard]] bool IsBlockedByCooldownMode() const
+		[[nodiscard]] bool IsSearchPreventingSpawn() const
 		{
-			return (Globals::IsPursuitInCooldownMode(this->pursuit) and (not this->maySpawnToSearch));
+			return (Globals::Pursuit::IsSearching(this->pursuit) and (not this->maySpawnToSearch));
 		}
 
 
-		void CallOutHelicopterSpawn() const
+		void CallOutHelicopterSearch() const
 		{
-			if (not Globals::IsPursuitInCooldownMode(this->pursuit)) return;
+			if (not Globals::Pursuit::IsSearching(this->pursuit)) return;
 
 			const address soundAI = AsReference<address>(0x993CC8);
 			ASSERT_CONDITION_THEN_IF_FALSE(soundAI, return);
@@ -163,7 +163,7 @@ namespace HelicopterOverrides
 			if (Globals::helicopter)               return;
 			if (not this->isPlayerPursuit)         return;
 			if (not this->spawnTimer.HasExpired()) return;
-			if (this->IsBlockedByCooldownMode())   return;
+			if (this->IsSearchPreventingSpawn())   return;
 			if (this->IsRoadblockSpawnPending())   return;
 
 			if constexpr (Globals::loggingEnabled)
@@ -172,7 +172,7 @@ namespace HelicopterOverrides
 			const auto SpawnHelicopter = AsFunction<bool __thiscall (address, address)>(0x4269A0);
 
 			if (SpawnHelicopter(Globals::copManager, this->pursuit))
-				this->CallOutHelicopterSpawn();
+				this->CallOutHelicopterSearch();
 		}
 
 
@@ -290,7 +290,7 @@ namespace HelicopterOverrides
 
 			if (not Globals::IsVehicleDestroyed(copVehicle))
 			{
-				const float* const fuelTime = this->GetFuelTimePointer();
+				const float* const fuelTime = this->GetFuelTime();
 
 				if ((not fuelTime) or (*fuelTime <= 0.f))
 					newStatus = Status::EXPIRED;
@@ -318,7 +318,7 @@ namespace HelicopterOverrides
 	{
 		if (Globals::helicopter) return false;
 
-		const float* const spawnChance = AsPointer<float>(Globals::GetFromPursuitLevel(pursuit, "SearchModeHeliSpawnChance"_vlt));
+		const float* const spawnChance = AsPointer<float>(Globals::GetFromPursuitLevels(pursuit, "SearchModeHeliSpawnChance"_vlt));
 		
 		if (not spawnChance)
 		{
@@ -340,13 +340,13 @@ namespace HelicopterOverrides
 
 	[[nodiscard]] float __fastcall GetSpawnDistance(const address pursuit)
 	{
-		const bool  isSearch = Globals::IsPursuitInCooldownMode(pursuit);
-		const auto& interval = (isSearch) ? searchSpawnDistance : chaseSpawnDistance;
+		const bool  isSearching = Globals::Pursuit::IsSearching(pursuit);
+		const auto& interval    = (isSearching) ? searchSpawnDistance : chaseSpawnDistance;
 
 		const float distance = interval.GetRandomValue();
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogPlain("Spawn distance:", distance, (isSearch) ? "(search)" : "(chase)");
+			Globals::LogPlain("Spawn distance:", distance, (isSearching) ? "(search)" : "(chase)");
 
 		return distance;
 	}

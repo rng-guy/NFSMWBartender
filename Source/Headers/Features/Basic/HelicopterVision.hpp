@@ -110,8 +110,8 @@ namespace HelicopterVision
 		if (Globals::IsVehicleDestroyed(copVehicle)) return 0x0;        // invisible
 		if (not anyFeatureEnabled)                   return 0xFF90B8FF; // vanilla colour
 
-		const address copAIVehicle        = Globals::GetAIVehicleOfVehicle       (copVehicle);
-		const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
+		const address copAIVehicle        = Globals::Vehicle::GetAIVehicle       (copVehicle);
+		const address copAIVehiclePursuit = Globals::Vehicle::GetAIVehiclePursuit(copVehicle);
 
 		const auto    GetPursuitTarget = AsFunction<address __thiscall (address)>(0x409860);
 		const address pursuitTarget    = GetPursuitTarget(copAIVehiclePursuit);

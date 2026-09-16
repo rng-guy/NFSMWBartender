@@ -10,6 +10,7 @@
 
 #include "../../Utilities/MemoryTools.hpp"
 
+#include "../../Features/Basic/GroundSupport.hpp"
 #include "../../Features/Basic/GeneralSettings.hpp"
 
 #include "CopSpawnTables.hpp"
@@ -186,7 +187,7 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 				{
 					if (this->pursuit)
-						Globals::LogPlain("Copied", numActiveCops, Globals::GetNameOfVehicleType(copType));
+						Globals::LogPlain("Copied", numActiveCops, Globals::VehicleType::GetName(copType));
 				}
 
 				this->table.ChangeNumActive(copType, numActiveCops);
@@ -205,7 +206,7 @@ namespace CopSpawnOverrides
 		}
 
 
-		void AddVehicleByType(const vault copType)
+		void IncrementByType(const vault copType)
 		{
 			this->cachedCopName = nullptr; // almost always matches copType
 
@@ -213,21 +214,21 @@ namespace CopSpawnOverrides
 		}
 
 
-		void __thiscall AddVehicle(const address copVehicle)
+		void __thiscall Increment(const address copVehicle)
 		{
-			this->AddVehicleByType(Globals::GetVehicleType(copVehicle));
+			this->IncrementByType(Globals::GetVehicleType(copVehicle));
 		}
 
 
-		bool RemoveVehicleByType(const vault copType)
+		bool DecrementByType(const vault copType)
 		{
 			return this->ChangeNumActive(copType, /* change = */ -1);
 		}
 
 
-		bool __thiscall RemoveVehicle(const address copVehicle)
+		bool __thiscall Decrement(const address copVehicle)
 		{
-			return this->RemoveVehicleByType(Globals::GetVehicleType(copVehicle));
+			return this->DecrementByType(Globals::GetVehicleType(copVehicle));
 		}
 
 
@@ -309,9 +310,10 @@ namespace CopSpawnOverrides
 	};
 
 	// Assembly detours
-	RELEASE_CONSTINIT COP_CONTINGENT(patrolSpawns,    CopSpawnTables::patrolSpawnTable);
-	RELEASE_CONSTINIT COP_CONTINGENT(scriptedSpawns,  CopSpawnTables::scriptedSpawnTable);
-	RELEASE_CONSTINIT COP_CONTINGENT(roadblockSpawns, CopSpawnTables::roadblockSpawnTable);
+	RELEASE_CONSTINIT COP_CONTINGENT(sceneSpawns,     CopSpawnTables::patrolsTable);
+	RELEASE_CONSTINIT COP_CONTINGENT(patrolSpawns,    CopSpawnTables::patrolsTable);
+	RELEASE_CONSTINIT COP_CONTINGENT(scriptedSpawns,  CopSpawnTables::scriptedTable);
+	RELEASE_CONSTINIT COP_CONTINGENT(roadblockSpawns, CopSpawnTables::roadblockTable);
 
 	bool        eventHasScriptedPursuit = false;   // scripted free-roam pursuits request a cop before they know their Heat level,
 	bool        usePrefetchedCopName    = false;   // so we must prefetch a valid cop name using their event's Heat level instead
@@ -350,7 +352,7 @@ namespace CopSpawnOverrides
 
 		const float& copSpawnCooldown  = AsReference<float>(this->pursuit + 0xCC); // seconds
 
-		COP_CONTINGENT(chaserSpawns, CopSpawnTables::chaserSpawnTable, this->pursuit);
+		COP_CONTINGENT(chaserSpawns, CopSpawnTables::chasersTable, this->pursuit);
 
 		inline static constexpr Globals::LogLiteral name = "ChasersManager";
 
@@ -368,7 +370,7 @@ namespace CopSpawnOverrides
 
 		void UpdateNumPatrolCars()
 		{
-			const int* const numPatrolCars = AsPointer<int>(Globals::GetFromPursuitLevel(this->pursuit, "NumPatrolCars"_vlt));
+			const int* const numPatrolCars = AsPointer<int>(Globals::GetFromPursuitLevels(this->pursuit, "NumPatrolCars"_vlt));
 
 			if (not numPatrolCars)
 			{
@@ -463,7 +465,7 @@ namespace CopSpawnOverrides
 			const int numActiveVehicles = (chasersAreIndependent.current) ? numActiveChasers : this->GetGlobalNumNonRoadblockVehicles();
 
 			if (numActiveVehicles >= activeChaserLimit.max.current) return false;
-			if (Globals::IsPursuitInCooldownMode(this->pursuit))    return (numActiveChasers < this->maxNumPatrolCars);
+			if (Globals::Pursuit::IsSearching(this->pursuit))       return (numActiveChasers < this->maxNumPatrolCars);
 
 			return ((numActiveChasers < activeChaserLimit.min.current) or (this->GetWaveCapacity() > 0));
 		}
@@ -494,7 +496,7 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] static bool HasVehicleEngaged(const address copVehicle)
 		{
-			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
+			const address copAIVehiclePursuit = Globals::Vehicle::GetAIVehiclePursuit(copVehicle);
 			ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
 
 			return AsReference<bool>(copAIVehiclePursuit + 0x22);
@@ -503,7 +505,8 @@ namespace CopSpawnOverrides
 
 		void ProcessAddedChaser(const address copVehicle)
 		{
-			this->chaserSpawns.AddVehicle(copVehicle);
+			this->chaserSpawns.Increment(copVehicle);
+
 			this->CorrectWaveCapacity();
 		}
 
@@ -565,7 +568,7 @@ namespace CopSpawnOverrides
 
 		void ProcessRemovedChaser(const address copVehicle)
 		{
-			if (not this->chaserSpawns.RemoveVehicle(copVehicle))
+			if (not this->chaserSpawns.Decrement(copVehicle))
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Unknown chaser", copVehicle, "in", this->pursuit);
@@ -722,6 +725,49 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	[[nodiscard]] vault __fastcall ReplaceCutsceneVehicleType(vault type)
+	{
+		constexpr auto ReplaceSupport = [](const auto& vehicle, const vault type) -> vault
+		{
+			return (GroundSupport::anyFeatureEnabled) ? Globals::GetVaultHash(vehicle.current) : type;
+		};
+
+		switch (type)
+		{
+		case     "copsportghost"_vlt:
+		case    "copmidsize_nis"_vlt:
+		case "copmidsize_nis_ld"_vlt:
+			break; // replace with table
+
+		case "copsuv"_vlt:
+			return ReplaceSupport(GroundSupport::heavy3LightVehicle, type);
+
+		case "copcross"_vlt:
+			return ReplaceSupport(GroundSupport::leader5CrossVehicle, type);
+
+		default:
+			return type; // keep unchanged
+		}
+
+		const char* const copName = sceneSpawns.GetNewNameOfAvailableCopWithFallback();
+
+		if (not copName)
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogWarning(logTag, "Failed to replace", Globals::VehicleType::GetName(type));
+
+			ASSERT_UNREACHABLE_THEN(return type);
+		}
+
+		type = Globals::GetVaultHash(copName);
+
+		sceneSpawns.IncrementByType(type);
+
+		return type;
+	}
+
+
+
 	[[nodiscard]] bool IsEventActive()
 	{
 		ASSERT_CONDITION_THEN_IF_FALSE(Globals::raceStatus, return false);
@@ -748,9 +794,7 @@ namespace CopSpawnOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogWarning(logTag, "Unknown ByClass caller:", caller);
 
-		ASSERT_UNREACHABLE;
-		
-		return nullptr;
+		ASSERT_UNREACHABLE_THEN(return nullptr);
 	}
 
 
@@ -773,7 +817,7 @@ namespace CopSpawnOverrides
 		if (eventHasScriptedPursuit)
 		{
 			const size_t safeHeatLevel = HeatParameters::ClampHeatLevel(eventHeatLevel);
-			const auto&  spawnTable    = CopSpawnTables::scriptedSpawnTable.roam[safeHeatLevel - 1];
+			const auto&  spawnTable    = CopSpawnTables::scriptedTable.roam[safeHeatLevel - 1];
 
 			prefetchedCopName = spawnTable.GetNameOfAvailableCop();
 
@@ -858,14 +902,14 @@ namespace CopSpawnOverrides
 
 
 
-	// Notifies "Patrols" contingent of successful "Patrols" spawns
+	// Registers successful "Patrols" spawns
 	ASSEMBLY_DETOUR(PatrolSpawn, 0x430E37, 0x430E3D)
 	{
 		__asm
 		{
 			push edi // copVehicle
 			mov ecx, offset patrolSpawns
-			call Contingent::AddVehicle
+			call Contingent::Increment
 
 			// Execute original code and resume
 			inc dword ptr [ebp + 0x94]
@@ -895,7 +939,7 @@ namespace CopSpawnOverrides
 
 
 
-	// Notifies "Scripted" contingent of successful "Scripted" spawns
+	// Registers successful "Scripted" spawns
 	ASSEMBLY_DETOUR(ScriptedSpawn, 0x42E8A8, 0x42E8AF)
 	{
 		__asm
@@ -905,7 +949,7 @@ namespace CopSpawnOverrides
 
 			push esi // copVehicle
 			mov ecx, offset scriptedSpawns
-			call Contingent::AddVehicle
+			call Contingent::Increment
 
 			mov al, 1 // restore value
 
@@ -924,7 +968,7 @@ namespace CopSpawnOverrides
 
 
 
-	// Notifies "Patrols" contingent of "Patrols" joining pursuits
+	// Unregisters "Patrols" joining pursuits
 	ASSEMBLY_DETOUR(PatrolPursuit, 0x4224B0, 0x4224B6)
 	{
 		using enum VaultHash;
@@ -943,7 +987,7 @@ namespace CopSpawnOverrides
 
 			push eax // copVehicle
 			mov ecx, offset patrolSpawns
-			call Contingent::RemoveVehicle
+			call Contingent::Decrement
 
 			conclusion:
 			// Execute original code and resume
@@ -955,7 +999,7 @@ namespace CopSpawnOverrides
 
 
 
-	// Notifies "Patrols" contingent of "Patrols" despawns
+	// Unregisters despawned "Patrols"
 	ASSEMBLY_DETOUR(PatrolDespawn, 0x415E03, 0x415E08)
 	{
 		using enum VaultHash;
@@ -974,7 +1018,7 @@ namespace CopSpawnOverrides
 
 			push eax // copVehicle
 			mov ecx, offset patrolSpawns
-			call Contingent::RemoveVehicle
+			call Contingent::Decrement
 
 			conclusion:
 			// Execute original code and resume
@@ -1040,7 +1084,7 @@ namespace CopSpawnOverrides
 
 			push eax // copVehicle
 			mov ecx, offset roadblockSpawns
-			call Contingent::AddVehicle
+			call Contingent::Increment
 
 			pop ecx
 			mov edx, dword ptr [ecx]
@@ -1155,6 +1199,23 @@ namespace CopSpawnOverrides
 
 
 
+	// Selects the vehicles for in-game cutscenes
+	ASSEMBLY_DETOUR(CutsceneVehicle, 0x6F316C, 0x6F3176)
+	{
+		__asm
+		{
+			mov edx, dword ptr [esp + 0x80]
+
+			mov ecx, dword ptr [edx + ebx * 0x4]
+			call ReplaceCutsceneVehicleType // ecx: type
+			mov esi, eax
+
+			EXIT_ASSEMBLY_DETOUR(CutsceneVehicle)
+		}
+	}
+
+	
+
 	// Replaces "Scripted" cop vehicles
 	ASSEMBLY_DETOUR(ScriptedRequest, 0x42E718, 0x42E721)
 	{
@@ -1245,6 +1306,25 @@ namespace CopSpawnOverrides
 			call ShuffleRoadblockVehicles // ecx: copVehicles; edx: numCopVehicles
 
 			EXIT_ASSEMBLY_DETOUR(RoadblockShuffling)
+		}
+	}
+
+
+
+	// Resets the cutscene-cop contingent
+	ASSEMBLY_DETOUR(CutsceneConclusion, 0x6F3270, 0x6F3275)
+	{
+		__asm
+		{
+			// Execute original code first
+			pop ebp
+			pop ebx
+			add esp, 0x6C
+
+			mov ecx, offset sceneSpawns
+			call Contingent::Clear
+
+			EXIT_ASSEMBLY_DETOUR(CutsceneConclusion)
 		}
 	}
 
@@ -1354,9 +1434,11 @@ namespace CopSpawnOverrides
 		PATCH_ASSEMBLY_DETOUR(CopConstructor);
 		PATCH_ASSEMBLY_DETOUR(RecyclingCheck);
 		PATCH_ASSEMBLY_DETOUR(ByClassRequest);
+		PATCH_ASSEMBLY_DETOUR(CutsceneVehicle);
 		PATCH_ASSEMBLY_DETOUR(ScriptedRequest);
 		PATCH_ASSEMBLY_DETOUR(FirstScriptedCop);
 		PATCH_ASSEMBLY_DETOUR(ScriptedSpawnReset);
+		PATCH_ASSEMBLY_DETOUR(CutsceneConclusion);
 		PATCH_ASSEMBLY_DETOUR(RoadblockShuffling);
 
 		// Status flag
@@ -1375,6 +1457,7 @@ namespace CopSpawnOverrides
 			Globals::LogHeat(logTag, logName);
 
 		// Vehicle contingents
+		sceneSpawns    .UpdateSpawnTable();
 		patrolSpawns   .UpdateSpawnTable();
 		scriptedSpawns .UpdateSpawnTable();
 		roadblockSpawns.UpdateSpawnTable();

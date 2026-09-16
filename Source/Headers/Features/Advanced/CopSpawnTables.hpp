@@ -130,7 +130,7 @@ namespace CopSpawnTables
 			if (chance   < 1) return false;
 
 			const vault copType = Globals::GetVaultHash(copName);
-			if (not Globals::IsVehicleTypeCar(copType)) return false;
+			if (not Globals::VehicleType::IsCar(copType)) return false;
 
 			const auto [_, isNewType] = this->copTypeToEntry.try_emplace(copType, copName, maxCount, chance);
 
@@ -294,13 +294,13 @@ namespace CopSpawnTables
 	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
 	// Heat parameters
-	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, chaserSpawnTable);
+	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, chasersTable);
 
-	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, patrolSpawnTable);
+	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, patrolsTable);
 
-	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, scriptedSpawnTable);
+	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, scriptedTable);
 
-	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, roadblockSpawnTable);
+	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, roadblockTable);
 
 
 	
@@ -370,11 +370,11 @@ namespace CopSpawnTables
 	bool ExtractSpawnTablePointers(const ConfigParser::Parser& parser)
 	{
 		// All free-roam "Chasers" tables must be non-empty to serve as fallbacks
-		bool allTableEntriesValid = ExtractTableObject(parser, "Chasers", chaserSpawnTable);
+		bool allTableEntriesValid = ExtractTableObject(parser, "Chasers", chasersTable);
 
 		for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 		{
-			if (not chaserSpawnTable.roam[heatLevelID].IsEmpty()) continue;
+			if (not chasersTable.roam[heatLevelID].IsEmpty()) continue;
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogPlain("No Chasers for Heat level", Globals::LogDec(heatLevelID + 1));
@@ -383,9 +383,9 @@ namespace CopSpawnTables
 		}
 		
 		// Extract non-"Chasers" tables (may be empty)
-		allTableEntriesValid &= ExtractTableObject(parser, "Patrols",    patrolSpawnTable);
-		allTableEntriesValid &= ExtractTableObject(parser, "Scripted",   scriptedSpawnTable);
-		allTableEntriesValid &= ExtractTableObject(parser, "Roadblocks", roadblockSpawnTable);
+		allTableEntriesValid &= ExtractTableObject(parser, "Patrols",    patrolsTable);
+		allTableEntriesValid &= ExtractTableObject(parser, "Scripted",   scriptedTable);
+		allTableEntriesValid &= ExtractTableObject(parser, "Roadblocks", roadblockTable);
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -394,14 +394,14 @@ namespace CopSpawnTables
 		}
 
 		// Replace all (now-)empty spawn tables
-		for (auto* const tableObject : {&chaserSpawnTable, &patrolSpawnTable, &scriptedSpawnTable, &roadblockSpawnTable})
+		for (auto* const tableObject : {&chasersTable, &patrolsTable, &scriptedTable, &roadblockTable})
 		{
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
 			{
 				auto& roam = tableObject->roam[heatLevelID];
 				auto& race = tableObject->race[heatLevelID];
 
-				if (roam.IsEmpty()) roam = chaserSpawnTable.roam[heatLevelID];
+				if (roam.IsEmpty()) roam = chasersTable.roam[heatLevelID];
 				if (race.IsEmpty()) race = roam;
 			}
 		}
@@ -440,12 +440,12 @@ namespace CopSpawnTables
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 
-		chaserSpawnTable.SetToHeatState(state);
+		chasersTable.SetToHeatState(state);
 
-		patrolSpawnTable.SetToHeatState(state);
+		patrolsTable.SetToHeatState(state);
 
-		scriptedSpawnTable.SetToHeatState(state);
+		scriptedTable.SetToHeatState(state);
 
-		roadblockSpawnTable.SetToHeatState(state);
+		roadblockTable.SetToHeatState(state);
 	}
 }

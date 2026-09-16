@@ -53,7 +53,7 @@ namespace ParameterSets
 
 			vehicleMap.Fill
 			(
-				ModContainers::FillSetup(copNames, Globals::GetVaultHash,         Globals::DoesVehicleTypeExist),
+				ModContainers::FillSetup(copNames, Globals::GetVaultHash,         Globals::VehicleType::Exists),
 				ModContainers::FillSetup(changes,  ModContainers::IdentityCopy(), ModContainers::AlwaysValid())
 			);
 		}

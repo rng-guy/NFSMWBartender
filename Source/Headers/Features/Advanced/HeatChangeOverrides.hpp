@@ -124,7 +124,7 @@ namespace HeatChangeOverrides
 
 		void AddToPendingHeatChange(const float levels)
 		{
-			if (Globals::IsPursuitInCooldownMode(this->pursuit)) return;
+			if (Globals::Pursuit::IsSearching(this->pursuit)) return;
 
 			this->pendingHeatChange += levels;
 		}
@@ -141,9 +141,9 @@ namespace HeatChangeOverrides
 		}
 
 
-		[[nodiscard]] static HeatManager* FindInstanceByPerpVehicle(const address perpVehicle)
+		[[nodiscard]] static HeatManager* FindInstanceByPerp(const address perpVehicle)
 		{
-			return HeatManager::FindInstance(Globals::GetPursuitOfPerpVehicle(perpVehicle));
+			return HeatManager::FindInstance(Globals::PerpVehicle::GetPursuit(perpVehicle));
 		}
 
 
@@ -179,7 +179,7 @@ namespace HeatChangeOverrides
 			const address copVehicle, 
 			const address perpVehicle
 		) {
-			auto* const manager = HeatManager::FindInstanceByPerpVehicle(perpVehicle);
+			auto* const manager = HeatManager::FindInstanceByPerp(perpVehicle);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
 			const float heatChange = heatInteractions.GetTaggingChange(copVehicle);
@@ -193,7 +193,7 @@ namespace HeatChangeOverrides
 			const address perpVehicle,
 			const byte    numCopAssaulted
 		) {
-			auto* const manager = HeatManager::FindInstanceByPerpVehicle(perpVehicle);
+			auto* const manager = HeatManager::FindInstanceByPerp(perpVehicle);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
 			const float heatChange = heatInteractions.GetAssaultChange(copVehicle, numCopAssaulted);
@@ -229,7 +229,7 @@ namespace HeatChangeOverrides
 
 		[[nodiscard]] static float __fastcall YieldPendingHeatChange(const address pursuit)
 		{
-			if (Globals::IsPursuitInCooldownMode(pursuit)) return 0.f;
+			if (Globals::Pursuit::IsSearching(pursuit)) return 0.f;
 
 			auto* const manager = HeatManager::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return 0.f);
@@ -332,18 +332,21 @@ namespace HeatChangeOverrides
 
 		__asm
 		{
+			push eax
 			push ecx
 
 			call dword ptr [IsEpicPursuit]
 			test al, al
-
-			pop ecx
-
 			jne epic // is "epic" pursuit
 			
+			add esp, 0x8
+
 			EXIT_ASSEMBLY_DETOUR(EpicPursuit)
 
 			epic:
+			pop ecx
+			pop eax
+
 			jmp dword ptr [epicExit]
 		}
 	}

@@ -54,9 +54,9 @@ namespace CopFleeOverrides
 
 
 
-	// SchedulerBase class --------------------------------------------------------------------------------------------------------------------------
+	// Scheduler class ------------------------------------------------------------------------------------------------------------------------------
 
-	class SchedulerBase
+	class Scheduler
 	{
 	protected: // members
 
@@ -74,7 +74,7 @@ namespace CopFleeOverrides
 
 	protected: // methods
 
-		SchedulerBase
+		Scheduler
 		(
 			const Globals::LogLiteral name,
 			const address             pursuit
@@ -84,14 +84,14 @@ namespace CopFleeOverrides
 		}
 
 
-		SchedulerBase(SchedulerBase&&)      = delete;
-		SchedulerBase(const SchedulerBase&) = delete;
+		Scheduler(Scheduler&&)      = delete;
+		Scheduler(const Scheduler&) = delete;
 
-		SchedulerBase& operator=(SchedulerBase&&)      = delete;
-		SchedulerBase& operator=(const SchedulerBase&) = delete;
+		Scheduler& operator=(Scheduler&&)      = delete;
+		Scheduler& operator=(const Scheduler&) = delete;
 
 
-		void ScheduleVehicle
+		void Schedule
 		(
 			const address copVehicle,
 			const float   fleeTimer
@@ -111,9 +111,9 @@ namespace CopFleeOverrides
 		}
 
 
-		bool MakeVehicleBail(const address copVehicle) const
+		bool MakeBailPursuit(const address copVehicle) const
 		{
-			const address copAIVehiclePursuit = Globals::GetAIVehiclePursuitOfVehicle(copVehicle);
+			const address copAIVehiclePursuit = Globals::Vehicle::GetAIVehiclePursuit(copVehicle);
 			ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
 
 			const auto StartFlee = AsFunction<void __thiscall (address)>(0x423370);
@@ -128,7 +128,7 @@ namespace CopFleeOverrides
 
 	public: // methods
 
-		void CheckTimestamps()
+		void CheckSchedule()
 		{
 			auto pairIt = this->copVehicleToTimestamp.begin();
 
@@ -139,7 +139,7 @@ namespace CopFleeOverrides
 				if (Globals::simulationTime >= timestamp)
 				{
 					if (this->ShouldExpiredVehicleBail(copVehicle))
-						this->MakeVehicleBail(copVehicle);
+						this->MakeBailPursuit(copVehicle);
 
 					pairIt = this->copVehicleToTimestamp.erase(pairIt);
 				}
@@ -153,7 +153,7 @@ namespace CopFleeOverrides
 			for (const auto& [copVehicle, _] : this->copVehicleToTimestamp)
 			{
 				if (this->ShouldExpiredVehicleBail(copVehicle))
-					this->MakeVehicleBail(copVehicle);
+					this->MakeBailPursuit(copVehicle);
 
 				++(this->numPendingExpired);
 			}
@@ -191,7 +191,7 @@ namespace CopFleeOverrides
 
 	// StrategyScheduler class ----------------------------------------------------------------------------------------------------------------------
 
-	class StrategyScheduler : public SchedulerBase
+	class StrategyScheduler : public Scheduler
 	{
 	private: // members
 
@@ -200,7 +200,7 @@ namespace CopFleeOverrides
 
 	public: // aliases
 
-		using SchedulerBase::ShouldExpiredVehicleBail;
+		using Scheduler::ShouldExpiredVehicleBail;
 
 
 	public: // methods
@@ -211,7 +211,7 @@ namespace CopFleeOverrides
 			const address             pursuit,
 			const ptrdiff_t           strategyOffset
 		)
-			: SchedulerBase(name, pursuit), strategy(AsReference<address>(pursuit + strategyOffset))
+			: Scheduler(name, pursuit), strategy(AsReference<address>(pursuit + strategyOffset))
 		{
 		}
 
@@ -222,7 +222,7 @@ namespace CopFleeOverrides
 		}
 
 
-		void AddVehicle(const address copVehicle)
+		void Track(const address copVehicle)
 		{
 			const float strategyDuration = (this->strategy) ? AsReference<float>(this->strategy + 0x8) : 1.f;
 
@@ -234,11 +234,11 @@ namespace CopFleeOverrides
 				ASSERT_UNREACHABLE;
 			}
 
-			this->ScheduleVehicle(copVehicle, strategyDuration);
+			this->Schedule(copVehicle, strategyDuration);
 		}
 
 
-		void RemoveVehicle(const address copVehicle)
+		void Untrack(const address copVehicle)
 		{
 			this->copVehicleToTimestamp.erase(copVehicle);
 		}
@@ -256,7 +256,7 @@ namespace CopFleeOverrides
 
 	// PursuitScheduler class -----------------------------------------------------------------------------------------------------------------------
 
-	class PursuitScheduler : public SchedulerBase
+	class PursuitScheduler : public Scheduler
 	{
 	public: // members
 
@@ -282,7 +282,7 @@ namespace CopFleeOverrides
 			if (not this->IsSchedulable(copVehicle))   return;
 			if (not this->fleeDelay.isEnabled.current) return;
 
-			this->ScheduleVehicle(copVehicle, this->fleeDelay.interval.GetRandomValue());
+			this->Schedule(copVehicle, this->fleeDelay.interval.GetRandomValue());
 		}
 
 
@@ -295,7 +295,7 @@ namespace CopFleeOverrides
 			const HeatParameters::OptionalInterval<float>& fleeDelay,
 			const HeatParameters::OptionalValue<int>&      fleeThreshold
 		)
-			: SchedulerBase(name, pursuit), fleeDelay(fleeDelay), fleeThreshold(fleeThreshold)
+			: Scheduler(name, pursuit), fleeDelay(fleeDelay), fleeThreshold(fleeThreshold)
 		{
 			// Scheduled non-Strategy cops may only expire if the number of "Chasers" is above some threshold
 			this->ShouldCheckForExpiration = [this]() -> bool
@@ -319,7 +319,7 @@ namespace CopFleeOverrides
 		}
 
 
-		void ReviewAllVehicles()
+		void ReviewSchedule()
 		{
 			this->copVehicleToTimestamp.clear();
 
@@ -328,14 +328,14 @@ namespace CopFleeOverrides
 		}
 
 
-		void AddVehicle(const address copVehicle)
+		void Track(const address copVehicle)
 		{
 			this->copVehicles.insert(copVehicle);
 			this->ReviewVehicle(copVehicle);
 		}
 
 
-		void RemoveVehicle(const address copVehicle)
+		void Untrack(const address copVehicle)
 		{
 			this->copVehicles          .erase(copVehicle);
 			this->copVehicleToTimestamp.erase(copVehicle);
@@ -377,7 +377,7 @@ namespace CopFleeOverrides
 		[[nodiscard]] static bool IsNotInChaserTable(const address copVehicle)
 		{
 			const vault copType = Globals::GetVehicleType(copVehicle);
-			return (not CopSpawnTables::chaserSpawnTable.current->Contains(copType));
+			return (not CopSpawnTables::chasersTable.current->Contains(copType));
 		}
 
 
@@ -393,20 +393,20 @@ namespace CopFleeOverrides
 		bool MakeHeavyVehicleJoin(const address copVehicle)
 		{
 			if (not this->MayAnotherHeavyJoin())                  return false;
-			if (not Globals::EndSupportGoalOfVehicle(copVehicle)) return false;
+			if (not Globals::Vehicle::EndSupportGoal(copVehicle)) return false;
 
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(this->pursuit, logTag, "Heavy", copVehicle, "joined");
 
-			this->joinedHeavyVehicles.AddVehicle(copVehicle);
+			this->joinedHeavyVehicles.Track(copVehicle);
 
 			return true;
 		}
 
 
-		[[nodiscard]] address GetRigidBodyOfPursuitTarget() const
+		[[nodiscard]] address GetRigidBodyOfTarget() const
 		{
-			const address physicsObject = Globals::GetPhysicsObjectOfPursuitTarget(this->pursuit);
+			const address physicsObject = Globals::Pursuit::GetPhysicsObjectOfTarget(this->pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(physicsObject, return 0x0);
 
 			return AsReference<address>(physicsObject + 0x4C);
@@ -415,9 +415,9 @@ namespace CopFleeOverrides
 
 		[[nodiscard]] bool ShouldHeavyVehiclesBail() const
 		{
-			if (Globals::IsPursuitInCooldownMode(this->pursuit)) return true;
+			if (Globals::Pursuit::IsSearching(this->pursuit)) return true;
 
-			const address rigidBodyOfTarget = this->GetRigidBodyOfPursuitTarget();
+			const address rigidBodyOfTarget = this->GetRigidBodyOfTarget();
 
 			if (not rigidBodyOfTarget)
 			{
@@ -505,12 +505,12 @@ namespace CopFleeOverrides
 
 			this->CheckForHeavyCancellation();
 
-			this->heavyVehicles .CheckTimestamps();
-			this->leaderVehicles.CheckTimestamps();
+			this->heavyVehicles .CheckSchedule();
+			this->leaderVehicles.CheckSchedule();
 
-			this->chaserVehicles         .CheckTimestamps();
-			this->joinedHeavyVehicles    .CheckTimestamps();
-			this->joinedRoadblockVehicles.CheckTimestamps();
+			this->chaserVehicles         .CheckSchedule();
+			this->joinedHeavyVehicles    .CheckSchedule();
+			this->joinedRoadblockVehicles.CheckSchedule();
 		}
 
 
@@ -519,9 +519,9 @@ namespace CopFleeOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(this->pursuit, logTag, "Reviewing all vehicles");
 
-			this->chaserVehicles         .ReviewAllVehicles();
-			this->joinedHeavyVehicles    .ReviewAllVehicles();
-			this->joinedRoadblockVehicles.ReviewAllVehicles();
+			this->chaserVehicles         .ReviewSchedule();
+			this->joinedHeavyVehicles    .ReviewSchedule();
+			this->joinedRoadblockVehicles.ReviewSchedule();
 		}
 
 
@@ -544,19 +544,19 @@ namespace CopFleeOverrides
 			switch (copLabel)
 			{
 			case CopLabel::CHASER:
-				this->chaserVehicles.AddVehicle(copVehicle);
+				this->chaserVehicles.Track(copVehicle);
 				return;
 
 			case CopLabel::HEAVY:
-				this->heavyVehicles.AddVehicle(copVehicle);
+				this->heavyVehicles.Track(copVehicle);
 				return;
 
 			case CopLabel::LEADER:
-				this->leaderVehicles.AddVehicle(copVehicle);
+				this->leaderVehicles.Track(copVehicle);
 				return;
 
 			case CopLabel::ROADBLOCK:
-				this->joinedRoadblockVehicles.AddVehicle(copVehicle);
+				this->joinedRoadblockVehicles.Track(copVehicle);
 			}
 		}
 
@@ -571,20 +571,20 @@ namespace CopFleeOverrides
 			switch (copLabel)
 			{
 			case CopLabel::CHASER:
-				this->chaserVehicles.RemoveVehicle(copVehicle);
+				this->chaserVehicles.Untrack(copVehicle);
 				return;
 
 			case CopLabel::HEAVY:
-				this->heavyVehicles      .RemoveVehicle(copVehicle);
-				this->joinedHeavyVehicles.RemoveVehicle(copVehicle);
+				this->heavyVehicles      .Untrack(copVehicle);
+				this->joinedHeavyVehicles.Untrack(copVehicle);
 				return;
 
 			case CopLabel::LEADER:
-				this->leaderVehicles.RemoveVehicle(copVehicle);
+				this->leaderVehicles.Untrack(copVehicle);
 				return;
 
 			case CopLabel::ROADBLOCK:
-				this->joinedRoadblockVehicles.RemoveVehicle(copVehicle);
+				this->joinedRoadblockVehicles.Untrack(copVehicle);
 			}
 		}
 	};

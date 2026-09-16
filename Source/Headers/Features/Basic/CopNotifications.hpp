@@ -99,7 +99,7 @@ namespace CopNotifications
 
 		return copTypeToNotificationText.Fill
 		(
-			ModContainers::FillSetup(copNames,      Globals::GetVaultHash,      Globals::DoesVehicleTypeExist),
+			ModContainers::FillSetup(copNames,      Globals::GetVaultHash,      Globals::VehicleType::Exists),
 			ModContainers::FillSetup(stringOrNames, StringOrNameToNotification, ModContainers::AlwaysValid())
 		);
 	}
@@ -121,7 +121,7 @@ namespace CopNotifications
 
 		return copTypeToNotificationIcon.Fill
 		(
-			ModContainers::FillSetup(copNames,    Globals::GetVaultHash,  Globals::DoesVehicleTypeExist),
+			ModContainers::FillSetup(copNames,    Globals::GetVaultHash,  Globals::VehicleType::Exists),
 			ModContainers::FillSetup(iconLabels,  Globals::GetBinaryHash, IsValidGlobalTexture)
 		);
 	}

@@ -654,7 +654,7 @@ namespace HeatParameters
 	requires Details::IsNonOwningString<T>
 	bool ResolveCarNames(Value<T>& vehicleValue) 
 	{
-		return ResolveVehicleNames(vehicleValue, Globals::IsVehicleTypeCar);
+		return ResolveVehicleNames(vehicleValue, Globals::VehicleType::IsCar);
 	}
 
 
@@ -662,7 +662,7 @@ namespace HeatParameters
 	requires Details::IsNonOwningString<T>
 	bool ResolveHelicopterNames(Value<T>& vehicleValue)
 	{
-		return ResolveVehicleNames(vehicleValue, Globals::IsVehicleTypeChopper);
+		return ResolveVehicleNames(vehicleValue, Globals::VehicleType::IsChopper);
 	}
 
 

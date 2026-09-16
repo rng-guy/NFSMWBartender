@@ -309,7 +309,7 @@ namespace RadioSpeech
 
 		return copTypeToBattalion.Fill
 		(
-			ModContainers::FillSetup(copNames,       Globals::GetVaultHash, Globals::IsVehicleTypeCar),
+			ModContainers::FillSetup(copNames,       Globals::GetVaultHash, Globals::VehicleType::IsCar),
 			ModContainers::FillSetup(battalionNames, NameToBattalion,       IsBattalionValid)
 		);
 	}

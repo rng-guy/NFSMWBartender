@@ -63,7 +63,7 @@ namespace PursuitObserver
 
 		[[nodiscard]] static CopLabel& GetCopLabelOfVehicle(const address copVehicle)
 		{
-			const address copAIVehicle = Globals::GetAIVehicleOfVehicle(copVehicle);
+			const address copAIVehicle = Globals::Vehicle::GetAIVehicle(copVehicle);
 			return AsReference<CopLabel>(copAIVehicle - 0x4C + 0x769); // padding byte
 		}
 
@@ -84,7 +84,7 @@ namespace PursuitObserver
 		}
 
 
-		[[nodiscard]] static CopLabel InferCopLabelFromCaller(const address caller)
+		[[nodiscard]] static CopLabel InferCopLabel(const address caller)
 		{
 			switch (caller)
 			{
@@ -217,7 +217,7 @@ namespace PursuitObserver
 			auto* const observer = PursuitObserver::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(observer, return);
 
-			const CopLabel newLabel = observer->InferCopLabelFromCaller(caller);
+			const CopLabel newLabel = observer->InferCopLabel(caller);
 
 			if (not PursuitObserver::SetCopLabelOfVehicle(copVehicle, newLabel))
 			{

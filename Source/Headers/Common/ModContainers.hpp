@@ -304,13 +304,13 @@ namespace ModContainers
 
 
 
-	// PursuitList class ----------------------------------------------------------------------------------------------------------------------------
+	// PursuitView class ----------------------------------------------------------------------------------------------------------------------------
 
-	class PursuitList
+	class PursuitView
 	{
 	private: // types
 
-		class EntryIterator
+		class Iterator
 		{
 		private: // members
 
@@ -319,7 +319,7 @@ namespace ModContainers
 
 		public: // methods
 
-			EntryIterator(const address entry) : current(entry) {}
+			Iterator(const address entry) : current(entry) {}
 
 
 			[[nodiscard]] address operator*() const
@@ -328,7 +328,7 @@ namespace ModContainers
 			}
 
 
-			EntryIterator& operator++()
+			Iterator& operator++()
 			{
 				this->current = AsReference<address>(this->current);
 
@@ -336,7 +336,7 @@ namespace ModContainers
 			}
 
 
-			[[nodiscard]] bool operator==(const EntryIterator&) const = default;
+			[[nodiscard]] bool operator==(const Iterator&) const = default;
 		};
 
 
@@ -348,7 +348,7 @@ namespace ModContainers
 
 	public: // methods
 
-		PursuitList()
+		PursuitView()
 		{
 			if (not Globals::copManager) return;
 
@@ -357,8 +357,8 @@ namespace ModContainers
 		}
 
 
-		[[nodiscard]] EntryIterator begin() const {return this->first;}
-		[[nodiscard]] EntryIterator end  () const {return this->sentinel;}
+		[[nodiscard]] Iterator begin() const {return this->first;}
+		[[nodiscard]] Iterator end  () const {return this->sentinel;}
 	};
 
 

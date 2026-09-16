@@ -260,7 +260,7 @@ namespace RoadblockOverrides
 
 	[[nodiscard]] float GetRoadblockSpikeChance(const address pursuit)
 	{
-		const float* const spikeChance = AsPointer<float>(Globals::GetFromPursuitLevel(pursuit, "roadblockspikechance"_vlt));
+		const float* const spikeChance = AsPointer<float>(Globals::GetFromPursuitLevels(pursuit, "roadblockspikechance"_vlt));
 
 		if (not spikeChance)
 		{
@@ -284,7 +284,7 @@ namespace RoadblockOverrides
 		if (anyRegular and anySpike)      return true;  // both    available
 		if (not (anyRegular or anySpike)) return false; // neither available
 
-		if (Globals::IsPursuitInCooldownMode(pursuit)) return anyRegular;
+		if (Globals::Pursuit::IsSearching(pursuit)) return anyRegular;
 
 		const float spikeChance = GetRoadblockSpikeChance(pursuit);
 
@@ -310,7 +310,7 @@ namespace RoadblockOverrides
 			ASSERT_UNREACHABLE_THEN(return false); // will fail anyway
 		}
 
-		if (Globals::IsPursuitInCooldownMode(pursuit)) return false;
+		if (Globals::Pursuit::IsSearching(pursuit)) return false;
 
 		const float spikeChance = GetRoadblockSpikeChance(pursuit);
 
@@ -406,8 +406,8 @@ namespace RoadblockOverrides
 
 	void __fastcall CallOutRoadblockSpawn(const address pursuit)
 	{
-		if (Globals::IsPursuitInCooldownMode(pursuit)) return;
-		if (not Globals::IsPlayerPursuit(pursuit))     return;
+		if (Globals::Pursuit::IsSearching(pursuit)) return;
+		if (not Globals::IsPlayerPursuit(pursuit))  return;
 
 		if (not Globals::pRNG.DoPercentTrial<float>(spawnCalloutChance.current))
 		{
