@@ -1438,8 +1438,8 @@ namespace CopSpawnOverrides
 		PATCH_ASSEMBLY_DETOUR(ScriptedRequest);
 		PATCH_ASSEMBLY_DETOUR(FirstScriptedCop);
 		PATCH_ASSEMBLY_DETOUR(ScriptedSpawnReset);
-		PATCH_ASSEMBLY_DETOUR(CutsceneConclusion);
 		PATCH_ASSEMBLY_DETOUR(RoadblockShuffling);
+		PATCH_ASSEMBLY_DETOUR(CutsceneConclusion);
 
 		// Status flag
 		anyFeatureEnabled = true;
