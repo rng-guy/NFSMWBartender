@@ -760,7 +760,6 @@ namespace CopSpawnOverrides
 		}
 
 		type = Globals::GetVaultHash(copName);
-
 		sceneSpawns.IncrementByType(type);
 
 		return type;
