@@ -355,7 +355,7 @@ Regarding the "Advanced" feature set AS A WHOLE:
  • As long as this feature set isn't disabled, all its automatic fixes apply.
 
  • With this feature set enabled, most cops featured in non-arrest cutscenes now use vehicles
-   of your current Heat level: Regular cops use the "Patrols" spawn table of this feature set, 
+   of your current Heat level: Regular cops use the "Chasers" spawn table of this feature set, 
    while supports use your vehicle definitions in the "Support.ini" file of the "Basic" feature
    set; light SUVs use the light vehicle of the "[Heavy3:Vehicles]" parameter group in that file,
    while Cross uses the vehicle of the "[Leader5:Vehicle]" group. If the "Basic" feature set is

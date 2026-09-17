@@ -310,7 +310,7 @@ namespace CopSpawnOverrides
 	};
 
 	// Assembly detours
-	RELEASE_CONSTINIT COP_CONTINGENT(sceneSpawns,     CopSpawnTables::patrolsTable);
+	RELEASE_CONSTINIT COP_CONTINGENT(sceneSpawns,     CopSpawnTables::chasersTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(patrolSpawns,    CopSpawnTables::patrolsTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(scriptedSpawns,  CopSpawnTables::scriptedTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(roadblockSpawns, CopSpawnTables::roadblockTable);
