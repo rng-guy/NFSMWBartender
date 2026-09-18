@@ -129,6 +129,22 @@ namespace CopSpawnOverrides
 		}
 
 
+		[[nodiscard]] const char* GetNameOfFallbackCop() const
+		{
+			const auto* const sourceTable = this->source->current;
+
+			if (not sourceTable)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid source-table pointer in", this->name);
+
+				ASSERT_UNREACHABLE_THEN(return "copmidsize");
+			}
+
+			return sourceTable->GetNameOfAvailableCop();
+		}
+
+
 	public: // methods
 
 		constexpr Contingent
@@ -197,12 +213,12 @@ namespace CopSpawnOverrides
 
 		void __thiscall Clear()
 		{
-			this->numTotalActiveCops = 0;
-
 			this->cachedCopName = nullptr;
-			this->table.ResetNumActive();
-
+		
+			this->numTotalActiveCops = 0;
 			this->copTypeToNumActive.clear();
+
+			this->table.ResetNumActive();
 		}
 
 
@@ -246,10 +262,17 @@ namespace CopSpawnOverrides
 
 		[[nodiscard]] const char* GetNameOfAvailableCop() const
 		{
-			if (not this->cachedCopName)
-				this->cachedCopName = this->table.GetNameOfAvailableCop();
+			if (this->cachedCopName) return this->cachedCopName;
 
-			return this->cachedCopName;
+			return this->cachedCopName = this->table.GetNameOfAvailableCop();
+		}
+
+
+		[[nodiscard]] const char* __thiscall GetNameOfAvailableCopWithFallback() const
+		{
+			if (const auto* const copName = this->GetNameOfAvailableCop()) return copName;
+			
+			return this->cachedCopName = this->GetNameOfFallbackCop();
 		}
 
 
@@ -259,41 +282,11 @@ namespace CopSpawnOverrides
 		}
 
 
-		[[nodiscard]] const char* __thiscall GetNameOfAvailableCopWithFallback() const
-		{
-			if (const auto nameFromTable = this->GetNameOfAvailableCop()) return nameFromTable;
-				
-			const auto* const sourceTable = this->source->current;
-
-			if (not sourceTable)
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "Invalid source-table pointer in", this->name);
-
-				ASSERT_UNREACHABLE_THEN(return "copmidsize");
-			}
-
-			this->cachedCopName = sourceTable->GetNameOfAvailableCop();
-
-			return this->cachedCopName;
-		}
-
-
 		[[nodiscard]] const char* GetNewNameOfAvailableCopWithFallback() const
 		{
-			if (const auto nameFromTable = this->GetNewNameOfAvailableCop()) return nameFromTable;
+			if (const auto* const copName = this->GetNewNameOfAvailableCop()) return copName;
 
-			const auto* const sourceTable = this->source->current;
-
-			if (not sourceTable)
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "Invalid source-table pointer in", this->name);
-
-				ASSERT_UNREACHABLE_THEN(return "copmidsize");
-			}
-
-			return sourceTable->GetNameOfAvailableCop();
+			return this->GetNameOfFallbackCop();
 		}
 	};
 
@@ -464,7 +457,7 @@ namespace CopSpawnOverrides
 			const int numActiveChasers  = this->chaserSpawns.GetNumTotalActiveCops();
 			const int numActiveVehicles = (chasersAreIndependent.current) ? numActiveChasers : this->GetGlobalNumNonRoadblockVehicles();
 
-			if (numActiveVehicles >= activeChaserLimit.max.current) return false;
+			if (numActiveVehicles >= activeChaserLimit.max.current) return false; // (global) cop-spawn limit reached
 			if (Globals::Pursuit::IsSearching(this->pursuit))       return (numActiveChasers < this->maxNumPatrolCars);
 
 			return ((numActiveChasers < activeChaserLimit.min.current) or (this->GetWaveCapacity() > 0));
