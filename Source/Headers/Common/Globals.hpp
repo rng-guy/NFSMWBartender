@@ -297,7 +297,7 @@ namespace Globals
 		const auto GetVaultNodeAttribute = AsFunction<address __thiscall (address, vault, size_t)>(0x454190);
 
 		const address node = GetVaultNode(rootKey, nodeKey);
-		if (not node) return 0x0; // unknown node
+		if (not node) return 0x0; // unknown attribute node
 
 		return (attributeKey != ""_vlt) ? GetVaultNodeAttribute(node, attributeKey, attributeIndex) : node;
 	}
@@ -307,16 +307,18 @@ namespace Globals
 	[[nodiscard]] address GetFromPursuitLevels
 	(
 		const address pursuit,
-		const vault   attributeKey,
+		const vault   attributeKey   = ""_vlt,
 		const size_t  attributeIndex = 0
 	) {
 		if (not pursuit) return 0x0;
 
-		const auto GetPursuitNode          = AsFunction<address __thiscall (address)>               (0x418E90);
-		const auto GetPursuitNodeAttribute = AsFunction<address __thiscall (address, vault, size_t)>(0x454810);
+		const auto GetPursuitLevelsNode          = AsFunction<address __thiscall (address)>               (0x418E90);
+		const auto GetPursuitLevelsNodeAttribute = AsFunction<address __thiscall (address, vault, size_t)>(0x454810);
 
-		const address node = GetPursuitNode(pursuit);
-		return (node) ? GetPursuitNodeAttribute(node, attributeKey, attributeIndex) : 0x0;
+		const address node = GetPursuitLevelsNode(pursuit);
+		if (not node) return 0x0; // unknown attribute node
+
+		return (attributeKey != ""_vlt) ? GetPursuitLevelsNodeAttribute(node, attributeKey, attributeIndex) : node;
 	}
 
 
@@ -327,6 +329,13 @@ namespace Globals
 
 	namespace VehicleType
 	{
+		[[nodiscard]] bool Exists(const vault type)
+		{
+			return GetFromVault("pvehicle"_vlt, type);
+		}
+
+
+
 		[[nodiscard]] const char* GetName(const vault type)
 		{
 			const address attribute = GetFromVault("pvehicle"_vlt, type, "CollectionName"_vlt);
@@ -342,17 +351,9 @@ namespace Globals
 
 
 
-		[[nodiscard]] bool Exists(const vault type)
-		{
-			return (GetClass(type) != ""_vlt);
-		}
-
-
 		[[nodiscard]] bool IsCar(const vault type)
 		{
-			const vault typeClass = GetClass(type);
-
-			switch (typeClass)
+			switch (GetClass(type))
 			{
 			case     "CAR"_vlt:
 			case "TRACTOR"_vlt:

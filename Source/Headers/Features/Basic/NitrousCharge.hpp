@@ -34,6 +34,14 @@ namespace NitrousCharge
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	[[nodiscard]] float GetNitrousCapacity(const address engineRacer)
+	{
+		const address nitrousProperties = AsReference<address>(engineRacer + 0xD0);
+		return (nitrousProperties) ? AsReference<float>(nitrousProperties + 0x10) : 0.f;
+	}
+
+
+
 	void ChargeNitrous
 	(
 		const address perpVehicle, 
@@ -42,8 +50,7 @@ namespace NitrousCharge
 		const address perpAIVehicle = Globals::PerpVehicle::GetAIVehicle(perpVehicle);
 		const address engineRacer   = AsReference<address>(perpAIVehicle + 0x90);
 
-		const address nitrousProperties = AsReference<address>(engineRacer       + 0xD0);
-		const float   nitrousCapacity   = AsReference<float>  (nitrousProperties + 0x10);
+		const float nitrousCapacity = GetNitrousCapacity(engineRacer);
 		if (nitrousCapacity <= 0.f) return; // effectively has no nitrous
 
 		if constexpr (Globals::loggingEnabled)
