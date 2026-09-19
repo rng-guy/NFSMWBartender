@@ -101,7 +101,7 @@ namespace MemoryTools
 	requires std::is_trivially_copyable_v<T>
 	inline void Write
 	(
-		const T                              data,
+		const T&                             data,
 		const std::initializer_list<address> targets
 	) {
 		constexpr size_t numBytes = sizeof(T);
