@@ -267,7 +267,7 @@ SHOULD YOU INSTALL any car-loader replacement mod, you may need to re-configure 
  • In "NFSMW HDReflections" by Aero,       disable "ExpandMemoryPools".
 
 SHOULD YOU INSTALL "NFSMW LimitAdjuster", you also need to configure it to work with Bartender:
- 1) • place "NFSMWLimitAdjuster.asi" & ".ini" into the same folder as "speed.exe" (not "scripts");
+ 1) • place "NFSMWLimitAdjuster.asi" & .ini into the same folder as "speed.exe" (not "scripts");
  2) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature; 
  3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50 (or higher), 
                                                          "PursuitCops"      to 255, and
