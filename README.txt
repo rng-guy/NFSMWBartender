@@ -196,7 +196,7 @@ The "Advanced" feature set CAN FIX SIX MORE BUGS / ISSUES, depending on its conf
 
 BEFORE INSTALLING Bartender:
  1) • read and understand the two sections about mod (in)compatibilities and dependencies below,
- 2) • make sure your original copy of the game isn't a repack or came pre-modified in any way,
+ 2) • make sure your cracked copy of the game isn't a repack or came pre-modified in any way,
  3) • make sure your game's "speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
  4) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
 
