@@ -3,7 +3,7 @@
 
 VIEW THIS FILE on GitHub: https://github.com/rng-guy/NFSMWBartender
 
-Bartender adds NEW CUSTOMISATION OPTIONS for pursuits. These new options come in two feature sets:
+Bartender ADDS NEW CUSTOMISATION OPTIONS for pursuits. These new options come in two feature sets:
  • the "BASIC"    FEATURE SET lets you change many otherwise hard-coded parameters of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
