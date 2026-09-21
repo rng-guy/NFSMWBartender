@@ -82,7 +82,7 @@ namespace Globals
 	const address& copManager = AsReference<address>(0x90D5F4);
 	const address& helicopter = AsReference<address>(0x90D61C);
 
-	// Data pointers
+	// Value pointers
 	const uint32_t& numGameTicks   = AsReference<uint32_t>(0x925B14); // ticks (actually int)
 	const float&    simulationTime = AsReference<float>   (0x9885D8); // seconds
 
@@ -293,13 +293,13 @@ namespace Globals
 		const vault  attributeKey   = ""_vlt,
 		const size_t attributeIndex = 0
 	) {
-		const auto GetVaultNode          = AsFunction<address __cdecl    (vault,   vault)>        (0x455FD0);
-		const auto GetVaultNodeAttribute = AsFunction<address __thiscall (address, vault, size_t)>(0x454190);
+		const auto GetVaultNode     = AsFunction<address __cdecl    (vault,   vault)>        (0x455FD0);
+		const auto GetNodeAttribute = AsFunction<address __thiscall (address, vault, size_t)>(0x454190);
 
 		const address node = GetVaultNode(rootKey, nodeKey);
 		if (not node) return 0x0; // unknown attribute node
 
-		return (attributeKey != ""_vlt) ? GetVaultNodeAttribute(node, attributeKey, attributeIndex) : node;
+		return (attributeKey != ""_vlt) ? GetNodeAttribute(node, attributeKey, attributeIndex) : node;
 	}
 
 
@@ -312,13 +312,13 @@ namespace Globals
 	) {
 		if (not pursuit) return 0x0;
 
-		const auto GetPursuitLevelsNode          = AsFunction<address __thiscall (address)>               (0x418E90);
-		const auto GetPursuitLevelsNodeAttribute = AsFunction<address __thiscall (address, vault, size_t)>(0x454810);
+		const auto GetPursuitLevelsNode = AsFunction<address __thiscall (address)>               (0x418E90);
+		const auto GetNodeAttribute     = AsFunction<address __thiscall (address, vault, size_t)>(0x454810);
 
 		const address node = GetPursuitLevelsNode(pursuit);
 		if (not node) return 0x0; // unknown attribute node
 
-		return (attributeKey != ""_vlt) ? GetPursuitLevelsNodeAttribute(node, attributeKey, attributeIndex) : node;
+		return (attributeKey != ""_vlt) ? GetNodeAttribute(node, attributeKey, attributeIndex) : node;
 	}
 
 

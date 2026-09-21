@@ -40,7 +40,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * whether hiding spots make the pursuit target completely invisible to the cops,
 * whether player-damaged cops are destroyed instantly if flipped over,
 * when exactly (if at all) cops are destroyed regardless of damage if flipped over,
-* when exactly (if at all) racers are automatically reset if flipped over,
+* when exactly (if at all) racers are reset back onto the road if flipped over,
 * whether your NOS can recharge passively over time in active pursuits,
 * how much NOS charge you gain / lose from tagging any cop vehicle,
 * how much NOS charge you gain / lose from assaulting any cop vehicle,
@@ -284,7 +284,7 @@ Most **other `.asi` mods** should be fully compatible with all Bartender configu
 
 # 5 - Which mods does Bartender depend on?
 
-Under certain conditions, Bartender **may require** a mod that replaces the game's car loader. There are two such mods: [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, and [OpenLimitAdjuster](https://github.com/gaycoderprincess/MostWantedOpenLimitAdjuster) by Chloe. You likely need one of these two mods if you configure Bartender in any of the following ways:
+Under certain conditions, Bartender **may require** a mod that replaces the game's car loader. There are two such mods: [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, and [OpenLimitAdjuster](https://codeberg.org/gaycoderprincess/MostWantedOpenLimitAdjuster/releases) by Chloe. You likely need one of these two mods if you configure Bartender in any of the following ways:
 * cop-vehicle spawn tables in `CarTables.ini` : You define > 3 vehicle types for any Heat level.
 * `[Chasers:Limits]` in `CarSpawns.ini`: You define a global cop-spawn limit > 8.
 * `[Chasers:Independence]` in `CarSpawns.ini`: You enable independent spawns for chasing cops.

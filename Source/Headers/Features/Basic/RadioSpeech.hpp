@@ -56,7 +56,7 @@ namespace RadioSpeech
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] ptrdiff_t __fastcall GetCallsignsOffset(const Battalion battalion)
+	[[nodiscard]] int __fastcall GetBattalionID(const Battalion battalion)
 	{
 		switch (battalion)
 		{
@@ -67,7 +67,7 @@ namespace RadioSpeech
 			return 0x20;
 		}
 
-		return 0x10; // e.g. ELITE, CROSS
+		return 0x10; // ELITE, CROSS
 	}
 
 
@@ -179,7 +179,7 @@ namespace RadioSpeech
 			EXIT_ASSEMBLY_DETOUR(FirstCallsigns)
 
 			special:
-			call GetCallsignsOffset // ecx: battalion
+			call GetBattalionID // ecx: battalion
 
 			jmp dword ptr [specialExit]
 		}
@@ -193,7 +193,7 @@ namespace RadioSpeech
 		__asm
 		{
 			mov ecx, dword ptr [esp + 0x28] // from "CallsignsCheck"
-			call GetCallsignsOffset         // ecx: battalion
+			call GetBattalionID             // ecx: battalion
 
 			EXIT_ASSEMBLY_DETOUR(SecondCallsigns)
 		}
@@ -322,12 +322,19 @@ namespace RadioSpeech
 
 	void ApplyFixes()
 	{
+		static constinit bool fixesApplied = false;
+
+		if (fixesApplied) return;
+
 		// Radio announcements for Heat levels > 5
 		MemoryTools::MakeRangeNOP<0x71D345, 0x71D370>(); // Heat-level filter
 
 		PATCH_ASSEMBLY_DETOUR(HeatCheck);
 		PATCH_ASSEMBLY_DETOUR(HeatReport);
 		PATCH_ASSEMBLY_DETOUR(PlayerPursuit);
+
+		// Status flag
+		fixesApplied = true;
 	}
 
 
@@ -356,6 +363,8 @@ namespace RadioSpeech
 
 		// Code modifications (general)
 		PATCH_ASSEMBLY_DETOUR(JurisdictionReport);
+
+		ApplyFixes(); // includes partial feature(s)
 
 		// Status flag
 		anyFeatureEnabled = true;

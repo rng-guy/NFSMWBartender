@@ -198,6 +198,14 @@ namespace RandomNumbers
 
 
 		template <class Range>
+		requires (std::ranges::sized_range<Range> and std::ranges::random_access_range<Range>)
+		[[nodiscard]] decltype(auto) Draw(Range&& range)
+		{
+			return range[this->GenerateIndex<Range>(range)];
+		}
+
+
+		template <class Range>
 		requires std::ranges::random_access_range<Range>
 		void Shuffle(Range&& range)
 		{

@@ -52,7 +52,7 @@ namespace StreamParser
 		concept AreExtractable = ((sizeof...(Vs) > 0) and ... and (IsAnyStringOrView<Vs> or IsPureEnum<Vs> or IsPureArithmetic<Vs>));
 
 		template <typename S, typename ...Vs>
-		concept AreCompatible = (IsTerminatedString<S> or (not (IsTerminatedString<Vs> or ...)));
+		concept AreCompatible = (IsAnyStringOrView<S> and (IsTerminatedString<S> or (not (IsTerminatedString<Vs> or ...))));
 
 		template <typename K, typename ...Vs>
 		concept AreSectionExtractable = (IsAnyStringOrView<K> and AreExtractable<Vs...>);
@@ -129,15 +129,13 @@ namespace StreamParser
 
 		[[nodiscard]] inline std::string_view TrimLeft(const std::string_view view) noexcept
 		{
-			const auto startIt = std::find_if_not(view.begin(), view.end(), IsWhitespace);
-			return {startIt, view.end()};
+			return {std::find_if_not(view.begin(), view.end(), IsWhitespace), view.end()};
 		}
 
 
 		[[nodiscard]] inline std::string_view TrimRight(const std::string_view view) noexcept
 		{
-			const auto endIt = std::find_if_not(view.rbegin(), view.rend(), IsWhitespace);
-			return {view.begin(), endIt.base()};
+			return {view.begin(), std::find_if_not(view.rbegin(), view.rend(), IsWhitespace).base()};
 		}
 
 
@@ -269,7 +267,7 @@ namespace StreamParser
 
 
 	template <typename S, typename ...Vs>
-	requires (Concepts::IsAnyStringOrView<S> and Concepts::AreCompatible<S, Vs...> and Concepts::AreExtractable<Vs...>)
+	requires (Concepts::AreCompatible<S, Vs...> and Concepts::AreExtractable<Vs...>)
 	inline bool ExtractFromStrings
 	(
 		const std::span<const S>    sources,
@@ -336,7 +334,7 @@ namespace StreamParser
 			if (not content.starts_with(start)) return std::nullopt;
 			if (not content.ends_with  (end))   return std::nullopt;
 
-			return Details::Trim(content.substr(1, content.length() - 2));
+			return Details::Trim(content.substr(1, content.length() - 2)); // safe due to sentinels
 		}
 
 
@@ -356,7 +354,7 @@ namespace StreamParser
 				const size_t segmentLength  = (isFinalSegment) ? std::string_view::npos : (endPosition - startPosition);
 
 				const std::string_view segment = Details::Trim(value.substr(startPosition, segmentLength));
-				if (segment.empty()) return false;
+				if (segment.empty()) return false; // empty string provided as segment
 
 				segments.push_back(segment);
 				if (isFinalSegment) break;
@@ -374,7 +372,7 @@ namespace StreamParser
 			std::vector<std::string_view>& segments
 		) {
 			const size_t firstAssign = content.find(assign);
-			if (firstAssign == std::string_view::npos) return std::nullopt; // missing delimiter
+			if (firstAssign == std::string_view::npos) return std::nullopt; // missing assignment
 
 			const std::string_view key = Details::TrimRight(content.substr(0, firstAssign));
 			if (key.empty()) return std::nullopt; // missing key
@@ -400,10 +398,9 @@ namespace StreamParser
 			const size_t  sectionCapacity        = 0,
 			const size_t  pairCapacityPerSection = 0
 		) {
-			std::string line;
-		
 			Section* currentSection = nullptr;
 
+			std::string                   line;
 			std::vector<std::string_view> segments;
 
 			this->nameToSection.reserve(this->nameToSection.size() + sectionCapacity);

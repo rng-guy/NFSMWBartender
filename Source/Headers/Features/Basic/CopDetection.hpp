@@ -84,16 +84,15 @@ namespace CopDetection
 		bool keepsIcon;
 	};
 
-	// Inline hashes for ASM
+	// Vehicle maps
+	RELEASE_CONSTINIT VEHICLE_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true});
+
+	// Assembly detours
 	enum class VaultHash : vault
 	{
 		CHOPPER = "CHOPPER"_vlt
 	};
 
-	// Vehicle maps
-	RELEASE_CONSTINIT VEHICLE_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true});
-
-	// Assembly detours
 	constinit ColourTracker miniMapCops (Globals::GetGameplayTime);
 	constinit ColourTracker worldMapCops(Globals::GetNonGameplayTime);
 
@@ -399,7 +398,11 @@ namespace CopDetection
 
 	void ApplyFixes()
 	{
-		// Disappearing helicopter icon (and some features)
+		static constinit bool fixesApplied = false;
+
+		if (fixesApplied) return;
+
+		// Disappearing helicopter icon
 		MemoryTools::MakeRangeNOP<0x579EA2, 0x579EAB>(); // early icon-counter check
 
 		PATCH_ASSEMBLY_DETOUR(CopVehicleIcon);
@@ -411,6 +414,9 @@ namespace CopDetection
 		PATCH_ASSEMBLY_DETOUR(WorldMapCopColours);
 		PATCH_ASSEMBLY_DETOUR(MiniMapConstructor);
 		PATCH_ASSEMBLY_DETOUR(WorldMapConstructor);
+
+		// Status flag
+		fixesApplied = true;
 	}
 
 
@@ -432,6 +438,8 @@ namespace CopDetection
 		MemoryTools::MakeRangeNOP<0x579FCD, 0x579FFD>(); // icon-flag checks
 
 		PATCH_ASSEMBLY_DETOUR(CopVehicleRadar);
+
+		ApplyFixes();
 
 		// Status flag
 		anyFeatureEnabled = true;

@@ -10,7 +10,6 @@
 
 #include "../../Utilities/MemoryTools.hpp"
 
-#include "../../Features/Basic/GroundSupport.hpp"
 #include "../../Features/Basic/GeneralSettings.hpp"
 
 #include "CopSpawnTables.hpp"
@@ -286,13 +285,12 @@ namespace CopSpawnOverrides
 
 	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
-	// Inline hashes for ASM
+	// Assembly detours
 	enum class VaultHash : vault
 	{
 		AIGOALPATROL = "AIGoalPatrol"_vlt
 	};
 
-	// Assembly detours
 	RELEASE_CONSTINIT COP_CONTINGENT(patrolSpawns,    CopSpawnTables::patrolsTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(scriptedSpawns,  CopSpawnTables::scriptedTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(roadblockSpawns, CopSpawnTables::roadblockTable);

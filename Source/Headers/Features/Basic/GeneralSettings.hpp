@@ -117,8 +117,7 @@ namespace GeneralSettings
 			candidates = level3;
 		}
 
-		const size_t      candidateID = Globals::pRNG.GenerateIndex(candidates);
-		const char* const randomScene = candidates[candidateID];
+		const char* const randomScene = Globals::pRNG.Draw(candidates);
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogTagged(logTag, "Arrest scene:", randomScene);
@@ -420,7 +419,7 @@ namespace GeneralSettings
 
 	void ExtractTrackingSettings(const ConfigParser::Parser& parser)
 	{
-		const auto* const section = parser.GetSection("Pursuits:Races");
+		const auto* const section = parser.GetSection("Pursuits:Tracking");
 		if (not section) return; // file missing; keep tracking disabled
 
 		const auto ExtractSetting = [section](const std::string_view key, bool& isTracked) -> bool
@@ -502,6 +501,10 @@ namespace GeneralSettings
 
 	void ApplyFixes()
 	{
+		static constinit bool fixesApplied = false;
+
+		if (fixesApplied) return;
+
 		// Missing passive-bounty update after races
 		PATCH_ASSEMBLY_DETOUR(HeatUpdate);
 
@@ -514,6 +517,9 @@ namespace GeneralSettings
 		// Incorrect array values read from database
 		PATCH_ASSEMBLY_DETOUR(HeatEscalation);
 		PATCH_ASSEMBLY_DETOUR(DestructionBounty);
+
+		// Status flag
+		fixesApplied = true;
 	}
 
 
@@ -576,6 +582,8 @@ namespace GeneralSettings
 		PATCH_ASSEMBLY_DETOUR(HiddenFromCars);
 		PATCH_ASSEMBLY_DETOUR(HiddenFromRoadblocks);
 		PATCH_ASSEMBLY_DETOUR(HiddenFromHelicopters);
+
+		ApplyFixes(); // includes partial feature(s)
 
 		// Status flag
 		anyFeatureEnabled = true;

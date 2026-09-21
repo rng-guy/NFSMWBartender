@@ -298,11 +298,18 @@ namespace HelicopterVision
 
 	void ApplyFixes()
 	{
+		static constinit bool fixesApplied = false;
+
+		if (fixesApplied) return;
+
 		// Visible cone of destroyed helicopter
 		PATCH_ASSEMBLY_DETOUR(ColourUpdate); 
 		PATCH_ASSEMBLY_DETOUR(WorldMapIcon);
 		PATCH_ASSEMBLY_DETOUR(HelicopterSpawn);
 		PATCH_ASSEMBLY_DETOUR(WorldMapConstructor);
+
+		// Status flag
+		fixesApplied = true;
 	}
 
 
@@ -316,6 +323,9 @@ namespace HelicopterVision
 
 		// Cone colours
 		if (not ExtractColours(parser)) return false; // invalid colours; disable feature
+
+		// Code modifications
+		ApplyFixes(); // includes partial feature(s)
 
 		// Status flag
 		anyFeatureEnabled = true;

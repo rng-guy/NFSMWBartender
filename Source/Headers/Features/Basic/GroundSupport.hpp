@@ -634,8 +634,15 @@ namespace GroundSupport
 
 	void ApplyFixes()
 	{
+		static constinit bool fixesApplied = false;
+
+		if (fixesApplied) return;
+
 		// Biases in the Strategy-selection process
 		PATCH_ASSEMBLY_DETOUR(StrategySelection);
+
+		// Status flag
+		fixesApplied = true;
 	}
 
 
@@ -693,6 +700,8 @@ namespace GroundSupport
 		PATCH_ASSEMBLY_DETOUR(RoadblockCooldown);
 		PATCH_ASSEMBLY_DETOUR(RoadblockDistance);
 		PATCH_ASSEMBLY_DETOUR(RoadblockFormation);
+
+		ApplyFixes();
 
 		// Code modifications (logging)
 		if constexpr (Globals::loggingEnabled)

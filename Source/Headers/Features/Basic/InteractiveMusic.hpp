@@ -38,7 +38,7 @@ namespace InteractiveMusic
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] int __cdecl GetFirstTrack()
+	[[nodiscard]] int __cdecl YieldFirstTrack()
 	{
 		currentTrackID = (shuffleFirstTrack) ? Globals::pRNG.GenerateIndex(playlist) : 0;
 
@@ -50,7 +50,7 @@ namespace InteractiveMusic
 
 
 
-	[[nodiscard]] int __cdecl GetNextTrack()
+	[[nodiscard]] int __cdecl YieldNextTrack()
 	{
 		const size_t numTracks = playlist.size();
 
@@ -78,7 +78,7 @@ namespace InteractiveMusic
 	{
 		__asm
 		{
-			call GetNextTrack
+			call YieldNextTrack
 
 			EXIT_ASSEMBLY_DETOUR(NextTrack)
 		}
@@ -91,7 +91,7 @@ namespace InteractiveMusic
 	{
 		__asm
 		{
-			call GetFirstTrack
+			call YieldFirstTrack
 
 			// Execute original code and resume
 			mov ecx, dword ptr [esp + 0x2C]

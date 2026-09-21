@@ -76,7 +76,7 @@ static void __cdecl Initialise
 	{
 		Globals::logger.Open("BartenderLog.txt");
 
-		Globals::LogFull(); // force newline to separate launches
+		Globals::LogFull(); // force newline to separate sessions
 		Globals::LogFull(logSection, logTag, "Bartender v4.00.00");
 
 		// Check for other mods
