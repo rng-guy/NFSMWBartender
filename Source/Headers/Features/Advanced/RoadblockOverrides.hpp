@@ -564,7 +564,7 @@ namespace RoadblockOverrides
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogPlain(setup->GetName(), (mirrored) ? "(mirrored)" : "(original)");
 
-			const auto* const table = &(setup->GetTable(mirrored));
+			const RBTable* const table = &(setup->GetTable(mirrored));
 
 			candidates.clear(); // safe due to immediate return
 
