@@ -68,7 +68,7 @@ namespace PursuitObserver
 		}
 
 
-		[[nodiscard]] static bool SetCopLabelOfVehicle
+		static bool SetCopLabelOfVehicle
 		(
 			const address  copVehicle, 
 			const CopLabel copLabel
@@ -78,7 +78,7 @@ namespace PursuitObserver
 			CopLabel& oldLabel = PursuitObserver::GetCopLabelOfVehicle(copVehicle);
 			if ((oldLabel == defaultLabel) == (copLabel == defaultLabel)) return false;
 
-			oldLabel = copLabel;
+			oldLabel = copLabel; // either side is default label
 
 			return true;
 		}
