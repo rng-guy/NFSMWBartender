@@ -82,10 +82,11 @@ The "Basic" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Basic" feature set **always fixes thirteen bugs / issues** automatically:
+The "Basic" feature set **always fixes fourteen bugs / issues** automatically:
 * the game no longer fails to select certain arrest cutscenes,
 * the game now always updates the passive-bounty increment after races,
-* the (mini-)map icons for cops now always flash at their intended pace,
+* the orange "EVADE" and "BUSTED" bars now fill correctly without any gaps,
+* the (mini-)map icons for cop cars now always flash at their intended pace,
 * transitions to Heat levels > 5 now trigger their proper radio announcements,
 * the cops no longer announce each Heat level just once per game launch at most,
 * the game now reads [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) arrays correctly at each Blacklist rank and Heat level,

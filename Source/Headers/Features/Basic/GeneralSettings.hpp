@@ -25,7 +25,7 @@ namespace GeneralSettings
 	constexpr Globals::LogLiteral logTag  = "[GEN]";
 	constexpr Globals::LogLiteral logName = "GeneralSettings";
 
-	// Pursuit behaviour
+	// Pursuit tracking
 	bool trackPursuitLength  = false;
 	bool trackUnitsInPursuit = false;
 	bool trackCopsLost       = false;
@@ -66,6 +66,10 @@ namespace GeneralSettings
 	// Vehicle maps
 	RELEASE_CONSTINIT VEHICLE_MAP(bool, copTypeToIsBreakerImmune, false);
 
+	// Assembly detours
+	constexpr float barWidthScale  = (1.f - .1f) / (.5f - .1f);   // unity
+	constexpr float barWidthOffset = .1f * (1.f - barWidthScale); // unity
+
 
 
 
@@ -74,7 +78,6 @@ namespace GeneralSettings
 
 	[[nodiscard]] const char* __fastcall GetRandomArrestScene(const size_t heatLevel)
 	{
-		// Define possible arrest cutscenes
 		static constexpr std::array others =
 		{
 			"ArrestM06",  "ArrestM19",  "ArrestF06",  "ArrestF07",
@@ -286,7 +289,7 @@ namespace GeneralSettings
 	}
 
 
-
+	
 	// Decides at which distance from cops racers can be busted
 	ASSEMBLY_DETOUR(MaxBustDistance, 0x444483, 0x44448B)
 	{
@@ -327,6 +330,50 @@ namespace GeneralSettings
 
 
 
+	// Decides whether racers are invisible to cop cars
+	ASSEMBLY_DETOUR(HiddenFromCars, 0x416571, 0x41657A)
+	{
+		__asm
+		{
+			mov al, byte ptr [carsAffectedByHiding.current]
+			test al, byte ptr [edi + 0x2C] // hidden from cars
+
+			EXIT_ASSEMBLY_DETOUR(HiddenFromCars)
+		}
+	}
+
+
+
+	// Calculates the orange "EVADE" bar's width
+	ASSEMBLY_DETOUR(OrangeEvadeWidth, 0x57B512, 0x57B51E)
+	{
+		__asm
+		{
+			fchs
+
+			fmul dword ptr [barWidthScale]
+			fadd dword ptr [barWidthOffset]
+
+			EXIT_ASSEMBLY_DETOUR(OrangeEvadeWidth)
+		}
+	}
+
+
+
+	// Calculates the orange "BUSTED" bar's width
+	ASSEMBLY_DETOUR(OrangeBustedWidth, 0x57B3EF, 0x57B3F7)
+	{
+		__asm
+		{
+			fmul dword ptr [barWidthScale]
+			fadd dword ptr [barWidthOffset]
+
+			EXIT_ASSEMBLY_DETOUR(OrangeBustedWidth)
+		}
+	}
+
+
+
 	// Corrects the VltEd array index based on Heat level
 	ASSEMBLY_DETOUR(DestructionBounty, 0x418F5B, 0x418F61)
 	{
@@ -340,20 +387,6 @@ namespace GeneralSettings
 			cmovl edi, ecx // Heat index negative
 
 			EXIT_ASSEMBLY_DETOUR(DestructionBounty)
-		}
-	}
-
-
-
-	// Decides whether racers are invisible to cop cars
-	ASSEMBLY_DETOUR(HiddenFromCars, 0x416571, 0x41657A)
-	{
-		__asm
-		{
-			mov al, byte ptr [carsAffectedByHiding.current]
-			test al, byte ptr [edi + 0x2C] // hidden from cars
-
-			EXIT_ASSEMBLY_DETOUR(HiddenFromCars)
 		}
 	}
 
@@ -517,6 +550,12 @@ namespace GeneralSettings
 		// Incorrect array values read from database
 		PATCH_ASSEMBLY_DETOUR(HeatEscalation);
 		PATCH_ASSEMBLY_DETOUR(DestructionBounty);
+
+		// Animations of orange pursuit-progress bars
+		MemoryTools::Write<address>(0x89096C, {0x57B3D6}); // max. width
+
+		PATCH_ASSEMBLY_DETOUR(OrangeEvadeWidth);
+		PATCH_ASSEMBLY_DETOUR(OrangeBustedWidth);
 
 		// Status flag
 		fixesApplied = true;

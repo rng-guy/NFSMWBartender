@@ -132,4 +132,63 @@ namespace ParameterSets
 			this->copWreckChange.SetToHeatState(state);
 		}
 	};
+
+
+
+
+
+	// ChangeFilter class ---------------------------------------------------------------------------------------------------------------------------
+
+	class ChangeFilter
+	{
+	private: // members
+
+		HEAT_PARAMETER_VALUE(bool, canGainWhileEngaged, true);
+		HEAT_PARAMETER_VALUE(bool, canLoseWhileEngaged, true);
+
+		HEAT_PARAMETER_VALUE(bool, canGainWhileDisengaged, true);
+		HEAT_PARAMETER_VALUE(bool, canLoseWhileDisengaged, true);
+
+
+	public: // methods
+
+		void Extract
+		(
+			const ConfigParser::Parser& parser,
+			const std::string_view      featureTag
+		) {
+			StringTools::FormatBuffer buffer;
+
+			HeatParameters::Extract(parser, buffer.Format("{}:Engaged", featureTag), this->canGainWhileEngaged, this->canLoseWhileEngaged);
+
+			HeatParameters::Extract(parser, buffer.Format("{}:Disengaged", featureTag), this->canGainWhileDisengaged, this->canLoseWhileDisengaged);
+		}
+
+
+		[[nodiscard]] bool IsAllowedChange
+		(
+			const bool  isEngaged, 
+			const float change
+		) 
+			const
+		{
+			const auto& canGain = (isEngaged) ? this->canGainWhileEngaged : this->canGainWhileDisengaged;
+			const auto& canLose = (isEngaged) ? this->canLoseWhileEngaged : this->canLoseWhileDisengaged;
+
+			if ((change > 0.f) and (not canGain.current)) return false;
+			if ((change < 0.f) and (not canLose.current)) return false;
+
+			return true;
+		}
+
+
+		void SetToHeatState(const HeatParameters::HeatState state)
+		{
+			this->canGainWhileEngaged.SetToHeatState(state);
+			this->canLoseWhileEngaged.SetToHeatState(state);
+
+			this->canGainWhileDisengaged.SetToHeatState(state);
+			this->canLoseWhileDisengaged.SetToHeatState(state);
+		}
+	};
 }

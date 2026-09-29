@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/ParameterSets.hpp"
@@ -22,8 +24,9 @@ namespace NitrousCharge
 	// Heat parameters
 	constinit HEAT_PARAMETER_VALUE(bool, passiveRechargeEnabled, true);
 
-	// Parameter sets
+	// Cop interactions
 	RELEASE_CONSTINIT ParameterSets::CopInteractions nitrousInteractions; // seconds
+	constinit         ParameterSets::ChangeFilter    nitrousChangeFilter;
 
 	// Assembly detours
 	float pendingCollisionNitrousChange = 0.f;
@@ -52,6 +55,9 @@ namespace NitrousCharge
 
 		const float nitrousCapacity = GetNitrousCapacity(engineRacer);
 		if (nitrousCapacity <= 0.f) return; // effectively has no nitrous
+
+		const bool isNitrousEngaged = (AsReference<float>(engineRacer + 0xAC) > 0.f);
+		if (not nitrousChangeFilter.IsAllowedChange(isNitrousEngaged, seconds)) return;
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -153,6 +159,20 @@ namespace NitrousCharge
 
 
 
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
+
+	void ExtractCopInteractions(const ConfigParser::Parser& parser)
+	{
+		constexpr std::string_view featureTag = "Nitrous";
+
+		nitrousInteractions.Extract(parser, featureTag);
+		nitrousChangeFilter.Extract(parser, featureTag);
+	}
+
+
+
+
+
 	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
 	bool Initialise(ConfigParser::Parser& parser)
@@ -165,8 +185,8 @@ namespace NitrousCharge
 		// Heat parameters
 		HeatParameters::Extract(parser, "Nitrous:Time", passiveRechargeEnabled);
 
-		// Parameter sets
-		nitrousInteractions.Extract(parser, "Nitrous");
+		// Cop interactions
+		ExtractCopInteractions(parser);
 
 		// Code modifications
 		PATCH_ASSEMBLY_DETOUR(PassiveRecharge);
@@ -186,9 +206,12 @@ namespace NitrousCharge
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 
+		// Heat parameters
 		passiveRechargeEnabled.SetToHeatState(state);
 
+		// Cop interactions
 		nitrousInteractions.SetToHeatState(state);
+		nitrousChangeFilter.SetToHeatState(state);
 	}
 
 

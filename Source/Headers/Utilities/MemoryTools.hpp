@@ -217,7 +217,7 @@ namespace MemoryTools
 
 	// Assembly detouring ---------------------------------------------------------------------------------------------------------------------------
 
-	#define ASSEMBLY_DETOUR(name, begin, end) MT_DETAILS_RANGE(name, begin, end); __declspec(naked) void name()
+	#define ASSEMBLY_DETOUR(name, begin, end) MT_DETAILS_RANGE(name, begin, end); void __declspec(naked) name()
 
 	#define EXIT_ASSEMBLY_DETOUR(name) jmp dword ptr [MT_DETAILS_END(name)]
 

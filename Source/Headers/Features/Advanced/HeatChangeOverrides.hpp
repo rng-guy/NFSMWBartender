@@ -41,7 +41,7 @@ namespace HeatChangeOverrides
 
 	constinit HEAT_PARAMETER_VALUE(float, propertyHeatChange, 0.f); // levels
 
-	// Parameter sets
+	// Cop interactions
 	RELEASE_CONSTINIT ParameterSets::CopInteractions heatInteractions; // levels
 
 	// Assembly detours
@@ -539,7 +539,7 @@ namespace HeatChangeOverrides
 
 		ExtractDamageChanges(parser);
 
-		// Parameter sets
+		// Cop interactions
 		heatInteractions.Extract(parser, "Heat");
 
 		// Code modifications (general)
@@ -570,6 +570,7 @@ namespace HeatChangeOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 
+		// Heat parameters
 		heatTimerEnabled.SetToHeatState(state);
 
 		challengeScale.SetToHeatState(state);
@@ -581,11 +582,12 @@ namespace HeatChangeOverrides
 		roadblockHeatChange.SetToHeatState(state);
 		spikesHeatChange   .SetToHeatState(state);
 
-		heatInteractions.SetToHeatState(state);
-
 		trafficHitHeatChange.SetToHeatState(state);
 
 		propertyHeatChange.SetToHeatState(state);
+
+		// Cop interactions
+		heatInteractions.SetToHeatState(state);
 	}
 
 

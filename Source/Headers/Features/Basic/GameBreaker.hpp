@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/ParameterSets.hpp"
@@ -24,14 +26,9 @@ namespace GameBreaker
 	constinit HEAT_PARAMETER_VALUE(bool, passiveRechargeEnabled, true);
 	constinit HEAT_PARAMETER_VALUE(bool, driftRechargeEnabled,   true);
 
-	constinit HEAT_PARAMETER_VALUE(bool, canGainWhenActive, true);
-	constinit HEAT_PARAMETER_VALUE(bool, canLoseWhenActive, true);
-
-	constinit HEAT_PARAMETER_VALUE(bool, canGainWhenInactive, true);
-	constinit HEAT_PARAMETER_VALUE(bool, canLoseWhenInactive, true);
-
-	// Parameter sets
+	// Cop interactions
 	RELEASE_CONSTINIT ParameterSets::CopInteractions breakerInteractions; // seconds
+	constinit         ParameterSets::ChangeFilter    breakerChangeFilter;
 
 	// Assembly detours
 	float pendingCollisionBreakerChange = 0.f;
@@ -50,13 +47,8 @@ namespace GameBreaker
 		const address localPlayer = Globals::Pursuit::GetLocalPlayer(pursuit);
 		if (not localPlayer) return; // not player pursuit
 
-		const bool isBreakerActive = AsReference<bool>(localPlayer + 0x34);
-
-		const auto& canGain = (isBreakerActive) ? canGainWhenActive : canGainWhenInactive;
-		const auto& canLose = (isBreakerActive) ? canLoseWhenActive : canLoseWhenInactive;
-
-		if ((seconds > 0.f) and (not canGain.current)) return;
-		if ((seconds < 0.f) and (not canLose.current)) return;
+		const bool isBreakerEngaged = AsReference<bool>(localPlayer + 0x34);
+		if (not breakerChangeFilter.IsAllowedChange(isBreakerEngaged, seconds)) return;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogFull(pursuit, logTag, "Speedbreaker change:", seconds);
@@ -179,6 +171,20 @@ namespace GameBreaker
 
 
 
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
+
+	void ExtractCopInteractions(const ConfigParser::Parser& parser)
+	{
+		constexpr std::string_view featureTag = "Speedbreaker";
+
+		breakerInteractions.Extract(parser, featureTag);
+		breakerChangeFilter.Extract(parser, featureTag);
+	}
+
+
+
+
+
 	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
 	bool Initialise(ConfigParser::Parser& parser)
@@ -191,12 +197,8 @@ namespace GameBreaker
 		// Heat parameters
 		HeatParameters::Extract(parser, "Speedbreaker:Mechanics", passiveRechargeEnabled, driftRechargeEnabled);
 
-		HeatParameters::Extract(parser, "Speedbreaker:Active", canGainWhenActive, canLoseWhenActive);
-
-		HeatParameters::Extract(parser, "Speedbreaker:Inactive", canGainWhenInactive, canLoseWhenInactive);
-
-		// Parameter sets
-		breakerInteractions.Extract(parser, "Speedbreaker");
+		// Cop interactions
+		ExtractCopInteractions(parser);
 
 		// Code modifications
 		PATCH_ASSEMBLY_DETOUR(DriftRecharge);
@@ -217,16 +219,13 @@ namespace GameBreaker
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 
+		// Heat parameters
 		passiveRechargeEnabled.SetToHeatState(state);
 		driftRechargeEnabled  .SetToHeatState(state);
 
+		// Cop interactions
 		breakerInteractions.SetToHeatState(state);
-
-		canGainWhenActive.SetToHeatState(state);
-		canLoseWhenActive.SetToHeatState(state);
-
-		canGainWhenInactive.SetToHeatState(state);
-		canLoseWhenInactive.SetToHeatState(state);
+		breakerChangeFilter.SetToHeatState(state);
 	}
 
 
