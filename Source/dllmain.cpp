@@ -132,10 +132,10 @@ static void __cdecl Initialise
 		GeneralSettings ::ApplyFixes();
 		GroundSupport   ::ApplyFixes();
 
-		// Remove helicopter blob-shadow
+		// Incorrect helicopter blob-shadow
 		MemoryTools::Write<float>(0.f, {0x903660});
 
-		// Prevent Heat-level resets (credit: ExOptsTeam)
+		// Hard-coded Heat-level resets (credit: ExOptsTeam)
 		MemoryTools::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
 		MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
 	}
