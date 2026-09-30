@@ -37,7 +37,7 @@ namespace CopSpawnOverrides
 
 	constinit HEAT_PARAMETER_VALUE(bool, chasersAreIndependent, false);
 
-	constinit HEAT_PARAMETER_VALUE(bool, onlyDestroyedDecrement, false);
+	constinit HEAT_PARAMETER_VALUE(bool, decrementForNonDestroyed, true);
 
 	constinit HEAT_PARAMETER_VALUE(bool, transitionTriggersBackup, false);
 
@@ -514,7 +514,6 @@ namespace CopSpawnOverrides
 			const CopLabel copLabel,
 			const int      change
 		) {
-			// Vehicle counts
 			switch (copLabel)
 			{
 			case CopLabel::HEAVY:
@@ -533,7 +532,6 @@ namespace CopSpawnOverrides
 					Globals::LogFull(this->pursuit, logTag, "Roadblock vehicles:", this->numJoinedRoadblockVehicles);
 			}
 
-			// Non-Chaser tracking
 			if (not this->IsTrackedNonChaser(copLabel)) return;
 
 			this->numTrackedNonChasers += change;
@@ -556,20 +554,20 @@ namespace CopSpawnOverrides
 				ASSERT_UNREACHABLE_THEN(return);
 			}
 
-			if (not (this->isFreeRoamPursuit or (GeneralSettings::anyFeatureEnabled and GeneralSettings::trackCopsLost)))
+			if (not (this->isFreeRoamPursuit or GeneralSettings::trackCopsLost))
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogFull(this->pursuit, logTag, "No decrement (tracking)");
 
-				return; // chaser not tracked
+				return; // not tracked
 			}
 
-			if (onlyDestroyedDecrement.current and (not Globals::IsVehicleDestroyed(copVehicle)))
+			if (not (decrementForNonDestroyed.current or Globals::IsVehicleDestroyed(copVehicle)))
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogFull(this->pursuit, logTag, "No decrement (wrecking)");
 
-				return; // chaser not wrecked
+				return; // not wrecked
 			}
 
 			if (not this->HasVehicleEngaged(copVehicle))
@@ -577,7 +575,7 @@ namespace CopSpawnOverrides
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogFull(this->pursuit, logTag, "No decrement (radius)");
 
-				return; // chaser not engaged
+				return; // not engaged
 			}
 
 			++(this->numCopsLostInWave);
@@ -1284,7 +1282,7 @@ namespace CopSpawnOverrides
 
 		HeatParameters::Extract(parser, "Chasers:Independence", chasersAreIndependent);
 
-		HeatParameters::Extract(parser, "Chasers:Decrement", onlyDestroyedDecrement);
+		HeatParameters::Extract(parser, "Chasers:Decrement", decrementForNonDestroyed);
 
 		HeatParameters::Extract(parser, "Chasers:Backup", transitionTriggersBackup);
 
@@ -1365,7 +1363,7 @@ namespace CopSpawnOverrides
 
 		chasersAreIndependent.SetToHeatState(state);
 
-		onlyDestroyedDecrement.SetToHeatState(state);
+		decrementForNonDestroyed.SetToHeatState(state);
 
 		transitionTriggersBackup.SetToHeatState(state);
 
