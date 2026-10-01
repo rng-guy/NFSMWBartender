@@ -30,18 +30,13 @@ namespace PursuitFeatures
 
 		enum class CopLabel : byte
 		{
-			UNKNOWN    = 0,
-			CHASER     = 1,
-			HEAVY      = 2,
-			LEADER     = 3,
-			ROADBLOCK  = 4,
-			HELICOPTER = 5
+			UNKNOWN,
+			CHASER,
+			HEAVY,
+			LEADER,
+			ROADBLOCK,
+			HELICOPTER
 		};
-
-		static_assert(sizeof (CopLabel) == 1);
-		static_assert(alignof(CopLabel) == 1);
-
-		static_assert(static_cast<byte>(CopLabel::UNKNOWN) == 0);
 
 
 	protected: // members

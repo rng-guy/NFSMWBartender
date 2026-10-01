@@ -63,6 +63,8 @@ namespace PursuitObserver
 
 		[[nodiscard]] static CopLabel& GetCopLabelOfVehicle(const address copVehicle)
 		{
+			static_assert(sizeof(CopLabel) == 1, "Label-size mismatch");
+
 			const address copAIVehicle = Globals::Vehicle::GetAIVehicle(copVehicle);
 			return AsReference<CopLabel>(copAIVehicle - 0x4C + 0x769); // padding byte
 		}
@@ -75,10 +77,12 @@ namespace PursuitObserver
 		) {
 			constexpr CopLabel defaultLabel = static_cast<CopLabel>(0);
 
-			CopLabel& oldLabel = PursuitObserver::GetCopLabelOfVehicle(copVehicle);
-			if ((oldLabel == defaultLabel) == (copLabel == defaultLabel)) return false;
+			static_assert(defaultLabel == CopLabel::UNKNOWN, "Label-value mismatch");
 
-			oldLabel = copLabel; // either side is default label
+			CopLabel& label = PursuitObserver::GetCopLabelOfVehicle(copVehicle);
+			if ((label == defaultLabel) == (copLabel == defaultLabel)) return false;
+
+			label = copLabel; // either side is default label
 
 			return true;
 		}
