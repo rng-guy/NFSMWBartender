@@ -18,7 +18,7 @@ namespace CopFleeOverrides
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	// Feature flag shared with (and managed by) AdvancedFeatures header
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[FLE]";
@@ -369,8 +369,6 @@ namespace CopFleeOverrides
 
 		const bool& isJerk = AsReference<bool>(this->pursuit + 0x238);
 
-		inline static constexpr Globals::LogLiteral name = "MembershipManager";
-
 
 	private: // methods
 
@@ -454,18 +452,10 @@ namespace CopFleeOverrides
 		}
 
 
-	public: // members
-
-		inline static constinit const bool& isEnabled = anyFeatureEnabled;
-
-
 	public: // methods
 
 		explicit MembershipManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
 		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('+', this, this->name);
-
 			// Expired Heavy3 vehicles only bail if they cannot join as pursuit cops
 			this->heavyVehicles.ShouldExpiredVehicleBail = [this](const address copVehicle) -> bool
 			{
@@ -489,13 +479,6 @@ namespace CopFleeOverrides
 			this->chaserVehicles         .Reserve(50);
 			this->joinedHeavyVehicles    .Reserve(10);
 			this->joinedRoadblockVehicles.Reserve(10);
-		}
-
-
-		~MembershipManager() override
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('-', this, this->name);
 		}
 
 
@@ -662,9 +645,6 @@ namespace CopFleeOverrides
 		// Code modifications 
 		PATCH_ASSEMBLY_DETOUR(GoalUpdate);
 
-		// Status flag
-		anyFeatureEnabled = true;
-
 		return true;
 	}
 
@@ -672,8 +652,6 @@ namespace CopFleeOverrides
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
-
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 

@@ -17,7 +17,7 @@ namespace StrategyOverrides
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	// Feature flag shared with (and managed by) AdvancedFeatures header
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[STG]";
@@ -67,8 +67,6 @@ namespace StrategyOverrides
 		PursuitFeatures::IntervalTimer unblockTimer;
 
 		ModContainers::AddressSet vehiclesOfCurrentStrategy;
-
-		inline static constexpr Globals::LogLiteral name = "StrategyManager";
 
 
 	private: // methods
@@ -138,26 +136,11 @@ namespace StrategyOverrides
 		}
 
 
-	public: // members
-
-		inline static constinit const bool& isEnabled = anyFeatureEnabled;
-
-
 	public: // methods
 
 		explicit StrategyManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
 		{
 			this->vehiclesOfCurrentStrategy.reserve(10);
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('+', this, this->name);
-		}
-
-
-		~StrategyManager() override
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('-', this, this->name);
 		}
 
 
@@ -630,9 +613,6 @@ namespace StrategyOverrides
 		PATCH_ASSEMBLY_DETOUR(MinRoadblockDelay);
 		PATCH_ASSEMBLY_DETOUR(CrossPriorityDelay);
 
-		// Status flag
-		anyFeatureEnabled = true;
-
 		return true;
 	}
 
@@ -640,8 +620,6 @@ namespace StrategyOverrides
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
-
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 

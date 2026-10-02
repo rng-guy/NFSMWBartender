@@ -115,13 +115,15 @@
     <ClInclude Include="Source\Headers\Common\HeatParameters.hpp" />
     <ClInclude Include="Source\Headers\Common\ModContainers.hpp" />
     <ClInclude Include="Source\Headers\Common\ParameterSets.hpp" />
+    <ClInclude Include="Source\Headers\Features\Advanced\AdvancedFeatures.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\BasicFeatures.hpp" />
     <ClInclude Include="Source\Headers\Utilities\StaticLogger.hpp" />
     <ClInclude Include="Source\Headers\Utilities\FlatContainers.hpp" />
     <ClInclude Include="Source\Headers\Utilities\StringTools.hpp" />
     <ClInclude Include="Source\Headers\Utilities\MemoryTools.hpp" />
     <ClInclude Include="Source\Headers\Utilities\RandomNumbers.hpp" />
     <ClInclude Include="Source\Headers\Utilities\StreamParser.hpp" />
-    <ClInclude Include="Source\Headers\Features\StateObserver.hpp" />
+    <ClInclude Include="Source\Headers\Features\FeatureSets.hpp" />
     <ClInclude Include="Source\Headers\Features\Basic\CopDetection.hpp" />
     <ClInclude Include="Source\Headers\Features\Basic\CopNotifications.hpp" />
     <ClInclude Include="Source\Headers\Features\Basic\GameBreaker.hpp" />
@@ -138,7 +140,6 @@
     <ClInclude Include="Source\Headers\Features\Advanced\HelicopterOverrides.hpp" />
     <ClInclude Include="Source\Headers\Features\Advanced\LeaderOverrides.hpp" />
     <ClInclude Include="Source\Headers\Features\Advanced\PursuitFeatures.hpp" />
-    <ClInclude Include="Source\Headers\Features\Advanced\PursuitObserver.hpp" />
     <ClInclude Include="Source\Headers\Features\Advanced\RoadblockOverrides.hpp" />
     <ClInclude Include="Source\Headers\Features\Advanced\StrategyOverrides.hpp" />
   </ItemGroup>

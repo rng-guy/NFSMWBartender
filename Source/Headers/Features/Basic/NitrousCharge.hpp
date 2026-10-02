@@ -15,7 +15,7 @@ namespace NitrousCharge
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	bool featureEnabled = false;
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[NOS]";
@@ -192,7 +192,7 @@ namespace NitrousCharge
 		PATCH_ASSEMBLY_DETOUR(PassiveRecharge);
 
 		// Status flag
-		anyFeatureEnabled = true;
+		featureEnabled = true;
 
 		return true;
 	}
@@ -201,7 +201,7 @@ namespace NitrousCharge
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
@@ -221,7 +221,7 @@ namespace NitrousCharge
 		const address copVehicle, 
 		const address perpVehicle
 	) {
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		ProcessTaggedCop(copVehicle);
 	}
@@ -234,7 +234,7 @@ namespace NitrousCharge
 		const address perpVehicle,
 		const byte    numCopAssaulted
 	) {
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		ProcessAssaultedCop(copVehicle, numCopAssaulted);
 	}
@@ -243,7 +243,7 @@ namespace NitrousCharge
 
 	void NotifyOfFinishedCollision(const address perpVehicle)
 	{
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		ProcessFinishedCollision(perpVehicle);
 	}
@@ -255,7 +255,7 @@ namespace NitrousCharge
 		const address pursuit, 
 		const address copVehicle
 	) {
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		ProcessDestroyedCop(pursuit, copVehicle);
 	}

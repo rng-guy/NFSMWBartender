@@ -14,7 +14,7 @@ namespace HelicopterOverrides
 {
 	// Feature data ---------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	// Feature flag shared with (and managed by) AdvancedFeatures header
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[HEL]";
@@ -77,8 +77,6 @@ namespace HelicopterOverrides
 		bool& maySpawnToSearch = AsReference<bool>(this->pursuit + 0xD4);
 
 		inline static constinit bool isFuelLimited = false;
-
-		inline static constexpr Globals::LogLiteral name = "HelicopterManager";
 
 
 	private: // methods
@@ -219,25 +217,9 @@ namespace HelicopterOverrides
 		}
 
 
-	public: // members
-
-		inline static constinit const bool& isEnabled = anyFeatureEnabled;
-
-
 	public: // methods
 
-		explicit HelicopterManager(const address pursuit) : PursuitFeatures::Reaction(pursuit) 
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('+', this, this->name);
-		}
-
-
-		~HelicopterManager() override
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('-', this, this->name);
-		}
+		explicit HelicopterManager(const address pursuit) : PursuitFeatures::Reaction(pursuit) {}
 
 
 		void ReactToGameplay() override 
@@ -586,9 +568,6 @@ namespace HelicopterOverrides
 		PATCH_ASSEMBLY_DETOUR(TargetDistance);
 		PATCH_ASSEMBLY_DETOUR(RammingCooldown);
 
-		// Status flag
-		anyFeatureEnabled = true;
-
 		return true;
 	}
 
@@ -596,8 +575,6 @@ namespace HelicopterOverrides
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
-
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 

@@ -19,7 +19,7 @@ namespace HeatChangeOverrides
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	// Feature flag shared with (and managed by) AdvancedFeatures header
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[CNG]";
@@ -116,8 +116,6 @@ namespace HeatChangeOverrides
 			CountTracker(this->pursuit, 0x17C, spikesHeatChange),
 			CountTracker(this->pursuit, 0x168, trafficHitHeatChange)
 		};
-
-		inline static constexpr Globals::LogLiteral name = "HeatManager";
 	
 
 	private: // methods
@@ -147,25 +145,9 @@ namespace HeatChangeOverrides
 		}
 
 
-	public: // members
-
-		inline static constinit const bool& isEnabled = anyFeatureEnabled;
-
-
 	public: // methods
 
-		explicit HeatManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('+', this, this->name);
-		}
-
-
-		~HeatManager() override
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('-', this, this->name);
-		}
+		explicit HeatManager(const address pursuit) : PursuitFeatures::Reaction(pursuit) {}
 
 
 		void ReactToGameplay() override
@@ -555,9 +537,6 @@ namespace HeatChangeOverrides
 		PATCH_ASSEMBLY_DETOUR(HeatMeterReset);
 		PATCH_ASSEMBLY_DETOUR(HeatMeterUpdate);
 
-		// Status flag
-		anyFeatureEnabled = true;
-
 		return true;
 	}
 
@@ -565,8 +544,6 @@ namespace HeatChangeOverrides
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
-
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 
@@ -597,8 +574,6 @@ namespace HeatChangeOverrides
 		const address copVehicle, 
 		const address perpVehicle
 	) {
-		if (not anyFeatureEnabled) return;
-
 		HeatManager::ProcessTaggedCop(copVehicle, perpVehicle);
 	}
 
@@ -610,8 +585,6 @@ namespace HeatChangeOverrides
 		const address perpVehicle,
 		const byte    numCopAssaulted
 	) {
-		if (not anyFeatureEnabled) return;
-
 		HeatManager::ProcessAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
 	}
 
@@ -622,8 +595,6 @@ namespace HeatChangeOverrides
 		const address pursuit, 
 		const address copVehicle
 	) {
-		if (not anyFeatureEnabled) return;
-
 		HeatManager::ProcessDestroyedCop(pursuit, copVehicle);
 	}
 }

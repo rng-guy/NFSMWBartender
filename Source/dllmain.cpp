@@ -31,23 +31,12 @@
 
 #include "Headers/Common/Globals.hpp"
 #include "Headers/Common/ConfigParser.hpp"
-#include "Headers/Common/HeatParameters.hpp"
 
 #include "Headers/Utilities/MemoryTools.hpp"
 
-#include "Headers/Features/Basic/GameBreaker.hpp"
-#include "Headers/Features/Basic/NitrousCharge.hpp"
-#include "Headers/Features/Basic/RadioSpeech.hpp"
-#include "Headers/Features/Basic/CopDetection.hpp"
-#include "Headers/Features/Basic/GroundSupport.hpp"
-#include "Headers/Features/Basic/GeneralSettings.hpp"
-#include "Headers/Features/Basic/HelicopterVision.hpp"
-#include "Headers/Features/Basic/InteractiveMusic.hpp"
-#include "Headers/Features/Basic/CopNotifications.hpp"
-
-#include "Headers/Features/Advanced/PursuitObserver.hpp"
-
-#include "Headers/Features/StateObserver.hpp"
+#include "Headers/Features/FeatureSets.hpp"
+#include "Headers/Features/Basic/BasicFeatures.hpp"
+#include "Headers/Features/Advanced/AdvancedFeatures.hpp"
 
 
 
@@ -68,7 +57,6 @@ static void __cdecl Initialise
 	while (not IsDebuggerPresent()); // halt until debugger is attached
 	#endif
 
-	// Initialise log and config parser
 	constexpr Globals::LogLiteral logTag     = "[MOD]";
 	constexpr Globals::LogLiteral logSection = " SESSION";
 
@@ -79,7 +67,6 @@ static void __cdecl Initialise
 		Globals::LogFull(); // force newline to separate sessions
 		Globals::LogFull(logSection, logTag, "Bartender v4.00.00");
 
-		// Check for other mods
 		constexpr std::array modNames =
 		{
 			"X360Stuff.asi",
@@ -108,51 +95,14 @@ static void __cdecl Initialise
 		/* pairCapacityPerSection = */ 25
 	);
 
-	// Initialise "Basic" feature set
-	bool basicSetEnabled = false;
-
-	basicSetEnabled |= CopNotifications::Initialise(parser);
-	basicSetEnabled |= RadioSpeech     ::Initialise(parser);
-	basicSetEnabled |= CopDetection    ::Initialise(parser);
-	basicSetEnabled |= HelicopterVision::Initialise(parser);
-	basicSetEnabled |= InteractiveMusic::Initialise(parser);
-	basicSetEnabled |= GeneralSettings ::Initialise(parser);
-	basicSetEnabled |= GroundSupport   ::Initialise(parser);
-	basicSetEnabled |= NitrousCharge   ::Initialise(parser);
-	basicSetEnabled |= GameBreaker     ::Initialise(parser);
-
-	parser.Clear();
-
-	if (basicSetEnabled)
-	{
-		// Apply feature-specific fixes
-		RadioSpeech     ::ApplyFixes();
-		CopDetection    ::ApplyFixes();
-		HelicopterVision::ApplyFixes();
-		GeneralSettings ::ApplyFixes();
-		GroundSupport   ::ApplyFixes();
-
-		// Incorrect helicopter blob-shadow
-		MemoryTools::Write<float>(0.f, {0x903660});
-
-		// Hard-coded Heat-level resets (credit: ExOptsTeam)
-		MemoryTools::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
-		MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
-	}
-
-	// Initialise "Advanced" feature set
-	const bool advancedSetEnabled = PursuitObserver::Initialise(parser);
-
-	// Apply Heat and state observer
-	if (basicSetEnabled or advancedSetEnabled)
-		StateObserver::Initialise(parser);
+	FeatureSets::Initialise(parser);
 
 	if constexpr (Globals::loggingEnabled)
 	{
 		Globals::LogFull(logSection, logTag, "Features");
 
-		Globals::LogPlain("Basic    set", (basicSetEnabled)    ? "enabled" : "disabled");
-		Globals::LogPlain("Advanced set", (advancedSetEnabled) ? "enabled" : "disabled");
+		Globals::LogPlain("Basic    set", (BasicFeatures   ::anyFeatureEnabled) ? "enabled" : "disabled");
+		Globals::LogPlain("Advanced set", (AdvancedFeatures::anyFeatureEnabled) ? "enabled" : "disabled");
 	}
 }
 

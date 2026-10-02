@@ -15,7 +15,7 @@ namespace GroundSupport
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	bool featureEnabled = false;
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[SUP]";
@@ -146,13 +146,10 @@ namespace GroundSupport
 
 	void __fastcall ReportPriorityOutcome(const address pursuit)
 	{
-		if constexpr (Globals::loggingEnabled)
-		{
-			const address leaderStrategy = AsReference<address>(pursuit + 0x198);
-			const int     strategyID     = AsReference<int>    (leaderStrategy);
+		const address leaderStrategy = AsReference<address>(pursuit + 0x198);
+		const int     strategyID     = AsReference<int>    (leaderStrategy);
 
-			Globals::LogFull(pursuit, logTag, "Priority: LeaderStrategy", strategyID);
-		}
+		Globals::LogFull(pursuit, logTag, "Priority: LeaderStrategy", strategyID);
 	}
 
 
@@ -708,7 +705,7 @@ namespace GroundSupport
 			PATCH_ASSEMBLY_DETOUR(PriorityOutcome);
 
 		// Status flag
-		anyFeatureEnabled = true;
+		featureEnabled = true;
 
 		return true;
 	}
@@ -717,7 +714,7 @@ namespace GroundSupport
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);

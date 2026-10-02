@@ -14,7 +14,7 @@ namespace InteractiveMusic
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	bool featureEnabled = false;
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[MUS]";
@@ -269,7 +269,7 @@ namespace InteractiveMusic
 		PATCH_ASSEMBLY_DETOUR(OtherTransition);
 
 		// Status flag
-		anyFeatureEnabled = true;
+		featureEnabled = true;
 
 		return true;
 	}

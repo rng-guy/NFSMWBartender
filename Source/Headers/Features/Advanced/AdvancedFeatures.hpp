@@ -1,8 +1,8 @@
 #pragma once
 
+#include <array>
 #include <vector>
 #include <memory>
-#include <concepts>
 
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
@@ -23,15 +23,18 @@
 
 
 
-namespace PursuitObserver
+namespace AdvancedFeatures
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr Globals::LogLiteral logTag  = "[PSO]";
-	constexpr Globals::LogLiteral logName = "PursuitObserver";
+	constexpr Globals::LogLiteral logTag  = "[ADV]";
+	constexpr Globals::LogLiteral logName = "AdvancedFeatures";
+
+	// Gameplay updates
+	bool forceNextGameplayUpdate = true;
 
 
 
@@ -54,9 +57,18 @@ namespace PursuitObserver
 		bool delayedPursuitUpdatePending   = true;
 		bool delayedHeatStateUpdatePending = true;
 
-		ModContainers::StableVector<PursuitFeatures::Reaction> reactions;
+		CopSpawnOverrides  ::ChasersManager    chasersManager   {this->pursuit};
+		CopFleeOverrides   ::MembershipManager membershipManager{this->pursuit};
+		HelicopterOverrides::HelicopterManager helicopterManager{this->pursuit};
+		StrategyOverrides  ::StrategyManager   strategyManager  {this->pursuit};
+		LeaderOverrides    ::LeaderManager     leaderManager    {this->pursuit};
+		HeatChangeOverrides::HeatManager       heatManager      {this->pursuit};
 
-		inline static constexpr Globals::LogLiteral name = "PursuitObserver";
+		const std::array<PursuitFeatures::Reaction*, 6> reactions =
+		{
+			&chasersManager,  &membershipManager, &helicopterManager, 
+			&strategyManager, &leaderManager,     &heatManager
+		};
 
 
 	private: // methods
@@ -120,38 +132,9 @@ namespace PursuitObserver
 		}
 
 
-		template <class Feature>
-		requires std::derived_from<Feature, PursuitFeatures::Reaction>
-		void Attach()
-		{
-			if (not Feature::isEnabled) return;
-
-			this->reactions.Emplace<Feature>(this->pursuit);
-		}
-
-
 	public: // methods
 
-		explicit PursuitObserver(const address pursuit) : pursuit(pursuit)
-		{
-			if constexpr (Globals::loggingEnabled)
-			{
-				Globals::LogFull("     NEW", logTag, "Pursuit", this->pursuit);
-
-				Globals::LogPlain('+', this, this->name);
-			}
-
-			// Container pre-allocations
-			this->reactions.Reserve(6);
-
-			// Reaction features
-			this->Attach<CopSpawnOverrides  ::ChasersManager>   ();
-			this->Attach<CopFleeOverrides   ::MembershipManager>();
-			this->Attach<HelicopterOverrides::HelicopterManager>();
-			this->Attach<StrategyOverrides  ::StrategyManager>  ();
-			this->Attach<LeaderOverrides    ::LeaderManager>    ();
-			this->Attach<HeatChangeOverrides::HeatManager>      ();
-		}
+		explicit PursuitObserver(const address pursuit) : pursuit(pursuit) {}
 
 
 		PursuitObserver(PursuitObserver&&)      = delete;
@@ -161,20 +144,9 @@ namespace PursuitObserver
 		PursuitObserver& operator=(const PursuitObserver&) = delete;
 
 
-		~PursuitObserver()
-		{
-			if constexpr (Globals::loggingEnabled)
-			{
-				Globals::LogFull("     DEL", logTag, "Pursuit", this->pursuit);
-
-				Globals::LogPlain('-', this, this->name);
-			}
-		}
-
-
 		void ProcessHeatStateUpdate()
 		{
-			for (const auto& reaction : this->reactions)
+			for (auto* const reaction : this->reactions)
 				reaction->ReactToHeatStateUpdate();
 
 			this->delayedHeatStateUpdatePending = true;
@@ -183,7 +155,7 @@ namespace PursuitObserver
 
 		void ProcessGameplay()
 		{
-			for (const auto& reaction : this->reactions)
+			for (auto* const reaction : this->reactions)
 			{
 				if (not this->firstGameplayUpdatePending)
 				{
@@ -235,7 +207,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(pursuit, logTag, '+', copVehicle, newLabel, Globals::GetVehicleName(copVehicle));
 
-			for (const auto& reaction : observer->reactions)
+			for (auto* const reaction : observer->reactions)
 				reaction->ReactToAddedVehicle(copVehicle, newLabel);
 		}
 
@@ -262,7 +234,7 @@ namespace PursuitObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(pursuit, logTag, '-', copVehicle, oldLabel, Globals::GetVehicleName(copVehicle));
 
-			for (const auto& reaction : observer->reactions)
+			for (auto* const reaction : observer->reactions)
 				reaction->ReactToRemovedVehicle(copVehicle, oldLabel);
 		}
 	};
@@ -294,6 +266,9 @@ namespace PursuitObserver
 			ASSERT_UNREACHABLE_THEN(return);
 		}
 
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogFull("     NEW", logTag, "Pursuit", pursuit);
+
 		observers.Emplace(pursuit);
 	}
 
@@ -320,6 +295,9 @@ namespace PursuitObserver
 		for (auto it = observers.begin(); it != observers.end(); ++it)
 		{
 			if ((*it)->GetPursuit() != pursuit) continue; // wrong pursuit
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull("     DEL", logTag, "Pursuit", pursuit);
 
 			observers.Erase(it);
 
@@ -431,10 +409,70 @@ namespace PursuitObserver
 
 	
 
+	// Hook functions -------------------------------------------------------------------------------------------------------------------------------
+
+	HOOK_ORIGINAL(ProcessGameplay);
+
+	void __fastcall ProcessGameplay(const address simSystem)
+	{
+		static constinit float lastUpdateTimestamp = 0.f; // seconds
+
+		CALL_HOOK_ORIGINAL(ProcessGameplay, simSystem); // actually __thiscall with 0 arguments
+
+		// Check update timestamp
+		const float timestamp = Globals::GetGameplayTime();
+
+		constexpr float updateInterval = 1.f / 10.f; // seconds
+
+		if ((not forceNextGameplayUpdate) and (timestamp < lastUpdateTimestamp + updateInterval))
+		{
+			if (timestamp >= lastUpdateTimestamp) return; // not wrap-around / reset
+		}
+
+		// Notify observers
+		NotifyObserversOfGameplay();
+
+		// Timestamp update
+		lastUpdateTimestamp     = timestamp;
+		forceNextGameplayUpdate = false;
+	}
+
+
+
+	HOOK_ORIGINAL(ProcessWorldLoad);
+
+	void __cdecl ProcessWorldLoad()
+	{
+		forceNextGameplayUpdate = true;
+
+		CopSpawnOverrides::NotifyOfHardEventReset();
+
+		CALL_HOOK_ORIGINAL(ProcessWorldLoad);
+	}
+
+
+
+	HOOK_ORIGINAL(ProcessEventRestart);
+
+	void __cdecl ProcessEventRestart()
+	{
+		forceNextGameplayUpdate = true;
+		
+		CopSpawnOverrides::NotifyOfSoftEventReset();
+
+		CALL_HOOK_ORIGINAL(ProcessEventRestart);
+	}
+
+
+
+
+
 	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
 	bool Initialise(ConfigParser::Parser& parser)
 	{
+		parser.Clear();
+
 		if (not CopSpawnTables::Initialise(parser)) return false;
 
 		// Initialise sub-features
@@ -451,6 +489,10 @@ namespace PursuitObserver
 		PATCH_ASSEMBLY_DETOUR(CopRemoved);
 		PATCH_ASSEMBLY_DETOUR(PursuitDestructor);
 		PATCH_ASSEMBLY_DETOUR(PursuitConstructor);
+
+		PATCH_HOOK_FUNCTION(ProcessGameplay,     0x6F6EE6); // SimSystem::UpdateFrame (0x6F6CF0)
+		PATCH_HOOK_FUNCTION(ProcessWorldLoad,    0x662ADC); // nullsub_174            (0x6C39C0)
+		PATCH_HOOK_FUNCTION(ProcessEventRestart, 0x63090B); // World_RestoreProps     (0x74D320)
 
 		// Status flag
 		anyFeatureEnabled = true;
@@ -478,28 +520,47 @@ namespace PursuitObserver
 
 
 
-	void NotifyOfGameplay()
-	{
+	void NotifyOfTaggedCop
+	(
+		const address copVehicle, 
+		const address perpVehicle
+	) {
 		if (not anyFeatureEnabled) return;
 
-		NotifyObserversOfGameplay();
+		HeatChangeOverrides::NotifyOfTaggedCop(copVehicle, perpVehicle);
 	}
 
 
 
-	void NotifyOfSoftEventReset()
-	{
+	void NotifyOfAssaultedCop
+	(
+		const address copVehicle,
+		const address perpVehicle,
+		const byte    numCopAssaulted
+	) {
 		if (not anyFeatureEnabled) return;
 
-		CopSpawnOverrides::NotifyOfSoftEventReset();
+		HeatChangeOverrides::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
 	}
 
 
 
-	void NotifyOfHardEventReset()
+	void NotifyOfFinishedCollision(const address perpVehicle)
 	{
 		if (not anyFeatureEnabled) return;
 
-		CopSpawnOverrides::NotifyOfHardEventReset();
+		// HeatChangeOverrides doesn't need notifications of this event
+	}
+
+
+
+	void NotifyOfDestroyedCop
+	(
+		const address pursuit, 
+		const address copVehicle
+	) {
+		if (not anyFeatureEnabled) return;
+
+		HeatChangeOverrides::NotifyOfDestroyedCop(pursuit, copVehicle);
 	}
 }

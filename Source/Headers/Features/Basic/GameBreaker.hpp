@@ -16,7 +16,7 @@ namespace GameBreaker
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	bool featureEnabled = false;
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[GBR]";
@@ -205,7 +205,7 @@ namespace GameBreaker
 		PATCH_ASSEMBLY_DETOUR(PassiveRecharge);
 
 		// Status flag
-		anyFeatureEnabled = true;
+		featureEnabled = true;
 
 		return true;
 	}
@@ -214,7 +214,7 @@ namespace GameBreaker
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
@@ -235,7 +235,7 @@ namespace GameBreaker
 		const address copVehicle, 
 		const address perpVehicle
 	) {
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		ProcessTaggedCop(copVehicle);
 	}
@@ -248,7 +248,7 @@ namespace GameBreaker
 		const address perpVehicle,
 		const byte    numCopAssaulted
 	) {
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		ProcessAssaultedCop(copVehicle, numCopAssaulted);
 	}
@@ -257,7 +257,7 @@ namespace GameBreaker
 
 	void NotifyOfFinishedCollision(const address perpVehicle)
 	{
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		ProcessFinishedCollision(perpVehicle);
 	}
@@ -269,7 +269,7 @@ namespace GameBreaker
 		const address pursuit, 
 		const address copVehicle
 	) {
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		ProcessDestroyedCop(pursuit, copVehicle);
 	}

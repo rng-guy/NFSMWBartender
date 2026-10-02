@@ -64,7 +64,7 @@
     <ClInclude Include="Source\Headers\Common\Globals.hpp">
       <Filter>Source\Headers\Common</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\Features\StateObserver.hpp">
+    <ClInclude Include="Source\Headers\Features\FeatureSets.hpp">
       <Filter>Source\Headers\Features</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Common\ConfigParser.hpp">
@@ -92,9 +92,6 @@
       <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\PursuitFeatures.hpp">
-      <Filter>Source\Headers\Features\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Features\Advanced\PursuitObserver.hpp">
       <Filter>Source\Headers\Features\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Common\HeatParameters.hpp">
@@ -153,6 +150,12 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\Utilities\StringTools.hpp">
       <Filter>Source\Headers\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Features\Advanced\AdvancedFeatures.hpp">
+      <Filter>Source\Headers\Features\Advanced</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Features\Basic\BasicFeatures.hpp">
+      <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

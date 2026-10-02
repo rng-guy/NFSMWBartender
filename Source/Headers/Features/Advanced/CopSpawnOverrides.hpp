@@ -21,7 +21,7 @@ namespace CopSpawnOverrides
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	// Feature flag shared with (and managed by) AdvancedFeatures header
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[SPA]";
@@ -334,8 +334,6 @@ namespace CopSpawnOverrides
 
 		COP_CONTINGENT(chaserSpawns, CopSpawnTables::chasersTable, this->pursuit);
 
-		inline static constexpr Globals::LogLiteral name = "ChasersManager";
-
 
 	private: // methods
 
@@ -582,26 +580,11 @@ namespace CopSpawnOverrides
 		}
 
 
-	public: // members
-
-		inline static constinit const bool& isEnabled = anyFeatureEnabled;
-
-
 	public: // methods
 
 		explicit ChasersManager(const address pursuit) : Reaction(pursuit)
 		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('+', this, this->name);
-
 			this->chaserSpawns.Reserve(20);
-		}
-
-
-		~ChasersManager() override
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('-', this, this->name);
 		}
 
 
@@ -1338,9 +1321,6 @@ namespace CopSpawnOverrides
 		PATCH_ASSEMBLY_DETOUR(ScriptedSpawnReset);
 		PATCH_ASSEMBLY_DETOUR(RoadblockShuffling);
 
-		// Status flag
-		anyFeatureEnabled = true;
-
 		return true;
 	}
 
@@ -1348,8 +1328,6 @@ namespace CopSpawnOverrides
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
-
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 
@@ -1384,8 +1362,6 @@ namespace CopSpawnOverrides
 
 	void NotifyOfSoftEventReset()
 	{
-		if (not anyFeatureEnabled) return;
-
 		ProcessSoftEventReset();
 	}
 
@@ -1393,8 +1369,6 @@ namespace CopSpawnOverrides
 
 	void NotifyOfHardEventReset()
 	{
-		if (not anyFeatureEnabled) return;
-
 		ProcessHardEventReset();
 	}
 }

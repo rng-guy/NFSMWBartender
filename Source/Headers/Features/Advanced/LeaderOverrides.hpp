@@ -15,7 +15,7 @@ namespace LeaderOverrides
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	// Feature flag shared with (and managed by) AdvancedFeatures header
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[LDR]";
@@ -79,8 +79,6 @@ namespace LeaderOverrides
 		PursuitFeatures::IntervalTimer flagResetTimer;
 		PursuitFeatures::IntervalTimer crossAggroTimer;
 		PursuitFeatures::IntervalTimer henchmenAggroTimer;
-
-		inline static constexpr Globals::LogLiteral name = "LeaderManager";
 
 
 	private: // methods
@@ -357,26 +355,11 @@ namespace LeaderOverrides
 		}
 
 
-	public: // members
-
-		inline static constinit const bool& isEnabled = anyFeatureEnabled;
-
-
 	public: // methods
 
 		explicit LeaderManager(const address pursuit) : PursuitFeatures::Reaction(pursuit) 
 		{
 			this->passiveHenchmenVehicles.reserve(2);
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('+', this, this->name);
-		}
-
-
-		~LeaderManager() override
-		{
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain('-', this, this->name);
 		}
 
 
@@ -463,9 +446,6 @@ namespace LeaderOverrides
 		MemoryTools::MakeRangeNOP<0x42402A, 0x424036>(); //              1
 		MemoryTools::MakeRangeNOP<0x42B631, 0x42B643>(); //              2
 
-		// Status flag
-		anyFeatureEnabled = true;
-
 		return true;
 	}
 
@@ -473,8 +453,6 @@ namespace LeaderOverrides
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
-
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 

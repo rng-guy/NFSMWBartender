@@ -14,6 +14,33 @@
 
 namespace CopDetection
 {
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
+
+	bool featureEnabled = false;
+
+	// Logging
+	constexpr Globals::LogLiteral logTag  = "[DET]";
+	constexpr Globals::LogLiteral logName = "CopDetection";
+
+	// Types
+	struct Detection
+	{
+	// Members
+
+		float radarRange;       // metres
+		float patrolIconRange;  // metres
+		float pursuitIconRange; // metres
+
+		bool keepsIcon;
+	};
+
+	// Vehicle maps
+	RELEASE_CONSTINIT VEHICLE_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true});
+
+
+
+
+
 	// ColourTracker class --------------------------------------------------------------------------------------------------------------------------
 
 	class ColourTracker
@@ -64,28 +91,7 @@ namespace CopDetection
 
 
 
-	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
-
-	bool anyFeatureEnabled = false;
-
-	// Logging
-	constexpr Globals::LogLiteral logTag  = "[DET]";
-	constexpr Globals::LogLiteral logName = "CopDetection";
-
-	// Types
-	struct Detection
-	{
-	// Members
-
-		float radarRange;       // metres
-		float patrolIconRange;  // metres
-		float pursuitIconRange; // metres
-
-		bool keepsIcon;
-	};
-
-	// Vehicle maps
-	RELEASE_CONSTINIT VEHICLE_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true});
+	// Feature setup (continued) -----------------------------------------------------------------------------------------------------------------------
 
 	// Assembly detours
 	enum class VaultHash : vault
@@ -191,7 +197,7 @@ namespace CopDetection
 			cmp eax, CHOPPER
 			je conclusion // is helicopter
 
-			cmp byte ptr [anyFeatureEnabled], 1
+			cmp byte ptr [featureEnabled], 1
 			jne limitation // map feature disabled
 
 			mov ecx, dword ptr [esi]
@@ -442,7 +448,7 @@ namespace CopDetection
 		ApplyFixes();
 
 		// Status flag
-		anyFeatureEnabled = true;
+		featureEnabled = true;
 
 		return true;
 	}

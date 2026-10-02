@@ -103,7 +103,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 * To disable this entire feature set and its fixes, delete all its configuration files.
 
-* As long as this feature set isn't disabled, all its automatic fixes apply.
+* If enabled, this feature set applies all of its automatic fixes.
 
 * With this feature set enabled, the game accesses the values of the `0x80deb840` VltEd arrays in `pursuitlevels` correctly: The game now uses the value at `[14]` for Sonny, at `[13]` for Taz, and so on. Before, everyone but Sonny would get an incorrect value: Taz got `[14]`, Vic `[13]`, and so on; the value at `[0]` (intended for Razor) was completely unused.
 
@@ -309,11 +309,11 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * Bartender disables this feature set if any free-roam "Chasers" spawn table has no valid cars.
 
-* As long as this feature set isn't disabled, all its automatic fixes apply.
+* If enabled, this feature set applies all of its automatic fixes.
 
 * Rarely, the engagement count above the pursuit board may appear to be inaccurate compared to how many cops are actually around you at a given moment. That's because, by default, Bartender's fix makes the engagement count track "Chasers" only, disregarding others.
 
-* If enabled, this feature set overrides the following `pursuitlevels` VltEd parameters: the `cops` array, `HeliFuelTime`, `TimeBetweenHeliActive`, and `SearchModeHeliSpawnChance`.
+* If enabled, this feature set overrides three VltEd parameters: the `cops` array, `HeliFuelTime`, and `TimeBetweenHeliActive`.
 
 &nbsp;
 

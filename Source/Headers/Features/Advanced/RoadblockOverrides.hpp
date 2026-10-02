@@ -20,7 +20,7 @@ namespace RoadblockOverrides
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	// Feature flag shared with (and managed by) AdvancedFeatures header
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[RBL]";
@@ -509,6 +509,24 @@ namespace RoadblockOverrides
 		}
 
 		return false;
+	}
+
+
+
+	void SetRoadblockSetupsToHeatState(const HeatParameters::HeatState state)
+	{
+		for (RBSetup& setup : roadblockSetups)
+			setup.SetToHeatState(state);
+
+		if constexpr (Globals::loggingEnabled)
+		{
+			if (roadblockSetups.empty()) return;
+
+			const auto [numRegular, numSpikes, numMirrorRegular, numMirrorSpikes] = CountAvailableSetups();
+
+			Globals::LogPlain("numRegularRoadblocks    ", Globals::LogDec(numRegular), '/', Globals::LogDec(numMirrorRegular));
+			Globals::LogPlain("numSpikeRoadblocks      ", Globals::LogDec(numSpikes),  '/', Globals::LogDec(numMirrorSpikes));
+		}
 	}
 
 
@@ -1096,9 +1114,6 @@ namespace RoadblockOverrides
 		if constexpr (Globals::loggingEnabled)
 			PATCH_ASSEMBLY_DETOUR(SelectionAttempt);
 
-		// Status flag
-		anyFeatureEnabled = true;
-
 		return true;
 	}
 
@@ -1106,8 +1121,6 @@ namespace RoadblockOverrides
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
-
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 
@@ -1129,17 +1142,6 @@ namespace RoadblockOverrides
 		maxJoinCountPerRB.SetToHeatState(state);
 
 		// Roadblock setups
-		for (RBSetup& setup : roadblockSetups)
-			setup.SetToHeatState(state);
-
-		if constexpr (Globals::loggingEnabled)
-		{
-			if (roadblockSetups.empty()) return;
-
-			const auto [numRegular, numSpikes, numMirrorRegular, numMirrorSpikes] = CountAvailableSetups();
-
-			Globals::LogPlain("numRegularRoadblocks    ", Globals::LogDec(numRegular), '/', Globals::LogDec(numMirrorRegular));
-			Globals::LogPlain("numSpikeRoadblocks      ", Globals::LogDec(numSpikes),  '/', Globals::LogDec(numMirrorSpikes));
-		}
+		SetRoadblockSetupsToHeatState(state);
 	}
 }

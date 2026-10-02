@@ -18,7 +18,7 @@ namespace HelicopterVision
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	bool featureEnabled = false;
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[VIS]";
@@ -108,7 +108,7 @@ namespace HelicopterVision
 		const address copVehicle = AsReference<address>(Globals::helicopter + 0x4C - 0x4);
 
 		if (Globals::IsVehicleDestroyed(copVehicle)) return 0x0;        // invisible
-		if (not anyFeatureEnabled)                   return 0xFF90B8FF; // vanilla colour
+		if (not featureEnabled)                      return 0xFF90B8FF; // vanilla colour
 
 		const address copAIVehicle        = Globals::Vehicle::GetAIVehicle       (copVehicle);
 		const address copAIVehiclePursuit = Globals::Vehicle::GetAIVehiclePursuit(copVehicle);
@@ -328,7 +328,7 @@ namespace HelicopterVision
 		ApplyFixes(); // includes partial feature(s)
 
 		// Status flag
-		anyFeatureEnabled = true;
+		featureEnabled = true;
 
 		return true;
 	}

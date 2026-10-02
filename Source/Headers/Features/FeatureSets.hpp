@@ -8,32 +8,23 @@
 
 #include "../Utilities/MemoryTools.hpp"
 
-#include "Basic/GameBreaker.hpp"
-#include "Basic/NitrousCharge.hpp"
-#include "Basic/RadioSpeech.hpp"
-#include "Basic/GroundSupport.hpp"
-#include "Basic/GeneralSettings.hpp"
-
-#include "Advanced/PursuitObserver.hpp"
-#include "Advanced/HeatChangeOverrides.hpp"
+#include "Basic/BasicFeatures.hpp"
+#include "Advanced/AdvancedFeatures.hpp"
 
 
 
-namespace StateObserver
+namespace FeatureSets
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool anyFeatureEnabled = false;
 
 	// Logging
-	constexpr Globals::LogLiteral logTag  = "[STO]";
-	constexpr Globals::LogLiteral logName = "StateObserver";
+	constexpr Globals::LogLiteral logTag  = "[SET]";
+	constexpr Globals::LogLiteral logName = "FeatureSets";
 
 	// First player vehicle
 	address playerPerpVehicle = 0x0;
-
-	// Gameplay updates
-	bool forceNextGameplayUpdate = true;
 
 
 
@@ -62,52 +53,17 @@ namespace StateObserver
 			Globals::LogHeat(logTag, "Heat level", Globals::LogDec(state.level), (state.isRace) ? "(race)" : "(roam)");
 		}
 
-		// "Basic" feature set
-		RadioSpeech    ::SetToHeatState(state);
-		GeneralSettings::SetToHeatState(state);
-		GroundSupport  ::SetToHeatState(state);
-		NitrousCharge  ::SetToHeatState(state);
-		GameBreaker    ::SetToHeatState(state);
-			
-		// "Advanced" feature set
-		PursuitObserver::SetToHeatState(state);
-	}
-
-
-
-	void ProcessTaggedCop
-	(
-		const address copVehicle, 
-		const address perpVehicle
-	) {
-		NitrousCharge::NotifyOfTaggedCop(copVehicle, perpVehicle);
-		GameBreaker  ::NotifyOfTaggedCop(copVehicle, perpVehicle);
-
-		HeatChangeOverrides::NotifyOfTaggedCop(copVehicle, perpVehicle);
-	}
-
-
-	
-	void ProcessAssaultedCop
-	(
-		const address copVehicle,
-		const address perpVehicle,
-		const byte    numCopAssaulted
-	) {
-		NitrousCharge::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
-		GameBreaker  ::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
-
-		HeatChangeOverrides::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
+		// Update feature sets
+		BasicFeatures   ::SetToHeatState(state);
+		AdvancedFeatures::SetToHeatState(state);
 	}
 
 
 
 	void __fastcall ProcessFinishedCollision(const address perpVehicle) 
 	{
-		NitrousCharge::NotifyOfFinishedCollision(perpVehicle);
-		GameBreaker  ::NotifyOfFinishedCollision(perpVehicle);
-
-		// HeatChangeOverride doesn't need this kind of notification
+		BasicFeatures   ::NotifyOfFinishedCollision(perpVehicle);
+		AdvancedFeatures::NotifyOfFinishedCollision(perpVehicle);
 	}
 
 
@@ -117,10 +73,8 @@ namespace StateObserver
 		const address pursuit,
 		const address copVehicle
 	) {
-		NitrousCharge::NotifyOfDestroyedCop(pursuit, copVehicle);
-		GameBreaker  ::NotifyOfDestroyedCop(pursuit, copVehicle);
-
-		HeatChangeOverrides::NotifyOfDestroyedCop(pursuit, copVehicle);
+		BasicFeatures   ::NotifyOfDestroyedCop(pursuit, copVehicle);
+		AdvancedFeatures::NotifyOfDestroyedCop(pursuit, copVehicle);
 	}
 
 
@@ -150,8 +104,10 @@ namespace StateObserver
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogFull(pursuit, logTag, copVehicle, "tagged");
 
-				NotifyCopDamaged(pursuit,    copVehicle);
-				ProcessTaggedCop(copVehicle, perpVehicle);
+				NotifyCopDamaged(pursuit,copVehicle);
+
+				BasicFeatures   ::NotifyOfTaggedCop(copVehicle, perpVehicle);
+				AdvancedFeatures::NotifyOfTaggedCop(copVehicle, perpVehicle);
 			}
 		}
 
@@ -168,7 +124,8 @@ namespace StateObserver
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(pursuit, logTag, copVehicle, "assaults:", Globals::LogDec(numCopAssaulted));
 
-			ProcessAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
+			BasicFeatures   ::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
+			AdvancedFeatures::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
 		}
 
 		return (pursuit and Globals::IsPlayerPursuit(pursuit));
@@ -462,7 +419,7 @@ namespace StateObserver
 			// Execute original code first
 			mov byte ptr [esi + 0x768], al
 
-			mov byte ptr [esi + 0x769], al // used in "PursuitObserver.hpp"
+			mov byte ptr [esi + 0x769], al // used in "AdvancedFeatures.hpp"
 			mov byte ptr [esi + 0x76A], al // used in "StateObserver.hpp"
 			mov byte ptr [esi + 0x76B], al // used in "CopSpawnOverrides.hpp"
 
@@ -474,60 +431,14 @@ namespace StateObserver
 
 	
 
-	// Hook functions -------------------------------------------------------------------------------------------------------------------------------
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	HOOK_ORIGINAL(ProcessGameplay);
-
-	void __fastcall ProcessGameplay(const address simSystem)
+	bool InitialiseSets(ConfigParser::Parser& parser)
 	{
-		static constinit float lastUpdateTimestamp = 0.f; // seconds
+		const bool basicSetEnabled    = BasicFeatures   ::Initialise(parser);
+		const bool advancedSetEnabled = AdvancedFeatures::Initialise(parser);
 
-		CALL_HOOK_ORIGINAL(ProcessGameplay, simSystem); // actually __thiscall with 0 arguments
-
-		// Check update timestamp
-		const float timestamp = Globals::GetGameplayTime();
-
-		constexpr float updateInterval = 1.f / 10.f; // seconds
-
-		if ((not forceNextGameplayUpdate) and (timestamp < lastUpdateTimestamp + updateInterval))
-		{
-			if (timestamp >= lastUpdateTimestamp) return; // not wrap-around / reset
-		}
-
-		// "Advanced" feature set
-		PursuitObserver::NotifyOfGameplay();
-
-		// Timestamp update
-		lastUpdateTimestamp     = timestamp;
-		forceNextGameplayUpdate = false;
-	}
-
-
-
-	HOOK_ORIGINAL(ProcessWorldLoad);
-
-	void __cdecl ProcessWorldLoad()
-	{
-		// Apply hooked logic fist
-		forceNextGameplayUpdate = true;
-
-		PursuitObserver::NotifyOfHardEventReset();
-
-		CALL_HOOK_ORIGINAL(ProcessWorldLoad);
-	}
-
-
-
-	HOOK_ORIGINAL(ProcessEventRestart);
-
-	void __cdecl ProcessEventRestart()
-	{
-		// Apply hooked logic fist
-		forceNextGameplayUpdate = true;
-		
-		PursuitObserver::NotifyOfSoftEventReset();
-
-		CALL_HOOK_ORIGINAL(ProcessEventRestart);
+		return (basicSetEnabled or advancedSetEnabled);
 	}
 
 
@@ -536,8 +447,10 @@ namespace StateObserver
 
 	// State interface ------------------------------------------------------------------------------------------------------------------------------
 
-	bool Initialise(const ConfigParser::Parser& parser)
+	bool Initialise(ConfigParser::Parser& parser)
 	{
+		if (not InitialiseSets(parser)) return false;
+
 		// Code modifications 
 		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first perp-damage check
 
@@ -552,10 +465,6 @@ namespace StateObserver
 		PATCH_ASSEMBLY_DETOUR(HeatLevelObserver);
 		PATCH_ASSEMBLY_DETOUR(PlayerConstructor);
 		PATCH_ASSEMBLY_DETOUR(ResetAIVehiclePursuit);
-
-		PATCH_HOOK_FUNCTION(ProcessGameplay,     0x6F6EE6); // SimSystem::UpdateFrame (0x6F6CF0)
-		PATCH_HOOK_FUNCTION(ProcessWorldLoad,    0x662ADC); // nullsub_174            (0x6C39C0)
-		PATCH_HOOK_FUNCTION(ProcessEventRestart, 0x63090B); // World_RestoreProps     (0x74D320)
 		
 		// Status flag
 		anyFeatureEnabled = true;

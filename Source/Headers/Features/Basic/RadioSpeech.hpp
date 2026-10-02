@@ -17,7 +17,7 @@ namespace RadioSpeech
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	bool featureEnabled = false;
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[RAD]";
@@ -367,7 +367,7 @@ namespace RadioSpeech
 		ApplyFixes(); // includes partial feature(s)
 
 		// Status flag
-		anyFeatureEnabled = true;
+		featureEnabled = true;
 
 		return true;
 	}
@@ -376,7 +376,7 @@ namespace RadioSpeech
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);

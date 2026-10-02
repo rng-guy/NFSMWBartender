@@ -15,7 +15,7 @@ namespace PursuitFeatures
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	// Logging
-	constexpr Globals::LogLiteral logTag  = "[PFT]";
+	constexpr Globals::LogLiteral logTag  = "[PFS]";
 	constexpr Globals::LogLiteral logName = "PursuitFeatures";
 
 

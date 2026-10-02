@@ -19,7 +19,7 @@ namespace GeneralSettings
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	bool featureEnabled = false;
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[GEN]";
@@ -625,7 +625,7 @@ namespace GeneralSettings
 		ApplyFixes(); // includes partial feature(s)
 
 		// Status flag
-		anyFeatureEnabled = true;
+		featureEnabled = true;
 
 		return true;
 	}
@@ -634,7 +634,7 @@ namespace GeneralSettings
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
+		if (not featureEnabled) return;
 
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);

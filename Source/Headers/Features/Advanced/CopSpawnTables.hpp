@@ -17,7 +17,7 @@ namespace CopSpawnTables
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	// Feature flag shared with (and managed by) AdvancedFeatures header
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[TAB]";
@@ -425,9 +425,6 @@ namespace CopSpawnTables
 		// Heat parameters
 		if (not ExtractSpawnTablePointers(parser)) return false; // free-roam "Chasers" table(s) empty; disable feature
 
-		// Status flag
-		anyFeatureEnabled = true;
-
 		return true;
 	}
 
@@ -435,8 +432,6 @@ namespace CopSpawnTables
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		if (not anyFeatureEnabled) return;
-
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogHeat(logTag, logName);
 

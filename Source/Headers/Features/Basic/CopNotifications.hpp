@@ -16,7 +16,7 @@ namespace CopNotifications
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
-	bool anyFeatureEnabled = false;
+	bool featureEnabled = false;
 
 	// Logging
 	constexpr Globals::LogLiteral logTag  = "[NTF]";
@@ -156,7 +156,7 @@ namespace CopNotifications
 		if (not InitialiseNotifications(parser)) return false; // no valid notifications; disable feature
 
 		// Status flag
-		anyFeatureEnabled = true;
+		featureEnabled = true;
 
 		return true;
 	}
