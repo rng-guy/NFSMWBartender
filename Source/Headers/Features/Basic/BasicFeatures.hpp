@@ -36,7 +36,7 @@ namespace BasicFeatures
 
 	bool Initialise(ConfigParser::Parser& parser)
 	{
-		parser.Clear();
+		parser.ClearAllFiles();
 
 		anyFeatureEnabled |= CopNotifications::Initialise(parser);
 		anyFeatureEnabled |= RadioSpeech     ::Initialise(parser);

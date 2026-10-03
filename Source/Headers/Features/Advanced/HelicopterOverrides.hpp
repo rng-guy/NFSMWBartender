@@ -52,7 +52,7 @@ namespace HelicopterOverrides
 
 	// HelicopterManager class ----------------------------------------------------------------------------------------------------------------------
 
-	class HelicopterManager : public PursuitFeatures::Reaction
+	class HelicopterManager : public PursuitFeatures::Reaction, public PursuitFeatures::Searchable<HelicopterManager>
 	{
 	private: // types
 
@@ -65,7 +65,7 @@ namespace HelicopterOverrides
 			LOST
 		};
 
-		
+
 	private: // members
 		
 		bool isPlayerPursuit = false;
@@ -76,7 +76,8 @@ namespace HelicopterOverrides
 
 		bool& maySpawnToSearch = AsReference<bool>(this->pursuit + 0xD4);
 
-		inline static constinit bool isFuelLimited = false;
+		inline static constinit bool isFuelLimited     = false;
+		inline static constinit bool mayCallOutBailout = false;
 
 
 	private: // methods
@@ -119,7 +120,8 @@ namespace HelicopterOverrides
 		{
 			this->maySpawnToSearch = false;
 
-			this->isFuelLimited = fuelTime.isEnabled.current;
+			this->isFuelLimited     = fuelTime.isEnabled.current;
+			this->mayCallOutBailout = false;
 
 			if (this->isFuelLimited)
 				this->SetFuelTime(fuelTime.interval.GetRandomValue());
@@ -135,45 +137,24 @@ namespace HelicopterOverrides
 		}
 
 
+		[[nodiscard]] static address GetHelicopterActor()
+		{
+			const address soundAI = AsReference<address>(0x993CC8);
+			return (soundAI) ? AsReference<address>(soundAI + 0xE0) : 0x0;
+		}
+
+
 		void CallOutHelicopterSearch() const
 		{
 			if (not Globals::Pursuit::IsSearching(this->pursuit)) return;
 
-			const address soundAI = AsReference<address>(0x993CC8);
-			ASSERT_CONDITION_THEN_IF_FALSE(soundAI, return);
-
-			const address helicopterActor = AsReference<address>(soundAI + 0xE0);
-			ASSERT_CONDITION_THEN_IF_FALSE(helicopterActor, return);
-
 			const auto CallOutSweep = AsFunction<void __thiscall (address)>(0x717D40);
-			CallOutSweep(helicopterActor); // requests radio callout for helicopter search
+
+			if (const address helicopterActor = this->GetHelicopterActor())
+				CallOutSweep(helicopterActor); // requests radio callout for search
 		}
 
 		
-		[[nodiscard]] static bool IsRoadblockSpawnPending()
-		{
-			return AsReference<address>(Globals::copManager + 0xBC);
-		}
-
-
-		void MakeSpawnAttempt() const
-		{
-			if (Globals::helicopter)               return;
-			if (not this->isPlayerPursuit)         return;
-			if (not this->spawnTimer.HasExpired()) return;
-			if (this->IsSearchPreventingSpawn())   return;
-			if (this->IsRoadblockSpawnPending())   return;
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogFull(this->pursuit, logTag, "Requesting helicopter");
-
-			const auto SpawnHelicopter = AsFunction<bool __thiscall (address, address)>(0x4269A0);
-
-			if (SpawnHelicopter(Globals::copManager, this->pursuit))
-				this->CallOutHelicopterSearch();
-		}
-
-
 		void UpdateSpawnTimer()
 		{
 			if (not this->isPlayerPursuit) return;
@@ -220,12 +201,6 @@ namespace HelicopterOverrides
 	public: // methods
 
 		explicit HelicopterManager(const address pursuit) : PursuitFeatures::Reaction(pursuit) {}
-
-
-		void ReactToGameplay() override 
-		{
-			this->MakeSpawnAttempt();
-		}
 
 
 		void ReactToHeatStateUpdate() override 
@@ -277,16 +252,51 @@ namespace HelicopterOverrides
 				if ((not fuelTime) or (*fuelTime <= 0.f))
 					newStatus = Status::EXPIRED;
 			}
-			else newStatus = Status::WRECKED;
+			else newStatus = Status::WRECKED; 
+
+			this->mayCallOutBailout = true;
 
 			this->helicopterStatus = newStatus;
 			this->UpdateSpawnTimer();
 		}
 
 
+		[[nodiscard]] static bool __fastcall SpawnHelicopter(const address pursuit)
+		{
+			if (Globals::helicopter) return false;
+
+			auto* const manager = HelicopterManager::FindInstance(pursuit);
+			ASSERT_CONDITION_THEN_IF_FALSE(manager, return false);
+
+			if (not manager->isPlayerPursuit)         return false;
+			if (not manager->spawnTimer.HasExpired()) return false;
+			if (manager->IsSearchPreventingSpawn())   return false;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(manager->pursuit, logTag, "Requesting helicopter");
+
+			const auto SpawnHelicopter = AsFunction<bool __thiscall (address, address)>(0x4269A0);
+
+			if (SpawnHelicopter(Globals::copManager, manager->pursuit))
+				manager->CallOutHelicopterSearch();
+
+			return true;
+		}
+
+
 		[[nodiscard]] static bool __cdecl IsFuelLimited()
 		{
 			return HelicopterManager::isFuelLimited;
+		}
+
+
+		[[nodiscard]] static bool __cdecl YieldMayCallOutBailout()
+		{
+			const bool mayCallOutBailout = HelicopterManager::mayCallOutBailout;
+
+			HelicopterManager::mayCallOutBailout = false;
+
+			return mayCallOutBailout;
 		}
 	};
 
@@ -484,6 +494,26 @@ namespace HelicopterOverrides
 	}
 
 
+	
+	// Calls out the helicopter's despawn reason
+	ASSEMBLY_DETOUR(BailoutCallout, 0x70A14C, 0x70A156)
+	{
+		__asm
+		{
+			call HelicopterManager::YieldMayCallOutBailout
+			test al, al
+			je conclusion // may not call out reason
+
+			mov eax, dword ptr [esi]
+			mov ecx, esi
+			call dword ptr [eax + 0x104]
+
+			conclusion:
+			EXIT_ASSEMBLY_DETOUR(BailoutCallout)
+		}
+	}
+
+
 
 	// Sets the cooldown for HeliStrategy 2 ramming attempts
 	ASSEMBLY_DETOUR(RammingCooldown, 0x4128B2, 0x4128B9)
@@ -495,6 +525,31 @@ namespace HelicopterOverrides
 			fstp dword ptr [esi + 0x64] // HeliStrategy 2 cooldown
 
 			EXIT_ASSEMBLY_DETOUR(RammingCooldown)
+		}
+	}
+
+
+
+	// Determines which cop vehicle to spawn next
+	ASSEMBLY_DETOUR(CopSpawnRequest, 0x43EB9A, 0x43EBA1)
+	{
+		static constexpr address spawnExit = 0x43EBDF;
+
+		__asm
+		{
+			mov ecx, esi
+			call HelicopterManager::SpawnHelicopter // ecx: pursuit
+			test al, al
+			jne spawn                               // spawning helicopter
+
+			mov edx, dword ptr [esi]
+			mov ecx, esi
+			call dword ptr [edx + 0x50] // AIPursuit::CopRequest
+
+			EXIT_ASSEMBLY_DETOUR(CopSpawnRequest)
+
+			spawn:
+			jmp dword ptr [spawnExit]
 		}
 	}
 
@@ -555,7 +610,7 @@ namespace HelicopterOverrides
 				Globals::LogPlain("All vehicles valid");
 		}
 
-		// Code modifications 
+		// Code modifications
 		MemoryTools::MakeRangeNOP<0x43EBA7, 0x43EBBE>(); // helicopter spawn (first  part)
 		MemoryTools::MakeRangeNOP<0x43EBC0, 0x43EBCA>(); // helicopter spawn (second part)
 
@@ -566,7 +621,9 @@ namespace HelicopterOverrides
 		PATCH_ASSEMBLY_DETOUR(SpawnDistance);
 		PATCH_ASSEMBLY_DETOUR(RoadblockCheck);
 		PATCH_ASSEMBLY_DETOUR(TargetDistance);
+		PATCH_ASSEMBLY_DETOUR(BailoutCallout);
 		PATCH_ASSEMBLY_DETOUR(RammingCooldown);
+		PATCH_ASSEMBLY_DETOUR(CopSpawnRequest);
 
 		return true;
 	}

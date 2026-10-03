@@ -74,9 +74,11 @@ static void __cdecl Initialise
 			"NFSMWUnlimiter.asi",    
 			"XNFSMusicPlayer.asi", 
 			"NFSMWSpeedFixer.asi",
+			"NFSMWAntagoNISt.asi",
 			"NFSMWExtraOptions.asi",
 			"NFSMWHDReflections.asi",
 			"NFSMWLimitAdjuster.asi",
+			"NFSMWDaylightSavingTime.asi",
 			"NFSMWOpenLimitAdjuster_gcp.asi",
 			"NFSMostWanted.WidescreenFix.asi"
 		};

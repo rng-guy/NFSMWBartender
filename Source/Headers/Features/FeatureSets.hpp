@@ -23,7 +23,7 @@ namespace FeatureSets
 	constexpr Globals::LogLiteral logTag  = "[SET]";
 	constexpr Globals::LogLiteral logName = "FeatureSets";
 
-	// First player vehicle
+	// First player's vehicle
 	address playerPerpVehicle = 0x0;
 
 
@@ -449,10 +449,10 @@ namespace FeatureSets
 
 	bool Initialise(ConfigParser::Parser& parser)
 	{
-		if (not InitialiseSets(parser)) return false;
+		if (not InitialiseSets(parser)) return false; // no features; disable mod
 
 		// Code modifications 
-		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first perp-damage check
+		MemoryTools::MakeRangeNOP<0x429C74, 0x429C7F>(); // first assault check
 
 		PATCH_ASSEMBLY_DETOUR(GameTicks);
 		PATCH_ASSEMBLY_DETOUR(CopDestroyed);

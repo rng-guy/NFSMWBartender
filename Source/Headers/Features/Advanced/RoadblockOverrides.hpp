@@ -104,7 +104,7 @@ namespace RoadblockOverrides
 	{
 	private: // friends
 
-		friend bool ExtractRoadblockSetup(const auto&, RBSetup&); // forward declarations... grrr!
+		friend bool ExtractRoadblockSetup(const ConfigParser::Parser::Section&, RBSetup&); // forward declarations... grrr!
 
 
 	private: // members
@@ -855,12 +855,10 @@ namespace RoadblockOverrides
 
 	bool ExtractRoadblockParts
 	(
-		const auto& section,
-		RBTable&    table
+		const ConfigParser::Parser::Section& section,
+		RBTable&                             table
 	) {
-		bool hasSpikes = false;
-
-		// Attempt parts extraction
+		// Attempt part(s) extraction
 		PartArray<RBPartType> types        = {};
 		PartArray<float>      offsetXs     = {};
 		PartArray<float>      offsetYs     = {};
@@ -871,35 +869,35 @@ namespace RoadblockOverrides
 			section, /* defaultKey = */ {}, "part{:02}", /* keyStartIndex = */ 1, {types}, {offsetXs}, {offsetYs}, {orientations}
 		);
 
-		// Process parts
-		size_t numValidParts = 0;
+		// Process part(s)
+		size_t numParts = 0;
 
 		for (size_t partID = 0; partID < maxNumParts; ++partID)
 		{
-			if (not isExtracteds[partID]) continue; // invalid part
+			if (not isExtracteds[partID]) break; // no more part(s)
 
 			switch (types[partID])
 			{
+			case RBPartType::NONE:
+				return (numParts > 0); // no more part(s)
+
 			case RBPartType::CAR:
 				++(table.numCarsRequired);
 				break;
 
 			case RBPartType::SAWHORSE:
-				break;
-
 			case RBPartType::SPIKES:
-				hasSpikes = true;
 				break;
 
 			default:
-				continue; // invalid part type
+				return false; // invalid type
 			}
 
 			// Remove full rotation(s) and convert to positive value
 			orientations[partID] -= std::floor(orientations[partID]);
 
 			// Update part parameters
-			table.parts[numValidParts] =
+			table.parts[partID] =
 			{
 				.type        = types       [partID],
 				.offsetX     = offsetXs    [partID],
@@ -907,10 +905,22 @@ namespace RoadblockOverrides
 				.orientation = orientations[partID]
 			};
 
-			++numValidParts;
+			numParts = partID + 1;
 		}
 
-		return hasSpikes;
+		return (numParts > 0);
+	}
+
+
+
+	[[nodiscard]] bool DoesTableHaveSpikes(const RBTable& table)
+	{
+		for (const RBPart& part : table.parts)
+		{
+			if (part.type == RBPartType::SPIKES) return true;
+		}
+
+		return false;
 	}
 
 
@@ -937,8 +947,8 @@ namespace RoadblockOverrides
 
 	bool ExtractRoadblockSetup
 	(
-		const auto& section,
-		RBSetup&    setup
+		const ConfigParser::Parser::Section& section,
+		RBSetup&                             setup
 	) {
 		RBTable& table = setup.original;
 
@@ -965,15 +975,23 @@ namespace RoadblockOverrides
 		}
 
 		// Extract roadblock parts
-		setup.hasSpikes = ExtractRoadblockParts(section, table);
+		if (not ExtractRoadblockParts(section, table))
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogDetail('-', setup.name, "(invalid part(s))");
+
+			return false; // invalid part(s)
+		}
 
 		if (table.numCarsRequired == 0)
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogDetail('-', setup.name, "(no car(s))");
 
-			return false; // invalid part(s)
+			return false; // missing car(s)
 		}
+
+		setup.hasSpikes = DoesTableHaveSpikes(table);
 
 		// Extract spawn parameters
 		HeatParameters::Extract(section, setup.chance);

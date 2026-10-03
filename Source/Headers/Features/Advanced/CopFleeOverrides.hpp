@@ -293,7 +293,7 @@ namespace CopFleeOverrides
 			const Globals::LogLiteral                      name,
 			const address                                  pursuit,
 			const HeatParameters::OptionalInterval<float>& fleeDelay,
-			const HeatParameters::OptionalValue<int>&      fleeThreshold
+			const HeatParameters::OptionalValue   <int>&   fleeThreshold
 		)
 			: Scheduler(name, pursuit), fleeDelay(fleeDelay), fleeThreshold(fleeThreshold)
 		{
@@ -331,7 +331,7 @@ namespace CopFleeOverrides
 		void Track(const address copVehicle)
 		{
 			this->copVehicles.insert(copVehicle);
-			this->ReviewVehicle(copVehicle);
+			this->ReviewVehicle     (copVehicle);
 		}
 
 
@@ -643,6 +643,8 @@ namespace CopFleeOverrides
 		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Code modifications 
+		MemoryTools::MakeRangeNOP<0x4440D7, 0x4440DF>(); // membership check
+
 		PATCH_ASSEMBLY_DETOUR(GoalUpdate);
 
 		return true;

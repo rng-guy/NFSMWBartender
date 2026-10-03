@@ -71,13 +71,18 @@ namespace PursuitFeatures
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
-		) {};
+		) 
+		{
+		};
+
 
 		virtual void ReactToRemovedVehicle
 		(
 			const address  copVehicle,
 			const CopLabel copLabel
-		) {};
+		) 
+		{
+		};
 
 
 		[[nodiscard]] address GetPursuit() const
@@ -110,7 +115,7 @@ namespace PursuitFeatures
 				{
 					{feature.GetPursuit()} -> std::same_as<address>;
 				}, 
-				"Feature must implement GetPursuit() -> address."
+				"Feature must implement GetPursuit() -> address"
 			);
 
 			auto* const instance            = static_cast<Feature*>(this);
@@ -135,7 +140,7 @@ namespace PursuitFeatures
 
 		~Searchable()
 		{
-			const auto* const instance      = static_cast<const Feature*>(this);
+			const auto* const instance      = static_cast<Feature*>(this);
 			const bool        wasRegistered = this->instances.erase(instance);
 			
 			if (not wasRegistered)

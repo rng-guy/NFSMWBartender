@@ -177,15 +177,15 @@ namespace ConfigParser
 
 	private: // methods
 
-		bool UpdateCurrentFilePath(std::filesystem::path&& newFilePath) 
+		bool UpdateFilePathAndStoreMap(std::filesystem::path&& newFilePath) 
 		{
 			if (this->currentFilePath == newFilePath) return false;
 
-			// Return currently parsed file to cache
+			// Return loaded map to cache
 			if (not this->currentFilePath.empty())
 			{
 				if (SectionMap* map = this->pathToSectionMap.get(this->currentFilePath))
-					map->swap(this->nameToSection); // section map now empty
+					map->swap(this->nameToSection); // loaded map now empty
 
 				else ASSERT_UNREACHABLE_THEN(this->nameToSection.clear());
 			}
@@ -226,8 +226,8 @@ namespace ConfigParser
 			const std::filesystem::path& root,
 			const std::string_view       fileName
 		) {
-			// Update and check new file path
-			if (not this->UpdateCurrentFilePath(root / fileName))
+			// Check and update new file path
+			if (not this->UpdateFilePathAndStoreMap(root / fileName))
 			{
 				if constexpr (Globals::loggingEnabled)
 				{
@@ -240,16 +240,15 @@ namespace ConfigParser
 
 			if (this->currentFilePath.empty()) return true;
 	
-			// Attempt to create new (empty) cache entry for new file
+			// Check cache for file path
 			const auto [pairIt, isNewPath] = this->pathToSectionMap.try_emplace(this->currentFilePath);
 
-			// Check cache for new file 
 			if (not isNewPath)
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogPlain("Load:", fileName);
 
-				this->nameToSection.swap(pairIt->second); // existing cache entry now empty
+				this->nameToSection.swap(pairIt->second); // cached map now empty
 
 				return true; // file loaded from cache
 			}
@@ -259,6 +258,9 @@ namespace ConfigParser
 
 			if (not fileStream.is_open())
 			{
+				this->currentFilePath .clear();
+				this->pathToSectionMap.erase(pairIt);
+
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogPlain("Skip:", fileName);
 
@@ -281,12 +283,35 @@ namespace ConfigParser
 		}
 
 
-		// Invalidates retrieved views and pointers
-		void Clear()
+		// May invalidate retrieved views and pointers
+		void ClearFile(const std::filesystem::path& filePath)
 		{
-			this->currentFilePath .clear();
+			if (filePath.empty()) return; // never cached
+
+			this->pathToSectionMap.erase(filePath);
+
+			if (this->currentFilePath == filePath)
+			{
+				this->currentFilePath.clear();
+				this->nameToSection  .clear();
+			}
+		}
+
+
+		// Invalidates retrieved views and pointers
+		void ClearCurrentFile()
+		{
+			this->ClearFile(this->currentFilePath);
+		}
+
+
+		// Invalidates retrieved views and pointers
+		void ClearAllFiles()
+		{
 			this->pathToSectionMap.clear();
-			this->nameToSection   .clear();
+
+			this->currentFilePath.clear();
+			this->nameToSection  .clear();
 		}
 
 

@@ -57,17 +57,14 @@ namespace AdvancedFeatures
 		bool delayedPursuitUpdatePending   = true;
 		bool delayedHeatStateUpdatePending = true;
 
-		CopSpawnOverrides  ::ChasersManager    chasersManager   {this->pursuit};
-		CopFleeOverrides   ::MembershipManager membershipManager{this->pursuit};
-		HelicopterOverrides::HelicopterManager helicopterManager{this->pursuit};
-		StrategyOverrides  ::StrategyManager   strategyManager  {this->pursuit};
-		LeaderOverrides    ::LeaderManager     leaderManager    {this->pursuit};
-		HeatChangeOverrides::HeatManager       heatManager      {this->pursuit};
-
-		const std::array<PursuitFeatures::Reaction*, 6> reactions =
+		const std::array<std::unique_ptr<PursuitFeatures::Reaction>, 6> reactions
 		{
-			&chasersManager,  &membershipManager, &helicopterManager, 
-			&strategyManager, &leaderManager,     &heatManager
+			std::make_unique<CopSpawnOverrides  ::ChasersManager>   (this->pursuit),
+			std::make_unique<CopFleeOverrides   ::MembershipManager>(this->pursuit),
+			std::make_unique<HelicopterOverrides::HelicopterManager>(this->pursuit),
+			std::make_unique<StrategyOverrides  ::StrategyManager>  (this->pursuit),
+			std::make_unique<LeaderOverrides    ::LeaderManager>    (this->pursuit),
+			std::make_unique<HeatChangeOverrides::HeatManager>      (this->pursuit)
 		};
 
 
@@ -146,7 +143,7 @@ namespace AdvancedFeatures
 
 		void ProcessHeatStateUpdate()
 		{
-			for (auto* const reaction : this->reactions)
+			for (const auto& reaction : this->reactions)
 				reaction->ReactToHeatStateUpdate();
 
 			this->delayedHeatStateUpdatePending = true;
@@ -155,7 +152,7 @@ namespace AdvancedFeatures
 
 		void ProcessGameplay()
 		{
-			for (auto* const reaction : this->reactions)
+			for (const auto& reaction : this->reactions)
 			{
 				if (not this->firstGameplayUpdatePending)
 				{
@@ -207,7 +204,7 @@ namespace AdvancedFeatures
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(pursuit, logTag, '+', copVehicle, newLabel, Globals::GetVehicleName(copVehicle));
 
-			for (auto* const reaction : observer->reactions)
+			for (const auto& reaction : observer->reactions)
 				reaction->ReactToAddedVehicle(copVehicle, newLabel);
 		}
 
@@ -234,7 +231,7 @@ namespace AdvancedFeatures
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(pursuit, logTag, '-', copVehicle, oldLabel, Globals::GetVehicleName(copVehicle));
 
-			for (auto* const reaction : observer->reactions)
+			for (const auto& reaction : observer->reactions)
 				reaction->ReactToRemovedVehicle(copVehicle, oldLabel);
 		}
 	};
@@ -471,11 +468,10 @@ namespace AdvancedFeatures
 
 	bool Initialise(ConfigParser::Parser& parser)
 	{
-		parser.Clear();
+		parser.ClearAllFiles();
 
-		if (not CopSpawnTables::Initialise(parser)) return false;
+		if (not CopSpawnTables::Initialise(parser)) return false; // invalid spawn table(s); disable features
 
-		// Initialise sub-features
 		CopSpawnOverrides  ::Initialise(parser);
 		CopFleeOverrides   ::Initialise(parser);
 		LeaderOverrides    ::Initialise(parser);
