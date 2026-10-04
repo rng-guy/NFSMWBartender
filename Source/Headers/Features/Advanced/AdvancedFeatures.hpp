@@ -6,7 +6,6 @@
 
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
-#include "../../Common/ModContainers.hpp"
 #include "../../Common/HeatParameters.hpp"
 
 #include "../../Utilities/MemoryTools.hpp"
@@ -57,14 +56,17 @@ namespace AdvancedFeatures
 		bool delayedPursuitUpdatePending   = true;
 		bool delayedHeatStateUpdatePending = true;
 
-		const std::array<std::unique_ptr<PursuitFeatures::Reaction>, 6> reactions
+		CopSpawnOverrides  ::ChasersManager    chasersManager   {this->pursuit};
+		CopFleeOverrides   ::MembershipManager membershipManager{this->pursuit};
+		HelicopterOverrides::HelicopterManager helicopterManager{this->pursuit};
+		StrategyOverrides  ::StrategyManager   strategyManager  {this->pursuit};
+		LeaderOverrides    ::LeaderManager     leaderManager    {this->pursuit};
+		HeatChangeOverrides::HeatManager       heatManager      {this->pursuit};
+
+		const std::array<PursuitFeatures::Reaction*, 6> reactions =
 		{
-			std::make_unique<CopSpawnOverrides  ::ChasersManager>   (this->pursuit),
-			std::make_unique<CopFleeOverrides   ::MembershipManager>(this->pursuit),
-			std::make_unique<HelicopterOverrides::HelicopterManager>(this->pursuit),
-			std::make_unique<StrategyOverrides  ::StrategyManager>  (this->pursuit),
-			std::make_unique<LeaderOverrides    ::LeaderManager>    (this->pursuit),
-			std::make_unique<HeatChangeOverrides::HeatManager>      (this->pursuit)
+			&chasersManager,  &membershipManager, &helicopterManager,
+			&strategyManager, &leaderManager,     &heatManager
 		};
 
 
@@ -143,7 +145,7 @@ namespace AdvancedFeatures
 
 		void ProcessHeatStateUpdate()
 		{
-			for (const auto& reaction : this->reactions)
+			for (auto* const reaction : this->reactions)
 				reaction->ReactToHeatStateUpdate();
 
 			this->delayedHeatStateUpdatePending = true;
@@ -152,7 +154,7 @@ namespace AdvancedFeatures
 
 		void ProcessGameplay()
 		{
-			for (const auto& reaction : this->reactions)
+			for (auto* const reaction : this->reactions)
 			{
 				if (not this->firstGameplayUpdatePending)
 				{
@@ -204,7 +206,7 @@ namespace AdvancedFeatures
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(pursuit, logTag, '+', copVehicle, newLabel, Globals::GetVehicleName(copVehicle));
 
-			for (const auto& reaction : observer->reactions)
+			for (auto* const reaction : observer->reactions)
 				reaction->ReactToAddedVehicle(copVehicle, newLabel);
 		}
 
@@ -231,7 +233,7 @@ namespace AdvancedFeatures
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(pursuit, logTag, '-', copVehicle, oldLabel, Globals::GetVehicleName(copVehicle));
 
-			for (const auto& reaction : observer->reactions)
+			for (auto* const reaction : observer->reactions)
 				reaction->ReactToRemovedVehicle(copVehicle, oldLabel);
 		}
 	};
@@ -243,7 +245,7 @@ namespace AdvancedFeatures
 	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
 	// Assembly detours
-	RELEASE_CONSTINIT ModContainers::StableVector<PursuitObserver> observers;
+	RELEASE_CONSTINIT std::vector<std::unique_ptr<PursuitObserver>> observers;
 
 
 
@@ -266,7 +268,7 @@ namespace AdvancedFeatures
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogFull("     NEW", logTag, "Pursuit", pursuit);
 
-		observers.Emplace(pursuit);
+		observers.push_back(std::make_unique<PursuitObserver>(pursuit));
 	}
 
 
@@ -296,7 +298,7 @@ namespace AdvancedFeatures
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull("     DEL", logTag, "Pursuit", pursuit);
 
-			observers.Erase(it);
+			observers.erase(it);
 
 			return; // deleted
 		}

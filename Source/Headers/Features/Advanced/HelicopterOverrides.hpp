@@ -273,11 +273,11 @@ namespace HelicopterOverrides
 			if (manager->IsSearchPreventingSpawn())   return false;
 
 			if constexpr (Globals::loggingEnabled)
-				Globals::LogFull(manager->pursuit, logTag, "Requesting helicopter");
+				Globals::LogFull(pursuit, logTag, "Requesting helicopter");
 
 			const auto SpawnHelicopter = AsFunction<bool __thiscall (address, address)>(0x4269A0);
 
-			if (SpawnHelicopter(Globals::copManager, manager->pursuit))
+			if (SpawnHelicopter(Globals::copManager, pursuit))
 				manager->CallOutHelicopterSearch();
 
 			return true;

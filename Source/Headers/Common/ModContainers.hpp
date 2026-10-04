@@ -360,47 +360,4 @@ namespace ModContainers
 		[[nodiscard]] Iterator begin() const {return this->first;}
 		[[nodiscard]] Iterator end  () const {return this->sentinel;}
 	};
-
-
-
-
-
-	// StableVector class ---------------------------------------------------------------------------------------------------------------------------
-
-	template <class Base>
-	class StableVector
-	{
-	private: // members
-
-		std::vector<std::unique_ptr<Base>> pointers;
-
-
-	public: // methods
-
-		template <class Derived = Base, typename ...ValArgs>
-		requires std::derived_from<Derived, Base>
-		void Emplace(ValArgs&&... args)
-		{
-			this->pointers.push_back(std::make_unique<Derived>(std::forward<ValArgs>(args)...));
-		}
-
-
-		auto Erase(const decltype(pointers)::const_iterator cit)
-		{
-			return this->pointers.erase(cit);
-		}
-
-
-		void Reserve(const size_t capacity)
-		{
-			this->pointers.reserve(capacity);
-		}
-
-
-		[[nodiscard]] auto begin() {return this->pointers.begin();}
-		[[nodiscard]] auto end  () {return this->pointers.end();}
-
-		[[nodiscard]] auto begin() const {return this->pointers.begin();}
-		[[nodiscard]] auto end  () const {return this->pointers.end();}
-	};
 }
