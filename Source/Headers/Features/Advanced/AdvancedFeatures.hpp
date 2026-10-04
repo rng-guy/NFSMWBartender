@@ -410,11 +410,11 @@ namespace AdvancedFeatures
 
 	HOOK_ORIGINAL(ProcessGameplay);
 
-	void __fastcall ProcessGameplay(const address simSystem)
+	void __fastcall ProcessGameplay(const address copManager)
 	{
 		static constinit float lastUpdateTimestamp = 0.f; // seconds
 
-		CALL_HOOK_ORIGINAL(ProcessGameplay, simSystem); // actually __thiscall with 0 arguments
+		CALL_HOOK_ORIGINAL(ProcessGameplay, copManager); // actually __thiscall with 0 arguments
 
 		// Check update timestamp
 		const float timestamp = Globals::GetGameplayTime();
@@ -486,9 +486,9 @@ namespace AdvancedFeatures
 		PATCH_ASSEMBLY_DETOUR(PursuitDestructor);
 		PATCH_ASSEMBLY_DETOUR(PursuitConstructor);
 
-		PATCH_HOOK_FUNCTION(ProcessGameplay,     0x6F6EE6); // SimSystem::UpdateFrame (0x6F6CF0)
-		PATCH_HOOK_FUNCTION(ProcessWorldLoad,    0x662ADC); // nullsub_174            (0x6C39C0)
-		PATCH_HOOK_FUNCTION(ProcessEventRestart, 0x63090B); // World_RestoreProps     (0x74D320)
+		PATCH_HOOK_FUNCTION(ProcessGameplay,     0x43EF24); // AICopManager::UpdateDebug (0x406500)
+		PATCH_HOOK_FUNCTION(ProcessWorldLoad,    0x662ADC); // nullsub_174               (0x6C39C0)
+		PATCH_HOOK_FUNCTION(ProcessEventRestart, 0x63090B); // World_RestoreProps        (0x74D320)
 
 		// Status flag
 		anyFeatureEnabled = true;
