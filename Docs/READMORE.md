@@ -159,7 +159,7 @@ Regarding **cosmetic features** ([`BartenderSettings/Basic/Cosmetic.ini`](../Con
 
 * If you define no valid battalions and no `default`, Bartender disables its callsigns feature.
 
-* Dispatch may not always acknowledge a change in jurisdiction over the radio. This is because there's randomness involved, and because each pursuit is limited to just one acknowledgement.
+* With default VltEd settings, jurisdiction announcements have a cooldown of 1000 seconds. You can change this by editing the `anytimeevents_dispjurishift` VltEd node accordingly
 
 * The playlist feature is incompatible with the [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) mod by xan1242. If you want to use that mod, you must delete Bartender's `[Music:Playlist]` parameter group or leave it empty.
 

@@ -177,7 +177,8 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **always fixes seventeen bugs / issues** automatically:
+The "Advanced" feature set **always fixes eighteen bugs / issues** automatically:
+* the helicopter reports more consistent reasons whenever it bails,
 * chasing cops that exceed their type-specific count no longer flee,
 * HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
 * cops in roadblocks can no longer prevent chasing cops from spawning,

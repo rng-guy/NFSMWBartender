@@ -61,13 +61,13 @@ namespace RadioSpeech
 		switch (battalion)
 		{
 		case Battalion::PATROL:
-			return -0x1;
+			return -1;
 
 		case Battalion::RHINO:
-			return 0x20;
+			return 32;
 		}
 
-		return 0x10; // ELITE, CROSS
+		return 16; // ELITE, CROSS
 	}
 
 

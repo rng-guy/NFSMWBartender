@@ -72,7 +72,7 @@ namespace AdvancedFeatures
 
 	private: // methods
 
-		[[nodiscard]] static CopLabel& GetCopLabelOfVehicle(const address copVehicle)
+		[[nodiscard]] static CopLabel& GetCopLabel(const address copVehicle)
 		{
 			static_assert(sizeof(CopLabel) == 1, "Label-size mismatch");
 
@@ -81,7 +81,7 @@ namespace AdvancedFeatures
 		}
 
 
-		static bool SetCopLabelOfVehicle
+		static bool SetCopLabel
 		(
 			const address  copVehicle, 
 			const CopLabel copLabel
@@ -90,10 +90,10 @@ namespace AdvancedFeatures
 
 			static_assert(defaultLabel == CopLabel::UNKNOWN, "Label-value mismatch");
 
-			CopLabel& label = PursuitObserver::GetCopLabelOfVehicle(copVehicle);
+			CopLabel& label = PursuitObserver::GetCopLabel(copVehicle);
 			if ((label == defaultLabel) == (copLabel == defaultLabel)) return false;
 
-			label = copLabel; // either side is default label
+			label = copLabel; // either side of assignment is default label
 
 			return true;
 		}
@@ -177,12 +177,6 @@ namespace AdvancedFeatures
 		}
 
 
-		[[nodiscard]] address GetPursuit() const
-		{
-			return this->pursuit;
-		}
-
-
 		static void __stdcall ProcessAddedVehicle
 		(
 			const address pursuit,
@@ -194,15 +188,14 @@ namespace AdvancedFeatures
 
 			const CopLabel newLabel = observer->InferCopLabel(caller);
 
-			if (not PursuitObserver::SetCopLabelOfVehicle(copVehicle, newLabel))
+			if (not PursuitObserver::SetCopLabel(copVehicle, newLabel))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, '=', copVehicle, newLabel, "is already", PursuitObserver::GetCopLabelOfVehicle(copVehicle));
+					Globals::LogWarning(logTag, '=', copVehicle, newLabel, "is already", PursuitObserver::GetCopLabel(copVehicle));
 
 				ASSERT_UNREACHABLE_THEN(return);
 			}
 
-			// Process new vehicle
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(pursuit, logTag, '+', copVehicle, newLabel, Globals::GetVehicleName(copVehicle));
 
@@ -219,9 +212,9 @@ namespace AdvancedFeatures
 			auto* const observer = PursuitObserver::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(observer, return);
 
-			const CopLabel oldLabel = PursuitObserver::GetCopLabelOfVehicle(copVehicle);
+			const CopLabel oldLabel = PursuitObserver::GetCopLabel(copVehicle);
 
-			if (not PursuitObserver::SetCopLabelOfVehicle(copVehicle, CopLabel::UNKNOWN))
+			if (not PursuitObserver::SetCopLabel(copVehicle, CopLabel::UNKNOWN))
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogWarning(logTag, "Unknown vehicle", copVehicle, Globals::GetVehicleName(copVehicle), "in", pursuit);
@@ -229,12 +222,17 @@ namespace AdvancedFeatures
 				ASSERT_UNREACHABLE_THEN(return);
 			}
 
-			// Process known vehicle
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogFull(pursuit, logTag, '-', copVehicle, oldLabel, Globals::GetVehicleName(copVehicle));
 
 			for (auto* const reaction : observer->reactions)
 				reaction->ReactToRemovedVehicle(copVehicle, oldLabel);
+		}
+
+
+		[[nodiscard]] address GetPursuit() const
+		{
+			return this->pursuit;
 		}
 	};
 

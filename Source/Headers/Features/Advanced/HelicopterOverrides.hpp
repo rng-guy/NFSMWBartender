@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/HeatParameters.hpp"
@@ -70,14 +72,15 @@ namespace HelicopterOverrides
 		
 		bool isPlayerPursuit = false;
 
-		Status helicopterStatus = Status::PENDING;
+		Status spawnStatus = Status::PENDING;
 
 		PursuitFeatures::IntervalTimer spawnTimer;
 
 		bool& maySpawnToSearch = AsReference<bool>(this->pursuit + 0xD4);
 
-		inline static constinit bool isFuelLimited     = false;
-		inline static constinit bool mayCallOutBailout = false;
+		inline static constinit bool isFuelLimited = false;
+
+		inline static constinit std::optional<int> bailoutReason;
 
 
 	private: // methods
@@ -120,8 +123,7 @@ namespace HelicopterOverrides
 		{
 			this->maySpawnToSearch = false;
 
-			this->isFuelLimited     = fuelTime.isEnabled.current;
-			this->mayCallOutBailout = false;
+			this->isFuelLimited = fuelTime.isEnabled.current;
 
 			if (this->isFuelLimited)
 				this->SetFuelTime(fuelTime.interval.GetRandomValue());
@@ -154,14 +156,14 @@ namespace HelicopterOverrides
 				CallOutSweep(helicopterActor); // requests radio callout for search
 		}
 
-		
+
 		void UpdateSpawnTimer()
 		{
 			if (not this->isPlayerPursuit) return;
 
 			Globals::LogLiteral spawnName;
 
-			switch (this->helicopterStatus)
+			switch (this->spawnStatus)
 			{
 			case Status::PENDING:
 				spawnName = "First spawn";
@@ -184,7 +186,7 @@ namespace HelicopterOverrides
 				break;
 
 			default:
-				return; // ACTIVE, REJOINING
+				return; // ACTIVE
 			}
 
 			this->spawnTimer.SetStartTimestampIfNone();
@@ -196,11 +198,43 @@ namespace HelicopterOverrides
 				this->spawnTimer.Log(spawnName);
 			}
 		}
+		
+
+		void UpdateBailoutReason() const
+		{
+			if (not this->isPlayerPursuit) return;
+
+			switch (this->spawnStatus)
+			{
+			case Status::EXPIRED:
+				this->bailoutReason = 4; // fuel
+				return;
+
+			case Status::WRECKED:
+				this->bailoutReason = 8; // damage
+				return;
+
+			case Status::LOST:
+				this->bailoutReason = 1; // flight conditions
+				return;
+			}
+
+			this->bailoutReason.reset();
+		}
 
 
 	public: // methods
 
 		explicit HelicopterManager(const address pursuit) : PursuitFeatures::Reaction(pursuit) {}
+
+
+		~HelicopterManager() override
+		{
+			if (not this->isPlayerPursuit) return;
+
+			this->isFuelLimited = false;
+			this->bailoutReason.reset();
+		}
 
 
 		void ReactToHeatStateUpdate() override 
@@ -229,8 +263,10 @@ namespace HelicopterOverrides
 
 			this->ProcessNewHelicopter(copVehicle);
 			
-			this->helicopterStatus = Status::ACTIVE;
-			this->UpdateSpawnTimer();
+			this->spawnStatus = Status::ACTIVE;
+
+			this->UpdateBailoutReason();
+			this->UpdateSpawnTimer   ();
 		}
 
 
@@ -254,10 +290,10 @@ namespace HelicopterOverrides
 			}
 			else newStatus = Status::WRECKED; 
 
-			this->mayCallOutBailout = true;
+			this->spawnStatus = newStatus;
 
-			this->helicopterStatus = newStatus;
-			this->UpdateSpawnTimer();
+			this->UpdateBailoutReason();
+			this->UpdateSpawnTimer   ();
 		}
 
 
@@ -290,13 +326,13 @@ namespace HelicopterOverrides
 		}
 
 
-		[[nodiscard]] static bool __cdecl YieldMayCallOutBailout()
+		[[nodiscard]] static int __cdecl YieldBailoutReason()
 		{
-			const bool mayCallOutBailout = HelicopterManager::mayCallOutBailout;
+			const int bailoutReason = HelicopterManager::bailoutReason.value_or(0);
 
-			HelicopterManager::mayCallOutBailout = false;
+			HelicopterManager::bailoutReason.reset();
 
-			return mayCallOutBailout;
+			return bailoutReason;
 		}
 	};
 
@@ -495,21 +531,21 @@ namespace HelicopterOverrides
 
 
 	
-	// Calls out the helicopter's despawn reason
-	ASSEMBLY_DETOUR(BailoutCallout, 0x70A14C, 0x70A156)
+	// Calls out the helicopter's bailout reason
+	ASSEMBLY_DETOUR(BailoutCallout, 0x717C0D, 0x717C12)
 	{
+		static constexpr address skipExit = 0x717C30;
+
 		__asm
 		{
-			call HelicopterManager::YieldMayCallOutBailout
-			test al, al
-			je conclusion // may not call out reason
+			call HelicopterManager::YieldBailoutReason
+			test eax, eax
+			je skip // skip callout
 
-			mov eax, dword ptr [esi]
-			mov ecx, esi
-			call dword ptr [eax + 0x104]
-
-			conclusion:
 			EXIT_ASSEMBLY_DETOUR(BailoutCallout)
+
+			skip:
+			jmp dword ptr [skipExit]
 		}
 	}
 

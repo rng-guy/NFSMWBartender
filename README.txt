@@ -161,7 +161,8 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how likely each roadblock setup is to spawn horizontally mirrored instead, and
  • which active non-chasing cops the engagement count above the pursuit board also tracks.
 
-The "Advanced" feature set ALWAYS FIXES SEVENTEEN BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES EIGHTEEN BUGS / ISSUES automatically:
+ • the helicopter reports more consistent reasons whenever it bails,
  • chasing cops that exceed their type-specific count no longer flee,
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
  • cops in roadblocks can no longer prevent chasing cops from spawning,
