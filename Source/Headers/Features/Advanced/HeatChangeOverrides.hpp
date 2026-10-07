@@ -263,7 +263,7 @@ namespace HeatChangeOverrides
 		const size_t currentHeatLevel = static_cast<size_t>(AsReference<float>(heatMeter + 0x40));
 		const bool   isNewHeatLevel   = (currentHeatLevel != lastAnimatedHeatLevel);
 
-		lastAnimatedHeatLevel = currentHeatLevel; // update regardless of actual animation
+		lastAnimatedHeatLevel = currentHeatLevel; // update regardless of animation
 
 		if (timestamp < animationEndTimestamp) return; // animation still active
 
@@ -485,13 +485,17 @@ namespace HeatChangeOverrides
 
 		HeatParameters::Extract(parser, "Heat:Property", propertyToHeat);
 
-		for (const bool forRaces : {false, true})
+		for (const bool forRaces : HeatParameters::heatRaceFlags)
 		{
 			const auto& damageArray = propertyToHeat    .GetHeatLevelArray(forRaces);
 			auto&       changeArray = propertyHeatChange.GetHeatLevelArray(forRaces);
 
 			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
-				if (damageArray[heatLevelID] != 0) changeArray[heatLevelID] = 1.f / static_cast<float>(damageArray[heatLevelID]);
+			{
+				const int damage = damageArray[heatLevelID];
+
+				changeArray[heatLevelID] = (damage != 0) ? (1.f / static_cast<float>(damage)) : 0.f;
+			}
 		}
 	}
 

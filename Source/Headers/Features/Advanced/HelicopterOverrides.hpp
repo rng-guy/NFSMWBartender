@@ -233,6 +233,7 @@ namespace HelicopterOverrides
 			if (not this->isPlayerPursuit) return;
 
 			this->isFuelLimited = false;
+
 			this->bailoutReason.reset();
 		}
 

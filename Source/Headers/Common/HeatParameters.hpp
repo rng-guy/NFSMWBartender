@@ -25,8 +25,9 @@ namespace HeatParameters
 	constexpr size_t maxHeatLevel = 10;
 	constexpr float  maxHeat      = static_cast<float>(maxHeatLevel);
 
-	// Heat-level indices
-	constexpr auto heatLevelIDs = std::views::iota(size_t(0), maxHeatLevel);
+	// Iteration helpers
+	constexpr std::array heatRaceFlags = {false, true}; // yes, we're THAT lazy here
+	constexpr auto       heatLevelIDs  = std::views::iota(size_t(0), maxHeatLevel);
 
 	// Types and aliases
 	template <typename T>
@@ -218,7 +219,7 @@ namespace HeatParameters
 		{
 			T minimum = std::numeric_limits<T>::max();
 
-			for (const bool forRaces : {false, true})
+			for (const bool forRaces : heatRaceFlags)
 			{
 				for (const T levelValue : this->GetHeatLevelArray(forRaces))
 					minimum = std::min<T>(minimum, levelValue);
@@ -233,7 +234,7 @@ namespace HeatParameters
 		{
 			T maximum = std::numeric_limits<T>::lowest(); // in case of floats
 
-			for (const bool forRaces : {false, true})
+			for (const bool forRaces : heatRaceFlags)
 			{
 				for (const T levelValue : this->GetHeatLevelArray(forRaces))
 					maximum = std::max<T>(maximum, levelValue);
@@ -246,7 +247,7 @@ namespace HeatParameters
 		[[nodiscard]] bool AnyTrue() const 
 		requires Details::IsPureBoolean<T>
 		{
-			for (const bool forRaces : {false, true})
+			for (const bool forRaces : heatRaceFlags)
 			{
 				for (const bool levelFlag : this->GetHeatLevelArray(forRaces))
 				{
@@ -261,7 +262,7 @@ namespace HeatParameters
 		[[nodiscard]] bool AllTrue() const 
 		requires Details::IsPureBoolean<T>
 		{
-			for (const bool forRaces : {false, true})
+			for (const bool forRaces : heatRaceFlags)
 			{
 				for (const bool levelFlag : this->GetHeatLevelArray(forRaces))
 				{
@@ -616,7 +617,7 @@ namespace HeatParameters
 
 		Globals::vehicleNames.MakeIntern(vehicleValue.current); // vanilla value
 
-		for (const bool forRaces : {false, true})
+		for (const bool forRaces : heatRaceFlags)
 		{
 			auto& array = vehicleValue.GetHeatLevelArray(forRaces);
 
@@ -778,7 +779,7 @@ namespace HeatParameters
 		template <typename T>
 		void OrderIntervalValues(Interval<T>& interval) 
 		{
-			for (const bool forRaces : {false, true})
+			for (const bool forRaces : heatRaceFlags)
 			{
 				auto&       minArray = interval.min.GetHeatLevelArray(forRaces);
 				const auto& maxArray = interval.max.GetHeatLevelArray(forRaces);
@@ -820,7 +821,7 @@ namespace HeatParameters
 		const ConfigParser::Parser::Section* const    section,
 		HeatParameters&                            ...parameters
 	) {
-		for (const bool forRaces : {false, true})
+		for (const bool forRaces : heatRaceFlags)
 		{
 			// Extract arrays for free-roam / race Heat-levels separately
 			const auto ExtractArrays = [forRaces, section](auto&& ...fields) -> HeatLevelArray<bool>

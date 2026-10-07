@@ -350,13 +350,18 @@ Regarding the "Advanced" feature set AS A WHOLE:
 
  • To disable this entire feature set and its fixes, delete all of its configuration files.
 
- • Bartender disables this feature set if any free-roam "Chasers" spawn table has no valid cars.
+ • If any "Chasers" spawn table has no valid car(s), Bartender disables this feature set.
 
  • If enabled, this feature set applies all of its automatic fixes.
 
  • Rarely, the engagement count above the pursuit board may appear to be inaccurate compared
    to how many cops are actually around you at a given moment. That's because, by default,
    Bartender's fix makes the engagement count track "Chasers" only, disregarding others.
+
+ • Rarely, the helicopter may still report an incorrect reason for bailing the pursuit.
+   This is a vanilla issue likely caused by either caching quirks of the game's speech
+   manager or re-assignment of the helicopter's radio actor to a regular cop vehicle.
+   Similarly, it's also possible to trigger more than one report per actual bailout.
 
  • If enabled, this feature set overrides three VltEd parameters:
    the "cops" array, "HeliFuelTime", and "TimeBetweenHeliActive".
@@ -368,7 +373,8 @@ Regarding COP SPAWN TABLES ("BartenderSettings/Advanced/CarTables.ini"):
  • Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) 
    in place of all free-roam "Roadblocks", "Scripted", and "Patrols" spawn tables you leave empty.
 
- • Bartender uses the free-roam spawn tables in place of all race spawn tables you leave empty.
+ • Bartender uses the race "Chasers" spawn tables (which must contain at least one vehicle) 
+   in place of all race "Roadblocks", "Scripted", and "Patrols" spawn tables you leave empty.
 
  • Bartender ignores vehicles that are helicopters or don't exist in VltEd.
 
@@ -380,11 +386,11 @@ Regarding COP SPAWN TABLES ("BartenderSettings/Advanced/CarTables.ini"):
  • Bartender sets all "count" and "chance" values that are < 1 to 1 instead.
 
  • Bartender enforces the "count" values for "Chasers" for each active pursuit separately.
-   For "Roadblocks" / "Scripted", Bartender enforces "count" values for each roadblock / script.
+   For "Roadblocks" / "Scripted", Bartender enforces "count" values for each roadblock / event.
    "Patrols" have their "count" values enforced globally instead, as they lack a pursuit.
 
- • Once they join a given pursuit, "Scripted" and "Patrols" spawns also count as "Chasers" as
-   far as membership (i.e. fleeing decisions) and the "count" values of "Chasers" are concerned.
+ • Once they join a pursuit, "Scripted" and "Patrols" spawns also count as "Chasers" as far
+   as membership (i.e. fleeing decisions) and the "count" values of "Chasers" are concerned.
 
  • The "Roadblocks" spawn tables don't apply to HeavyStrategy 4 roadblocks.
 
@@ -400,10 +406,14 @@ Regarding COP SPAWN TABLES ("BartenderSettings/Advanced/CarTables.ini"):
    processes a roadblock request, causing it to place the wrong car in the requested roadblock.
    Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
 
+ • Rarely, individual cop vehicles may spawn without hitboxes. This is a vanilla issue
+   caused by the game's vehicle manager, which Bartender doesn't touch and cannot fix.
+   This issue is most likely to occur whenever many different vehicles are active.
+
  • To be precise, the "Scripted" spawn tables apply to LUA scripts that force cops to spawn;
    examples are pre-generated cops in Challenge Series pursuits and patrols in prologue races.
 
- • You shouldn't use fast Heat transitions ("0x80deb840" VltEd parameter set to < 5 seconds),
+ • You shouldn't use fast Heat transitions ("0x80deb840" VltEd parameter set to < 2 seconds),
    else you might see a mix of cops from more than one "Scripted" spawn table appear in events
    with pre-generated cops. This happens because, depending on your loading times, the game
    might update the Heat level as it requests those spawns. You can also avoid this issue by

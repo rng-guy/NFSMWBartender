@@ -322,7 +322,7 @@ namespace CopSpawnTables
 		std::vector<int>         maxCounts;
 		std::vector<int>         chances;
 
-		for (const bool forRaces : {false, true})
+		for (const bool forRaces : HeatParameters::heatRaceFlags)
 		{
 			auto& tableArray = tableObject.GetHeatLevelArray(forRaces);
 
@@ -333,7 +333,7 @@ namespace CopSpawnTables
 				const size_t numEntries  = parser.ExtractVectors<const char*, int, int>(sectionName, copNames, {maxCounts, {1}}, {chances, {1}});
 
 				// Attempt to add new entries
-				bool theseEntriesValid = true;
+				bool allNewEntriesValid = true;
 
 				SpawnTable& levelTable = tableArray[heatLevelID];
 
@@ -343,22 +343,22 @@ namespace CopSpawnTables
 
 					if constexpr (Globals::loggingEnabled)
 					{
-						if (theseEntriesValid)
+						if (allNewEntriesValid)
 							Globals::LogPlain(tableName, Globals::LogDec(heatLevelID + 1), (forRaces) ? "(race)" : "(roam)");
 
 						Globals::LogDetail('-', copNames[entryID], maxCounts[entryID], chances[entryID]);
 					}
 
-					theseEntriesValid = false;
+					allNewEntriesValid = false;
 				}
 
 				if constexpr (Globals::loggingEnabled)
 				{
-					if (not theseEntriesValid)
+					if (not allNewEntriesValid)
 						Globals::LogDetail(Globals::LogDec(levelTable.GetNumTypes()), "type(s) left");
 				}
 
-				allEntriesValid &= theseEntriesValid;
+				allEntriesValid &= allNewEntriesValid;
 			}
 		}
 
@@ -369,40 +369,50 @@ namespace CopSpawnTables
 
 	bool ExtractSpawnTablePointers(const ConfigParser::Parser& parser)
 	{
-		// All free-roam "Chasers" tables must be non-empty to serve as fallbacks
-		bool allTableEntriesValid = ExtractTableObject(parser, "Chasers", chasersTable);
+		// All "Chasers" tables must be non-empty to serve as fallbacks
+		bool allEntriesValid = ExtractTableObject(parser, "Chasers", chasersTable);
 
-		for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
+		for (const bool forRaces : HeatParameters::heatRaceFlags)
 		{
-			if (not chasersTable.roam[heatLevelID].IsEmpty()) continue;
+			const auto& tables = chasersTable.GetHeatLevelArray(forRaces);
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogPlain("No Chasers for Heat level", Globals::LogDec(heatLevelID + 1));
+			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
+			{
+				if (not tables[heatLevelID].IsEmpty()) continue;
 
-			return false; // empty free-roam "Chasers" table
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogPlain("No chasers for Heat level", Globals::LogDec(heatLevelID + 1), (forRaces) ? "(race)" : "(roam)");
+
+				return false; // missing "Chasers"
+			}
 		}
 		
 		// Extract non-"Chasers" tables (may be empty)
-		allTableEntriesValid &= ExtractTableObject(parser, "Patrols",    patrolsTable);
-		allTableEntriesValid &= ExtractTableObject(parser, "Scripted",   scriptedTable);
-		allTableEntriesValid &= ExtractTableObject(parser, "Roadblocks", roadblockTable);
+		allEntriesValid &= ExtractTableObject(parser, "Patrols",    patrolsTable);
+		allEntriesValid &= ExtractTableObject(parser, "Scripted",   scriptedTable);
+		allEntriesValid &= ExtractTableObject(parser, "Roadblocks", roadblockTable);
 
 		if constexpr (Globals::loggingEnabled)
 		{
-			if (allTableEntriesValid)
+			if (allEntriesValid)
 				Globals::LogPlain("All vehicles valid");
 		}
 
-		// Replace all (now-)empty spawn tables
-		for (auto* const tableObject : {&chasersTable, &patrolsTable, &scriptedTable, &roadblockTable})
+		// Replace all (now-)empty non-"Chasers" spawn tables
+		for (auto* const tableObject : {&patrolsTable, &scriptedTable, &roadblockTable})
 		{
-			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
+			for (const bool forRaces : HeatParameters::heatRaceFlags)
 			{
-				auto& roam = tableObject->roam[heatLevelID];
-				auto& race = tableObject->race[heatLevelID];
+				auto&       tables    = tableObject->GetHeatLevelArray(forRaces);
+				const auto& fallbacks = chasersTable.GetHeatLevelArray(forRaces);
 
-				if (roam.IsEmpty()) roam = chasersTable.roam[heatLevelID];
-				if (race.IsEmpty()) race = roam;
+				for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
+				{
+					auto& table = tables[heatLevelID];
+					if (not table.IsEmpty()) continue;
+
+					table = fallbacks[heatLevelID];
+				}
 			}
 		}
 
