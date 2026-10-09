@@ -31,7 +31,7 @@ namespace GameBreaker
 	constinit         ParameterSets::ChangeFilter    breakerChangeFilter;
 
 	// Assembly detours
-	float pendingCollisionBreakerChange = 0.f;
+	float pendingCollisionBreakerChange = 0.f; // seconds
 
 
 

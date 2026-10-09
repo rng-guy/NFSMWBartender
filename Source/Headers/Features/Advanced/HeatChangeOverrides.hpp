@@ -105,7 +105,7 @@ namespace HeatChangeOverrides
 	{
 	private: // members
 
-		float pendingHeatChange = 0.f;
+		float pendingHeatChange = 0.f; // levels
 
 		std::array<CountTracker, 6> countTrackers =
 		{
@@ -130,7 +130,7 @@ namespace HeatChangeOverrides
 
 		void ProcessTrackerYields()
 		{
-			float totalHeatChange = 0.f;
+			float totalHeatChange = 0.f; // levels
 
 			for (CountTracker& tracker : this->countTrackers)
 				totalHeatChange += tracker.YieldHeatChange();
@@ -164,8 +164,7 @@ namespace HeatChangeOverrides
 			auto* const manager = HeatManager::FindInstanceByPerp(perpVehicle);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
-			const float heatChange = heatInteractions.GetTaggingChange(copVehicle);
-			manager->AddToPendingHeatChange(heatChange);
+			manager->AddToPendingHeatChange(heatInteractions.GetTaggingChange(copVehicle));
 		}
 
 
@@ -178,21 +177,19 @@ namespace HeatChangeOverrides
 			auto* const manager = HeatManager::FindInstanceByPerp(perpVehicle);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
-			const float heatChange = heatInteractions.GetAssaultChange(copVehicle, numCopAssaulted);
-			manager->AddToPendingHeatChange(heatChange);
+			manager->AddToPendingHeatChange(heatInteractions.GetAssaultChange(copVehicle, numCopAssaulted));
 		}
 
 
 		static void __fastcall ProcessPropertyDamage
 		(
 			const address pursuit,
-			const int     damageAmount
+			const int     damage
 		) {
 			auto* const manager = HeatManager::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
-			const float heatChange = static_cast<float>(damageAmount) * propertyHeatChange.current;
-			manager->AddToPendingHeatChange(heatChange);
+			manager->AddToPendingHeatChange(static_cast<float>(damage) * propertyHeatChange.current);
 		}
 
 
@@ -204,8 +201,7 @@ namespace HeatChangeOverrides
 			auto* const manager = HeatManager::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
-			const float heatChange = heatInteractions.GetWreckingChange(copVehicle);
-			manager->AddToPendingHeatChange(heatChange);
+			manager->AddToPendingHeatChange(heatInteractions.GetWreckingChange(copVehicle));
 		}
 
 
@@ -238,7 +234,7 @@ namespace HeatChangeOverrides
 
 	[[nodiscard]] bool __cdecl IsCareerEvent()
 	{
-		return (Globals::raceStatus and (AsReference<int>(Globals::raceStatus + 0x1964) == 2)); // Career context
+		return (Globals::raceStatus and (AsReference<int>(Globals::raceStatus + 0x1964) == 2)); // race context
 	}
 
 
@@ -335,7 +331,7 @@ namespace HeatChangeOverrides
 
 
 
-	// Adds pending Heat changes to racer-Heat updates
+	// Updates the pursuit target's Heat value
 	ASSEMBLY_DETOUR(PassiveHeat, 0x443D4A, 0x443D50)
 	{
 		__asm
@@ -357,7 +353,7 @@ namespace HeatChangeOverrides
 
 
 
-	// Increments the "spikes deployed" counter correctly
+	// Increments the "spikes deployed" counter
 	ASSEMBLY_DETOUR(SpikeCounter, 0x43E654, 0x43E663)
 	{
 		__asm
@@ -398,7 +394,7 @@ namespace HeatChangeOverrides
 
 
 
-	// Notifies HeatManager of incurred property damage
+	// Processes incoming generic property damage
 	ASSEMBLY_DETOUR(PropertyDamage, 0x40945A, 0x409461)
 	{
 		__asm
@@ -407,7 +403,7 @@ namespace HeatChangeOverrides
 
 			mov ecx, esi
 			mov edx, dword ptr [esp + 0x14]
-			call HeatManager::ProcessPropertyDamage // ecx: pursuit; edx: damageAmount
+			call HeatManager::ProcessPropertyDamage // ecx: pursuit; edx: damage
 
 			pop edx
 
@@ -420,7 +416,7 @@ namespace HeatChangeOverrides
 
 
 
-	// Adjusts the Heat-escalation scale in Challenge Series events
+	// Fetches the current Heat-escalation scale
 	ASSEMBLY_DETOUR(ChallengeScale, 0x443D7B, 0x443D84)
 	{
 		static constexpr address challengeExit = 0x443DAD;

@@ -29,7 +29,7 @@ namespace NitrousCharge
 	constinit         ParameterSets::ChangeFilter    nitrousChangeFilter;
 
 	// Assembly detours
-	float pendingCollisionNitrousChange = 0.f;
+	float pendingCollisionNitrousChange = 0.f; // seconds
 
 
 
