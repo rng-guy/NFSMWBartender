@@ -367,6 +367,8 @@ Regarding **car (de)spawning** ([`BartenderSettings/Advanced/CarSpawns.ini`](../
 
 * If you want to use global cop-spawn limits > 8 and / or make "Chasers" / traffic spawns independent of other vehicles, you may also [need a mod](../README.md#5---which-mods-does-bartender-depend-on) that replaces the game's car loader. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
 
+* The additional "Chasers" spawn restriction for non-player pursuits only applies at Heat levels for which you define a valid limit value. The global cop-spawn limit still applies regardless.
+
 * If you enable independent "Chasers" spawns, then Bartender applies the global cop-spawn limit to each pursuit separately instead of globally. With this, the limit only counts and affects spawning decisions for "Chasers"; other vehicles (e.g. roadblocks) can no longer block them.
 
 * Location restrictions only applies at Heat levels for which you define valid distance values.

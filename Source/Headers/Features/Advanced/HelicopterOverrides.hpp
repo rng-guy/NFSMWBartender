@@ -85,15 +85,6 @@ namespace HelicopterOverrides
 
 	private: // methods
 
-		void CheckForPlayerPursuit()
-		{
-			this->isPlayerPursuit = Globals::IsPlayerPursuit(this->pursuit);
-
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogFull(this->pursuit, logTag, (this->isPlayerPursuit) ? "Is" : "Not", "player pursuit");
-		}
-
-
 		[[nodiscard]] static float* GetFuelTime()
 		{ 
 			return (Globals::helicopter) ? AsPointer<float>(Globals::helicopter + 0x7D8) : nullptr;
@@ -246,8 +237,9 @@ namespace HelicopterOverrides
 
 		void ReactToPursuitStartWithDelay() override
 		{
-			this->CheckForPlayerPursuit();
-			this->UpdateSpawnTimer     ();
+			this->isPlayerPursuit = Globals::IsPlayerPursuit(this->pursuit);
+			
+			this->UpdateSpawnTimer();
 		}
 
 

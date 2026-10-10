@@ -1,6 +1,7 @@
 #pragma once
 
 #include <span>
+#include <algorithm>
 #include <string_view>
 
 #include "../../Common/Globals.hpp"
@@ -33,7 +34,9 @@ namespace CopSpawnOverrides
 	bool trackRoadblockVehicles = false;
 
 	// Heat parameters
-	constinit HEAT_PARAMETER_INTERVAL(int, activeChaserLimit, 1, 8, {0}); // cars
+	constinit HEAT_PARAMETER_INTERVAL(int, baseChasersLimit, 1, 8, {0}); // cars
+
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, rivalChasersLimit, {0}); // cars
 
 	constinit HEAT_PARAMETER_VALUE(bool, chasersAreIndependent, false);
 
@@ -309,6 +312,8 @@ namespace CopSpawnOverrides
 	{
 	private: // members
 
+		bool isPlayerPursuit = false;
+
 		bool waveParametersKnown = false;
 
 		int maxNumPatrolCars           = 0; // cars
@@ -393,6 +398,17 @@ namespace CopSpawnOverrides
 		}
 
 
+		[[nodiscard]] int GetMaxNumActiveChasers() const
+		{
+			const int baseLimit = baseChasersLimit.max.current;
+
+			if (this->isPlayerPursuit)                   return baseLimit;
+			if (not rivalChasersLimit.isEnabled.current) return baseLimit;
+
+			return std::min<int>(rivalChasersLimit.value.current, baseLimit);
+		}
+
+
 		[[nodiscard]] int GetNumRoadblockVehicles() const
 		{
 			if (not this->roadblock) return 0;
@@ -431,21 +447,31 @@ namespace CopSpawnOverrides
 		}
 
 
+		[[nodiscard]] int GetChasersCapacity() const
+		{
+			const int maxNumActiveChasers = this->GetMaxNumActiveChasers();
+
+			if (chasersAreIndependent.current)
+				return maxNumActiveChasers - this->chaserSpawns.GetNumTotalActiveCops();
+
+			return maxNumActiveChasers - this->GetGlobalNumNonRoadblockVehicles();
+		}
+
+
 		[[nodiscard]] bool MayNewChaserSpawn() const
 		{
-			if (this->isPerpBusted)           return false;
-			if (this->bailingPursuit)         return false;
-			if (this->copSpawnCooldown > 0.f) return false;
+			if (this->isPerpBusted)            return false;
+			if (this->bailingPursuit)          return false;
+			if (this->copSpawnCooldown >= 0.f) return false;
 
 			if (not this->chaserSpawns.IsAnyCopAvailable()) return false;
+			if (this->GetChasersCapacity() <= 0)            return false;
 
-			const int numActiveChasers  = this->chaserSpawns.GetNumTotalActiveCops();
-			const int numActiveVehicles = (chasersAreIndependent.current) ? numActiveChasers : this->GetGlobalNumNonRoadblockVehicles();
+			const int numActiveChasers = this->chaserSpawns.GetNumTotalActiveCops();
 
-			if (numActiveVehicles >= activeChaserLimit.max.current) return false; // (global) cop-spawn limit reached
-			if (Globals::Pursuit::IsSearching(this->pursuit))       return (numActiveChasers < this->maxNumPatrolCars);
+			if (Globals::Pursuit::IsSearching(this->pursuit)) return (numActiveChasers < this->maxNumPatrolCars);
 
-			return ((numActiveChasers < activeChaserLimit.min.current) or (this->GetWaveCapacity() > 0));
+			return ((numActiveChasers < baseChasersLimit.min.current) or (this->GetWaveCapacity() > 0));
 		}
 
 
@@ -478,6 +504,14 @@ namespace CopSpawnOverrides
 			ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
 
 			return AsReference<bool>(copAIVehiclePursuit + 0x22);
+		}
+
+
+		[[nodiscard]] bool HasReachedRoadblockJoinLimit() const
+		{
+			if (not roadblockJoinLimit.isEnabled.current) return false;
+
+			return (this->numJoinedRoadblockVehicles >= roadblockJoinLimit.value.current);
 		}
 
 
@@ -594,6 +628,12 @@ namespace CopSpawnOverrides
 		}
 
 
+		void ReactToPursuitStartWithDelay() override
+		{
+			this->isPlayerPursuit = Globals::IsPlayerPursuit(this->pursuit);
+		}
+
+
 		void ReactToHeatStateUpdateWithDelay() override
 		{
 			this->UpdateNumPatrolCars();
@@ -665,9 +705,9 @@ namespace CopSpawnOverrides
 			const auto* const manager = ChasersManager::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return false);
 
-			if (roadblockJoinLimit.isEnabled.current and (manager->numJoinedRoadblockVehicles >= roadblockJoinLimit.value.current)) return false;
+			if (manager->HasReachedRoadblockJoinLimit()) return false;
 
-			return (chasersAreIndependent.current or (ChasersManager::GetGlobalNumNonRoadblockVehicles() < activeChaserLimit.max.current));
+			return (chasersAreIndependent.current or (manager->GetChasersCapacity() > 0));
 		}
 
 
@@ -1261,7 +1301,9 @@ namespace CopSpawnOverrides
 		ExtractTrackingSettings(parser);
 
 		// Heat parameters (first file)
-		HeatParameters::Extract(parser, "Chasers:Limits", activeChaserLimit);
+		HeatParameters::Extract(parser, "Chasers:Limits", baseChasersLimit);
+
+		HeatParameters::Extract(parser, "Chasers:Rivals", rivalChasersLimit);
 
 		HeatParameters::Extract(parser, "Chasers:Independence", chasersAreIndependent);
 
@@ -1336,7 +1378,9 @@ namespace CopSpawnOverrides
 		roadblockSpawns.UpdateSpawnTable();
 
 		// Heat parameters
-		activeChaserLimit.SetToHeatState(state);
+		baseChasersLimit.SetToHeatState(state);
+
+		rivalChasersLimit.SetToHeatState(state);
 
 		chasersAreIndependent.SetToHeatState(state);
 
