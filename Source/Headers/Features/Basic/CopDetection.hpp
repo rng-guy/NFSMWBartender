@@ -60,7 +60,7 @@ namespace CopDetection
 
 	public: // methods
 
-		consteval explicit ColourTracker(TimeQuery* const GetTimestamp) : GetTimestamp(GetTimestamp) {}
+		constexpr explicit ColourTracker(TimeQuery* const GetTimestamp) : GetTimestamp(GetTimestamp) {}
 
 
 		[[nodiscard]] bool __thiscall YieldShouldUpdate()

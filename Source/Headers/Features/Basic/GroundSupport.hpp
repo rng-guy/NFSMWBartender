@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <concepts>
+#include <optional>
 
 #include "../../Common/Globals.hpp"
 #include "../../Common/ConfigParser.hpp"
@@ -26,19 +27,21 @@ namespace GroundSupport
 	constinit HEAT_PARAMETER_VALUE(bool, rivalHeavyEnabled,     true);
 	constinit HEAT_PARAMETER_VALUE(bool, rivalLeaderEnabled,    true);
 
-	constinit HEAT_PARAMETER_INTERVAL(float, roadblockCooldown,      8.f,  12.f, {1.f}); // seconds
-	constinit HEAT_PARAMETER_VALUE   (float, roadblockHeavyCooldown, 15.f,       {1.f}); // seconds
+	constinit HEAT_PARAMETER_INTERVAL(float, roadblockCooldown, 8.f, 12.f, {1.f}); // seconds
 
-	constinit HEAT_PARAMETER_INTERVAL(float, roadblockSpawnDistance, 250.f, 250.f, {0.f, 400.f}); // metres
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, heavy3RoadblockCooldown, {1.f}); // seconds
+
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, heavy4RoadblockCooldown, {1.f}); // seconds
+
+	constinit HEAT_PARAMETER_INTERVAL(float, roadblockSpawnDistance, 250.f, 250.f, {50.f, 400.f}); // metres
 
 	constinit HEAT_PARAMETER_VALUE(bool, roadblockEndsFormation, true);
 
 	constinit HEAT_PARAMETER_INTERVAL(float, strategyCooldown, 10.f, 10.f, {1.f}); // seconds
 
-	constinit HEAT_PARAMETER_VALUE(float, heavy3SpeedLimit, 100.f, {0.f}); // kph
+	constinit HEAT_PARAMETER_VALUE(bool, heavy3AreBlockable, true);
 
-	constinit HEAT_PARAMETER_VALUE(bool, heavy3TriggerCooldown, true);
-	constinit HEAT_PARAMETER_VALUE(bool, heavy3AreBlockable,    true);
+	constinit HEAT_PARAMETER_VALUE(float, heavy3SpeedLimit, 100.f, {0.f}); // kph
 
 	constinit HEAT_PARAMETER_VALUE(const char*, heavy3LightVehicle, "copsuvl");
 	constinit HEAT_PARAMETER_VALUE(const char*, heavy3HeavyVehicle, "copsuv");
@@ -46,7 +49,7 @@ namespace GroundSupport
 	constinit HEAT_PARAMETER_VALUE(const char*, heavy4LightVehicle, "copsuvl");
 	constinit HEAT_PARAMETER_VALUE(const char*, heavy4HeavyVehicle, "copsuv");
 
-	constinit HEAT_PARAMETER_VALUE(const char*, leader5CrossVehicle ,"copcross");
+	constinit HEAT_PARAMETER_VALUE(const char*, leader5CrossVehicle, "copcross");
 
 	constinit HEAT_PARAMETER_VALUE(const char*, leader7CrossVehicle,  "copcross");
 	constinit HEAT_PARAMETER_VALUE(const char*, leader7Hench1Vehicle, "copsporthench");
@@ -185,6 +188,24 @@ namespace GroundSupport
 
 
 
+	[[nodiscard]] std::optional<float> GetForcedRoadblockCooldown(const address heavyStrategy)
+	{
+		const int strategyID = AsReference<int>(heavyStrategy);
+
+		switch (strategyID)
+		{
+		case 3: // ramming SUVs
+			return heavy3RoadblockCooldown.GetRandomValue();
+
+		case 4: // SUV roadblock
+			return heavy4RoadblockCooldown.GetRandomValue();
+		}
+
+		return std::nullopt;
+	}
+
+
+
 	void SetStrategy
 	(
 		const address pursuit,
@@ -203,10 +224,8 @@ namespace GroundSupport
 			return; // is LeaderStrategy
 		}
 
-		const int strategyID = AsReference<int>(strategy);
-
-		if ((strategyID != 3) or heavy3TriggerCooldown.current)
-			AsReference<float>(pursuit + 0xC8) = roadblockHeavyCooldown.current; // roadblock cooldown
+		if (const auto roadblockCooldown = GetForcedRoadblockCooldown(strategy))
+			AsReference<float>(pursuit + 0xC8) = *roadblockCooldown;
 
 		AsReference<address>(pursuit + 0x194) = strategy; // HeavyStrategy
 	}
@@ -590,37 +609,33 @@ namespace GroundSupport
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	void UpdateParameterConversions()
-	{
-		rammingSpeedLimit = heavy3SpeedLimit.current / 3.6f;
-	}
-
-
-
 	void ResolveAllVehicleNames()
 	{
 		bool allTypesValid = true;
 
-		constexpr std::array vehicleNames = 
+		constexpr std::array vehicleValues = 
 		{
-			&heavy3LightVehicle,  
-			&heavy3HeavyVehicle, 
-			&heavy4LightVehicle,  
-			&heavy4HeavyVehicle,
-			&leader5CrossVehicle,
-			&leader7CrossVehicle, 
-			&leader7Hench1Vehicle, 
-			&leader7Hench2Vehicle
+			&heavy3LightVehicle,   &heavy3HeavyVehicle, 
+			&heavy4LightVehicle,   &heavy4HeavyVehicle,
+			&leader5CrossVehicle,  &leader7CrossVehicle, 
+			&leader7Hench1Vehicle, &leader7Hench2Vehicle
 		};
 
-		for (auto* const vehicleName : vehicleNames)
-			allTypesValid &= HeatParameters::ResolveCarNames(*vehicleName);
+		for (auto* const vehicleValue : vehicleValues)
+			allTypesValid &= HeatParameters::ResolveCarNames(*vehicleValue);
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (allTypesValid)
 				Globals::LogPlain("All vehicles valid");
 		}
+	}
+
+
+
+	void UpdateParameterConversions()
+	{
+		rammingSpeedLimit = heavy3SpeedLimit.current / 3.6f;
 	}
 
 
@@ -654,7 +669,11 @@ namespace GroundSupport
 		// Heat parameters
 		HeatParameters::Extract(parser, "Support:Rivals", rivalRoadblockEnabled, rivalHeavyEnabled, rivalLeaderEnabled);
 
-		HeatParameters::Extract(parser, "Roadblocks:Cooldown", roadblockCooldown, roadblockHeavyCooldown);
+		HeatParameters::Extract(parser, "Roadblocks:Cooldown", roadblockCooldown);
+
+		HeatParameters::Extract(parser, "Roadblocks:Heavy3", heavy3RoadblockCooldown);
+
+		HeatParameters::Extract(parser, "Roadblocks:Heavy4", heavy4RoadblockCooldown);
 
 		HeatParameters::Extract(parser, "Roadblocks:Distance", roadblockSpawnDistance);
 
@@ -662,9 +681,9 @@ namespace GroundSupport
 
 		HeatParameters::Extract(parser, "Strategies:Cooldown", strategyCooldown);
 
-		HeatParameters::Extract(parser, "Heavy3:Speed", heavy3SpeedLimit);
+		HeatParameters::Extract(parser, "Heavy3:Roadblocks", heavy3AreBlockable);
 
-		HeatParameters::Extract(parser, "Heavy3:Roadblocks", heavy3TriggerCooldown, heavy3AreBlockable);
+		HeatParameters::Extract(parser, "Heavy3:Speed", heavy3SpeedLimit);
 
 		HeatParameters::Extract(parser, "Heavy3:Vehicles", heavy3LightVehicle, heavy3HeavyVehicle);
 
@@ -674,11 +693,11 @@ namespace GroundSupport
 
 		HeatParameters::Extract(parser, "Leader7:Vehicles", leader7CrossVehicle, leader7Hench1Vehicle, leader7Hench2Vehicle);
 
-		// Parameter conversions
-		UpdateParameterConversions(); // uses vanilla value(s)
-
 		// Check and make vehicle names persistent
 		ResolveAllVehicleNames();
+
+		// Parameter conversions
+		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Code modifications (geneal)
 		MemoryTools::MakeRangeNOP<0x42402A, 0x424036>(); // Cross flag = 1
@@ -724,18 +743,21 @@ namespace GroundSupport
 		rivalHeavyEnabled    .SetToHeatState(state);
 		rivalLeaderEnabled   .SetToHeatState(state);
 
-		roadblockCooldown     .SetToHeatState(state);
-		roadblockHeavyCooldown.SetToHeatState(state);
+		roadblockCooldown.SetToHeatState(state);
+		
+		heavy3RoadblockCooldown.SetToHeatState(state);
+
+		heavy4RoadblockCooldown.SetToHeatState(state);
 
 		roadblockSpawnDistance.SetToHeatState(state);
+
 		roadblockEndsFormation.SetToHeatState(state);
 
 		strategyCooldown.SetToHeatState(state);
 
-		heavy3SpeedLimit.SetToHeatState(state);
+		heavy3AreBlockable.SetToHeatState(state);
 
-		heavy3TriggerCooldown.SetToHeatState(state);
-		heavy3AreBlockable   .SetToHeatState(state);
+		heavy3SpeedLimit.SetToHeatState(state);
 
 		heavy3LightVehicle.SetToHeatState(state);
 		heavy3HeavyVehicle.SetToHeatState(state);

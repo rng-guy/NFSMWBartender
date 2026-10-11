@@ -294,12 +294,12 @@ Regarding GROUND SUPPORT ("BartenderSettings/Basic/Support.ini"):
  • When the game requests a Strategy, a fixed-length Strategy cooldown begins.
    While this cooldown is active, the game cannot make more Strategy requests.
 
- • When the game requests a HeavyStrategy, it (re)sets the roadblock cooldown to a fixed value.
-
  • Not every request results in a successful spawn of whatever the game requested.
 
- • Bartender can prevent HeavyStrategy 3 requests from resetting the roadblock cooldown.
-   Disabling this reset fixes the vanilla issue of non-Strategy roadblock requests being stalled.
+ • Successful HeavyStrategy 3 / 4 requests only force-update the roadblock cooldown
+   at Heat levels for which you define valid time values. These forced cooldown updates
+   completely ignore the remaining roadblock cooldown; because of this, HeavyStrategy 3
+   requests can potentially stall roadblock requests for significant stretches of time.
 
  • Strategy requests block each other: Whenever there's an active Strategy request, the game
    won't attempt to make more. You can change this with Bartender's "Advanced" feature set.

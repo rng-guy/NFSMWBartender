@@ -37,7 +37,7 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the maximum combo-bounty multiplier for destroying cops quickly,
 * how quickly and below what distance from the cops the red "BUSTED" bar can fill,
 * how quickly the green "EVADE" bar fills when no cops can see the pursuit target,
-* whether hiding spots make the pursuit target completely invisible to the cops,
+* whether hiding spots make the pursuit target completely undetectable to cops,
 * whether player-damaged cops are destroyed instantly if flipped over,
 * when exactly (if at all) cops are destroyed regardless of damage if flipped over,
 * when exactly (if at all) racers are reset back onto the road if flipped over,
@@ -55,8 +55,8 @@ The "Basic" feature set **lets you change** (per Heat level)
 * the internal cooldown between Heavy / LeaderStrategy requests,
 * how far away roadblocks can spawn from the pursuit target,
 * whether successful roadblock spawns cancel the current cop formation,
+* how (if at all) non-Strategy roadblock and HeavyStrategy requests interact,
 * the maximum speed of scripted ramming attempts through HeavyStrategy 3,
-* whether HeavyStrategy 3 requests interact with roadblock requests and spawns,
 * which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
 * which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4,
 * which vehicle spawns in place of Cross through LeaderStrategy 5, and

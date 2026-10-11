@@ -629,15 +629,15 @@ namespace HelicopterOverrides
 
 		HeatParameters::Extract(parser, "Helicopter:Ramming", rammingCooldown);
 
-		// Parameter conversions
-		UpdateParameterConversions(); // uses vanilla value(s)
-
 		// Check and make vehicle names persistent
 		if (HeatParameters::ResolveHelicopterNames(helicopterVehicle))
 		{
 			if constexpr (Globals::loggingEnabled)
 				Globals::LogPlain("All vehicles valid");
 		}
+
+		// Parameter conversions
+		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Code modifications
 		MemoryTools::MakeRangeNOP<0x43EBA7, 0x43EBBE>(); // helicopter spawn (first  part)

@@ -1,7 +1,7 @@
 
 ![POV: You hit the RESET button by accident.](../Thumbnail.jpg "I'm far too lazy to make another thumbnail for this.")
 
-This file contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other .asi mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](../README.md/#4---which-mods-are-incompatible-with-bartender).
+This file contains the full **technical details and limitations** of Bartender and its features, and it also mentions any incompatible features of other `.asi` mods wherever they are relevant. For a quick overview of what you may need to disable for Bartender to work, see the [README](../README.md/#4---which-mods-are-incompatible-with-bartender).
 
 &nbsp;
 
@@ -11,12 +11,12 @@ You really **only need to read this** file if
 
 &nbsp;
 
-First, if Bartender's .asi file gets **falsely flagged as a virus** by your antivirus software, you need to whitelist the file. If the flagging happens as you attempt to launch your game with Bartender installed, the .asi loader will display a pop-up window with an error message ("Error code: 225") before your antivirus likely (re)moves the .asi file.
+First, if Bartender's `.asi` file gets **falsely flagged as a virus** by your antivirus software, you need to whitelist the file. If the flagging happens as you attempt to launch your game with Bartender installed, the `.asi` loader will display a pop-up window with an error message ("Error code: 225") before your antivirus likely (re)moves the `.asi` file.
 
 &nbsp;
 
 Last, there are three **possible causes for in-game issues** you might encounter with Bartender:
-* features of other .asi mods that make changes to the same parts of the game as Bartender,
+* features of other `.asi` mods that make changes to the same parts of the game as Bartender,
 * the quirks of how Bartender reads and processes parameters in its configuration files, or
 * the actual parameter values themselves that you define in Bartender's configuration files.
 
@@ -42,6 +42,8 @@ For a detailed **version history** of Bartender, see the [plain-text version](RE
 # 1 - What's there to know about Bartender's file parsing?
 
 Bartender only recognises **Heat levels** from 1 to 10 (inclusive). If you want more Heat levels, you must edit the `maxHeatLevel` parameter in Bartender's [`HeatParameters.hpp`](../Source/Headers/Common/HeatParameters.hpp) source file and compile the mod yourself. To clone and compile Bartender, use [Microsoft Visual Studio 2022](https://visualstudio.microsoft.com/vs/older-downloads/).
+
+&nbsp;
 
 Bartender parses its configuration (`.ini`) files in **parameter groups**, indicated by `[GroupName]`. These groups each contain related parameters and give a logical structure to the configuration files. Each group allows you to define values, either in relation to Heat levels or vehicles. There are also a select few parameter groups that allow you to define standalone values.
 
@@ -263,11 +265,9 @@ Regarding **ground support** ([`BartenderSettings/Basic/Support.ini`](../Config/
 
 * When the game requests a Strategy, a fixed-length Strategy cooldown begins. While this cooldown is active, the game cannot make more Strategy requests.
 
-* When the game requests a HeavyStrategy, it (re)sets the roadblock cooldown to a fixed value.
-
 * Not every request results in a successful spawn of whatever the game requested.
 
-* Bartender can prevent HeavyStrategy 3 requests from resetting the roadblock cooldown. Disabling this reset fixes the vanilla issue of non-Strategy roadblock requests being stalled.
+* Successful HeavyStrategy 3 / 4 requests only force-update the roadblock cooldown at Heat levels for which you define valid time values. These forced cooldown updates completely ignore the remaining roadblock cooldown; because of this, HeavyStrategy 3 requests can potentially stall roadblock requests for significant stretches of time.
 
 * Strategy requests block each other: Whenever there's an active Strategy request, the game won't attempt to make more. You can change this with Bartender's "Advanced" feature set.
 

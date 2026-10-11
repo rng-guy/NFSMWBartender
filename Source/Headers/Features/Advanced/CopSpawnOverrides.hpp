@@ -551,27 +551,21 @@ namespace CopSpawnOverrides
 			case CopLabel::HEAVY:
 			case CopLabel::LEADER:
 				this->numSupportVehicles += change;
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogFull(this->pursuit, logTag, "Support vehicles:", this->numSupportVehicles);
-
 				break;
 
 			case CopLabel::ROADBLOCK:
 				this->numJoinedRoadblockVehicles += change;
-
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogFull(this->pursuit, logTag, "Roadblock vehicles:", this->numJoinedRoadblockVehicles);
 			}
 
-			if (not this->IsTrackedNonChaser(copLabel)) return;
-
-			this->numTrackedNonChasers += change;
-
-			if (this->waveParametersKnown)
+			if (this->IsTrackedNonChaser(copLabel))
 			{
-				this->fullWaveCapacity       += change;
-				this->numCopsToTriggerBackup += change;
+				this->numTrackedNonChasers += change;
+
+				if (this->waveParametersKnown)
+				{
+					this->fullWaveCapacity       += change;
+					this->numCopsToTriggerBackup += change;
+				}
 			}
 		}
 

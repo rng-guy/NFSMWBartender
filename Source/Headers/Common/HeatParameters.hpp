@@ -598,6 +598,14 @@ namespace HeatParameters
 		{
 			return this->name;
 		}
+
+
+		[[nodiscard]] std::optional<T> GetRandomValue() const
+		{
+			if (not this->isEnabled.current) return std::nullopt;
+
+			return this->interval.GetRandomValue();
+		}
 	};
 
 
