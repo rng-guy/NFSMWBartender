@@ -22,13 +22,13 @@ namespace HeatChangeOverrides
 	// Feature flag shared with (and managed by) AdvancedFeatures header
 
 	// Logging
-	constexpr Globals::LogLiteral logTag  = "[CNG]";
+	constexpr Globals::LogLiteral logTag  = "[HCH]";
 	constexpr Globals::LogLiteral logName = "HeatChangeOverrides";
 
 	// Heat parameters
 	constinit HEAT_PARAMETER_VALUE(bool, heatTimerEnabled, true);
 
-	constinit HEAT_PARAMETER_VALUE(float, challengeScale, 600.f, {0.f}); // seconds
+	constinit HEAT_PARAMETER_VALUE(float, challengeEscalation, 600.f, {0.f}); // seconds
 
 	constinit HEAT_PARAMETER_VALUE(float, chaserHeatChange,     0.f); // levels
 	constinit HEAT_PARAMETER_VALUE(float, supportHeatChange,    0.f); // levels
@@ -39,14 +39,17 @@ namespace HeatChangeOverrides
 
 	constinit HEAT_PARAMETER_VALUE(float, trafficHitHeatChange, 0.f); // levels
 
-	constinit HEAT_PARAMETER_VALUE(float, propertyHeatChange, 0.f); // levels
+	constinit HEAT_PARAMETER_VALUE(int, damageToHeatLevel, 0); // dollars
 
 	// Cop interactions
 	RELEASE_CONSTINIT ParameterSets::CopInteractions heatInteractions; // levels
 
+	// Parameter conversions
+	float damageHeatChange; // levels
+
 	// Assembly detours
 	size_t lastAnimatedHeatLevel = 0;
-	float  animationEndTimestamp = 0.f;
+	float  animationEndTimestamp = 0.f; // seconds
 
 
 
@@ -56,23 +59,29 @@ namespace HeatChangeOverrides
 
 	class CountTracker
 	{
+	private: // aliases
+
+		using ChangeValue = HeatParameters::Value<float>;
+
+
+
 	private: // members
 
 		int lastCount = 0;
 
-		const int&                         count;         // pursuit-locked (through count) and immobile
-		const HeatParameters::Value<float>& heatPerCount; // count-locked upon construction
+		const int&         count;        // pursuit-locked (through count) and immobile
+		const ChangeValue& heatPerCount; // count-locked upon construction
 
 
 	public: // methods
 
 		CountTracker
 		(
-			const address                       pursuit,
-			const ptrdiff_t                     offset,
-			const HeatParameters::Value<float>& heatPerCount
+			const address      pursuit,
+			const ptrdiff_t    countOffset,
+			const ChangeValue& heatPerCount
 		)
-			: count(AsReference<int>(pursuit + offset)), heatPerCount(heatPerCount)
+			: count(AsReference<int>(pursuit + countOffset)), heatPerCount(heatPerCount)
 		{
 		}
 
@@ -189,7 +198,7 @@ namespace HeatChangeOverrides
 			auto* const manager = HeatManager::FindInstance(pursuit);
 			ASSERT_CONDITION_THEN_IF_FALSE(manager, return);
 
-			manager->AddToPendingHeatChange(static_cast<float>(damage) * propertyHeatChange.current);
+			manager->AddToPendingHeatChange(static_cast<float>(damage) * damageHeatChange);
 		}
 
 
@@ -430,7 +439,7 @@ namespace HeatChangeOverrides
 			EXIT_ASSEMBLY_DETOUR(ChallengeScale)
 
 			challenge:
-			mov eax, offset challengeScale.current
+			mov eax, offset challengeEscalation.current
 
 			jmp dword ptr [challengeExit]
 		}
@@ -475,24 +484,9 @@ namespace HeatChangeOverrides
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	void ExtractDamageChanges(const ConfigParser::Parser& parser)
+	void UpdateParameterConversions()
 	{
-		HEAT_PARAMETER_VALUE(int, propertyToHeat, 0);
-
-		HeatParameters::Extract(parser, "Heat:Property", propertyToHeat);
-
-		for (const bool forRaces : HeatParameters::heatRaceFlags)
-		{
-			const auto& damageArray = propertyToHeat    .GetHeatLevelArray(forRaces);
-			auto&       changeArray = propertyHeatChange.GetHeatLevelArray(forRaces);
-
-			for (const size_t heatLevelID : HeatParameters::heatLevelIDs)
-			{
-				const int damage = damageArray[heatLevelID];
-
-				changeArray[heatLevelID] = (damage != 0) ? (1.f / static_cast<float>(damage)) : 0.f;
-			}
-		}
+		damageHeatChange = (damageToHeatLevel.current != 0) ? (1.f / static_cast<float>(damageToHeatLevel.current)) : 0.f;
 	}
 
 
@@ -511,7 +505,7 @@ namespace HeatChangeOverrides
 		// Heat parameters
 		HeatParameters::Extract(parser, "Heat:Time", heatTimerEnabled);
 
-		HeatParameters::Extract(parser, "Time:Challenges", challengeScale);
+		HeatParameters::Extract(parser, "Time:Challenges", challengeEscalation);
 
 		HeatParameters::Extract(parser, "Heat:Deployments", chaserHeatChange, supportHeatChange, helicopterHeatChange);
 
@@ -519,10 +513,13 @@ namespace HeatChangeOverrides
 
 		HeatParameters::Extract(parser, "Heat:Traffic", trafficHitHeatChange);
 
-		ExtractDamageChanges(parser);
+		HeatParameters::Extract(parser, "Heat:Property", damageToHeatLevel);
 
 		// Cop interactions
 		heatInteractions.Extract(parser, "Heat");
+
+		// Parameter conversions
+		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Code modifications (general)
 		MemoryTools::MakeRangeNOP<0x44306B, 0x44309F>(); // Heat limits in Challenge Series events
@@ -550,7 +547,7 @@ namespace HeatChangeOverrides
 		// Heat parameters
 		heatTimerEnabled.SetToHeatState(state);
 
-		challengeScale.SetToHeatState(state);
+		challengeEscalation.SetToHeatState(state);
 
 		chaserHeatChange    .SetToHeatState(state);
 		supportHeatChange   .SetToHeatState(state);
@@ -561,10 +558,13 @@ namespace HeatChangeOverrides
 
 		trafficHitHeatChange.SetToHeatState(state);
 
-		propertyHeatChange.SetToHeatState(state);
+		damageToHeatLevel.SetToHeatState(state);
 
 		// Cop interactions
 		heatInteractions.SetToHeatState(state);
+
+		// Parameter conversions
+		UpdateParameterConversions();
 	}
 
 
