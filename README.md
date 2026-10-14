@@ -3,13 +3,13 @@
 
 Bartender **adds new customisation options** for pursuits to *Need for Speed: Most Wanted* (2005). These new options come in two feature sets:
 * the **"Basic" feature set** lets you change many otherwise hard-coded parameters of the game, and
-* the **"Advanced" feature set** lets you change [cop-spawning behaviour and tables](https://youtu.be/4NGG1KUmBZQ) without limits.
+* the **"Advanced" feature set** lets you [change](https://youtu.be/4NGG1KUmBZQ) cop-spawning behaviour and tables without limits.
 
 &nbsp;
 
-Bartender's **default settings** match the vanilla game's, except for the bug / issue fixes. If you only care about those fixes, then you don't need to configure Bartender at all.
+Bartender's **default settings** match the vanilla game's, except for the bug / issue fixes.
 
-For **optimal customisability**, use [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) along with Bartender. Bartender doesn't replace VltEd, as Bartender's features are deliberately limited to things you can't do with VltEd alone.
+For **optimal customisability**, use [VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) along with Bartender's features.
 
 &nbsp;
 
@@ -20,6 +20,7 @@ The **sections below** address these questions in detail:
 4. [Which mods are (in)compatible with Bartender?](#4---which-mods-are-incompatible-with-bartender)
 5. [Which mods does Bartender depend on?](#5---which-mods-does-bartender-depend-on)
 6. [How may I share or bundle Bartender?](#6---how-may-i-share-or-bundle-bartender)
+7. [Who's to blame for Bartender?](#7---whos-to-blame-for-bartender)
 
 &nbsp;
 
@@ -240,9 +241,9 @@ The "Advanced" feature set **can fix six more bugs / issues**, depending on its 
 
 &nbsp;
 
-**To uninstall** Bartender, remove its files from your game's `scripts` folder. There's no need to remove the optional missing textures, as the game doesn't use them without Bartender.
+**To uninstall** Bartender, remove its files from your game's `scripts` folder.
 
-**To update** Bartender, uninstall it and repeat the installation process above. If you update from a version older than v4.00.00, replace all old configuration files.
+**To update** Bartender, uninstall it and repeat the installation process above.
 
 &nbsp;
 
@@ -254,7 +255,7 @@ The "Advanced" feature set **can fix six more bugs / issues**, depending on its 
 
 # 4 - Which mods are (in)compatible with Bartender?
 
-Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations. 
+Almost all **[VltEd](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html) and [Binary](https://github.com/SpeedReflect/Binary/releases) mods** should be fully compatible with all Bartender configurations; however, Bartender's feature sets change how the game reads / treats certain VltEd parameters.
 
 &nbsp;
 
@@ -271,7 +272,7 @@ Bartender's **"Advanced" feature set** forces the game to no longer ignore the r
 
 &nbsp;
 
-Most **other `.asi` mods** should be fully compatible with all Bartender configurations. However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
+Most **other `.asi` mods** should be fully compatible with all Bartender configurations. However, some pursuit-related `.asi` mods require manual (re)configuration for compatibility:
 * For [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, see the [section about dependencies](#5---which-mods-does-bartender-depend-on) below.
 * For [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) by xan1242, delete Bartender's `[Music:Playlist]` settings.
 * In [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) by nlgxzef, disable `EnableCopDestroyedStringHook`.
@@ -288,13 +289,13 @@ Most **other `.asi` mods** should be fully compatible with all Bartender configu
 # 5 - Which mods does Bartender depend on?
 
 Under certain conditions, Bartender **may require** a mod that replaces the game's car loader. There are two such mods: [NFSMW LimitAdjuster](https://zolika1351.pages.dev/mods/nfsmwlimitadjuster) by Zolika1351, and [OpenLimitAdjuster](https://codeberg.org/gaycoderprincess/MostWantedOpenLimitAdjuster/releases) by Chloe. You likely need one of these two mods if you configure Bartender in any of the following ways:
-* cop-vehicle spawn tables in `CarTables.ini` : You define > 3 vehicle types for any Heat level.
-* `[Chasers:Limits]` in `CarSpawns.ini`: You define a global cop-spawn limit > 8.
-* `[Chasers:Independence]` in `CarSpawns.ini`: You enable independent spawns for chasing cops.
-* `[Traffic:Independence]` in `CarSpawns.ini`: You enable independent spawns for traffic cars.
-* `[Heavy3:Count]` in `Strategies.ini`: You define a vehicle count > 2 per request.
-* `[Heavy3:Joining]` in `Strategies.ini`: You enable joining from HeavyStrategy 3.
-* `[Heavy3:Unblocking]` in `Strategies.ini`: You define any unblock delays.
+* cop-vehicle spawn tables in `CarTables.ini` : you define > 3 vehicle types for any Heat level.
+* `[Chasers:Limits]` in `CarSpawns.ini`: you define a global cop-spawn limit > 8.
+* `[Chasers:Independence]` in `CarSpawns.ini`: you enable independent spawns for chasing cops.
+* `[Traffic:Independence]` in `CarSpawns.ini`: you enable independent spawns for traffic cars.
+* `[Heavy3:Count]` in `Strategies.ini`: you define a vehicle count > 2 per request.
+* `[Heavy3:Joining]` in `Strategies.ini`: you enable joining from HeavyStrategy 3.
+* `[Heavy3:Unblocking]` in `Strategies.ini`: you define any unblock delays.
 
 &nbsp;
 
@@ -320,16 +321,29 @@ Under certain conditions, Bartender **may require** a mod that replaces the game
 
 # 6 - How may I share or bundle Bartender?
 
-You are free to bundle Bartender and its files with your own pursuit mod, **no credit required**. In the interest of code transparency, however, consider linking to [Bartender's GitHub repository](https://github.com/rng-guy/NFSMWBartender) somewhere in your mod's documentation (e.g. README).
+You're free to bundle Bartender and its files with your own mod(s); **no credit required**.
 
 &nbsp;
 
-Finally, Bartender wouldn't have seen the light of day without
+&nbsp;
+
+&nbsp;
+
+
+
+# 7 - Who's to blame for Bartender?
+
+I **created Bartender** because I was fed up with the numerous hard-coded pursuit parameters and mechanics in the game. As my skills and knowledge of the game grew, so did Bartender's feature list and complexity; now, some 2000 hours of research and development later, I can confidently say that there won't be any further major releases / additions beyond v4.00.00. I've accomplished everything I wanted, and struggle to maintain any interest in the game.
+
+&nbsp;
+
+Finally, I wish to **thank**
 * **DarkByte**, for [Cheat Engine](https://www.cheatengine.org/);
 * **[rx](https://github.com/rxyyy)**, for encouraging me to try `.asi` modding;
 * **GuidedHacking**, for their [Cheat Engine tutorials](https://www.youtube.com/playlist?list=PLt9cUwGw6CYFSoQHsf9b12kHWLdgYRhmQ);
 * **[nlgxzef](https://github.com/nlgxzef)**, for his (partial) Most Wanted debug symbols;
 * **[ExOptsTeam](https://github.com/ExOptsTeam)**, for permitting me to use their Heat-level fixes;
 * **Sebastiano Vigna**, for his [pseudorandom number generators](https://prng.di.unimi.it/);
-* **trelbutate**, for his [NFSMW Cop Car Healthbars](https://github.com/trelbutate/MWHealthbars/) mod as a learning resource; and
+* **[elay's server](https://discord.com/invite/elaymm4-s-modding-corner-458389297192632330)**, for the utterly insatiable feature greed of its members;
+* **trelbutate**, for his [NFSMW Cop Car Healthbars](https://github.com/trelbutate/MWHealthbars/) mod as a first blueprint; and
 * **[Orsal](https://nfsmods.xyz/usermods/20407)**, **zeta1207**, **[Aven](https://nfsmods.xyz/usermods/1610)**, **Astra King79**, and **[MORELLO](https://nfsmods.xyz/usermods/6960)**, for testing and providing feedback.

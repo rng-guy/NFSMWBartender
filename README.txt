@@ -8,10 +8,8 @@ Bartender ADDS NEW CUSTOMISATION OPTIONS for pursuits. These new options come in
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
 Bartender's DEFAULT SETTINGS match the vanilla game's, except for the bug / issue fixes.
-If you only care about those fixes, then you don't need to configure Bartender at all.
 
-For OPTIMAL CUSTOMISABILITY, use VltEd along with Bartender. Bartender doesn't replace VltEd,
-as Bartender's features are deliberately limited to things you can't do with VltEd alone.
+For OPTIMAL CUSTOMISABILITY, use VltEd along with Bartender's features.
 
 The SECTIONS BELOW address these questions in detail:
  1) • What does the "Basic"    feature set do?
@@ -20,6 +18,7 @@ The SECTIONS BELOW address these questions in detail:
  4) • Which mods are (in)compatible with Bartender?
  5) • Which mods does Bartender depend on?
  6) • How may I share or bundle Bartender?
+ 7) • Who's to blame for        Bartender?
 
 
 
@@ -212,11 +211,10 @@ AFTER INSTALLING Bartender:
  1) • edit the configuration (.ini) files in the "BartenderSettings" folder to your liking; and
  2) • if you encounter any issues or want more background info, see the "READMORE.txt" file.
 
-TO UNINSTALL Bartender, remove its files from your game's "scripts" folder. There's no need
-to remove the optional missing textures, as the game doesn't use them without Bartender.
+TO UNINSTALL Bartender, remove its files from your game's "scripts" folder.
 
 TO UPDATE Bartender, uninstall it and repeat the installation process above.
-If you update from a version older than v4.00.00, replace all old configuration files.
+
 
 
 
@@ -224,7 +222,8 @@ If you update from a version older than v4.00.00, replace all old configuration 
 
 ── ■ │ 4 - WHICH MODS ARE (IN)COMPATIBLE WITH BARTENDER? │ ■ ──────────────────────────────────────
 
-Almost all VLTED AND BINARY MODS should be fully compatible with all Bartender configurations.
+Almost all VLTED AND BINARY MODS should be fully compatible with all Bartender configurations;
+however, Bartender's feature sets change how the game reads / treats certain VltEd parameters.
 
 Bartender's "BASIC" FEATURE SET changes the way the game accesses some VltEd arrays:
  • In "pursuitlevels", "0x80deb840"             now uses the correct index at each Blacklist rank.
@@ -256,13 +255,13 @@ However, some pursuit-related .asi mods require manual (re)configuration for com
 Under certain conditions, Bartender MAY REQUIRE a mod that replaces the game's car loader.
 There are two such mods: "NFSMW LimitAdjuster" by Zolika1351, and "OpenLimitAdjuster" by Chloe.
 You likely need one of these two mods if you configure Bartender in any of the following ways:
- • cop-vehicle spawn tables in "CarTables.ini" : You define > 3 vehicle types for any Heat level.
- • "[Chasers:Limits]"       in "CarSpawns.ini" : You define a global cop-spawn limit > 8.
- • "[Chasers:Independence]" in "CarSpawns.ini" : You enable independent spawns for chasing cops.
- • "[Traffic:Independence]" in "CarSpawns.ini" : You enable independent spawns for traffic cars.
- • "[Heavy3:Count]"         in "Strategies.ini": You define a vehicle count > 2 per request.
- • "[Heavy3:Joining]"       in "Strategies.ini": You enable joining from HeavyStrategy 3.
- • "[Heavy3:Unblocking]"    in "Strategies.ini": You define any unblock delays.
+ • cop-vehicle spawn tables in "CarTables.ini" : you define > 3 vehicle types for any Heat level.
+ • "[Chasers:Limits]"       in "CarSpawns.ini" : you define a global cop-spawn limit > 8.
+ • "[Chasers:Independence]" in "CarSpawns.ini" : you enable independent spawns for chasing cops.
+ • "[Traffic:Independence]" in "CarSpawns.ini" : you enable independent spawns for traffic cars.
+ • "[Heavy3:Count]"         in "Strategies.ini": you define a vehicle count > 2 per request.
+ • "[Heavy3:Joining]"       in "Strategies.ini": you enable joining from HeavyStrategy 3.
+ • "[Heavy3:Unblocking]"    in "Strategies.ini": you define any unblock delays.
  
 SHOULD YOU INSTALL any car-loader replacement mod, you may need to re-configure other mods:
  • In "NFSMW Unlimiter"     by nlgxzef,    disable "ExpandMemoryPools" and "RandomizeTraffic".
@@ -283,16 +282,28 @@ SHOULD YOU INSTALL "NFSMW LimitAdjuster", you also need to configure it to work 
 
 ── ■ │ 6 - HOW MAY I SHARE OR BUNDLE BARTENDER? │ ■ ───────────────────────────────────────────────
 
-You are free to bundle Bartender and its files with your own pursuit mod, NO CREDIT REQUIRED.
-In the interest of code transparency, however, consider linking to Bartender's GitHub repository 
-(https://github.com/rng-guy/NFSMWBartender) somewhere in your mod's documentation (e.g. README).
+You're free to bundle Bartender and its files with your own mod(s); NO CREDIT REQUIRED.
 
-Finally, Bartender wouldn't have seen the light of day without
+
+
+
+
+
+── ■ │ 7 - WHO'S TO BLAME FOR BARTENDER? │ ■ ──────────────────────────────────────────────────────
+
+I CREATED BARTENDER because I was fed up with the numerous hard-coded pursuit parameters
+and mechanics in the game. As my skills and knowledge of the game grew, so did Bartender's
+feature list and complexity; now, some 2000 hours of research and development later, I can
+confidently say that there won't be any further major releases / additions beyond v4.00.00.
+I've accomplished everything I wanted, and struggle to maintain any interest in the game.
+
+Finally, I wish to THANK
  • DarkByte, for Cheat Engine;
  • rx, for encouraging me to try .asi modding;
  • GuidedHacking, for their Cheat Engine tutorials;
  • nlgxzef, for his (partial) Most Wanted debug symbols;
  • Sebastiano Vigna, for his pseudorandom number generators;
  • ExOptsTeam, for permitting me to use their Heat-level fixes;
- • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a learning resource; and
+ • elay's sever, for the utterly insatiable feature greed of its members;
+ • trelbutate, for his "NFSMW Cop Car Healthbars" mod as a first blueprint; and
  • Orsal, zeta1207, Aven, Astra King79, and MORELLO, for testing and providing feedback.
