@@ -535,7 +535,7 @@ namespace HeatParameters
 		}
 
 
-		[[nodiscard]] T GetRandomValue() const
+		[[nodiscard]] T __thiscall GetRandomValue() const
 		{
 			return Globals::pRNG.GenerateNumber<T>(this->min.current, this->max.current);
 		}
