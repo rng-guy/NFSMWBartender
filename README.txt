@@ -53,10 +53,10 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
  • whether successful roadblock spawns cancel the current cop formation,
  • how (if at all) non-Strategy roadblock and HeavyStrategy requests interact,
  • the maximum speed of scripted ramming attempts through HeavyStrategy 3,
- • which vehicles spawn in place of the ramming SUVs through HeavyStrategy 3,
- • which vehicles spawn in place of the roadblock SUVs through HeavyStrategy 4,
- • which vehicle spawns in place of Cross through LeaderStrategy 5, and
- • which vehicles spawn in place of Cross and his henchmen through LeaderStrategy 7.
+ • which vehicles spawn  in place of the ramming   SUVs     through HeavyStrategy  3,
+ • which vehicles spawn  in place of the roadblock SUVs     through HeavyStrategy  4,
+ • which vehicle  spawns in place of Cross                  through LeaderStrategy 5, and
+ • which vehicles spawn  in place of Cross and his henchmen through LeaderStrategy 7.
 
 The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • whether specific cop vehicles are immune to pursuit-breaker instakills;
@@ -161,11 +161,10 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how likely each roadblock setup is to spawn horizontally mirrored instead, and
  • which active non-chasing cops the engagement count above the pursuit board also tracks.
 
-The "Advanced" feature set ALWAYS FIXES EIGHTEEN BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES SEVENTEEN BUGS / ISSUES automatically:
  • the helicopter reports more consistent reasons whenever it bails,
  • chasing cops that exceed their type-specific count no longer flee,
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
- • cops in roadblocks can no longer prevent chasing cops from spawning,
  • the cops no longer stop calling out roadblocks / spikes over the radio,
  • the helicopter no longer competes with chasing cops for spawn opportunities,
  • cops joining pursuits from roadblocks no longer ignore cop-related spawn limits,
@@ -181,11 +180,10 @@ The "Advanced" feature set ALWAYS FIXES EIGHTEEN BUGS / ISSUES automatically:
  • the engagement count above the pursuit board now always tracks relevant cops accurately, and
  • the pathfinding of new cops no longer breaks whenever a race pursuit transitions to free-roam.
 
-The "Advanced" feature set CAN FIX SIX MORE BUGS / ISSUES, depending on its configuration:
+The "Advanced" feature set CAN FIX FIVE MORE BUGS / ISSUES, depending on its configuration:
  • failed roadblock spawn attempts can no longer stall spawns for chasing cops,
- • the helicopter can no longer fall behind and despawn due to chase-pathing issues,
+ • the helicopter can no longer fall behind and despawn due to world-pathing issues,
  • the cops no longer inadvertently fail to request four of the vanilla roadblock setups,
- • the helicopter can no longer waste its spawns by losing the pursuit target nearly instantly,
  • HeavyStrategy 3 cops no longer spawn in passive mode without trying to ram anything, and
  • traffic spawns no longer slow down or stop at Heat levels with many cops or roadblocks.
 

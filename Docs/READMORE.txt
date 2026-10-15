@@ -849,4 +849,4 @@ v1.00.00: Initial release
 
    05.00: Made Binary optional for destruction strings and overhauled many mod internals
 
- 4.00.00: Added various new features and overhauled basically the whole mod's internals
+ 4.00.00: Added about a dozen new features and fixes along with better internals

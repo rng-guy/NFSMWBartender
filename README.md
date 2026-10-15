@@ -179,11 +179,10 @@ The "Advanced" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Advanced" feature set **always fixes eighteen bugs / issues** automatically:
+The "Advanced" feature set **always fixes seventeen bugs / issues** automatically:
 * the helicopter reports more consistent reasons whenever it bails,
 * chasing cops that exceed their type-specific count no longer flee,
 * HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
-* cops in roadblocks can no longer prevent chasing cops from spawning,
 * the cops no longer stop calling out roadblocks / spikes over the radio,
 * the helicopter no longer competes with chasing cops for spawn opportunities,
 * cops joining pursuits from roadblocks no longer ignore cop-related spawn limits,
@@ -201,11 +200,10 @@ The "Advanced" feature set **always fixes eighteen bugs / issues** automatically
 
 &nbsp;
 
-The "Advanced" feature set **can fix six more bugs / issues**, depending on its configuration:
+The "Advanced" feature set **can fix five more bugs / issues**, depending on its configuration:
 * failed roadblock spawn attempts can no longer stall spawns for chasing cops,
-* the helicopter can no longer fall behind and despawn due to chase-pathing issues,
+* the helicopter can no longer fall behind and despawn due to world-pathing issues,
 * the cops no longer inadvertently fail to request four of the vanilla roadblock setups,
-* the helicopter can no longer waste its spawns by losing the pursuit target nearly instantly,
 * HeavyStrategy 3 cops no longer spawn in passive mode without trying to ram anything, and
 * traffic spawns no longer slow down or stop at Heat levels with many cops or roadblocks.
 
