@@ -300,7 +300,7 @@ namespace CopSpawnTables
 
 	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, scriptedTable);
 
-	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, roadblockTable);
+	RELEASE_CONSTINIT HEAT_PARAMETER_OBJECT(SpawnTable, roadblocksTable);
 
 
 	
@@ -390,7 +390,7 @@ namespace CopSpawnTables
 		// Extract non-"Chasers" tables (may be empty)
 		allEntriesValid &= ExtractTableObject(parser, "Patrols",    patrolsTable);
 		allEntriesValid &= ExtractTableObject(parser, "Scripted",   scriptedTable);
-		allEntriesValid &= ExtractTableObject(parser, "Roadblocks", roadblockTable);
+		allEntriesValid &= ExtractTableObject(parser, "Roadblocks", roadblocksTable);
 
 		if constexpr (Globals::loggingEnabled)
 		{
@@ -399,7 +399,7 @@ namespace CopSpawnTables
 		}
 
 		// Replace all (now-)empty non-"Chasers" spawn tables
-		for (auto* const tableObject : {&patrolsTable, &scriptedTable, &roadblockTable})
+		for (auto* const tableObject : {&patrolsTable, &scriptedTable, &roadblocksTable})
 		{
 			for (const bool forRaces : HeatParameters::heatRaceFlags)
 			{
@@ -451,6 +451,6 @@ namespace CopSpawnTables
 
 		scriptedTable.SetToHeatState(state);
 
-		roadblockTable.SetToHeatState(state);
+		roadblocksTable.SetToHeatState(state);
 	}
 }
