@@ -30,12 +30,13 @@ namespace PursuitFeatures
 
 		enum class CopLabel : byte
 		{
-			UNKNOWN,
+			NONE,
 			CHASER,
 			HEAVY,
 			LEADER,
 			ROADBLOCK,
-			HELICOPTER
+			HELICOPTER,
+			UNKNOWN
 		};
 
 

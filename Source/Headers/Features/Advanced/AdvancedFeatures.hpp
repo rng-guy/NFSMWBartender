@@ -88,7 +88,7 @@ namespace AdvancedFeatures
 		) {
 			constexpr CopLabel defaultLabel = static_cast<CopLabel>(0);
 
-			static_assert(defaultLabel == CopLabel::UNKNOWN, "Label-value mismatch");
+			static_assert(defaultLabel == CopLabel::NONE, "Label-value mismatch");
 
 			CopLabel& label = PursuitObserver::GetCopLabel(copVehicle);
 			if ((label == defaultLabel) == (copLabel == defaultLabel)) return false;
@@ -191,7 +191,7 @@ namespace AdvancedFeatures
 			if (not PursuitObserver::SetCopLabel(copVehicle, newLabel))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, '=', copVehicle, newLabel, "is already", PursuitObserver::GetCopLabel(copVehicle));
+					Globals::LogWarning(logTag, '=', copVehicle, PursuitObserver::GetCopLabel(copVehicle), "pre-labelled");
 
 				ASSERT_UNREACHABLE_THEN(return);
 			}
@@ -214,10 +214,10 @@ namespace AdvancedFeatures
 
 			const CopLabel oldLabel = PursuitObserver::GetCopLabel(copVehicle);
 
-			if (not PursuitObserver::SetCopLabel(copVehicle, CopLabel::UNKNOWN))
+			if (not PursuitObserver::SetCopLabel(copVehicle, CopLabel::NONE))
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "Unknown vehicle", copVehicle, Globals::GetVehicleName(copVehicle), "in", pursuit);
+					Globals::LogWarning(logTag, '?', copVehicle, oldLabel, "unlabelled");
 
 				ASSERT_UNREACHABLE_THEN(return);
 			}
