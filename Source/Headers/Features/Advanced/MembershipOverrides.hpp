@@ -1,0 +1,679 @@
+#pragma once
+
+#include <functional>
+
+#include "../../Common/Globals.hpp"
+#include "../../Common/ConfigParser.hpp"
+#include "../../Common/ModContainers.hpp"
+#include "../../Common/HeatParameters.hpp"
+
+#include "../../Utilities/MemoryTools.hpp"
+
+#include "CopSpawnTables.hpp"
+#include "PursuitFeatures.hpp"
+
+
+
+namespace MembershipOverrides
+{
+	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
+
+	// Feature flag shared with (and managed by) AdvancedFeatures header
+
+	// Logging
+	constexpr Globals::LogLiteral logTag  = "[MBR]";
+	constexpr Globals::LogLiteral logName = "MembershipOverrides";
+
+	// Heat parameters
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, chaserFleeDelay, {1.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE   (int,   chaserThreshold, {0});   // cars
+
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, joinedRoadblockFleeDelay, {1.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE   (int,   joinedRoadblockThreshold, {0});   // cars
+
+	constinit HEAT_PARAMETER_VALUE(float, heavy3SpeedThreshold, 25.f, {0.f}); // kph
+
+	constinit HEAT_PARAMETER_VALUE(bool, heavy3JoiningEnabled, false);
+
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE(int, heavy3JoinLimit, {0}); // cars
+
+	constinit OPTIONAL_HEAT_PARAMETER_INTERVAL(float, joinedHeavy3FleeDelay, {1.f}); // seconds
+	constinit OPTIONAL_HEAT_PARAMETER_VALUE   (int,   joinedHeavy3Threshold, {0});   // cars
+
+	// Parameter conversions
+	float baseSpeedThreshold; // metres / second
+	float jerkSpeedThreshold; // metres / second
+
+	// Assembly detours
+	enum class VaultHash : vault
+	{
+		AIGOALFLEEPURSUIT = "AIGoalFleePursuit"_vlt
+	};
+
+
+
+
+
+	// Scheduler class ------------------------------------------------------------------------------------------------------------------------------
+
+	class Scheduler
+	{
+	protected: // members
+
+		int numPendingExpired = 0; // cars
+
+		const address pursuit; // pursuit-locked and immobile
+
+		ModContainers::AddressMap<float> copVehicleToTimestamp;
+
+		std::function<bool ()>              ShouldCheckForExpiration = []()                         -> bool {return true;};
+		std::function<bool (const address)> ShouldExpiredVehicleBail = [](const address copVehicle) -> bool {return true;};
+
+		[[no_unique_address]] Globals::LogLiteral name;
+
+
+	protected: // methods
+
+		Scheduler
+		(
+			const Globals::LogLiteral name,
+			const address             pursuit
+		)
+			: name(name), pursuit(pursuit)
+		{
+		}
+
+
+		Scheduler(Scheduler&&)      = delete;
+		Scheduler(const Scheduler&) = delete;
+
+		Scheduler& operator=(Scheduler&&)      = delete;
+		Scheduler& operator=(const Scheduler&) = delete;
+
+
+		void Schedule
+		(
+			const address copVehicle,
+			const float   fleeTimer
+		) {
+			const float fleeTimestamp          = Globals::simulationTime + fleeTimer;
+			const auto  [pairIt, isNewVehicle] = this->copVehicleToTimestamp.insert(copVehicle, fleeTimestamp);
+
+			if (not isNewVehicle)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, copVehicle, "already scheduled");
+
+				ASSERT_UNREACHABLE;
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(this->pursuit, logTag, copVehicle, "expires in", fleeTimer);
+		}
+
+
+		bool MakeBailPursuit(const address copVehicle) const
+		{
+			const address copAIVehiclePursuit = Globals::Vehicle::GetAIVehiclePursuit(copVehicle);
+			ASSERT_CONDITION_THEN_IF_FALSE(copAIVehiclePursuit, return false);
+
+			const auto StartFlee = AsFunction<void __thiscall (address)>(0x423370);
+			StartFlee(copAIVehiclePursuit); // also updates vehicle goal(s) accordingly
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(this->pursuit, logTag, this->name, copVehicle, "fleeing");
+
+			return true;
+		}
+
+
+	public: // methods
+
+		void CheckSchedule()
+		{
+			auto pairIt = this->copVehicleToTimestamp.begin();
+
+			while ((pairIt != this->copVehicleToTimestamp.end()) and this->ShouldCheckForExpiration())
+			{
+				const auto& [copVehicle, timestamp] = *pairIt;
+
+				if (Globals::simulationTime >= timestamp)
+				{
+					if (this->ShouldExpiredVehicleBail(copVehicle))
+						this->MakeBailPursuit(copVehicle);
+
+					pairIt = this->copVehicleToTimestamp.erase(pairIt);
+				}
+				else ++pairIt;
+			}
+		}
+
+
+		void ForceTriggerExpiration()
+		{
+			for (const auto& [copVehicle, _] : this->copVehicleToTimestamp)
+			{
+				if (this->ShouldExpiredVehicleBail(copVehicle))
+					this->MakeBailPursuit(copVehicle);
+
+				++(this->numPendingExpired);
+			}
+
+			this->copVehicleToTimestamp.clear();
+			this->numPendingExpired = 0;
+		}
+
+
+		[[nodiscard]] int GetNumScheduled() const
+		{
+			const int numScheduled = static_cast<int>(this->copVehicleToTimestamp.size()) - this->numPendingExpired;
+
+			if (numScheduled < 0)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Miscounted schedule in", this->pursuit);
+
+				ASSERT_UNREACHABLE;
+			}
+
+			return numScheduled;
+		}
+
+
+		[[nodiscard]] auto GetName() const
+		{
+			return this->name;
+		}
+	};
+
+
+
+
+
+	// StrategyScheduler class ----------------------------------------------------------------------------------------------------------------------
+
+	class StrategyScheduler : public Scheduler
+	{
+	private: // members
+
+		const address& strategy;
+
+
+	public: // aliases
+
+		using Scheduler::ShouldExpiredVehicleBail;
+
+
+	public: // methods
+
+		StrategyScheduler
+		(
+			const Globals::LogLiteral name,
+			const address             pursuit,
+			const ptrdiff_t           strategyOffset
+		)
+			: Scheduler(name, pursuit), strategy(AsReference<address>(pursuit + strategyOffset))
+		{
+		}
+
+
+		void Reserve(const size_t numVehicles)
+		{
+			this->copVehicleToTimestamp.reserve(numVehicles);
+		}
+
+
+		void Track(const address copVehicle)
+		{
+			const float strategyDuration = (this->strategy) ? AsReference<float>(this->strategy + 0x8) : 1.f;
+
+			if (not this->strategy)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid Strategy pointer in", this->pursuit);
+
+				ASSERT_UNREACHABLE;
+			}
+
+			this->Schedule(copVehicle, strategyDuration);
+		}
+
+
+		void Untrack(const address copVehicle)
+		{
+			this->copVehicleToTimestamp.erase(copVehicle);
+		}
+
+
+		[[nodiscard]] address GetStrategy() const
+		{
+			return this->strategy;
+		}
+	};
+
+
+
+
+
+	// PursuitScheduler class -----------------------------------------------------------------------------------------------------------------------
+
+	class PursuitScheduler : public Scheduler
+	{
+	public: // members
+
+		// Total number of active "Chasers"
+		std::function<size_t ()> GetNumActiveChasers = []() -> size_t {return 8;};
+
+		// Whether a given cop vehicle may be scheduled for expiration
+		std::function<bool (const address)> IsSchedulable = [](const address copVehicle) -> bool {return true;};
+
+
+	private: // members
+
+		ModContainers::AddressSet copVehicles; // for tracking in case of Heat transitions
+
+		const HeatParameters::OptionalInterval<float>& fleeDelay;
+		const HeatParameters::OptionalValue   <int>&   fleeThreshold;
+
+
+	private: // methods
+
+		void ReviewVehicle(const address copVehicle)
+		{
+			if (not this->IsSchedulable(copVehicle))   return;
+			if (not this->fleeDelay.isEnabled.current) return;
+
+			this->Schedule(copVehicle, this->fleeDelay.interval.GetRandomValue());
+		}
+
+
+	public: // methods
+
+		PursuitScheduler
+		(
+			const Globals::LogLiteral                      name,
+			const address                                  pursuit,
+			const HeatParameters::OptionalInterval<float>& fleeDelay,
+			const HeatParameters::OptionalValue   <int>&   fleeThreshold
+		)
+			: Scheduler(name, pursuit), fleeDelay(fleeDelay), fleeThreshold(fleeThreshold)
+		{
+			// Scheduled non-Strategy cops may only expire if the number of "Chasers" is above some threshold
+			this->ShouldCheckForExpiration = [this]() -> bool
+			{
+				if (not this->fleeThreshold.isEnabled.current) return true; // no active threshold
+				return (static_cast<int>(this->GetNumActiveChasers()) > this->fleeThreshold.value.current);
+			};
+
+			// Expired pursuit cops always bail and must also be un-tracked
+			this->ShouldExpiredVehicleBail = [this](const address copVehicle) -> bool
+			{
+				return this->copVehicles.erase(copVehicle);
+			};
+		}
+
+
+		void Reserve(const size_t numVehicles)
+		{
+			this->copVehicles          .reserve(numVehicles);
+			this->copVehicleToTimestamp.reserve(numVehicles);
+		}
+
+
+		void ReviewSchedule()
+		{
+			this->copVehicleToTimestamp.clear();
+
+			for (const address copVehicle : this->copVehicles)
+				this->ReviewVehicle(copVehicle);
+		}
+
+
+		void Track(const address copVehicle)
+		{
+			this->copVehicles.insert(copVehicle);
+			this->ReviewVehicle     (copVehicle);
+		}
+
+
+		void Untrack(const address copVehicle)
+		{
+			this->copVehicles          .erase(copVehicle);
+			this->copVehicleToTimestamp.erase(copVehicle);
+		}
+
+
+		[[nodiscard]] size_t GetNumVehicles() const
+		{
+			return this->copVehicles.size();
+		}
+	};
+
+
+
+
+
+	// MembershipManager class ----------------------------------------------------------------------------------------------------------------------
+
+	class MembershipManager : public PursuitFeatures::Reaction
+	{
+	private: // members
+
+		bool expirationTrackingEnabled = false;
+
+		StrategyScheduler heavyVehicles {"Heavy",  this->pursuit, 0x194};
+		StrategyScheduler leaderVehicles{"Leader", this->pursuit, 0x198};
+
+		PursuitScheduler chaserVehicles         {"Chaser",    this->pursuit,  chaserFleeDelay,          chaserThreshold};
+		PursuitScheduler joinedHeavyVehicles    {"Joined H3", this->pursuit,  joinedHeavy3FleeDelay,    joinedHeavy3Threshold};
+		PursuitScheduler joinedRoadblockVehicles{"Joined RB", this->pursuit,  joinedRoadblockFleeDelay, joinedRoadblockThreshold};
+
+		const bool& isJerk = AsReference<bool>(this->pursuit + 0x238);
+
+
+	private: // methods
+
+		[[nodiscard]] static bool IsNotInChaserTable(const address copVehicle)
+		{
+			const vault copType = Globals::GetVehicleType(copVehicle);
+			return (not CopSpawnTables::chasersTable.current->Contains(copType));
+		}
+
+
+		[[nodiscard]] bool MayAnotherHeavyJoin() const
+		{
+			if (not heavy3JoiningEnabled     .current) return false;
+			if (not heavy3JoinLimit.isEnabled.current) return true;
+
+			return (static_cast<int>(this->joinedHeavyVehicles.GetNumVehicles()) < heavy3JoinLimit.value.current);
+		}
+
+
+		bool MakeHeavyVehicleJoin(const address copVehicle)
+		{
+			if (not this->MayAnotherHeavyJoin())                  return false;
+			if (not Globals::Vehicle::EndSupportGoal(copVehicle)) return false;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(this->pursuit, logTag, "Heavy", copVehicle, "joined");
+
+			this->joinedHeavyVehicles.Track(copVehicle);
+
+			return true;
+		}
+
+
+		[[nodiscard]] address GetRigidBodyOfTarget() const
+		{
+			const address physicsObject = Globals::Pursuit::GetPhysicsObjectOfTarget(this->pursuit);
+			ASSERT_CONDITION_THEN_IF_FALSE(physicsObject, return 0x0);
+
+			return AsReference<address>(physicsObject + 0x4C);
+		}
+
+
+		[[nodiscard]] bool ShouldHeavyVehiclesBail() const
+		{
+			if (Globals::Pursuit::IsSearching(this->pursuit)) return true;
+
+			const address rigidBodyOfTarget = this->GetRigidBodyOfTarget();
+
+			if (not rigidBodyOfTarget)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid RigidBody for target in", this->pursuit);
+
+				ASSERT_UNREACHABLE_THEN(return false);
+			}
+
+			const auto  GetSpeedXZ     = AsFunction<float __thiscall (address)>(0x6711F0);
+			const float speedThreshold = (this->isJerk) ? jerkSpeedThreshold : baseSpeedThreshold;
+
+			return (GetSpeedXZ(rigidBodyOfTarget) < speedThreshold);
+		}
+
+
+		void CheckForHeavyCancellation()
+		{
+			if (this->heavyVehicles.GetNumScheduled() < 1) return;
+			if (not this->ShouldHeavyVehiclesBail())       return;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(this->pursuit, logTag, "Bailing HeavyStrategy3");
+
+			this->heavyVehicles.ForceTriggerExpiration();
+
+			if (const address heavyStrategy = this->heavyVehicles.GetStrategy())
+			{
+				const int strategyID = AsReference<int>(heavyStrategy);
+
+				if (strategyID == 3) // ramming SUVs
+					Globals::ClearSupportRequest(this->pursuit);
+			}
+		}
+
+
+	public: // methods
+
+		explicit MembershipManager(const address pursuit) : PursuitFeatures::Reaction(pursuit)
+		{
+			// Expired Heavy3 vehicles only bail if they cannot join as pursuit cops
+			this->heavyVehicles.ShouldExpiredVehicleBail = [this](const address copVehicle) -> bool
+			{
+				return (not this->MakeHeavyVehicleJoin(copVehicle));
+			};
+
+			// Scheduled non-Strategy cops may only expire if the number of "Chasers" is above some threshold
+			const auto GetNumActiveChasers = [this]() -> size_t {return this->chaserVehicles.GetNumVehicles();};
+
+			this->chaserVehicles         .GetNumActiveChasers = GetNumActiveChasers;
+			this->joinedHeavyVehicles    .GetNumActiveChasers = GetNumActiveChasers;
+			this->joinedRoadblockVehicles.GetNumActiveChasers = GetNumActiveChasers;
+
+			// "Chasers" may only be scheduled for expiration if they aren't in the current spawn table
+			this->chaserVehicles.IsSchedulable = MembershipManager::IsNotInChaserTable;
+
+			// Container pre-allocations
+			this->heavyVehicles .Reserve(10);
+			this->leaderVehicles.Reserve(10);
+
+			this->chaserVehicles         .Reserve(50);
+			this->joinedHeavyVehicles    .Reserve(10);
+			this->joinedRoadblockVehicles.Reserve(10);
+		}
+
+
+		void ReactToGameplay() override 
+		{
+			if (not this->expirationTrackingEnabled) return;
+
+			this->CheckForHeavyCancellation();
+
+			this->heavyVehicles .CheckSchedule();
+			this->leaderVehicles.CheckSchedule();
+
+			this->chaserVehicles         .CheckSchedule();
+			this->joinedHeavyVehicles    .CheckSchedule();
+			this->joinedRoadblockVehicles.CheckSchedule();
+		}
+
+
+		void ReactToHeatStateUpdate() override 
+		{
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(this->pursuit, logTag, "Reviewing all vehicles");
+
+			this->chaserVehicles         .ReviewSchedule();
+			this->joinedHeavyVehicles    .ReviewSchedule();
+			this->joinedRoadblockVehicles.ReviewSchedule();
+		}
+
+
+		void ReactToPursuitStartWithDelay() override
+		{
+			this->expirationTrackingEnabled = true;
+
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogFull(this->pursuit, logTag, "Expiration now enabled");
+		}
+
+
+		void ReactToAddedVehicle
+		(
+			const address  copVehicle,
+			const CopLabel copLabel
+		) 
+			override
+		{
+			switch (copLabel)
+			{
+			case CopLabel::CHASER:
+				this->chaserVehicles.Track(copVehicle);
+				return;
+
+			case CopLabel::HEAVY:
+				this->heavyVehicles.Track(copVehicle);
+				return;
+
+			case CopLabel::LEADER:
+				this->leaderVehicles.Track(copVehicle);
+				return;
+
+			case CopLabel::ROADBLOCK:
+				this->joinedRoadblockVehicles.Track(copVehicle);
+			}
+		}
+
+
+		void ReactToRemovedVehicle
+		(
+			const address  copVehicle,
+			const CopLabel copLabel
+		) 
+			override
+		{
+			switch (copLabel)
+			{
+			case CopLabel::CHASER:
+				this->chaserVehicles.Untrack(copVehicle);
+				return;
+
+			case CopLabel::HEAVY:
+				this->heavyVehicles      .Untrack(copVehicle);
+				this->joinedHeavyVehicles.Untrack(copVehicle);
+				return;
+
+			case CopLabel::LEADER:
+				this->leaderVehicles.Untrack(copVehicle);
+				return;
+
+			case CopLabel::ROADBLOCK:
+				this->joinedRoadblockVehicles.Untrack(copVehicle);
+			}
+		}
+	};
+
+
+
+
+
+	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
+
+	ASSEMBLY_DETOUR(GoalUpdate, /* begin = */ 0x443917, /* end = */ 0x44391C) // prevents formations from overriding flee goals
+	{
+		using enum VaultHash;
+
+		__asm
+		{
+			mov edi, dword ptr [ebp]
+			test edi, edi
+			je conclusion // invalid AIVehiclePursuit
+
+			cmp dword ptr [edi - 0x758 + 0xC4], AIGOALFLEEPURSUIT
+
+			conclusion:
+			EXIT_ASSEMBLY_DETOUR(GoalUpdate)
+		}
+	}
+
+
+
+
+
+	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
+
+	void UpdateParameterConversions()
+	{
+		baseSpeedThreshold = heavy3SpeedThreshold.current / 3.6f;
+		jerkSpeedThreshold = baseSpeedThreshold * .625f;
+	}
+
+
+
+
+
+	// State interface ------------------------------------------------------------------------------------------------------------------------------
+
+	bool Initialise(ConfigParser::Parser& parser)
+	{
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogConfig(logTag, logName);
+
+		// Heat parameters (first file)
+		parser.ParseFile(Globals::pathAdvanced, Globals::fileCarSpawns);
+
+		HeatParameters::Extract(parser, "Chasers:Fleeing", chaserFleeDelay, chaserThreshold);
+
+		// Heat parameters (second file)
+		parser.ParseFile(Globals::pathAdvanced, Globals::fileRoadblocks);
+
+		HeatParameters::Extract(parser, "Joining:Fleeing", joinedRoadblockFleeDelay, joinedRoadblockThreshold);
+
+		// Heat parameters (third file)
+		parser.ParseFile(Globals::pathAdvanced, Globals::fileStrategies);
+
+		HeatParameters::Extract(parser, "Heavy3:Cancellation", heavy3SpeedThreshold);
+
+		HeatParameters::Extract(parser, "Heavy3:Joining", heavy3JoiningEnabled);
+
+		HeatParameters::Extract(parser, "Joining:Limit", heavy3JoinLimit);
+
+		HeatParameters::Extract(parser, "Joining:Fleeing", joinedHeavy3FleeDelay, joinedHeavy3Threshold);
+
+		// Parameter conversions
+		UpdateParameterConversions(); // uses vanilla value(s)
+
+		// Code modifications 
+		MemoryTools::MakeRangeNOP<0x4440D7, 0x4440DF>(); // membership check
+
+		PATCH_ASSEMBLY_DETOUR(GoalUpdate);
+
+		return true;
+	}
+
+
+
+	void SetToHeatState(const HeatParameters::HeatState state)
+	{
+		if constexpr (Globals::loggingEnabled)
+			Globals::LogHeat(logTag, logName);
+
+		// Heat parameters
+		chaserFleeDelay.SetToHeatState(state);
+		chaserThreshold.SetToHeatState(state);
+
+		joinedRoadblockFleeDelay.SetToHeatState(state);
+		joinedRoadblockThreshold.SetToHeatState(state);
+
+		heavy3SpeedThreshold.SetToHeatState(state);
+
+		heavy3JoiningEnabled.SetToHeatState(state);
+
+		heavy3JoinLimit.SetToHeatState(state);
+
+		joinedHeavy3FleeDelay.SetToHeatState(state);
+		joinedHeavy3Threshold.SetToHeatState(state);
+
+		// Parameter conversions
+		UpdateParameterConversions();
+	}
+}

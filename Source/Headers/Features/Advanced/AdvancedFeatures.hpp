@@ -11,6 +11,7 @@
 #include "../../Utilities/MemoryTools.hpp"
 
 #include "CopSpawnTables.hpp"
+
 #include "PursuitFeatures.hpp"
 #include "CopSpawnOverrides.hpp"
 #include "CopFleeOverrides.hpp"
@@ -18,6 +19,7 @@
 #include "StrategyOverrides.hpp"
 #include "LeaderOverrides.hpp"
 #include "HeatChangeOverrides.hpp"
+
 #include "RoadblockOverrides.hpp"
 
 
@@ -63,7 +65,7 @@ namespace AdvancedFeatures
 		LeaderOverrides    ::LeaderManager     leaderManager    {this->pursuit};
 		HeatChangeOverrides::HeatManager       heatManager      {this->pursuit};
 
-		const std::array<PursuitFeatures::Reaction*, 6> reactions =
+		std::array<PursuitFeatures::Reaction* const, 6> reactions =
 		{
 			&chasersManager,  &membershipManager, &helicopterManager,
 			&strategyManager, &leaderManager,     &heatManager
@@ -474,11 +476,12 @@ namespace AdvancedFeatures
 
 		CopSpawnOverrides  ::Initialise(parser);
 		CopFleeOverrides   ::Initialise(parser);
-		LeaderOverrides    ::Initialise(parser);
-		StrategyOverrides  ::Initialise(parser);
 		HelicopterOverrides::Initialise(parser);
+		StrategyOverrides  ::Initialise(parser);
+		LeaderOverrides    ::Initialise(parser);
 		HeatChangeOverrides::Initialise(parser);
-		RoadblockOverrides ::Initialise(parser);
+
+		RoadblockOverrides::Initialise(parser);
 
 		// Code modifications
 		PATCH_ASSEMBLY_DETOUR(CopAdded);
@@ -502,14 +505,16 @@ namespace AdvancedFeatures
 	{
 		if (not anyFeatureEnabled) return;
 
-		CopSpawnTables     ::SetToHeatState(state);
+		CopSpawnTables::SetToHeatState(state);
+
 		CopSpawnOverrides  ::SetToHeatState(state);
 		CopFleeOverrides   ::SetToHeatState(state);
 		HelicopterOverrides::SetToHeatState(state);
 		StrategyOverrides  ::SetToHeatState(state);
 		LeaderOverrides    ::SetToHeatState(state);
 		HeatChangeOverrides::SetToHeatState(state);
-		RoadblockOverrides ::SetToHeatState(state);
+
+		RoadblockOverrides::SetToHeatState(state);
 
 		NotifyObserversOfHeatStateUpdate();
 	}
