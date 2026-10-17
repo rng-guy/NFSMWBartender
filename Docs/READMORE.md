@@ -129,7 +129,7 @@ Regarding **cosmetic features** ([`BartenderSettings/Basic/Cosmetic.ini`](../Con
 
 * For notification strings, Bartender ignores strings for vehicles that don't exist in VltEd.
 
-* If you don't define a valid `default` string, string-less vehicles won't trigger notifications.
+* If you don't define a valid `default` string, Bartender uses `/SKIP_NOTIFICATION` instead.
 
 * If you define no valid strings and no `default`, Bartender disables its string feature.
 
