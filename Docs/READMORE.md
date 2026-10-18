@@ -117,39 +117,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 &nbsp;
 
-Regarding **cosmetic features** ([`BartenderSettings/Basic/Cosmetic.ini`](../Config/Basic/Cosmetic.ini)):
-
-* Both notification-related features are incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Notifications]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
-
-* You can define notification strings directly or use the names of existing game strings: If a string you define matches the name of a game string, Bartender uses the game string; if not, Bartender uses the string itself to generate an in-game notification instead.
-
-* You can use the [Binary](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) tool by MaxHwoy to browse, edit, and expand the game's strings.
-
-* When the game displays a notification, `^` becomes a line break and `%$d` the bounty amount.
-
-* For notification strings, Bartender ignores strings for vehicles that don't exist in VltEd.
-
-* If you don't define a valid `default` string, Bartender uses `/SKIP_NOTIFICATION` instead.
-
-* If you define no valid strings and no `default`, Bartender disables its string feature.
-
-* For notification icons, Bartender ignores icons for vehicles that don't exist in VltEd.
-
-* If you don't define a valid `default` icon, Bartender uses `COPS_TAKENOUT_ICON` instead.
-
-* If you define no valid icons and no `default`, Bartender disables its icon feature.
-
-* For an icon to be valid, it must exist in the game's `GLOBALB.LZC` file. You can browse, edit, and expand the icons contained in this file with the [Binary](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) tool by MaxHwoy.
-
-* You might see cops receive or lose their icons when they shouldn't. This happens because the game only draws the mini-map icons of the first 8 currently flagged cops in its memory, so some of them may suddenly (dis)appear if any cops before them get or lose their flags.
-
-* For cop detection, Bartender ignores vehicles that are helicopters or don't exist in VltEd.
-
-* If you define no vehicle settings and no `default`, Bartender disables its detection feature.
-
-* If you don't define colours for both sight states, Bartender disables its vision-cone feature.
-
-* The actual visual range of helicopters can differ from what the vision-cone icon might suggest; the `heliLOSdistance` VltEd parameter controls the visual range the game uses for calculations.
+Regarding **audio features** ([`BartenderSettings/Basic/Audio.ini`](../Config/Basic/Audio.ini)):
 
 * You might hear cops use callsigns you didn't assign to them. This is vanilla behaviour: The game maintains a pool of "actors" that it constantly shuffles between all active cops. This is also the reason why you may still hear Cross or helicopter lines even if they are gone, and why dispatch may sometimes refer to Cross by the callsign of another unrelated cop vehicle.
 
@@ -214,6 +182,42 @@ Regarding **general features** ([`BartenderSettings/Basic/General.ini`](../Confi
 * If you don't define a valid `default` immunity flag, Bartender uses `false` instead.
 
 * If you define no valid immunity flags and no `default`, Bartender disables its breaker feature.
+
+&nbsp;
+
+Regarding **interface features** ([`BartenderSettings/Basic/Interface.ini`](../Config/Basic/Interface.ini)):
+
+* Both notification-related features are incompatible with the `EnableCopDestroyedStringHook` feature of the [NFSMW Unlimiter](https://github.com/nlgxzef/NFSMWUnlimiter/releases) mod by nlgxzef. To resolve this conflict, either delete Bartender's `[Vehicles:Notifications]` parameter group or disable Unlimiter's version of the feature by editing its `NFSMWUnlimiterSettings.ini` configuration file.
+
+* You can define notification strings directly or use the names of existing game strings: If a string you define matches the name of a game string, Bartender uses the game string; if not, Bartender uses the string itself to generate an in-game notification instead.
+
+* You can use the [Binary](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) tool by MaxHwoy to browse, edit, and expand the game's strings.
+
+* When the game displays a notification, `^` becomes a line break and `%$d` the bounty amount.
+
+* For notification strings, Bartender ignores strings for vehicles that don't exist in VltEd.
+
+* If you don't define a valid `default` string, Bartender uses `/SKIP_NOTIFICATION` instead.
+
+* If you define no valid strings and no `default`, Bartender disables its string feature.
+
+* For notification icons, Bartender ignores icons for vehicles that don't exist in VltEd.
+
+* If you don't define a valid `default` icon, Bartender uses `COPS_TAKENOUT_ICON` instead.
+
+* If you define no valid icons and no `default`, Bartender disables its icon feature.
+
+* For an icon to be valid, it must exist in the game's `GLOBALB.LZC` file. You can browse, edit, and expand the icons contained in this file with the [Binary](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) tool by MaxHwoy.
+
+* You might see cops receive or lose their icons when they shouldn't. This happens because the game only draws the mini-map icons of the first 8 currently flagged cops in its memory, so some of them may suddenly (dis)appear if any cops before them get or lose their flags.
+
+* For cop detection, Bartender ignores vehicles that are helicopters or don't exist in VltEd.
+
+* If you define no vehicle settings and no `default`, Bartender disables its detection feature.
+
+* If you don't define colours for both sight states, Bartender disables its vision-cone feature.
+
+* The actual visual range of helicopters can differ from what the vision-cone icon might suggest; the `heliLOSdistance` VltEd parameter controls the visual range the game uses for calculations.
 
 &nbsp;
 

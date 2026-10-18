@@ -207,9 +207,6 @@
     <None Include="Config\Advanced\Roadblocks.ini">
       <Filter>Config\Advanced</Filter>
     </None>
-    <None Include="Config\Basic\Cosmetic.ini">
-      <Filter>Config\Basic</Filter>
-    </None>
     <None Include="Config\Basic\General.ini">
       <Filter>Config\Basic</Filter>
     </None>
@@ -224,6 +221,12 @@
     </None>
     <None Include="Source\cpp.hint">
       <Filter>Source</Filter>
+    </None>
+    <None Include="Config\Basic\Audio.ini">
+      <Filter>Config\Basic</Filter>
+    </None>
+    <None Include="Config\Basic\Interface.ini">
+      <Filter>Config\Basic</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

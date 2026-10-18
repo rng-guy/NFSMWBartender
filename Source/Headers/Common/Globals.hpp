@@ -125,8 +125,9 @@ namespace Globals
 	const auto pathAdvanced = std::filesystem::path(configRoot) / "Advanced";
 
 	// "Basic" feature set
-	constexpr std::string_view fileCosmetic     = "Cosmetic.ini";
+	constexpr std::string_view fileAudio        = "Audio.ini";
 	constexpr std::string_view fileGeneral      = "General.ini";
+	constexpr std::string_view fileInterface    = "Interface.ini";
 	constexpr std::string_view fileNitrous      = "Nitrous.ini";
 	constexpr std::string_view fileSpeedbreaker = "Speedbreaker.ini";
 	constexpr std::string_view fileSupport      = "Support.ini";

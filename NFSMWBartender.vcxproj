@@ -144,6 +144,8 @@
     <ClInclude Include="Source\Headers\Features\Advanced\StrategyOverrides.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Config\Basic\Audio.ini" />
+    <None Include="Config\Basic\Interface.ini" />
     <None Include="README.md" />
     <None Include="Docs\READMORE.md" />
     <None Include="Config\Advanced\CarSpawns.ini" />
@@ -153,7 +155,6 @@
     <None Include="Config\Advanced\Roadblocks.ini" />
     <None Include="Config\Advanced\Strategies.ini" />
     <None Include="Config\Basic\General.ini" />
-    <None Include="Config\Basic\Cosmetic.ini" />
     <None Include="Config\Basic\Nitrous.ini" />
     <None Include="Config\Basic\Speedbreaker.ini" />
     <None Include="Config\Basic\Support.ini" />

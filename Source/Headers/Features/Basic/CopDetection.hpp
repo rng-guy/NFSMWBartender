@@ -432,7 +432,7 @@ namespace CopDetection
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::fileCosmetic)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileInterface)) return false;
 
 		// Radar detection
 		if (not ExtractDetections(parser)) return false; // no valid settings; disable feature
