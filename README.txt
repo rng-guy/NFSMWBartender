@@ -60,7 +60,7 @@ The "Basic" feature set LETS YOU CHANGE (per Heat level)
 
 The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • whether specific cop vehicles are immune to pursuit-breaker instakills;
- • which pursuit stats (e.g. length, bounty, infractions) the game tracks in races;
+ • which pursuit statistics (e.g. length, bounty) the game tracks in races;
  • how much NOS charge you gain / lose from tagging    specific cop vehicles;
  • how much NOS charge you gain / lose from assaulting specific cop vehicles;
  • how much NOS charge you gain / lose from destroying specific cop vehicles;
@@ -127,10 +127,10 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • which vehicles can spawn as free patrols outside pursuits,
  • which vehicle spawns in place of the regular helicopter,
  • when exactly (if at all) the helicopter can first spawn in your pursuits,
- • when exactly (if at all) the helicopter can run out of fuel upon (re)spawning,
- • when exactly (if at all) the helicopter can respawn upon running out of fuel,
- • when exactly (if at all) the helicopter can respawn upon being destroyed,
- • when exactly (if at all) the helicopter can respawn upon losing you,
+ • when exactly (if at all) the helicopter runs out of fuel after (re)spawning,
+ • when exactly (if at all) the helicopter can respawn if it runs out of fuel,
+ • when exactly (if at all) the helicopter can respawn if it's destroyed,
+ • when exactly (if at all) the helicopter can respawn if it loses you,
  • how far away the helicopter can spawn to chase you,
  • how far away the helicopter can spawn to search for you,
  • whether the presence of roadblocks affects the helicopter's navigation behaviour,
@@ -142,7 +142,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • above what count (if at all) no more cops can join the pursuit from HeavyStrategy 3 requests,
  • when exactly (if at all) and how many cops that joined from HeavyStrategy 3 requests can flee,
  • when exactly (if at all) LeaderStrategy 5 / 7 Cross and / or his henchmen become aggressive,
- • when exactly (if at all) the cops can request a new LeaderStrategy once Cross is gone,
+ • when exactly (if at all) the cops can request a new LeaderStrategy once Cross has despawned,
  • when exactly (if at all) the cops can request a new Strategy while another is still active,
  • whether your Heat increases passively over time in active pursuits,
  • how long it takes to gain a Heat level passively in Challenge Series pursuits,

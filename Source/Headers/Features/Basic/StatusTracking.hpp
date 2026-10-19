@@ -15,17 +15,17 @@
 
 
 
-namespace GeneralSettings 
+namespace StatusTracking 
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool featureEnabled = false;
 
 	// Logging
-	constexpr Globals::LogLiteral logTag  = "[GEN]";
-	constexpr Globals::LogLiteral logName = "GeneralSettings";
+	constexpr Globals::LogLiteral logTag  = "[TRK]";
+	constexpr Globals::LogLiteral logName = "StatusTracking";
 
-	// Pursuit tracking
+	// Pursuit statistics
 	bool trackPursuitLength  = false;
 	bool trackUnitsInPursuit = false;
 	bool trackCopsLost       = false;
@@ -301,8 +301,7 @@ namespace GeneralSettings
 			test ah, 0x5
 			jne conclusion               // evading
 
-			fstp st(0)
-			fld dword ptr [maxBustDistance.current]
+			fadd dword ptr [maxBustDistance.current]
 			
 			// Execute original code and resume
 			conclusion:
@@ -450,9 +449,9 @@ namespace GeneralSettings
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	void ExtractTrackingSettings(const ConfigParser::Parser& parser)
+	void ExtractStatisticsSettings(const ConfigParser::Parser& parser)
 	{
-		const auto* const section = parser.GetSection("Pursuits:Tracking");
+		const auto* const section = parser.GetSection("Races:Statistics");
 		if (not section) return; // file missing; keep tracking disabled
 
 		const auto ExtractSetting = [section](const std::string_view key, bool& isTracked) -> bool
@@ -568,13 +567,13 @@ namespace GeneralSettings
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::fileGeneral)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileTracking)) return false;
 
-		// Race tracking (and code modifications)
-		ExtractTrackingSettings(parser);
+		// Tracking in races (and code modifications)
+		ExtractStatisticsSettings(parser);
 
 		// Heat parameters
-		HeatParameters::Extract(parser, "Pursuits:Rivals", rivalPursuitsEnabled);
+		HeatParameters::Extract(parser, "Patrols:Rivals", rivalPursuitsEnabled);
 
 		HeatParameters::Extract(parser, "Bounty:Interval", bountyInterval);
 

@@ -609,15 +609,15 @@ namespace HelicopterOverrides
 		// Heat parameters
 		HeatParameters::Extract(parser, "Helicopter:Vehicle", helicopterVehicle);
 
-		HeatParameters::Extract(parser, "Helicopter:FirstSpawn", firstSpawnDelay);
+		HeatParameters::Extract(parser, "Helicopter:Spawning", firstSpawnDelay);
 
-		HeatParameters::Extract(parser, "Helicopter:FuelTime", fuelTime);
+		HeatParameters::Extract(parser, "Helicopter:Fuel", fuelTime);
 
-		HeatParameters::Extract(parser, "Helicopter:FuelRespawn", fuelRespawnDelay);
+		HeatParameters::Extract(parser, "Helicopter:Expiration", fuelRespawnDelay);
 
-		HeatParameters::Extract(parser, "Helicopter:WreckRespawn", wreckRespawnDelay);
+		HeatParameters::Extract(parser, "Helicopter:Wrecking", wreckRespawnDelay);
 
-		HeatParameters::Extract(parser, "Helicopter:LostRespawn", lostRespawnDelay);
+		HeatParameters::Extract(parser, "Helicopter:Loss", lostRespawnDelay);
 
 		HeatParameters::Extract(parser, "Helicopter:Pathing", catchUpThreshold);
 

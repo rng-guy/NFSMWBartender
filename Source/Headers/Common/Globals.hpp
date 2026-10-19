@@ -126,11 +126,11 @@ namespace Globals
 
 	// "Basic" feature set
 	constexpr std::string_view fileAudio        = "Audio.ini";
-	constexpr std::string_view fileGeneral      = "General.ini";
 	constexpr std::string_view fileInterface    = "Interface.ini";
 	constexpr std::string_view fileNitrous      = "Nitrous.ini";
 	constexpr std::string_view fileSpeedbreaker = "Speedbreaker.ini";
 	constexpr std::string_view fileSupport      = "Support.ini";
+	constexpr std::string_view fileTracking     = "Tracking.ini";
 
 	// "Advanced" feature set
 	constexpr std::string_view fileCarSpawns  = "CarSpawns.ini";
@@ -555,7 +555,7 @@ namespace Globals
 		const LogLiteral    logTag,
 		Ts&&             ...segments
 	) {
-		LogFull("WARNING:", logTag, std::forward<Ts>(segments)...);
+		LogFull(" WARNING", logTag, std::forward<Ts>(segments)...);
 	}
 }
 

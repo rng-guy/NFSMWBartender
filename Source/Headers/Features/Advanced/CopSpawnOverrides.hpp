@@ -11,7 +11,7 @@
 
 #include "../../Utilities/MemoryTools.hpp"
 
-#include "../../Features/Basic/GeneralSettings.hpp"
+#include "../../Features/Basic/StatusTracking.hpp"
 
 #include "CopSpawnTables.hpp"
 #include "PursuitFeatures.hpp"
@@ -580,7 +580,7 @@ namespace CopSpawnOverrides
 				ASSERT_UNREACHABLE_THEN(return);
 			}
 
-			if (not (this->isFreeRoamPursuit or GeneralSettings::trackCopsLost))
+			if (not (this->isFreeRoamPursuit or StatusTracking::trackCopsLost))
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogFull(this->pursuit, logTag, "No decrement (tracking)");

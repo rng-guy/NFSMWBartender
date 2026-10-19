@@ -127,7 +127,7 @@
     <ClInclude Include="Source\Headers\Features\Basic\CopDetection.hpp" />
     <ClInclude Include="Source\Headers\Features\Basic\CopNotifications.hpp" />
     <ClInclude Include="Source\Headers\Features\Basic\GameBreaker.hpp" />
-    <ClInclude Include="Source\Headers\Features\Basic\GeneralSettings.hpp" />
+    <ClInclude Include="Source\Headers\Features\Basic\StatusTracking.hpp" />
     <ClInclude Include="Source\Headers\Features\Basic\GroundSupport.hpp" />
     <ClInclude Include="Source\Headers\Features\Basic\HelicopterVision.hpp" />
     <ClInclude Include="Source\Headers\Features\Basic\InteractiveMusic.hpp" />
@@ -154,7 +154,7 @@
     <None Include="Config\Advanced\Helicopter.ini" />
     <None Include="Config\Advanced\Roadblocks.ini" />
     <None Include="Config\Advanced\Strategies.ini" />
-    <None Include="Config\Basic\General.ini" />
+    <None Include="Config\Basic\Tracking.ini" />
     <None Include="Config\Basic\Nitrous.ini" />
     <None Include="Config\Basic\Speedbreaker.ini" />
     <None Include="Config\Basic\Support.ini" />
