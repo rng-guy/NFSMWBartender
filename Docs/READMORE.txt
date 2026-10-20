@@ -300,7 +300,7 @@ Regarding GROUND SUPPORT ("BartenderSettings/Basic/Support.ini"):
 
 
  
-Regarding PROGRESS AND (VEHICLE-)STATUS TRACKING ("BartenderSettings/Basic/Tracking.ini"):
+Regarding TRACKING, STATUS, AND DESTRUCTION TRIGGERS ("BartenderSettings/Basic/Triggers.ini"):
 
  • The "pursuitLength" tracking also allows the cops to request VltEd-enabled support in races.
 

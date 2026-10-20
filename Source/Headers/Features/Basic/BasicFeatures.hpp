@@ -11,7 +11,7 @@
 #include "CopDetection.hpp"
 #include "HelicopterVision.hpp"
 #include "InteractiveMusic.hpp"
-#include "StatusTracking.hpp"
+#include "StateTriggers.hpp"
 #include "GroundSupport.hpp"
 #include "NitrousCharge.hpp"
 #include "GameBreaker.hpp"
@@ -43,7 +43,7 @@ namespace BasicFeatures
 		anyFeatureEnabled |= CopDetection    ::Initialise(parser);
 		anyFeatureEnabled |= HelicopterVision::Initialise(parser);
 		anyFeatureEnabled |= InteractiveMusic::Initialise(parser);
-		anyFeatureEnabled |= StatusTracking  ::Initialise(parser);
+		anyFeatureEnabled |= StateTriggers   ::Initialise(parser);
 		anyFeatureEnabled |= GroundSupport   ::Initialise(parser);
 		anyFeatureEnabled |= NitrousCharge   ::Initialise(parser);
 		anyFeatureEnabled |= GameBreaker     ::Initialise(parser);
@@ -54,7 +54,7 @@ namespace BasicFeatures
 			RadioSpeech     ::ApplyFixes();
 			CopDetection    ::ApplyFixes();
 			HelicopterVision::ApplyFixes();
-			StatusTracking  ::ApplyFixes();
+			StateTriggers   ::ApplyFixes();
 			GroundSupport   ::ApplyFixes();
 
 			// Incorrect helicopter blob-shadow
@@ -74,11 +74,11 @@ namespace BasicFeatures
 	{
 		// Sentinel not needed as each feature has own check
 
-		RadioSpeech   ::SetToHeatState(state);
-		StatusTracking::SetToHeatState(state);
-		GroundSupport ::SetToHeatState(state);
-		NitrousCharge ::SetToHeatState(state);
-		GameBreaker   ::SetToHeatState(state);
+		RadioSpeech  ::SetToHeatState(state);
+		StateTriggers::SetToHeatState(state);
+		GroundSupport::SetToHeatState(state);
+		NitrousCharge::SetToHeatState(state);
+		GameBreaker  ::SetToHeatState(state);
 	}
 
 

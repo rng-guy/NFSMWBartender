@@ -130,7 +130,7 @@ namespace Globals
 	constexpr std::string_view fileNitrous      = "Nitrous.ini";
 	constexpr std::string_view fileSpeedbreaker = "Speedbreaker.ini";
 	constexpr std::string_view fileSupport      = "Support.ini";
-	constexpr std::string_view fileTracking     = "Tracking.ini";
+	constexpr std::string_view fileTriggers     = "Triggers.ini";
 
 	// "Advanced" feature set
 	constexpr std::string_view fileCarSpawns  = "CarSpawns.ini";

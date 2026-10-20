@@ -15,15 +15,15 @@
 
 
 
-namespace StatusTracking 
+namespace StateTriggers 
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool featureEnabled = false;
 
 	// Logging
-	constexpr Globals::LogLiteral logTag  = "[TRK]";
-	constexpr Globals::LogLiteral logName = "StatusTracking";
+	constexpr Globals::LogLiteral logTag  = "[TRG]";
+	constexpr Globals::LogLiteral logName = "StateTriggers";
 
 	// Pursuit statistics
 	bool trackPursuitLength  = false;
@@ -567,7 +567,7 @@ namespace StatusTracking
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::fileTracking)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::fileTriggers)) return false;
 
 		// Tracking in races (and code modifications)
 		ExtractStatisticsSettings(parser);
