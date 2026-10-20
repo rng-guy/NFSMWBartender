@@ -440,26 +440,26 @@ namespace AdvancedFeatures
 
 	HOOK_ORIGINAL(ProcessWorldLoad);
 
-	void __cdecl ProcessWorldLoad()
+	address __cdecl ProcessWorldLoad()
 	{
 		forceNextGameplayUpdate = true;
 
 		CopSpawnOverrides::NotifyOfHardEventReset();
 
-		CALL_HOOK_ORIGINAL(ProcessWorldLoad);
+		return CALL_HOOK_ORIGINAL(ProcessWorldLoad);
 	}
 
 
 
 	HOOK_ORIGINAL(ProcessEventRestart);
 
-	void __cdecl ProcessEventRestart()
+	address __cdecl ProcessEventRestart()
 	{
 		forceNextGameplayUpdate = true;
 		
 		CopSpawnOverrides::NotifyOfSoftEventReset();
 
-		CALL_HOOK_ORIGINAL(ProcessEventRestart);
+		return CALL_HOOK_ORIGINAL(ProcessEventRestart);
 	}
 
 
@@ -490,8 +490,8 @@ namespace AdvancedFeatures
 		PATCH_ASSEMBLY_DETOUR(PursuitConstructor);
 
 		PATCH_HOOK_FUNCTION(ProcessGameplay,     0x43EF24); // AICopManager::UpdateDebug (0x406500)
-		PATCH_HOOK_FUNCTION(ProcessWorldLoad,    0x662ADC); // nullsub_174               (0x6C39C0)
-		PATCH_HOOK_FUNCTION(ProcessEventRestart, 0x63090B); // World_RestoreProps        (0x74D320)
+		PATCH_HOOK_FUNCTION(ProcessWorldLoad,    0x662AE1); // IVisualTreatment::Get     (0x6DFAF0)
+		PATCH_HOOK_FUNCTION(ProcessEventRestart, 0x63091A); // IVisualTreatment::Get     (0x6DFAF0)
 
 		// Status flag
 		anyFeatureEnabled = true;
