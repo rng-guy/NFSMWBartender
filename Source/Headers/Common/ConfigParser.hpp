@@ -106,7 +106,7 @@ namespace ConfigParser
 
 
 
-
+	
 
 	// Parser helpers -------------------------------------------------------------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ namespace ConfigParser
 
 		T& value;
 
-		[[no_unique_address]] const Bounds<T> limits = {};
+		[[no_unique_address]] Bounds<T> limits;
 	};
 
 
@@ -131,9 +131,9 @@ namespace ConfigParser
 
 		std::array<T, numRows>& values;
 
-		std::optional<T> defaultValue; // mutated in "ExtractArrays"
+		std::optional<T> defaultValue;
 
-		[[no_unique_address]] const Bounds<T> limits = {};
+		[[no_unique_address]] Bounds<T> limits;
 	};
 
 
@@ -146,7 +146,7 @@ namespace ConfigParser
 
 		std::vector<T>& values;
 
-		[[no_unique_address]] const Bounds<T> limits = {};
+		[[no_unique_address]] Bounds<T> limits;
 	};
 
 
@@ -324,7 +324,7 @@ namespace ConfigParser
 			const std::string_view    key,
 			const ScalarField<Vs>  ...scalars
 		) {
-			const bool allExtracted = (section and Parser::ExtractValues<Vs...>(section, key, scalars.value...));
+			const bool allExtracted = Parser::ExtractValues<Vs...>(section, key, scalars.value...);
 
 			(..., scalars.limits.Enforce(scalars.value));
 
@@ -376,19 +376,16 @@ namespace ConfigParser
 			const bool hasFullDefaultRow = (arrays.defaultValue.has_value() and ...);
 
 			// Attempt default-value extraction(s)
-			if (section and hasFullDefaultRow and (not defaultKey.empty()))
-				Parser::ExtractValues<Vs...>(section, defaultKey, {*(arrays.defaultValue)}...);
+			if (hasFullDefaultRow and (not defaultKey.empty()))
+				Parser::ExtractValues<Vs...>(section, defaultKey, (*(arrays.defaultValue))...);
 
 			// Attempt row extraction(s)
 			std::array<bool, numRows> rowExtracteds = {};
 
 			for (size_t rowID = 0; rowID < numRows; ++rowID)
 			{
-				if (section)
-				{
-					const auto key       = buffer.Format(keyFormat, keyStartIndex + rowID);
-					rowExtracteds[rowID] = Parser::ExtractValues<Vs...>(section, key, arrays.values[rowID]...);
-				}
+				const auto rowKey    = buffer.Format(keyFormat, keyStartIndex + rowID);
+				rowExtracteds[rowID] = Parser::ExtractValues<Vs...>(section, rowKey, arrays.values[rowID]...);
 
 				if (rowExtracteds[rowID])  continue;
 				if (not hasFullDefaultRow) continue;
@@ -449,7 +446,7 @@ namespace ConfigParser
 			keys                .clear();
 			(..., vectors.values.clear());
 
-			const size_t numExtracted = (section) ? Parser::ExtractSection<K, Vs...>(section, keys, vectors.values...) : 0;
+			const size_t numExtracted = Parser::ExtractSection<K, Vs...>(section, keys, vectors.values...);
 
 			(..., vectors.limits.Enforce(vectors.values));
 
