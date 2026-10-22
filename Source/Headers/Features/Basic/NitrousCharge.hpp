@@ -28,7 +28,7 @@ namespace NitrousCharge
 	RELEASE_CONSTINIT ParameterSets::CopInteractions nitrousInteractions; // seconds
 	constinit         ParameterSets::ChangeFilter    nitrousChangeFilter;
 
-	// Assembly detours
+	// Detour data
 	float pendingCollisionNitrousChange = 0.f; // seconds
 
 

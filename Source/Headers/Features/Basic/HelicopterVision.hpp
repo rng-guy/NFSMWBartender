@@ -39,7 +39,7 @@ namespace HelicopterVision
 		float transitionLength = .2f; // seconds
 	};
 
-	// Assembly detours
+	// Detour data
 	constinit Colour outOfSight;
 	constinit Colour withinSight;
 
@@ -301,6 +301,9 @@ namespace HelicopterVision
 		static constinit bool fixesApplied = false;
 
 		if (fixesApplied) return;
+
+		// Incorrect helicopter blob-shadow
+		MemoryTools::Write<float>(0.f, {0x903660});
 
 		// Visible cone of destroyed helicopter
 		PATCH_ASSEMBLY_DETOUR(ColourUpdate); 

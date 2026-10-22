@@ -44,7 +44,7 @@ namespace CopFleeOverrides
 	float baseSpeedThreshold; // metres / second
 	float jerkSpeedThreshold; // metres / second
 
-	// Assembly detours
+	// Detour data
 	enum class VaultHash : vault
 	{
 		AIGOALFLEEPURSUIT = "AIGoalFleePursuit"_vlt

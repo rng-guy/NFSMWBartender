@@ -46,7 +46,7 @@ namespace RadioSpeech
 	// Vehicle maps
 	RELEASE_CONSTINIT VEHICLE_MAP(Battalion, copTypeToBattalion, Battalion::PATROL);
 
-	// Assembly detours
+	// Detour data
 	size_t lastReportedHeatLevel = 1;
 	int    lastJurisdictionID    = 0;
 

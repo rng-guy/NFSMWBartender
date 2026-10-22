@@ -11,7 +11,7 @@
 
 #include "../../Utilities/MemoryTools.hpp"
 
-#include "../../Features/Basic/StateTriggers.hpp"
+#include "../../Features/Basic/StatusSettings.hpp"
 
 #include "CopSpawnTables.hpp"
 #include "PursuitFeatures.hpp"
@@ -288,7 +288,7 @@ namespace CopSpawnOverrides
 
 	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
-	// Assembly detours
+	// Detour data
 	enum class VaultHash : vault
 	{
 		AIGOALPATROL = "AIGoalPatrol"_vlt
@@ -580,7 +580,7 @@ namespace CopSpawnOverrides
 				ASSERT_UNREACHABLE_THEN(return);
 			}
 
-			if (not (this->isFreeRoamPursuit or StateTriggers::trackCopsLost))
+			if (not (this->isFreeRoamPursuit or StatusSettings::trackCopsLost))
 			{
 				if constexpr (Globals::loggingEnabled)
 					Globals::LogFull(this->pursuit, logTag, "No decrement (tracking)");

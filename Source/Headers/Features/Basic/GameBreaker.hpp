@@ -30,7 +30,7 @@ namespace GameBreaker
 	RELEASE_CONSTINIT ParameterSets::CopInteractions breakerInteractions; // seconds
 	constinit         ParameterSets::ChangeFilter    breakerChangeFilter;
 
-	// Assembly detours
+	// Detour data
 	float pendingCollisionBreakerChange = 0.f; // seconds
 
 

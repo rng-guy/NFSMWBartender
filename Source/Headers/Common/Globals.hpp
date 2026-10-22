@@ -132,8 +132,8 @@ namespace Globals
 		constexpr std::string_view interface    = "Interface.ini";
 		constexpr std::string_view nitrous      = "Nitrous.ini";
 		constexpr std::string_view speedbreaker = "Speedbreaker.ini";
+		constexpr std::string_view status       = "Status.ini";
 		constexpr std::string_view support      = "Support.ini";
-		constexpr std::string_view triggers     = "Triggers.ini";
 
 		// "Advanced" feature set
 		constexpr std::string_view heat       = "Heat.ini";

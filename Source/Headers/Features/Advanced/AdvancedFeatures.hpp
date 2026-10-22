@@ -244,7 +244,7 @@ namespace AdvancedFeatures
 
 	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
-	// Assembly detours
+	// Detour data
 	RELEASE_CONSTINIT std::vector<std::unique_ptr<PursuitObserver>> observers;
 
 
@@ -472,7 +472,7 @@ namespace AdvancedFeatures
 	{
 		parser.ClearAllFiles();
 
-		if (not CopSpawnTables::Initialise(parser)) return false; // invalid spawn table(s); disable features
+		if (not CopSpawnTables::Initialise(parser)) return false; // invalid spawn table(s); disable set
 
 		CopSpawnOverrides  ::Initialise(parser);
 		CopFleeOverrides   ::Initialise(parser);

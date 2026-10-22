@@ -15,17 +15,17 @@
 
 
 
-namespace StateTriggers 
+namespace StatusSettings 
 {
 	// Feature setup --------------------------------------------------------------------------------------------------------------------------------
 
 	bool featureEnabled = false;
 
 	// Logging
-	constexpr Globals::LogLiteral logTag  = "[TRG]";
-	constexpr Globals::LogLiteral logName = "StateTriggers";
+	constexpr Globals::LogLiteral logTag  = "[STA]";
+	constexpr Globals::LogLiteral logName = "StatusSettings";
 
-	// Pursuit statistics
+	// Statistics tracking
 	bool trackPursuitLength  = false;
 	bool trackUnitsInPursuit = false;
 	bool trackCopsLost       = false;
@@ -66,7 +66,7 @@ namespace StateTriggers
 	// Vehicle maps
 	RELEASE_CONSTINIT VEHICLE_MAP(bool, copTypeToIsBreakerImmune, false);
 
-	// Assembly detours
+	// Detour data
 	constexpr float barWidthScale  = (1.f - .1f) / (.5f - .1f);   // unity
 	constexpr float barWidthOffset = .1f * (1.f - barWidthScale); // unity
 
@@ -449,9 +449,9 @@ namespace StateTriggers
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
 
-	void ExtractStatisticsSettings(const ConfigParser::Parser& parser)
+	void ExtractTrackingSettings(const ConfigParser::Parser& parser)
 	{
-		const auto* const section = parser.GetSection("Races:Statistics");
+		const auto* const section = parser.GetSection("Races:Tracking");
 		if (not section) return; // file missing; keep tracking disabled
 
 		const auto ExtractSetting = [section](const std::string_view key, bool& isTracked) -> bool
@@ -556,6 +556,10 @@ namespace StateTriggers
 		PATCH_ASSEMBLY_DETOUR(OrangeEvadeWidth);
 		PATCH_ASSEMBLY_DETOUR(OrangeBustedWidth);
 
+		// Hard-coded Heat-level resets (credit: ExOptsTeam)
+		MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
+		MemoryTools::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
+		
 		// Status flag
 		fixesApplied = true;
 	}
@@ -567,10 +571,10 @@ namespace StateTriggers
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::Files::triggers)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::Files::status)) return false;
 
 		// Tracking in races (and code modifications)
-		ExtractStatisticsSettings(parser);
+		ExtractTrackingSettings(parser);
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Patrols:Rivals", rivalPursuitsEnabled);

@@ -29,7 +29,7 @@ namespace InteractiveMusic
 	bool shuffleFirstTrack = true;
 	bool shuffleAfterFirst = false;
 
-	// Assembly detours
+	// Detour data
 	size_t currentTrackID = 0;
 
 

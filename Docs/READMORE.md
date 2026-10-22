@@ -223,6 +223,42 @@ Regarding **Speedbreaker gain / loss** ([`BartenderSettings/Basic/Speedbreaker.i
 
 &nbsp;
 
+Regarding **tracking, progress, and vehicle statuses** ([`BartenderSettings/Basic/Status.ini`](../Config/Basic/Status.ini)):
+
+* The `pursuitLength` tracking also allows the cops to request VltEd-enabled support in races.
+
+* The `0x1e2a1051` VltEd parameter defines how much passive bounty you gain after each interval.
+
+* The `DestroyCopBonusTime` VltEd parameter defines the time window for combo-bounty streaks.
+
+* Bartender sets all combo-bounty multiplier limits that are < 1 to 1 instead.
+
+* The red "BUSTED" bar fills when you drive slowly enough and are near a cop who can see you. Once the bar is full, the cops apprehend you and end your pursuit in their favour.
+
+* The cops' visual range limits the effective max. bust distance. The cops' visual range is defined by the `frontLOSdistance`, `rearLOSdistance`, and `heliLOSdistance` VltEd parameters.
+
+* The `BustSpeed` VltEd parameter defines the speed threshold for busting.
+   
+* The green "EVADE" bar fills when you are not within line of sight of any cops. Once the bar is full, you enter "COOLDOWN" mode and need to stay hidden for a while to escape your pursuit.
+
+* The `evadetimeout` VltEd parameter defines how long you need to stay hidden in "COOLDOWN" mode.
+
+* The time you spend filling the green "EVADE" bar also counts towards how long you need to stay hidden in "COOLDOWN" mode. If the "EVADE" bar takes longer to fill, you escape instantly.
+
+* The two checks for whether a flipped cop should be destroyed are mutually independent: One check is damage-based, while the other is time-based and disregards vehicle damage.
+
+* The time-based flip check happens only at Heat levels for which you define a valid delay value.
+
+* Resets of flipped racers happen only at Heat levels for which you define a valid delay value.
+
+* The `BEHAVIOR_MECHANIC_RESET` VltEd parameter defines whether vehicles can reset at all.
+
+* If you don't define a valid `default` immunity flag, Bartender uses `false` instead.
+
+* If you define no valid immunity flags and no `default`, Bartender disables its breaker feature.
+
+&nbsp;
+
 Regarding **ground support** ([`BartenderSettings/Basic/Support.ini`](../Config/Basic/Support.ini)):
 
 * Very short spawn distances for roadblocks can cause noticeable pop-in as they spawn.
@@ -256,42 +292,6 @@ Regarding **ground support** ([`BartenderSettings/Basic/Support.ini`](../Config/
 * Bartender replaces vehicles that don't exist in VltEd with whatever the vanilla game uses.
 
 * Bartender replaces vehicles that are helicopters with whatever the vanilla game uses.
-
-&nbsp;
-
-Regarding **tracking, status, and destruction triggers** ([`BartenderSettings/Basic/Triggers.ini`](../Config/Basic/Triggers.ini)):
-
-* The `pursuitLength` tracking also allows the cops to request VltEd-enabled support in races.
-
-* The `0x1e2a1051` VltEd parameter defines how much passive bounty you gain after each interval.
-
-* The `DestroyCopBonusTime` VltEd parameter defines the time window for combo-bounty streaks.
-
-* Bartender sets all combo-bounty multiplier limits that are < 1 to 1 instead.
-
-* The red "BUSTED" bar fills when you drive slowly enough and are near a cop who can see you. Once the bar is full, the cops apprehend you and end your pursuit in their favour.
-
-* The cops' visual range limits the effective max. bust distance. The cops' visual range is defined by the `frontLOSdistance`, `rearLOSdistance`, and `heliLOSdistance` VltEd parameters.
-
-* The `BustSpeed` VltEd parameter defines the speed threshold for busting.
-   
-* The green "EVADE" bar fills when you are not within line of sight of any cops. Once the bar is full, you enter "COOLDOWN" mode and need to stay hidden for a while to escape your pursuit.
-
-* The `evadetimeout` VltEd parameter defines how long you need to stay hidden in "COOLDOWN" mode.
-
-* The time you spend filling the green "EVADE" bar also counts towards how long you need to stay hidden in "COOLDOWN" mode. If the "EVADE" bar takes longer to fill, you escape instantly.
-
-* The two checks for whether a flipped cop should be destroyed are mutually independent: One check is damage-based, while the other is time-based and disregards vehicle damage.
-
-* The time-based flip check happens only at Heat levels for which you define a valid delay value.
-
-* Resets of flipped racers happen only at Heat levels for which you define a valid delay value.
-
-* The `BEHAVIOR_MECHANIC_RESET` VltEd parameter defines whether vehicles can reset at all.
-
-* If you don't define a valid `default` immunity flag, Bartender uses `false` instead.
-
-* If you define no valid immunity flags and no `default`, Bartender disables its breaker feature.
 
 &nbsp;
 

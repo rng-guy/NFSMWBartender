@@ -76,7 +76,7 @@
     <ClInclude Include="Source\Headers\Features\Basic\GroundSupport.hpp">
       <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\Features\Basic\StateTriggers.hpp">
+    <ClInclude Include="Source\Headers\Features\Basic\StatusSettings.hpp">
       <Filter>Source\Headers\Features\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Features\Advanced\CopFleeOverrides.hpp">
@@ -207,7 +207,7 @@
     <None Include="Config\Advanced\Roadblocks.ini">
       <Filter>Config\Advanced</Filter>
     </None>
-    <None Include="Config\Basic\Triggers.ini">
+    <None Include="Config\Basic\Status.ini">
       <Filter>Config\Basic</Filter>
     </None>
     <None Include="Config\Basic\Nitrous.ini">

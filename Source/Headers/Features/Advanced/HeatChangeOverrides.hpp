@@ -47,7 +47,7 @@ namespace HeatChangeOverrides
 	// Parameter conversions
 	float damageHeatChange; // levels
 
-	// Assembly detours
+	// Detour data
 	size_t lastAnimatedHeatLevel = 0;
 	float  animationEndTimestamp = 0.f; // seconds
 

@@ -210,7 +210,7 @@ namespace RoadblockOverrides
 	// Custom roadblock setups
 	RELEASE_CONSTINIT std::vector<RBSetup> roadblockSetups;
 
-	// Assembly detours
+	// Detour data
 	size_t numCarsToSource = 0;     // used only if setups non-empty
 	float  maxStretchScale = 1.14f; // used only if setups non-empty
 

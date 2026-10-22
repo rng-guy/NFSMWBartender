@@ -4,14 +4,12 @@
 #include "../../Common/ConfigParser.hpp"
 #include "../../Common/HeatParameters.hpp"
 
-#include "../../Utilities/MemoryTools.hpp"
-
 #include "CopNotifications.hpp"
 #include "RadioSpeech.hpp"
 #include "CopDetection.hpp"
 #include "HelicopterVision.hpp"
 #include "InteractiveMusic.hpp"
-#include "StateTriggers.hpp"
+#include "StatusSettings.hpp"
 #include "GroundSupport.hpp"
 #include "NitrousCharge.hpp"
 #include "GameBreaker.hpp"
@@ -43,26 +41,18 @@ namespace BasicFeatures
 		anyFeatureEnabled |= CopDetection    ::Initialise(parser);
 		anyFeatureEnabled |= HelicopterVision::Initialise(parser);
 		anyFeatureEnabled |= InteractiveMusic::Initialise(parser);
-		anyFeatureEnabled |= StateTriggers   ::Initialise(parser);
+		anyFeatureEnabled |= StatusSettings  ::Initialise(parser);
 		anyFeatureEnabled |= GroundSupport   ::Initialise(parser);
 		anyFeatureEnabled |= NitrousCharge   ::Initialise(parser);
 		anyFeatureEnabled |= GameBreaker     ::Initialise(parser);
 
 		if (anyFeatureEnabled)
 		{
-			// Feature-specific fixes
 			RadioSpeech     ::ApplyFixes();
 			CopDetection    ::ApplyFixes();
 			HelicopterVision::ApplyFixes();
-			StateTriggers   ::ApplyFixes();
+			StatusSettings  ::ApplyFixes();
 			GroundSupport   ::ApplyFixes();
-
-			// Incorrect helicopter blob-shadow
-			MemoryTools::Write<float>(0.f, {0x903660});
-
-			// Hard-coded Heat-level resets (credit: ExOptsTeam)
-			MemoryTools::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
-			MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
 		}
 
 		return anyFeatureEnabled;
@@ -72,13 +62,13 @@ namespace BasicFeatures
 
 	void SetToHeatState(const HeatParameters::HeatState state)
 	{
-		// Sentinel not needed as each feature has own check
+		// Sentinel not needed as features have own checks
 
-		RadioSpeech  ::SetToHeatState(state);
-		StateTriggers::SetToHeatState(state);
-		GroundSupport::SetToHeatState(state);
-		NitrousCharge::SetToHeatState(state);
-		GameBreaker  ::SetToHeatState(state);
+		RadioSpeech   ::SetToHeatState(state);
+		StatusSettings::SetToHeatState(state);
+		GroundSupport ::SetToHeatState(state);
+		NitrousCharge ::SetToHeatState(state);
+		GameBreaker   ::SetToHeatState(state);
 	}
 
 
@@ -88,7 +78,7 @@ namespace BasicFeatures
 		const address copVehicle, 
 		const address perpVehicle
 	) {
-		// Sentinel not needed as each feature has own check
+		// Sentinel not needed as features have own checks
 
 		NitrousCharge::NotifyOfTaggedCop(copVehicle, perpVehicle);
 		GameBreaker  ::NotifyOfTaggedCop(copVehicle, perpVehicle);
@@ -102,7 +92,7 @@ namespace BasicFeatures
 		const address perpVehicle,
 		const byte    numCopAssaulted
 	) {
-		// Sentinel not needed as each feature has own check
+		// Sentinel not needed as features have own checks
 
 		NitrousCharge::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
 		GameBreaker  ::NotifyOfAssaultedCop(copVehicle, perpVehicle, numCopAssaulted);
@@ -112,7 +102,7 @@ namespace BasicFeatures
 
 	void NotifyOfFinishedCollision(const address perpVehicle)
 	{
-		// Sentinel not needed as each feature has own check
+		// Sentinel not needed as features have own checks
 
 		NitrousCharge::NotifyOfFinishedCollision(perpVehicle);
 		GameBreaker  ::NotifyOfFinishedCollision(perpVehicle);
@@ -125,7 +115,7 @@ namespace BasicFeatures
 		const address pursuit, 
 		const address copVehicle
 	) {
-		// Sentinel not needed as each feature has own check
+		// Sentinel not needed as features have own checks
 
 		NitrousCharge::NotifyOfDestroyedCop(pursuit, copVehicle);
 		GameBreaker  ::NotifyOfDestroyedCop(pursuit, copVehicle);

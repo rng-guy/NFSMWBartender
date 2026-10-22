@@ -93,7 +93,7 @@ namespace CopDetection
 
 	// Feature setup (continued) -----------------------------------------------------------------------------------------------------------------------
 
-	// Assembly detours
+	// Detour data
 	enum class VaultHash : vault
 	{
 		CHOPPER = "CHOPPER"_vlt
