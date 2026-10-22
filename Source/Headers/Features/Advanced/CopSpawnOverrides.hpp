@@ -1289,7 +1289,7 @@ namespace CopSpawnOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(Globals::pathAdvanced, Globals::fileCarSpawns);
+		parser.ParseFile(Globals::pathAdvanced, Globals::Files::spawning);
 
 		// Pursuit-board tracking
 		ExtractTrackingSettings(parser);
@@ -1312,7 +1312,7 @@ namespace CopSpawnOverrides
 		HeatParameters::Extract(parser, "Traffic:Independence", trafficIgnoresChasers, trafficIgnoresRoadblocks);
 
 		// Heat parameters (second file)
-		parser.ParseFile(Globals::pathAdvanced, Globals::fileRoadblocks);
+		parser.ParseFile(Globals::pathAdvanced, Globals::Files::roadblocks);
 
 		HeatParameters::Extract(parser, "Joining:Limit", roadblockJoinLimit);
 

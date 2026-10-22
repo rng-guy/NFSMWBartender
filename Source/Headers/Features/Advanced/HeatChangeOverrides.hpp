@@ -500,7 +500,7 @@ namespace HeatChangeOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(Globals::pathAdvanced, Globals::fileHeat);
+		parser.ParseFile(Globals::pathAdvanced, Globals::Files::heat);
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Heat:Time", heatTimerEnabled);

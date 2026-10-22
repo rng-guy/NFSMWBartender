@@ -604,7 +604,7 @@ namespace HelicopterOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(Globals::pathAdvanced, Globals::fileHelicopter);
+		parser.ParseFile(Globals::pathAdvanced, Globals::Files::helicopter);
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Helicopter:Vehicle", helicopterVehicle);

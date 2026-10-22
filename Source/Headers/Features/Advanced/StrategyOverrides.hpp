@@ -579,7 +579,7 @@ namespace StrategyOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(Globals::pathAdvanced, Globals::fileStrategies);
+		parser.ParseFile(Globals::pathAdvanced, Globals::Files::strategies);
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Heavy3:Count", numVehiclesPerHeavy3s);

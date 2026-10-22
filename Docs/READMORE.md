@@ -323,72 +323,6 @@ Regarding the "Advanced" feature set **as a whole**:
 
 &nbsp;
 
-Regarding **car (de)spawning** ([`BartenderSettings/Advanced/CarSpawns.ini`](../Config/Advanced/CarSpawns.ini)):
-
-* The engagement count shown above the pursuit board is purely cosmetic: Bartender tracks all "Chasers" accurately behind the scenes and ensures that backups trigger as intended.
-
-* Under no circumstances can minimum counts cause more "Chasers" spawns than otherwise possible; they respect the current global cop-spawn limit and the `count` values in "Chasers" tables.
-
-* In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the minimum count.
-
-* The global cop-spawn limit determines whether the game can spawn more "Chasers" at any point, but has no effect on roadblock or Strategy spawns whatsoever. The game can spawn additional "Chasers" as long as the total amount of non-roadblock cops that currently exist across all pursuits is below this global limit. This also means that any active Strategy spawns or NPC pursuits in general can affect how many more "Chasers" can still spawn in your own pursuit. The vanilla game actually counts roadblock cops as well; Bartender doesn't, as the vanilla game is perfectly content to request and spawn roadblocks while the number of non-roadblock cops is already at the global limit, meaning roadblocks shouldn't actually matter at all.
-
-* The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
-
-* If you want to use global cop-spawn limits > 8 and / or make "Chasers" / traffic spawns independent of other vehicles, you may also [need a mod](../README.md#5---which-mods-does-bartender-depend-on) that replaces the game's car loader. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
-
-* The additional "Chasers" spawn restriction for non-player pursuits only applies at Heat levels for which you define a valid limit value. The global cop-spawn limit still applies regardless.
-
-* If you enable independent "Chasers" spawns, then Bartender applies the global cop-spawn limit to each pursuit separately instead of globally. With this, the limit only counts and affects spawning decisions for "Chasers"; other vehicles (e.g. roadblocks) can no longer block them.
-
-* Location restrictions only applies at Heat levels for which you define valid distance values.
-
-* The vanilla game imposes spawn-location restrictions on "Chasers" in races: all "Chasers" must spawn on the same road as the pursuit target, and strictly ahead of it. This basically ensures no cops spawn beyond any race barriers, but it also leads to clustering and very predictable spawn patterns. The vanilla game also imposes this restriction on Challenge Series pursuits, but Bartender makes those use the free-roam restrictions (should you define any) instead.
-
-* Very small spawning clearances for "Chasers" may lead to stacked spawns and congested roads.
-
-* "Chasers" flee only at Heat levels for which you define valid flee-delay values and thresholds. "Chasers" also only flee if they aren't in the current Heat level's "Chasers" spawn table, and if there would be enough active "Chasers" remaining in the pursuit after their retreat.
-
-* Fully independent traffic spawns fix the vanilla issue of disappearing traffic in pursuits, but they might interfere with "Chasers" spawns to some degree under the right conditions.
-
-* Roadblock-independent traffic spawns might cause some roadblock cops to spawn misaligned.
-
-&nbsp;
-
-Regarding **cop spawn tables** ([`BartenderSettings/Advanced/CarTables.ini`](../Config/Advanced/CarTables.ini)):
-
-* Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Scripted", and "Patrols" spawn tables you leave empty.
-
-* Bartender uses the race "Chasers" spawn tables (which must contain at least one vehicle) in place of all race "Roadblocks", "Scripted", and "Patrols" spawn tables you leave empty.
-
-* Bartender ignores vehicles that are helicopters or don't exist in VltEd.
-
-* The `chance` values are weights (like in VltEd), not percentages. The actual spawn chance of a vehicle is its `chance` value divided by the sum of the `chance` values of all vehicles in the same spawn table. Whenever a vehicle reaches its `count` value (i.e. spawn cap), Bartender treats its `chance` value as 0 until there is room for further spawns of that vehicle again.
-
-* Bartender sets all `count` and `chance` values that are < 1 to 1 instead.
-
-* Bartender enforces the `count` values for "Chasers" for each active pursuit separately. For "Roadblocks" / "Scripted", Bartender enforces `count` values for each roadblock / event. "Patrols" have their `count` values enforced globally instead, as they lack a pursuit.
-
-* Once they join a pursuit, "Scripted" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
-
-* The "Roadblocks" spawn tables don't apply to HeavyStrategy 4 roadblocks.
-
-* Each roadblock / script in the game requests a hard-coded number of vehicles. No roadblock setup in the vanilla game requests more than 6 vehicles, and no scripted event more than 8.
- 
-* Bartender temporarily ignores the `count` values in a "Roadblocks" / "Scripted" spawn table whenever a roadblock / script requests more vehicles in total than they would otherwise allow. This ensures the game cannot get stuck trying to spawn a roadblock or start a scripted event.
-
-* Rarely, vehicles that are not in a "Roadblocks" spawn table may still show up in roadblocks. This is a vanilla issue: it usually happens when the game attempts to recycle vehicles as it processes a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
-
-* Rarely, individual cop vehicles may spawn without hitboxes. This is a vanilla issue caused by the game's vehicle manager, which Bartender doesn't touch and cannot fix. This issue is most likely to occur whenever many different vehicles are active.
-
-* To be precise, the "Scripted" spawn tables apply to LUA scripts that force cops to spawn; examples are pre-generated cops in Challenge Series pursuits and patrols in prologue races.
-
-* You shouldn't use fast Heat transitions (`0x80deb840` VltEd parameter set to < 2 seconds), else you might see a mix of cops from more than one "Scripted" spawn table appear in events with pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can also avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
-
-* Bartender uses different spawn tables for each of the two patrol-spawn types in the game: "Patrols" tables replace the free patrols that spawn whenever there is no active pursuit, and "Chasers" tables replace the searching patrols that spawn in pursuits when the target is in "COOLDOWN" mode. You can control the number of patrol spawns through the `NumPatrolCars` VltEd parameter, but there are two important quirks: Free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count.
-
-&nbsp;
-
 Regarding **Heat gain / loss** ([`BartenderSettings/Advanced/Heat.ini`](../Config/Advanced/Heat.ini)):
 
 * The `0x80deb840` VltEd array and the `TimePerHeatLevel` VltEd parameter control the pace at which you gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a Heat level passively, while the latter multiplies this base amount by whatever number you define for it.
@@ -473,6 +407,38 @@ Regarding **roadblock behaviour and setups** ([`BartenderSettings/Advanced/Roadb
 
 &nbsp;
 
+Regarding **car (de)spawning** ([`BartenderSettings/Advanced/Spawning.ini`](../Config/Advanced/Spawning.ini)):
+
+* The engagement count shown above the pursuit board is purely cosmetic: Bartender tracks all "Chasers" accurately behind the scenes and ensures that backups trigger as intended.
+
+* Under no circumstances can minimum counts cause more "Chasers" spawns than otherwise possible; they respect the current global cop-spawn limit and the `count` values in "Chasers" tables.
+
+* In "COOLDOWN" mode, the `NumPatrolCars` VltEd parameter overrides the minimum count.
+
+* The global cop-spawn limit determines whether the game can spawn more "Chasers" at any point, but has no effect on roadblock or Strategy spawns whatsoever. The game can spawn additional "Chasers" as long as the total amount of non-roadblock cops that currently exist across all pursuits is below this global limit. This also means that any active Strategy spawns or NPC pursuits in general can affect how many more "Chasers" can still spawn in your own pursuit. The vanilla game actually counts roadblock cops as well; Bartender doesn't, as the vanilla game is perfectly content to request and spawn roadblocks while the number of non-roadblock cops is already at the global limit, meaning roadblocks shouldn't actually matter at all.
+
+* The global cop-spawn limit takes precedence over all other spawning-related parameters, except for the `NumPatrolCars` VltEd parameter outside of active pursuits (this is vanilla behaviour).
+
+* If you want to use global cop-spawn limits > 8 and / or make "Chasers" / traffic spawns independent of other vehicles, you may also [need a mod](../README.md#5---which-mods-does-bartender-depend-on) that replaces the game's car loader. This is necessary to reduce the risk of instability and (partially) invisible cop spawns.
+
+* The additional "Chasers" spawn restriction for non-player pursuits only applies at Heat levels for which you define a valid limit value. The global cop-spawn limit still applies regardless.
+
+* If you enable independent "Chasers" spawns, then Bartender applies the global cop-spawn limit to each pursuit separately instead of globally. With this, the limit only counts and affects spawning decisions for "Chasers"; other vehicles (e.g. roadblocks) can no longer block them.
+
+* Location restrictions only applies at Heat levels for which you define valid distance values.
+
+* The vanilla game imposes spawn-location restrictions on "Chasers" in races: all "Chasers" must spawn on the same road as the pursuit target, and strictly ahead of it. This basically ensures no cops spawn beyond any race barriers, but it also leads to clustering and very predictable spawn patterns. The vanilla game also imposes this restriction on Challenge Series pursuits, but Bartender makes those use the free-roam restrictions (should you define any) instead.
+
+* Very small spawning clearances for "Chasers" may lead to stacked spawns and congested roads.
+
+* "Chasers" flee only at Heat levels for which you define valid flee-delay values and thresholds. "Chasers" also only flee if they aren't in the current Heat level's "Chasers" spawn table, and if there would be enough active "Chasers" remaining in the pursuit after their retreat.
+
+* Fully independent traffic spawns fix the vanilla issue of disappearing traffic in pursuits, but they might interfere with "Chasers" spawns to some degree under the right conditions.
+
+* Roadblock-independent traffic spawns might cause some roadblock cops to spawn misaligned.
+
+&nbsp;
+
 Regarding **strategy requests** ([`BartenderSettings/Advanced/Strategies.ini`](../Config/Advanced/Strategies.ini)):
 
 * Defining low pursuit-target speed thresholds for HeavyStrategy 3 cops fixes the vanilla issue of them attempting to flee a given pursuit instantly without trying to ram anything. This is because the vanilla game forces HeavyStrategy 3 spawns to flee if their target's speed drops below the `CollapseSpeed` VltEd parameter at any point. At higher Heat levels, this can lead to many passive spawns because of much higher `CollapseSpeed` values.
@@ -510,3 +476,37 @@ Regarding **strategy requests** ([`BartenderSettings/Advanced/Strategies.ini`](.
 * Even with unblocking, no new LeaderStrategy can spawn while a LeaderStrategy Cross is present.
 
 * It's generally safe to use unblock delays of 0 for HeavyStrategy 4 and LeaderStrategy 5 / 7.
+
+&nbsp;
+
+Regarding **cop spawn tables** ([`BartenderSettings/Advanced/Tables.ini`](../Config/Advanced/Tables.ini)):
+
+* Bartender uses the free-roam "Chasers" spawn tables (which must contain at least one vehicle) in place of all free-roam "Roadblocks", "Scripted", and "Patrols" spawn tables you leave empty.
+
+* Bartender uses the race "Chasers" spawn tables (which must contain at least one vehicle) in place of all race "Roadblocks", "Scripted", and "Patrols" spawn tables you leave empty.
+
+* Bartender ignores vehicles that are helicopters or don't exist in VltEd.
+
+* The `chance` values are weights (like in VltEd), not percentages. The actual spawn chance of a vehicle is its `chance` value divided by the sum of the `chance` values of all vehicles in the same spawn table. Whenever a vehicle reaches its `count` value (i.e. spawn cap), Bartender treats its `chance` value as 0 until there is room for further spawns of that vehicle again.
+
+* Bartender sets all `count` and `chance` values that are < 1 to 1 instead.
+
+* Bartender enforces the `count` values for "Chasers" for each active pursuit separately. For "Roadblocks" / "Scripted", Bartender enforces `count` values for each roadblock / event. "Patrols" have their `count` values enforced globally instead, as they lack a pursuit.
+
+* Once they join a pursuit, "Scripted" and "Patrols" spawns also count as "Chasers" as far as membership (i.e. fleeing decisions) and the `count` values of "Chasers" are concerned.
+
+* The "Roadblocks" spawn tables don't apply to HeavyStrategy 4 roadblocks.
+
+* Each roadblock / script in the game requests a hard-coded number of vehicles. No roadblock setup in the vanilla game requests more than 6 vehicles, and no scripted event more than 8.
+ 
+* Bartender temporarily ignores the `count` values in a "Roadblocks" / "Scripted" spawn table whenever a roadblock / script requests more vehicles in total than they would otherwise allow. This ensures the game cannot get stuck trying to spawn a roadblock or start a scripted event.
+
+* Rarely, vehicles that are not in a "Roadblocks" spawn table may still show up in roadblocks. This is a vanilla issue: it usually happens when the game attempts to recycle vehicles as it processes a roadblock request, causing it to place the wrong car in the requested roadblock. Even more rarely than that, this bug can also happen with traffic cars or the helicopter.
+
+* Rarely, individual cop vehicles may spawn without hitboxes. This is a vanilla issue caused by the game's vehicle manager, which Bartender doesn't touch and cannot fix. This issue is most likely to occur whenever many different vehicles are active.
+
+* To be precise, the "Scripted" spawn tables apply to LUA scripts that force cops to spawn; examples are pre-generated cops in Challenge Series pursuits and patrols in prologue races.
+
+* You shouldn't use fast Heat transitions (`0x80deb840` VltEd parameter set to < 2 seconds), else you might see a mix of cops from more than one "Scripted" spawn table appear in events with pre-generated cops. This happens because, depending on your loading times, the game might update the Heat level as it requests those spawns. You can also avoid this issue by setting the event's `ForceHeatLevel` VltEd parameter to the target Heat level instead.
+
+* Bartender uses different spawn tables for each of the two patrol-spawn types in the game: "Patrols" tables replace the free patrols that spawn whenever there is no active pursuit, and "Chasers" tables replace the searching patrols that spawn in pursuits when the target is in "COOLDOWN" mode. You can control the number of patrol spawns through the `NumPatrolCars` VltEd parameter, but there are two important quirks: Free patrol spawns ignore the global cop-spawn limit, while searching patrol spawns ignore the remaining engagement count.

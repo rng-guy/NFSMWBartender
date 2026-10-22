@@ -180,7 +180,7 @@ namespace NitrousCharge
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::fileNitrous)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::Files::nitrous)) return false;
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Nitrous:Time", passiveRechargeEnabled);

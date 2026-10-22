@@ -344,7 +344,7 @@ namespace RadioSpeech
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::fileAudio)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::Files::audio)) return false;
 
 		// Jurisdictions
 		ExtractJurisdictions(parser);

@@ -319,7 +319,7 @@ namespace HelicopterVision
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::fileInterface)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::Files::interface)) return false;
 
 		// Cone colours
 		if (not ExtractColours(parser)) return false; // invalid colours; disable feature

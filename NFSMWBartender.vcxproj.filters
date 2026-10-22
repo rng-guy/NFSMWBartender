@@ -189,10 +189,10 @@
     <None Include="Editor\Images\Sawhorse.webp">
       <Filter>Editor\Images</Filter>
     </None>
-    <None Include="Config\Advanced\CarSpawns.ini">
+    <None Include="Config\Advanced\Spawning.ini">
       <Filter>Config\Advanced</Filter>
     </None>
-    <None Include="Config\Advanced\CarTables.ini">
+    <None Include="Config\Advanced\Tables.ini">
       <Filter>Config\Advanced</Filter>
     </None>
     <None Include="Config\Advanced\Helicopter.ini">

@@ -148,8 +148,8 @@
     <None Include="Config\Basic\Interface.ini" />
     <None Include="README.md" />
     <None Include="Docs\READMORE.md" />
-    <None Include="Config\Advanced\CarSpawns.ini" />
-    <None Include="Config\Advanced\CarTables.ini" />
+    <None Include="Config\Advanced\Spawning.ini" />
+    <None Include="Config\Advanced\Tables.ini" />
     <None Include="Config\Advanced\Heat.ini" />
     <None Include="Config\Advanced\Helicopter.ini" />
     <None Include="Config\Advanced\Roadblocks.ini" />

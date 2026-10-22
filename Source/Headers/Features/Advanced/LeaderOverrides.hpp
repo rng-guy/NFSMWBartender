@@ -420,7 +420,7 @@ namespace LeaderOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(Globals::pathAdvanced, Globals::fileStrategies);
+		parser.ParseFile(Globals::pathAdvanced, Globals::Files::strategies);
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Leader5:Aggro", leader5CrossAggroDelay);

@@ -157,7 +157,7 @@ namespace CopNotifications
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::fileInterface)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::Files::interface)) return false;
 
 		// Destruction notifications (and code modifications)
 		if (not InitialiseNotifications(parser)) return false; // no valid notifications; disable feature

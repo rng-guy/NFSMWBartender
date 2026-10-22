@@ -430,7 +430,7 @@ namespace CopSpawnTables
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathAdvanced, Globals::fileCarTables)) return false;
+		if (not parser.ParseFile(Globals::pathAdvanced, Globals::Files::tables)) return false;
 
 		// Heat parameters
 		if (not ExtractSpawnTableObjects(parser)) return false; // free-roam "Chasers" table(s) empty; disable feature

@@ -567,7 +567,7 @@ namespace StateTriggers
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::fileTriggers)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::Files::triggers)) return false;
 
 		// Tracking in races (and code modifications)
 		ExtractStatisticsSettings(parser);

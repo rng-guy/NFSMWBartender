@@ -64,7 +64,7 @@ namespace Globals
 	constexpr float floatScale  = 1.f + 1e-6f;  // don't even ask
 	constexpr float ticksToTime = 1.f / 4000.f; // seconds / tick
 
-	// String pool for game-decoupled lifetimes
+	// String pool for decoupled lifetimes
 	RELEASE_CONSTINIT StringTools::Pool vehicleNames;
 
 	// Function pointers
@@ -124,21 +124,25 @@ namespace Globals
 	const auto pathBasic    = std::filesystem::path(configRoot) / "Basic";
 	const auto pathAdvanced = std::filesystem::path(configRoot) / "Advanced";
 
-	// "Basic" feature set
-	constexpr std::string_view fileAudio        = "Audio.ini";
-	constexpr std::string_view fileInterface    = "Interface.ini";
-	constexpr std::string_view fileNitrous      = "Nitrous.ini";
-	constexpr std::string_view fileSpeedbreaker = "Speedbreaker.ini";
-	constexpr std::string_view fileSupport      = "Support.ini";
-	constexpr std::string_view fileTriggers     = "Triggers.ini";
+	// Features
+	namespace Files
+	{
+		// "Basic" feature set
+		constexpr std::string_view audio        = "Audio.ini";
+		constexpr std::string_view interface    = "Interface.ini";
+		constexpr std::string_view nitrous      = "Nitrous.ini";
+		constexpr std::string_view speedbreaker = "Speedbreaker.ini";
+		constexpr std::string_view support      = "Support.ini";
+		constexpr std::string_view triggers     = "Triggers.ini";
 
-	// "Advanced" feature set
-	constexpr std::string_view fileCarSpawns  = "CarSpawns.ini";
-	constexpr std::string_view fileCarTables  = "CarTables.ini";
-	constexpr std::string_view fileHeat       = "Heat.ini";
-	constexpr std::string_view fileHelicopter = "Helicopter.ini";
-	constexpr std::string_view fileRoadblocks = "Roadblocks.ini";
-	constexpr std::string_view fileStrategies = "Strategies.ini";
+		// "Advanced" feature set
+		constexpr std::string_view heat       = "Heat.ini";
+		constexpr std::string_view helicopter = "Helicopter.ini";
+		constexpr std::string_view roadblocks = "Roadblocks.ini";
+		constexpr std::string_view spawning   = "Spawning.ini";
+		constexpr std::string_view strategies = "Strategies.ini";
+		constexpr std::string_view tables     = "Tables.ini";
+	}
 
 
 

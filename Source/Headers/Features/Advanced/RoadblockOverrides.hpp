@@ -1085,7 +1085,7 @@ namespace RoadblockOverrides
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		parser.ParseFile(Globals::pathAdvanced, Globals::fileRoadblocks);
+		parser.ParseFile(Globals::pathAdvanced, Globals::Files::roadblocks);
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Roadblocks:Recycling", mayRecycleDistantCops);

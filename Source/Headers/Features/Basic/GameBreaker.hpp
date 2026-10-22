@@ -192,7 +192,7 @@ namespace GameBreaker
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::fileSpeedbreaker)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::Files::speedbreaker)) return false;
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Speedbreaker:Mechanics", passiveRechargeEnabled, driftRechargeEnabled);

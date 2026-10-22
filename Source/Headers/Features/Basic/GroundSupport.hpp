@@ -664,7 +664,7 @@ namespace GroundSupport
 		if constexpr (Globals::loggingEnabled)
 			Globals::LogConfig(logTag, logName);
 
-		if (not parser.ParseFile(Globals::pathBasic, Globals::fileSupport)) return false;
+		if (not parser.ParseFile(Globals::pathBasic, Globals::Files::support)) return false;
 
 		// Heat parameters
 		HeatParameters::Extract(parser, "Support:Rivals", rivalRoadblockEnabled, rivalHeavyEnabled, rivalLeaderEnabled);

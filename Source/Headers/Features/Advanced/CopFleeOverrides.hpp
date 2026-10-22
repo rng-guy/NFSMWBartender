@@ -619,17 +619,17 @@ namespace CopFleeOverrides
 			Globals::LogConfig(logTag, logName);
 
 		// Heat parameters (first file)
-		parser.ParseFile(Globals::pathAdvanced, Globals::fileCarSpawns);
+		parser.ParseFile(Globals::pathAdvanced, Globals::Files::spawning);
 
 		HeatParameters::Extract(parser, "Chasers:Fleeing", chaserFleeDelay, chaserThreshold);
 
 		// Heat parameters (second file)
-		parser.ParseFile(Globals::pathAdvanced, Globals::fileRoadblocks);
+		parser.ParseFile(Globals::pathAdvanced, Globals::Files::roadblocks);
 
 		HeatParameters::Extract(parser, "Joining:Fleeing", joinedRoadblockFleeDelay, joinedRoadblockThreshold);
 
 		// Heat parameters (third file)
-		parser.ParseFile(Globals::pathAdvanced, Globals::fileStrategies);
+		parser.ParseFile(Globals::pathAdvanced, Globals::Files::strategies);
 
 		HeatParameters::Extract(parser, "Heavy3:Cancellation", heavy3SpeedThreshold);
 
