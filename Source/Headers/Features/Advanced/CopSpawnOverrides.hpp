@@ -298,9 +298,8 @@ namespace CopSpawnOverrides
 	RELEASE_CONSTINIT COP_CONTINGENT(scriptedSpawns,  CopSpawnTables::scriptedTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(roadblockSpawns, CopSpawnTables::roadblocksTable);
 
-	bool        eventHasScriptedPursuit = false;   // scripted free-roam pursuits request a cop before they know their Heat level,
-	bool        usePrefetchedCopName    = false;   // so we must prefetch a valid cop name using their event's Heat level instead
-	const char* prefetchedCopName       = nullptr; // (this is completely unrelated to knowing the player vehicle's Heat level)
+	bool        usePreFetchedCopName = false;   // scripted free-roam pursuits request a cop before they know their Heat level,
+	const char* preFetchedCopName    = nullptr; // so we must prefetch a valid cop name using their event's Heat level instead
 
 
 
@@ -720,7 +719,7 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] bool IsEventActive()
+	[[nodiscard]] bool __cdecl IsEventActive()
 	{
 		ASSERT_CONDITION_THEN_IF_FALSE(Globals::raceStatus, return false);
 
@@ -761,22 +760,28 @@ namespace CopSpawnOverrides
 
 
 
-	void __fastcall UpdatePrefetchedCopName(const size_t eventHeatLevel)
+	void __fastcall UpdatePreFetchedCopName(const size_t eventHeatLevel)
 	{
-		eventHasScriptedPursuit = CurrentEventForcesPursuit();
-		usePrefetchedCopName    = eventHasScriptedPursuit;
-
-		if (eventHasScriptedPursuit)
+		if (CurrentEventForcesPursuit())
 		{
 			const size_t safeHeatLevel = HeatParameters::ClampHeatLevel(eventHeatLevel);
 			const auto&  spawnTable    = CopSpawnTables::scriptedTable.roam[safeHeatLevel - 1];
 
-			prefetchedCopName = spawnTable.GetNameOfAvailableCop();
+			preFetchedCopName = spawnTable.GetNameOfAvailableCop();
 
-			if constexpr (Globals::loggingEnabled)
-				Globals::LogTagged(logTag, "First scripted cop:", prefetchedCopName);
+			if (not preFetchedCopName)
+			{
+				if constexpr (Globals::loggingEnabled)
+					Globals::LogWarning(logTag, "Invalid pre-fetched cop name");
+
+				ASSERT_UNREACHABLE;
+			}
+			else if constexpr (Globals::loggingEnabled)
+				Globals::LogTagged(logTag, "Pre-fetched cop:", preFetchedCopName);
 		}
-		else prefetchedCopName = nullptr;
+		else preFetchedCopName = nullptr;
+
+		usePreFetchedCopName = preFetchedCopName;
 	}
 
 
@@ -791,9 +796,9 @@ namespace CopSpawnOverrides
 
 
 
-	void ProcessSoftEventReset()
+	void ProcessEventRestart()
 	{
-		usePrefetchedCopName = eventHasScriptedPursuit;
+		usePreFetchedCopName = preFetchedCopName;
 
 		patrolSpawns   .Clear();
 		scriptedSpawns .Clear();
@@ -802,12 +807,11 @@ namespace CopSpawnOverrides
 
 
 
-	void ProcessHardEventReset()
+	void ProcessWorldLoad()
 	{
-		eventHasScriptedPursuit = false;
-		prefetchedCopName       = nullptr;
+		preFetchedCopName = nullptr;
 
-		ProcessSoftEventReset();
+		ProcessEventRestart();
 	}
 
 
@@ -908,7 +912,7 @@ namespace CopSpawnOverrides
 			mov ecx, dword ptr [esi + 0x54]       // AIVehicle
 			mov byte ptr [ecx - 0x4C + 0x76B], al // padding byte: "Scripted" flag
 
-			mov byte ptr [usePrefetchedCopName], 0 // no longer needed
+			mov byte ptr [usePreFetchedCopName], 0 // no longer needed
 
 			conclusion:
 			// Execute original code and resume
@@ -1156,20 +1160,14 @@ namespace CopSpawnOverrides
 	{
 		__asm
 		{
-			// execute original code first
+			// Execute original code first
 			mov dword ptr [esp + 0x28], eax
-			lea esi, dword ptr [edi + 0x18]
 
-			cmp byte ptr [eventHasScriptedPursuit], 0
-			je replacement // not scripted pursuit
-
-			cmp byte ptr [usePrefetchedCopName], 0
+			cmp byte ptr [usePreFetchedCopName], 0
 			je replacement // do not use prefetched name
 
-			mov eax, dword ptr [prefetchedCopName]
-			test eax, eax
-			cmovne esi, eax // prefetched name valid
-			jmp conclusion  // use prefetched name
+			mov esi, dword ptr [preFetchedCopName]
+			jmp conclusion // use prefetched name
 
 			replacement:
 			mov ecx, offset scriptedSpawns
@@ -1191,9 +1189,9 @@ namespace CopSpawnOverrides
 		__asm
 		{
 			mov ecx, dword ptr [eax]
-			call UpdatePrefetchedCopName // ecx: eventHeatLevel
+			call UpdatePreFetchedCopName // ecx: eventHeatLevel
 
-			mov eax, dword ptr [prefetchedCopName]
+			mov eax, dword ptr [preFetchedCopName]
 			test eax, eax
 
 			EXIT_ASSEMBLY_DETOUR(FirstScriptedCop)
@@ -1397,15 +1395,15 @@ namespace CopSpawnOverrides
 
 
 
-	void NotifyOfSoftEventReset()
+	void NotifyOfEventRestart()
 	{
-		ProcessSoftEventReset();
+		ProcessEventRestart();
 	}
 
 
 
-	void NotifyOfHardEventReset()
+	void NotifyOfWorldLoad()
 	{
-		ProcessHardEventReset();
+		ProcessWorldLoad();
 	}
 }

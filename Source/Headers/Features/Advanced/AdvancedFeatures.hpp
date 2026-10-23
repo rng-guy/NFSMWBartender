@@ -444,7 +444,7 @@ namespace AdvancedFeatures
 	{
 		forceNextGameplayUpdate = true;
 
-		CopSpawnOverrides::NotifyOfHardEventReset();
+		CopSpawnOverrides::NotifyOfWorldLoad();
 
 		return CALL_HOOK_ORIGINAL(ProcessWorldLoad);
 	}
@@ -457,7 +457,7 @@ namespace AdvancedFeatures
 	{
 		forceNextGameplayUpdate = true;
 		
-		CopSpawnOverrides::NotifyOfSoftEventReset();
+		CopSpawnOverrides::NotifyOfEventRestart();
 
 		return CALL_HOOK_ORIGINAL(ProcessEventRestart);
 	}
