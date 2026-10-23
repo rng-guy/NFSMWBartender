@@ -13,7 +13,7 @@
 
 namespace RandomNumbers
 {
-	// xoshiro256** PRNG (based on code from https://prng.di.unimi.it/) -----------------------------------------------------------------------------
+	// Xoshiro256ss class (based on code from https://prng.di.unimi.it/) ----------------------------------------------------------------------------
 
 	class Xoshiro256ss
 	{
@@ -110,7 +110,7 @@ namespace RandomNumbers
 
 
 
-	// Generator wrapper class ----------------------------------------------------------------------------------------------------------------------
+	// Generator class ------------------------------------------------------------------------------------------------------------------------------
 
 	template <class Engine = Xoshiro256ss>
 	requires std::uniform_random_bit_generator<Engine>
@@ -199,7 +199,7 @@ namespace RandomNumbers
 
 		template <class Range>
 		requires (std::ranges::sized_range<Range> and std::ranges::random_access_range<Range>)
-		[[nodiscard]] decltype(auto) Draw(Range&& range)
+		[[nodiscard]] decltype(auto) PickElement(Range&& range)
 		{
 			return range[this->GenerateIndex<Range>(range)];
 		}

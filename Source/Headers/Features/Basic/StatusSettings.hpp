@@ -120,12 +120,12 @@ namespace StatusSettings
 			candidates = level3;
 		}
 
-		const char* const randomScene = Globals::pRNG.Draw(candidates);
+		const char* const scene = Globals::pRNG.PickElement(candidates);
 
 		if constexpr (Globals::loggingEnabled)
-			Globals::LogTagged(logTag, "Arrest scene:", randomScene);
+			Globals::LogTagged(logTag, "Arrest scene:", scene);
 
-		return randomScene;
+		return scene;
 	}
 
 
