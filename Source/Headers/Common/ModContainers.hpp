@@ -182,7 +182,7 @@ namespace ModContainers
 			if (keySetup.source.size() != valueSetup.source.size())
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogDetail("sizes mismatched");
+					Globals::LogDetail("size mismatch");
 
 				ASSERT_UNREACHABLE_THEN(return false);
 			}
@@ -284,7 +284,7 @@ namespace ModContainers
 		[[nodiscard]] const V& GetReference(const vault key) const
 		{
 			const V* const value = this->get(key);
-			return (value) ? *value : this->defaultValue;
+			return (value) ? (*value) : this->defaultValue;
 		}
 
 
