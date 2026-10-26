@@ -81,26 +81,26 @@ namespace CopNotifications
 	bool ExtractNotificationTexts(const ConfigParser::Parser& parser)
 	{
 		std::vector<std::string_view> copNames;
-		std::vector<std::string_view> stringOrNames;
+		std::vector<std::string_view> stringOrLabels;
 
-		parser.ExtractVectors<std::string_view, std::string_view>("Vehicles:Notifications", copNames, {stringOrNames});
+		parser.ExtractVectors<std::string_view, std::string_view>("Vehicles:Notifications", copNames, {stringOrLabels});
 
-		constexpr auto StringOrNameToNotification = [](const std::string_view stringOrName) -> std::string_view
+		constexpr auto StringOrLabelToNotification = [](const std::string_view stringOrLabel) -> std::string_view
 		{
-			if (stringOrName == "/SKIP_NOTIFICATION") return {}; // empty string for notification skipping
+			if (stringOrLabel == "/SKIP_NOTIFICATION") return {}; // empty string for notification skipping
 
 			const auto GetBinaryString = AsFunction<const char* __fastcall (int, binary)>(0x56BB80);
 
-			if (const char* const binaryString = GetBinaryString(0, Globals::GetBinaryHash(stringOrName)))
-				return binaryString; // is valid notification-string name in game database
+			if (const char* const binaryString = GetBinaryString(/* unused = */ 0, Globals::GetBinaryHash(stringOrLabel)))
+				return binaryString; // input is valid label of some string in the game's string database
 
-			return stringOrName;
+			return stringOrLabel;
 		};
 
 		return copTypeToNotificationText.Fill
 		(
-			ModContainers::FillSetup(copNames,      Globals::GetVaultHash,      Globals::VehicleType::Exists),
-			ModContainers::FillSetup(stringOrNames, StringOrNameToNotification, ModContainers::AlwaysValid())
+			ModContainers::FillSetup(copNames,       Globals::GetVaultHash,       Globals::VehicleType::Exists),
+			ModContainers::FillSetup(stringOrLabels, StringOrLabelToNotification, ModContainers::AlwaysValid())
 		);
 	}
 
@@ -115,12 +115,12 @@ namespace CopNotifications
 
 		constexpr auto IconLabelToTextureKey = [](const std::string_view iconLabel) -> binary
 		{
-			return (iconLabel == "/NO_ICON") ? ""_bin : Globals::GetBinaryHash(iconLabel);
+			return (iconLabel == "/NO_ICON") ? 0x0 : Globals::GetBinaryHash(iconLabel);
 		};
 
 		constexpr auto IsValidIconTextureKey = [](const binary textureKey) -> bool
 		{
-			if (textureKey == ""_bin) return true; // empty hash for icon skipping
+			if (textureKey == 0x0) return true; // zero hash for icon skipping
 
 			const auto GetTextureInfo = AsFunction<address __cdecl (binary, bool, bool)>(0x503400);
 			return GetTextureInfo(textureKey, /* includeUnloadedTextures = */ false, /* returnDefaultIfNotFound = */ false);
@@ -140,6 +140,7 @@ namespace CopNotifications
 		const bool textMapExtracted = ExtractNotificationTexts(parser);
 		const bool iconMapExtracted = ExtractNotificationIcons(parser);
 
+		// Code modifications (conditional)
 		if (textMapExtracted) PATCH_ASSEMBLY_DETOUR(NotificationText);
 		if (iconMapExtracted) PATCH_ASSEMBLY_DETOUR(NotificationIcon);
 

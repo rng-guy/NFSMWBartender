@@ -254,8 +254,6 @@ namespace Globals
 
 	[[nodiscard]] constexpr binary GetBinaryHash(const std::string_view input)
 	{
-		if (input.empty()) return 0x0;
-
 		binary hash = 0xFFFFFFFF; // MW-specific seed
 
 		for (const char ch : input)
