@@ -453,10 +453,6 @@ namespace HelicopterOverrides
 		__asm
 		{
 			push dword ptr [helicopterVehicle.current]
-
-			mov dword ptr [esp + 0x48], esp // probably dead store
-
-			mov ecx, dword ptr [esp + 0x38]
 			call Globals::GetAvailableCopVehicleByName
 
 			EXIT_ASSEMBLY_DETOUR(SpawnAttempt)
