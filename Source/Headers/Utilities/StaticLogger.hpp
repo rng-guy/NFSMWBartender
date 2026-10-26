@@ -58,7 +58,12 @@ namespace StaticLogger
 	// LogLiteral class -----------------------------------------------------------------------------------------------------------------------------
 
 	template <bool isEnabled>
-	class LogLiteral
+	class LogLiteral;
+
+
+
+	template <>
+	class LogLiteral</* isEnabled = */ true>
 	{
 	private: // members
 
@@ -117,7 +122,12 @@ namespace StaticLogger
 	// LogString class ------------------------------------------------------------------------------------------------------------------------------
 
 	template <bool isEnabled>
-	class LogString
+	class LogString;
+
+
+
+	template <>
+	class LogString</* isEnabled = */ true>
 	{
 	private: // members
 
@@ -183,7 +193,12 @@ namespace StaticLogger
 
 	template <auto isEnabled, size_t ...indents>
 	requires std::same_as<std::remove_cv_t<decltype(isEnabled)>, bool> // prevents conversions
-	class Logger
+	class Logger;
+	
+
+
+	template <size_t ...indents>
+	class Logger</* isEnabled = */ true, indents...>
 	{
 	private: // members
 
@@ -302,6 +317,7 @@ namespace StaticLogger
 			Ts&& ...rest
 		) {
 			this->Print(std::forward<T>(first));
+
 			(..., (this->file << ' ', this->Print(std::forward<Ts>(rest))));
 
 			this->PrintLine();
