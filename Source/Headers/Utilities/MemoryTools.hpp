@@ -201,7 +201,7 @@ namespace MemoryTools
 
 
 
-	// Assembly-detouring helpers -------------------------------------------------------------------------------------------------------------------
+	// Assembly-detouring abstraction macros --------------------------------------------------------------------------------------------------------
 
 	#define MT_DETAILS_BEGIN(name) asm##name##Begin
 
@@ -213,17 +213,17 @@ namespace MemoryTools
 
 
 
+	#define ASSEMBLY_DETOUR(name, begin, end) MT_DETAILS_RANGE(name, begin, end); void __declspec(naked) name() // declare detour
+
+	#define EXIT_ASSEMBLY_DETOUR(name) jmp dword ptr [MT_DETAILS_END(name)] // jump to detour exit in ASM
+
+	#define PATCH_ASSEMBLY_DETOUR(name) MemoryTools::MakeRangeJMP<MT_DETAILS_BEGIN(name), MT_DETAILS_END(name)>(name) // apply detour
+
+
+
 
 
 	// Assembly detouring ---------------------------------------------------------------------------------------------------------------------------
-
-	#define ASSEMBLY_DETOUR(name, begin, end) MT_DETAILS_RANGE(name, begin, end); void __declspec(naked) name()
-
-	#define EXIT_ASSEMBLY_DETOUR(name) jmp dword ptr [MT_DETAILS_END(name)]
-
-	#define PATCH_ASSEMBLY_DETOUR(name) MemoryTools::MakeRangeJMP<MT_DETAILS_BEGIN(name), MT_DETAILS_END(name)>(name)
-
-
 
 	template <address start, address end>
 	inline void MakeRangeJMP(const address target)
@@ -246,23 +246,23 @@ namespace MemoryTools
 
 
 
-	// Function-hooking helpers ---------------------------------------------------------------------------------------------------------------------
+	// Function-hooking abstraction macros ----------------------------------------------------------------------------------------------------------
 
 	#define MT_DETAILS_ORIGINAL(name) name##Original
+
+
+
+	#define HOOK_ORIGINAL(name) MemoryTools::address MT_DETAILS_ORIGINAL(name) = 0x0 // declare pointer to replaced function
+
+	#define CALL_HOOK_ORIGINAL(name, ...) MemoryTools::AsFunction<decltype(name)>(MT_DETAILS_ORIGINAL(name))(__VA_ARGS__) // call replaced function
+
+	#define PATCH_HOOK_FUNCTION(name, target) MT_DETAILS_ORIGINAL(name) = MemoryTools::ReplaceCall(target, name) // apply hook
 
 
 
 
 
 	// Function hooking -----------------------------------------------------------------------------------------------------------------------------
-
-	#define HOOK_ORIGINAL(name) MemoryTools::address MT_DETAILS_ORIGINAL(name) = 0x0
-
-	#define CALL_HOOK_ORIGINAL(name, ...) MemoryTools::AsFunction<decltype(name)>(MT_DETAILS_ORIGINAL(name))(__VA_ARGS__)
-
-	#define PATCH_HOOK_FUNCTION(name, target) MT_DETAILS_ORIGINAL(name) = MemoryTools::ReplaceCall(target, name)
-
-
 
 	inline address ReplaceCall
 	(

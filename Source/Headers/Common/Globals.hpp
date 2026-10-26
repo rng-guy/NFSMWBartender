@@ -12,25 +12,6 @@
 
 
 
-// Vile debugging-related macros
-#define ASSERT_UNREACHABLE assert(not "reachable")
-
-#define ASSERT_UNREACHABLE_THEN(expression) do {ASSERT_UNREACHABLE; expression;} while (false)
-
-#define ASSERT_CONDITION_THEN_IF_FALSE(condition, expression) do {if (not (condition)) {assert(not #condition); expression;}} while (false)
-
-// In debug builds, Visual Studio forces an unconditional dynamic allocation for each suitable type.
-// This makes dynamic containers (e.g. std::vector, std::string) constinit-incompatible, even if empty.
-#ifndef _DEBUG
-#define RELEASE_CONSTINIT constinit
-
-#else 
-#define RELEASE_CONSTINIT
-
-#endif
-
-
-
 // Unscoped functions
 using MemoryTools::AsAddress;
 using MemoryTools::AsPointer;
@@ -50,6 +31,28 @@ using address = MemoryTools::address;
 
 namespace Globals
 {
+	// Debugging macros -----------------------------------------------------------------------------------------------------------------------------
+
+	#ifndef _DEBUG
+	#define RELEASE_CONSTINIT constinit
+
+	#else 
+	#define RELEASE_CONSTINIT // because Visual Studio can force unconditional dynamic allocations in (e.g.) std::vector
+
+	#endif
+
+
+
+	#define ASSERT_UNREACHABLE assert(not "reachable")
+
+	#define ASSERT_UNREACHABLE_THEN(expression) do {ASSERT_UNREACHABLE; expression;} while (false)
+
+	#define ASSERT_CONDITION_THEN_IF_FALSE(condition, expression) do {if (not (condition)) {assert(not #condition); expression;}} while (false)
+
+
+
+
+
 	// Common data ----------------------------------------------------------------------------------------------------------------------------------
 
 	RandomNumbers::Generator pRNG;
