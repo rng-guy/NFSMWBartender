@@ -46,7 +46,7 @@
 
 HOOK_ORIGINAL(Initialise);
 
-static void __cdecl Initialise
+void __cdecl Initialise
 (
 	const size_t  numArgs, 
 	const address argArray
