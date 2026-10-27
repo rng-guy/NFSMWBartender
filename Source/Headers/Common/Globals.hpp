@@ -60,15 +60,15 @@ namespace Globals
 	// In-game timer
 	bool isGameplayPaused = true;
 
-	uint32_t numGameTicksOnLastPause = 0;
-	uint32_t numFullyPausedGameTicks = 0;
+	uint32_t numGameTicksOnLastPause = 0; // ticks
+	uint32_t numFullyPausedGameTicks = 0; // ticks
+
+	// String pool for decoupled lifetimes
+	RELEASE_CONSTINIT StringTools::Pool vehicleNames;
 
 	// Floating-point constants
 	constexpr float floatScale  = 1.f + 1e-6f;  // don't even ask
 	constexpr float ticksToTime = 1.f / 4000.f; // seconds / tick
-
-	// String pool for decoupled lifetimes
-	RELEASE_CONSTINIT StringTools::Pool vehicleNames;
 
 	// Function pointers
 	const auto IsPlayerPursuit     = AsFunction<bool __thiscall (address)>(0x40AD80); // pursuit
@@ -335,13 +335,6 @@ namespace Globals
 
 	namespace VehicleType
 	{
-		[[nodiscard]] bool Exists(const vault type)
-		{
-			return GetFromVault("pvehicle"_vlt, type);
-		}
-
-
-
 		[[nodiscard]] const char* GetName(const vault type)
 		{
 			const address attribute = GetFromVault("pvehicle"_vlt, type, "CollectionName"_vlt);
@@ -355,6 +348,12 @@ namespace Globals
 			return (attribute) ? AsReference<vault>(attribute + 0x8) : ""_vlt;
 		}
 
+
+
+		[[nodiscard]] bool Exists(const vault type)
+		{
+			return GetFromVault("pvehicle"_vlt, type);
+		}
 
 
 		[[nodiscard]] bool IsCar(const vault type)

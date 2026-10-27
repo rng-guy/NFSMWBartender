@@ -379,8 +379,8 @@ Regarding the "Advanced" feature set AS A WHOLE:
    amount of time (in seconds) required to gain a Heat level passively, while
    the latter multiplies this base amount by whatever number you define for it.
 
- • In the vanilla game, all Challenge Series events use the 15h value (i.e. at index 14)
-   of the "0x80deb840" VltEd array at every Heat level. This naturally locks their Heat
+ • In the vanilla game, all Challenge Series events use the value at "[14]" in
+   the "0x80deb840" VltEd array at every Heat level. This naturally locks their Heat
    escalation to Sonny's; Bartender allows you to define independent values instead.
 
  • Both Bartender and the game always respect the minimum and maximum available Heat levels

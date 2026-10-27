@@ -263,10 +263,11 @@ Bartender's **"Basic" feature set** changes the way the game accesses some VltEd
 
 &nbsp;
 
-Bartender's **"Advanced" feature set** forces the game to no longer ignore the roadblock-related `pursuitlevels` and the Strategy-related `pursuitsupport` VltEd settings in race pursuits. The feature set also replaces three specific `pursuitlevels` parameters for all Heat levels:
+Bartender's **"Advanced" feature set** forces the game to no longer ignore the roadblock-related `pursuitlevels` and the Strategy-related `pursuitsupport` VltEd settings in race pursuits. The feature set also replaces specific `pursuitlevels` parameters for all Heat levels:
 * the `cops` array,
-* `HeliFuelTime`, and
-* `TimeBetweenHeliActive`.
+* `HeliFuelTime`,
+* `TimeBetweenHeliActive`, and
+* the `0x80deb840` array (Challenge Series only).
 
 &nbsp;
 
@@ -335,7 +336,7 @@ I **created Bartender** because I was fed up with the numerous hard-coded pursui
 
 &nbsp;
 
-Finally, I wish to **thank**
+Finally, I **want to thank**
 * **DarkByte**, for [Cheat Engine](https://www.cheatengine.org/);
 * **[rx](https://github.com/rxyyy)**, for encouraging me to try `.asi` modding;
 * **GuidedHacking**, for their [Cheat Engine tutorials](https://www.youtube.com/playlist?list=PLt9cUwGw6CYFSoQHsf9b12kHWLdgYRhmQ);

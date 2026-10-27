@@ -229,10 +229,11 @@ Bartender's "BASIC" FEATURE SET changes the way the game accesses some VltEd arr
 
 Bartender's "ADVANCED" FEATURE SET forces the game to no longer ignore the roadblock-related
 "pursuitlevels" and the Strategy-related "pursuitsupport" VltEd settings in race pursuits. 
-The feature set also replaces three specific "pursuitlevels" parameters for all Heat levels:
+The feature set also replaces specific "pursuitlevels" parameters for all Heat levels:
  • the "cops" array,
- • "HeliFuelTime", and
- • "TimeBetweenHeliActive".
+ • "HeliFuelTime",
+ • "TimeBetweenHeliActive", and
+ • the "0x80deb840" array (Challenge Series only).
 
 Most OTHER .ASI MODS should be fully compatible with all Bartender configurations.
 However, some pursuit-related .asi mods require manual (re)configuration for compatibility:
@@ -295,7 +296,7 @@ feature list and complexity; now, some 2000 hours of research and development la
 confidently say that there won't be any further major releases / additions beyond v4.00.00.
 I've accomplished everything I wanted, and struggle to maintain any interest in the game.
 
-Finally, I wish to THANK
+Finally, I WANT TO THANK
  • DarkByte, for Cheat Engine;
  • rx, for encouraging me to try .asi modding;
  • GuidedHacking, for their Cheat Engine tutorials;
