@@ -16,25 +16,27 @@
 	<link rel="icon" type="image/x-icon" href="Assets/Images/Icon.ico">
 
 	<style>
-	  body {
-		  background-color: #D9D9DB; 
+	  body 
+	  {
+		  background-color: #D9D9DB;
 		  font-family:      sans-serif;
 		  display:          flex;
 		  flex-direction:   column;
 		  align-items:      center;
 		  gap:              20px;
-		  padding:          20px;
+		  padding:          40px;
 	  }
 	  
-	  .error-pane {
+	  .error-pane 
+	  {
 		  font-size:   40px;
 		  font-weight: bold;
 		  margin-top:  100px;
 	  }
 
-	  .error-emph { color: #D61E00; }
+	  .error-emph {color: #D61E00;}
 
-	  .workspace, .modal-overlay { display: none; }
+	  .workspace, .modal-overlay {display: none;}
 	</style>
 	
 	<link rel="stylesheet" href="Assets/Source/Styles.css">
@@ -50,8 +52,13 @@
 	<div class="workspace" id="main">
 	  <div class="canvas-container">
 		<div class="caption">Roadblock setup</div>
-		<div id="canvasOverlay">Left-click to select. Scroll to rotate. Hold Shift to snap.</div>
-		<canvas id="mainCanvas" width="700" height="450" tabindex="0"></canvas>
+		<div class="canvas-frame">
+		  <div id="canvasOverlay">Left-click to select. Scroll to rotate. Hold Shift to snap.</div>
+		  <canvas id="mainCanvas" width="700" height="450" tabindex="0"></canvas>
+		  <div id="zoomControl" class="zoom-control">
+			<input id="zoomSlider" type="range" step="any">
+		  </div>
+		</div>
 	  </div>
 
 	  <div class="bottom-controls">
@@ -82,7 +89,9 @@
 		<div class="modal-header">
 		  Settings import
 		</div>
-		<textarea id="importInput" class="modal-textarea" placeholder="part01 = typeID, {horizontal, vertical}Offset, orientation
+		<div class="modal-input-wrapper">
+		  <pre id="importHighlight" class="modal-input-highlight"></pre>
+		  <textarea id="importInput" class="modal-textarea" placeholder="part01 = typeID, {horizontal, vertical}Offset, orientation
 part02 = typeID, ...
 
 
@@ -92,6 +101,7 @@ part02 = typeID, ...
 
 (settings for vanilla setups may change slightly on import)"
 ></textarea>
+		</div>
 		<div class="modal-footer">
 		  <button id="btnLoadImport" onclick="loadImportData()" disabled>apply</button>
 		  <button onclick="closeImportModal()">cancel</button>

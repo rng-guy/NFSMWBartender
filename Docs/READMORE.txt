@@ -1,5 +1,5 @@
 ﻿
-── ■ │ WHAT IS THIS DOCUMENT? (v4.00.00) │ ■ ──────────────────────────────────────────────────────
+── ■ │ WHAT IS THIS DOCUMENT? (v4.00.01) │ ■ ──────────────────────────────────────────────────────
 
 VIEW THIS FILE on GitHub: https://github.com/rng-guy/NFSMWBartender/blob/master/Docs/READMORE.md
 
@@ -854,3 +854,4 @@ v1.00.00: Initial release
    05.00: Made Binary optional for destruction strings and overhauled many mod internals
 
  4.00.00: Added about a dozen new features and fixes along with better internals
+      01: Improved interface of roadblock editor and refactored its internals

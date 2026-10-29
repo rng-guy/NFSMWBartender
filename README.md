@@ -226,7 +226,7 @@ The "Advanced" feature set **can fix five more bugs / issues**, depending on its
 &nbsp;
 
 **To install** Bartender:
-1. download and extract the [`NfSMW_Bartender_v4.00.0.7z`](https://github.com/rng-guy/NFSMWBartender/releases/latest) archive;
+1. download and extract the [`NfSMW_Bartender_v4.00.1.7z`](https://github.com/rng-guy/NFSMWBartender/releases/latest) archive;
 2. copy Bartender's `scripts` folder to your game's folder, replacing existing files;
 3. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file; and
 4. (optional) in User Mode of [Binary 2.8.3](https://github.com/SpeedReflect/Binary/releases/tag/v2.8.3) or newer, load and apply `FixMissingTextures.end`.

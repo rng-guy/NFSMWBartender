@@ -521,7 +521,7 @@ namespace HeatChangeOverrides
 		// Parameter conversions
 		UpdateParameterConversions(); // uses vanilla value(s)
 
-		// Code modifications (general)
+		// Code modifications
 		MemoryTools::MakeRangeNOP<0x44306B, 0x44309F>(); // Heat limits in Challenge Series events
 
 		PATCH_ASSEMBLY_DETOUR(HeatLimits);

@@ -1,28 +1,207 @@
-:root {
+
+/* Layout parameters -------------------------------------------------------------------------------------------------------------------------- */
+
+:root
+{
 	--main-width:   700px;
 	--caption-gap:  5px;
 	--canvas-color: #fcfcfcfc;
 }
 
-.workspace {
+
+
+.workspace
+{
 	flex-direction: column;
 	width:          var(--main-width);
 	gap:            10px;
 }
 
-.caption {
+
+
+.caption
+{
 	font-weight:   bold;
 	font-size:     24px;
 	color:         #444;
 	margin-bottom: var(--caption-gap);
 }
 
-.canvas-container {
+
+
+.canvas-container
+{
 	position: relative;
 	width:    var(--main-width);
 }
 
-#canvasOverlay {
+
+
+.canvas-frame
+{
+	position: relative;
+}
+
+
+
+
+
+/* Zoom control ------------------------------------------------------------------------------------------------------------------------------- */
+
+.zoom-control
+{
+	position:       absolute;
+	left:           calc(100% + var(--zoom-offset-x));
+	top:            var(--zoom-offset-y);
+	display:        flex;
+	flex-direction: column;
+	align-items:    center;
+	user-select:    none;
+	z-index:        6;
+}
+
+
+
+.zoom-control::before
+{
+	content:        '';
+	position:       absolute;
+	top:            0;
+	left:           50%;
+	width:          var(--zoom-guide-thickness);
+	height:         var(--zoom-track-length);
+	background:     linear-gradient(to bottom, var(--zoom-guide-inaccessible-colour) var(--zoom-inaccessible-percent), var(--zoom-guide-colour) var(--zoom-inaccessible-percent));
+	border-radius:  4px;
+	transform:      translateX(-50%);
+	pointer-events: none;
+}
+
+
+
+#zoomSlider
+{
+	position:     relative;
+	z-index:      1;
+	appearance:   none;
+	width:        var(--zoom-handle-width);
+	height:       var(--zoom-track-length);
+	margin:       0;
+	background:   transparent;
+	writing-mode: vertical-lr;
+	direction:    rtl;
+	cursor:       pointer;
+}
+
+
+
+#zoomSlider::-webkit-slider-runnable-track
+{
+	width:         var(--zoom-handle-width);
+	background:    transparent;
+	border-radius: 4px;
+}
+
+
+
+#zoomSlider::-moz-range-track
+{
+	width:         var(--zoom-guide-thickness);
+	background:    transparent;
+	border-radius: 4px;
+}
+
+
+
+#zoomSlider::-webkit-slider-thumb
+{
+	appearance:    none;
+	width:         var(--zoom-handle-width);
+	height:        var(--zoom-handle-height);
+	background:    var(--canvas-color);
+	border:        1px solid #ccc;
+	border-radius: 4px;
+}
+
+
+
+#zoomSlider::-moz-range-thumb
+{
+	width:         var(--zoom-handle-width);
+	height:        var(--zoom-handle-height);
+	background:    var(--canvas-color);
+	border:        1px solid #ccc;
+	border-radius: 4px;
+}
+
+
+
+#zoomSlider:hover:not(:disabled)::-webkit-slider-thumb
+{
+	background: #f2f2f2;
+}
+
+
+#zoomSlider:hover:not(:disabled)::-moz-range-thumb
+{
+	background: #f2f2f2;
+}
+
+
+
+#zoomSlider:active:not(:disabled)::-webkit-slider-thumb
+{
+	background: #eaeaea;
+	box-shadow: inset 0 0 1.0px 0.5px #00000011;
+}
+
+
+
+#zoomSlider:active:not(:disabled)::-moz-range-thumb
+{
+	background: #eaeaea;
+	box-shadow: inset 0 0 1.0px 0.5px #00000011;
+}
+
+
+
+#zoomSlider:disabled
+{
+	cursor:  default;
+	opacity: 1;
+}
+
+
+
+#zoomSlider:disabled::-webkit-slider-thumb
+{
+	background:   #ddd;
+	border-color: #ccc;
+}
+
+
+
+#zoomSlider:disabled::-moz-range-thumb
+{
+	background:   #ddd;
+	border-color: #ccc;
+}
+
+
+
+#zoomSlider:focus-visible
+{
+	outline:        2px solid #258CF4;
+	outline-offset: 3px;
+}
+
+
+
+
+
+/* Canvas ------------------------------------------------------------------------------------------------------------------------------ */
+
+#canvasOverlay
+{
 	position:       absolute;
 	bottom:         10px;
 	right:          10px;
@@ -34,7 +213,10 @@
 	transition:     color 0.2s;
 }
 
-canvas {
+
+
+canvas
+{
 	border:           none;
 	background-color: var(--canvas-color);
 	cursor:           crosshair;
@@ -45,7 +227,14 @@ canvas {
 	border-radius:    4px;
 }
 
-.bottom-controls {
+
+
+
+
+/* Buttons and settings output ----------------------------------------------------------------------------------------------------------------- */
+
+.bottom-controls
+{
 	display:         flex;
 	justify-content: space-between;
 	align-items:     center;
@@ -53,13 +242,19 @@ canvas {
 	margin-bottom:   40px;
 }
 
+
+
 .btn-group-left,
-.btn-group-right {
+.btn-group-right
+{
 	display: flex;
 	gap:     10px;
 }
 
-button {
+
+
+button
+{
 	padding:       10px 15px;
 	cursor:        pointer;
 	border-radius: 4px;
@@ -68,27 +263,49 @@ button {
 	font-size:     13px;
 }
 
-.btn-add {
+
+
+.btn-add
+{
 	width:      105px;
 	height:     40px;
 	text-align: center;
 }
 
-.btn-misc {
+
+
+.btn-misc
+{
 	height:     40px;
 	text-align: center;
 }
 
-.btn-symbol { font-size: 12px; }
 
-button:hover:not(:disabled) { background: #f2f2f2; }
 
-button:active:not(:disabled) { 
+.btn-symbol
+{
+	font-size: 12px;
+}
+
+
+
+button:hover:not(:disabled)
+{
+	background: #f2f2f2;
+}
+
+
+
+button:active:not(:disabled)
+{
 	background: #eaeaea; 
 	box-shadow: inset 0 0 1.0px 0.5px #00000011
 }
 
-button:disabled {
+
+
+button:disabled
+{
 	box-shadow:   none;
 	cursor:       default;
 	opacity:      0.75;
@@ -97,20 +314,29 @@ button:disabled {
 	color:        #999;
 }
 
-.output-container {
+
+
+.output-container
+{
 	display:        flex;
 	flex-direction: column;
 	width:          var(--main-width);
 }
 
-.output-wrapper {
+
+
+.output-wrapper
+{
 	position:   relative;
 	width:      var(--main-width);
 	height:     145px;
 	box-sizing: border-box;
 }
 
-.output {
+
+
+.output
+{
 	width:         100%;
 	height:        100%;
 	padding:       10px;
@@ -127,9 +353,17 @@ button:disabled {
 	border:        1px solid rgba(0, 0, 0, 0);
 }
 
-.flash:active { background: #242426DF; }
 
-#outputOverlay {
+
+.flash:active
+{
+	background: #242426DF;
+}
+
+
+
+#outputOverlay
+{
 	position:       absolute;
 	bottom:         10px;
 	right:          10px;
@@ -138,12 +372,22 @@ button:disabled {
 	pointer-events: none;
 }
 
-#outputField:hover + #outputOverlay .emph {
+
+
+#outputField:hover + #outputOverlay .emph
+{
 	font-weight: bold; 
 	color:       #DEB700;
 }
 
-.modal-overlay {
+
+
+
+
+/* Import dialog ------------------------------------------------------------------------------------------------------------------------------- */
+
+.modal-overlay
+{
 	position:        fixed;
 	top:             0;
 	left:            0;
@@ -155,7 +399,10 @@ button:disabled {
 	align-items:     center;
 }
 
-.modal-content {
+
+
+.modal-content
+{
 	background:     #D9D9DB;
 	padding:        15px;
 	border-radius:  8px;
@@ -165,31 +412,103 @@ button:disabled {
 	gap:            10px;
 }
 
-.modal-header {
+
+
+.modal-header
+{
 	font-weight:   bold;
 	font-size:     24px;
 	color:         #444;
 	margin-bottom: -5px;
 }
 
-.modal-textarea {
+
+
+.modal-input-wrapper
+{
+	position:      relative;
+	height:        142px;
+	background:    #242426;
+	border-radius: 4px;
+}
+
+
+
+.modal-textarea
+{
+	position:      relative;
+	z-index:       1;
 	width:         100%;
 	height:        142px;
 	font-family:   'Courier New', monospace;
 	font-size:     12px;
+	line-height:   normal;
 	padding:       10px;
+	white-space:   pre-wrap;
+	overflow-wrap: break-word;
 	box-sizing:    border-box;
 	resize:        none;
 	border:        1px solid rgba(0, 0, 0, 0);
-	background:    #242426;
-	color:         #DEDEDE;
+	background:    transparent;
+	color:         transparent;
+	caret-color:   #DEDEDE;
 	outline:       none;
 	border-radius: 4px;
 }
 
-.modal-textarea::placeholder { color: #DEDEDE4D; }
 
-.modal-footer {
+
+.modal-textarea::placeholder
+{
+	color: #DEDEDE4D;
+}
+
+
+
+.modal-textarea::selection
+{
+	color:      #DEDEDE; 
+	background: #258CF466;
+}
+
+
+
+.modal-input-highlight
+{
+	position:       absolute;
+	inset:          0;
+	margin:         0;
+	padding:        10px;
+	box-sizing:     border-box;
+	border:         1px solid transparent;
+	font-family:    'Courier New', monospace;
+	font-size:      12px;
+	line-height:    normal;
+	white-space:    pre-wrap;
+	overflow-wrap:  break-word;
+	overflow:       hidden;
+	color:          #DEDEDE4D;
+	pointer-events: none;
+}
+
+
+
+.import-line-valid
+{
+	color: #DEDEDE;
+}
+
+
+
+.import-line-invalid
+{
+	color: var(--import-invalid-colour);
+}
+
+
+
+.modal-footer
+{
 	display:         flex;
 	justify-content: flex-end;
 	gap:             10px;

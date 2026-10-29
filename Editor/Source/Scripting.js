@@ -1,48 +1,71 @@
 
 // Global parameters ----------------------------------------------------------------------------------------------------------------------------
 
-const IMPORT_REGEX = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)\s*$/;
+const IMPORT_REGEX      = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?(?=\d|\.\d)\d*(\.\d*)?)\s*,\s*(-?(?=\d|\.\d)\d*(\.\d*)?)\s*,\s*(-?(?=\d|\.\d)\d*(\.\d*)?)\s*$/;
+const IMPORT_PART_REGEX = /^part/i;
 
-const SELECTION_COLOUR = '#258CF4';
-const CONTRAST_COLOUR  = '#EB47EB';
+const IMPORT_INVALID_COLOUR     = '#D61E00';
+const SELECTION_COLOUR          = '#258CF4';
+const SELECTION_BOX_FILL_COLOUR = '#258CF419';
+const CONTRAST_COLOUR           = '#EB47EB';
 
 const ANIMATION_TIMER = 2000; // ms
 
 const WIDTH_THRESHOLDS = [6.0, 10.0, 15.0, 22.0, 28.0];
 
-const IMAGE_RENDER_SCALE = 0.25;
-const LENGTH_SCALE       = 5.0 / (400 * IMAGE_RENDER_SCALE);
+const IMAGE_RENDER_SCALE_BASE = 0.25;
+const IMAGE_RENDER_SCALE_MIN  = 0.125;
+const IMAGE_RENDER_SCALE_MAX  = 0.35;
+const LENGTH_SCALE            = 5.0 / (400 * IMAGE_RENDER_SCALE_BASE);
+const IMPORT_ZOOM_MARGIN      = 0.05;
+
+const ZOOM_SLIDER_OFFSET_X            = 12; // px
+const ZOOM_SLIDER_OFFSET_Y            = 0;  // px
+const ZOOM_SLIDER_LENGTH_FRACTION     = 1.00;
+const ZOOM_SLIDER_MARGIN_FRACTION     = 0.05;
+const ZOOM_SLIDER_GUIDE_COLOUR        = '#aaa';
+const ZOOM_SLIDER_INACCESSIBLE_COLOUR = '#ccc';
+const ZOOM_SLIDER_GUIDE_THICKNESS     = 4;  // px
+const ZOOM_SLIDER_HANDLE_WIDTH        = 22; // px
+const ZOOM_SLIDER_HANDLE_HEIGHT       = 12; // px
+
+const ZOOM_SCROLL_FINE   = (IMAGE_RENDER_SCALE_MAX - IMAGE_RENDER_SCALE_MIN) / 10;
+const ZOOM_SCROLL_COARSE = ZOOM_SCROLL_FINE;
 
 const MAX_RECTS = 6;
-const GRID_SIZE = 10;
+const GRID_SIZE = 10; // px
 
 const ROT_FINE    = 5 * (Math.PI / 180);
 const ROT_COARSE  = 2 * ROT_FINE;
 const MOVE_FINE   = 1;
 const MOVE_COARSE = 10;
 
-const LAYER_PRIORITY = {
+const LAYER_PRIORITY = 
+{
 	sawhorse: 3,
 	car:      2,
 	spikes:   1
 };
 
-const RECT_CONFIG = {
-	car:      { src: 'Assets/Images/Car.webp' },
-	spikes:   { src: 'Assets/Images/Spikes.webp' },
-	sawhorse: { src: 'Assets/Images/Sawhorse.webp' }
+const RECT_CONFIG = 
+{
+	car:      {src: 'Assets/Images/Car.webp'},
+	spikes:   {src: 'Assets/Images/Spikes.webp'},
+	sawhorse: {src: 'Assets/Images/Sawhorse.webp'}
 };
 
-const TYPE_MAP = {
+const TYPE_MAP = 
+{
 	1: 'car',
 	2: 'sawhorse',
 	3: 'spikes'
 };
 
-const ID_MAP = {
-	'car'     : 1,
-	'sawhorse': 2,
-	'spikes'  : 3
+const ID_MAP = 
+{
+	car:      1,
+	sawhorse: 2,
+	spikes:   3
 };
 
 
@@ -51,16 +74,29 @@ const ID_MAP = {
 
 // Global elements ------------------------------------------------------------------------------------------------------------------------------
 
-const canvas  = document.getElementById('mainCanvas');
-const context = canvas.getContext('2d');
+const canvas    = document.getElementById('mainCanvas');
+const workspace = document.getElementById('main');
+const context   = canvas.getContext('2d');
+
+const zoomControl = document.getElementById('zoomControl');
+const zoomSlider  = document.getElementById('zoomSlider');
 
 const outputField   = document.getElementById('outputField');
 const outputOverlay = document.getElementById('outputOverlay');
 const canvasOverlay = document.getElementById('canvasOverlay');
-const modal         = document.getElementById('importModal');
-const importInput   = document.getElementById('importInput');
-const btnLoadImport = document.getElementById('btnLoadImport');
-const btnMirror     = document.getElementById('btnMirror');
+
+const modal           = document.getElementById('importModal');
+const importInput     = document.getElementById('importInput');
+const importHighlight = document.getElementById('importHighlight');
+const btnLoadImport   = document.getElementById('btnLoadImport');
+const btnMirror       = document.getElementById('btnMirror');
+
+const typeButtons = 
+{
+	car:      document.getElementById('btnCar'),
+	spikes:   document.getElementById('btnSpikes'),
+	sawhorse: document.getElementById('btnSawhorse')
+};
 
 
 
@@ -70,7 +106,10 @@ const btnMirror     = document.getElementById('btnMirror');
 
 const images = {};
 
-let imagesLoaded = 0;
+let IMAGE_RENDER_SCALE = IMAGE_RENDER_SCALE_MAX;
+let imagesLoaded       = 0;
+let viewOffsetX        = 0;
+let viewOffsetY        = 0;
 
 let rects           = [];
 let selectedIndices = [];
@@ -78,15 +117,8 @@ let selectedIndices = [];
 let isDraggingGroup = false;
 let isBoxSelecting  = false;
 
-let boxStart = {
-	x: 0,
-	y: 0
-};
-
-let boxEnd = {
-	x: 0,
-	y: 0
-};
+let boxStart = {x: 0, y: 0};
+let boxEnd   = {x: 0, y: 0};
 
 let clipboard     = null;
 let dragStartData = null;
@@ -98,38 +130,510 @@ let clipboardEnabled = true;
 let layerCounter      = 0;
 let selectionSnapshot = [];
 
-
-
-
-
-// Initialisation -------------------------------------------------------------------------------------------------------------------------------
-
-Object.keys(RECT_CONFIG).forEach(key => {
-	const img = new Image();
-
-	img.onload = () => {
-		if (++imagesLoaded === 3) initDefault();
-	};
-	
-	img.src     = RECT_CONFIG[key].src;
-	images[key] = img;
-});
+let cachedCompositionBounds = null;
 
 
 
 
 
-// Functions and listeners  ---------------------------------------------------------------------------------------------------------------------
+// Rectangle geometry ----------------------------------------------------------------------------------------------------------------------------
 
-function initDefault()
+function getLocalCorners(rect, angle = rect.angle)
 {
-	document.getElementById('error').style.display = 'none';
-	document.getElementById('main').style.display  = 'flex';
-	
-	addRect('car');
+	const cos = Math.cos(angle);
+	const sin = Math.sin(angle);
+	const hw  = rect.w / 2;
+	const hh  = rect.h / 2;
+
+	return [
+		{
+			x: -hw * cos + hh * sin,
+			y: -hw * sin - hh * cos
+		}, 
+		{
+			x: hw * cos + hh * sin,
+			y: hw * sin - hh * cos
+		}, 
+		{
+			x: hw * cos - hh * sin,
+			y: hw * sin + hh * cos
+		}, 
+		{
+			x: -hw * cos - hh * sin,
+			y: -hw * sin + hh * cos
+		}
+	];
+}
+
+
+
+function getRectBounds(rect, x = rect.x, y = rect.y, angle = rect.angle)
+{
+	let minX = Infinity;
+	let maxX = -Infinity;
+	let minY = Infinity;
+	let maxY = -Infinity;
+
+	for (const corner of getLocalCorners(rect, angle))
+	{
+		minX = Math.min(minX, x + corner.x);
+		maxX = Math.max(maxX, x + corner.x);
+		minY = Math.min(minY, y + corner.y);
+		maxY = Math.max(maxY, y + corner.y);
+	}
+
+	return {minX, maxX, minY, maxY};
+}
+
+
+
+function getCompositionBounds(items = rects)
+{
+	let minX = Infinity;
+	let maxX = -Infinity;
+	let minY = Infinity;
+	let maxY = -Infinity;
+
+	for (const rect of items)
+	{
+		const bounds = getRectBounds(rect);
+
+		minX = Math.min(minX, bounds.minX);
+		maxX = Math.max(maxX, bounds.maxX);
+		minY = Math.min(minY, bounds.minY);
+		maxY = Math.max(maxY, bounds.maxY);
+	}
+
+	return {minX, maxX, minY, maxY};
+}
+
+
+
+function canExistAt(rect, x, y, angle)
+{
+	const bounds = getVisibleBounds();
+	const extent = getRectBounds(rect, x, y, angle);
+
+	return (extent.minX >= bounds.left) && (extent.maxX <= bounds.right) && (extent.minY >= bounds.top) && (extent.maxY <= bounds.bottom);
+}
+
+
+
+function isHit(rect, x, y)
+{
+	const cos = Math.cos(-rect.angle);
+	const sin = Math.sin(-rect.angle);
+
+	const dx = x - rect.x;
+	const dy = y - rect.y;
+	const rx = dx * cos - dy * sin;
+	const ry = dx * sin + dy * cos;
+
+	return (rx >= -rect.w / 2) && (rx <= rect.w / 2) && (ry >= -rect.h / 2) && (ry <= rect.h / 2);
+}
+
+
+
+function getLayerSortedRects(descending = false)
+{
+	const direction = descending ? -1 : 1;
+
+	return rects.map((rect, index) => ({rect, index})).sort
+	(
+		(a, b) =>
+		{
+			const priority = LAYER_PRIORITY[a.rect.type] - LAYER_PRIORITY[b.rect.type];
+			return direction * (priority || a.rect.layer - b.rect.layer);
+		}
+	);
+}
+
+
+
+
+
+// View and zoom geometry ------------------------------------------------------------------------------------------------------------------------
+
+function getVisibleBounds()
+{
+	const halfWidth  = canvas.width  / 2;
+	const halfHeight = canvas.height / 2;
+	const invZoom    = IMAGE_RENDER_SCALE_BASE / IMAGE_RENDER_SCALE;
+
+	return {
+		left:   halfWidth  * (1 - invZoom) + viewOffsetX,
+		right:  halfWidth  * (1 + invZoom) + viewOffsetX,
+		top:    halfHeight * (1 - invZoom) + viewOffsetY,
+		bottom: halfHeight * (1 + invZoom) + viewOffsetY
+	};
+}
+
+
+
+function getMaxZoomScale(margin = 0, bounds = getCompositionBounds())
+{
+	if (rects.length === 0) return IMAGE_RENDER_SCALE_MAX;
+
+	const width  = bounds.maxX - bounds.minX;
+	const height = bounds.maxY - bounds.minY;
+
+	const widthScale  = IMAGE_RENDER_SCALE_BASE * canvas.width * (1 - 2 * margin) / width;
+	const heightScale = IMAGE_RENDER_SCALE_BASE * canvas.height / height;
+	const limit       = Math.min(IMAGE_RENDER_SCALE_MAX, widthScale, heightScale);
+
+	return Math.max(IMAGE_RENDER_SCALE_MIN, limit);
+}
+
+
+
+function updateZoomControl(bounds = getCompositionBounds())
+{
+	const maxScale           = getMaxZoomScale(0, bounds);
+	const unavailablePercent = 100 * (IMAGE_RENDER_SCALE_MAX - maxScale) / (IMAGE_RENDER_SCALE_MAX - IMAGE_RENDER_SCALE_MIN);
+
+	zoomControl.style.setProperty('--zoom-inaccessible-percent', `${unavailablePercent}%`);
+
+	IMAGE_RENDER_SCALE = Math.min(IMAGE_RENDER_SCALE, maxScale);
+
+	if (rects.length > 0)
+	{
+		const halfWidth  = canvas.width  * IMAGE_RENDER_SCALE_BASE / (2 * IMAGE_RENDER_SCALE);
+		const halfHeight = canvas.height * IMAGE_RENDER_SCALE_BASE / (2 * IMAGE_RENDER_SCALE);
+
+		const minOffsetX = bounds.maxX - halfWidth  - canvas.width / 2;
+		const maxOffsetX = bounds.minX + halfWidth  - canvas.width / 2;
+		const minOffsetY = bounds.maxY - halfHeight - canvas.height / 2;
+		const maxOffsetY = bounds.minY + halfHeight - canvas.height / 2;
+
+		viewOffsetX = (minOffsetX <= maxOffsetX) ? Math.max(minOffsetX, Math.min(viewOffsetX, maxOffsetX)) : (bounds.minX + bounds.maxX - canvas.width)  / 2;
+		viewOffsetY = (minOffsetY <= maxOffsetY) ? Math.max(minOffsetY, Math.min(viewOffsetY, maxOffsetY)) : (bounds.minY + bounds.maxY - canvas.height) / 2;
+	}
+
+	zoomSlider.value    = IMAGE_RENDER_SCALE;
+	zoomSlider.disabled = maxScale <= IMAGE_RENDER_SCALE_MIN;
+}
+
+
+
+function adjustZoom(delta, coarse)
+{
+	const step      = (coarse) ? ZOOM_SCROLL_COARSE : ZOOM_SCROLL_FINE;
+	const direction = (delta > 0) ? -1 : 1;
+
+	IMAGE_RENDER_SCALE = Math.max(IMAGE_RENDER_SCALE_MIN, Math.min(IMAGE_RENDER_SCALE_MAX, IMAGE_RENDER_SCALE + direction * step));
+
+	draw();
+}
+
+
+
+function getCanvasPoint(event)
+{
+	const bounds = canvas.getBoundingClientRect();
+	const scale  = IMAGE_RENDER_SCALE / IMAGE_RENDER_SCALE_BASE;
+	const cx     = canvas.width  / 2;
+	const cy     = canvas.height / 2;
+
+	return {
+		x: cx + viewOffsetX + ((event.clientX - bounds.left) * canvas.width  / bounds.width  - cx) / scale,
+		y: cy + viewOffsetY + ((event.clientY - bounds.top)  * canvas.height / bounds.height - cy) / scale
+	};
+}
+
+
+
+function snapToPixel(value, centre, scale, offset)
+{
+	return centre + offset + (Math.floor(centre + (value - centre - offset) * scale) + 0.5 - centre) / scale;
+}
+
+
+
+function snapToGrid(value, centre, scale, offset)
+{
+	return centre + offset + (Math.round((centre + (value - centre - offset) * scale) / GRID_SIZE) * GRID_SIZE - centre) / scale;
+}
+
+
+
+function strokePixelAlignedRect(x, y, width, height, scale)
+{
+	const cx = canvas.width  / 2;
+	const cy = canvas.height / 2;
+
+	const x1 = snapToPixel(x,          cx, scale, viewOffsetX);
+	const y1 = snapToPixel(y,          cy, scale, viewOffsetY);
+	const x2 = snapToPixel(x + width,  cx, scale, viewOffsetX);
+	const y2 = snapToPixel(y + height, cy, scale, viewOffsetY);
+
+	context.strokeRect(x1, y1, x2 - x1, y2 - y1);
+}
+
+
+
+function strokePixelAlignedSelection(rect, scale)
+{
+	const cx      = canvas.width  / 2;
+	const cy      = canvas.height / 2;
+	const corners = getLocalCorners(rect);
+
+	context.beginPath();
+
+	corners.forEach
+	(
+		(corner, index) =>
+		{
+			const x = snapToPixel(rect.x + corner.x, cx, scale, viewOffsetX);
+			const y = snapToPixel(rect.y + corner.y, cy, scale, viewOffsetY);
+
+			if (index === 0) 
+				context.moveTo(x, y);
+
+			else             
+				context.lineTo(x, y);
+		}
+	);
+
+	context.closePath();
+	context.stroke();
+}
+
+
+
+
+
+// Rectangle management --------------------------------------------------------------------------------------------------------------------------
+
+function getCarSelection()
+{
+	const carIndices         = rects.reduce((indices, rect, index) => (rect.type === 'car') ? indices.concat(index) : indices, []);
+	const selectedCarIndices = selectedIndices.filter(index => rects[index].type === 'car');
+
+	return {carIndices, selectedCarIndices};
+}
+
+
+
+function getProtectedCarIndex(type, carSelection)
+{
+	const {carIndices, selectedCarIndices} = carSelection;
+
+	return ((carIndices.length > 0) && (carIndices.length === selectedCarIndices.length) && (type !== 'car')) ? selectedCarIndices[0] : -1;
+}
+
+
+
+function addRect(type)
+{
+	if (rects.length >= MAX_RECTS) return;
+
+	const img = images[type];
+
+	layerCounter++;
+
+	rects.push
+	(
+		{
+			x:     canvas.width  / 2 + viewOffsetX,
+			y:     canvas.height / 2 + viewOffsetY,
+			w:     img.width  * IMAGE_RENDER_SCALE_BASE,
+			h:     img.height * IMAGE_RENDER_SCALE_BASE,
+			img,
+			type,
+			angle: 0,
+			layer: layerCounter
+		}
+	);
+
+	selectedIndices = [rects.length - 1];
+}
+
+
+
+function transformRect(index, newType)
+{
+	const rect = rects [index];
+	const img  = images[newType];
+
+	rect.type = newType;
+	rect.img  = img;
+	rect.w    = img.width  * IMAGE_RENDER_SCALE_BASE;
+	rect.h    = img.height * IMAGE_RENDER_SCALE_BASE;
+
+	if (!canExistAt(rect, rect.x, rect.y, rect.angle))
+	{
+		rect.x = canvas.width  / 2 + viewOffsetX;
+		rect.y = canvas.height / 2 + viewOffsetY;
+	}
+}
+
+
+
+function handleAction(type)
+{
+	if (isShiftDown && (selectedIndices.length > 0))
+	{
+		const protectedIndex = getProtectedCarIndex(type, getCarSelection());
+
+		selectedIndices.forEach
+		(	
+			index =>
+			{
+				if (index !== protectedIndex) transformRect(index, type);
+			}
+		);
+	}
+	else addRect(type);
+
+	updateUI();
 	draw();
 
 	canvas.focus();
+}
+
+
+
+function deleteSelected()
+{
+	if (selectedIndices.length === 0) return;
+
+	const {carIndices, selectedCarIndices} = getCarSelection();
+
+	let safeIndices = [...selectedIndices].sort((a, b) => b - a);
+
+	if ((carIndices.length > 0) && (carIndices.length === selectedCarIndices.length))
+		safeIndices = safeIndices.filter(index => index !== selectedCarIndices[0]);
+
+	safeIndices.forEach(index => rects.splice(index, 1));
+	selectedIndices = rects.length > 0 ? [rects.length - 1] : [];
+
+	updateUI();
+	draw();
+
+	canvas.focus();
+}
+
+
+
+function mirrorRects()
+{
+	if (rects.length === 0) return;
+
+	const bounds = getCompositionBounds();
+	const pivotX = (bounds.minX + bounds.maxX) / 2;
+
+	rects.forEach
+	(
+		rect =>
+		{
+			rect.x     = 2 * pivotX - rect.x;
+			rect.angle = (rect.type === 'sawhorse' ? 2 * Math.PI : Math.PI) - rect.angle;
+		}
+	);
+
+	draw();
+	canvas.focus();
+}
+
+
+
+function clearCanvas()
+{
+	rects           = [];
+	selectedIndices = [];
+	viewOffsetX     = 0;
+	viewOffsetY     = 0;
+
+	addRect('car');
+
+	IMAGE_RENDER_SCALE = getMaxZoomScale(IMPORT_ZOOM_MARGIN);
+
+	updateUI();
+	draw();
+
+	canvas.focus();
+}
+
+
+
+
+
+// Import and export -----------------------------------------------------------------------------------------------------------------------------
+
+function parseImportLines(text)
+{
+	return text.split('\n').map(line => line.trim()).filter(line => IMPORT_PART_REGEX.test(line));
+}
+
+
+
+function isImportValid(lines)
+{
+	if (lines.length === 0 || lines.length > MAX_RECTS) return false;
+
+	let hasCar = false;
+
+	for (let index = 0; index < lines.length; index++)
+	{
+		const match = lines[index].match(IMPORT_REGEX);
+
+		if (!match || (parseInt(match[1], 10) !== index + 1)) return false;
+
+		if (parseInt(match[2]) === 1) hasCar = true;
+	}
+
+	return hasCar;
+}
+
+
+
+function syncImportScroll()
+{
+	importHighlight.scrollTop  = importInput.scrollTop;
+	importHighlight.scrollLeft = importInput.scrollLeft;
+}
+
+
+
+function updateImportHighlight()
+{
+	let partIndex = 0;
+	let stopped   = false;
+
+	const lines = importInput.value.split('\n');
+
+	const nodes = lines.map
+	(
+		(line, index) =>
+		{
+			const span = document.createElement('span');
+			const part = line.trim();
+
+			span.textContent = line + (index < lines.length - 1 ? '\n' : '');
+
+			if (IMPORT_PART_REGEX.test(part) && !stopped)
+			{
+				const match = part.match(IMPORT_REGEX);
+	
+				if (match && (parseInt(match[1], 10) === partIndex + 1) && (partIndex < MAX_RECTS))
+				{
+					span.className = 'import-line-valid';
+					partIndex++;
+				}
+				else
+				{
+					span.className = 'import-line-invalid';
+					stopped        = true;
+				}
+			}
+
+			return span;
+		}
+	);
+
+	importHighlight.replaceChildren(...nodes);
+
+	syncImportScroll();
 }
 
 
@@ -139,6 +643,8 @@ function openImportModal()
 	modal.style.display    = 'flex';
 	btnLoadImport.disabled = true;
 	importInput.value      = '';
+
+	updateImportHighlight();
 	importInput.focus();
 }
 
@@ -152,819 +658,104 @@ function closeImportModal()
 
 
 
-modal.addEventListener('mousedown', (e) => {
-	if (e.target === modal) closeImportModal();
-});
-
-
-
-function parseImportLines(text) 
+function loadImportData()
 {
-	return text.split('\n')
-		.map(l => l.trim())
-		.filter(l => l.startsWith('part'));
-}
-
-
-
-importInput.addEventListener('input', () => {
-	const lines = parseImportLines(importInput.value);
-
-	let isValid = true;
-	let hasCar  = false;
-	
-	if (lines.length === 0 || lines.length > MAX_RECTS)
-		isValid = false;
-	
-	else
-	{
-		for (let i = 0; i < lines.length; i++)
-		{
-			const line  = lines[i];
-			const match = line.match(IMPORT_REGEX);
-		
-			if (!match)
-			{
-				isValid = false;
-				break;
-			}
-		
-			const partNum = parseInt(match[1], 10);
-		
-			if (partNum !== (i + 1))
-			{
-				isValid = false;
-				break;
-			}
-		
-			if (parseInt(match[2]) === 1) hasCar = true;
-		}
-	}
-	
-	btnLoadImport.disabled = !(isValid && hasCar);
-});
-
-
-
-function loadImportData() 
-{
-	const lines = parseImportLines(importInput.value);
-
+	const lines     = parseImportLines(importInput.value);
 	const tempRects = [];
-	
+
 	let localLayerCounter = 0;
-	
-	lines.forEach(line => {
-		const match = line.match(IMPORT_REGEX);
-	
-		const typeID      = parseInt(match[2]);
-		const offsetX     = parseFloat(match[3]);
-		const offsetY     = parseFloat(match[5]);
-		const orientation = parseFloat(match[7]);
 
-		const type = TYPE_MAP[typeID];
-		const img  = images[type];
-	
-		const angleDeg = (0.25 - ((type === 'car') ? orientation : (orientation - 0.25))) * 360;
+	lines.forEach
+	(
+		line =>
+		{
+			const match = line.match(IMPORT_REGEX);
 
-		tempRects.push({
-			x:     (offsetX / LENGTH_SCALE),
-			y:     -(offsetY / LENGTH_SCALE),
-			w:     img.width  * IMAGE_RENDER_SCALE,
-			h:     img.height * IMAGE_RENDER_SCALE,
-			img:   img,
-			type:  type,
-			angle: angleDeg * (Math.PI / 180),
-			layer: ++localLayerCounter
-		});
+			const typeID      = parseInt(match[2]);
+			const offsetX     = parseFloat(match[3]);
+			const offsetY     = parseFloat(match[5]);
+			const orientation = parseFloat(match[7]);
+
+			const type = TYPE_MAP[typeID];
+			const img  = images[type];
+
+			const angleDeg = (0.25 - ((type === 'car') ? orientation : orientation - 0.25)) * 360;
+
+			tempRects.push
+			(
+				{
+					x:     offsetX  / LENGTH_SCALE,
+					y:     -offsetY / LENGTH_SCALE,
+					w:     img.width  * IMAGE_RENDER_SCALE_BASE,
+					h:     img.height * IMAGE_RENDER_SCALE_BASE,
+					img,
+					type,
+					angle: angleDeg * (Math.PI / 180),
+					layer: ++localLayerCounter
+				}
+			);
+		}
+	);
+
+	const importedBounds = getCompositionBounds(tempRects);
+	const mbbCx          = (importedBounds.minX + importedBounds.maxX) / 2;
+	const mbbCy          = (importedBounds.minY + importedBounds.maxY) / 2;
+	const canvasCx       = canvas.width  / 2;
+	const canvasCy       = canvas.height / 2;
+
+	rects = tempRects.map
+	(
+		rect => 
+		(
+			{
+				...rect,
+				x: rect.x - mbbCx + canvasCx,
+				y: rect.y - mbbCy + canvasCy
+			}
+		)
+	);
+
+	IMAGE_RENDER_SCALE = getMaxZoomScale(IMPORT_ZOOM_MARGIN);
+	viewOffsetX        = 0;
+	viewOffsetY        = 0;
+
+	updateZoomControl();
+
+	let   isOutOfBounds = false;
+	const bounds        = getVisibleBounds();
+
+	rects.forEach(rect =>
+	{
+		for (const corner of getLocalCorners(rect))
+		{
+			const x = rect.x + corner.x;
+			const y = rect.y + corner.y;
+
+			if ((x < bounds.left) || (x > bounds.right) || (y < bounds.top) || (y > bounds.bottom)) isOutOfBounds = true;
+		}
 	});
-	
-	let minX = Infinity;
-	let maxX = -Infinity;
-	let minY = Infinity;
-	let maxY = -Infinity;
-	
-	tempRects.forEach(r => {
-		const corners = getLocalCorners(r);
-	
-		corners.forEach(c => {
-			minX = Math.min(minX, r.x + c.x);
-			maxX = Math.max(maxX, r.x + c.x);
-			minY = Math.min(minY, r.y + c.y);
-			maxY = Math.max(maxY, r.y + c.y);
-		});
-	});
-	
-	const mbbCx    = (minX + maxX) / 2;
-	const mbbCy    = (minY + maxY) / 2;
-	const canvasCx = canvas.width  / 2;
-	const canvasCy = canvas.height / 2;
-	
-	rects = tempRects.map(r => ({
-		...r,
-		x: r.x - mbbCx + canvasCx,
-		y: r.y - mbbCy + canvasCy
-	}));
-	
-	let isOutOfBounds = false;
-	
-	rects.forEach(r => {
-		const corners = getLocalCorners(r);
-	
-		corners.forEach(c => {
-			const gx = r.x + c.x;
-			const gy = r.y + c.y;
-		
-			if (gx < 0 || gx > canvas.width || gy < 0 || gy > canvas.height) isOutOfBounds = true;
-		});
-	});
-	
+
 	layerCounter    = localLayerCounter;
 	selectedIndices = [];
-	
+
 	closeImportModal();
 	updateUI();
 	draw();
-	
-	const defaultText = "Left-click to select. Scroll to rotate. Hold Shift to snap.";
-	
-	if (isOutOfBounds)
-		canvasOverlay.innerHTML = 'Import <span style="color: #D61E00"><b>out of bounds</b></span>.';
 
-	else
-		canvasOverlay.innerHTML = 'Import <span style="color: #00A34C"><b>successful</b></span>.';
-	
-	setTimeout(() => {
-		canvasOverlay.innerText   = defaultText;
-		canvasOverlay.style.color = "#666";
-	}, ANIMATION_TIMER);
-}
+	const defaultText = 'Left-click to select. Scroll to rotate. Hold Shift to snap.';
 
+	if (isOutOfBounds) canvasOverlay.innerHTML = 'Import <span style="color: #D61E00"><b>out of bounds</b></span>.';
+	else               canvasOverlay.innerHTML = 'Import <span style="color: #00A34C"><b>successful</b></span>.';
 
-
-document.addEventListener('mousedown', (e) => {
-	if (e.target !== canvas && e.target.tagName !== 'BUTTON' && e.target !== outputField && !modal.contains(e.target) && e.target !== modal)
-	{
-		selectedIndices = [];
-		updateUI();
-		draw();
-	}
-});
-
-
-
-outputField.addEventListener('click', () => {
-	if (!clipboardEnabled) return;
-	navigator.clipboard.writeText(outputField.innerText).then(() => {
-		outputOverlay.innerHTML = '<span style="color: #DEB700"><b>Copied</b></span> settings.';
-		outputField.classList.remove('flash');
-		clipboardEnabled = false;
-		setTimeout(() => {
-			outputOverlay.innerHTML = '<span class="emph">Click to copy</span> settings.';
-			outputField.classList.add('flash');
-			clipboardEnabled = true;
-		}, ANIMATION_TIMER);
-	});
-});
-
-
-
-window.addEventListener('keydown', (e) => {
-	if (e.key === 'Escape')
-	{
-		if (modal.style.display === 'flex')
+	setTimeout
+	(
+		() =>
 		{
-			closeImportModal();
-			return;
-		}
-	
-		if (document.activeElement === canvas)
-		{
-			selectedIndices = [];
-			updateUI();
-			draw();
-		}
-	
-		return;
-	}
-	
-	if (modal.style.display === 'flex') return;
-	
-	const isCanvasActive = (document.activeElement === canvas);
-
-	if (e.key.toLowerCase() === 'm' && isCanvasActive)
-	{
-		e.preventDefault();
-		mirrorRects();
-		return;
-	}
-	
-	if (e.key === 'Shift')
-	{
-		isShiftDown = true;
-		updateUI();
-		draw();
-	}
-	
-	if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
-	
-	if (e.ctrlKey && e.key.toLowerCase() === 'a' && isCanvasActive)
-	{
-		e.preventDefault();
-		selectedIndices = rects.map((_, i) => i);
-		updateUI();
-		draw();
-	}
-	
-	if (e.ctrlKey && e.key.toLowerCase() === 'c' && selectedIndices.length > 0)
-		clipboard = selectedIndices.map(i => ({...rects[i]}));
-	
-	if (e.ctrlKey && e.key.toLowerCase() === 'v' && clipboard)
-	{
-		if (rects.length + clipboard.length <= MAX_RECTS)
-		{
-			const next = [];
-		
-			clipboard.forEach(c => {
-				layerCounter++;
-		
-				const nr = {
-					...c,
-					x:     c.x + 15,
-					y:     c.y + 15,
-					layer: layerCounter
-				};
-		
-				if (!canExistAt(nr, nr.x, nr.y, nr.angle))
-				{
-					nr.x = canvas.width / 2;
-					nr.y = canvas.height / 2;
-				}
-		
-				rects.push(nr);
-				next.push(rects.length - 1);
-			});
-		
-			selectedIndices = next;
-			updateUI();
-			draw();
-		}
-	}
-	
-	if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key) && selectedIndices.length > 0 && isCanvasActive)
-	{
-		e.preventDefault();
-	
-		const step = isShiftDown ? MOVE_COARSE : MOVE_FINE;
-
-		let limit  = step;
-	
-		selectedIndices.forEach(idx => {
-			const r = rects[idx];
-		
-			const corners = getLocalCorners(r).map(c => ({
-				x: c.x + r.x,
-				y: c.y + r.y
-			}));
-		
-			if (e.key === 'ArrowUp')    limit = Math.min(limit, Math.min(...corners.map(c => c.y)));
-			if (e.key === 'ArrowDown')  limit = Math.min(limit, canvas.height - Math.max(...corners.map(c => c.y)));
-			if (e.key === 'ArrowLeft')  limit = Math.min(limit, Math.min(...corners.map(c => c.x)));
-			if (e.key === 'ArrowRight') limit = Math.min(limit, canvas.width - Math.max(...corners.map(c => c.x)));
-		});
-	
-		if (limit > 0)
-		{
-			selectedIndices.forEach(idx => {
-				if (e.key === 'ArrowUp')    rects[idx].y -= limit;
-				if (e.key === 'ArrowDown')  rects[idx].y += limit;
-				if (e.key === 'ArrowLeft')  rects[idx].x -= limit;
-				if (e.key === 'ArrowRight') rects[idx].x += limit;
-			});
-		
-			draw();
-		}
-	}
-});
-
-
-
-window.addEventListener('keyup', (e) => {
-	if (e.key === 'Shift')
-	{
-		isShiftDown = false;
-		updateUI();
-		draw();
-	}
-});
-
-
-
-canvas.addEventListener('mousedown', (e) => {
-	canvas.focus();
-	
-	const b  = canvas.getBoundingClientRect();
-	const mx = e.clientX - b.left;
-	const my = e.clientY - b.top;
-	
-	let hitIdx = -1;
-	
-	const sorted = rects.map((r, i) => ({r, i})).sort((a, b) => (LAYER_PRIORITY[b.r.type] - LAYER_PRIORITY[a.r.type]) || (b.r.layer - a.r.layer));
-	
-	for (let item of sorted)
-	{
-		if (isHit(item.r, mx, my))
-		{
-			hitIdx = item.i;
-			break;
-		}
-	}
-	
-	if (hitIdx !== -1)
-	{
-		if (!isShiftDown && !selectedIndices.includes(hitIdx))
-			selectedIndices = [hitIdx];
-	
-		else if (isShiftDown && !selectedIndices.includes(hitIdx))
-			selectedIndices.push(hitIdx);
-	
-		layerCounter++;
-		rects[hitIdx].layer = layerCounter;
-		isDraggingGroup     = true;
-	
-		let minX = Math.min(...selectedIndices.map(i => rects[i].x));
-		let minY = Math.min(...selectedIndices.map(i => rects[i].y));
-	
-		dragStartData = {
-			groupMinX:    minX,
-			groupMinY:    minY,
-			mouseOffsetX: mx - minX,
-			mouseOffsetY: my - minY,
-			itemStarts:   selectedIndices.map(idx => ({
-				idx,
-				x: rects[idx].x,
-				y: rects[idx].y
-			}))
-		};
-	}
-	else
-	{
-		if (!isShiftDown) selectedIndices = [];
-	
-		selectionSnapshot = [...selectedIndices];
-		isBoxSelecting    = true;
-	
-		boxStart = {
-			x: mx,
-			y: my
-		};
-	
-		boxEnd = {
-			x: mx,
-			y: my
-		};
-	}
-	
-	updateUI();
-	draw();
-});
-
-
-
-window.addEventListener('mousemove', (e) => {
-	const b  = canvas.getBoundingClientRect();
-	const mx = e.clientX - b.left;
-	const my = e.clientY - b.top;
-	
-	if (isDraggingGroup && dragStartData)
-	{
-		let tx = mx - dragStartData.mouseOffsetX;
-		let ty = my - dragStartData.mouseOffsetY;
-	
-		if (isShiftDown)
-		{
-			tx = Math.round(tx / GRID_SIZE) * GRID_SIZE;
-			ty = Math.round(ty / GRID_SIZE) * GRID_SIZE;
-		}
-	
-		const dx = tx - dragStartData.groupMinX;
-		const dy = ty - dragStartData.groupMinY;
-	
-		const props = dragStartData.itemStarts.map(p => ({
-			idx: p.idx,
-			x: p.x + dx,
-			y: p.y + dy
-		}));
-	
-		let sL = 0;
-		let sR = 0;
-		let sU = 0;
-		let sD = 0;
-	
-		props.forEach(p => {
-			const corners = getLocalCorners(rects[p.idx]);
-		
-			const minLX = Math.min(...corners.map(c => c.x));
-			const maxLX = Math.max(...corners.map(c => c.x));
-			const minLY = Math.min(...corners.map(c => c.y));
-			const maxLY = Math.max(...corners.map(c => c.y));
-		
-			if (p.x + minLX < 0)             sR = Math.max(sR, -(p.x + minLX));
-			if (p.x + maxLX > canvas.width)  sL = Math.min(sL, canvas.width - (p.x + maxLX));
-			if (p.y + minLY < 0)             sD = Math.max(sD, -(p.y + minLY));
-			if (p.y + maxLY > canvas.height) sU = Math.min(sU, canvas.height - (p.y + maxLY));
-		});
-	
-		props.forEach(p => {
-			rects[p.idx].x = p.x + sR + sL;
-			rects[p.idx].y = p.y + sD + sU;
-		});
-	}
-	else if (isBoxSelecting)
-	{
-		boxEnd = {
-			x: mx,
-			y: my
-		};
-	
-		const xMin = Math.min(boxStart.x, boxEnd.x);
-		const xMax = Math.max(boxStart.x, boxEnd.x);
-		const yMin = Math.min(boxStart.y, boxEnd.y);
-		const yMax = Math.max(boxStart.y, boxEnd.y);
-	
-		const inBox = rects.map((r, i) => (r.x >= xMin && r.x <= xMax && r.y >= yMin && r.y <= yMax ? i : -1)).filter(i => i !== -1);
-	
-		selectedIndices = Array.from(new Set([...selectionSnapshot, ...inBox]));
-		updateUI();
-	}
-	
-	draw();
-});
-
-
-
-window.addEventListener('mouseup', () => {
-	isDraggingGroup = false;
-	isBoxSelecting  = false;
-	draw();
-});
-
-
-
-canvas.addEventListener('wheel', (e) => {
-	if (selectedIndices.length > 0)
-	{
-		e.preventDefault();
-	
-		const step      = isShiftDown ? ROT_COARSE : ROT_FINE;
-		const direction = e.deltaY > 0 ? 1 : -1;
-	
-		if (selectedIndices.every(idx => {
-			const r      = rects[idx];
-			let newAngle = r.angle + (direction * step);
-			newAngle     = Math.round(newAngle / step) * step;
-			return canExistAt(r, r.x, r.y, newAngle);
-		}))
-		{
-			selectedIndices.forEach(idx => {
-				let newAngle = rects[idx].angle + (direction * step);
-				rects[idx].angle = Math.round(newAngle / step) * step;
-			});
-		
-			draw();
-		}
-	}
-}, { passive: false });
-
-
-
-function canExistAt(r, nx, ny, na)
-{
-	const cos = Math.cos(na);
-	const sin = Math.sin(na);
-	const hw  = r.w / 2;
-	const hh  = r.h / 2;
-	
-	const corners = [{
-		x: -hw * cos + hh * sin,
-		y: -hw * sin - hh * cos
-	}, {
-		x: hw * cos + hh * sin,
-		y: hw * sin - hh * cos
-	}, {
-		x: hw * cos - hh * sin,
-		y: hw * sin + hh * cos
-	}, {
-		x: -hw * cos - hh * sin,
-		y: -hw * sin + hh * cos
-	}];
-	
-	return corners.every(c => (nx + c.x >= 0 && nx + c.x <= canvas.width && ny + c.y >= 0 && ny + c.y <= canvas.height));
-}
-
-
-
-function handleAction(type)	    
-{
-	if (isShiftDown && selectedIndices.length > 0)
-	{
-		const allY    = rects.reduce((acc, r, i) => (r.type === 'car' ? acc.concat(i) : acc), []);
-		const selY    = selectedIndices.filter(i => rects[i].type === 'car');
-		const protIdx = (allY.length > 0 && allY.length === selY.length && type !== 'car') ? selY[0] : -1;
-	
-		selectedIndices.forEach(idx => {
-			if (idx !== protIdx) transformRect(idx, type);
-		});
-	}
-	else
-		addRect(type);
-	
-	updateUI();
-	draw();
-	canvas.focus();
-}
-
-
-
-function addRect(type)	    
-{
-	if (rects.length < MAX_RECTS)
-	{
-		const img = images[type];
-		layerCounter++;
-	
-		rects.push({
-			x:     canvas.width / 2,
-			y:     canvas.height / 2,
-			w:     img.width * IMAGE_RENDER_SCALE,
-			h:     img.height * IMAGE_RENDER_SCALE,
-			img,
-			type,
-			angle: 0,
-			layer: layerCounter
-		});
-	
-		selectedIndices = [rects.length - 1];
-	}
-}
-
-
-
-function transformRect(idx, newType)   
-{
-	const r   = rects[idx];
-	const img = images[newType];
-	
-	r.type = newType;
-	r.img  = img;
-	r.w    = img.width * IMAGE_RENDER_SCALE;
-	r.h    = img.height * IMAGE_RENDER_SCALE;
-	
-	if (!canExistAt(r, r.x, r.y, r.angle))
-	{
-		r.x = canvas.width  / 2;
-		r.y = canvas.height / 2;
-	}
-}
-
-
-
-function deleteSelected()
-{
-	if (selectedIndices.length === 0) return;
-	
-	const allY = rects.reduce((acc, r, i) => (r.type === 'car' ? acc.concat(i) : acc), []);
-	const selY = selectedIndices.filter(i => rects[i].type === 'car');
-	
-	let safe = [...selectedIndices].sort((a, b) => b - a);
-	if (allY.length > 0 && allY.length === selY.length) safe = safe.filter(i => i !== selY[0]);
-	
-	safe.forEach(i => rects.splice(i, 1));
-	selectedIndices = rects.length > 0 ? [rects.length - 1] : [];
-	
-	updateUI();
-	draw();
-	canvas.focus();
-}
-
-
-
-function isHit(r, mx, my)	    
-{
-	const cos = Math.cos(-r.angle);
-	const sin = Math.sin(-r.angle);
-	
-	const dx  = mx - r.x;
-	const dy  = my - r.y;
-	const rx  = dx * cos - dy * sin;
-	const ry  = dx * sin + dy * cos;
-	
-	return (rx >= -r.w / 2 && rx <= r.w / 2 && ry >= -r.h / 2 && ry <= r.h / 2);
-}
-
-
-
-function getLocalCorners(r)	    
-{
-	const cos = Math.cos(r.angle);
-	const sin = Math.sin(r.angle);
-	
-	const hw = r.w / 2;
-	const hh = r.h / 2;
-	
-	return [{
-		x: -hw * cos + hh * sin,
-		y: -hw * sin - hh * cos
-	}, {
-		x: hw * cos + hh * sin,
-		y: hw * sin - hh * cos
-	}, {
-		x: hw * cos - hh * sin,
-		y: hw * sin + hh * cos
-	}, {
-		x: -hw * cos - hh * sin,
-		y: -hw * sin + hh * cos
-	}];
-}
-
-
-
-function updateUI()
-{
-	const allY = rects.reduce((acc, r, i) => (r.type === 'car' ? acc.concat(i) : acc), []);
-	const selY = selectedIndices.filter(i => rects[i].type === 'car');
-	
-	['Car', 'Spikes', 'Sawhorse'].forEach(c => {
-		const btn  = document.getElementById('btn' + c);
-		const type = c.toLowerCase();
-	
-		if (isShiftDown && selectedIndices.length > 0)
-		{
-			btn.innerText = `↪ ${c.toLowerCase()}`;
-			const protIdx = (allY.length > 0 && allY.length === selY.length && type !== 'car') ? selY[0] : -1;
-			btn.disabled  = selectedIndices.filter(idx => idx !== protIdx && rects[idx].type !== type).length === 0;
-		}
-		else
-		{
-			btn.innerText = `✚ ${c.toLowerCase()}`;
-			btn.disabled  = rects.length >= MAX_RECTS;
-		}
-	});
-	
-	const sCount            = selectedIndices.length;
-	const sYCount           = selY.length;
-	const isDeletingLastCar = (sYCount === allY.length && sCount === sYCount && sYCount === 1);
-	
-	document.getElementById('deleteBtn').disabled = sCount === 0 || isDeletingLastCar;
-}
-
-
-
-function draw()	    
-{
-	context.lineWidth = 1;
-	context.clearRect(0, 0, canvas.width, canvas.height);
-   
-	// Grid
-	if (isShiftDown && selectedIndices.length > 0)
-	{
-		context.beginPath();
-		context.strokeStyle = '#eee';
-	
-		for (let x = 0; x <= 700; x += GRID_SIZE)
-		{
-			context.moveTo(x, 0);
-			context.lineTo(x, 450);
-		}
-	
-		for (let y = 0; y <= 450; y += GRID_SIZE)
-		{
-			context.moveTo(0, y);
-			context.lineTo(700, y);
-		}
-	
-		context.stroke();
-	}
-
-	// Minimal bounding-box
-	let minX = Infinity;
-	let maxX = -Infinity;
-	let minY = Infinity;
-	let maxY = -Infinity;
-	
-	rects.forEach(r => {
-		const corners = getLocalCorners(r);
-	
-		corners.forEach(p => {
-			minX = Math.min(minX, r.x + p.x);
-			maxX = Math.max(maxX, r.x + p.x);
-			minY = Math.min(minY, r.y + p.y);
-			maxY = Math.max(maxY, r.y + p.y);
-		});
-	});
-
-	let mbb = null;
-	
-	if (rects.length > 0)
-	{
-		mbb = {
-			x:  Math.floor(minX) + 0.5,
-			y:  Math.floor(minY) + 0.5,
-			w:  Math.floor(maxX - minX),
-			h:  Math.floor(maxY - minY),
-			cx: minX + (maxX - minX) / 2,
-			cy: minY + (maxY - minY) / 2
-		};
-	
-		context.setLineDash([5, 5]);
-		context.strokeStyle = '#BBB';
-		context.strokeRect(mbb.x, mbb.y, mbb.w, mbb.h);
-		context.setLineDash([]);
-		
-		updateOutput(mbb);
-	}
-	
-	// Selection markers
-	const queue = rects.map((r, i) => ({r,i})).sort((a, b) => (LAYER_PRIORITY[a.r.type] - LAYER_PRIORITY[b.r.type]) || (a.r.layer - b.r.layer));
-	
-	queue.forEach(item => {
-		context.save();
-		context.translate(item.r.x, item.r.y);
-		context.rotate(item.r.angle);
-		context.drawImage(item.r.img, -item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
-	
-		if (selectedIndices.includes(item.i))
-		{
-			context.strokeStyle = SELECTION_COLOUR;
-			context.lineWidth   = 3;
-		
-			context.strokeRect(-item.r.w / 2, -item.r.h / 2, item.r.w, item.r.h);
-		}
-	
-		context.restore();
-	});
-
-	// Selection area
-	if (isBoxSelecting)
-	{
-		context.strokeStyle = SELECTION_COLOUR;
-	
-		context.strokeRect
-		(
-			Math.floor(boxStart.x) + 0.5,
-			Math.floor(boxStart.y) + 0.5,
-			Math.floor(boxEnd.x - boxStart.x),
-			Math.floor(boxEnd.y - boxStart.y)
-		);
-	
-		context.setLineDash([]);
-	}
-
-	// Centre point & mirror indicator
-	if (rects.length > 1)
-	{
-		// Centre-point outline
-		context.beginPath();
-		context.arc(mbb.cx, mbb.cy, 8, 0, Math.PI * 2);
-		context.fillStyle = 'white';
-		context.fill();
-
-		// Mirror-indicator outline
-		if (isMirrorHover)
-		{
-			const pivotX = Math.floor((minX + maxX) / 2) + 0.5;
-
-			context.beginPath();
-			context.moveTo(pivotX, minY);
-			context.lineTo(pivotX, maxY);
-
-			context.strokeStyle = 'white';
-			context.lineWidth   = 7;
-
-			context.stroke();
-		}
-
-		// Centre point
-		context.beginPath();
-		context.arc(mbb.cx, mbb.cy, 5, 0, Math.PI * 2);
-		context.fillStyle = CONTRAST_COLOUR;
-		context.fill();
-
-		// Mirror indicator
-		if (isMirrorHover)
-		{
-			const pivotX = Math.floor((minX + maxX) / 2) + 0.5;
-
-			context.beginPath();
-			context.moveTo(pivotX, minY);
-			context.lineTo(pivotX, maxY);
-
-			context.strokeStyle = CONTRAST_COLOUR;
-			context.lineWidth   = 1;
-
-			context.stroke();
-		}
-	}
+			canvasOverlay.innerText   = defaultText;
+			canvasOverlay.style.color = '#666';
+		}, 
+		ANIMATION_TIMER
+	);
 }
 
 
@@ -981,59 +772,683 @@ function getMaxWidth(minWidth)
 
 
 
-function updateOutput(mbb)	    
-{    
+function updateOutput(mbb)
+{
 	const strPad = (num, places) => String(num).padStart(places, ' ');
 
-	let hasSpikes = false;
-	
 	let firstWidth  = 0;
 	let secondWidth = 0;
 
-	for (const rect of rects)
-	{
-		if (rect.type === 'spikes')
-			hasSpikes = true;
+	const offsets = rects.map
+	(
+		rect =>
+		{
+			const x = ((rect.x - mbb.cx) * LENGTH_SCALE).toFixed(2);
+			const y = ((mbb.cy - rect.y) * LENGTH_SCALE).toFixed(2);
 
-		const ox = ((rect.x - mbb.cx) * LENGTH_SCALE).toFixed(2);
-		const oy = ((mbb.cy - rect.y) * LENGTH_SCALE).toFixed(2);
-	
-		if (ox.length > firstWidth)  firstWidth  = ox.length;
-		if (oy.length > secondWidth) secondWidth = oy.length;	
-	}
+			firstWidth  = Math.max(firstWidth,  x.length);
+			secondWidth = Math.max(secondWidth, y.length);
+
+			return {x, y};
+		}
+	);
 
 	const minWidth = (mbb.w * LENGTH_SCALE).toFixed(2);
 	const maxWidth = getMaxWidth(parseFloat(minWidth));
 
-	let t = `extent = ${minWidth}, ${maxWidth.toFixed(2)}\n\n`;
+	let text = `extent = ${minWidth}, ${maxWidth.toFixed(2)}\n\n`;
 
-	rects.forEach((r, i) => {
-		const ox = ((r.x - mbb.cx) * LENGTH_SCALE).toFixed(2);
-		const oy = ((mbb.cy - r.y) * LENGTH_SCALE).toFixed(2);
+	rects.forEach
+	(
+		(rect, index) =>
+		{
+			const {x, y} = offsets[index];
 
-		let orientation = 90 - r.angle * 180 / Math.PI;
-	
-		if (r.type != 'car') orientation += 90;
-	
-		orientation %= 360;	
-		orientation /= 360;
+			let orientation = 90 - rect.angle * 180 / Math.PI;
 
-		if (orientation < 0) orientation += 1;
-		
-		t += `part0${i+1} = ${ID_MAP[r.type]}, ${strPad(ox, firstWidth)}, ${strPad(oy, secondWidth)}, ${orientation.toFixed(3)}\n`;
-	});
-	
-	outputField.innerText = t;
+			if (rect.type !== 'car') orientation += 90;
+
+			orientation %= 360;
+			orientation /= 360;
+
+			if (orientation < 0) orientation += 1;
+
+			text += `part0${index + 1} = ${ID_MAP[rect.type]}, ${strPad(x, firstWidth)}, ${strPad(y, secondWidth)}, ${orientation.toFixed(3)}\n`;
+		}
+	);
+
+	outputField.innerText = text;
 }
 
 
 
-function clearCanvas()
+
+
+// Interface state -------------------------------------------------------------------------------------------------------------------------------
+
+function updateUI()
 {
-	rects           = [];
-	selectedIndices = [];
-	addRect('car');
+	const carSelection = getCarSelection();
+	const { carIndices, selectedCarIndices } = carSelection;
+
+	for (const [type, button] of Object.entries(typeButtons))
+	{
+		if (isShiftDown && (selectedIndices.length > 0))
+		{
+			button.innerText = `↪ ${type}`;
+
+			const protectedIndex = getProtectedCarIndex(type, carSelection);
+			button.disabled = selectedIndices.filter(index => (index !== protectedIndex) && (rects[index].type !== type)).length === 0;
+		}
+		else
+		{
+			button.innerText = `✚ ${type}`;
+			button.disabled  = rects.length >= MAX_RECTS;
+		}
+	}
+
+	const selectionCount     = selectedIndices.length;
+	const selectedCarCount   = selectedCarIndices.length;
+	const isDeletingLastCar = (selectedCarCount === carIndices.length) && (selectionCount === selectedCarCount) && (selectedCarCount === 1);
+
+	document.getElementById('deleteBtn').disabled = (selectionCount === 0) || isDeletingLastCar;
+}
+
+
+
+
+
+// Canvas rendering ------------------------------------------------------------------------------------------------------------------------------
+
+
+function draw(recalculateGeometry = true)
+{
+	if (recalculateGeometry)
+	{
+		cachedCompositionBounds = getCompositionBounds();
+		updateZoomControl(cachedCompositionBounds);
+	}
+
+	const bounds = cachedCompositionBounds;
+	const scale  = IMAGE_RENDER_SCALE / IMAGE_RENDER_SCALE_BASE;
+
+	context.lineWidth = 1;
+	context.clearRect(0, 0, canvas.width, canvas.height);
+
+	if (isShiftDown && (selectedIndices.length > 0))
+	{
+		context.beginPath();
+		context.strokeStyle = '#eee';
+
+		for (let x = 0; x <= canvas.width; x += GRID_SIZE)
+		{
+			context.moveTo(x, 0);
+			context.lineTo(x, canvas.height);
+		}
+
+		for (let y = 0; y <= canvas.height; y += GRID_SIZE)
+		{
+			context.moveTo(0, y);
+			context.lineTo(canvas.width, y);
+		}
+
+		context.stroke();
+	}
+
+	context.save();
+
+	context.translate(canvas.width / 2, canvas.height / 2);
+	context.scale(scale, scale);
+
+	context.translate(-canvas.width / 2 - viewOffsetX, -canvas.height / 2 - viewOffsetY);
+	context.lineWidth = 1 / scale;
+
+	let mbb = null;
+
+	if (rects.length > 0)
+	{
+		const {minX, maxX, minY, maxY} = bounds;
+
+		mbb = 
+		{
+			x:  Math.floor(minX) + 0.5,
+			y:  Math.floor(minY) + 0.5,
+			w:  Math.floor(maxX - minX + 1e-9),
+			h:  Math.floor(maxY - minY + 1e-9),
+			cx: rects.length === 1 ? rects[0].x : minX + (maxX - minX) / 2,
+			cy: rects.length === 1 ? rects[0].y : minY + (maxY - minY) / 2
+		};
+
+		context.setLineDash([5 / scale, 5 / scale]);
+		context.strokeStyle = '#BBB';
+
+		strokePixelAlignedRect(mbb.x, mbb.y, mbb.w, mbb.h, scale);
+		context.setLineDash([]);
+
+		if (recalculateGeometry) updateOutput(mbb);
+	}
+
+	const queue = getLayerSortedRects();
+
+	queue.forEach
+	(
+		({rect, index}) =>
+		{
+			context.save();
+
+			context.translate(rect.x, rect.y);
+			context.rotate(rect.angle);
+
+			context.drawImage(rect.img, -rect.w / 2, -rect.h / 2, rect.w, rect.h);
+			context.restore();
+
+			if (selectedIndices.includes(index))
+			{
+				context.save();
+
+				context.strokeStyle = SELECTION_COLOUR;
+				context.lineWidth   = 3 / scale;
+
+				strokePixelAlignedSelection(rect, scale);
+				context.restore();
+			}
+		}
+	);
+
+	if (isBoxSelecting)
+	{
+		const x      = Math.floor(boxStart.x) + 0.5;
+		const y      = Math.floor(boxStart.y) + 0.5;
+		const width  = Math.floor(boxEnd.x - boxStart.x);
+		const height = Math.floor(boxEnd.y - boxStart.y);
+
+		context.fillStyle   = SELECTION_BOX_FILL_COLOUR;
+		context.fillRect(x, y, width, height);
+		context.strokeStyle = SELECTION_COLOUR;
+
+		strokePixelAlignedRect(x, y, width, height, scale);
+
+		context.setLineDash([]);
+	}
+
+	if (rects.length > 1)
+	{
+		const pointX      = snapToPixel(mbb.cx,      canvas.width  / 2, scale, viewOffsetX);
+		const pointY      = snapToPixel(mbb.cy,      canvas.height / 2, scale, viewOffsetY);
+		const lineTopY    = snapToPixel(bounds.minY, canvas.height / 2, scale, viewOffsetY) - 0.5 / scale;
+		const lineBottomY = snapToPixel(bounds.maxY, canvas.height / 2, scale, viewOffsetY) - 0.5 / scale;
+
+		context.beginPath();
+		context.arc(pointX, pointY, 8 / scale, 0, Math.PI * 2);
+		context.fillStyle = 'white';
+		context.fill();
+
+		if (isMirrorHover)
+		{
+			context.beginPath();
+			context.moveTo(pointX, lineTopY);
+			context.lineTo(pointX, lineBottomY);
+
+			context.strokeStyle = 'white';
+			context.lineWidth   = 7 / scale;
+
+			context.stroke();
+		}
+
+		context.beginPath();
+		context.arc(pointX, pointY, 5 / scale, 0, Math.PI * 2);
+		context.fillStyle = CONTRAST_COLOUR;
+		context.fill();
+
+		if (isMirrorHover)
+		{
+			context.beginPath();
+			context.moveTo(pointX, lineTopY);
+			context.lineTo(pointX, lineBottomY);
+
+			context.strokeStyle = CONTRAST_COLOUR;
+			context.lineWidth   = 1 / scale;
+
+			context.stroke();
+		}
+	}
+
+	context.restore();
+}
+
+
+
+
+
+// Keyboard interactions -------------------------------------------------------------------------------------------------------------------------
+
+function moveSelectedWithArrow(key)
+{
+	const step   = (isShiftDown) ? MOVE_COARSE : MOVE_FINE;
+	const bounds = getVisibleBounds();
+
+	let limit = step;
+
+	for (const index of selectedIndices)
+	{
+		const extent = getRectBounds(rects[index]);
+
+		if (key === 'ArrowUp')    limit = Math.min(limit, extent.minY   - bounds.top);
+		if (key === 'ArrowDown')  limit = Math.min(limit, bounds.bottom - extent.maxY);
+		if (key === 'ArrowLeft')  limit = Math.min(limit, extent.minX   - bounds.left);
+		if (key === 'ArrowRight') limit = Math.min(limit, bounds.right  - extent.maxX);
+	}
+
+	if (limit <= 0) return;
+
+	selectedIndices.forEach
+	(
+		index =>
+		{
+			if (key === 'ArrowUp')    rects[index].y -= limit;
+			if (key === 'ArrowDown')  rects[index].y += limit;
+			if (key === 'ArrowLeft')  rects[index].x -= limit;
+			if (key === 'ArrowRight') rects[index].x += limit;
+		}
+	);
+
+	draw();
+}
+
+
+
+function pasteClipboard()
+{
+	if (rects.length + clipboard.length > MAX_RECTS) return;
+
+	const nextSelection = [];
+
+	clipboard.forEach
+	(
+		copied =>
+		{
+			layerCounter++;
+
+			const rect = 
+			{
+				...copied,
+				x:     copied.x + 15,
+				y:     copied.y + 15,
+				layer: layerCounter
+			};
+
+			if (!canExistAt(rect, rect.x, rect.y, rect.angle))
+			{
+				rect.x = canvas.width  / 2 + viewOffsetX;
+				rect.y = canvas.height / 2 + viewOffsetY;
+			}
+
+			rects.push(rect);
+			nextSelection.push(rects.length - 1);
+		}
+	);
+
+	selectedIndices = nextSelection;
+
 	updateUI();
+	draw();
+}
+
+
+
+function onKeyDown(event)
+{
+	if (event.key === 'Escape')
+	{
+		if (modal.style.display === 'flex')
+		{
+			closeImportModal();
+
+			return;
+		}
+
+		if (document.activeElement === canvas)
+		{
+			selectedIndices = [];
+			updateUI();
+			draw();
+		}
+
+		return;
+	}
+
+	if (modal.style.display === 'flex') return;
+
+	const isCanvasActive = (document.activeElement === canvas);
+	const key            = event.key.toLowerCase();
+
+	if ((key === 'm') && isCanvasActive)
+	{
+		event.preventDefault();
+		mirrorRects();
+		return;
+	}
+
+	if (event.key === 'Shift')
+	{
+		isShiftDown = true;
+		updateUI();
+		draw();
+	}
+
+	if ((event.key === 'Delete') || (event.key === 'Backspace')) deleteSelected();
+
+	if (event.ctrlKey && (key === 'a') && isCanvasActive)
+	{
+		event.preventDefault();
+		selectedIndices = rects.map((_, index) => index);
+		updateUI();
+		draw();
+	}
+
+	if (event.ctrlKey && (key === 'c') && (selectedIndices.length > 0))
+		clipboard = selectedIndices.map(index => ({...rects[index]}));
+
+	if (event.ctrlKey && (key === 'v') && clipboard) pasteClipboard();
+
+	if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key) && (selectedIndices.length > 0) && isCanvasActive)
+	{
+		event.preventDefault();
+		moveSelectedWithArrow(event.key);
+	}
+}
+
+
+
+function onKeyUp(event)
+{
+	if (event.key === 'Shift')
+	{
+		isShiftDown = false;
+		updateUI();
+		draw();
+	}
+}
+
+
+
+
+
+// Pointer interactions --------------------------------------------------------------------------------------------------------------------------
+
+function onCanvasMouseDown(event)
+{
+	canvas.focus();
+
+	const {x, y} = getCanvasPoint(event);
+
+	let hitIndex = -1;
+
+	for (const {rect, index} of getLayerSortedRects(/* descending = */true))
+	{
+		if (isHit(rect, x, y))
+		{
+			hitIndex = index;
+			break;
+		}
+	}
+
+	if (hitIndex !== -1)
+	{
+		if (isShiftDown && selectedIndices.includes(hitIndex))
+		{
+			selectedIndices = selectedIndices.filter(index => index !== hitIndex);
+
+			isDraggingGroup = false;
+			dragStartData   = null;
+
+			updateUI();
+			draw();
+
+			return;
+		}
+
+		if (!selectedIndices.includes(hitIndex))
+		{
+			if (!isShiftDown) selectedIndices = [hitIndex];
+			else              selectedIndices.push(hitIndex);
+		}
+		
+		layerCounter++;
+
+		rects[hitIndex].layer = layerCounter;
+		isDraggingGroup       = true;
+
+		const minX = Math.min(...selectedIndices.map(index => rects[index].x));
+		const minY = Math.min(...selectedIndices.map(index => rects[index].y));
+
+		dragStartData = 
+		{
+			groupMinX:    minX,
+			groupMinY:    minY,
+			mouseOffsetX: x - minX,
+			mouseOffsetY: y - minY,
+			itemStarts:   selectedIndices.map
+			(
+				index => 
+				(
+					{
+						idx: index,
+						x: rects[index].x,
+						y: rects[index].y
+					}
+				)
+			)
+		};
+	}
+	else
+	{
+		if (!isShiftDown) selectedIndices = [];
+
+		selectionSnapshot = [...selectedIndices];
+		isBoxSelecting    = true;
+		boxStart          = {x, y};
+		boxEnd            = {x, y};
+	}
+
+	updateUI();
+	draw();
+}
+
+
+
+function dragSelectedGroup(x, y)
+{
+	let targetX = x - dragStartData.mouseOffsetX;
+	let targetY = y - dragStartData.mouseOffsetY;
+
+	if (isShiftDown)
+	{
+		const zoom = IMAGE_RENDER_SCALE / IMAGE_RENDER_SCALE_BASE;
+		const cx   = canvas.width  / 2;
+		const cy   = canvas.height / 2;
+
+		targetX = snapToGrid(targetX, cx, zoom, viewOffsetX);
+		targetY = snapToGrid(targetY, cy, zoom, viewOffsetY);
+	}
+
+	const dx = targetX - dragStartData.groupMinX;
+	const dy = targetY - dragStartData.groupMinY;
+
+	const positions = dragStartData.itemStarts.map
+	(
+		start => 
+		(
+			{
+				idx: start.idx,
+				x:   start.x + dx,
+				y:   start.y + dy
+			}
+		)
+	);
+
+	let shiftLeft  = 0;
+	let shiftRight = 0;
+	let shiftUp    = 0;
+	let shiftDown  = 0;
+
+	const bounds = getVisibleBounds();
+
+	positions.forEach
+	(
+		position =>
+		{
+			const extent = getRectBounds(rects[position.idx], position.x, position.y);
+
+			if (extent.minX < bounds.left)   shiftRight = Math.max(shiftRight, bounds.left   - extent.minX);
+			if (extent.maxX > bounds.right)  shiftLeft  = Math.min(shiftLeft,  bounds.right  - extent.maxX);
+			if (extent.minY < bounds.top)    shiftDown  = Math.max(shiftDown,  bounds.top    - extent.minY);
+			if (extent.maxY > bounds.bottom) shiftUp    = Math.min(shiftUp,    bounds.bottom - extent.maxY);
+		}
+	);
+
+	positions.forEach
+	(	
+		position =>
+		{
+			rects[position.idx].x = position.x + shiftRight + shiftLeft;
+			rects[position.idx].y = position.y + shiftDown  + shiftUp;
+		}
+	);
+}
+
+
+
+function updateBoxSelection(x, y)
+{
+	boxEnd = {x, y};
+
+	const xMin = Math.min(boxStart.x, boxEnd.x);
+	const xMax = Math.max(boxStart.x, boxEnd.x);
+	const yMin = Math.min(boxStart.y, boxEnd.y);
+	const yMax = Math.max(boxStart.y, boxEnd.y);
+
+	const inBox = rects.map
+	(
+		(rect, index) => 
+		(
+			((rect.x >= xMin) && (rect.x <= xMax) && (rect.y >= yMin) && (rect.y <= yMax)) ? index : -1
+		)
+	).filter(index => (index !== -1));
+
+	let nextSelection;
+
+	if (isShiftDown)
+		nextSelection = selectionSnapshot.filter(index => !inBox.includes(index)).concat(inBox.filter(index => !selectionSnapshot.includes(index)));
+
+	else 
+		nextSelection = Array.from(new Set([...selectionSnapshot, ...inBox]));
+
+	const selectionChanged = ((nextSelection.length !== selectedIndices.length) || nextSelection.some((index, position) => (index !== selectedIndices[position])));
+
+	if (selectionChanged)
+	{
+		selectedIndices = nextSelection;
+
+		updateUI();
+	}
+}
+
+
+
+function onMouseMove(event)
+{
+	if (!isDraggingGroup && !isBoxSelecting) return;
+
+	const {x, y} = getCanvasPoint(event);
+
+	if (isDraggingGroup && dragStartData) 
+		dragSelectedGroup(x, y);
+
+	else if (isBoxSelecting)
+		updateBoxSelection(x, y);
+
+	draw(!isBoxSelecting);
+}
+
+
+
+function onMouseUp()
+{
+	isDraggingGroup = false;
+	isBoxSelecting  = false;
+
+	draw();
+}
+
+
+
+function onWindowWheel(event)
+{
+	const bounds     = canvas.getBoundingClientRect();
+	const overCanvas = (event.clientX >= bounds.left) && (event.clientX <= bounds.right) && (event.clientY >= bounds.top) && (event.clientY <= bounds.bottom);
+
+	if (!overCanvas && (selectedIndices.length === 0)) return;
+	if (zoomControl.contains(event.target))            return;
+	if (modal.style.display === 'flex')                return;
+
+	const delta = (event.deltaY !== 0) ? event.deltaY : event.deltaX;
+	if (delta === 0) return;
+
+	if (event.ctrlKey)
+	{
+		event.preventDefault();
+
+		if (zoomSlider.disabled) return;
+
+		adjustZoom(delta, event.shiftKey || isShiftDown);
+
+		return;
+	}
+
+	if (selectedIndices.length > 0)
+	{
+		event.preventDefault();
+
+		const step      = (event.shiftKey || isShiftDown) ? ROT_COARSE : ROT_FINE;
+		const direction = delta > 0 ? 1 : -1;
+
+		const allRectsMayRotate = selectedIndices.every
+		(
+			index =>
+			{
+				const rect = rects[index];
+				return canExistAt(rect, rect.x, rect.y, rect.angle + direction * step);
+			}
+		);
+
+		if (allRectsMayRotate)
+		{
+			selectedIndices.forEach
+			(
+				index =>
+				{
+					rects[index].angle += direction * step;
+				}
+			);
+
+			draw();
+		}
+	}
+}
+
+
+
+
+
+// Initialisation and listeners ------------------------------------------------------------------------------------------------------------------
+
+function initDefault()
+{
+	document.getElementById('error').style.display = 'none';
+	workspace.style.display                        = 'flex';
+
+	addRect('car');
 
 	draw();
 	canvas.focus();
@@ -1041,30 +1456,176 @@ function clearCanvas()
 
 
 
-btnMirror.addEventListener('mouseenter', () => {isMirrorHover = true;  draw();});
-btnMirror.addEventListener('mouseleave', () => {isMirrorHover = false; draw();});
+const zoomTrackLength = canvas.height * Math.min(ZOOM_SLIDER_LENGTH_FRACTION, 1 - 2 * ZOOM_SLIDER_MARGIN_FRACTION);
 
-function mirrorRects()
+workspace.style.setProperty('--zoom-offset-x',                  `${ZOOM_SLIDER_OFFSET_X}px`);
+workspace.style.setProperty('--zoom-offset-y',                  `${ZOOM_SLIDER_OFFSET_Y + (canvas.height - zoomTrackLength) / 2}px`);
+workspace.style.setProperty('--zoom-track-length',              `${zoomTrackLength}px`);
+workspace.style.setProperty('--zoom-guide-colour',              ZOOM_SLIDER_GUIDE_COLOUR);
+workspace.style.setProperty('--zoom-guide-inaccessible-colour', ZOOM_SLIDER_INACCESSIBLE_COLOUR);
+workspace.style.setProperty('--zoom-guide-thickness',           `${ZOOM_SLIDER_GUIDE_THICKNESS}px`);
+workspace.style.setProperty('--zoom-handle-width',              `${ZOOM_SLIDER_HANDLE_WIDTH}px`);
+workspace.style.setProperty('--zoom-handle-height',             `${ZOOM_SLIDER_HANDLE_HEIGHT}px`);
+
+importHighlight.style.setProperty('--import-invalid-colour', IMPORT_INVALID_COLOUR);
+
+zoomSlider.min   = IMAGE_RENDER_SCALE_MIN;
+zoomSlider.max   = IMAGE_RENDER_SCALE_MAX;
+zoomSlider.value = IMAGE_RENDER_SCALE;
+
+
+
+zoomSlider.addEventListener
+(
+	'input', () =>
+	{
+		IMAGE_RENDER_SCALE = Number(zoomSlider.value);
+		draw();
+	}
+);
+
+
+
+zoomControl.addEventListener('mousedown', event => event.stopPropagation());
+
+
+
+zoomControl.addEventListener
+(
+	'wheel', event =>
+	{
+		if (zoomSlider.disabled) return;
+
+		const delta = (event.deltaY !== 0) ? event.deltaY : event.deltaX;
+		if (delta === 0) return;
+
+		event.preventDefault();
+		adjustZoom(delta, event.shiftKey || isShiftDown);
+	}, 
+	{passive: false}
+);
+
+
+
+modal.addEventListener
+(
+	'mousedown', event =>
+	{
+		if (event.target === modal) closeImportModal();
+	}
+);
+
+
+
+importInput.addEventListener
+(
+	'input', () =>
+	{
+		btnLoadImport.disabled = !isImportValid(parseImportLines(importInput.value));
+		updateImportHighlight();
+	}
+);
+
+
+
+importInput.addEventListener('scroll', syncImportScroll);
+
+
+
+outputField.addEventListener
+(
+	'click', () =>
+	{
+		if (!clipboardEnabled) return;
+
+		navigator.clipboard.writeText(outputField.innerText).then
+		(
+			() =>
+			{
+				outputOverlay.innerHTML = '<span style="color: #DEB700"><b>Copied</b></span> settings.';
+				outputField.classList.remove('flash');
+
+				clipboardEnabled = false;
+
+				setTimeout
+				(
+					() =>
+					{
+						outputOverlay.innerHTML = '<span class="emph">Click to copy</span> settings.';
+						outputField.classList.add('flash');
+
+						clipboardEnabled = true;
+					}, 
+					ANIMATION_TIMER
+				);
+			}
+		);
+	}
+);
+
+
+
+document.addEventListener
+(
+	'mousedown', event =>
+	{
+		if (event.target         === canvas)      return;
+		if (event.target.tagName === 'BUTTON')    return;
+		if (event.target         === outputField) return;
+
+		if (modal.contains(event.target)) return;
+		if (event.target === modal)       return;
+
+		selectedIndices = [];
+		updateUI();
+		draw();
+	}
+);
+
+
+
+window.addEventListener('keydown', onKeyDown);
+window.addEventListener('keyup',   onKeyUp);
+
+canvas.addEventListener('mousedown', onCanvasMouseDown);
+window.addEventListener('mousemove', onMouseMove);
+window.addEventListener('mouseup',   onMouseUp);
+
+window.addEventListener('wheel', onWindowWheel, {passive: false});
+
+
+
+btnMirror.addEventListener
+(
+	'mouseenter', () =>
+	{
+		isMirrorHover = true;
+		draw();
+	}
+);
+
+
+
+btnMirror.addEventListener
+(
+	'mouseleave', () =>
+	{
+		isMirrorHover = false;
+		draw();
+	}
+);
+
+
+
+for (const [type, config] of Object.entries(RECT_CONFIG))
 {
-	if (rects.length === 0) return;
-	
-	let minX = Infinity;
-	let maxX = -Infinity;
-	
-	rects.forEach(r => {
-		getLocalCorners(r).forEach(p => {
-			minX = Math.min(minX, r.x + p.x);
-			maxX = Math.max(maxX, r.x + p.x);
-		});
-	});
-	
-	const pivotX = (minX + maxX) / 2;
-	
-	rects.forEach(r => {
-		r.x     = (2 * pivotX) - r.x;
-		r.angle = ((r.type === 'sawhorse') ? (2 * Math.PI) : Math.PI) - r.angle;
-	});
-	
-	draw();
-	canvas.focus();
+	const image = new Image();
+
+	image.onload = () =>
+	{
+		if (++imagesLoaded === Object.keys(RECT_CONFIG).length) initDefault();
+	};
+
+	image.src    = config.src;
+	images[type] = image;
 }
