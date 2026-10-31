@@ -6,7 +6,7 @@ const IMPORT_PART_REGEX = /^part/i;
 
 const IMPORT_INVALID_COLOUR     = '#D61E00';
 const SELECTION_COLOUR          = '#258CF4';
-const SELECTION_BOX_FILL_COLOUR = '#258CF419';
+const SELECTION_BOX_FILL_COLOUR = '#258CF40D';
 const CONTRAST_COLOUR           = '#EB47EB';
 
 const ANIMATION_TIMER = 2000; // ms

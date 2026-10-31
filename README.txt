@@ -145,7 +145,7 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • when exactly (if at all) the cops can request a new LeaderStrategy once Cross has despawned,
  • when exactly (if at all) the cops can request a new Strategy while another is still active,
  • whether your Heat increases passively over time in active pursuits,
- • how long it takes to gain a Heat level passively in Challenge Series pursuits,
+ • at what pace you gain Heat passively in Challenge Series pursuits,
  • how much Heat you gain / lose from cop and roadblock deployments,
  • how much Heat you gain / lose from tagging    any cop vehicle,
  • how much Heat you gain / lose from assaulting any cop vehicle, 
@@ -202,8 +202,9 @@ BEFORE INSTALLING Bartender:
 
 TO INSTALL Bartender:
  1) • copy Bartender's "scripts" folder to your game's folder, replacing existing files;
- 2) • if Bartender's .asi file gets flagged by your antivirus software, whitelist the file; and
- 3) • (optional) in User Mode of Binary 2.8.3 or newer, load and apply "FixMissingTextures.end".
+ 2) • if Bartender's .asi file gets flagged by your antivirus software, whitelist the file;
+ 3) • in VltEd 4.6, import and install the "FixChallengeSeriesEvents.nfsms" script; and
+ 4) • (optional) in Binary 2.8.3 (User Mode), load and apply "FixMissingHeatTextures.end".
 
 AFTER INSTALLING Bartender:
  1) • edit the configuration (.ini) files in the "BartenderSettings" folder to your liking; and

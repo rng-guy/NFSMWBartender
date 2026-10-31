@@ -17,12 +17,6 @@
     <Filter Include="Editor\Images">
       <UniqueIdentifier>{72ece110-376c-4de9-83f0-1d91fb9f744f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Editor\Source">
-      <UniqueIdentifier>{10f575d0-ebf5-4bb8-96c9-4482dd97fa37}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Binary\Source">
-      <UniqueIdentifier>{d6f38209-c6ea-4c22-8bd2-17eb24271517}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Docs">
       <UniqueIdentifier>{b05c5ef2-1c0e-4f92-871d-5caa1ca7ebc0}</UniqueIdentifier>
     </Filter>
@@ -53,6 +47,9 @@
     </Filter>
     <Filter Include="Source\Headers\Utilities">
       <UniqueIdentifier>{2c5715fe-59ed-45d6-a33a-6e82ff9f79ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VltEd">
+      <UniqueIdentifier>{2401c456-af2b-480e-85b2-1a00f8ff3609}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -171,20 +168,8 @@
     <None Include="Editor\Images\Spikes.webp">
       <Filter>Editor\Images</Filter>
     </None>
-    <None Include="Binary\Source\FixMissingTextures.end">
-      <Filter>Binary\Source</Filter>
-    </None>
-    <None Include="Binary\Source\Modscript.end">
-      <Filter>Binary\Source</Filter>
-    </None>
     <None Include="Editor\RoadblockEditor.html">
       <Filter>Editor</Filter>
-    </None>
-    <None Include="Editor\Source\Styles.css">
-      <Filter>Editor\Source</Filter>
-    </None>
-    <None Include="Editor\Source\Scripting.js">
-      <Filter>Editor\Source</Filter>
     </None>
     <None Include="Editor\Images\Sawhorse.webp">
       <Filter>Editor\Images</Filter>
@@ -227,6 +212,21 @@
     </None>
     <None Include="Config\Basic\Interface.ini">
       <Filter>Config\Basic</Filter>
+    </None>
+    <None Include="VltEd\FixChallengeSeriesEvents.nfsms">
+      <Filter>VltEd</Filter>
+    </None>
+    <None Include="Binary\FixMissingHeatTextures.end">
+      <Filter>Binary</Filter>
+    </None>
+    <None Include="Binary\HeatGaugeLevels.end">
+      <Filter>Binary</Filter>
+    </None>
+    <None Include="Editor\Styles.css">
+      <Filter>Editor</Filter>
+    </None>
+    <None Include="Editor\Scripting.js">
+      <Filter>Editor</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

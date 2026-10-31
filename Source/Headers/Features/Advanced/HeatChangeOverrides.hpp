@@ -28,7 +28,7 @@ namespace HeatChangeOverrides
 	// Heat parameters
 	constinit HEAT_PARAMETER_VALUE(bool, heatTimerEnabled, true);
 
-	constinit HEAT_PARAMETER_VALUE(float, challengeEscalation, 600.f, {0.f}); // seconds
+	constinit HEAT_PARAMETER_VALUE(float, challengeEscalation, 600.f, {0.f}); // unity
 
 	constinit HEAT_PARAMETER_VALUE(float, chaserHeatChange,     0.f); // levels
 	constinit HEAT_PARAMETER_VALUE(float, supportHeatChange,    0.f); // levels
@@ -522,6 +522,8 @@ namespace HeatChangeOverrides
 		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Code modifications
+		MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x443062, 0x4430D6}); // global Heat limit
+
 		MemoryTools::MakeRangeNOP<0x44306B, 0x44309F>(); // Heat limits in Challenge Series events
 
 		PATCH_ASSEMBLY_DETOUR(HeatLimits);

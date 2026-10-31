@@ -158,15 +158,16 @@
     <None Include="Config\Basic\Nitrous.ini" />
     <None Include="Config\Basic\Speedbreaker.ini" />
     <None Include="Config\Basic\Support.ini" />
-    <None Include="Binary\Source\FixMissingTextures.end" />
-    <None Include="Binary\Source\Modscript.end" />
+    <None Include="Binary\FixMissingHeatTextures.end" />
+    <None Include="Binary\HeatGaugeLevels.end" />
     <None Include="Editor\Images\Car.webp" />
     <None Include="Editor\Images\Sawhorse.webp" />
     <None Include="Editor\Images\Spikes.webp" />
     <None Include="Editor\RoadblockEditor.html" />
-    <None Include="Editor\Source\Scripting.js" />
-    <None Include="Editor\Source\Styles.css" />
+    <None Include="Editor\Scripting.js" />
+    <None Include="Editor\Styles.css" />
     <None Include="Source\cpp.hint" />
+    <None Include="VltEd\FixChallengeSeriesEvents.nfsms" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Binary\Textures\HEAT_X10.dds" />
@@ -193,13 +194,14 @@
       <ConfigurationBasicFiles Include="$(ProjectDir)Config\Basic\**\*.*" />
       <ConfigurationAdvancedFiles Include="$(ProjectDir)Config\Advanced\**\*.*" />
       <TextureFiles Include="$(ProjectDir)Binary\Textures\**\*.*" />
-      <BinarySourceFiles Include="$(ProjectDir)Binary\Source\**\*.*" Exclude="$(ProjectDir)Binary\Source\FixMissingTextures.end" />
-      <EditorSourceFiles Include="$(ProjectDir)Editor\Source\**\*.*" />
+      <BinarySourceFiles Include="$(ProjectDir)Binary\*.*" Exclude="$(ProjectDir)Binary\FixMissingHeatTextures.end" />
+      <EditorSourceFiles Include="$(ProjectDir)Editor\*.*" Exclude="$(ProjectDir)Editor\RoadblockEditor.html" />
       <EditorImageFiles Include="$(ProjectDir)Editor\Images\**\*.*" />
       <DocumentationTxtFiles Include="$(ProjectDir)README.txt" />
       <DocumentationTxtFiles Include="$(ProjectDir)Docs\READMORE.txt" />
       <RoadblockEditor Include="$(ProjectDir)Editor\RoadblockEditor.html" />
-      <FixMissingTextures Include="$(ProjectDir)Binary\Source\FixMissingTextures.end" />
+      <FixMissingTextures Include="$(ProjectDir)Binary\FixMissingHeatTextures.end" />
+      <VltEdFiles Include="$(ProjectDir)\VltEd\*.*" />
     </ItemGroup>
     <MakeDir Directories="&#xD;&#xA;       $(CustomOutputDir)scripts\BartenderSettings\Basic;&#xD;&#xA;       $(CustomOutputDir)scripts\BartenderSettings\Advanced;&#xD;&#xA;       $(CustomOutputDir)Assets\Textures;&#xD;&#xA;       $(CustomOutputDir)Assets\Source;&#xD;&#xA;       $(CustomOutputDir)Assets\Images" />
     <Exec Command="move /Y &quot;%(ExeFile.Identity)&quot; &quot;$(CustomOutputDir)scripts&quot; &gt; nul" Condition="Exists('%(ExeFile.Identity)')" />
@@ -212,5 +214,6 @@
     <Copy SourceFiles="@(DocumentationTxtFiles)" DestinationFolder="$(CustomOutputDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(RoadblockEditor)" DestinationFolder="$(CustomOutputDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(FixMissingTextures)" DestinationFolder="$(CustomOutputDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(VltEdFiles)" DestinationFolder="$(CustomOutputDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

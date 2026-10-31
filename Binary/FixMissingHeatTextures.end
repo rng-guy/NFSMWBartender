@@ -4,6 +4,6 @@
   "Usage"     : "User",
   "Game"      : "MostWanted",
   "Directory" : "",
-  "Endscript" : "Assets\Source\Modscript.end",
+  "Endscript" : "Assets\Source\HeatGaugeLevels.end",
   "Files"     : ["FRONTEND\FRONTB.LZC"]
 }

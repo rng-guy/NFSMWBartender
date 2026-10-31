@@ -113,7 +113,7 @@ Regarding the "Basic" feature set **as a whole**:
 
 * The Heat-level reset fix is incompatible with the `HeatLevelOverride` feature of the [NFSMW ExtraOptions](https://github.com/ExOptsTeam/NFSMWExOpts/releases) mod by ExOptsTeam. To disable this ExtraOptions feature, edit its `NFSMWExtraOptionsSettings.ini` configuration file. If you do this, use VltEd to set the maximum available Heat level instead: For free-roam and most Career races, the `0xe8c24416` parameter of a given `race_bin_XY` VltEd node controls the maximum Heat level while you are progressing Blacklist rival #XY. For Challenge Series events and a few specific Career races, their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters can control or temporarily override the maximum Heat level instead.
 
-* If you don't install the optional missing textures (`FixMissingTextures.end`), then the game won't display a number next to Heat gauges in menus for cars with Heat levels > 5. Whether you install these textures doesn't affect the Heat-level reset fix in any way.
+* If you don't apply the optional missing textures (`FixMissingHeatTextures.end`), then the game won't display numbers next to Heat gauges in menus for cars with Heat levels > 5. Whether you apply these textures doesn't affect the Heat-level reset fix in any way.
 
 &nbsp;
 
@@ -319,17 +319,17 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * Rarely, the helicopter may still report an incorrect reason for bailing the pursuit. This is a vanilla issue likely caused by either caching quirks of the game's speech manager or re-assignment of the helicopter's radio actor to a regular cop vehicle. Similarly, it's also possible to trigger more than one report per actual bailout.
 
-* If enabled, this feature set overrides three VltEd parameters: the `cops` array, `HeliFuelTime`, and `TimeBetweenHeliActive`.
+* If enabled, this feature set overrides a few specific VltEd parameters: the `cops` array, `HeliFuelTime`, `TimeBetweenHeliActive`, and the `0x80deb840` array (Challenge Series only).
 
 &nbsp;
 
 Regarding **Heat gain / loss** ([`BartenderSettings/Advanced/Heat.ini`](../Config/Advanced/Heat.ini)):
 
-* The `0x80deb840` VltEd array and the `TimePerHeatLevel` VltEd parameter control the pace at which you gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a Heat level passively, while the latter multiplies this base amount by whatever number you define for it.
+* The `TimePerHeatLevel` VltEd parameter and the `0x80deb840` VltEd array control the pace at which you gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a whole Heat level, while the latter multiplies this base amount by whatever number you define for it.
 
 * In the vanilla game, all Challenge Series events use the value at `[14]` in the `0x80deb840` VltEd array at every Heat level. This naturally locks their Heat escalation to Sonny's; Bartender allows you to define independent values instead.
 
-* Both Bartender and the game always respect the minimum and maximum available Heat levels set in VltEd. In Career mode, you can define the maximum Heat level through each rival's `0xe8c24416` VltEd parameter. For Challenge Series events, however, you must use their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters instead.
+* Both Bartender and the game always respect the minimum and maximum available Heat levels set in VltEd. In Career mode, you can define the maximum Heat level through each rival's `0xe8c24416` VltEd parameter. For Challenge Series events, however, you must use their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters instead; you also need to set their `UseWorldHeat` VltEd parameters to `True` for the game to use these two.
 
 * For any Heat by vehicle type, Bartender ignores vehicles that don't exist in VltEd.
 
