@@ -420,7 +420,7 @@ namespace FeatureSets
 			mov byte ptr [esi + 0x768], al
 
 			mov byte ptr [esi + 0x769], al // used in "AdvancedFeatures.hpp"
-			mov byte ptr [esi + 0x76A], al // used in "StateObserver.hpp"
+			mov byte ptr [esi + 0x76A], al // used in "FeatureSets.hpp"
 			mov byte ptr [esi + 0x76B], al // used in "CopSpawnOverrides.hpp"
 
 			EXIT_ASSEMBLY_DETOUR(ResetAIVehiclePursuit)

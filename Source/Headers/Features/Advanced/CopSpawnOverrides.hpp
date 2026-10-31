@@ -119,7 +119,7 @@ namespace CopSpawnOverrides
 			if (hasMiscounted)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, copType, "miscount in", this->name);
+					Globals::LogWarning(logTag, Globals::VehicleType::GetName(copType), "miscount in", this->name);
 
 				ASSERT_UNREACHABLE;
 			}
@@ -288,16 +288,12 @@ namespace CopSpawnOverrides
 
 	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
-	// Detour data
-	enum class VaultHash : vault
-	{
-		AIGOALPATROL = "AIGoalPatrol"_vlt
-	};
-
+	// Global contingents
 	RELEASE_CONSTINIT COP_CONTINGENT(patrolSpawns,    CopSpawnTables::patrolsTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(scriptedSpawns,  CopSpawnTables::scriptedTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(roadblockSpawns, CopSpawnTables::roadblocksTable);
 
+	// Detour data
 	bool        usePreFetchedCopName = false;   // scripted free-roam pursuits request a cop before they know their Heat level,
 	const char* preFetchedCopName    = nullptr; // so we must prefetch a valid cop name using their event's Heat level instead
 
@@ -798,17 +794,18 @@ namespace CopSpawnOverrides
 
 	void ProcessEventRestart()
 	{
-		usePreFetchedCopName = preFetchedCopName;
-
-		patrolSpawns   .Clear();
 		scriptedSpawns .Clear();
 		roadblockSpawns.Clear();
+
+		usePreFetchedCopName = preFetchedCopName;
 	}
 
 
 
 	void ProcessWorldLoad()
 	{
+		patrolSpawns.Clear();
+
 		preFetchedCopName = nullptr;
 
 		ProcessEventRestart();
@@ -867,6 +864,9 @@ namespace CopSpawnOverrides
 			mov ecx, offset patrolSpawns
 			call Contingent::Increment
 
+			mov ecx, dword ptr [edi + 0x54]      // AIVehicle
+			mov byte ptr [ecx - 0x4C + 0x76B], 1 // padding byte: "Patrols" flag
+
 			// Execute original code and resume
 			inc dword ptr [ebp + 0x94]
 
@@ -907,12 +907,9 @@ namespace CopSpawnOverrides
 			mov ecx, offset scriptedSpawns
 			call Contingent::Increment
 
-			mov al, 1 // restore value
-
-			mov ecx, dword ptr [esi + 0x54]       // AIVehicle
-			mov byte ptr [ecx - 0x4C + 0x76B], al // padding byte: "Scripted" flag
-
 			mov byte ptr [usePreFetchedCopName], 0 // no longer needed
+
+			mov al, 1 // restore value
 
 			conclusion:
 			// Execute original code and resume
@@ -925,29 +922,24 @@ namespace CopSpawnOverrides
 
 
 	// Unregisters "Patrols" joining pursuits
-	ASSEMBLY_DETOUR(PatrolPursuit, 0x4224B0, 0x4224B6)
+	ASSEMBLY_DETOUR(PatrolPursuit, 0x42AC7F, 0x42AC85)
 	{
-		using enum VaultHash;
-
 		__asm
 		{
-			cmp eax, AIGOALPATROL
-			jne conclusion // not patrol goal
+			mov dword ptr [esp + 0x14], eax
 
-			mov eax, dword ptr [edi + 0x4C - 0x4] // vehicle
-			cmp dword ptr [eax + 0x94], 2         // driver class
-			jne conclusion                        // not cop
+			cmp byte ptr [edi + 0x76B], 1 // padding byte: "Patrols" flag
+			jne conclusion                // not "Patrols" cop
 
-			cmp byte ptr [edi + 0x76B], 1 // padding byte: "Scripted" flag
-			je conclusion                 // is "Scripted" cop
-
-			push eax // copVehicle
+			push [edi + 0x4C - 0x4] // copVehicle
 			mov ecx, offset patrolSpawns
 			call Contingent::Decrement
 
+			mov byte ptr [edi + 0x76B], 0
+
 			conclusion:
 			// Execute original code and resume
-			mov ecx, dword ptr [edi + 0xB8]
+			mov ecx, edi
 
 			EXIT_ASSEMBLY_DETOUR(PatrolPursuit)
 		}
@@ -958,23 +950,20 @@ namespace CopSpawnOverrides
 	// Unregisters despawned "Patrols"
 	ASSEMBLY_DETOUR(PatrolDespawn, 0x415E03, 0x415E08)
 	{
-		using enum VaultHash;
-
 		__asm
 		{
-			cmp dword ptr [esi + 0x78], AIGOALPATROL
-			jne conclusion // not patrol goal
-
 			mov eax, dword ptr [esi - 0x4] // vehicle
 			cmp dword ptr [eax + 0x94], 2  // driver class
 			jne conclusion                 // not cop
 
-			cmp byte ptr [esi - 0x4C + 0x76B], 1 // padding byte: "Scripted" flag
-			je conclusion                        // is "Scripted" cop
+			cmp byte ptr [esi - 0x4C + 0x76B], 1 // padding byte: "Patrols" flag
+			jne conclusion                       // not "Patrols" cop
 
 			push eax // copVehicle
 			mov ecx, offset patrolSpawns
 			call Contingent::Decrement
+
+			mov byte ptr [esi - 0x4C + 0x76B], 0
 
 			conclusion:
 			// Execute original code and resume

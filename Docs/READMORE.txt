@@ -855,4 +855,4 @@ v1.00.00: Initial release
    05.00: Made Binary optional for destruction strings and overhauled many mod internals
 
  4.00.00: Added about a dozen new features and fixes along with better internals
-      01: Added compatibility script for Challenge Series events and improved roadblock editor
+      01: Added compatibility script for Challenge Series events and improved patrol tracking
