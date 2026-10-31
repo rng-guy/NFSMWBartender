@@ -1,7 +1,7 @@
 version 4.6
 game MW
 
-ui_text This scripts makes specific Challenge Series events compatible with Bartender.
+ui_text This script makes specific Challenge Series events compatible with Bartender.
 ui_text
 ui_text Bartender's "Advanced" feature set makes the game read the "ForceHeatLevel"
 ui_text and "MaxHeatLevel" parameters of Challenge Series events; however, some of
