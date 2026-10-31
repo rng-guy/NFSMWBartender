@@ -36,7 +36,7 @@ const MAX_RECTS = 6;
 const GRID_SIZE = 10; // px
 
 const ROT_FINE    = 5 * (Math.PI / 180);
-const ROT_COARSE  = 2 * ROT_FINE;
+const ROT_COARSE  = 2; // multiples of ROT_FINE
 const MOVE_FINE   = 1;
 const MOVE_COARSE = 10;
 
@@ -860,7 +860,6 @@ function updateUI()
 
 // Canvas rendering ------------------------------------------------------------------------------------------------------------------------------
 
-
 function draw(recalculateGeometry = true)
 {
 	if (recalculateGeometry)
@@ -1110,6 +1109,7 @@ function onKeyDown(event)
 		if (document.activeElement === canvas)
 		{
 			selectedIndices = [];
+
 			updateUI();
 			draw();
 		}
@@ -1126,12 +1126,14 @@ function onKeyDown(event)
 	{
 		event.preventDefault();
 		mirrorRects();
+
 		return;
 	}
 
 	if (event.key === 'Shift')
 	{
 		isShiftDown = true;
+
 		updateUI();
 		draw();
 	}
@@ -1142,6 +1144,7 @@ function onKeyDown(event)
 	{
 		event.preventDefault();
 		selectedIndices = rects.map((_, index) => index);
+
 		updateUI();
 		draw();
 	}
@@ -1165,6 +1168,7 @@ function onKeyUp(event)
 	if (event.key === 'Shift')
 	{
 		isShiftDown = false;
+
 		updateUI();
 		draw();
 	}
@@ -1189,6 +1193,7 @@ function onCanvasMouseDown(event)
 		if (isHit(rect, x, y))
 		{
 			hitIndex = index;
+
 			break;
 		}
 	}
@@ -1410,25 +1415,35 @@ function onWindowWheel(event)
 	{
 		event.preventDefault();
 
-		const step      = (event.shiftKey || isShiftDown) ? ROT_COARSE : ROT_FINE;
-		const direction = delta > 0 ? 1 : -1;
+		const step      = (event.shiftKey || isShiftDown) ? ROT_COARSE : 1;
+		const direction = (delta > 0) ? 1 : -1;
 
-		const allRectsMayRotate = selectedIndices.every
+		const rotations = selectedIndices.map
 		(
 			index =>
 			{
-				const rect = rects[index];
-				return canExistAt(rect, rect.x, rect.y, rect.angle + direction * step);
+				const rect  = rects[index];
+				const angle = (Math.round(rect.angle / ROT_FINE) + direction * step) * ROT_FINE;
+
+				return {rect, angle};
+			}
+		);
+
+		const allRectsMayRotate = rotations.every
+		(
+			({rect, angle}) =>
+			{
+				return canExistAt(rect, rect.x, rect.y, angle);
 			}
 		);
 
 		if (allRectsMayRotate)
 		{
-			selectedIndices.forEach
+			rotations.forEach
 			(
-				index =>
+				({rect, angle}) =>
 				{
-					rects[index].angle += direction * step;
+					rect.angle = angle;
 				}
 			);
 
@@ -1577,6 +1592,7 @@ document.addEventListener
 		if (event.target === modal)       return;
 
 		selectedIndices = [];
+
 		updateUI();
 		draw();
 	}
@@ -1600,6 +1616,7 @@ btnMirror.addEventListener
 	'mouseenter', () =>
 	{
 		isMirrorHover = true;
+
 		draw();
 	}
 );
@@ -1611,6 +1628,7 @@ btnMirror.addEventListener
 	'mouseleave', () =>
 	{
 		isMirrorHover = false;
+
 		draw();
 	}
 );
