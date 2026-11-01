@@ -1,7 +1,9 @@
 
-// Global parameters ----------------------------------------------------------------------------------------------------------------------------
+// Global parameters --------------------------------------------------------------------------------------------------------------------------------
 
-const IMPORT_REGEX      = /^\s*part(0[1-6])\s*=\s*([1-3])\s*,\s*(-?(?=\d|\.\d)\d*(\.\d*)?)\s*,\s*(-?(?=\d|\.\d)\d*(\.\d*)?)\s*,\s*(-?(?=\d|\.\d)\d*(\.\d*)?)\s*$/;
+const FLOAT_PATTERN = String.raw`\s*(-?(?:\d+\.?\d*|\.\d+))\s*`; // matches (e.g.) "1", "1.0", ".0", "1.", and any negative equivalents
+const IMPORT_REGEX  = new RegExp(String.raw`^\s*part(0[1-6])\s*=\s*([1-3])\s*,${FLOAT_PATTERN},${FLOAT_PATTERN},${FLOAT_PATTERN}$`);
+
 const IMPORT_PART_REGEX = /^part/i;
 
 const IMPORT_INVALID_COLOUR     = '#D61E00';
@@ -11,13 +13,15 @@ const CONTRAST_COLOUR           = '#EB47EB';
 
 const ANIMATION_TIMER = 2000; // ms
 
-const WIDTH_THRESHOLDS = [6.0, 10.0, 15.0, 22.0, 28.0];
+const WIDTH_THRESHOLDS = [6.0, 10.0, 15.0, 22.0, 28.0]; // metres
 
-const IMAGE_RENDER_SCALE_BASE = 0.25;
+const IMAGE_RENDER_SCALE_BASE = 0.25; // used for calculations to maintain backwards compatibility
 const IMAGE_RENDER_SCALE_MIN  = 0.125;
 const IMAGE_RENDER_SCALE_MAX  = 0.35;
-const LENGTH_SCALE            = 5.0 / (400 * IMAGE_RENDER_SCALE_BASE);
-const IMPORT_ZOOM_MARGIN      = 0.05;
+
+const LENGTH_SCALE = 5.0 / (400 * IMAGE_RENDER_SCALE_BASE);
+
+const IMPORT_ZOOM_MARGIN = 0.1;
 
 const ZOOM_SLIDER_OFFSET_X            = 12; // px
 const ZOOM_SLIDER_OFFSET_Y            = 0;  // px
@@ -30,13 +34,14 @@ const ZOOM_SLIDER_HANDLE_WIDTH        = 22; // px
 const ZOOM_SLIDER_HANDLE_HEIGHT       = 12; // px
 
 const ZOOM_SCROLL_FINE   = (IMAGE_RENDER_SCALE_MAX - IMAGE_RENDER_SCALE_MIN) / 10;
-const ZOOM_SCROLL_COARSE = ZOOM_SCROLL_FINE;
+const ZOOM_SCROLL_COARSE = ZOOM_SCROLL_FINE; // turns out it's more of a hindrance
 
 const MAX_RECTS = 6;
 const GRID_SIZE = 10; // px
 
-const ROT_FINE    = 5 * (Math.PI / 180);
-const ROT_COARSE  = 2; // multiples of ROT_FINE
+const ROT_FINE   = 5 * (Math.PI / 180);
+const ROT_COARSE = 2; // multiples of ROT_FINE
+
 const MOVE_FINE   = 1;
 const MOVE_COARSE = 10;
 
@@ -72,7 +77,7 @@ const ID_MAP =
 
 
 
-// Global elements ------------------------------------------------------------------------------------------------------------------------------
+// Global elements ----------------------------------------------------------------------------------------------------------------------------------
 
 const canvas    = document.getElementById('mainCanvas');
 const workspace = document.getElementById('main');
@@ -102,14 +107,15 @@ const typeButtons =
 
 
 
-// Global state ---------------------------------------------------------------------------------------------------------------------------------
+// Global state -------------------------------------------------------------------------------------------------------------------------------------
 
 const images = {};
 
 let IMAGE_RENDER_SCALE = IMAGE_RENDER_SCALE_MAX;
-let imagesLoaded       = 0;
-let viewOffsetX        = 0;
-let viewOffsetY        = 0;
+
+let imagesLoaded = 0;
+let viewOffsetX  = 0;
+let viewOffsetY  = 0;
 
 let rects           = [];
 let selectedIndices = [];
@@ -136,7 +142,7 @@ let cachedCompositionBounds = null;
 
 
 
-// Rectangle geometry ----------------------------------------------------------------------------------------------------------------------------
+// Rectangle geometry -------------------------------------------------------------------------------------------------------------------------------
 
 function getLocalCorners(rect, angle = rect.angle)
 {
@@ -252,7 +258,7 @@ function getLayerSortedRects(descending = false)
 
 
 
-// View and zoom geometry ------------------------------------------------------------------------------------------------------------------------
+// View and zoom geometry ---------------------------------------------------------------------------------------------------------------------------
 
 function getVisibleBounds()
 {
@@ -277,9 +283,10 @@ function getMaxZoomScale(margin = 0, bounds = getCompositionBounds())
 	const width  = bounds.maxX - bounds.minX;
 	const height = bounds.maxY - bounds.minY;
 
-	const widthScale  = IMAGE_RENDER_SCALE_BASE * canvas.width * (1 - 2 * margin) / width;
-	const heightScale = IMAGE_RENDER_SCALE_BASE * canvas.height / height;
-	const limit       = Math.min(IMAGE_RENDER_SCALE_MAX, widthScale, heightScale);
+	const widthScale  = IMAGE_RENDER_SCALE_BASE * canvas.width  * (1 - 2 * margin) / width;
+	const heightScale = IMAGE_RENDER_SCALE_BASE * canvas.height * (1 - 2 * margin) / height;
+
+	const limit = Math.min(IMAGE_RENDER_SCALE_MAX, widthScale, heightScale);
 
 	return Math.max(IMAGE_RENDER_SCALE_MIN, limit);
 }
@@ -288,7 +295,7 @@ function getMaxZoomScale(margin = 0, bounds = getCompositionBounds())
 
 function updateZoomControl(bounds = getCompositionBounds())
 {
-	const maxScale           = getMaxZoomScale(0, bounds);
+	const maxScale           = getMaxZoomScale(/* margin = */ 0, bounds);
 	const unavailablePercent = 100 * (IMAGE_RENDER_SCALE_MAX - maxScale) / (IMAGE_RENDER_SCALE_MAX - IMAGE_RENDER_SCALE_MIN);
 
 	zoomControl.style.setProperty('--zoom-inaccessible-percent', `${unavailablePercent}%`);
@@ -305,8 +312,13 @@ function updateZoomControl(bounds = getCompositionBounds())
 		const minOffsetY = bounds.maxY - halfHeight - canvas.height / 2;
 		const maxOffsetY = bounds.minY + halfHeight - canvas.height / 2;
 
-		viewOffsetX = (minOffsetX <= maxOffsetX) ? Math.max(minOffsetX, Math.min(viewOffsetX, maxOffsetX)) : (bounds.minX + bounds.maxX - canvas.width)  / 2;
-		viewOffsetY = (minOffsetY <= maxOffsetY) ? Math.max(minOffsetY, Math.min(viewOffsetY, maxOffsetY)) : (bounds.minY + bounds.maxY - canvas.height) / 2;
+		viewOffsetX = (minOffsetX <= maxOffsetX) 
+			? Math.max(minOffsetX, Math.min(viewOffsetX, maxOffsetX)) 
+			: (bounds.minX + bounds.maxX - canvas.width)  / 2;
+
+		viewOffsetY = (minOffsetY <= maxOffsetY) 
+			? Math.max(minOffsetY, Math.min(viewOffsetY, maxOffsetY)) 
+			: (bounds.minY + bounds.maxY - canvas.height) / 2;
 	}
 
 	zoomSlider.value    = IMAGE_RENDER_SCALE;
@@ -402,7 +414,7 @@ function strokePixelAlignedSelection(rect, scale)
 
 
 
-// Rectangle management --------------------------------------------------------------------------------------------------------------------------
+// Rectangle management -----------------------------------------------------------------------------------------------------------------------------
 
 function getCarSelection()
 {
@@ -541,8 +553,9 @@ function clearCanvas()
 {
 	rects           = [];
 	selectedIndices = [];
-	viewOffsetX     = 0;
-	viewOffsetY     = 0;
+
+	viewOffsetX = 0;
+	viewOffsetY = 0;
 
 	addRect('car');
 
@@ -558,7 +571,7 @@ function clearCanvas()
 
 
 
-// Import and export -----------------------------------------------------------------------------------------------------------------------------
+// Import and export --------------------------------------------------------------------------------------------------------------------------------
 
 function parseImportLines(text)
 {
@@ -673,8 +686,8 @@ function loadImportData()
 
 			const typeID      = parseInt(match[2]);
 			const offsetX     = parseFloat(match[3]);
-			const offsetY     = parseFloat(match[5]);
-			const orientation = parseFloat(match[7]);
+			const offsetY     = parseFloat(match[4]);
+			const orientation = parseFloat(match[5]);
 
 			const type = TYPE_MAP[typeID];
 			const img  = images[type];
@@ -824,7 +837,7 @@ function updateOutput(mbb)
 
 
 
-// Interface state -------------------------------------------------------------------------------------------------------------------------------
+// Interface state ----------------------------------------------------------------------------------------------------------------------------------
 
 function updateUI()
 {
@@ -858,7 +871,7 @@ function updateUI()
 
 
 
-// Canvas rendering ------------------------------------------------------------------------------------------------------------------------------
+// Canvas rendering ---------------------------------------------------------------------------------------------------------------------------------
 
 function draw(recalculateGeometry = true)
 {
@@ -1019,7 +1032,7 @@ function draw(recalculateGeometry = true)
 
 
 
-// Keyboard interactions -------------------------------------------------------------------------------------------------------------------------
+// Keyboard interactions ----------------------------------------------------------------------------------------------------------------------------
 
 function moveSelectedWithArrow(key)
 {
@@ -1178,7 +1191,7 @@ function onKeyUp(event)
 
 
 
-// Pointer interactions --------------------------------------------------------------------------------------------------------------------------
+// Pointer interactions -----------------------------------------------------------------------------------------------------------------------------
 
 function onCanvasMouseDown(event)
 {
@@ -1344,12 +1357,18 @@ function updateBoxSelection(x, y)
 	let nextSelection;
 
 	if (isShiftDown)
-		nextSelection = selectionSnapshot.filter(index => !inBox.includes(index)).concat(inBox.filter(index => !selectionSnapshot.includes(index)));
+		nextSelection = selectionSnapshot.filter
+			(index => !inBox.includes(index)).concat
+				(inBox.filter(index => !selectionSnapshot.includes(index)));
 
 	else 
 		nextSelection = Array.from(new Set([...selectionSnapshot, ...inBox]));
 
-	const selectionChanged = ((nextSelection.length !== selectedIndices.length) || nextSelection.some((index, position) => (index !== selectedIndices[position])));
+	const selectionChanged = 
+	(
+		(nextSelection.length !== selectedIndices.length) 
+		|| nextSelection.some((index, position) => (index !== selectedIndices[position]))
+	);
 
 	if (selectionChanged)
 	{
@@ -1390,14 +1409,22 @@ function onMouseUp()
 
 function onWindowWheel(event)
 {
-	const bounds     = canvas.getBoundingClientRect();
-	const overCanvas = (event.clientX >= bounds.left) && (event.clientX <= bounds.right) && (event.clientY >= bounds.top) && (event.clientY <= bounds.bottom);
+	const bounds = canvas.getBoundingClientRect();
+
+	const overCanvas = 
+	(
+		(event.clientX >= bounds.left) 
+		&& (event.clientX <= bounds.right) 
+		&& (event.clientY >= bounds.top) 
+		&& (event.clientY <= bounds.bottom)
+	);
 
 	if (!overCanvas && (selectedIndices.length === 0)) return;
 	if (zoomControl.contains(event.target))            return;
 	if (modal.style.display === 'flex')                return;
 
 	const delta = (event.deltaY !== 0) ? event.deltaY : event.deltaX;
+
 	if (delta === 0) return;
 
 	if (event.ctrlKey)
@@ -1456,7 +1483,7 @@ function onWindowWheel(event)
 
 
 
-// Initialisation and listeners ------------------------------------------------------------------------------------------------------------------
+// Initialisation and listeners ---------------------------------------------------------------------------------------------------------------------
 
 function initDefault()
 {
