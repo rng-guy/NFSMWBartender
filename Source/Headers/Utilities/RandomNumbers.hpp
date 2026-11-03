@@ -74,7 +74,8 @@ namespace RandomNumbers
 		[[nodiscard]] constexpr uint64_t operator()() noexcept
 		{
 			const uint64_t result = this->Rotate(this->state[1] * 5, 7) * 9;
-			const uint64_t t      = this->state[1] << 17;
+
+			const uint64_t t = this->state[1] << 17;
 
 			this->state[2] ^= this->state[0];
 			this->state[3] ^= this->state[1];

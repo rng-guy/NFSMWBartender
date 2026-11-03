@@ -270,7 +270,7 @@ SHOULD YOU INSTALL any car-loader replacement mod, you may need to re-configure 
 
 SHOULD YOU INSTALL "NFSMW LimitAdjuster", you also need to configure it to work with Bartender:
  1) • place "NFSMWLimitAdjuster.asi" & .ini into the same folder as "speed.exe" (not "scripts");
- 2) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature; 
+ 2) • under "[Options]" in "NFSMWLimitAdjuster.ini", disable every cop-related feature; and
  3) • under "[Limits]"  in "NFSMWLimitAdjuster.ini", set "TrafficCars"      to  50 (or higher), 
                                                          "PursuitCops"      to 255, and
                                                          "Vehicles_SoftCap" to 255.
