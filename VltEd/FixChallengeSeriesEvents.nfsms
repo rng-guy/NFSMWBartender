@@ -4,17 +4,17 @@ game MW
 ui_text This script makes specific Challenge Series events compatible with Bartender.
 ui_text
 ui_text This script assumes your game's Challenge Series events have their vanilla
-ui_text settings. You're free to change the values of any parameters this scripts adds
+ui_text settings. You're free to change the values of any parameters this script adds
 ui_text to event nodes, except for the "UseWorldHeat" parameter (which must be "True").
 ui_text
-ui_text This script is necessary because Bartender's "Advanced" feature set removes
-ui_text the hard-coded Heat behaviour a select few Challenge Series events rely on
-ui_text to choose their Heat-level limits. We need to add a few missing parameters
-ui_text to the nodes of these events so that they work as intended when Bartender
-ui_text makes the game read the "ForceHeatLevel" and "MaxHeatLevel" parameters for
-ui_text all Challenge Series events instead; luckily, only two events are affected.
-ui_text
 ui_text You can safely ignore any "add_field"-related errors this script might cause.
+ui_text
+ui_text This script is necessary because Bartender's "Advanced" feature set removes
+ui_text the hard-coded Heat behaviour that a select few Challenge Series events rely
+ui_text on to choose their Heat-level limits. We therefore need to add a few missing
+ui_text parameters to the nodes of these events so that they continue to work as
+ui_text intended when Bartender makes the game read the "ForceHeatLevel" and
+ui_text "MaxHeatLevel" parameters for all Challenge Series events instead.
 
 add_field gameplay race_bin_challenge_tollbooth/challenge_burgerking ForceHeatLevel
 update_field gameplay race_bin_challenge_tollbooth/challenge_burgerking ForceHeatLevel 5
