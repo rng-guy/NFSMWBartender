@@ -1106,7 +1106,7 @@ namespace RoadblockOverrides
 			// Code modifications (conditional)
 			MemoryTools::Write<size_t>(maxNumParts, {0x40AFD9}); // spikes reaction
 
-			MemoryTools::ReplaceCall(0x43E1D0, SelectRoadblockTable); // PickRoadblockSetup (0x4063D0)
+			MemoryTools::ReplaceCALL(SelectRoadblockTable, 0x43E1D0); // PickRoadblockSetup (0x4063D0)
 
 			PATCH_ASSEMBLY_DETOUR(NewRequest);
 			PATCH_ASSEMBLY_DETOUR(StretchScale);

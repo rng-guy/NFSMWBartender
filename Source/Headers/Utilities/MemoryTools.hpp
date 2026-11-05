@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstdarg>
 #include <cstring>
+#include <concepts>
 #include <type_traits>
 #include <initializer_list>
 
@@ -30,6 +31,15 @@ namespace MemoryTools
 	// Address casting ------------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T>
+	requires (std::is_object_v<T> or std::is_void_v<T>)
+	[[nodiscard]] inline address AsAddress(const T* const target) noexcept
+	{
+		return reinterpret_cast<address>(target);
+	}
+
+
+	template <typename T>
+	requires std::is_function_v<T>
 	[[nodiscard]] inline address AsAddress(T* const target) noexcept
 	{
 		return reinterpret_cast<address>(target);
@@ -82,11 +92,10 @@ namespace MemoryTools
 
 	[[nodiscard]] inline address GetEntryPoint()
 	{
-		// Credit: thelink2012 and MWisBest
-		const address base = AsAddress(GetModuleHandleA(NULL));
+		const address base = AsAddress(GetModuleHandleA(nullptr));
 
-		const auto dos = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
-		const auto nt  = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dos->e_lfanew);
+		const auto* const dos = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
+		const auto* const nt  = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dos->e_lfanew);
 
 		return nt->OptionalHeader.AddressOfEntryPoint;
 	}
@@ -95,7 +104,27 @@ namespace MemoryTools
 
 
 
-	// Direct-address writing -----------------------------------------------------------------------------------------------------------------------
+	// Direct writing -------------------------------------------------------------------------------------------------------------------------------
+
+	template <class Patcher>
+	requires std::invocable<Patcher&, void*, size_t>
+	inline void Apply
+	(
+		const address target,
+		const size_t  numBytes,
+		Patcher&&     TargetPatch
+	) {
+		DWORD       setting  = PAGE_EXECUTE_READWRITE;
+		void* const location = AsPointer<void>(target);
+
+		VirtualProtect(location, numBytes, setting, &setting);
+		TargetPatch   (location, numBytes);
+		VirtualProtect(location, numBytes, setting, &setting);
+
+		FlushInstructionCache(GetCurrentProcess(), location, numBytes);
+	}
+
+
 
 	template <typename T>
 	requires std::is_trivially_copyable_v<T>
@@ -104,18 +133,14 @@ namespace MemoryTools
 		const T&                             data,
 		const std::initializer_list<address> targets
 	) {
-		constexpr size_t numBytes = sizeof(T);
-
 		for (const address target : targets)
 		{
-			DWORD previousSetting = PAGE_READONLY; // arbitrary
-			void* memoryLocation  = AsPointer<void>(target);
+			const auto TargetPatch = [&data](void* const location, const size_t numBytes) -> void
+			{
+				std::memcpy(location, &data, numBytes);
+			};
 
-			VirtualProtect(memoryLocation, numBytes, PAGE_EXECUTE_READWRITE, &previousSetting);
-			std::memcpy   (memoryLocation, &data,    numBytes);
-			VirtualProtect(memoryLocation, numBytes, previousSetting,        &previousSetting);
-
-			FlushInstructionCache(GetCurrentProcess(), memoryLocation, numBytes);
+			Apply(target, sizeof(T), TargetPatch);
 		}
 	}
 
@@ -123,36 +148,32 @@ namespace MemoryTools
 
 
 
-	// Helper functions -----------------------------------------------------------------------------------------------------------------------------
+	// Range-writing helpers ------------------------------------------------------------------------------------------------------------------------
 
 	namespace Details
 	{
 		inline void WriteToRange
 		(
 			const byte    value,
-			const address start,
+			const address begin,
 			const address end
 		) {
-			const size_t numBytes = end - start;
+			const auto TargetPatch = [value](void* const location, const size_t numBytes) -> void
+			{
+				std::memset(location, value, numBytes);
+			};
 
-			DWORD previousSetting = PAGE_READONLY; // arbitrary
-			void* memoryLocation  = AsPointer<void>(start);
-
-			VirtualProtect(memoryLocation, numBytes, PAGE_EXECUTE_READWRITE, &previousSetting);
-			std::memset   (memoryLocation, value,    numBytes);
-			VirtualProtect(memoryLocation, numBytes, previousSetting,        &previousSetting);
-
-			FlushInstructionCache(GetCurrentProcess(), memoryLocation, numBytes);
+			Apply(begin, end - begin, TargetPatch);
 		}
 
 
 
 		inline void MakeRangeNOP
 		(
-			const address start,
+			const address begin,
 			const address end
 		) {
-			WriteToRange(0x90, start, end); // NOP
+			WriteToRange(/* value = */ 0x90, begin, end); // NOP
 		}
 
 
@@ -160,41 +181,17 @@ namespace MemoryTools
 		inline void MakeRangeJMP
 		(
 			const address target,
-			const address start,
+			const address begin,
 			const address end
 		) {
-			const address jumpTargetOffset = start            + sizeof(byte);
+			MakeRangeNOP(begin, end);
+
+			const address jumpTargetOffset = begin            + sizeof(byte);
 			const address nextInstruction  = jumpTargetOffset + sizeof(ptrdiff_t);
 
-			MakeRangeNOP(start, end);
-
-			Write<byte>     (0xE9,                     {start}); // jump near, relative
+			Write<byte>     (/* value = */ 0xE9,       {begin}); // jump near, relative
 			Write<ptrdiff_t>(target - nextInstruction, {jumpTargetOffset});
 		}
-	}
-
-
-
-
-
-	// Address-range writing ------------------------------------------------------------------------------------------------------------------------
-
-	template <address start, address end>
-	inline void WriteToRange(const byte value)
-	{
-		static_assert(end > start, "Invalid or empty range");
-
-		Details::WriteToRange(value, start, end);
-	}
-
-
-
-	template <address start, address end>
-	inline void MakeRangeNOP()
-	{
-		static_assert(end > start, "Invalid or empty range");
-
-		Details::MakeRangeNOP(start, end);
 	}
 
 
@@ -223,23 +220,42 @@ namespace MemoryTools
 
 
 
-	// Assembly detouring ---------------------------------------------------------------------------------------------------------------------------
-
-	template <address start, address end>
-	inline void MakeRangeJMP(const address target)
+	// Address-range writing ------------------------------------------------------------------------------------------------------------------------
+	
+	template <address begin, address end>
+	inline void WriteToRange(const byte value)
 	{
-		static_assert(end >= start + sizeof(byte) + sizeof(ptrdiff_t), "Cannot accommodate JMP");
+		static_assert(end > begin, "Invalid write range");
 
-		Details::MakeRangeJMP(target, start, end);
+		Details::WriteToRange(value, begin, end);
 	}
 
 
 
-	template <address start, address end, typename T>
+	template <address begin, address end>
+	inline void MakeRangeNOP()
+	{
+		static_assert(end > begin, "Invalid NOP range");
+
+		Details::MakeRangeNOP(begin, end);
+	}
+
+
+
+	template <address begin, address end>
+	inline void MakeRangeJMP(const address target)
+	{
+		static_assert(end >= begin + sizeof(byte) + sizeof(ptrdiff_t), "Invalid JMP range");
+
+		Details::MakeRangeJMP(target, begin, end);
+	}
+
+
+	template <address begin, address end, typename T>
 	requires std::is_function_v<T>
 	inline void MakeRangeJMP(T* const target)
 	{
-		MakeRangeJMP<start, end>(AsAddress<T>(target));
+		MakeRangeJMP<begin, end>(AsAddress<T>(target));
 	}
 	
 
@@ -256,7 +272,7 @@ namespace MemoryTools
 
 	#define CALL_HOOK_ORIGINAL(name, ...) MemoryTools::AsFunction<decltype(name)>(MT_DETAILS_ORIGINAL(name))(__VA_ARGS__) // call replaced function
 
-	#define PATCH_HOOK_FUNCTION(name, target) MT_DETAILS_ORIGINAL(name) = MemoryTools::ReplaceCall(target, name) // apply hook
+	#define PATCH_HOOK_FUNCTION(name, target) MT_DETAILS_ORIGINAL(name) = MemoryTools::ReplaceCALL(name, target) // apply hook
 
 
 
@@ -264,10 +280,10 @@ namespace MemoryTools
 
 	// Function hooking -----------------------------------------------------------------------------------------------------------------------------
 
-	inline address ReplaceCall
+	inline address ReplaceCALL
 	(
-		const address callSite,
-		const address newTarget
+		const address newTarget,
+		const address callSite
 	) {
 		const address callOffset      = callSite   + sizeof(byte);
 		const address nextInstruction = callOffset + sizeof(ptrdiff_t);
@@ -282,11 +298,11 @@ namespace MemoryTools
 
 	template <typename T>
 	requires std::is_function_v<T>
-	inline address ReplaceCall
+	inline address ReplaceCALL
 	(
-		const address callSite,
-		T* const      newTarget
+		T* const      newTarget,
+		const address callSite
 	) {
-		return ReplaceCall(callSite, AsAddress<T>(newTarget));
+		return ReplaceCALL(AsAddress<T>(newTarget), callSite);
 	}
 }

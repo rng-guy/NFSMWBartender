@@ -124,7 +124,7 @@ BOOL WINAPI DllMain
 
 	if (MemoryTools::GetEntryPoint() != 0x3C4040) // .exe-dependent entry point
 	{
-		MessageBoxA(NULL, "This .exe isn't compatible with Bartender.\nSee Bartender's README for help.", "NFSMW Bartender", MB_ICONERROR);
+		MessageBoxA(nullptr, "This .exe isn't compatible with Bartender.\nSee Bartender's README for help.", "NFSMW Bartender", MB_ICONERROR);
 
 		return FALSE; // should never happen (assuming the user has actually read the README, which... yeah...)
 	}

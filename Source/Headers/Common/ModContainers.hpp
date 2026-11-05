@@ -69,7 +69,7 @@ namespace ModContainers
 
 
 	template <typename RawT, class Converter, class Validator>
-	requires (std::invocable<Converter, const RawT&> and std::predicate<Validator, std::invoke_result_t<Converter, const RawT&>>)
+	requires (std::invocable<Converter&, const RawT&> and std::predicate<Validator, std::invoke_result_t<Converter&, const RawT&>>)
 	struct FillSetup
 	{
 	// Aliases
