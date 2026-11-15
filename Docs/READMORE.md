@@ -5,9 +5,9 @@ This file contains the full **technical details and limitations** of Bartender a
 
 &nbsp;
 
-You really **only need to read this** file if
-* you have persistent issues with your game after installing / configuring Bartender, or
-* you are curious about the technicalities and limitations of Bartender or its features.
+You **only need to read** this file if you
+* have persistent issues with your game after installing / configuring Bartender, or
+* are curious about the technicalities and limitations of Bartender or its features.
 
 &nbsp;
 
@@ -129,7 +129,7 @@ Regarding **music and radio chatter** ([`BartenderSettings/Basic/Audio.ini`](../
 
 * If you define no valid battalions and no `default`, Bartender disables its callsigns feature.
 
-* With default VltEd settings, jurisdiction announcements have a cooldown of 1000 seconds. You can change this by editing the `anytimeevents_dispjurishift` VltEd node accordingly
+* With default VltEd settings, jurisdiction announcements have a shared cooldown of 1000 seconds. The `Interval` parameter of the `anytimeevents_dispjurishift` VltEd node defines this cooldown.
 
 * The playlist feature is incompatible with the [XNFSMusicPlayer](https://github.com/xan1242/XNFSMusicPlayer/releases) mod by xan1242. If you want to use that mod, you must delete Bartender's `[Music:Playlist]` parameter group or leave it empty.
 
@@ -328,6 +328,8 @@ Regarding **Heat gain / loss** ([`BartenderSettings/Advanced/Heat.ini`](../Confi
 * The `TimePerHeatLevel` VltEd parameter and the `0x80deb840` VltEd array control the pace at which you gain passive Heat in pursuits: The former sets the base amount of time (in seconds) required to gain a whole Heat level, while the latter multiplies this base amount by whatever number you define for it.
 
 * In the vanilla game, all Challenge Series events use the value at `[14]` in the `0x80deb840` VltEd array at every Heat level. This naturally locks their Heat escalation to Sonny's; Bartender allows you to define independent values instead.
+
+* The values of the `[Time:Challenges]` parameter group also apply in Quick Race events. Since the vanilla game doesn't spawn cops in these events, you'll need to mod them in.
 
 * Both Bartender and the game always respect the minimum and maximum available Heat levels set in VltEd. In Career mode, you can define the maximum Heat level through each rival's `0xe8c24416` VltEd parameter. For Challenge Series events, however, you must use their respective `ForceHeatLevel` and `MaxHeatLevel` VltEd parameters instead; you also need to set their `UseWorldHeat` VltEd parameters to `True` for the game to use these two.
 
