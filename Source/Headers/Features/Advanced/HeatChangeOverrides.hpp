@@ -64,12 +64,11 @@ namespace HeatChangeOverrides
 		using ChangeValue = HeatParameters::Value<float>;
 
 
-
 	private: // members
 
 		int lastCount = 0;
 
-		const int&         count;        // pursuit-locked (through count) and immobile
+		const int&         count;        // pursuit-locked and immobile
 		const ChangeValue& heatPerCount; // count-locked upon construction
 
 
@@ -96,10 +95,11 @@ namespace HeatChangeOverrides
 		[[nodiscard]] float YieldHeatChange()
 		{
 			const int change = this->count - this->lastCount;
+			if (change == 0) return 0.f;
 
 			this->lastCount += change;
-			if (change <= 0) return 0.f;
-
+			
+			ASSERT_CONDITION_THEN_IF_FALSE(change > 0, return 0.f);
 			return static_cast<float>(change) * this->heatPerCount.current;
 		}
 	};
@@ -243,7 +243,8 @@ namespace HeatChangeOverrides
 
 	[[nodiscard]] bool __cdecl IsCareerEvent()
 	{
-		return (Globals::raceStatus and (AsReference<int>(Globals::raceStatus + 0x1964) == 2)); // race context
+		ASSERT_CONDITION_THEN_IF_FALSE(Globals::raceStatus, return false);
+		return (AsReference<int>(Globals::raceStatus + 0x1964) == 2); // race context
 	}
 
 
@@ -434,7 +435,7 @@ namespace HeatChangeOverrides
 		{
 			call IsCareerEvent
 			test al, al
-			je challenge // is challenge event
+			je challenge // is challenge (or quick-race) event
 
 			EXIT_ASSEMBLY_DETOUR(ChallengeScale)
 

@@ -25,10 +25,6 @@
 
 #include <Windows.h>
 
-#ifdef _DEBUG
-#include <debugapi.h>
-#endif
-
 #include "Headers/Common/Globals.hpp"
 #include "Headers/Common/ConfigParser.hpp"
 
@@ -53,10 +49,6 @@ void __cdecl Initialise
 ) {
 	CALL_HOOK_ORIGINAL(Initialise, numArgs, argArray);
 
-	#ifdef _DEBUG
-	while (not IsDebuggerPresent()); // halt until debugger is attached
-	#endif
-
 	constexpr Globals::LogLiteral logTag     = "[MOD]";
 	constexpr Globals::LogLiteral logSection = " SESSION";
 
@@ -71,7 +63,8 @@ void __cdecl Initialise
 		{
 			"X360Stuff.asi",
 			"Mempoolulator.asi",
-			"NFSMWUnlimiter.asi",    
+			"NFSMWUnlimiter.asi",
+			"NFSMWRaceFixes.asi",
 			"XNFSMusicPlayer.asi", 
 			"NFSMWSpeedFixer.asi",
 			"NFSMWAntagoNISt.asi",

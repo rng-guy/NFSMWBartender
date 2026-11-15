@@ -119,6 +119,8 @@ namespace PursuitFeatures
 				"Feature must implement GetPursuit() -> address"
 			);
 
+			static_assert(std::derived_from<Feature, Searchable>, "Feature must derive from Searchable");
+
 			auto* const instance            = static_cast<Feature*>(this);
 			const auto  [it, isNewInstance] = this->instances.insert(instance);
 
