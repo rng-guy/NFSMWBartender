@@ -615,11 +615,11 @@ namespace HeatParameters
 	// Resolution functions -------------------------------------------------------------------------------------------------------------------------
 
 	template <typename T, class Validator>
-	requires (Details::IsNonOwningString<T> and std::predicate<Validator, vault>)
+	requires (Details::IsNonOwningString<T> and std::predicate<Validator&, vault>)
 	bool ResolveVehicleNames
 	(
-		Value<T>&       vehicleValue,
-		const Validator IsVehicleTypeValid
+		Value<T>&   vehicleValue,
+		Validator&& IsVehicleTypeValid
 	) {
 		bool allTypesValid = true;
 

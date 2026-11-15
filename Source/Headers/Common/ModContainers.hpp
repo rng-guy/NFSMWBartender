@@ -69,13 +69,13 @@ namespace ModContainers
 
 
 	template <typename RawT, class Converter, class Validator>
-	requires (std::invocable<Converter&, const RawT&> and std::predicate<Validator, std::invoke_result_t<Converter&, const RawT&>>)
+	requires (std::invocable<Converter&, const RawT&> and std::predicate<Validator&, std::invoke_result_t<Converter&, const RawT&>>)
 	struct FillSetup
 	{
 	// Aliases
 
 		using RawType    = RawT;
-		using ResultType = std::invoke_result_t<Converter, const RawT&>;
+		using ResultType = std::invoke_result_t<Converter&, const RawT&>;
 
 
 	// Members
@@ -146,22 +146,14 @@ namespace ModContainers
 
 	public: // methods
 
+		template <typename ...ValueArgs>
+		requires std::constructible_from<V, ValueArgs...>
 		constexpr VehicleMap
 		(
-			const Globals::LogLiteral name, 
-			const V&                  defaultValue
-		) 
-			: name(name), defaultValue(defaultValue)
-		{
-		}
-
-
-		constexpr VehicleMap
-		(
-			const Globals::LogLiteral name,
-			V&&                       defaultValue
+			const Globals::LogLiteral    name,
+			ValueArgs&&               ...defaultArgs
 		)
-			: name(name), defaultValue(std::move(defaultValue))
+			: name(name), defaultValue(std::forward<ValueArgs>(defaultArgs)...)
 		{
 		}
 
@@ -170,8 +162,8 @@ namespace ModContainers
 		requires (Details::IsCompatibleKeySetup<KeySetup> and Details::IsCompatibleSetup<ValueSetup, V>)
 		bool Fill
 		(
-			const KeySetup   keySetup,
-			const ValueSetup valueSetup
+			KeySetup&&   keySetup,
+			ValueSetup&& valueSetup
 		) {
 			this->clear();
 

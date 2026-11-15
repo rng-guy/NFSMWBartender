@@ -35,7 +35,7 @@ namespace CopDetection
 	};
 
 	// Vehicle maps
-	RELEASE_CONSTINIT VEHICLE_MAP(Detection, copTypeToDetection, {300.f, 0.f, 300.f, true});
+	RELEASE_CONSTINIT VEHICLE_MAP(Detection, copTypeToDetection, 300.f, 0.f, 300.f, true);
 
 
 

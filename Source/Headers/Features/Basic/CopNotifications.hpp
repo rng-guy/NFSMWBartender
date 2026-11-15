@@ -23,7 +23,7 @@ namespace CopNotifications
 	constexpr Globals::LogLiteral logName = "CopNotifications";
 
 	// Vehicle maps
-	RELEASE_CONSTINIT VEHICLE_MAP(std::string, copTypeToNotificationText, {});
+	RELEASE_CONSTINIT VEHICLE_MAP(std::string, copTypeToNotificationText, "");
 
 	RELEASE_CONSTINIT VEHICLE_MAP(binary, copTypeToNotificationIcon, "COPS_TAKENOUT_ICON"_bin);
 
