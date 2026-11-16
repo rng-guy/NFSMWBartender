@@ -551,14 +551,14 @@ namespace StatusSettings
 		PATCH_ASSEMBLY_DETOUR(DestructionBounty);
 
 		// Animations of orange pursuit-progress bars
-		MemoryTools::Write<address>(0x89096C, {0x57B3D6}); // max. width
+		MemoryTools::WriteToAddresses<address>(0x89096C, {0x57B3D6}); // max. width
 
 		PATCH_ASSEMBLY_DETOUR(OrangeEvadeWidth);
 		PATCH_ASSEMBLY_DETOUR(OrangeBustedWidth);
 
 		// Hard-coded Heat-level resets (credit: ExOptsTeam)
-		MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
-		MemoryTools::Write<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
+		MemoryTools::WriteToAddresses<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
+		MemoryTools::WriteToAddresses<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
 		
 		// Status flag
 		fixesApplied = true;
@@ -606,15 +606,15 @@ namespace StatusSettings
 		}
 
 		// Code modifications (general)
-		MemoryTools::Write<float*>(&bountyFrequency, {0x444513, 0x444524});
+		MemoryTools::WriteToAddresses<float*>(&bountyFrequency, {0x444513, 0x444524});
 
-		MemoryTools::Write<float*>(&bustRate,            {0x40AEDB});
-		MemoryTools::Write<float*>(&resetBustScale,      {0x4444D2});
-		MemoryTools::Write<float*>(&recoveryBustDelta,   {0x4444E6});
-		MemoryTools::Write<float*>(&(bustTimer.current), {0x4445CE});
+		MemoryTools::WriteToAddresses<float*>(&bustRate,            {0x40AEDB});
+		MemoryTools::WriteToAddresses<float*>(&resetBustScale,      {0x4444D2});
+		MemoryTools::WriteToAddresses<float*>(&recoveryBustDelta,   {0x4444E6});
+		MemoryTools::WriteToAddresses<float*>(&(bustTimer.current), {0x4445CE});
 		
-		MemoryTools::Write<float*>(&halfEvadeRate,        {0x444A3A});
-		MemoryTools::Write<float*>(&(evadeTimer.current), {0x4448E6, 0x444802, 0x4338F8});
+		MemoryTools::WriteToAddresses<float*>(&halfEvadeRate,        {0x444A3A});
+		MemoryTools::WriteToAddresses<float*>(&(evadeTimer.current), {0x4448E6, 0x444802, 0x4338F8});
 
 		PATCH_ASSEMBLY_DETOUR(CopCombo);
 		PATCH_ASSEMBLY_DETOUR(CopFlipping);

@@ -76,7 +76,7 @@ namespace AdvancedFeatures
 
 		[[nodiscard]] static CopLabel& GetCopLabel(const address copVehicle)
 		{
-			static_assert(sizeof(CopLabel) == 1, "Label-size mismatch");
+			static_assert(sizeof(CopLabel) == 1, "Label size must be 1 byte");
 
 			const address copAIVehicle = Globals::Vehicle::GetAIVehicle(copVehicle);
 			return AsReference<CopLabel>(copAIVehicle - 0x4C + 0x769); // padding byte
@@ -90,7 +90,7 @@ namespace AdvancedFeatures
 		) {
 			constexpr CopLabel defaultLabel = static_cast<CopLabel>(0);
 
-			static_assert(defaultLabel == CopLabel::NONE, "Label-value mismatch");
+			static_assert(defaultLabel == CopLabel::NONE, "Label \"NONE\" must be 0");
 
 			CopLabel& label = PursuitObserver::GetCopLabel(copVehicle);
 			if ((label == defaultLabel) == (copLabel == defaultLabel)) return false;

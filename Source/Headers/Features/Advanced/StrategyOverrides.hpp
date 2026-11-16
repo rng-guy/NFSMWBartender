@@ -593,8 +593,8 @@ namespace StrategyOverrides
 		HeatParameters::Extract(parser, "Leader7:Unblocking", leader7UnblockDelay);
 
 		// Code modifications
-		MemoryTools::Write<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4
-		MemoryTools::Write<byte>  (maxNumVehiclesPerHeavy4, {0x43E7CD}); // car budget (actually unused)
+		MemoryTools::WriteToAddresses<size_t>(maxNumVehiclesPerHeavy4, {0x41F188}); // spawn limit for HeavyStrategy 4
+		MemoryTools::WriteToAddresses<byte>  (maxNumVehiclesPerHeavy4, {0x43E7CD}); // car budget (actually unused)
 
 		MemoryTools::MakeRangeNOP<0x44384A, 0x4438C0>(); // "CollapseSpeed" HeavyStrategy check
 		MemoryTools::MakeRangeNOP<0x4240BD, 0x4240C3>(); // OnAttached increment

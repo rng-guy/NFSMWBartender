@@ -353,7 +353,7 @@ namespace RadioSpeech
 		if (ExtractBattalions(parser))
 		{
 			// Code modifications (conditional)
-			MemoryTools::Write<byte>(0x24, {0x71FC00, 0x71FC04}); // free up stack variable
+			MemoryTools::WriteToAddresses<byte>(0x24, {0x71FC00, 0x71FC04}); // free up stack variable
 
 			PATCH_ASSEMBLY_DETOUR(CallsignsCheck);
 			PATCH_ASSEMBLY_DETOUR(FirstCallsigns);

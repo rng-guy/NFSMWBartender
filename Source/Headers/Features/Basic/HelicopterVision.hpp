@@ -303,7 +303,7 @@ namespace HelicopterVision
 		if (fixesApplied) return;
 
 		// Incorrect helicopter blob-shadow
-		MemoryTools::Write<float>(0.f, {0x903660});
+		MemoryTools::WriteToAddresses<float>(0.f, {0x903660});
 
 		// Visible cone of destroyed helicopter
 		PATCH_ASSEMBLY_DETOUR(ColourUpdate); 

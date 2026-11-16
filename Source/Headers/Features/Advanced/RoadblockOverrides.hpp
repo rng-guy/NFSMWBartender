@@ -71,7 +71,7 @@ namespace RoadblockOverrides
 		float orientation = 0.f; // full rotations
 	};
 
-	static_assert(sizeof(RBPart) == 16, "Part-size mismatch");
+	static_assert(sizeof(RBPart) == 16, "Part size must be 16 bytes");
 	
 
 
@@ -92,7 +92,7 @@ namespace RoadblockOverrides
 		PartArray<RBPart> parts; // fully ASM-compatible
 	};
 
-	static_assert(sizeof(RBTable) == 104, "Table-size mismatch");
+	static_assert(sizeof(RBTable) == 104, "Table size must be 104 bytes");
 
 
 
@@ -1104,7 +1104,7 @@ namespace RoadblockOverrides
 		if (ExtractRoadblockSetups(parser))
 		{
 			// Code modifications (conditional)
-			MemoryTools::Write<size_t>(maxNumParts, {0x40AFD9}); // spikes reaction
+			MemoryTools::WriteToAddresses<size_t>(maxNumParts, {0x40AFD9}); // spikes reaction
 
 			MemoryTools::ReplaceCALL(SelectRoadblockTable, 0x43E1D0); // PickRoadblockSetup (0x4063D0)
 
@@ -1115,8 +1115,8 @@ namespace RoadblockOverrides
 		else PATCH_ASSEMBLY_DETOUR(VanillaSpike); // only for vanilla roadblocks
 
 		// Code modifications (general)
-		MemoryTools::Write<float*>(&(maxRBJoinDistance      .current), {0x42BEBC});
-		MemoryTools::Write<float*>(&(maxRBJoinElevationDelta.current), {0x42BE3A});
+		MemoryTools::WriteToAddresses<float*>(&(maxRBJoinDistance      .current), {0x42BEBC});
+		MemoryTools::WriteToAddresses<float*>(&(maxRBJoinElevationDelta.current), {0x42BE3A});
 
 		MemoryTools::MakeRangeNOP<0x71F184, 0x71F19F>(); // regular callout
 		MemoryTools::MakeRangeNOP<0x71F091, 0x71F096>(); // spikes  callout

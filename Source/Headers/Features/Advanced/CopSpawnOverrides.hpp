@@ -1232,6 +1232,19 @@ namespace CopSpawnOverrides
 	}
 
 
+	
+	// Increments join count from current roadblock
+	ASSEMBLY_DETOUR(RoadblockJoinCount, 0x4443D8, 0x4443F2)
+	{
+		__asm
+		{
+			inc dword ptr [esi + 0x27C]
+
+			EXIT_ASSEMBLY_DETOUR(RoadblockJoinCount)
+		}
+	}
+
+
 
 
 
@@ -1312,10 +1325,9 @@ namespace CopSpawnOverrides
 		roadblockSpawns.Reserve(10);
 
 		// Code modifications 
-		MemoryTools::Write<byte>(0x00, {0x433CB2}); // min. displayed count
-		MemoryTools::Write<byte>(0x90, {0x4443E4}); // roadblock increment
+		MemoryTools::WriteToAddresses<byte>(0, {0x433CB2}); // min. displayed engagement count
 
-		MemoryTools::Write<vault>("ForceHeatLevel"_vlt, {0x61E295}); // "CopSpawnType" query
+		MemoryTools::WriteToAddresses<vault>("ForceHeatLevel"_vlt, {0x61E295}); // "CopSpawnType" query
 
 		MemoryTools::MakeRangeNOP<0x43EB84, 0x43EB92>(); // global spawn-limit check
 		MemoryTools::MakeRangeNOP<0x4442AC, 0x4442C2>(); // zero-wave / capacity increment
@@ -1342,6 +1354,7 @@ namespace CopSpawnOverrides
 		PATCH_ASSEMBLY_DETOUR(FirstScriptedCop);
 		PATCH_ASSEMBLY_DETOUR(ScriptedSpawnReset);
 		PATCH_ASSEMBLY_DETOUR(RoadblockShuffling);
+		PATCH_ASSEMBLY_DETOUR(RoadblockJoinCount);
 
 		return true;
 	}

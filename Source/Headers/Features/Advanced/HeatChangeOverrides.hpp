@@ -523,7 +523,7 @@ namespace HeatChangeOverrides
 		UpdateParameterConversions(); // uses vanilla value(s)
 
 		// Code modifications
-		MemoryTools::Write<const float*>(&(HeatParameters::maxHeat), {0x443062, 0x4430D6}); // global Heat limit
+		MemoryTools::WriteToAddresses<const float*>(&(HeatParameters::maxHeat), {0x443062, 0x4430D6}); // global Heat limit
 
 		MemoryTools::MakeRangeNOP<0x44306B, 0x44309F>(); // Heat limits in Challenge Series events
 
