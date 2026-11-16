@@ -12,6 +12,8 @@
 
 
 
+
+
 // Unscoped functions
 using MemoryTools::AsAddress;
 using MemoryTools::AsPointer;
@@ -26,6 +28,8 @@ using byte = MemoryTools::byte;
 using word = MemoryTools::word;
 
 using address = MemoryTools::address;
+
+
 
 
 
@@ -159,6 +163,7 @@ namespace Globals
 	}
 
 
+
 	[[nodiscard]] uint32_t GetNumNonGameplayTicks()
 	{
 		return numGameTicks - GetNumGameplayTicks();
@@ -172,10 +177,12 @@ namespace Globals
 	}
 
 
+
 	[[nodiscard]] float GetGameplayTime()
 	{
 		return ticksToTime * static_cast<float>(GetNumGameplayTicks());
 	}
+
 
 
 	[[nodiscard]] float GetNonGameplayTime()
@@ -342,6 +349,7 @@ namespace Globals
 		}
 
 
+
 		[[nodiscard]] vault GetClass(const vault type)
 		{
 			const address attribute = GetFromVault("pvehicle"_vlt, type, "CLASS"_vlt);
@@ -356,6 +364,7 @@ namespace Globals
 		}
 
 
+
 		[[nodiscard]] bool IsCar(const vault type)
 		{
 			switch (GetClass(type))
@@ -367,6 +376,7 @@ namespace Globals
 
 			return false;
 		}
+
 
 
 		[[nodiscard]] bool IsChopper(const vault type)
@@ -387,6 +397,7 @@ namespace Globals
 		{
 			return (vehicle) ? AsReference<address>(vehicle + 0x54) : 0x0;
 		}
+
 
 
 		[[nodiscard]] address GetAIVehiclePursuit(const address copVehicle)
@@ -427,6 +438,7 @@ namespace Globals
 		{
 			return (perpVehicle) ? (perpVehicle - (0x758 - 0x4C)) : 0x0;
 		}
+
 
 
 		[[nodiscard]] address GetVehicle(const address perpVehicle)
@@ -480,6 +492,7 @@ namespace Globals
 		}
 
 
+
 		[[nodiscard]] address GetLocalPlayer(const address pursuit)
 		{
 			const address physicsObject = GetPhysicsObjectOfTarget(pursuit);
@@ -507,6 +520,7 @@ namespace Globals
 	}
 
 
+
 	template <typename ...Ts>
 	void LogTagged
 	(
@@ -517,11 +531,13 @@ namespace Globals
 	}
 
 
+
 	template <typename ...Ts>
 	void LogPlain(Ts&& ...segments) 
 	{
 		logger.Log<2>(std::forward<Ts>(segments)...);
 	}
+
 
 
 	template <typename ...Ts>
@@ -542,6 +558,7 @@ namespace Globals
 	}
 
 
+
 	template <typename ...Ts>
 	void LogHeat
 	(
@@ -553,6 +570,7 @@ namespace Globals
 	}
 
 
+
 	template <typename ...Ts>
 	void LogWarning
 	(
@@ -562,6 +580,8 @@ namespace Globals
 		LogFull(" WARNING", logTag, std::forward<Ts>(segments)...);
 	}
 }
+
+
 
 
 

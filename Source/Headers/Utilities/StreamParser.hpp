@@ -19,6 +19,8 @@
 
 
 
+
+
 namespace StreamParser
 {
 	// Concepts -------------------------------------------------------------------------------------------------------------------------------------
@@ -37,7 +39,6 @@ namespace StreamParser
 		template <typename T>
 		concept IsTerminatedString = (IsLegacyString<T> or IsOwningString<T>);
 
-
 		template <typename T>
 		concept IsAnyStringOrView = (IsLegacyString<T> or IsOwningStringOrView<T>);
 
@@ -46,7 +47,6 @@ namespace StreamParser
 
 		template <typename V>
 		concept IsPureArithmetic = (std::is_arithmetic_v<V> and std::same_as<V, std::remove_cvref_t<V>>);
-
 
 		template <typename ...Vs>
 		concept AreExtractable = ((sizeof...(Vs) > 0) and ... and (IsAnyStringOrView<Vs> or IsPureEnum<Vs> or IsPureArithmetic<Vs>));
@@ -133,10 +133,12 @@ namespace StreamParser
 		}
 
 
+
 		[[nodiscard]] inline std::string_view TrimRight(const std::string_view view) noexcept
 		{
 			return {view.begin(), std::find_if_not(view.rbegin(), view.rend(), IsWhitespace).base()};
 		}
+
 
 
 		[[nodiscard]] inline std::string_view Trim(const std::string_view view) noexcept
@@ -176,6 +178,7 @@ namespace StreamParser
 
 		return true;
 	}
+
 
 
 	inline bool ExtractFromString
@@ -239,6 +242,7 @@ namespace StreamParser
 	}
 
 
+
 	inline bool ExtractFromString
 	(
 		const std::string& source,
@@ -250,6 +254,7 @@ namespace StreamParser
 
 		return true;
 	}
+
 
 
 	inline bool ExtractFromString

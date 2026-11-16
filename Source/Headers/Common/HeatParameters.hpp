@@ -18,6 +18,8 @@
 
 
 
+
+
 namespace HeatParameters
 {
 	// Parameter setup ------------------------------------------------------------------------------------------------------------------------------
@@ -84,6 +86,7 @@ namespace HeatParameters
 	}
 
 
+
 	void LogMissingParameter(const Globals::LogLiteral name)
 	{
 		Globals::LogPlain(FormatName(name), "(none)");
@@ -99,7 +102,6 @@ namespace HeatParameters
 	{
 		using ConfigParser::Concepts::IsBoundsCompatible;
 
-
 		template <typename T>
 		concept IsNonOwningString = (std::same_as<T, const char*> or std::same_as<T, std::string_view>);
 
@@ -108,7 +110,6 @@ namespace HeatParameters
 
 		template <typename T>
 		concept IsPureBoolean = std::same_as<T, bool>;
-
 
 		template <class T>
 		concept IsLoggable = requires (const T& type)
@@ -667,6 +668,7 @@ namespace HeatParameters
 	}
 
 
+
 	template <typename T>
 	requires Details::IsNonOwningString<T>
 	bool ResolveHelicopterNames(Value<T>& vehicleValue)
@@ -685,7 +687,6 @@ namespace HeatParameters
 		template <typename T>
 		using ArrayField = ConfigParser::ArrayField<T, maxHeatLevel>;
 
-
 		template <typename T> struct IsRegular              : std::false_type {};
 		template <typename T> struct IsRegular<Value   <T>> : std::true_type  {};
 		template <typename T> struct IsRegular<Interval<T>> : std::true_type  {};
@@ -693,14 +694,12 @@ namespace HeatParameters
 		template <typename ...Ts>
 		concept AreRegular = ((sizeof...(Ts) > 0) and ... and IsRegular<Ts>::value);
 
-
 		template <typename T> struct IsOptional                      : std::false_type {};
 		template <typename T> struct IsOptional<OptionalValue   <T>> : std::true_type  {};
 		template <typename T> struct IsOptional<OptionalInterval<T>> : std::true_type  {};
 
 		template <typename ...Ts>
 		concept AreOptional = ((sizeof...(Ts) > 0) and ... and IsOptional<Ts>::value);
-
 
 		template <class ...HeatParameters>
 		concept AreExtractable = (AreRegular<HeatParameters...> or AreOptional<HeatParameters...>);
@@ -715,6 +714,7 @@ namespace HeatParameters
 		) {
 			return {value.GetHeatLevelArray(forRaces), value.current, value.GetLimits()};
 		}
+
 
 
 		template <typename T>
@@ -739,6 +739,7 @@ namespace HeatParameters
 				AsFieldWithDefault<T>(forRaces, value)
 			);
 		}
+
 
 
 		template <typename T>
@@ -767,6 +768,7 @@ namespace HeatParameters
 				AsFieldWithDefault<T>(forRaces, interval.max)
 			);
 		}
+
 
 
 		template <typename T>
@@ -802,11 +804,13 @@ namespace HeatParameters
 		void DoPostProcessing(auto&) {}
 
 
+
 		template <typename T>
 		void DoPostProcessing(Interval<T>& interval)
 		{
 			OrderIntervalValues<T>(interval);
 		}
+
 
 
 		template <typename T>

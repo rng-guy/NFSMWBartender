@@ -21,6 +21,8 @@
 
 
 
+
+
 namespace ConfigParser
 {
 	// Concepts -------------------------------------------------------------------------------------------------------------------------------------
@@ -33,10 +35,8 @@ namespace ConfigParser
 		template <typename V>
 		concept IsPureArithmetic = StreamParser::Concepts::IsPureArithmetic<V>;
 		
-
 		template <typename V>
 		concept IsBoundsCompatible = (IsPureArithmetic<V> and (not std::same_as<V, bool>));
-
 
 		template <typename ...Vs>
 		concept AreExtractable = (StreamParser::Concepts::AreExtractable<Vs...>);

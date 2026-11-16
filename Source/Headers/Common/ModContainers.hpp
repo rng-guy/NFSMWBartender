@@ -13,11 +13,13 @@
 
 
 
+
+
 namespace ModContainers
 {
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
 
-	// Sets
+	// Flat sets
 	template <typename K>
 	using Set = FlatContainers::Set<K>;
 
@@ -26,7 +28,7 @@ namespace ModContainers
 
 
 
-	// Regular maps
+	// Flat maps
 	template <typename K, typename V>
 	using Map = FlatContainers::Map<K, V>;
 
@@ -111,13 +113,11 @@ namespace ModContainers
 		template <typename RawType, class Converter, class Validator> 
 		struct IsFillSetup<FillSetup<RawType, Converter, Validator>> : std::true_type {};
 
-
 		template <typename ResultType, typename T>
 		concept IsCompatibleResultType = (std::assignable_from<T&, ResultType> and std::constructible_from<T, ResultType>);
 
 		template <class Setup, typename T>
 		concept IsCompatibleSetup = (IsFillSetup<Setup>::value and IsCompatibleResultType<typename Setup::ResultType, T>);
-
 
 		template <class KeySetup>
 		concept IsCompatibleWithDefaultKey = std::equality_comparable_with<typename KeySetup::RawType, decltype(Globals::defaultKey)>;

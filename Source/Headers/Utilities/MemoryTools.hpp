@@ -16,6 +16,8 @@
 
 
 
+
+
 namespace MemoryTools
 {
 	// Scoped aliases -------------------------------------------------------------------------------------------------------------------------------
@@ -39,6 +41,7 @@ namespace MemoryTools
 	}
 
 
+
 	template <typename T>
 	requires std::is_function_v<T>
 	[[nodiscard]] inline address AsAddress(T* const function) noexcept
@@ -54,6 +57,7 @@ namespace MemoryTools
 	{
 		return reinterpret_cast<T*>(object);
 	}
+
 
 
 	template <typename T>
@@ -82,6 +86,7 @@ namespace MemoryTools
 	{
 		return GetModuleHandleA(moduleName);
 	}
+
 
 
 	[[nodiscard]] inline bool IsModuleLoaded(const std::string& moduleName)
@@ -243,6 +248,7 @@ namespace MemoryTools
 
 		Details::MakeRangeJMP(jmpTarget, begin, end);
 	}
+
 
 
 	template <address begin, address end, typename T>
