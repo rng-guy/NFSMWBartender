@@ -113,16 +113,10 @@ BOOL WINAPI DllMain
 	const DWORD     fdwReason,
 	const LPVOID    lpvReserved
 ) {
-	if (fdwReason != DLL_PROCESS_ATTACH) return TRUE;
-
-	if (MemoryTools::GetEntryPoint() != 0x3C4040) // .exe-dependent entry point
-	{
-		MessageBoxA(nullptr, "This .exe isn't compatible with Bartender.\nSee Bartender's README for help.", "NFSMW Bartender", MB_ICONERROR);
-
-		return FALSE; // should never happen (assuming the user has actually read the README, which... yeah...)
-	}
+	if (fdwReason != DLL_PROCESS_ATTACH)             return true;
+	if (not MemoryTools::AssertEntryPoint(0x3C4040)) return false;
 
 	PATCH_HOOK_FUNCTION(Initialise, 0x6665B4); // InitializeEverything (0x665FC0)
 
-	return TRUE;
+	return true;
 }

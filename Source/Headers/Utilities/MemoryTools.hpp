@@ -1,7 +1,8 @@
 #pragma once
 
+#include <format>
 #include <string>
-#include <cassert>
+#include <cstdlib>
 #include <cstdint>
 #include <cstdarg>
 #include <cstring>
@@ -51,6 +52,10 @@ namespace MemoryTools
 
 
 
+
+
+	// Object and function access -------------------------------------------------------------------------------------------------------------------
+
 	template <typename T>
 	requires (std::is_object_v<T> or std::is_void_v<T>)
 	[[nodiscard]] inline T* AsPointer(const address object) noexcept
@@ -78,25 +83,88 @@ namespace MemoryTools
 
 
 
+	template <typename T>
+	requires std::is_trivially_copyable_v<T>
+	[[nodiscard]] inline T CopyAs(const address source) noexcept
+	{
+		auto result = T();
+
+		std::memcpy(&result, AsPointer<void>(source), sizeof(T));
+
+		return result;
+	}
 
 
-	// Module queries -------------------------------------------------------------------------------------------------------------------------------
 
-	[[nodiscard]] inline bool IsModuleLoaded(const char* const moduleName)
+
+
+	// Auxiliary DLL functions ----------------------------------------------------------------------------------------------------------------------
+
+	[[nodiscard]] inline bool IsModuleLoaded(const char* const moduleName) noexcept
 	{
 		return GetModuleHandleA(moduleName);
 	}
 
 
 
-	[[nodiscard]] inline bool IsModuleLoaded(const std::string& moduleName)
+	[[nodiscard]] inline bool IsModuleLoaded(const std::string& moduleName) noexcept
 	{
 		return IsModuleLoaded(moduleName.c_str());
 	}
 
 
 
-	[[nodiscard]] inline address GetEntryPoint()
+	[[nodiscard]] inline std::string GetModuleName()
+	{
+		HMODULE module = nullptr;
+
+		constexpr DWORD flags = GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT;
+
+		if (not GetModuleHandleExA(flags, reinterpret_cast<LPCSTR>(GetModuleName), &module)) return {};
+
+		std::string path(MAX_PATH, '\0');
+
+		while (true)
+		{
+			const size_t length = GetModuleFileNameA(module, path.data(), path.size());
+
+			if (length == 0) return {};
+
+			if (length < path.size())
+			{
+				path.resize(length);
+
+				break;
+			}
+
+			path.resize(path.size() * 2);
+		}
+
+		const size_t topLevel = path.find_last_of("\\/");
+
+		if (topLevel != std::string::npos)
+			path.erase(0, topLevel + 1);
+
+		return path;
+	}
+
+
+
+	inline void ShowErrorMessage(const char* const message)
+	{
+		MessageBoxA(nullptr, message, GetModuleName().c_str(), MB_ICONERROR);
+	}
+
+
+
+	inline void ShowErrorMessage(const std::string& message)
+	{
+		ShowErrorMessage(message.c_str());
+	}
+
+
+
+	[[nodiscard]] inline address GetEntryPoint() noexcept
 	{
 		const address base = AsAddress(GetModuleHandleA(nullptr));
 
@@ -104,6 +172,34 @@ namespace MemoryTools
 		const auto* const nt  = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dos->e_lfanew);
 
 		return nt->OptionalHeader.AddressOfEntryPoint;
+	}
+
+
+
+	[[nodiscard]] inline bool AssertEntryPoint(const address expected)
+	{
+		if (GetEntryPoint() == expected) return true;
+
+		ShowErrorMessage("This .exe isn't compatible with this mod.\nPlease see the mod's README for help.");
+
+		return false;
+	}
+
+
+
+	[[noreturn]] inline void TerminateHostProgram(const char* const message = nullptr)
+	{
+		if (message)
+			ShowErrorMessage(message);
+
+		TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
+	}
+
+
+
+	[[noreturn]] inline void TerminateHostProgram(const std::string& message)
+	{
+		TerminateHostProgram((message.empty()) ? nullptr : message.c_str());
 	}
 
 
@@ -123,15 +219,20 @@ namespace MemoryTools
 		DWORD       setting  = PAGE_EXECUTE_READWRITE;
 		void* const location = AsPointer<void>(target);
 
-		if (VirtualProtect(location, numBytes, setting, &setting))
+		bool patchValid = VirtualProtect(location, numBytes, setting, &setting);
+
+		if (patchValid)
 		{
 			Patch(target, numBytes);
 
-			if (not VirtualProtect(location, numBytes, setting, &setting)) assert(not "restored");
+			patchValid = VirtualProtect(location, numBytes, setting, &setting);
 
-			FlushInstructionCache(GetCurrentProcess(), location, numBytes);
+			if (patchValid)
+				FlushInstructionCache(GetCurrentProcess(), location, numBytes);
 		}
-		else assert(not "unprotected");
+
+		if (not patchValid)
+			TerminateHostProgram(std::format("Failed to patch {} bytes at {:08x}.\nPlease contact the mod's author.", numBytes, target));
 	}
 
 
@@ -164,18 +265,10 @@ namespace MemoryTools
 		(
 			const address target,
 			const size_t  numBytes
-		) {
+		) 
+			noexcept
+		{
 			std::memset(AsPointer<void>(target), 0x90, numBytes); // NOP
-		}
-
-
-
-		inline void MakeRangeNOP
-		(
-			const address begin,
-			const address end
-		) {
-			ApplyPatch(PatchToNOP, begin, end - begin);
 		}
 
 
@@ -190,12 +283,12 @@ namespace MemoryTools
 			{
 				PatchToNOP(target, numBytes);
 
-				constexpr byte opcode = 0xE9; // jump near, relative
+				constexpr byte jmpOpcode = 0xE9; // jmp near, relative
 
 				const address   jmpOperand = target + sizeof(byte);
 				const ptrdiff_t jmpOffset  = jmpTarget - (jmpOperand + sizeof(ptrdiff_t));
 
-				std::memcpy(AsPointer<void>(target),     &opcode,    sizeof(byte));
+				std::memcpy(AsPointer<void>(target),     &jmpOpcode, sizeof(byte));
 				std::memcpy(AsPointer<void>(jmpOperand), &jmpOffset, sizeof(ptrdiff_t));
 			};
 
@@ -236,7 +329,7 @@ namespace MemoryTools
 	{
 		static_assert(end > begin, "Range must cover at least 1 byte");
 
-		Details::MakeRangeNOP(begin, end);
+		ApplyPatch(Details::PatchToNOP, begin, end - begin);
 	}
 
 
@@ -285,13 +378,25 @@ namespace MemoryTools
 		const address newCallTarget,
 		const address callSite
 	) {
-		const address callOperand = callSite    + sizeof(byte);
-		const address callEnd     = callOperand + sizeof(ptrdiff_t);
+		address oldCallTarget = 0x0;
+		
+		const auto PatchCALL = [newCallTarget, &oldCallTarget](const address target, const size_t numBytes) -> void
+		{
+			if (CopyAs<byte>(target) != 0xE8) // call near, relative
+				TerminateHostProgram(std::format("Failed to patch call at {:08x}.\nPlease contact the mod's author.", target));
 
-		const ptrdiff_t oldOperand = AsReference<ptrdiff_t>(callOperand);
-		WriteToAddresses<ptrdiff_t>(newCallTarget - callEnd, {callOperand});
+			const address   callOperand   = target      + sizeof(byte);
+			const address   callEnd       = callOperand + sizeof(ptrdiff_t);
+			const ptrdiff_t newCallOffset = newCallTarget - callEnd;
 
-		return callEnd + oldOperand; // replaced target
+			oldCallTarget = callEnd + CopyAs<ptrdiff_t>(callOperand);
+
+			std::memcpy(AsPointer<void>(callOperand), &newCallOffset, sizeof(ptrdiff_t));
+		};
+
+		ApplyPatch(PatchCALL, callSite, sizeof(byte) + sizeof(ptrdiff_t));
+
+		return oldCallTarget;
 	}
 
 
