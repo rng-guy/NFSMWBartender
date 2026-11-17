@@ -226,7 +226,7 @@ The "Advanced" feature set **can fix five more bugs / issues**, depending on its
 &nbsp;
 
 **To install** Bartender:
-1. download and extract the [`NfSMW_Bartender_v4.00.2.7z`](https://github.com/rng-guy/NFSMWBartender/releases/latest) archive;
+1. download and extract the [`NfSMW_Bartender_v4.00.3.7z`](https://github.com/rng-guy/NFSMWBartender/releases/latest) archive;
 2. copy Bartender's `scripts` folder to your game's folder, replacing existing files;
 3. if Bartender's `.asi` file gets flagged by your antivirus software, whitelist the file;
 4. in [VltEd 4.6](https://nfs-tools.blogspot.com/2019/02/nfs-vlted-v46-released.html), import and install the `FixChallengeSeriesEvents.nfsms` script; and

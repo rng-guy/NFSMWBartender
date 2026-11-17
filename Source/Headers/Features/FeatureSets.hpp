@@ -350,19 +350,11 @@ namespace FeatureSets
 			cmp esi, dword ptr [playerPerpVehicle]
 			jne conclusion // not player vehicle
 
-			mov edx, ebp // new Heat level
-
 			cmp dword ptr [esp + 0x20], 0x416A75
-			cmove edx, edi // is race preparation
+			je conclusion // is generic race preparation
 
-			cmp edx, edi
-			jne update // Heat level changed
-
-			cmp bl, byte ptr [esi + 0x2E]
-			je conclusion // race status unchanged
-
-			update:
 			movzx ecx, bl
+			mov edx, ebp
 			call ProcessHeatStateUpdate // cl: isRacing; edx: heatLevel
 
 			conclusion:

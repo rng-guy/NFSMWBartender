@@ -57,7 +57,7 @@ void __cdecl Initialise
 		Globals::logger.Open("BartenderLog.txt");
 
 		Globals::LogFull(); // force newline to separate sessions
-		Globals::LogFull(logSection, logTag, "Bartender v4.00.02");
+		Globals::LogFull(logSection, logTag, "Bartender v4.00.03");
 
 		constexpr std::array modNames =
 		{
