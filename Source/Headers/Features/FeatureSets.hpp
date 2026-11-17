@@ -25,8 +25,10 @@ namespace FeatureSets
 	constexpr Globals::LogLiteral logTag  = "[SET]";
 	constexpr Globals::LogLiteral logName = "FeatureSets";
 
-	// First player's vehicle
+	// Detour data
 	address playerPerpVehicle = 0x0;
+
+	HeatParameters::HeatState playerHeatState = {.isRace = false, .level = 0};
 
 
 
@@ -39,25 +41,21 @@ namespace FeatureSets
 		const bool   isRacing,
 		const size_t heatLevel
 	) {
-		static constinit HeatParameters::HeatState state{.isRace = false, .level = 0};
-
-		// Check whether Heat-state update is necessary
 		const size_t safeHeatLevel = HeatParameters::ClampHeatLevel(heatLevel);
-		if ((state.isRace == isRacing) and (state.level == safeHeatLevel)) return;
+		if ((playerHeatState.isRace == isRacing) and (playerHeatState.level == safeHeatLevel)) return;
 
-		state = {.isRace = isRacing, .level = safeHeatLevel}; // new state
+		playerHeatState = {.isRace = isRacing, .level = safeHeatLevel};
 
 		if constexpr (Globals::loggingEnabled)
 		{
 			if (safeHeatLevel != heatLevel)
 				Globals::LogWarning(logTag, "Heat level", Globals::LogDec(heatLevel), "out of range");
 
-			Globals::LogHeat(logTag, "Heat level", Globals::LogDec(state.level), (state.isRace) ? "(race)" : "(roam)");
+			Globals::LogHeat(logTag, "Heat level", Globals::LogDec(playerHeatState.level), (playerHeatState.isRace) ? "(race)" : "(roam)");
 		}
 
-		// Update feature sets
-		BasicFeatures   ::SetToHeatState(state);
-		AdvancedFeatures::SetToHeatState(state);
+		BasicFeatures   ::SetToHeatState(playerHeatState);
+		AdvancedFeatures::SetToHeatState(playerHeatState);
 	}
 
 
@@ -262,6 +260,29 @@ namespace FeatureSets
 
 
 
+	// Transitions the game to free-roam in Career mode
+	ASSEMBLY_DETOUR(FreeRoamStart, 0x5FE5DF, 0x5FE5E4)
+	{
+		__asm
+		{
+			cmp byte ptr [playerHeatState.isRace], 0
+			je conclusion // Heat state not for race
+
+			xor ecx, ecx
+			mov edx, dword ptr [playerHeatState.level]
+			call ProcessHeatStateUpdate // cl: isRacing; edx: heatLevel
+
+			conclusion:
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x10]
+			pop edi
+
+			EXIT_ASSEMBLY_DETOUR(FreeRoamStart)
+		}
+	}
+
+
+
 	// Resets repurposed padding bytes of AIPursuit objects
 	ASSEMBLY_DETOUR(ResetAIVehicle, 0x414D6C, 0x414D72)
 	{
@@ -340,8 +361,8 @@ namespace FeatureSets
 		}
 	}
 
-
-
+	
+	
 	// Triggers on Heat-level changes for the player
 	ASSEMBLY_DETOUR(HeatLevelObserver, 0x4090BE, 0x4090C6)
 	{
@@ -351,7 +372,7 @@ namespace FeatureSets
 			jne conclusion // not player vehicle
 
 			cmp dword ptr [esp + 0x20], 0x416A75
-			je conclusion // is generic race preparation
+			je conclusion // is car preparation
 
 			movzx ecx, bl
 			mov edx, ebp
@@ -452,6 +473,7 @@ namespace FeatureSets
 		PATCH_ASSEMBLY_DETOUR(CopDestroyed);
 		PATCH_ASSEMBLY_DETOUR(PerpCollision);
 		PATCH_ASSEMBLY_DETOUR(HeatEqualiser);
+		PATCH_ASSEMBLY_DETOUR(FreeRoamStart);
 		PATCH_ASSEMBLY_DETOUR(ResetAIVehicle);
 		PATCH_ASSEMBLY_DETOUR(CollisionResult);
 		PATCH_ASSEMBLY_DETOUR(GameStateUpdate);
