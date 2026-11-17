@@ -282,6 +282,12 @@ namespace CopSpawnOverrides
 
 			return this->GetNameOfFallbackCop();
 		}
+
+
+		[[nodiscard]] bool IsEmpty() const
+		{
+			return (this->numTotalActiveCops == 0);
+		}
 	};
 
 
@@ -796,8 +802,8 @@ namespace CopSpawnOverrides
 
 	void ProcessEventRestart()
 	{
-		scriptedSpawns .Clear();
-		roadblockSpawns.Clear();
+		ASSERT_CONDITION_THEN_IF_FALSE(scriptedSpawns .IsEmpty(), scriptedSpawns .Clear());
+		ASSERT_CONDITION_THEN_IF_FALSE(roadblockSpawns.IsEmpty(), roadblockSpawns.Clear());
 
 		usePreFetchedCopName = preFetchedCopName;
 	}
@@ -806,7 +812,7 @@ namespace CopSpawnOverrides
 
 	void ProcessWorldLoad()
 	{
-		patrolSpawns.Clear();
+		patrolSpawns.Clear(); // in case of quitting to Frontend with active patrol(s) previously
 
 		preFetchedCopName = nullptr;
 
