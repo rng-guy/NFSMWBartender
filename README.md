@@ -83,9 +83,10 @@ The "Basic" feature set **also lets you change** (in general)
 
 &nbsp;
 
-The "Basic" feature set **always fixes fourteen bugs / issues** automatically:
+The "Basic" feature set **always fixes fifteen bugs / issues** automatically:
 * the game no longer fails to select certain arrest cutscenes,
 * the game now always updates the passive-bounty increment after races,
+* the game now enforces Heat limits of Blacklist rivals more consistently,
 * the orange "BUSTED" and "EVADE" bars now fill correctly without any gaps,
 * the (mini-)map icons for cop cars now always flash at their intended pace,
 * transitions to Heat levels > 5 now trigger their proper radio announcements,

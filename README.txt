@@ -74,9 +74,10 @@ The "Basic" feature set ALSO LETS YOU CHANGE (in general)
  • how (if at all) line of sight affects the colour of the helicopter's cone-of-vision icon; and
  • the selection, order, and length of interactive themes that play during your pursuits.
 
-The "Basic" feature set ALWAYS FIXES FOURTEEN BUGS / ISSUES automatically:
+The "Basic" feature set ALWAYS FIXES FIFTEEN BUGS / ISSUES automatically:
  • the game no longer fails to select certain arrest cutscenes,
  • the game now always updates the passive-bounty increment after races,
+ • the game now enforces Heat limits of Blacklist rivals more consistently,
  • the orange "BUSTED" and "EVADE" bars now fill correctly without any gaps,
  • the (mini-)map icons for cop cars now always flash at their intended pace,
  • transitions to Heat levels > 5 now trigger their proper radio announcements,

@@ -132,6 +132,68 @@ namespace StatusSettings
 
 
 
+	[[nodiscard]] address GetCareerSettings()
+	{
+		const address frontendDatabase = AsReference<address>(0x91CF90);
+		return AsReference<address>(frontendDatabase + 0x10);
+	}
+
+
+
+	[[nodiscard]] address GetCurrentRaceBin()
+	{
+		const auto GetRaceBinByID = AsFunction<address __thiscall (address, size_t)>(0x5E3980);
+
+		const address raceDatabase = AsReference<address>(0x91E004);
+		const size_t  raceBinID    = AsReference<byte>   (GetCareerSettings() + 0xB0);
+
+		return GetRaceBinByID(raceDatabase, raceBinID);
+	}
+
+
+
+	[[nodiscard]] float GetMaxHeatAtCurrentBlacklistRank()
+	{
+		const address raceBin = GetCurrentRaceBin();
+		ASSERT_CONDITION_THEN_IF_FALSE(raceBin, return HeatParameters::maxHeat);
+
+		const auto  GetMaxOpenWorldHeat = AsFunction<float __thiscall (address)>(0x5DCF00);
+		const float maxOpenWorldHeat    = GetMaxOpenWorldHeat(raceBin); // "0xe8c24416" in VltEd
+
+		return HeatParameters::ClampHeat(maxOpenWorldHeat);
+	}
+
+
+
+	[[nodiscard]] float __stdcall ClampHeatForGarage(const float heat) 
+	{
+		return std::clamp<float>(heat, 1.f, GetMaxHeatAtCurrentBlacklistRank());
+	}
+
+
+	
+	void __cdecl EnforceBlacklistHeatLimit()
+	{
+		const float maxHeat = GetMaxHeatAtCurrentBlacklistRank();
+
+		const address carRecordBase    = GetCareerSettings() + 0x425;
+		const address careerRecordBase = carRecordBase       + 0x8717;
+
+		for (size_t recordID = 0; recordID < 200; ++recordID)
+		{
+			const size_t handle = AsReference<byte>(carRecordBase + recordID * 0x14);
+			if (handle > 25) continue; // car handle not for Career mode
+			
+			const address careerRecord = careerRecordBase + handle * 0x38;
+			if (AsReference<byte>(careerRecord) == 0xFF) continue; // invalid handle
+
+			float& carHeat = AsReference<float>(careerRecord + 0xC);
+			carHeat        = std::clamp <float>(carHeat, 1.f, maxHeat);
+		}
+	}
+
+
+
 
 
 	// Assembly detours -----------------------------------------------------------------------------------------------------------------------------
@@ -292,30 +354,7 @@ namespace StatusSettings
 
 
 	
-	// Decides at which distance from cops racers can be busted
-	ASSEMBLY_DETOUR(MaxBustDistance, 0x444483, 0x44448B)
-	{
-		__asm
-		{
-			fldz
-			fcom dword ptr [esi + 0x168] // "EVADE" state
-			fnstsw ax
-			test ah, 0x5
-			jne conclusion               // evading
-
-			fadd dword ptr [maxBustDistance.current]
-			
-			// Execute original code and resume
-			conclusion:
-			test bl, bl
-
-			EXIT_ASSEMBLY_DETOUR(MaxBustDistance)
-		}
-	}
-	
-
-
-	// Corrects the VltEd array index based on Blacklist progress
+	// Corrects VltEd array index based on Blacklist rank
 	ASSEMBLY_DETOUR(HeatEscalation, 0x443D93, 0x443D9B)
 	{
 		__asm
@@ -340,6 +379,46 @@ namespace StatusSettings
 			test al, byte ptr [edi + 0x2C] // hidden from cars
 
 			EXIT_ASSEMBLY_DETOUR(HiddenFromCars)
+		}
+	}
+
+
+
+	// Decides at which distance from cops racers can be busted
+	ASSEMBLY_DETOUR(MaxBustDistance, 0x444483, 0x44448B)
+	{
+		__asm
+		{
+			fldz
+			fcom dword ptr [esi + 0x168] // "EVADE" state
+			fnstsw ax
+			test ah, 0x5
+			jne conclusion               // evading
+
+			fadd dword ptr [maxBustDistance.current]
+			
+			// Execute original code and resume
+			conclusion:
+			test bl, bl
+
+			EXIT_ASSEMBLY_DETOUR(MaxBustDistance)
+		}
+	}
+	
+
+
+	// Adjusts vehicle Heat upon returning to the garage
+	ASSEMBLY_DETOUR(GarageHeatLimit, 0x435073, 0x43508C)
+	{
+		__asm
+		{
+			sub esp, 0x4
+
+			fstp dword ptr [esp] // heat
+			call ClampHeatForGarage
+			fstp dword ptr [esp + 0xC]
+
+			EXIT_ASSEMBLY_DETOUR(GarageHeatLimit)
 		}
 	}
 
@@ -375,7 +454,7 @@ namespace StatusSettings
 
 
 
-	// Corrects the VltEd array index based on Heat level
+	// Corrects VltEd array index based on Heat level
 	ASSEMBLY_DETOUR(DestructionBounty, 0x418F5B, 0x418F61)
 	{
 		__asm
@@ -388,6 +467,23 @@ namespace StatusSettings
 			cmovl edi, ecx // Heat index negative
 
 			EXIT_ASSEMBLY_DETOUR(DestructionBounty)
+		}
+	}
+
+	
+
+	// Adjusts vehicle Heat upon changing Blacklist rank
+	ASSEMBLY_DETOUR(BlacklistHeatLimit, 0x62C41F, 0x62C425)
+	{
+		__asm
+		{
+			call EnforceBlacklistHeatLimit
+
+			// Execute original code and resume
+			mov ecx, dword ptr [esp + 0x10]
+			mov eax, ebp
+
+			EXIT_ASSEMBLY_DETOUR(BlacklistHeatLimit)
 		}
 	}
 
@@ -559,9 +655,13 @@ namespace StatusSettings
 		PATCH_ASSEMBLY_DETOUR(OrangeBustedWidth);
 
 		// Hard-coded Heat-level resets (credit: ExOptsTeam)
-		MemoryTools::WriteToAddresses<const float*>(&(HeatParameters::maxHeat), {0x435079, 0x7A5B03, 0x7A5B12});
-		MemoryTools::WriteToAddresses<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C, 0x435088});
+		MemoryTools::WriteToAddresses<const float*>(&(HeatParameters::maxHeat), {0x7A5B03, 0x7A5B12});
+		MemoryTools::WriteToAddresses<float>       (HeatParameters::maxHeat,    {0x7BB502, 0x7B1387, 0x7B0C89, 0x7B4D7C});
 		
+		// Unenforced Blacklist Heat limits
+		PATCH_ASSEMBLY_DETOUR(GarageHeatLimit);
+		PATCH_ASSEMBLY_DETOUR(BlacklistHeatLimit);
+
 		// Status flag
 		fixesApplied = true;
 	}
