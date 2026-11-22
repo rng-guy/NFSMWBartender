@@ -171,7 +171,7 @@ namespace MemoryTools
 		const auto* const dos = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
 		const auto* const nt  = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dos->e_lfanew);
 
-		return nt->OptionalHeader.AddressOfEntryPoint;
+		return base + nt->OptionalHeader.AddressOfEntryPoint;
 	}
 
 

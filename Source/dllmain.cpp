@@ -114,7 +114,7 @@ BOOL WINAPI DllMain
 	const LPVOID    lpvReserved
 ) {
 	if (fdwReason != DLL_PROCESS_ATTACH)             return true;
-	if (not MemoryTools::AssertEntryPoint(0x3C4040)) return false;
+	if (not MemoryTools::AssertEntryPoint(0x7C4040)) return false;
 
 	PATCH_HOOK_FUNCTION(Initialise, 0x6665B4); // InitializeEverything (0x665FC0)
 
