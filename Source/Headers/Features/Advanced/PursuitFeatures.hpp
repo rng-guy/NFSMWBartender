@@ -123,13 +123,12 @@ namespace PursuitFeatures
 
 			static_assert(std::derived_from<Feature, Searchable>, "Feature must derive from Searchable");
 
-			auto* const instance            = static_cast<Feature*>(this);
-			const auto  [it, isNewInstance] = this->instances.insert(instance);
+			const auto [_, isNewInstance] = this->instances.insert(static_cast<Feature*>(this));
 
 			if (not isNewInstance)
 			{
 				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "Registration failed:", instance);
+					Globals::LogWarning(logTag, "Registration failed");
 
 				ASSERT_UNREACHABLE;
 			}
@@ -145,22 +144,18 @@ namespace PursuitFeatures
 
 		~Searchable()
 		{
-			const auto* const instance      = static_cast<Feature*>(this);
-			const bool        wasRegistered = this->instances.erase(instance);
-			
-			if (not wasRegistered)
-			{
-				if constexpr (Globals::loggingEnabled)
-					Globals::LogWarning(logTag, "Unregistration failed:", instance);
+			if (this->instances.erase(static_cast<Feature*>(this))) return;
 
-				ASSERT_UNREACHABLE;
-			}
+			if constexpr (Globals::loggingEnabled)
+				Globals::LogWarning(logTag, "Unregistration failed");
+
+			ASSERT_UNREACHABLE;
 		}
 
 
 		[[nodiscard]] static Feature* FindInstance(const address pursuit)
 		{
-			for (auto* const instance : Searchable::instances)
+			for (Feature* const instance : Searchable::instances)
 			{
 				if (instance->GetPursuit() == pursuit) return instance;
 			}
