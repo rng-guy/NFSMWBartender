@@ -50,6 +50,8 @@ namespace CopSpawnOverrides
 
 	constinit HEAT_PARAMETER_VALUE(float, chaserSpawnClearance, 40.f, {0.f}); // metres
 
+	constinit HEAT_PARAMETER_INTERVAL(float, patrolSpawnTimer, 60.f, 60.f, {1.f}); // seconds
+
 	constinit HEAT_PARAMETER_VALUE(bool, trafficIgnoresChasers,    false);
 	constinit HEAT_PARAMETER_VALUE(bool, trafficIgnoresRoadblocks, false);
 
@@ -296,12 +298,14 @@ namespace CopSpawnOverrides
 
 	// Feature setup (continued) --------------------------------------------------------------------------------------------------------------------
 
-	// Global contingents
+	// Free contingents
 	RELEASE_CONSTINIT COP_CONTINGENT(patrolSpawns,    CopSpawnTables::patrolsTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(scriptedSpawns,  CopSpawnTables::scriptedTable);
 	RELEASE_CONSTINIT COP_CONTINGENT(roadblockSpawns, CopSpawnTables::roadblocksTable);
 
 	// Detour data
+	float fullPatrolTimer = 60.f; // seconds
+
 	bool        usePreFetchedCopName = false;   // scripted free-roam pursuits request a cop before they know their Heat level,
 	const char* preFetchedCopName    = nullptr; // so we must prefetch a valid cop name using their event's Heat level instead
 
@@ -723,10 +727,16 @@ namespace CopSpawnOverrides
 
 	// Auxiliary functions --------------------------------------------------------------------------------------------------------------------------
 
+	[[nodiscard]] bool __cdecl IsCutsceneActive()
+	{
+		return AsReference<address>(0x9885C8); // NIS manager
+	}
+
+
+
 	[[nodiscard]] bool __cdecl IsEventActive()
 	{
 		ASSERT_CONDITION_THEN_IF_FALSE(Globals::raceStatus, return false);
-
 		return (AsReference<int>(Globals::raceStatus + 0x1960) != 0);
 	}
 
@@ -800,6 +810,26 @@ namespace CopSpawnOverrides
 
 
 
+	[[nodiscard]] float __cdecl GeneratePatrolTimer()
+	{
+		return fullPatrolTimer = patrolSpawnTimer.GetRandomValue();
+	}
+
+
+
+	void OffsetPatrolTimer()
+	{
+		if (not Globals::copManager) return;
+
+		float& patrolTimer = AsReference<float>(Globals::copManager + 0xAC);
+		if (patrolTimer <= 0.f) return; // patrols already triggered
+
+		patrolTimer -= fullPatrolTimer;
+		patrolTimer += GeneratePatrolTimer();
+	}
+
+
+
 	void ProcessEventRestart()
 	{
 		ASSERT_CONDITION_THEN_IF_FALSE(scriptedSpawns .IsEmpty(), scriptedSpawns .Clear());
@@ -842,6 +872,20 @@ namespace CopSpawnOverrides
 
 
 
+	// Resets the patrol time upon cop-lockout requests
+	ASSEMBLY_DETOUR(CopLockout, 0x411437, 0x4114CA)
+	{
+		__asm
+		{
+			call GeneratePatrolTimer
+			fstp dword ptr [esi + 0x58]
+
+			EXIT_ASSEMBLY_DETOUR(CopLockout)
+		}
+	}
+
+
+
 	// Processes join requests from roadblock vehicles
 	ASSEMBLY_DETOUR(JoinRequest, 0x4443AE, 0x4443B6)
 	{
@@ -858,6 +902,28 @@ namespace CopSpawnOverrides
 
 			conclusion:
 			EXIT_ASSEMBLY_DETOUR(JoinRequest)
+		}
+	}
+
+
+	
+	// Checks the patrol timer before spawning patrols
+	ASSEMBLY_DETOUR(PatrolTimer, 0x410E38, 0x410E3D)
+	{
+		__asm
+		{
+			// Execute original code first
+			fnstsw ax
+			test ah, 0x41
+			je conclusion // lockout active
+
+			call IsCutsceneActive
+			cmp al, 1
+
+			mov dl, byte ptr [esp + 0x4] // restore value
+
+			conclusion:
+			EXIT_ASSEMBLY_DETOUR(PatrolTimer)
 		}
 	}
 
@@ -879,6 +945,20 @@ namespace CopSpawnOverrides
 			inc dword ptr [ebp + 0x94]
 
 			EXIT_ASSEMBLY_DETOUR(PatrolSpawn)
+		}
+	}
+
+
+
+	// Resets the patrol timer upon event (re)start
+	ASSEMBLY_DETOUR(LockoutReset, 0x43A21D, 0x43A224)
+	{
+		__asm
+		{
+			call GeneratePatrolTimer
+			fstp dword ptr [ebp + 0x58]
+
+			EXIT_ASSEMBLY_DETOUR(LockoutReset)
 		}
 	}
 
@@ -924,6 +1004,26 @@ namespace CopSpawnOverrides
 			mov ecx, dword ptr [esp + 0x314]
 
 			EXIT_ASSEMBLY_DETOUR(ScriptedSpawn)
+		}
+	}
+
+
+
+	// Checks the patrol timer before issuing 911 call
+	ASSEMBLY_DETOUR(PatrolCallout, 0x71D62A, 0x71D62F)
+	{
+		__asm
+		{
+			// Execute original code first
+			fnstsw ax
+			test ah, 0x41
+			jne conclusion // lockout expired
+
+			call IsCutsceneActive
+			test al, al
+
+			conclusion:
+			EXIT_ASSEMBLY_DETOUR(PatrolCallout)
 		}
 	}
 
@@ -1152,6 +1252,25 @@ namespace CopSpawnOverrides
 
 	
 
+	// Checks for event in preparation of 911 dispatch call
+	ASSEMBLY_DETOUR(EventPatrolCall, 0x71D591, 0x71D5C7)
+	{
+		__asm
+		{
+			xor bl, bl
+
+			call IsEventActive
+			test al, al
+			sete byte ptr [esp + 0x12] // no event
+
+			mov byte ptr [esp + 0x13], bl
+			
+			EXIT_ASSEMBLY_DETOUR(EventPatrolCall)
+		}
+	}
+
+
+
 	// Replaces "Scripted" cop vehicles
 	ASSEMBLY_DETOUR(ScriptedRequest, 0x42E718, 0x42E721)
 	{
@@ -1254,6 +1373,20 @@ namespace CopSpawnOverrides
 
 
 
+	// Sets the initial patrol timer upon cop-manager construction
+	ASSEMBLY_DETOUR(ManagerConstructor, 0x43CA2E, 0x43CA38)
+	{
+		__asm
+		{
+			mov edx, dword ptr [fullPatrolTimer]
+			mov dword ptr [esi + 0xAC], edx
+
+			EXIT_ASSEMBLY_DETOUR(ManagerConstructor)
+		}
+	}
+
+
+
 
 
 	// Initialisation helpers -----------------------------------------------------------------------------------------------------------------------
@@ -1261,7 +1394,7 @@ namespace CopSpawnOverrides
 	void ExtractTrackingSettings(const ConfigParser::Parser& parser)
 	{
 		const auto* const section = parser.GetSection("Board:Tracking");
-		if (not section) return; // file missing; keep tracking disabled
+		if (not section) return; // group missing; keep tracking disabled
 
 		const auto ExtractSetting = [section](const std::string_view key, bool& isTracked) -> void
 		{
@@ -1317,6 +1450,8 @@ namespace CopSpawnOverrides
 
 		HeatParameters::Extract(parser, "Chasers:Clearance", chaserSpawnClearance);
 
+		HeatParameters::Extract(parser, "Patrols:Timer", patrolSpawnTimer);
+
 		HeatParameters::Extract(parser, "Traffic:Independence", trafficIgnoresChasers, trafficIgnoresRoadblocks);
 
 		// Heat parameters (second file)
@@ -1338,6 +1473,8 @@ namespace CopSpawnOverrides
 		MemoryTools::WriteToAddresses<vault>("ForceHeatLevel"_vlt, {0x61E295}); // "CopSpawnType" query
 
 		MemoryTools::MakeRangeNOP<0x43EB84, 0x43EB92>(); // global spawn-limit check
+		MemoryTools::MakeRangeNOP<0x43A264, 0x43A2CE>(); // patrol timer (restart)
+
 		MemoryTools::MakeRangeNOP<0x4442AC, 0x4442C2>(); // zero-wave / capacity increment
 		MemoryTools::MakeRangeNOP<0x57B186, 0x57B189>(); // helicopter           increment
 		MemoryTools::MakeRangeNOP<0x42B74E, 0x42B771>(); // cops-lost            increment
@@ -1345,10 +1482,14 @@ namespace CopSpawnOverrides
 		MemoryTools::MakeRangeJMP<0x42BA50, 0x42BCEE>(ChasersManager::GetNameOfNewChaser); // AIPursuit::CopRequest
 
 		PATCH_ASSEMBLY_DETOUR(WaveReset);
+		PATCH_ASSEMBLY_DETOUR(CopLockout);
 		PATCH_ASSEMBLY_DETOUR(JoinRequest);
+		PATCH_ASSEMBLY_DETOUR(PatrolTimer);
 		PATCH_ASSEMBLY_DETOUR(PatrolSpawn);
+		PATCH_ASSEMBLY_DETOUR(LockoutReset);
 		PATCH_ASSEMBLY_DETOUR(CopClearance);
 		PATCH_ASSEMBLY_DETOUR(ScriptedSpawn);
+		PATCH_ASSEMBLY_DETOUR(PatrolCallout);
 		PATCH_ASSEMBLY_DETOUR(PatrolPursuit);
 		PATCH_ASSEMBLY_DETOUR(PatrolDespawn);
 		PATCH_ASSEMBLY_DETOUR(SpawnLocation);
@@ -1358,11 +1499,13 @@ namespace CopSpawnOverrides
 		PATCH_ASSEMBLY_DETOUR(CopConstructor);
 		PATCH_ASSEMBLY_DETOUR(RecyclingCheck);
 		PATCH_ASSEMBLY_DETOUR(ByClassRequest);
+		PATCH_ASSEMBLY_DETOUR(EventPatrolCall);
 		PATCH_ASSEMBLY_DETOUR(ScriptedRequest);
 		PATCH_ASSEMBLY_DETOUR(FirstScriptedCop);
 		PATCH_ASSEMBLY_DETOUR(ScriptedSpawnReset);
 		PATCH_ASSEMBLY_DETOUR(RoadblockShuffling);
 		PATCH_ASSEMBLY_DETOUR(RoadblockJoinCount);
+		PATCH_ASSEMBLY_DETOUR(ManagerConstructor);
 
 		return true;
 	}
@@ -1394,6 +1537,8 @@ namespace CopSpawnOverrides
 
 		chaserSpawnClearance.SetToHeatState(state);
 
+		patrolSpawnTimer.SetToHeatState(state);
+
 		trafficIgnoresChasers   .SetToHeatState(state);
 		trafficIgnoresRoadblocks.SetToHeatState(state);
 
@@ -1401,6 +1546,9 @@ namespace CopSpawnOverrides
 
 		// Parameter conversions
 		UpdateParameterConversions();
+
+		// Detour data
+		OffsetPatrolTimer();
 	}
 
 

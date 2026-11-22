@@ -319,7 +319,7 @@ Regarding the "Advanced" feature set **as a whole**:
 
 * Rarely, the helicopter may still report an incorrect reason for bailing the pursuit. This is a vanilla issue likely caused by either caching quirks of the game's speech manager or re-assignment of the helicopter's radio actor to a regular cop vehicle. Similarly, it's also possible to trigger more than one report per actual bailout.
 
-* If enabled, this feature set overrides a few specific VltEd parameters: the `cops` array, `HeliFuelTime`, `TimeBetweenHeliActive`, and the `0x80deb840` array (Challenge Series only).
+* If enabled, this feature set makes the game ignore specific VltEd parameters: the `cops` array, `HeliFuelTime`, `TimeBetweenHeliActive`, `TimeInactiveFor911`, and the `0x80deb840` array (Challenge Series only). This feature set effectively replaces these with more customisable alternatives through its various features.
 
 &nbsp;
 
@@ -434,6 +434,8 @@ Regarding **car (de)spawning** ([`BartenderSettings/Advanced/Spawning.ini`](../C
 * Very small spawning clearances for "Chasers" may lead to stacked spawns and congested roads.
 
 * "Chasers" flee only at Heat levels for which you define valid flee-delay values and thresholds. "Chasers" also only flee if they aren't in the current Heat level's "Chasers" spawn table, and if there would be enough active "Chasers" remaining in the pursuit after their retreat.
+
+* If you quit to free-roam while dispatch is reporting a 911 call in any Career race, patrols spawn immediately regardless of the free-roam spawn timer. This is actually vanilla behaviour.
 
 * Fully independent traffic spawns fix the vanilla issue of disappearing traffic in pursuits, but they might interfere with "Chasers" spawns to some degree under the right conditions.
 

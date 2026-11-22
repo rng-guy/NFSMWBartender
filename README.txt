@@ -1,5 +1,5 @@
 
-── ■ │ WHAT IS NFSMW BARTENDER? (v4.00.03) │ ■ ────────────────────────────────────────────────────
+── ■ │ WHAT IS NFSMW BARTENDER? (v4.01.00) │ ■ ────────────────────────────────────────────────────
 
 VIEW THIS FILE on GitHub: https://github.com/rng-guy/NFSMWBartender
 
@@ -7,7 +7,7 @@ Bartender ADDS NEW CUSTOMISATION OPTIONS for pursuits. These new options come in
  • the "BASIC"    FEATURE SET lets you change many otherwise hard-coded parameters of the game, and
  • the "ADVANCED" FEATURE SET lets you change cop-spawning behaviour and tables without limits.
 
-Bartender's DEFAULT SETTINGS match the vanilla game's, except for the bug / issue fixes.
+Bartender's DEFAULT SETTINGS match the vanilla game's, except for automatic bug / issue fixes.
 
 For OPTIMAL CUSTOMISABILITY, use VltEd along with Bartender's features.
 
@@ -120,8 +120,9 @@ The "Advanced" feature set LETS YOU CHANGE (per Heat level)
  • whether roadblocks react to the pursuit target entering "COOLDOWN" mode,
  • whether roadblocks react to the pursuit target hitting their spike strips,
  • above what count (if at all) no more cops can join the pursuit from roadblocks,
- • when exactly (if at all) and how many cops that joined from roadblocks can flee,
+ • when exactly (if at all) and how many cops that joined from roadblocks    can flee,
  • when exactly (if at all) and how many chasing cops from other Heat levels can flee,
+ • after how much time free patrols can spawn on their own outside pursuits,
  • which vehicles can spawn to chase and search for the pursuit target,
  • which vehicles can spawn in non-Strategy roadblocks,
  • which vehicles can spawn as pre-generated cops in scripted events,
@@ -162,10 +163,12 @@ The "Advanced" feature set ALSO LETS YOU CHANGE (in general)
  • how likely each roadblock setup is to spawn horizontally mirrored instead, and
  • which active non-chasing cops the engagement count above the pursuit board also tracks.
 
-The "Advanced" feature set ALWAYS FIXES SEVENTEEN BUGS / ISSUES automatically:
+The "Advanced" feature set ALWAYS FIXES NINETEEN BUGS / ISSUES automatically:
  • the helicopter reports more consistent reasons whenever it bails,
  • chasing cops that exceed their type-specific count no longer flee,
  • HeavyStrategy 4 roadblocks can now spawn with more than 4 vehicles,
+ • the game no longer uses free-roam timers for patrol spawns in races,
+ • the game no longer skips the 991 call preceding patrol spawns in races,
  • the cops no longer stop calling out roadblocks / spikes over the radio,
  • the helicopter no longer competes with chasing cops for spawn opportunities,
  • cops joining pursuits from roadblocks no longer ignore cop-related spawn limits,
@@ -199,7 +202,7 @@ BEFORE INSTALLING Bartender:
  1) • read and understand the two sections about mod (in)compatibilities and dependencies below,
  2) • make sure your cracked copy of the game isn't a repack or came pre-modified in any way,
  3) • make sure your game's "speed.exe" is compatible (i.e. 5.75 MB / 6,029,312 bytes large), and
- 4) • install an .asi loader or any mod with one (e.g. the "WideScreenFix" mod by ThirteenAG).
+ 4) • install an .asi loader (replacing "dinput8.dll") or any mod that comes bundled with one.
 
 TO INSTALL Bartender:
  1) • copy Bartender's "scripts" folder to your game's folder, replacing existing files;
@@ -234,7 +237,8 @@ Bartender's "ADVANCED" FEATURE SET forces the game to no longer ignore the roadb
 The feature set also replaces specific "pursuitlevels" parameters for all Heat levels:
  • the "cops" array,
  • "HeliFuelTime",
- • "TimeBetweenHeliActive", and
+ • "TimeBetweenHeliActive",
+ • "TimeInactiveFor911", and
  • the "0x80deb840" array (Challenge Series only).
 
 Most OTHER .ASI MODS should be fully compatible with all Bartender configurations.
