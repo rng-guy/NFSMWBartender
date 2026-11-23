@@ -119,7 +119,6 @@ namespace MemoryTools
 		HMODULE module = nullptr;
 
 		constexpr DWORD flags = GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT;
-
 		if (not GetModuleHandleExA(flags, reinterpret_cast<LPCSTR>(GetModuleName), &module)) return {};
 
 		std::string path(MAX_PATH, '\0');
@@ -285,8 +284,9 @@ namespace MemoryTools
 
 				constexpr byte jmpOpcode = 0xE9; // jmp near, relative
 
-				const address   jmpOperand = target + sizeof(byte);
-				const ptrdiff_t jmpOffset  = jmpTarget - (jmpOperand + sizeof(ptrdiff_t));
+				const address   jmpOperand = target     + sizeof(byte);
+				const address   jmpEnd     = jmpOperand + sizeof(ptrdiff_t);
+				const ptrdiff_t jmpOffset  = jmpTarget  - jmpEnd; // bytes
 
 				std::memcpy(AsPointer<void>(target),     &jmpOpcode, sizeof(byte));
 				std::memcpy(AsPointer<void>(jmpOperand), &jmpOffset, sizeof(ptrdiff_t));
@@ -384,10 +384,10 @@ namespace MemoryTools
 		{
 			if (CopyAs<byte>(target) != 0xE8) // call near, relative
 				TerminateHostProgram(std::format("Failed to patch call at {:08x}.\nPlease contact the mod's author.", target));
-
-			const address   callOperand   = target      + sizeof(byte);
-			const address   callEnd       = callOperand + sizeof(ptrdiff_t);
-			const ptrdiff_t newCallOffset = newCallTarget - callEnd;
+			
+			const address   callOperand   = target        + sizeof(byte);
+			const address   callEnd       = callOperand   + sizeof(ptrdiff_t);
+			const ptrdiff_t newCallOffset = newCallTarget - callEnd; // bytes
 
 			oldCallTarget = callEnd + CopyAs<ptrdiff_t>(callOperand);
 
